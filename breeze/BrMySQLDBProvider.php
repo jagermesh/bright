@@ -154,6 +154,23 @@ class BrMySQLProviderTable {
 
   }
 
+  private function compileLeftJoin($filter, $tableName, $fieldName, $link, &$joins, &$joinsTables, &$where, &$args) {
+
+    foreach($filter as $joinTableName => $joinField) {
+      if (!in_array($joinTableName, $joinsTables)) {
+        $joinsTables[] = $joinTableName;
+        if (strpos($fieldName, '.') === false) {
+          $joins .= ' LEFT JOIN '.$joinTableName.' ON '.$tableName.'.'.$fieldName.' = '.$joinTableName.'.'.$joinField;
+        } else {
+          $joins .= ' LEFT JOIN '.$joinTableName.' ON '.$fieldName.' = '.$joinTableName.'.'.$joinField;        
+        }
+      } else {
+
+      }
+    }
+
+  }
+
   private function compileExists($filter, $tableName, $fieldName, $link, &$joins, &$joinsTables, &$where, &$args) {
 
     $where .= $link.' EXISTS (';
@@ -193,6 +210,9 @@ class BrMySQLProviderTable {
           break;
         case '$join':
           $this->compileJoin($filterValue, $tableName, $fieldName, $link, $joins, $joinsTables, $where, $args);
+          break;
+        case '$leftJoin':
+          $this->compileLeftJoin($filterValue, $tableName, $fieldName, $link, $joins, $joinsTables, $where, $args);
           break;
         case '$in':
           $where .= $link . $tableName . '.' . $fieldName . ' IN (?@)';
@@ -484,7 +504,7 @@ class BrMySQLDBProvider extends BrGenericDBProvider {
     br()->log()->writeln($sql, "QRY");
 
     $query = mysql_query($sql, $this->connection);
-    br()->log()->writeln('Query complete');
+    br()->log()->writeln('Query complete', 'SEP');
     
     if (!$query) {
       $error = $this->getLastError();

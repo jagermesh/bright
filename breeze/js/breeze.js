@@ -166,12 +166,20 @@ function Br() {
   this.showError = function(s) {
     alert(s);
   };
-  this.growlError = function(s) {
+  this.growlError = function(s, image) {
     if (!br.isEmpty(s)) {
+      if (typeof $.gritter != 'undefined') {
+        $.gritter.add({
+            title: ' '
+          , text: s
+          , class_name: 'gritter-red'
+          , image: image
+        });
+      } else
       if (typeof window.humane != 'undefined') {
         humane.log(s, { addnCls     : 'humane-jackedup-error humane-original-error'
-                      , clickToClose: true
-                      , timeout     : 10000
+                      //, clickToClose: true
+                      , timeout     : 5000
                       });
       } else {
         alert(s);
@@ -183,8 +191,16 @@ function Br() {
       alert(s);
     }
   };
-  this.growlMessage = function(s) {
+  this.growlMessage = function(s, image) {
     if (!br.isEmpty(s)) {
+      if (typeof $.gritter != 'undefined') {
+        $.gritter.add({
+            title: ' '
+          , text: s
+          , class_name: 'gritter-light'
+          , image: image
+        });
+      } else
       if (typeof window.humane != 'undefined') {
         humane.log(s);
       } else {
@@ -663,67 +679,77 @@ function BrDataSource(name, options) {
       url = url + requestRowid;
     }
 
+    var proceed = true;
+
     if (!disableEvents) {
-      callEvent('before:select', request, options);
-    }
-
-    if (this.options.limit) {
-      request.__limit = this.options.limit;
-    }
-
-    if (options && options.skip) {
-      request.__skip = options.skip;
-    }
-
-    if (options && options.limit) {
-      request.__limit = options.limit;
-    }
-
-    if (options && options.fields) {
-      request.__fields = options.fields;
-    }
-
-    if (options && options.order) {
-      request.__order = options.order;
-    }
-
-    function handleSuccess(data) {
-      if (!disableEvents && !disableGridEvents) {
-        callEvent('select', data);
-        callEvent('after:select', true, data, request);
+      try {
+        callEvent('before:select', request, options);
+      } catch(e) {
+        proceed = false;
       }
-      if (typeof callback == 'function') { callback.call(datasource, true, data, request); }
     }
 
-    function handleError(error, response) {
-      if (!disableEvents) {
-        callEvent('error', 'select', error);
-        callEvent('after:select', false, error, request);
+    if (proceed) {
+      if (this.options.limit) {
+        request.__limit = this.options.limit;
       }
-      if (typeof callback == 'function') { callback.call(datasource, false, error, request); }
-    }
 
-    if (datasource.options.offlineMode) {
-      handleSuccess(datasource.db(request).get());
-    } else {
-      this.ajaxRequest = $.ajax({ type: 'GET'
-                                , data: request
-                                , dataType: 'json'
-                                , url: url + (this.options.authToken ? '?token=' + this.options.authToken : '')
-                                , success: function(response) {
-                                    datasource.ajaxRequest = null;
-                                    if (response) {
-                                      handleSuccess(response);
-                                    } else {
-                                      handleError('', response);
+      if (options && options.skip) {
+        request.__skip = options.skip;
+      }
+
+      if (options && options.limit) {
+        request.__limit = options.limit;
+      }
+
+      if (options && options.fields) {
+        request.__fields = options.fields;
+      }
+
+      if (options && options.order) {
+        request.__order = options.order;
+      }
+
+      function handleSuccess(data) {
+        if (!disableEvents && !disableGridEvents) {
+          callEvent('select', data);
+          callEvent('after:select', true, data, request);
+        }
+        if (typeof callback == 'function') { callback.call(datasource, true, data, request); }
+      }
+
+      function handleError(error, response) {
+        if (!disableEvents) {
+          callEvent('error', 'select', error);
+          callEvent('after:select', false, error, request);
+        }
+        if (typeof callback == 'function') { callback.call(datasource, false, error, request); }
+      }
+
+      if (datasource.options.offlineMode) {
+        handleSuccess(datasource.db(request).get());
+      } else {
+        this.ajaxRequest = $.ajax({ type: 'GET'
+                                  , data: request
+                                  , dataType: 'json'
+                                  , url: url + (this.options.authToken ? '?token=' + this.options.authToken : '')
+                                  , success: function(response) {
+                                      datasource.ajaxRequest = null;
+                                      if (response) {
+                                        handleSuccess(response);
+                                      } else {
+                                        handleError('', response);
+                                      }
                                     }
-                                  }
-                                , error: function(jqXHR, textStatus, errorThrown) {
-                                    datasource.ajaxRequest = null;
-                                    var error = (jqXHR.statusText == 'abort') ? '' : jqXHR.responseText;
-                                    handleError(error, jqXHR);
-                                  }
-                                });
+                                  , error: function(jqXHR, textStatus, errorThrown) {
+                                      datasource.ajaxRequest = null;
+                                      var error = (jqXHR.statusText == 'abort') ? '' : jqXHR.responseText;
+                                      handleError(error, jqXHR);
+                                    }
+                                  });
+      }
+    } else {
+      
     }
 
   }

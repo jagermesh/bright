@@ -208,16 +208,16 @@ class BrRESTBinder extends BrObject {
                       $filter[] = array($fields => array('$gte' => $value['$gte']));
                     } else
                     if (br($value, '$in')) {
-                      $filter[$fields] = array('$in' => $value);
+                      $filter[] = array($fields => array('$in' => $value['$in']));
                     } else {
-                      $filter[$fields] = array('$in' => $value);
-                    }
+                      $filter[] = array($fields => array('$in' => $value));
+                    }                    
                   } else
                   if ($value == 'null') {
-                    $filter[$fields] = null;//array('$exists' => -1);
+                    $filter[$fields] = null;
                   } else
                   if ($value == '$null') {
-                    $filter[$fields] = null;//array('$exists' => -1);
+                    $filter[$fields] = null;
                   } else {
                     $filter[$fields] = $value;
                   }

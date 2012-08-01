@@ -205,7 +205,7 @@ class Br extends BrSingleton {
     foreach($array as $key => $value) {
       $go = false;
       if (is_array($value)) {
-        $value = BrArray::RemoveEmptyKeys($value);
+        $value = br()->RemoveEmptyKeys($value);
         $go = $value; 
       } else {
         $go = strlen($value);
