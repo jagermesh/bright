@@ -153,7 +153,7 @@ class BrRESTBinder extends BrObject {
 
   function routeAsGET($path, $dataSource, $options = array()) {
 
-    if (br()->request()->at($path)) {
+    if (br()->request()->isAt($path)) {
 
       br()->request()->continueRoute(false);
 
@@ -163,7 +163,7 @@ class BrRESTBinder extends BrObject {
       $security    = br($options, 'security');
 
       $event = 'select';
-      if ($matches = br()->request()->at(rtrim($path, '/').'/([0-9a-z]+)')) {
+      if ($matches = br()->request()->isAt(rtrim($path, '/').'/([0-9a-z]+)')) {
         $event = 'selectOne';
       }
 
@@ -259,7 +259,7 @@ class BrRESTBinder extends BrObject {
       }
 
       $selectOne = false;
-      if ($matches = br()->request()->at(rtrim($path, '/').'/([0-9a-z]+)')) {
+      if ($matches = br()->request()->isAt(rtrim($path, '/').'/([0-9a-z]+)')) {
         $filter[br()->db()->rowidField()] = br()->db()->rowid($matches[1]);
         $selectOne = true;
       }
@@ -322,11 +322,11 @@ class BrRESTBinder extends BrObject {
 
   function routeAsPOST($path, $dataSource, $options = array()) {
 
-    if (br()->request()->at(rtrim($path, '/'))) {
+    if (br()->request()->isAt(rtrim($path, '/'))) {
 
       $method = $method = br()->request()->get('__method');
       if (!$method) {
-        if ($matches = br()->request()->at(rtrim($path, '/').'/([a-zA-Z]+)/$')) {
+        if ($matches = br()->request()->isAt(rtrim($path, '/').'/([a-zA-Z]+)/$')) {
           $method = $matches[1];
         }
       }
@@ -365,7 +365,7 @@ class BrRESTBinder extends BrObject {
           }
         }
       } else
-      if ($matches = br()->request()->at(rtrim($path, '/').'/([0-9a-z]+)')) {
+      if ($matches = br()->request()->isAt(rtrim($path, '/').'/([0-9a-z]+)')) {
 
         // br()->request()->continueRoute(false);
 
@@ -427,7 +427,7 @@ class BrRESTBinder extends BrObject {
 
   function routeAsPUT($path, $dataSource, $options = array()) {
 
-    if ($matches = br()->request()->at($path)) {
+    if ($matches = br()->request()->isAt($path)) {
 
       br()->request()->continueRoute(false);
 
@@ -471,11 +471,11 @@ class BrRESTBinder extends BrObject {
 
   function routeAsDELETE($path, $dataSource, $options = array()) {
 
-    if ($matches = br()->request()->at($path)) {
+    if ($matches = br()->request()->isAt($path)) {
 
       br()->request()->continueRoute(false);
 
-      if ($matches = br()->request()->at(rtrim($path, '/').'/([0-9a-z]+)')) {
+      if ($matches = br()->request()->isAt(rtrim($path, '/').'/([0-9a-z]+)')) {
 
 
         $this->checkPermissions($options, array('remove', 'delete'));

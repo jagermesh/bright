@@ -113,9 +113,8 @@ class BrRequest extends BrSingleton {
     
   }
 
-  function at($path) {
-
-    if (@preg_match('~'.$path.'~', $this->path, $matches)) {
+  function isAt($url) {
+    if (@preg_match('~'.$url.'~', $this->url, $matches)) {
       return $matches;
     } else {
       return null;
@@ -123,9 +122,9 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function atBaseUrl($path) {
+  function isAtBaseUrl() {
   
-    return $this->at($this->baseUrl.'$');
+    return $this->isAt($this->baseUrl.'$');
     
   }  
 
@@ -410,7 +409,7 @@ class BrRequest extends BrSingleton {
     
     if (!$this->routeComplete()) {
       if ($this->isMethod($method)) {
-        if ($match = $this->at($path)) {
+        if ($match = $this->isAt($path)) {
           $this->continueRoute(false);
           $func($match);
         }

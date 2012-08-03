@@ -30,63 +30,23 @@ class BrMySQLRegExp {
 
 class BrMySQLProviderCursor implements Iterator {
 
-  private $sql;
-  private $position = 0;
-  private $rows = array();
-  private $limit;
-  private $skip;
+  private $sql, $args, $provider, $position = -1, $query, $row, $limit, $skip;
 
-  public function __construct($sql, $args, &$provider) {
+  public function __construct($sql, $args, &$provider, $unbuffered = false) {
 
     $this->sql = $sql;
     $this->args = $args;
     $this->provider = $provider;
     $this->position = -1;
+    $this->unbuffered = $unbuffered;
       
   }
 
-  private function getData() {
-
-    if ($this->position == -1) {
-      if (strlen($this->limit)) {
-        $this->sql = $this->provider->getLimitSQL($this->sql, $this->skip, $this->limit);
-      }
-      $this->rows = $this->provider->getRows($this->sql, $this->args);
-      $this->position = 0;
-    }
-
-  }
-
-  function limit($limit) {
-
-    $this->limit = $limit;
-    return $this;
-    
-  }
-
-  function count() {
-
-    return $this->provider->count($this->sql, $this->args);
-
-  }
-
-  function skip($skip) {
-
-    $this->skip = $skip;
-    return $this;
-
-  }
-
-  function rewind() {
-
-    $this->getData();
-    $this->position = 0;
-
-  }
+  // Interface methods
 
   function current() {
 
-    return $this->rows[$this->position];
+    return $this->row;
 
   }
 
@@ -98,13 +58,37 @@ class BrMySQLProviderCursor implements Iterator {
 
   function next() {
 
-    ++$this->position;
+    $this->row = $this->provider->selectNext($this->query);
+    $this->position++;
+
+  }
+
+  function rewind() {
+
+    $this->getData();
+    $this->position = 0;
 
   }
 
   function valid() {
 
-    return isset($this->rows[$this->position]);
+    return $this->row;
+
+  }
+
+  // End of interface methods
+
+  function limit($limit) {
+
+    $this->limit = $limit;
+    return $this;
+    
+  }
+
+  function skip($skip) {
+
+    $this->skip = $skip;
+    return $this;
 
   }
 
@@ -120,6 +104,27 @@ class BrMySQLProviderCursor implements Iterator {
     }
 
     return $this;
+
+  }
+
+  function count() {
+
+    return $this->provider->count($this->sql, $this->args);
+
+  }
+
+  // private
+
+  private function getData() {
+
+    if ($this->position == -1) {
+      if (strlen($this->limit)) {
+        $this->sql = $this->provider->getLimitSQL($this->sql, $this->skip, $this->limit);
+      }
+      $this->query = $this->provider->runQuery($this->sql, $this->args, $this->unbuffered);
+      $this->row = $this->provider->selectNext($this->query);
+      $this->position = 0;
+    }
 
   }
 
@@ -482,6 +487,18 @@ class BrMySQLDBProvider extends BrGenericDBProvider {
      
   }
 
+  function getCursor($sql, $args) { 
+
+    return new BrMySQLProviderCursor($sql, $args, $this, true);
+    
+  }
+
+  function select($sql, $args = array()) {
+
+    return $this->runQuery($sql, $args);
+
+  }
+
   function selectNext($query) { 
 
     $result = mysql_fetch_assoc($query);
@@ -503,7 +520,11 @@ class BrMySQLDBProvider extends BrGenericDBProvider {
     }
     br()->log()->writeln($sql, "QRY");
 
-    $query = mysql_query($sql, $this->connection);
+    if ($unbuffered) {
+      $query = mysql_unbuffered_query($sql, $this->connection);
+    } else {
+      $query = mysql_query($sql, $this->connection);      
+    }
     br()->log()->writeln('Query complete', 'SEP');
     
     if (!$query) {
@@ -644,16 +665,16 @@ class BrMySQLDBProvider extends BrGenericDBProvider {
           if ($row = $this->selectNext($query)) {
             return array_shift($row);  
           } else  {
-            return mysql_num_rows($this->runQuery($sql, $args)); 
+            return mysql_num_rows($this->runQuery($sql, $args, false)); 
           }
         } catch (Exception $e) {
-          return mysql_num_rows($this->runQuery($sql, $args)); 
+          return mysql_num_rows($this->runQuery($sql, $args, false)); 
         }
       } else {
-        return mysql_num_rows($this->runQuery($sql, $args)); 
+        return mysql_num_rows($this->runQuery($sql, $args, false)); 
       }
     } 
-    return mysql_num_rows($this->runQuery($sql, $args)); 
+    return mysql_num_rows($this->runQuery($sql, $args, false)); 
 
   }
 

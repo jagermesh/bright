@@ -708,6 +708,18 @@ class Br extends BrSingleton {
       $element = stripslashes($element); 
     }
   }
+
+  // utils
+
+  function formatTraffic($size) {
+    $unit=array('b','kb','mb','gb','tb','pb');
+    return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
+  }
+
+
+  function getMemoryUsage() {
+    return $this->formatTraffic(memory_get_usage(true));
+  }
   
 }
 
