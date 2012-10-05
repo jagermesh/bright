@@ -8,7 +8,7 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/BrSingleton.php');
+require_once(__DIR__.'/BrSingleton.php');
 
 class BrResponse extends BrSingleton {
 
@@ -77,12 +77,16 @@ class BrResponse extends BrSingleton {
     
   }
 
-  function send404() {
+  function send404($message = null) {
 
     if (!headers_sent()) { 
-      header('HTTP/1.0 404 Not Found');    
-      echo "<h1>404 Not Found</h1>";
-      echo "The page that you have requested could not be found.";
+      header('HTTP/1.0 404 Not Found');
+      if ($message) {
+        echo($message);
+      } else {
+        echo "<h1>404 Not Found</h1>";
+        echo "The page that you have requested could not be found.";
+      }
       exit();    
     }
     

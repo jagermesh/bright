@@ -8,7 +8,7 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/BrSingleton.php');
+require_once(__DIR__.'/BrSingleton.php');
 
 class BrRequest extends BrSingleton {
 
@@ -63,6 +63,8 @@ class BrRequest extends BrSingleton {
         $relativeUrl = substr($relativeUrl, strlen($baseUrl));
       }
 
+      $relativeUrl = ltrim($relativeUrl, '/');
+
       $this->url = $url;
       $this->path = $path;
       $this->domain = $domain;
@@ -98,6 +100,12 @@ class BrRequest extends BrSingleton {
         $this->clientIP = 'unknown';
       }
 
+    } else {
+
+      $this->domain  = br()->config()->get('br/request/consoleModeBaseDomain', 'localhost');
+      $this->host    = br()->config()->get('br/request/consoleModeBaseHost', 'http://'.$this->domain);
+      $this->baseUrl = br()->config()->get('br/request/consoleModeBaseUrl', '/');
+      
     }
             
   }
@@ -174,9 +182,15 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function baseUrl() {
+  function baseUrl($dec = 0) {
 
-    return $this->baseUrl;
+    $result = $this->baseUrl;
+    $dec = abs($dec);
+    while($dec) {
+      $result = preg_replace('#[^/]+/$#', '', $result);
+      $dec--;
+    }
+    return $result;
 
   }
 
@@ -481,13 +495,22 @@ class BrRequest extends BrSingleton {
 
   function routeIndex($func) {
 
-    return $this->route(br()->request()->host().br()->request()->baseUrl().'($|[?])', $func);
+    return $this->route(br()->request()->host().br()->request()->baseUrl().'($|index[.]html|[?])', $func);
 
   }
 
   function routeDefault() {
 
     if (!$this->routeComplete()) {
+
+      $asis = br()->atTemplatesPath(br()->request()->relativeUrl().br()->request()->scriptName());
+      if (preg_match('/[.]htm[l]?$/', $asis)) {
+        if (file_exists($asis)) {
+          br()->renderer()->display($asis);
+          return;
+        }
+      }
+
       br()->response()->send404();
     }
     

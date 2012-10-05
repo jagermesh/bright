@@ -232,7 +232,6 @@
     this.select = function(filter, callback, options) {
 
       var disableEvents = options && options.disableEvents;
-      var disableGridEvents = options && (options.result == 'count');
 
       var request = { };
       var requestRowid;
@@ -290,7 +289,7 @@
         }
 
         function handleSuccess(data) {
-          if (!disableEvents && !disableGridEvents) {
+          if (!disableEvents) {
             callEvent('select', data);
             callEvent('after:select', true, data, request);
           }
@@ -344,7 +343,12 @@
 
       var datasource = this;
 
-      request = params;
+      if (typeof params == 'function') {
+        request = { };
+        callback = params;
+      } else {
+        request = params;
+      }
 
       callEvent('before:' + method, request);
 
@@ -383,6 +387,7 @@
       hideEmptyValue = options.hideEmptyValue || false;
       emptyValue = options.emptyValue || '-- any --';
       selectedValue = options.selectedValue || null;
+      selectedValueField = options.selectedValueField || null;
       $(selector).each(function() {
         var val = $(this).val();
         if (br.isEmpty(val)) {
@@ -395,6 +400,11 @@
           s = s + '<option value="">' + emptyValue + '</option>';
         }
         for(i in data) {
+          if (!selectedValue && selectedValueField) {
+            if (data[i][selectedValueField] == '1') {
+              selectedValue = data[i][valueField];
+            }
+          }
           s = s + '<option value="' + data[i][valueField] + '">' + data[i][nameField] + '</option>';
         }
         $(this).html(s);

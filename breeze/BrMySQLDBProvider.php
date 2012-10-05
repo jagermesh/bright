@@ -8,7 +8,7 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/BrGenericSQLDBProvider.php');
+require_once(__DIR__.'/BrGenericSQLDBProvider.php');
 
 class BrMySQLRegExp {
 
@@ -189,6 +189,19 @@ class BrMySQLProviderTable {
 
   }
 
+  private function compileNotExists($filter, $tableName, $fieldName, $link, &$joins, &$joinsTables, &$where, &$args) {
+
+    $where .= $link.' NOT EXISTS (';
+    if (is_array($filter)) {
+      if ($existsSql = br($filter, '$sql')) {
+        $where .= str_replace('$', $tableName, $existsSql) . ')';
+      }
+    } else {
+      $where .= str_replace('$', $tableName, $filter) . ')';
+    }
+
+  }
+
   private function compileFilter($filter, $tableName, $fieldName, $link, &$joins, &$joinsTables, &$where, &$args) {
 
     foreach($filter as $currentFieldName => $filterValue) {
@@ -197,6 +210,11 @@ class BrMySQLProviderTable {
         $fname = $tableName.'.'.$currentFieldName;
       } else {
         $fname = $currentFieldName;
+      }
+      if (strpos($fieldName, '.') === false) {
+        $fname2 = $tableName.'.'.$fieldName;
+      } else {
+        $fname2 = $fieldName;
       }
       switch($currentFieldName) {
         // FUCKING BUG! 0 = '$and' //
@@ -213,6 +231,9 @@ class BrMySQLProviderTable {
         case '$exists':
           $this->compileExists($filterValue, $tableName, '', $link, $joins, $joinsTables, $where, $args);
           break;
+        case '$notExists':
+          $this->compileNotExists($filterValue, $tableName, '', $link, $joins, $joinsTables, $where, $args);
+          break;
         case '$join':
           $this->compileJoin($filterValue, $tableName, $fieldName, $link, $joins, $joinsTables, $where, $args);
           break;
@@ -220,32 +241,52 @@ class BrMySQLProviderTable {
           $this->compileLeftJoin($filterValue, $tableName, $fieldName, $link, $joins, $joinsTables, $where, $args);
           break;
         case '$in':
-          $where .= $link . $tableName . '.' . $fieldName . ' IN (?@)';
+          $where .= $link . $fname2 . ' IN (?@)';
           $args[] = br()->removeEmptyKeys($filterValue);
           break;
         case '$ne':
-          $where .= $link . $tableName . '.' . $fieldName . ' != ?';
+          $where .= $link . $fname2 . ' != ?';
           $args[] = $filterValue;
           break;
         case '$eq':
-          $where .= $link . $tableName . '.' . $fieldName . ' = ?';
+          $where .= $link . $fname2 . ' = ?';
           $args[] = $filterValue;
           break;
         case '$gt':
-          $where .= $link . $tableName . '.' . $fieldName . ' > ?';
+          $where .= $link . $fname2 . ' > ?';
           $args[] = $filterValue;
           break;
         case '$gte':
-          $where .= $link . $tableName . '.' . $fieldName . ' >= ?';
+          $where .= $link . $fname2 . ' >= ?';
           $args[] = $filterValue;
           break;
         case '$lt':
-          $where .= $link . $tableName . '.' . $fieldName . ' < ?';
+          $where .= $link . $fname2 . ' < ?';
           $args[] = $filterValue;
           break;
         case '$lte':
-          $where .= $link . $tableName . '.' . $fieldName . ' <= ?';
+          $where .= $link . $fname2 . ' <= ?';
           $args[] = $filterValue;
+          break;
+        case '$like':
+          $where .= $link . $fname2 . ' LIKE ?';
+          $args[] = $filterValue;
+          break;
+        case '$contains':
+          $where .= $link . $fname2 . ' LIKE ?';
+          $args[] = '%'.$filterValue.'%';
+          break;
+        case '$starts':
+          $where .= $link . $fname2 . ' LIKE ?';
+          $args[] = '%'.$filterValue;
+          break;
+        case '$ends':
+          $where .= $link . $fname2 . ' LIKE ?';
+          $args[] = $filterValue.'%';
+          break;
+        case '$regexp':
+          $where .= $link . $fname2 . ' REGEXP ?&';
+          $args[] = preg_replace('~([?*+])~', '[$1]', str_replace('\\', '\\\\', rtrim(ltrim($filterValue, '/'), '/i')));
           break;
         default:
           if (is_array($filterValue)) {
@@ -315,7 +356,7 @@ class BrMySQLProviderTable {
 
   }
   
-  function findOne($filter) {
+  function findOne($filter = array()) {
 
     if ($rows = $this->find($filter)) {
       foreach($rows as $row) {
@@ -597,6 +638,21 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   }
   
+  function getCachedRow() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    $cacheTag = 'MySQLDBProvder:getCachedRow:' . md5($sql) . md5(serialize($args));
+    $result = br()->cache()->get($cacheTag);
+    if (!$result) {
+      $result = $this->selectNext($this->internalRunQuery($sql, $args));
+      br()->cache()->set($cacheTag, $result);
+    }
+    return $result;
+
+  }
+  
   function getRows() {
 
     $args = func_get_args();
@@ -633,7 +689,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     $args = func_get_args();
     $sql = array_shift($args);
 
-    $cacheTag = 'MySQLDBProvder:getCachedValue:' . $sql . serialize($args);
+    $cacheTag = 'MySQLDBProvder:getCachedValue:' . md5($sql) . md5(serialize($args));
     $result = br()->cache()->get($cacheTag);
     if (!$result) {
       $result = $this->selectNext($this->internalRunQuery($sql, $args));
@@ -657,6 +713,27 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
       while($row = $this->selectNext($query)) {
         array_push($result, array_shift($row));  
       }
+    }
+    return $result;
+
+  }
+
+  function getCachedValues() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    $cacheTag = 'MySQLDBProvder:getCachedValues:' . $sql . serialize($args);
+    $result = br()->cache()->get($cacheTag);
+    if (!$result) {
+      $query = $this->internalRunQuery($sql, $args);
+      $result = array();
+      if (is_resource($query)) {
+        while($row = $this->selectNext($query)) {
+          array_push($result, array_shift($row));  
+        }
+      }
+      br()->cache()->set($cacheTag, $result);
     }
     return $result;
 

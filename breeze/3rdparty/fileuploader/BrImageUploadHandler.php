@@ -1,6 +1,6 @@
 <?php
 
-require_once(dirname(__FILE__).'/BrGenericUploadHandler.php');
+require_once(__DIR__.'/BrGenericUploadHandler.php');
 
 /**
  * Handle file uploads via XMLHttpRequest
@@ -219,7 +219,8 @@ class qqFileUploader {
    */
   function handleUpload($uploadDirectory, $url){
 
-    if (!is_writable($uploadDirectory)){
+    if (!is_writable($uploadDirectory)) {
+      br()->log("Server error. Upload directory " . $uploadDirectory . " isn't writable.");
       return array('error' => "Server error. Upload directory isn't writable.");
     }
     

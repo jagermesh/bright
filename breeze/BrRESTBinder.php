@@ -8,7 +8,7 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/BrObject.php');
+require_once(__DIR__.'/BrObject.php');
 
 class BrRESTBinder extends BrObject {
 
@@ -155,6 +155,10 @@ class BrRESTBinder extends BrObject {
 
     if (br()->request()->isAt($path)) {
 
+      if (is_string($dataSource)) {
+        $dataSource = new $dataSource();
+      }
+      
       br()->request()->continueRoute(false);
 
       $permissions = br()->auth()->findLogin($options);
@@ -267,27 +271,55 @@ class BrRESTBinder extends BrObject {
       $dataSourceOptions = array();
       $dataSourceOptions['source'] = 'RESTBinder';
 
-      if (br()->request()->get('__limit')) {
-        $dataSourceOptions['limit'] = br()->request()->get('__limit');
+      if ($limit = br()->request()->get('__limit')) {
+        if (is_numeric($limit)) {
+          $dataSourceOptions['limit'] = $limit;
+        }
       }
 
-      if (br()->request()->get('__skip')) {
-        $dataSourceOptions['skip'] = br()->request()->get('__skip');
+      if ($skip = br()->request()->get('__skip')) {
+        if (is_numeric($skip)) {
+          $dataSourceOptions['skip'] = $skip;
+        }
       }
 
-      if (br()->request()->get('__order')) {
-        $dataSourceOptions['order'] = br()->request()->get('__order');
+      if ($order = br()->request()->get('__order')) {
+        if (!is_array($order)) {
+          $order = array($order => 1);
+        }
+        $verifiedOrder = array();
+        foreach($order as $name => $direction) {
+          if (preg_match('#^[.A-Za-z_0-9]+$#', $name)) {
+            $verifiedOrder[$name] = $direction;
+          }
+        }
+        $dataSourceOptions['order'] = $verifiedOrder;
       }
 
-      if (br()->request()->get('__fields')) {
-        $dataSourceFields = br()->request()->get('__fields');
+      if ($fields = br()->request()->get('__fields')) {
+        if (!is_array($fields)) {
+          $fields = array($fields);
+        }
+        $verifiedFields = array();
+        foreach($fields as $name) {
+          if (preg_match('#^[.A-Za-z_0-9]+$#', $name)) {
+            $verifiedFields[] = $name;
+          }
+        }
+        $dataSourceFields = $verifiedFields;
       } else {
         $dataSourceFields = array();
       }
 
       try {
         if (br()->request()->get('__result') == 'count') {
-          $result = $dataSource->selectCount($filter, array(), array(), array('source' => 'RESTBinder'));
+          $allowEmptyFilter = br($options, 'allowEmptyFilter');
+          
+          if (!$filter && !$allowEmptyFilter) {
+            $result = 0;
+          } else {
+            $result = $dataSource->selectCount($filter, array(), array(), array('source' => 'RESTBinder'));
+          }
         } else {
           $allowEmptyFilter = br($options, 'allowEmptyFilter');
           
@@ -297,6 +329,9 @@ class BrRESTBinder extends BrObject {
 
           if ($selectOne) {
             $result = $dataSource->selectOne($filter, $dataSourceFields, array(), $dataSourceOptions);
+            if (!$result) {
+              br()->response()->send404('Record not found');
+            }
           } else {
             $result = $dataSource->select($filter, $dataSourceFields, array(), $dataSourceOptions);
           }
@@ -324,6 +359,10 @@ class BrRESTBinder extends BrObject {
   function routeAsPOST($path, $dataSource, $options = array()) {
 
     if (br()->request()->isAt(rtrim($path, '/'))) {
+
+      if (is_string($dataSource)) {
+        $dataSource = new $dataSource();
+      }
 
       $method = $method = br()->request()->get('__method');
       if (!$method) {
@@ -430,6 +469,13 @@ class BrRESTBinder extends BrObject {
 
     if ($matches = br()->request()->isAt($path)) {
 
+      if (is_string($dataSource)) {
+        $dataSource = new $dataSource();
+      }
+
+      $dataSourceOptions = array();
+      $dataSourceOptions['source'] = 'RESTBinder';
+
       br()->request()->continueRoute(false);
 
       $this->checkPermissions($options, array('insert'));
@@ -450,7 +496,8 @@ class BrRESTBinder extends BrObject {
         $row[$name] = $value;
       }
       try {
-        $result = $dataSource->insert($row);
+        $t = array();
+        $result = $dataSource->insert($row, $t, $dataSourceOptions);
         if (br()->request()->get('crossdomain')) {
           br()->response()->sendJSONP($result);
         } else {
@@ -473,6 +520,10 @@ class BrRESTBinder extends BrObject {
   function routeAsDELETE($path, $dataSource, $options = array()) {
 
     if ($matches = br()->request()->isAt($path)) {
+
+      if (is_string($dataSource)) {
+        $dataSource = new $dataSource();
+      }
 
       br()->request()->continueRoute(false);
 

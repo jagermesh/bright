@@ -16,14 +16,21 @@
 
     $('.action-signup').click(function() {
 
-      var form = $(this).closest('form');
       var data = {};
-      $(form).find('input').each(function() {
+
+      var form = $(this).closest('form');      
+      if (form.length == 0) {
+        form = $(this).closest('div.modal');
+      }
+      if (form.length > 0) {
+        $(form).find('input,select').each(function() {
+          data[$(this).attr('name')] = $(this).val();
+        });
+      }
+      $('.signup-field').each(function() {
         data[$(this).attr('name')] = $(this).val();
       });
-      $(form).find('select').each(function() {
-        data[$(this).attr('name')] = $(this).val();
-      });
+
       users.invoke('signup', data, function(result) {
         if (result) {
           br.redirect('?from=signup');
@@ -34,12 +41,18 @@
 
     $('.action-login').click(function() {
 
-      var form = $(this).closest('form');
       var data = {};
-      $(form).find('input').each(function() {
-        data[$(this).attr('name')] = $(this).val();
-      });
-      $(form).find('select').each(function() {
+
+      var form = $(this).closest('form');      
+      if (form.length == 0) {
+        form = $(this).closest('div.modal');
+      }
+      if (form.length > 0) {
+        $(form).find('input,select').each(function() {
+          data[$(this).attr('name')] = $(this).val();
+        });
+      }
+      $('.login-field').each(function() {
         data[$(this).attr('name')] = $(this).val();
       });
 
@@ -54,14 +67,20 @@
 
     });
 
-    $('.action-forgot-password').click(function() {
+    $('.action-remind-password').click(function() {
 
-      var form = $(this).closest('form');
       var data = {};
-      $(form).find('input').each(function() {
-        data[$(this).attr('name')] = $(this).val();
-      });
-      $(form).find('select').each(function() {
+
+      var form = $(this).closest('form');      
+      if (form.length == 0) {
+        form = $(this).closest('div.modal');
+      }
+      if (form.length > 0) {
+        $(form).find('input,select').each(function() {
+          data[$(this).attr('name')] = $(this).val();
+        });
+      }
+      $('.remind-password-field').each(function() {
         data[$(this).attr('name')] = $(this).val();
       });
 
@@ -76,7 +95,7 @@
 
     });
 
-    $('.action-logout').live('click', function() {
+    $('.action-logout').click(function() {
 
       users.invoke( 'logout'
                   , { }

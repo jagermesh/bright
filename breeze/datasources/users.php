@@ -12,7 +12,7 @@ class BrDataSourceUsers extends BrDataSource {
 
     $this->on('signup', function($dataSource, $params) { 
 
-      if (br()->config()->get('br/auth/api/signupDiabled')) {
+      if (!br()->config()->get('br/auth/api/signupEnabled')) {
 
         throw new Exception('Sorry. Signup is currently disabled.');
 
@@ -76,27 +76,52 @@ class BrDataSourceUsers extends BrDataSource {
 
     });
 
-    $this->on('insert', function($dataSource, &$row, &$data) { 
+    $this->on('insert', function($dataSource, &$row, $t, $options) { 
 
-      $loginField = br()->config()->get('br/auth/db/login-field', 'login');
-      $loginFieldLabel = br()->config()->get('br/auth/db/login-field-label', 'login');
-      $passwordField = br()->config()->get('br/auth/db/password-field', 'password');
+      if (br($options, 'source') == 'RESTBinder') {
 
-      if ($login = br()->html2text(br($row, $loginField))) {
-        if ($user = $dataSource->selectOne(array($loginField => $login))) {
-          throw new Exception('Such user already exists');
-        } else {
-          if (!br($row, $passwordField)) {
-            $data['password'] = substr(br()->guid(), 0, 8);
-          } else {
-            $data['password'] = $row[$passwordField];
-          }
-          $row[$passwordField]   = md5($data['password']);
-          //$row['token']      = br()->guid();
-          //$row['adminToken'] = br()->guid();
+        $security = br()->config()->get('br/auth/db/api/insert-user');
+
+        if (!$security) {
+          $security = 'login';
         }
-      } else {
-        throw new Exception('Please enter ' . $loginFieldLabel);
+
+        if (strpos($security, 'login') !== false) {
+          $login = br()->auth()->getLogin();
+          if (!$login) {
+            throw new Exception('You are not allowed to insert users');
+          }
+          if (strpos($security, 'anyone') === false) {
+            throw new Exception('You are not allowed to insert users');
+          }
+        } else
+        if (strpos($security, 'anyone') === false) {
+          throw new Exception('You are not allowed to insert users');
+        }
+
+        // we are here so let's work
+        $loginField = br()->config()->get('br/auth/db/login-field', 'login');
+        $loginFieldLabel = br()->config()->get('br/auth/db/login-field-label', 'login');
+        $passwordField = br()->config()->get('br/auth/db/password-field', 'password');
+
+        if ($login = br()->html2text(br($row, $loginField))) {
+          if ($user = $dataSource->selectOne(array($loginField => $login))) {
+            throw new Exception('Such user already exists');
+          } else {
+            if (!br($row, $passwordField)) {
+              $data['password'] = substr(br()->guid(), 0, 8);
+            } else {
+              $data['password'] = $row[$passwordField];
+            }
+            $row[$passwordField]   = md5($data['password']);
+            //$row['token']      = br()->guid();
+            //$row['adminToken'] = br()->guid();
+          }
+        } else {
+          throw new Exception('Please enter ' . $loginFieldLabel);
+        }
+
+        
       }
 
     });
@@ -157,15 +182,22 @@ class BrDataSourceUsers extends BrDataSource {
 
     });
 
-    $this->before('update', function($dataSource, &$row) { 
+    $this->before('update', function($dataSource, &$row, $t, $old) { 
 
       $passwordField = br()->config()->get('br/auth/db/password-field', 'password');
+      $plainPasswords = br()->config()->get('br/auth/plainPasswords', false);
 
       if (isset($row[$passwordField])) {
         if ($row[$passwordField]) {
-          $row[$passwordField] = md5($row[$passwordField]);
+          if ($row[$passwordField] != br($old, $passwordField)) {
+            if ($plainPasswords) {
+
+            } else {
+              $row[$passwordField] = md5($row[$passwordField]);
+            }
+          }
         } else {
-          unset($row[$passwordField]);
+          $row[$passwordField] = $old[$passwordField];
         }
       }
 
@@ -200,7 +232,6 @@ class BrDataSourceUsers extends BrDataSource {
         if ($plainPasswords) {
         } else {
           $password = md5($password);
-
         }
         $filter = array( $loginField    => $params[$loginField]
                        , $passwordField => $password 
@@ -226,7 +257,9 @@ class BrDataSourceUsers extends BrDataSource {
             throw new Exception('Access denied');
           }
         } else {
-          throw new Exception('Invalid login/password or user not found');
+          $data = array('filter' => $filter, 'error' => 'Invalid login/password or user not found');
+          $dataSource->callEvent('loginError', $data);
+          throw new Exception($data['error']);
         }
       } else {
         throw new Exception('Please enter login/password');
@@ -264,58 +297,66 @@ class BrDataSourceUsers extends BrDataSource {
 
     $this->on('remindPassword', function($dataSource, $params) { 
 
-      $loginField = br()->config()->get('br/auth/db/login-field', 'login');
-      $loginFieldLabel = br()->config()->get('br/auth/db/login-field-label', 'login');
-      $passwordField = br()->config()->get('br/auth/db/password-field', 'password');
+      if (!br()->config()->get('br/auth/api/passwordReminderEnabled')) {
 
-      if ($login = br($params, $loginField)) {
-        if ($user = $dataSource->selectOne(array($loginField => $login))) {
-          $emailField = br()->config()->get('br/auth/db/email-field', 'email');
-          if ($email = br($user, $emailField)) {
-            if ($mailTemplate = br()->config()->get('br/auth/mail/forgot-password/template')) {
-              br()->importAtBasePath('breeze/3rdparty/phpmailer/class.phpmailer.php');
-              $mail = new PHPMailer(true);
-              try {
-                $mail->AddReplyTo(br()->config()->get('br/auth/mail/from', 'noreply@localhost'));
-                $mail->AddAddress($login);
-                $mail->SetFrom(br()->config()->get('br/auth/mail/from', 'noreply@localhost'));
-                $mail->Subject = br()->config()->get('br/auth/mail/forgot-password/subject', 'Registration complete');
-                $data = array();
-                $data[$passwordField] = substr(br()->guid(), 0, 8);                
-                $user[$passwordField] = $data[$passwordField];
-                $data[$passwordField] = md5($data[$passwordField]);
-                //$data['token']        = br()->guid();
-                //$data['adminToken']   = br()->guid();
-                $message = br()->renderer()->fetch($mailTemplate, $user);
-                $mail->MsgHTML($message, br()->templatesPath());
-                if ($mail->Body) {
-                  if ($mail->Send()) {
-                    $dataSource->update(br()->db()->rowidValue($user), $data);
-                    br()->log()->writeLn('New password sent to ' . $email);
-                    br()->log()->writeLn($user);
-                    return true;
+        throw new Exception('Sorry. Password reminder is currently disabled.');
+
+      } else {
+
+        $loginField = br()->config()->get('br/auth/db/login-field', 'login');
+        $loginFieldLabel = br()->config()->get('br/auth/db/login-field-label', 'login');
+        $passwordField = br()->config()->get('br/auth/db/password-field', 'password');
+
+        if ($login = br($params, $loginField)) {
+          if ($user = $dataSource->selectOne(array($loginField => $login))) {
+            $emailField = br()->config()->get('br/auth/db/email-field', 'email');
+            if ($email = br($user, $emailField)) {
+              if ($mailTemplate = br()->config()->get('br/auth/mail/forgot-password/template')) {
+                br()->importAtBasePath('breeze/3rdparty/phpmailer/class.phpmailer.php');
+                $mail = new PHPMailer(true);
+                try {
+                  $mail->AddReplyTo(br()->config()->get('br/auth/mail/from', 'noreply@localhost'));
+                  $mail->AddAddress($login);
+                  $mail->SetFrom(br()->config()->get('br/auth/mail/from', 'noreply@localhost'));
+                  $mail->Subject = br()->config()->get('br/auth/mail/forgot-password/subject', 'Password reminder');
+                  $data = array();
+                  $data[$passwordField] = substr(br()->guid(), 0, 8);                
+                  $user[$passwordField] = $data[$passwordField];
+                  $data[$passwordField] = md5($data[$passwordField]);
+                  //$data['token']        = br()->guid();
+                  //$data['adminToken']   = br()->guid();
+                  $message = br()->renderer()->fetch($mailTemplate, $user);
+                  $mail->MsgHTML($message, br()->templatesPath());
+                  if ($mail->Body) {
+                    if ($mail->Send()) {
+                      $dataSource->update(br()->db()->rowidValue($user), $data);
+                      br()->log()->writeLn('New password sent to ' . $email);
+                      br()->log()->writeLn($user);
+                      return true;
+                    } else {
+                      throw new Exception('Mail was not sent because of unknown error');
+                    }
                   } else {
-                    throw new Exception('Mail was not sent because of unknown error');
+                    throw new Exception('We can not send you new password because mail template is empty');
                   }
-                } else {
-                  throw new Exception('We can not send you new password because mail template is empty');
+                } catch (phpmailerException $e) {
+                  throw new Exception(br()->html2text($e->getMessage()));
+                } catch (Exception $e) {
+                  throw new Exception(br()->html2text($e->getMessage()));
                 }
-              } catch (phpmailerException $e) {
-                throw new Exception(br()->html2text($e->getMessage()));
-              } catch (Exception $e) {
-                throw new Exception(br()->html2text($e->getMessage()));
+              } else {
+                throw new Exception('We can not reset your password - there is no mail template for this');
               }
             } else {
-              throw new Exception('We can not reset your password - there is no mail template for this');
+              throw new Exception('We can not reset your password - email field not found or empty');
             }
           } else {
-            throw new Exception('We can not reset your password - email field not found or empty');
+            throw new Exception('User not found');
           }
         } else {
-          throw new Exception('User not found');
+          throw new Exception('Please enter ' . $loginFieldLabel);
         }
-      } else {
-        throw new Exception('Please enter ' . $loginFieldLabel);
+
       }
 
     });

@@ -8,9 +8,9 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/BrSingleton.php');
-require_once(dirname(__FILE__).'/BrException.php');
-require_once(dirname(__FILE__).'/BrFileRenderer.php');
+require_once(__DIR__.'/BrSingleton.php');
+require_once(__DIR__.'/BrException.php');
+require_once(__DIR__.'/BrFileRenderer.php');
 
 class BrApplication extends BrSingleton {
 
@@ -20,25 +20,13 @@ class BrApplication extends BrSingleton {
 
     parent::__construct();
 
-    br()->log()->writeLn(str_pad('*', 80, '*'));
-    br()->log()->writeLn('Application start', 'STP');
-    br()->log()->writeLn('PHP Version: '.phpversion(), 'INF');
-    br()->log()->writeLn('Server Name: '.br($_SERVER, 'SERVER_NAME'), 'INF');
-    if (function_exists('posix_getpid')) {
-      br()->log()->writeLn('PID: '.posix_getpid(), 'INF');
-    }
-    br()->log()->writeLn(str_pad('*', 80, '*'));
+    br()->profiler()->logStart('APPLICATION');
 
-    if (!br()->isConsoleMode()) {
-      br()->log()->writeLn('Request: [' . br()->request()->method() . '] ' . br()->request()->url());
-      br()->log()->writeLn('Client IP: ' . br()->request()->clientIP());
-    }
+    register_shutdown_function(array(&$this, "end"));
 
   }
 
   function main() {
-
-    br()->log()->writeLn('Main start', 'STP');
 
     br()
       ->request()
@@ -90,19 +78,18 @@ class BrApplication extends BrSingleton {
       }
     }
 
-    br()->log()->writeLn('Main end', 'STP');
-
-    register_shutdown_function(array(&$this, "end"));
-
     if ($controllerFile) {
       br()->log()->writeLn('Contoller: '.$controllerFile);
       br()->import($controllerFile);      
+    } else {
+      br()->response()->send404();
     }
 
   }
 
   function end() {
-    br()->log()->writeLn('Application finish', 'STP');    
+    br()->profiler()->logFinish('APPLICATION');
+    br()->log()->write('');
   }
 
 }

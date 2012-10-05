@@ -8,8 +8,8 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/BrRSSArticle.php');
-require_once(dirname(__FILE__).'/BrObject.php');
+require_once(__DIR__.'/BrRSSArticle.php');
+require_once(__DIR__.'/BrObject.php');
 
 class BrRSSFeed extends BrObject {
 

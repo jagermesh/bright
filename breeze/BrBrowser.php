@@ -8,7 +8,7 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/BrObject.php');
+require_once(__DIR__.'/BrObject.php');
 
 class BrBrowser extends BrObject {
 
@@ -62,7 +62,7 @@ class BrBrowser extends BrObject {
     //curl_setopt ($this->curl, CURLOPT_VERBOSE, 1);
     //curl_setopt ($this->curl, CURLOPT_BINARYTRANSFER, 1);
 
-    //curl_setopt($this->curl, CURLOPT_TIMEOUT, 30); 
+    // curl_setopt($this->curl, CURLOPT_TIMEOUT, 5); 
     //curl_setopt($this->curl, CURLOPT_FRESH_CONNECT, 1);
     
     //if ($cookie) {

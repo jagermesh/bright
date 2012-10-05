@@ -82,7 +82,7 @@
       } else {        
         var result = _helper.unpack(_storage.getItem(key));
       }
-      return br.isEmpty(result) ? (br.isEmpty(defaultValue) ? result : defaultValue) : result;
+      return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
     }
 
     this.set = function(key, value) {
@@ -212,7 +212,7 @@
           }
         }
       }
-      return br.isEmpty(result) ? (br.isEmpty(defaultValue) ? result : defaultValue) : result;
+      return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
    }
 
     this.getLast = function(key, defaultValue) {
@@ -584,7 +584,6 @@
     this.select = function(filter, callback, options) {
 
       var disableEvents = options && options.disableEvents;
-      var disableGridEvents = options && (options.result == 'count');
 
       var request = { };
       var requestRowid;
@@ -642,7 +641,7 @@
         }
 
         function handleSuccess(data) {
-          if (!disableEvents && !disableGridEvents) {
+          if (!disableEvents) {
             callEvent('select', data);
             callEvent('after:select', true, data, request);
           }
@@ -696,7 +695,12 @@
 
       var datasource = this;
 
-      request = params;
+      if (typeof params == 'function') {
+        request = { };
+        callback = params;
+      } else {
+        request = params;
+      }
 
       callEvent('before:' + method, request);
 
@@ -735,6 +739,7 @@
       hideEmptyValue = options.hideEmptyValue || false;
       emptyValue = options.emptyValue || '-- any --';
       selectedValue = options.selectedValue || null;
+      selectedValueField = options.selectedValueField || null;
       $(selector).each(function() {
         var val = $(this).val();
         if (br.isEmpty(val)) {
@@ -747,6 +752,11 @@
           s = s + '<option value="">' + emptyValue + '</option>';
         }
         for(i in data) {
+          if (!selectedValue && selectedValueField) {
+            if (data[i][selectedValueField] == '1') {
+              selectedValue = data[i][valueField];
+            }
+          }
           s = s + '<option value="' + data[i][valueField] + '">' + data[i][nameField] + '</option>';
         }
         $(this).html(s);
@@ -800,10 +810,12 @@
     this.options.templates = this.options.templates || {};
     this.options.templates.row = rowTemplate;
     this.options.dataSource = dataSource;
+    this.options.headersSelector = this.options.headersSelector || this.selector;
+    this.options.footersSelector = this.options.footersSelector || this.selector;
 
     this.on = function(event, callback) {
       this.cb[event] = this.cb[event] || new Array();
-      this.cb[event][this.cb[event].length] = callback;
+      this.cb[event].push(callback);
     }
 
     function callEvent(event, data) {
@@ -974,6 +986,8 @@
             }
           }
           $(datagrid.selector).html('');
+          $(datagrid.options.headersSelector).html('');
+          $(datagrid.options.footersSelector).html('');
           if (data.rows) {
             if (data.rows.length == 0) {
               $(datagrid.selector).html($(this.options.templates.noData).html());
@@ -984,10 +998,10 @@
                     $(datagrid.selector).append(datagrid.renderRow(data.rows[i].row));
                   }
                   if (data.rows[i].header) {
-                    $(datagrid.selector).append(datagrid.renderHeader(data.rows[i].header));
+                    $(datagrid.options.headersSelector).append(datagrid.renderHeader(data.rows[i].header));
                   }
                   if (data.rows[i].footer) {
-                    $(datagrid.selector).append(datagrid.renderFooter(data.rows[i].footer));
+                    $(datagrid.options.footersSelector).append(datagrid.renderFooter(data.rows[i].footer));
                   }
                 }
               }
@@ -1037,9 +1051,10 @@
 
     _this.selector = selector;
     _this.dataSource = dataSource;
-    _this.options = options;
+    _this.options = options || {};
     _this.fields = _this.options.fields || {};
     _this.saveSelection = _this.options.saveSelection || false;
+    _this.selectedValueField = _this.options.selectedValueField || null;
 
     _this.cb = {};
 
@@ -1069,7 +1084,7 @@
       callEvent('load', data);
     }
 
-    _this.reload = function(callback) {
+    _this.load = _this.reload = function(callback) {
       _this.dataSource.select({}, function(result) {
         if (result) {
           if (callback) {
@@ -1149,7 +1164,7 @@
         _this.ctrl.data('original-content', content);
         var width = _this.ctrl.innerWidth();
         _this.ctrl.text('');
-        _this.editor = $('<input />');
+        _this.editor = $('<input type="text" />');
         _this.editor.css('width', '100%');
         _this.editor.css('box-sizing', '100%');
         _this.editor.css('-webkit-box-sizing', 'border-box');
@@ -1248,7 +1263,7 @@
   };
 
   window.br.refresh = function() {
-    document.location = document.location;
+    location.reload();
   };
 
   window.br.preloadImages = function(images) {
@@ -1337,67 +1352,86 @@
 
   };
 
-  var modifiedTimeout;
+  function handleModified(element, callback) {
+    var _this = $(element);
+    if (_this.data('br-last-change') != _this.val()) {
+      _this.data('br-last-change', _this.val());
+      var callbacks = _this.data('br-data-change-callbacks');
+      if (callbacks) {
+        for(i in callbacks) {
+          callbacks[i].call(_this);
+        }
+      } else {
+        callback.call(_this);
+      }
+    }
+  }
 
-  window.br.modifiedDeferred = function(selector, callback) {
+  function setupModified(selector, callback, deferred) {
+    $(selector).each(function() {
+      if (!$(this).data('br-data-change-callbacks')) {
+        $(this).data('br-data-change-callbacks', new Array());
+      }
+      var callbacks = $(this).data('br-data-change-callbacks');
+      callbacks.push(callback);
+      $(this).data('br-data-change-callbacks', callbacks);
+    });
     $(selector).live('change', function() {
       var $this = $(this);
-      window.clearTimeout(modifiedTimeout);
-      modifiedTimeout = window.setTimeout(function() {
-        if ($this.data('br-last-change') != $this.val()) {
-          $this.data('br-last-change', $this.val());
-          callback.call($this);
-        }
-      }, 500);
+      if (deferred) {
+        window.clearTimeout($this.data('br-modified-timeout'));
+        $(this).data('br-modified-timeout', window.setTimeout(function() {
+          handleModified($this, callback);
+        }, 500));
+      } else {
+        handleModified($this, callback);
+      }
     });
     $(selector).live('keyup', function(e) {
       if ((e.keyCode == 8) || (e.keyCode == 32) || ((e.keyCode >= 48) && (e.keyCode <= 90)) || ((e.keyCode >= 96) && (e.keyCode <= 111)) || ((e.keyCode >= 186) && (e.keyCode <= 222))) {
         var $this = $(this);
-        window.clearTimeout(modifiedTimeout);
-        modifiedTimeout = window.setTimeout(function() {
-          if ($this.data('br-last-change') != $this.val()) {
-            $this.data('br-last-change', $this.val());
-            callback.call($this);
-          }
-          // callback.call($this);
-        }, 500);
+        if (deferred) {
+          window.clearTimeout($this.data('br-modified-timeout'));
+          $(this).data('br-modified-timeout', window.setTimeout(function() {
+            handleModified($this, callback);
+          }, 500));
+        } else {
+          handleModified($this, callback);
+        }
       }
     });
   }
 
+  window.br.modifiedDeferred = function(selector, callback) {
+    setupModified(selector, callback, true);
+  }
+
   window.br.modified = function(selector, callback) {
-    $(selector).live('change', function() {
-      if ($(this).data('br-last-change') != $(this).val()) {
-        $(this).data('br-last-change', $(this).val());
-        callback.call(this);
-      }
-    });
-    $(selector).live('keyup', function(e) {
-      if ((e.keyCode == 8) || (e.keyCode == 32) || ((e.keyCode >= 48) && (e.keyCode <= 90)) || ((e.keyCode >= 96) && (e.keyCode <= 111)) || ((e.keyCode >= 186) && (e.keyCode <= 222))) {
-        if ($(this).data('br-last-change') != $(this).val()) {
-          $(this).data('br-last-change', $(this).val());
-          callback.call(this);
-        }
-      }
-    });
+    setupModified(selector, callback, false);
   }
 
   window.br.closeConfirmationMessage = 'Some changes have been made. Are you sure you want to close current window?';
 
   function breezeConfirmClose() {
-    return closeConfirmationMessage;
+    return br.closeConfirmationMessage;
   }
 
   window.br.confirmClose = function(message) {
     if (message) {
-      closeConfirmationMessage = message;
+      br.closeConfirmationMessage = message;
     }
+
     window.onbeforeunload = breezeConfirmClose;
   }
 
   window.br.resetCloseConfirmation = function(message) {
     window.onbeforeunload = null;
   }
+
+  window.br.resourceLoader = function(j){function p(c,a){var g=j.createElement(c),b;for(b in a)a.hasOwnProperty(b)&&g.setAttribute(b,a[b]);return g}function m(c){var a=k[c],b,e;if(a)b=a.callback,e=a.urls,e.shift(),h=0,e.length||(b&&b.call(a.context,a.obj),k[c]=null,n[c].length&&i(c))}function u(){if(!b){var c=navigator.userAgent;b={async:j.createElement("script").async===!0};(b.webkit=/AppleWebKit\//.test(c))||(b.ie=/MSIE/.test(c))||(b.opera=/Opera/.test(c))||(b.gecko=/Gecko\//.test(c))||(b.unknown=!0)}}function i(c,
+    a,g,e,h){var i=function(){m(c)},o=c==="css",f,l,d,q;u();if(a)if(a=typeof a==="string"?[a]:a.concat(),o||b.async||b.gecko||b.opera)n[c].push({urls:a,callback:g,obj:e,context:h});else{f=0;for(l=a.length;f<l;++f)n[c].push({urls:[a[f]],callback:f===l-1?g:null,obj:e,context:h})}if(!k[c]&&(q=k[c]=n[c].shift())){r||(r=j.head||j.getElementsByTagName("head")[0]);a=q.urls;f=0;for(l=a.length;f<l;++f)g=a[f],o?d=b.gecko?p("style"):p("link",{href:g,rel:"stylesheet"}):(d=p("script",{src:g}),d.async=!1),d.className=
+    "lazyload",d.setAttribute("charset","utf-8"),b.ie&&!o?d.onreadystatechange=function(){if(/loaded|complete/.test(d.readyState))d.onreadystatechange=null,i()}:o&&(b.gecko||b.webkit)?b.webkit?(q.urls[f]=d.href,s()):(d.innerHTML='@import "'+g+'";',m("css")):d.onload=d.onerror=i,r.appendChild(d)}}function s(){var c=k.css,a;if(c){for(a=t.length;--a>=0;)if(t[a].href===c.urls[0]){m("css");break}h+=1;c&&(h<200?setTimeout(s,50):m("css"))}}var b,r,k={},h=0,n={css:[],js:[]},t=j.styleSheets;return{css:function(c,
+    a,b,e){i("css",c,a,b,e)},js:function(c,a,b,e){i("js",c,a,b,e)}}}(this.document);
 
 }(jQuery, window);
 // 
@@ -1591,100 +1625,6 @@
     if ($('.focused').length > 0) {
       $('.focused')[0].focus();
     }
-
-  });
-
-}(jQuery, window);
-// 
-// Breeze Framework : Version 0.0.5
-// (C) Sergiy Lavryk
-// jagermesh@gmail.com
-// 
-
-!function ($, window, undefined) {
-
-  $(document).ready(function() { 
-    
-    var users = br.dataSource(br.baseUrl + 'api/users/');
-
-    users.on('error', function(operation, error) {
-      br.growlError(error);
-    });
-
-    $('.action-signup').click(function() {
-
-      var form = $(this).closest('form');
-      var data = {};
-      $(form).find('input').each(function() {
-        data[$(this).attr('name')] = $(this).val();
-      });
-      $(form).find('select').each(function() {
-        data[$(this).attr('name')] = $(this).val();
-      });
-      users.invoke('signup', data, function(result) {
-        if (result) {
-          br.redirect('?from=signup');
-        }
-      });
-
-    });
-
-    $('.action-login').click(function() {
-
-      var form = $(this).closest('form');
-      var data = {};
-      $(form).find('input').each(function() {
-        data[$(this).attr('name')] = $(this).val();
-      });
-      $(form).find('select').each(function() {
-        data[$(this).attr('name')] = $(this).val();
-      });
-
-      users.invoke( 'login'
-                  , data
-                  , function(result) {
-                      if (result) {
-                        br.redirect(br.request.get('caller', '?from=login'));
-                      }
-                    }
-                  );
-
-    });
-
-    $('.action-forgot-password').click(function() {
-
-      var form = $(this).closest('form');
-      var data = {};
-      $(form).find('input').each(function() {
-        data[$(this).attr('name')] = $(this).val();
-      });
-      $(form).find('select').each(function() {
-        data[$(this).attr('name')] = $(this).val();
-      });
-
-      users.invoke( 'remindPassword'
-                  , data
-                  , function(result) {
-                      if (result) {
-                        br.redirect(br.request.get('caller', '?from=login'));
-                      }
-                    }
-                  );
-
-    });
-
-    $('.action-logout').live('click', function() {
-
-      users.invoke( 'logout'
-                  , { }
-                  , function(result) {
-                      if (result) {
-                        document.location = br.baseUrl;
-                      }
-                    }
-                  );
-
-    });
 
   });
 

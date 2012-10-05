@@ -23,10 +23,12 @@
     this.options.templates = this.options.templates || {};
     this.options.templates.row = rowTemplate;
     this.options.dataSource = dataSource;
+    this.options.headersSelector = this.options.headersSelector || this.selector;
+    this.options.footersSelector = this.options.footersSelector || this.selector;
 
     this.on = function(event, callback) {
       this.cb[event] = this.cb[event] || new Array();
-      this.cb[event][this.cb[event].length] = callback;
+      this.cb[event].push(callback);
     }
 
     function callEvent(event, data) {
@@ -197,6 +199,8 @@
             }
           }
           $(datagrid.selector).html('');
+          $(datagrid.options.headersSelector).html('');
+          $(datagrid.options.footersSelector).html('');
           if (data.rows) {
             if (data.rows.length == 0) {
               $(datagrid.selector).html($(this.options.templates.noData).html());
@@ -207,10 +211,10 @@
                     $(datagrid.selector).append(datagrid.renderRow(data.rows[i].row));
                   }
                   if (data.rows[i].header) {
-                    $(datagrid.selector).append(datagrid.renderHeader(data.rows[i].header));
+                    $(datagrid.options.headersSelector).append(datagrid.renderHeader(data.rows[i].header));
                   }
                   if (data.rows[i].footer) {
-                    $(datagrid.selector).append(datagrid.renderFooter(data.rows[i].footer));
+                    $(datagrid.options.footersSelector).append(datagrid.renderFooter(data.rows[i].footer));
                   }
                 }
               }

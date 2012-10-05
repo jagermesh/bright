@@ -8,7 +8,7 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/BrObject.php');
+require_once(__DIR__.'/BrObject.php');
 
 class BrCache extends BrObject {
 
@@ -40,19 +40,19 @@ class BrCache extends BrObject {
       if (!isset($instances[$name])) { 
         switch($cacheConfig['engine']) {
           case "memcache":
-            require_once(dirname(__FILE__).'/BrMemCacheCacheProvider.php');
+            require_once(__DIR__.'/BrMemCacheCacheProvider.php');
             $instance = new BrMemCacheCacheProvider($cacheConfig);
             break;
           case "memory":
-            require_once(dirname(__FILE__).'/BrMemoryCacheProvider.php');
+            require_once(__DIR__.'/BrMemoryCacheProvider.php');
             $instance = new BrMemoryCacheProvider($cacheConfig);
             break;
           case "apc":
-            require_once(dirname(__FILE__).'/BrAPCCacheProvider.php');
+            require_once(__DIR__.'/BrAPCCacheProvider.php');
             $instance = new BrAPCCacheProvider($cacheConfig);
             break;
           case "xcache":
-            require_once(dirname(__FILE__).'/BrXCacheCacheProvider.php');
+            require_once(__DIR__.'/BrXCacheCacheProvider.php');
             $instance = new BrXCacheCacheProvider($cacheConfig);
             break;
           default:
@@ -75,13 +75,13 @@ class BrCache extends BrObject {
   
     switch ($engine) {
       case "memcache":
-        require_once(dirname(__FILE__).'/BrMemCacheCacheProvider.php');
+        require_once(__DIR__.'/BrMemCacheCacheProvider.php');
         return BrMemCacheCacheProvider::isSupported();
       case "apc":
-        require_once(dirname(__FILE__).'/BrAPCCacheProvider.php');
+        require_once(__DIR__.'/BrAPCCacheProvider.php');
         return BrAPCCacheProvider::isSupported();
       case "xcache":
-        require_once(dirname(__FILE__).'/BrXCacheCacheProvider.php');
+        require_once(__DIR__.'/BrXCacheCacheProvider.php');
         return BrXCacheCacheProvider::isSupported();
       default:
         return true;

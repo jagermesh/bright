@@ -8,7 +8,7 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/BrObject.php');
+require_once(__DIR__.'/BrObject.php');
   
 class BrDateTime extends BrObject {
   
@@ -17,7 +17,7 @@ class BrDateTime extends BrObject {
   var $month;
   var $year;
   var $hour;
-  var $minute;
+  var $mute;
   var $second;
   
   function __construct($date = null) {
@@ -48,6 +48,14 @@ class BrDateTime extends BrObject {
 
     $this->day = $day;
     $this->set($this->asDateTime());
+    
+  }
+  
+  function setDayToLast() {
+
+    $this->setDay(1);
+    $this->incMonth(1);
+    $this->decDay(1);
     
   }
   
@@ -136,10 +144,11 @@ class BrDateTime extends BrObject {
 
   function daysBetween($date = null, $with_sign = false) {
     
-    if (!$date)
+    if (!$date) {
       $date = mktime();
-    $date = new date_time($date);
-    $diff = ($this->as_date() - $date->as_date())/60/60/24;
+    }
+    $date = new BrDateTime($date);
+    $diff = ($this->asDate() - $date->asDate())/60/60/24;
     if (!$with_sign) {
       $diff = abs($diff);
     }  
@@ -149,8 +158,9 @@ class BrDateTime extends BrObject {
 
   function minutesBetween($date = null) {
     
-    if (!$date)
+    if (!$date) {
       $date = mktime();
+    }
     $date = new BrDateTime($date);
     $diff = abs($this->asDateTime() - $date->asDateTime())/60;
     return $diff;
@@ -173,7 +183,13 @@ class BrDateTime extends BrObject {
     
   }
   
-  function secondsToString($diff = null) {
+  function daysDifferenceToString($date = null) {
+    
+    return $this->secondsToString($this->secondsBetween($date), 'days');
+    
+  }
+  
+  function secondsToString($diff = null, $stopOn = '') {
     
     $result = '';
     
@@ -184,20 +200,22 @@ class BrDateTime extends BrObject {
       else  
         $result = $days.' days';
     }
-    
-    if ($hours = ltrim(date("H", mktime(0, 0, $diff)), '0')) {
-      if (($hours == 1) ||  ($hours == 21))
-        $result .= ' '.$hours.' hour';
-      else  
-        $result .= ' '.$hours.' hours';
-    }
 
-    if ($minutes = ltrim(date("i", mktime(0, 0, $diff)), '0')) {
-      if (($minutes == 1) ||  ($minutes == 21) || ($minutes == 31) || ($minutes == 41) || ($minutes == 51))
-        $result .= ' '.$minutes.' minute';
-      else
-        $result .= ' '.$minutes.' minutes';
-    }    
+    if ($stopOn != 'days') {
+      if ($hours = ltrim(date("H", mktime(0, 0, $diff)), '0')) {
+        if (($hours == 1) ||  ($hours == 21))
+          $result .= ' '.$hours.' hour';
+        else  
+          $result .= ' '.$hours.' hours';
+      }
+
+      if ($minutes = ltrim(date("i", mktime(0, 0, $diff)), '0')) {
+        if (($minutes == 1) ||  ($minutes == 21) || ($minutes == 31) || ($minutes == 41) || ($minutes == 51))
+          $result .= ' '.$minutes.' minute';
+        else
+          $result .= ' '.$minutes.' minutes';
+      }    
+    }
     
     //.' часов';
     //$custom['expiration_term'] .= ' '.date("i", mktime(0, $date_time->minutes_between(), 0)).' минут';
@@ -220,7 +238,7 @@ class BrDateTime extends BrObject {
     if (!$date)
       $date = mktime();
     $date = new BrDateTime($date);
-    $diff = ($this->as_date() - $date->as_date())/60/60/24;
+    $diff = ($this->asDate() - $date->asDate())/60/60/24;
     return $diff;
 
   }
@@ -258,7 +276,7 @@ class BrDateTime extends BrObject {
   
   function isSameDate($date) {
 
-    return ($date->as_date() == $this->as_date());
+    return ($date->asDate() == $this->asDate());
     
   }
   
@@ -268,10 +286,15 @@ class BrDateTime extends BrObject {
     
   }
 
-  function isToday() {
+  static function isToday($date = null) {
     
     $today = new BrDateTime();
-    return $this->isSameDate($today);
+    if ($date) {
+      $date = new BrDateTime($date);
+      return $date->isSameDate($today);      
+    } else {
+      return $this->isSameDate($today);      
+    }
     
   }
 

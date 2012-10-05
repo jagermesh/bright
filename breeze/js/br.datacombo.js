@@ -19,9 +19,10 @@
 
     _this.selector = selector;
     _this.dataSource = dataSource;
-    _this.options = options;
+    _this.options = options || {};
     _this.fields = _this.options.fields || {};
     _this.saveSelection = _this.options.saveSelection || false;
+    _this.selectedValueField = _this.options.selectedValueField || null;
 
     _this.cb = {};
 
@@ -51,7 +52,7 @@
       callEvent('load', data);
     }
 
-    _this.reload = function(callback) {
+    _this.load = _this.reload = function(callback) {
       _this.dataSource.select({}, function(result) {
         if (result) {
           if (callback) {

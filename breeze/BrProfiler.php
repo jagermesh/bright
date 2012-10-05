@@ -8,7 +8,7 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/BrSingleton.php');
+require_once(__DIR__.'/BrSingleton.php');
 
 class BrProfiler extends BrSingleton {
 
@@ -25,7 +25,8 @@ class BrProfiler extends BrSingleton {
   function logStart($name) {
 
     $this->start($name);
-    // br()->log()->writeLn('[PROFILER:' . $name . ']', 'PRF');
+
+    br()->log()->writeLn($name, 'BEG');
 
   }
 
@@ -37,7 +38,7 @@ class BrProfiler extends BrSingleton {
 
   function logFinish($name) {
 
-    br()->log()->writeLn('[PROFILER:' . $name . '] ' . br()->durationToString($this->finish($name)), 'PRF');
+    br()->log()->writeLn($name. ' / ' . $this->finish($name) . ' / ' . br()->durationToString($this->finish($name)), 'END');
 
   }
 

@@ -8,7 +8,7 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/Br.php');
+require_once(__DIR__.'/Br.php');
 
 class BrObject {
   

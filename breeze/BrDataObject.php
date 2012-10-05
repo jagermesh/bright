@@ -9,8 +9,8 @@
  */
 
 
-require_once(dirname(__FILE__).'/BrObject.php');
-require_once(dirname(__FILE__).'/BrException.php');
+require_once(__DIR__.'/BrObject.php');
+require_once(__DIR__.'/BrException.php');
 
 class BrExceptionDataObject extends BrException {
 

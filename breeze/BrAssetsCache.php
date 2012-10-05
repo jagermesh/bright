@@ -8,24 +8,24 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/BrObject.php');
+require_once(__DIR__.'/BrObject.php');
 
 class BrAssetsCache extends BrObject {
   
   function send($requestedAssests = null) {
 
     $files = array();
-    $files[] = dirname(__FILE__).'/3rdparty/jquery/jquery-1.7.1.min.js';
+    $files[] = __DIR__.'/3rdparty/jquery/jquery-1.7.1.min.js';
     if (strpos(br()->request()->get('extra'), 'jquery-ui') !== false) {
-      $files[] = dirname(__FILE__).'/3rdparty/jquery.ui/jquery-ui.js';
+      $files[] = __DIR__.'/3rdparty/jquery.ui/jquery-ui.js';
     }
-    $files[] = dirname(__FILE__).'/3rdparty/bootstrap/js/bootstrap.min.js';
-    $files[] = dirname(__FILE__).'/3rdparty/humane-js/humane.min.js';
-    $files[] = dirname(__FILE__).'/3rdparty/mustache/mustache.min.js';
+    $files[] = __DIR__.'/3rdparty/bootstrap/js/bootstrap.min.js';
+    $files[] = __DIR__.'/3rdparty/humane-js/humane.min.js';
+    $files[] = __DIR__.'/3rdparty/mustache/mustache.min.js';
     if (strpos(br()->request()->get('extra'), 'gritter') !== false) {
-      $files[] = dirname(__FILE__).'/3rdparty/gritter/js/jquery.gritter.min.js';
+      $files[] = __DIR__.'/3rdparty/gritter/js/jquery.gritter.min.js';
     }
-    $files[] = dirname(__FILE__).'/js/breeze.js';
+    $files[] = __DIR__.'/js/breeze.js';
 
     $lastModified = 0;
     foreach($files as $file) {

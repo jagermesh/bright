@@ -1,4 +1,4 @@
 <?php
 
-require_once(dirname(dirname(dirname(__FILE__))).'/breeze/Breeze.php');
+require_once(dirname(dirname(__DIR__)).'/breeze/Breeze.php');
 

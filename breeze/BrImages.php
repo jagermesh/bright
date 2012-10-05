@@ -9,7 +9,7 @@
  */
 
 
-require_once(dirname(__FILE__).'/BrImage.php');
+require_once(__DIR__.'/BrImage.php');
 
 class BrImages extends BrSingleton {
 

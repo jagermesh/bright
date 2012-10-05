@@ -51,9 +51,9 @@ class BrGenericRenderer extends BrObject {
 
     $localVars = array_merge($this->vars, $subst);
 
-    $localVars['get'] = br()->request()->get();
+    $localVars['get']    = br()->request()->get();
     $localVars['config'] = br()->config()->get();
-    $localVars['login'] = br()->auth()->getLogin();
+    $localVars['login']  = br()->auth()->getLogin();
 
     $m = new Mustache(null, null, null, array('delimiters' => br($this->params, 'delimiters', '[[ ]]')));
     $body = $m->render($body, $localVars);

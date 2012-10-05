@@ -8,7 +8,7 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/BrGenericCacheProvider.php');
+require_once(__DIR__.'/BrGenericCacheProvider.php');
 
 class BrMemoryCacheProvider extends BrGenericCacheProvider {
 

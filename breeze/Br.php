@@ -8,8 +8,8 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/BrSingleton.php');
-require_once(dirname(__FILE__).'/BrException.php');
+require_once(__DIR__.'/BrSingleton.php');
+require_once(__DIR__.'/BrException.php');
 
 function br($array = null, $name = null, $default = null) {
 
@@ -54,7 +54,7 @@ if (!function_exists('debug')) {
         // echo("\n");
       } else
       if (br()->request()->isLocalHost()) {
-        include(dirname(__FILE__).'/templates/DebugMessage.html');      
+        include(__DIR__.'/templates/DebugMessage.html');      
       }
     }
     
@@ -87,9 +87,12 @@ if (!function_exists('logme')) {
 
 class Br extends BrSingleton {
 
+  private $processId = null;
+
   function __construct() {
 
-    $this->frameWorkPath = str_replace('\\', '/', rtrim(dirname(__FILE__), '/').'/');
+    $this->frameWorkPath = str_replace('\\', '/', rtrim(__DIR__, '/').'/');
+    $this->processId = null;
     parent::__construct();
     
   }
@@ -97,7 +100,7 @@ class Br extends BrSingleton {
   public function __call($name, $arguments) {
 
     $className = 'Br' . ucwords($name);
-    $classFile = dirname(__FILE__) . '/' . $className . '.php';
+    $classFile = __DIR__ . '/' . $className . '.php';
     if (file_exists($classFile)) {
       require_once($classFile);
       // ARGH HOW UGLY!!!
@@ -124,7 +127,7 @@ class Br extends BrSingleton {
 
   function log() {
 
-    require_once(dirname(__FILE__).'/BrLog.php');
+    require_once(__DIR__.'/BrLog.php');
     $log = BrLog::GetInstance();
 
     $args = func_get_args();
@@ -172,6 +175,12 @@ class Br extends BrSingleton {
   function atBasePath($path) {
   
     return $this->basePath.ltrim($path, '/');
+    
+  }
+  
+  function basePath() {
+  
+    return $this->basePath;
     
   }
   
@@ -278,13 +287,13 @@ class Br extends BrSingleton {
 
     $FileName = 'Br'.$FileName.'.php';
 
-    require_once(dirname(__FILE__) . '/' . $FileName);
+    require_once(__DIR__ . '/' . $FileName);
     
   }
 
   function importDataSource($name) {
 
-    require_once(dirname(__FILE__) . '/datasources/' . $name. '.php');
+    require_once(__DIR__ . '/datasources/' . $name. '.php');
     
   }
 
@@ -571,13 +580,13 @@ class Br extends BrSingleton {
     
   function html2text($html) { 
 
-    $html = preg_replace("/&nbsp;/ism", ' ', $html);
-    $html = html_entity_decode($html);
-    $html = preg_replace("/(\n\n|\r\n\r\n|\r\r)/ism", '', $html);
-    $html = preg_replace('/<br[^>]*>/ism', "\n", $html);
-    $html = preg_replace('/<[^>]+>/ism', '', $html);
-    $html = preg_replace('/<\/[^>]+>/ism', '', $html);
-    return $html;
+    return $this->HTML()->toText($html);
+
+  }
+
+  function text2html($html) { 
+
+    return $this->HTML()->fromText($html);
 
   }
 
@@ -649,7 +658,9 @@ class Br extends BrSingleton {
 
   function sendMail($email, $subject, $body) {
 
-    br()->importAtBasePath('breeze/3rdparty/phpmailer/class.phpmailer.php');
+    if (!class_exists('PHPMailer')) {
+      require_once(__DIR__.'/3rdparty/phpmailer/class.phpmailer.php');
+    }
     $mail = new PHPMailer(true);
     try {
       $from = br()->config()->get('br/Br/sendMail/from', 'noreply@localhost');
@@ -694,14 +705,27 @@ class Br extends BrSingleton {
 
   // utils
 
-  function formatTraffic($size) {
+  function formatBytes($size) {
     $unit = array('b', 'kb', 'mb', 'gb', 'tb', 'pb');
     return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
   }
 
+  function formatTraffic($size) {
+    return $this->formatBytes($size);
+  }
 
   function getMemoryUsage() {
     return $this->formatTraffic(memory_get_usage(true));
+  }
+
+  function getProcessId() {
+
+    if ($this->processId === null) {
+      $this->processId = getmypid();
+    }
+
+    return $this->processId;
+
   }
   
 }

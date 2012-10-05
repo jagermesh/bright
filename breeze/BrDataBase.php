@@ -8,8 +8,8 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/BrObject.php');
-require_once(dirname(__FILE__).'/BrException.php');
+require_once(__DIR__.'/BrObject.php');
+require_once(__DIR__.'/BrException.php');
 
 class BrDataBaseException extends BrException {
 
@@ -33,11 +33,11 @@ class BrDataBase extends BrObject {
 
         switch($dbConfig['engine']) {
           case "mysql":
-            require_once(dirname(__FILE__).'/BrMySQLDBProvider.php');
+            require_once(__DIR__.'/BrMySQLDBProvider.php');
             $instance = new BrMySQLDBProvider($dbConfig);
             break;
           case "mongodb":
-            require_once(dirname(__FILE__).'/BrMongoDBProvider.php');
+            require_once(__DIR__.'/BrMongoDBProvider.php');
             $instance = new BrMongoDBProvider($dbConfig);
             break;
         }
@@ -59,100 +59,6 @@ class BrDataBase extends BrObject {
     parent::__construct();
         
   }
-/*
-    
-  public function getCachedValue() {
-  
-    $args = func_get_args();
-    $sql = array_shift($args);
-    $cacheTag = 'sql:' . $sql . serialize($args);
-    $result = br()->cache()->get($cacheTag);
-    if (!$result) {
-      $result = $this->dbProvider->getValue($sql, $args);
-      br()->cache()->set($cacheTag, $result);
-    }
-    return $result;
-    
-  }
 
-  public function startTransaction() {
-  
-    return $this->dbProvider->startTransaction();
-    
-  }
-  
-  public function commitTransaction() {
-  
-    return $this->dbProvider->commitTransaction();
-    
-  }
-  
-  public function rollbackTransaction() {
-  
-    return $this->dbProvider->rollbackTransaction();
-    
-  }
-  
-  public function ignoreErrors() {
-  
-    $this->disable();
-    
-  }
-  
-  public function restoreErrors() {
-  
-    $this->enable();
-    
-  }
-    
-  function rowidValue($row, $fieldName = null) {
-    
-    return $this->dbProvider->rowidValue($row, $fieldName);
-    
-  }
-  
-  function rowid($row, $fieldName = null) {
-    
-    return $this->dbProvider->rowid($row, $fieldName);
-    
-  }
-  
-  function rowidField() {
-    
-    return $this->dbProvider->rowidField();
-    
-  }
-
-  function regexpCondition($value) {
-
-    return $this->dbProvider->regexpCondition($value);
-
-  }
-
-  public function now() {
-  
-    return $this->dbProvider->now();
-    
-  }
-  
-  public function getLimitSQL($sql, $skip, $limit) {
-  
-    return $this->dbProvider->getLimitSQL($sql, $skip, $limit);
-    
-  }
-  
-  public function count($sql) {
-  
-    return $this->dbProvider->count($sql);
-    
-  }
-
-  public function getAffectedRowsAmount() {
-
-    return $this->dbProvider->getAffectedRowsAmount();
-    
-  }
-
-*/  
 }
 

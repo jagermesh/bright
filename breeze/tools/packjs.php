@@ -19,7 +19,7 @@ $result .= br()->fs()->loadFromFile($scriptsPath . 'br.datacombo.js');
 $result .= br()->fs()->loadFromFile($scriptsPath . 'br.editable.js');
 $result .= br()->fs()->loadFromFile($scriptsPath . 'br.js');
 $result .= br()->fs()->loadFromFile($scriptsPath . 'br.ui.js');
-$result .= br()->fs()->loadFromFile($scriptsPath . 'br.user.js');
+// $result .= br()->fs()->loadFromFile($scriptsPath . 'br.user.js');
 
 br()->log('Saving to ' . $resultScriptFile);
 br()->fs()->saveToFile($resultScriptFile, $result);

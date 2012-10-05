@@ -8,8 +8,8 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/BrObject.php');
-require_once(dirname(__FILE__).'/BrException.php');
+require_once(__DIR__.'/BrObject.php');
+require_once(__DIR__.'/BrException.php');
 
 class BrGenericDataSource extends BrObject {
 
@@ -33,18 +33,27 @@ class BrGenericDataSource extends BrObject {
 
   }
 
-  function selectOne($filter = array(), $fields = array(), $order = array()) {
+  function selectOne($filter = array(), $fields = array(), $order = array(), $options = array()) {
 
-    if ($result = $this->select($filter, $fields, $order, array('limit' => 1))) {
+    if (!is_array($filter)) {
+      $filter = array(br()->db()->rowidField() => br()->db()->rowid($filter));
+    }
+
+    $options['limit'] = 1;
+
+    if ($result = $this->select($filter, $fields, $order, $options)) {
       $result = $result[0];  
     }
+    
     return $result; 
 
   }
 
-  function selectCount($filter = array()) {
+  function selectCount($filter = array(), $fields = array(), $order = array(), $options = array()) {
+    
+    $options['result'] = 'count';
 
-    return $this->select($filter, array(), array(), array('result' => 'count'));
+    return $this->select($filter, array(), array(), $options);
 
   }
 
@@ -72,6 +81,8 @@ class BrGenericDataSource extends BrObject {
       }
     }
 
+    $this->validateSelect($filter);
+
     $result = $this->callEvent('select', $filter, $transientData, $options);
 
     return $result;      
@@ -82,11 +93,15 @@ class BrGenericDataSource extends BrObject {
 
     $row['rowid'] = $rowid;
 
+    $this->validateUpdate($row);
+
     return $this->callEvent('update', $row, $transientData);
 
   }
 
   function insert($row = array(), &$transientData = array()) {
+
+    $this->validateInsert($row);
 
     return $this->callEvent('insert', $row, $transientData);
     
@@ -95,6 +110,8 @@ class BrGenericDataSource extends BrObject {
   function remove($rowid, &$transientData = array()) {
 
     $row = array('rowid' => $rowid);
+
+    $this->validateRemove($row);
 
     return $this->callEvent('remove', $row, $transientData);
     
@@ -124,11 +141,17 @@ class BrGenericDataSource extends BrObject {
           throw new Exception('Method [' . $method . '] not supported');
         } else {
           $this->callEvent('before:' . $method, $params, $transientData);
-          $result = $this->callEvent($method, $params, $transientData);
-          if ($result) {
-            $this->callEvent('after:' . $method, $result, $params, $transientData);
+          try {
+            $data = $this->callEvent($method, $params, $transientData);
+            $result = true;
+            $this->callEvent('after:' . $method, $result, $data, $params, $transientData);
+            return $data;
+          } catch (Exception $e) {
+            $result = false;
+            $data = null;
+            $this->callEvent('after:' . $method, $result, $data, $params, $transientData);
+            throw new Exception($e->getMessage());
           }
-          return $result;
         }    
         break;
     }
@@ -159,4 +182,61 @@ class BrGenericDataSource extends BrObject {
 
   }
 
+  // validation
+  public function canInsert($row = array()) {
+
+    return true;
+
+  }
+
+  public function canUpdate($row, $old = array()) {
+
+    return true;
+
+  }
+
+  public function canRemove($row) {
+
+    return true;
+
+  }
+
+  public function canSelect($filter) {
+
+    return true;
+
+  }
+
+  protected function validateInsert($row = array()) {
+
+    if (!$this->canInsert($row)) {
+      throw new Exception('Access denied');
+    }
+
+  }
+
+  protected function validateUpdate($row, $old = array()) {
+
+    if (!$this->canUpdate($row, $old)) {
+      throw new Exception('Access denied');
+    }
+
+  }  
+
+  protected function validateRemove($row) {
+
+    if (!$this->canRemove($row)) {
+      throw new Exception('Access denied');
+    }
+
+  }    
+  
+  protected function validateSelect($filter) {
+
+    if (!$this->canSelect($filter)) {
+      throw new Exception('Access denied');
+    }
+
+  }    
+ 
 }

@@ -8,7 +8,7 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/BrObject.php');
+require_once(__DIR__.'/BrObject.php');
 
 class BrGenericLogAdapter extends BrObject {
 
@@ -16,9 +16,36 @@ class BrGenericLogAdapter extends BrObject {
 
   }
 
-  function write($message) {
+  function writeMessage($message, $group = 'MSG') {
     
   }
   
+  function writeDebug($message, $group = 'DBG') {
+    
+  }
+  
+  function writeError($message, $group = 'ERR') {
+    
+  }
+  
+  function writeAppInfo($group = '---') {
+
+    $this->writeMessage('***************************************************************', $group);
+
+    $this->writeMessage('PID:           ' . br()->getProcessID(),          $group);
+    $this->writeMessage('Script Name:   ' . br()->scriptName(),            $group);
+    $this->writeMessage('PHP Version:   ' . phpversion(),                  $group);
+    if (br()->isConsoleMode()) {
+    } else {
+      $this->writeMessage('Request type:  ' . br()->request()->method(),   $group);
+      $this->writeMessage('Request url:   ' . br()->request()->url(),      $group);
+      $this->writeMessage('Referer url:   ' . br()->request()->referer(),  $group);
+      $this->writeMessage('Client IP:     ' . br()->request()->clientIP(), $group);
+    }
+
+    $this->writeMessage('***************************************************************', $group);
+
+  }
+
 }
 

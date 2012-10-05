@@ -39,7 +39,7 @@
         _this.ctrl.data('original-content', content);
         var width = _this.ctrl.innerWidth();
         _this.ctrl.text('');
-        _this.editor = $('<input />');
+        _this.editor = $('<input type="text" />');
         _this.editor.css('width', '100%');
         _this.editor.css('box-sizing', '100%');
         _this.editor.css('-webkit-box-sizing', 'border-box');

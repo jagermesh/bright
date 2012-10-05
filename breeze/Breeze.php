@@ -8,7 +8,7 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/Br.php');
+require_once(__DIR__.'/Br.php');
 
 // Core PHP settings
 error_reporting(E_ALL & ~E_COMPILE_WARNING & ~E_DEPRECATED);
@@ -30,10 +30,10 @@ if (function_exists("date_default_timezone_set") && function_exists("date_defaul
 // Core PHP settings - End
 
 // Breeze files base path
-define('BreezePath', dirname(__FILE__) . '/');
+define('BreezePath', __DIR__ . '/');
 
 // Installing custom error handler
-require_once(dirname(__FILE__).'/BrErrorHandler.php');
+require_once(__DIR__.'/BrErrorHandler.php');
 BrErrorHandler::GetInstance();
 
 // Application base path - we assuming that Breeze library inlcuded by main index.php
@@ -51,14 +51,20 @@ ini_set('session.cookie_lifetime', br()->config()->get('php/session.cookie_lifet
 
 // Logging
 br()->importLib('FileLogAdapter');
+br()->importLib('ErrorFileLogAdapter');
+br()->importLib('ErrorMailLogAdapter');
 br()->log()->addAdapter(new BrFileLogAdapter(br()->atBasePath('_logs')));
+br()->log()->addAdapter(new BrErrorFileLogAdapter(br()->atBasePath('_logs')));
+br()->log()->addAdapter(new BrErrorMailLogAdapter());
 if (br()->isConsoleMode()) {
   br()->importLib('ConsoleLogAdapter');
   br()->log()->addAdapter(new BrConsoleLogAdapter());
 }
 
 // Running application
-if (!br()->isConsoleMode()) {
+if (br()->isConsoleMode()) {
+  // If we are in console mode - Breeze is just a set of useful functions
+} else {
   // Starting session
   session_cache_limiter('none');
   session_start();
@@ -68,10 +74,8 @@ if (!br()->isConsoleMode()) {
   });
 
   // Running application
-  require_once(dirname(__FILE__).'/BrApplication.php');
+  require_once(__DIR__.'/BrApplication.php');
   $app = new BrApplication();
   $app->main();
-} else {
-  // If we are in console mode - Breeze is just a set of useful functions
 }
 

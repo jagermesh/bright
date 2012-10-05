@@ -1,6 +1,6 @@
 <?php
 
-require_once(dirname(__FILE__).'/BrFileUploadHandler.php.php');
+require_once(__DIR__.'/BrFileUploadHandler.php');
 
 class BrVideoUploadHandler extends BrFileUploadHandler {
 

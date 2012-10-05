@@ -8,11 +8,11 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/BrGenericRenderer.php');
+require_once(__DIR__.'/BrGenericRenderer.php');
 
 class BrFileRenderer extends BrGenericRenderer {
   
-  function fetch($templateName, $subst = array()) {
+  private function fetchFile($templateName) {
 
     $result = '';
     $templateFile = $templateName;
@@ -25,15 +25,26 @@ class BrFileRenderer extends BrGenericRenderer {
       $result = ob_get_contents();
       ob_end_clean();
     }
+    return array('file' => $templateFile, 'content' => $result);
+
+  }
+
+  function fetch($templateName, $subst = array()) {
+
+    $template = $this->fetchFile($templateName);
+
+    $templateFile = $template['file'];
+    $content = $template['content'];
 
     // replace @template-name with template
-    while (preg_match('/[{]@([^}]+)[}]/', $result, $matches)) {
-      $result = str_replace($matches[0], $this->fetch(dirname($templateFile).'/'.$matches[1], $subst), $result);
+    while (preg_match('/[{]@([^}]+)[}]/', $content, $matches)) {
+      $template = $this->fetchFile(dirname($templateFile).'/'.$matches[1]);
+      $content = str_replace($matches[0], $template['content'], $content);
     }
 
-    $result = $this->compile($result, $subst, dirname($templateName));
+    $content = $this->compile($content, $subst, dirname($templateName));
 
-    return $result;
+    return $content;
     
   }
 

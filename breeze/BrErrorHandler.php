@@ -8,16 +8,16 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/Br.php');
-require_once(dirname(__FILE__).'/BrSingleton.php');
-require_once(dirname(__FILE__).'/BrException.php');
+require_once(__DIR__.'/Br.php');
+require_once(__DIR__.'/BrSingleton.php');
+require_once(__DIR__.'/BrException.php');
 
 class BrErrorHandler extends BrSingleton {
 
 
   private $notErrors = array(
 //      E_NOTICE          => true
-//      E_DEPRECATED      => true
+      E_DEPRECATED
   );
 
   function __construct() {
@@ -33,48 +33,38 @@ class BrErrorHandler extends BrSingleton {
 
     if ($this->isEnabled()) {
 
-      br()->log()->logException($e);
+      try {
 
-      if (br()->isConsoleMode()) {
+        br()->log()->logException($e);
 
-      } else {
+        if (br()->isConsoleMode()) {
 
-        if ($e instanceof BrErrorException) {
-          $isFatal = $e->IsFatal();
         } else {
-          $isFatal = true;
-        }
-        $type = (($e instanceof BrErrorException) ? $e->getType() : 'Error');
-        $errorMessage = $e->getMessage();
-        $errorInfo = '';
-        if (preg_match('/\[INFO:([^]]+)\](.+)\[\/INFO\]/ism', $errorMessage, $matches)) {
-          $info_name = $matches[1];
-          $errorInfo = $matches[2];
-          $errorMessage = str_replace('[INFO:'.$info_name.']'.$errorInfo.'[/INFO]', '', $errorMessage);
-        }
 
-        if (br()->request()->isLocalHost()) {
-          include(dirname(__FILE__).'/templates/ErrorReport.html');
-        } else {
-          if ($email = br()->config()->get('br/BrErrorHandler/exceptionHandler/sendErrorsTo')) {
-            ob_start();
-            @include(dirname(__FILE__).'/templates/ErrorReport.html');
-            $result = ob_get_contents();
-            ob_end_clean();
-            $result = '<strong>URL:</strong> <a href="' . br()->request()->url() . '">' . br()->request()->url(). '</a><br />'
-                    . '<strong>Referer:</strong> <a href="' . br()->request()->referer() . '">' . br()->request()->referer(). '</a><br />'
-                    . '<strong>Client IP:</strong> ' . br()->request()->clientIP(). '<br />'
-                    . '<br />'
-                    . $result;
-            br()->sendMail( $email
-                          , 'Error at ' . br()->request()->url()
-                          , $result
-                          );
+          if (br()->request()->isLocalHost()) {
+            if ($e instanceof BrErrorException) {
+              $isFatal = $e->IsFatal();
+            } else {
+              $isFatal = true;
+            }
+            $type = (($e instanceof BrErrorException) ? $e->getType() : 'Error');
+            $errorMessage = $e->getMessage();
+            $errorInfo = '';
+            if (preg_match('/\[INFO:([^]]+)\](.+)\[\/INFO\]/ism', $errorMessage, $matches)) {
+              $info_name = $matches[1];
+              $errorInfo = $matches[2];
+              $errorMessage = str_replace('[INFO:'.$info_name.']'.$errorInfo.'[/INFO]', '', $errorMessage);
+            }
+
+            include(__DIR__.'/templates/ErrorReport.html');
           }
-        }
 
-      }
-    	 
+        }
+        
+      } catch (Exception $e) {
+
+      }   
+       	 
     }
 
   }
@@ -82,15 +72,8 @@ class BrErrorHandler extends BrSingleton {
   function errorHandler($errno, $errmsg, $errfile, $errline, $vars) {
 
     if ($this->isEnabled()) {
-      if ((error_reporting() & $errno) == $errno) {
-        //try {
-          throw new BrErrorException($errmsg, 0, $errno, $errfile, $errline);
-        // } catch (Exception $e) {
-        //   $this->exceptionHandler($e);
-        //   if ($e->isFatal()) {
-        //     die($e->getMessage());
-        //   }
-        // }
+      if (!in_array($errno, $this->notErrors) && (error_reporting() & $errno) == $errno) {
+        throw new BrErrorException($errmsg, 0, $errno, $errfile, $errline);
       }
     }
 

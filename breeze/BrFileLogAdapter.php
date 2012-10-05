@@ -8,31 +8,43 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/BrGenericLogAdapter.php');
+require_once(__DIR__.'/BrGenericFileLogAdapter.php');
 
-class BrFileLogAdapter extends BrGenericLogAdapter {
-
-  private $filePointer = null;
+class BrFileLogAdapter extends BrGenericFileLogAdapter {
 
   function __construct($filePath, $fileName = null) {
 
     if (!$filePath) {
-      $filePath = dirname(dirname(__FILE__)).'/_logs/';
+      $filePath = dirname(__DIR__).'/_logs/';
     }
 
     $filePath = rtrim($filePath, '/').'/';
 
     $date = @strftime('%Y-%m-%d');
     $hour = @strftime('%H');
-    $filePath .= $date.'/';
+    $filePath .= $date;
+
+    $tmp = $filePath . '/';
+    $idx = 1;
+    while (file_exists($tmp) && !is_writeable($tmp) && ($idx < 10)) {
+      $tmp = $filePath . '-' . $idx . '/';
+      $idx++;
+    }
+    $filePath = $tmp;
 
     if (br()->isConsoleMode()) {
-      $filePath .= br()->scriptName().'/';
+      $filePath .= br()->scriptName();
     } else {
-      $filePath .= br()->request()->clientIP().'/';
+      $filePath .= br()->request()->clientIP();
     }
 
-    $filePath = br()->fs()->normalizePath($filePath);
+    $tmp = $filePath . '/';
+    $idx = 1;
+    while (file_exists($tmp) && !is_writeable($tmp) && ($idx < 10)) {
+      $tmp = $filePath . '-' . $idx . '/';
+      $idx++;
+    }
+    $filePath = $tmp;
 
     if (!$fileName) {
       $fileName = $date.'-';
@@ -44,39 +56,21 @@ class BrFileLogAdapter extends BrGenericLogAdapter {
       $fileName .= $hour.'.log';
     } 
 
-    if (br()->fs()->makeDir($filePath)) {
-      br()->errorHandler()->disable();
-      $fileExists = file_exists($filePath.$fileName);
-      $this->filePointer = @fopen($filePath.$fileName, 'a+');      
-      if ($fileExists) {
-        $this->write();
-      }
-      br()->errorHandler()->enable();
-    }
+    parent::__construct($filePath, $fileName);
 
-    parent::__construct();
+    $this->writeAppInfo();
+
+    register_shutdown_function(array(&$this, "end"));    
 
   }
 
-  function write($logText = null, $group = null, $initTime = 0 , $time = 0, $logLevel = 0, $newLine = true) {
+  function end() {
 
-    if ($this->filePointer && $this->isEnabled()) {
-
-      if ($group) {
-        $message = $group . ' ' . $initTime . '+' . $time . ' ' . str_repeat(' ', $logLevel*2) . $logText;
-      } else {
-        $message = $logText;        
-      }
-
-      if ($newLine) {
-        $message .= "\n";
-      }
-
-      @fwrite($this->filePointer, $message);
-
+    if (function_exists('memory_get_usage')) {
+      $this->writeMessage('Memory usage:  ' . memory_get_usage(), '---');
     }
-    
-  }
+
+  }  
 
 }
 

@@ -8,7 +8,7 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/BrGenericLogAdapter.php');
+require_once(__DIR__.'/BrGenericLogAdapter.php');
 
 class BrConsoleLogAdapter extends BrGenericLogAdapter {
 
@@ -18,14 +18,33 @@ class BrConsoleLogAdapter extends BrGenericLogAdapter {
 
   }
 
-  function write($logText = null, $group = null, $initTime = 0 , $time = 0, $logLevel = 0, $newLine = true) {
+  function write($message) {
+
+    $logMessage  = str_repeat(' ', br()->log()->getLevel() * 2);
+    $logMessage .= $message;
+    $logMessage .= "\n";
+
+    echo($logMessage);
+    
+  }
+
+  function writeMessage($message, $group = 'MSG') {
 
     if (($group != 'QRY') && ($group != 'SEP')) {
-      $message = str_repeat(' ', $logLevel*2).$logText;
-      $message .= "\n";
-
-      echo($message);
+      $this->write($message);
     }
+    
+  }
+
+  function writeDebug($message) {
+
+    $this->write($message);
+    
+  }
+
+  function writeError($message) {
+
+    $this->write($message);
     
   }
 

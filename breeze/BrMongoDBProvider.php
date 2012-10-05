@@ -8,7 +8,7 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/BrGenericDBProvider.php');
+require_once(__DIR__.'/BrGenericDBProvider.php');
 
 class BrMongoDBProvider extends BrGenericDBProvider {
 

@@ -8,8 +8,8 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/BrObject.php');
-require_once(dirname(__FILE__).'/BrException.php');
+require_once(__DIR__.'/BrObject.php');
+require_once(__DIR__.'/BrException.php');
 
 class BrRendererException extends BrException {
 }
@@ -27,7 +27,7 @@ class BrRenderer extends BrObject {
 	    if (!isset($instances[$name])) { 
 	    	$instance = new self;
         $rendererClass = br()->config()->get('renderer', 'BrFileRenderer');
-        require_once(dirname(__FILE__).'/BrFileRenderer.php');
+        require_once(__DIR__.'/BrFileRenderer.php');
     		$instance->renderer = new BrFileRenderer();
 	      $instances[$name] = $instance;
 	    } else {

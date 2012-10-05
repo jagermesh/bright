@@ -8,7 +8,7 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/BrSingleton.php');
+require_once(__DIR__.'/BrSingleton.php');
 
 class BrFileSystemObject {
 
@@ -83,6 +83,12 @@ class BrFileSystem extends BrSingleton {
   public function filePath($path) {
    
     return $this->normalizePath(dirname($path));
+  
+  }
+
+  public function dirName($path) {
+   
+    return rtrim(dirname($path), '/');
   
   }
 

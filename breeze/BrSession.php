@@ -8,7 +8,7 @@
  * @package Breeze Core
  */
 
-require_once(dirname(__FILE__).'/BrSingleton.php');
+require_once(__DIR__.'/BrSingleton.php');
 
 class BrSession extends BrSingleton {
 

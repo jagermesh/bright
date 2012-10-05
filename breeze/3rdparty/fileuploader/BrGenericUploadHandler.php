@@ -43,7 +43,7 @@ class BrGenericUploadHandler {
     }
 
     $uploader = new qqFileUploader($allowedExtensions, $sizeLimit, $this->params);
-    if (!br($this->params, 'externalPath') && !preg_match('~^/~', $path)) {
+    if (!br($this->params, 'externalPath') && !preg_match('~^(/|[A-Z][:])~', $path)) {
       $path = br()->atBasePath($path);
     } else {
 
