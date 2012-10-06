@@ -359,12 +359,19 @@ qq.FileUploaderBasic.prototype = {
         });        
     },    
     _onSubmit: function(id, fileName){
+        var spinner = this._find(this._element, 'spinner');
+        spinner.style.display = 'inline-block';
         this._filesInProgress++;  
     },
     _onProgress: function(id, fileName, loaded, total){        
     },
     _onComplete: function(id, fileName, result){
-        this._filesInProgress--;                 
+        this._filesInProgress--;      
+        if (this._filesInProgress == 0) {
+           var spinner = this._find(this._element, 'spinner');
+           spinner.style.display = 'none';
+        }  
+
         if (result.error){
             //this._options.showMessage(result.error);
             this._options.onError(id, fileName, result.error);
@@ -372,6 +379,10 @@ qq.FileUploaderBasic.prototype = {
     },
     _onCancel: function(id, fileName){
         this._filesInProgress--;        
+        if (this._filesInProgress == 0) {
+           var spinner = this._find(this._element, 'spinner');
+           spinner.style.display = 'none';
+        }  
     },
     _onInputChange: function(input){
         if (this._handler instanceof qq.UploadHandlerXhr){                
@@ -493,7 +504,9 @@ qq.FileUploader = function(o){
                 
         template: '<div class="qq-uploader">' + 
                   '<div class="qq-upload-drop-area"><span>Drop files here to upload</span></div>' +
-                  '<div class="qq-upload-button">' + (this._options.label ? this._options.label : 'Upload images') + '</div>' +
+                  '<div class="qq-upload-button">' + 
+                  '<span class="qq-upload-spinner" style="display:none;"></span>' + 
+                  (this._options.label ? this._options.label : 'Upload images') + '</div>' +
                   '<ul class="qq-upload-list" style="display: none;"></ul>' + 
                   '</div>',
 
@@ -604,7 +617,7 @@ qq.extend(qq.FileUploader.prototype, {
         var item = this._getItemByFileId(id);
         var size = this._find(item, 'size');
         size.style.display = 'inline';
-        
+
         var text; 
         if (loaded != total){
             text = Math.round(loaded / total * 100) + '% from ' + this._formatSize(total);
