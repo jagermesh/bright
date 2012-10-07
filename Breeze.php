@@ -78,4 +78,3 @@ if (br()->isConsoleMode()) {
   $app = new BrApplication();
   $app->main();
 }
-

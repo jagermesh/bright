@@ -227,7 +227,6 @@ class BrLog extends BrSingleton {
     }
 
     $this->writeLn($errorLog, 'ERR');
-    // $this->writeLn(']', 'END');
 
   }
 

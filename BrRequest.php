@@ -23,6 +23,7 @@ class BrRequest extends BrSingleton {
   private $continueRoute = true;
   private $domain = null;
   private $putVars = array();
+  private $serverAddr = null;
 
   function __construct() {
 
@@ -97,14 +98,15 @@ class BrRequest extends BrSingleton {
       }
 
       if (!$this->clientIP) {
-        $this->clientIP = 'unknown';
+        $this->clientIP = 'XXX.XXX.XXX.XXX';
       }
 
     } else {
 
-      $this->domain  = br()->config()->get('br/request/consoleModeBaseDomain', 'localhost');
-      $this->host    = br()->config()->get('br/request/consoleModeBaseHost', 'http://'.$this->domain);
-      $this->baseUrl = br()->config()->get('br/request/consoleModeBaseUrl', '/');
+      $this->serverAddr = br()->config()->get('br/request/consoleModeServerAddr', '127.0.0.1');
+      $this->domain     = br()->config()->get('br/request/consoleModeBaseDomain', 'localhost');
+      $this->host       = br()->config()->get('br/request/consoleModeBaseHost',    'http://'.$this->domain);
+      $this->baseUrl    = br()->config()->get('br/request/consoleModeBaseUrl',     '/');
       
     }
             
