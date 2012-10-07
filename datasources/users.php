@@ -130,13 +130,10 @@ class BrDataSourceUsers extends BrDataSource {
 
       // add security checks only for REST calls
       if (br($options, 'source') == 'RESTBinder') {
-
         $security = br()->config()->get('br/auth/db/api/select-user');
-
         if (!$security) {
           $security = 'login';
         }
-
         if (strpos($security, 'login') !== false) {
           $login = br()->auth()->getLogin();
           if (!$login) {
@@ -149,7 +146,6 @@ class BrDataSourceUsers extends BrDataSource {
         if (strpos($security, 'anyone') === false) {
           throw new Exception('You are not allowed to see users');
         }
-        
       }
 
     });
@@ -157,7 +153,8 @@ class BrDataSourceUsers extends BrDataSource {
     $this->before('update', function($dataSource, $row) { 
 
       if ($login = br()->auth()->getLogin()) {
-        if (br()->config()->get('br/auth/db/api/update-user') != 'anyone') {
+        $security = br()->config()->get('br/auth/db/api/select-user');
+        if (strpos($security, 'anyone') === false) {
           if (br()->db()->rowid($login) != br()->db()->rowid($row)) {
             throw new Exception('You are not allowed to modify this user');
           }
@@ -171,7 +168,8 @@ class BrDataSourceUsers extends BrDataSource {
     $this->before('remove', function($dataSource, $row) { 
 
       if ($login = br()->auth()->getLogin()) {
-        if (br()->config()->get('br/auth/db/api/remove-user') != 'anyone') {
+        $security = br()->config()->get('br/auth/db/api/remove-user');
+        if (strpos($security, 'anyone') === false) {
           if (br()->db()->rowid($login) != br()->db()->rowid($row)) {
             throw new Exception('You are not allowed to remove this user');
           }
