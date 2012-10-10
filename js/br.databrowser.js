@@ -419,6 +419,8 @@
                       }
                     );
 
+        } else {
+          br.growlError('Please select at least one record');
         }
         // callEvent('selectionChanged');
       });
