@@ -416,6 +416,7 @@
                         for(i in selection) {
                           _this.dataSource.remove(selection[i]);
                         }
+                        // _this.refresh();
                       }
                     );
 
