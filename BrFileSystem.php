@@ -117,40 +117,35 @@ class BrFileSystem extends BrSingleton {
 
   }
 
-  public function makeDir($path) {
+  public function makeDir($path, $access = 0777) {
 
     if (is_dir($path)) {
       return true;
     }
 
-    $priorPath = dirname($path);
-    if (!$this->makeDir($priorPath)) {
-      return false;
-    }
-    
     br()->errorHandler()->disable();
-    $result = @mkdir($path);
+    $result = @mkdir($path, $access, true);
     br()->errorHandler()->enable();
 
-    return $result;    
+    return $result;
     
   }
   
+  public function createDir($path, $access = 0777) {
+
+    if (!$this->makeDir($path, $access)) {
+      throw new Exception('Can not create directory "' . $path .'"');
+    }
+
+    return $this;
+    
+  }
+
   public function checkWriteable($path) {
 
     if (!is_writeable($path)) {
       throw new Exception('Can not create directory "' . $path .'"');
     }
-    
-  }
-
-  public function createDir($path) {
-
-    if (!$this->makeDir($path)) {
-      throw new Exception('Can not create directory "' . $path .'"');
-    }
-
-    return $this;
     
   }
 

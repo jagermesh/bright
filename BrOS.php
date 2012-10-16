@@ -36,7 +36,8 @@ class BrOS extends BrObject {
     } else {
       $output = $this->execute("ps ax | grep '" . $pid . "' 2>&1");
       foreach ($output as $line) {
-        if (preg_match('#([0-9]+).*[0-9]+:[0-9]+ (.+)$#', $line, $matches)) {
+        $line = trim($line);
+        if (preg_match('#^([0-9]+).*?[0-9]+:[0-9]+ (.+)$#', $line, $matches)) {
           if (strtolower(trim($matches[2])) == strtolower(trim($pid))) {
             return $matches[1];
           }
@@ -52,7 +53,8 @@ class BrOS extends BrObject {
 
     $output = $this->execute("ps ax | grep '" . $command . "' 2>&1");
     foreach ($output as $line) {
-      if (preg_match('#([0-9]+) .+?[0-9]+:[0-9.]+ ' . $command . '#', $line, $matches)) {
+      $line = trim($line);
+      if (preg_match('#^([0-9]+) .+?[0-9]+:[0-9.]+ ' . $command . '#', $line, $matches)) {
         return $matches[1];
       }
     }
@@ -66,6 +68,21 @@ class BrOS extends BrObject {
     $output = $this->execute('nohup '.$command.' >/dev/null 2>&1 & echo $!');
     return (int)$output[0];
       
+  }
+
+  function isPHPScriptRunning($scriptCommand) {
+
+    exec("ps ax | grep '".$scriptCommand."' 2>&1", $output);
+    foreach ($output as $line) {
+      $line = trim($line);
+      if (preg_match('#^([0-9]+).*?[0-9]+:[0-9.]+ .*?php .*?' . $scriptCommand . '$#', $line, $matches)) {
+        if (getmypid() != $matches[1]) {
+          return $matches[1];
+        }
+      }
+    }
+    return false;
+
   }
 
 }
