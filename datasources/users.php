@@ -224,43 +224,48 @@ class BrDataSourceUsers extends BrDataSource {
       $loginField = br()->config()->get('br/auth/db/login-field', 'login');
       $passwordField = br()->config()->get('br/auth/db/password-field', 'password');
       $plainPasswords = br()->config()->get('br/auth/plainPasswords', false);
+      $filter = array();
 
-      if (br($params, $loginField) && br($params, $passwordField)) {
-        $password = $params[$passwordField];
-        if ($plainPasswords) {
-        } else {
-          $password = md5($password);
-        }
-        $filter = array( $loginField    => $params[$loginField]
-                       , $passwordField => $password 
-                       );
-        $dataSource->callEvent('before:loginSelectUser', $params, $filter);
-        if ($row = $dataSource->selectOne($filter)) {
-          $denied = false;
-          if ($dataSource->invokeMethodExists('isAccessDenied')) {
-            $denied = $dataSource->invoke('isAccessDenied', $row);
-          }
-          if (!$denied) {
-            $row[$passwordField] = md5($params[$passwordField]);
-            br()->auth()->setLogin($row, br($params, 'remember'));
-
-            unset($row[$passwordField]);
-
-            $row['loginToken'] = br()->guid();
-            $row['expiresAt'] = time() + 60 * 60;
-
-            return $row;
-
+      try {
+        if (br($params, $loginField) && br($params, $passwordField)) {
+          $password = $params[$passwordField];
+          if ($plainPasswords) {
           } else {
-            throw new Exception('Access denied');
+            $password = md5($password);
+          }
+          $filter = array( $loginField    => $params[$loginField]
+                         , $passwordField => $password 
+                         );
+          $dataSource->callEvent('before:loginSelectUser', $params, $filter);
+          if ($row = $dataSource->selectOne($filter)) {
+            $denied = false;
+            if ($dataSource->invokeMethodExists('isAccessDenied')) {
+              $denied = $dataSource->invoke('isAccessDenied', $row);
+            }
+            if (!$denied) {
+              $row[$passwordField] = md5($params[$passwordField]);
+              br()->auth()->setLogin($row, br($params, 'remember'));
+
+              unset($row[$passwordField]);
+
+              $row['loginToken'] = br()->guid();
+              $row['expiresAt'] = time() + 60 * 60;
+
+              return $row;
+            } else {
+              throw new Exception('Access denied');
+            }
+          } else {
+            throw new Exception('Invalid login/password or user not found');
           }
         } else {
-          $data = array('filter' => $filter, 'error' => 'Invalid login/password or user not found');
-          $dataSource->callEvent('loginError', $data);
-          throw new Exception($data['error']);
+          throw new Exception('Please enter login/password');
         }
-      } else {
-        throw new Exception('Please enter login/password');
+      } catch (Exception $e) {
+        $params['filter'] = $filter;
+        $params['error']  = $e->getMessage();
+        $dataSource->callEvent('loginError', $params);
+        throw new Exception($params['error']);
       }
 
     });
