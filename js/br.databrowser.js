@@ -226,6 +226,13 @@
                 if (ok) {
                   if ($(this).attr('data-toggle') == 'buttons-radio') {
                     var val = $(this).find('button.active').val();
+                  } else
+                  if ($(this).attr('type') == 'checkbox') {
+                    if ($(this).is(':checked')) {
+                      var val = 1;
+                    } else {
+                      var val = 0;
+                    }
                   } else {
                     var val = $(this).val();
                   }
