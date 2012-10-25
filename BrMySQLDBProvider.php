@@ -278,11 +278,11 @@ class BrMySQLProviderTable {
           break;
         case '$starts':
           $where .= $link . $fname2 . ' LIKE ?';
-          $args[] = '%'.$filterValue;
+          $args[] = $filterValue.'%';
           break;
         case '$ends':
           $where .= $link . $fname2 . ' LIKE ?';
-          $args[] = $filterValue.'%';
+          $args[] = '%'.$filterValue;
           break;
         case '$regexp':
           $where .= $link . $fname2 . ' REGEXP ?&';
@@ -434,24 +434,29 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   function connect($hostName, $dataBaseName, $userName, $password, $cfg) {
 
-    $this->connection = mysql_connect($hostName, $userName, $password, true);
+    if (br($cfg, 'connection')) {
+      $this->connection = $cfg['connection'];
+    } else {
+      $this->connection = mysql_connect($hostName, $userName, $password, true);
       
-    if (!$this->connection)
-      if (br()->config()->get('db.connection_error_page')) {
-        br()->config()->set('db.connection_in_error', true);
-      } else {
-        throw new BrDataBaseException("Can't connect to database $dataBaseName");
+      if (!$this->connection) {
+        if (br()->config()->get('db.connection_error_page')) {
+          br()->config()->set('db.connection_in_error', true);
+        } else {
+          throw new BrDataBaseException("Can't connect to database $dataBaseName");
+        }
       }
-    if (!mysql_select_db($dataBaseName, $this->connection)) {
-      if (br()->config()->get('db.connection_error_page')) {
-        set_config('db.connection_in_error', true);
-      } else {
-        br()->panic("Can't select database $dataBaseName: ".$this->getLastError());
+      if (!mysql_select_db($dataBaseName, $this->connection)) {
+        if (br()->config()->get('db.connection_error_page')) {
+          set_config('db.connection_in_error', true);
+        } else {
+          br()->panic("Can't select database $dataBaseName: ".$this->getLastError());
+        }
       }
-    }
 
-    if (br($cfg, 'charset')) {
-      $this->internalRunQuery("SET NAMES '".$cfg['charset']."'");
+      if (br($cfg, 'charset')) {
+        $this->internalRunQuery("SET NAMES '".$cfg['charset']."'");
+      }
     }
 
     $this->version = mysql_get_server_info();

@@ -184,38 +184,50 @@ class BrRESTBinder extends BrObject {
               switch(br($mapping, 'type', '=')) {
                 case "=":
                   if (is_array($value)) {
+                    $valuesArray = true;
                     if (br($value, '$ne')) {
                       $filter[] = array($fields => array('$ne' => $value['$ne']));
-                    } else
+                      $valuesArray = false;
+                    }
                     if (br($value, '<')) {
                       $filter[] = array($fields => array('$lt' => $value['<']));
-                    } else
+                      $valuesArray = false;
+                    }
                     if (br($value, '$lt')) {
                       $filter[] = array($fields => array('$lt' => $value['$lt']));
-                    } else
+                      $valuesArray = false;
+                    }
                     if (br($value, '>')) {
                       $filter[] = array($fields => array('$gt' => $value['>']));
-                    } else
+                      $valuesArray = false;
+                    }
                     if (br($value, '$gt')) {
                       $filter[] = array($fields => array('$gt' => $value['$gt']));
-                    } else
+                      $valuesArray = false;
+                    }
                     if (br($value, '<=')) {
                       $filter[] = array($fields => array('$lte' => $value['<=']));
-                    } else
+                      $valuesArray = false;
+                    }
                     if (br($value, '$lte')) {
                       $filter[] = array($fields => array('$lte' => $value['$lte']));
-                    } else
+                      $valuesArray = false;
+                    }
                     if (br($value, '>=')) {
                       $filter[] = array($fields => array('$gte' => $value['>=']));
-                    } else
+                      $valuesArray = false;
+                    }
                     if (br($value, '$gte')) {
                       $filter[] = array($fields => array('$gte' => $value['$gte']));
-                    } else
+                      $valuesArray = false;
+                    }
                     if (br($value, '$in')) {
                       $filter[] = array($fields => array('$in' => $value['$in']));
-                    } else {
-                      $filter[] = array($fields => array('$in' => $value));
-                    }                    
+                      $valuesArray = false;
+                    }
+                    if ($valuesArray) {
+                      $filter[] = array($fields => array('$in' => $value));                      
+                    }
                   } else
                   if ($value == 'null') {
                     $filter[$fields] = null;
