@@ -36,15 +36,15 @@ class BrConsoleLogAdapter extends BrGenericLogAdapter {
     
   }
 
-  function writeDebug($message) {
+  function writeDebug($message, $group = 'DBG') {
 
-    $this->write($message);
+    $this->write($message, $group);
     
   }
 
-  function writeError($message) {
+  function writeError($message, $group = 'ERR') {
 
-    $this->write($message);
+    $this->write($message, $group);
     
   }
 

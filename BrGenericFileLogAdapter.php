@@ -71,15 +71,15 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter {
 
   }
   
-  function writeDebug($message) {
+  function writeDebug($message, $group = 'DBG') {
 
-    $this->write($message, 'DBG');
+    $this->write($message, $group);
     
   }
   
-  function writeError($message) {
+  function writeError($message, $group = 'ERR') {
 
-    $this->write($message, 'ERR');
+    $this->write($message, $group);
     
   }
 

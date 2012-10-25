@@ -272,7 +272,11 @@ class Br extends BrSingleton {
   function assert($value, $error = null) {
     
     if (!$value) {
-      throw new BrAssertException($error);
+      if ($error && br()->isConsoleMode()) {
+        echo($error . "\n");
+      } else {
+        throw new BrAssertException($error);
+      }
     }
     
   }

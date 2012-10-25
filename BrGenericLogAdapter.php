@@ -14,6 +14,8 @@ class BrGenericLogAdapter extends BrObject {
 
   function __construct() {
 
+    parent::__construct();
+
   }
 
   function writeMessage($message, $group = 'MSG') {
