@@ -417,7 +417,6 @@
       })
     }
 
-
     this.deferredSelect = function(filter, callback, msec) {
       var savedFilter = {}
       for(i in filter) {

@@ -769,7 +769,6 @@
       })
     }
 
-
     this.deferredSelect = function(filter, callback, msec) {
       var savedFilter = {}
       for(i in filter) {
@@ -1076,12 +1075,59 @@
     }
 
     function render(data) {
+
       var options = _this.options;
+
       if (_this.saveSelection) {
         options.selectedValue = br.storage.get(storageTag(_this.selector));
       }
-      _this.dataSource.fillCombo(_this.selector, data, options);
+
+      valueField = options.valueField || 'rowid';
+      nameField = options.nameField || 'name';
+      hideEmptyValue = options.hideEmptyValue || false;
+      levelField = options.levelField || null;
+      emptyValue = options.emptyValue || '-- any --';
+      selectedValue = options.selectedValue || null;
+      selectedValueField = options.selectedValueField || null;
+      $(_this.selector).each(function() {
+        var val = $(this).val();
+        if (br.isEmpty(val)) {
+          val = $(this).attr('data-value');
+          $(this).removeAttr('data-value');
+        }
+        $(this).html('');
+        var s = '';
+        if (!hideEmptyValue) {
+          s = s + '<option value="">' + emptyValue + '</option>';
+        }
+        for(i in data) {
+          if (!selectedValue && selectedValueField) {
+            if (data[i][selectedValueField] == '1') {
+              selectedValue = data[i][valueField];
+            }
+          }
+          s = s + '<option value="' + data[i][valueField] + '">';
+          if (levelField != null) {
+            var margin = (br.toInt(data[i][levelField]) - 1) * 4;
+            for(k = 0; k < margin; k++) {
+              s = s + '&nbsp;';
+            }
+          }        
+          s = s + data[i][nameField];
+          s = s + '</option>';
+        }
+        $(this).html(s);
+        if (!br.isEmpty(selectedValue)) {
+          val = selectedValue;
+        }
+        if (!br.isEmpty(val)) {
+          $(this).find('option[value=' + val +']').attr('selected', 'selected');
+        }
+      });
+    
+      // _this.dataSource.fillCombo(_this.selector, data, options);
       callEvent('load', data);
+
     }
 
     _this.load = _this.reload = function(callback) {
@@ -1308,8 +1354,10 @@
       if (value.length > 0) {
         return parseInt(value);
       }
+    } else
+    if (typeof value == 'number') {
+      return value;
     }
-    //return null;
   };
 
   window.br.toReal = function(value) {
@@ -1317,8 +1365,10 @@
       if (value.length > 0) {
         return parseFloat(value);
       }
+    } else
+    if (typeof value == 'number') {
+      return value;
     }
-    //return null;
   };
 
   window.br.openPopup = function(url, w, h) {

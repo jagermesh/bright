@@ -91,8 +91,10 @@
       if (value.length > 0) {
         return parseInt(value);
       }
+    } else
+    if (typeof value == 'number') {
+      return value;
     }
-    //return null;
   };
 
   window.br.toReal = function(value) {
@@ -100,8 +102,10 @@
       if (value.length > 0) {
         return parseFloat(value);
       }
+    } else
+    if (typeof value == 'number') {
+      return value;
     }
-    //return null;
   };
 
   window.br.openPopup = function(url, w, h) {

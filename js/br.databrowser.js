@@ -15,6 +15,8 @@
     this.options = options || {};
     this.options.entity = entity;
     this.options.noun = this.options.noun || '';
+    this.options.selectors = this.options.selectors || {};
+    this.options.selectors.pagerPrefix = this.options.selectors.pagerPrefix || '.pager';
     this.storageTag = document.location.toString();
     this.limit = this.options.limit || 20;
     this.skip = 0;
@@ -442,13 +444,13 @@
     }
 
     var slider = false;
-    $('.pager-page-slider').each(function() {
+    $(_this.options.selectors.pagerPrefix + '-page-slider').each(function() {
       slider = true;
       $(this).slider({
           min: 1
         , value: 1
         , change: function(event, ui) { 
-            var value = $('.pager-page-slider').slider('option', 'value');
+            var value = $(_this.options.selectors.pagerPrefix + '-page-slider').slider('option', 'value');
             if (value > 0) {
               var newSkip = _this.limit * (value - 1);
               if (newSkip != _this.skip) {
@@ -460,7 +462,7 @@
       });
     });
 
-    $('.pager-page-size-slider').each(function() {
+    $(_this.options.selectors.pagerPrefix + '-page-size-slider').each(function() {
       slider = true;
       $(this).slider({
           min: 20
@@ -468,10 +470,10 @@
         , max: 200
         , step: 20
         , change: function(event, ui) { 
-            var value = $('.pager-page-size-slider').slider('option', 'value');
+            var value = $(_this.options.selectors.pagerPrefix + '-page-size-slider').slider('option', 'value');
             _this.limit = value;
-            $('.pager-page-slider').slider('option', 'value', 1);
-            $('.pager-page-slider').slider('option', 'max', Math.ceil(_this.recordsAmount / _this.limit));
+            $(_this.options.selectors.pagerPrefix + '-page-slider').slider('option', 'value', 1);
+            $(_this.options.selectors.pagerPrefix + '-page-slider').slider('option', 'max', Math.ceil(_this.recordsAmount / _this.limit));
             console.log(_this);
             _this.refresh({}, null, true);
           }        
@@ -481,28 +483,28 @@
     function internalUpdatePager() {
 
       if (slider) {
-        $('.pager-page-slider').slider('option', 'max', Math.ceil(_this.recordsAmount / _this.limit));
-        $('.pager-page-slider').slider('option', 'value', Math.ceil(_this.skip / _this.limit) + 1);
+        $(_this.options.selectors.pagerPrefix + '-page-slider').slider('option', 'max', Math.ceil(_this.recordsAmount / _this.limit));
+        $(_this.options.selectors.pagerPrefix + '-page-slider').slider('option', 'value', Math.ceil(_this.skip / _this.limit) + 1);
       }
       var min = (_this.skip + 1);
       var max = Math.min(_this.skip + _this.limit, _this.recordsAmount);
       if (_this.recordsAmount > 0) {
-        $('.pager-control').show();
+        $(_this.options.selectors.pagerPrefix + '-control').show();
         if (_this.recordsAmount > max) {
-          $('.action-next').show();
+          $(_this.options.selectors.pagerPrefix + 'action-next').show();
         } else {
-          $('.action-next').hide();
+          $(_this.options.selectors.pagerPrefix + 'action-next').hide();
         }
         if (_this.skip > 0) {
-          $('.action-prior').show();
+          $(_this.options.selectors.pagerPrefix + 'action-prior').show();
         } else {
-          $('.action-prior').hide();
+          $(_this.options.selectors.pagerPrefix + 'action-prior').hide();
         }
       } else {
-        $('.pager-control').hide();        
+        $(_this.options.selectors.pagerPrefix + '-control').hide();        
       }
-      $('.pager-stat').text('Records ' + min + '-' + max + ' of ' + _this.recordsAmount);
-      $('.pager-page-size').text(_this.limit + ' records per page');
+      $(_this.options.selectors.pagerPrefix + '-stat').text('Records ' + min + '-' + max + ' of ' + _this.recordsAmount);
+      $(_this.options.selectors.pagerPrefix + '-page-size').text(_this.limit + ' records per page');
 
       pagerSetuped = true;
 
@@ -531,7 +533,7 @@
             _this.recordsAmount = result;
             internalUpdatePager();
           } else {
-            $('.pager-control').hide();        
+            $(_this.options.selectors.pagerPrefix + '-control').hide();        
           }
         });
 

@@ -88,7 +88,7 @@ class BrFileSystem extends BrSingleton {
 
   public function dirName($path) {
    
-    return rtrim(dirname($path), '/');
+    return rtrim(str_replace('\\', '/', dirname($path)), '/');
   
   }
 
