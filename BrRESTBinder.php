@@ -378,7 +378,7 @@ class BrRESTBinder extends BrObject {
 
       $method = $method = br()->request()->get('__method');
       if (!$method) {
-        if ($matches = br()->request()->isAt(rtrim($path, '/').'/([a-zA-Z]+)/$')) {
+        if ($matches = br()->request()->isAt(rtrim($path, '/').'/([a-zA-Z]+)/($|[?])')) {
           $method = $matches[1];
         }
       }
@@ -418,8 +418,6 @@ class BrRESTBinder extends BrObject {
         }
       } else
       if ($matches = br()->request()->isAt(rtrim($path, '/').'/([0-9a-z]+)')) {
-
-        // br()->request()->continueRoute(false);
 
         $this->checkPermissions($options, array('update'));
 

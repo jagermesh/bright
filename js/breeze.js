@@ -802,6 +802,7 @@
 
     var $ = jQuery;
     var datagrid = this;
+    var _this = this;
 
     this.cb = {};
     this.selector = selector;
@@ -811,6 +812,7 @@
     this.options.dataSource = dataSource;
     this.options.headersSelector = this.options.headersSelector || this.selector;
     this.options.footersSelector = this.options.footersSelector || this.selector;
+    this.options.selectors = this.options.selectors || {};
 
     this.on = function(event, callback) {
       this.cb[event] = this.cb[event] || new Array();
@@ -876,93 +878,99 @@
       $(datagrid.selector).prepend(row);
     }
 
-    function isGridEmpty() {
-      return ($(datagrid.selector).find('[data-rowid]').length == 0);
-    }
+    this.init = function() {
 
-    function checkForEmptyGrid() {
-      if (isGridEmpty()) {
-        $(datagrid.selector).html($(datagrid.options.templates.noData).html());
-        callEvent('nodata');
+      function isGridEmpty() {
+        return ($(datagrid.selector).find('[data-rowid]').length == 0);
       }
-    }
 
-    if (this.options.dataSource) {
-
-      this.options.dataSource.before('select', function() {
-        $(datagrid.selector).html('');
-        $(datagrid.selector).addClass('progress-big');
-      });
-
-      this.options.dataSource.after('select', function() {
-        $(datagrid.selector).removeClass('progress-big');
-      });
-
-      this.options.dataSource.on('select', function(data) {
-        $(datagrid.selector).removeClass('progress-big');
-        datagrid.render(data);
-      });
-
-      this.options.dataSource.after('insert', function(success, response) {
-        if (success) {
-          if (isGridEmpty()) {
-            $(datagrid.selector).html(''); // to remove No-Data box
-          }
-          datagrid.prepend(datagrid.renderRow(response));
+      function checkForEmptyGrid() {
+        if (isGridEmpty()) {
+          $(datagrid.selector).html($(datagrid.options.templates.noData).html());
+          callEvent('nodata');
         }
-      });
+      }
 
-      this.options.dataSource.on('update', function(data) {
-        var row = $(datagrid.selector).find('[data-rowid=' + data.rowid + ']');
-        if (row.length == 1) {
-          var ctrl = datagrid.renderRow(data);
-          var s = ctrl.html();
-          ctrl.remove();
-          if (s.length > 0) {
-            $(row[0]).html(s).hide().fadeIn();
-            callEvent('update');
+      if (this.options.dataSource) {
+
+        var dataSource = this.options.dataSource;
+
+        dataSource.before('select', function() {
+          $(datagrid.selector).html('');
+          $(datagrid.selector).addClass('progress-big');
+        });
+
+        dataSource.after('select', function() {
+          $(datagrid.selector).removeClass('progress-big');
+        });
+
+        dataSource.on('select', function(data) {
+          $(datagrid.selector).removeClass('progress-big');
+          datagrid.render(data);
+        });
+
+        dataSource.after('insert', function(success, response) {
+          if (success) {
+            if (isGridEmpty()) {
+              $(datagrid.selector).html(''); // to remove No-Data box
+            }
+            datagrid.prepend(datagrid.renderRow(response));
+          }
+        });
+
+        dataSource.on('update', function(data) {
+          var row = $(datagrid.selector).find('[data-rowid=' + data.rowid + ']');
+          if (row.length == 1) {
+            var ctrl = datagrid.renderRow(data);
+            var s = ctrl.html();
+            ctrl.remove();
+            if (s.length > 0) {
+              $(row[0]).html(s).hide().fadeIn();
+              callEvent('update');
+            } else {
+              datagrid.options.dataSource.select();
+            }
           } else {
             datagrid.options.dataSource.select();
           }
-        } else {
-          datagrid.options.dataSource.select();
-        }
-      });
+        });
 
-      this.options.dataSource.on('remove', function(rowid) {
-        var row = $(datagrid.selector).find('[data-rowid=' + rowid + ']');
-        if (row.length > 0) {
-          if (br.isTouchScreen()) {
-            row.remove();
-            checkForEmptyGrid();
-            callEvent('remove');
-          } else {
-            row.fadeOut(function() {
-              $(this).remove();
+        dataSource.on('remove', function(rowid) {
+          var row = $(datagrid.selector).find('[data-rowid=' + rowid + ']');
+          if (row.length > 0) {
+            if (br.isTouchScreen()) {
+              row.remove();
               checkForEmptyGrid();
               callEvent('remove');
-            });
-          }
-        } else {
-          datagrid.options.dataSource.select();
-        }
-      });
-
-      if (this.options.deleteSelector) {
-        $(datagrid.selector).on('click', this.options.deleteSelector, function() {
-          var row = $(this).closest('[data-rowid]');
-          if (row.length > 0) {
-            var rowid = $(row).attr('data-rowid');
-            if (!br.isEmpty(rowid)) {
-              br.confirm( 'Delete confirmation'
-                        , 'Are you sure you want delete this record?'
-                        , function() {
-                            datagrid.options.dataSource.remove(rowid);
-                          }
-                        );
+            } else {
+              row.fadeOut(function() {
+                $(this).remove();
+                checkForEmptyGrid();
+                callEvent('remove');
+              });
             }
+          } else {
+            datagrid.options.dataSource.select();
           }
         });
+
+        if (this.options.deleteSelector) {
+          $(datagrid.selector).on('click', this.options.deleteSelector, function() {
+            var row = $(this).closest('[data-rowid]');
+            if (row.length > 0) {
+              var rowid = $(row).attr('data-rowid');
+              if (!br.isEmpty(rowid)) {
+                br.confirm( 'Delete confirmation'
+                          , 'Are you sure you want delete this record?'
+                          , function() {
+                              datagrid.options.dataSource.remove(rowid);
+                            }
+                          );
+              }
+            }
+          });
+        }
+
       }
 
     }
@@ -1025,6 +1033,8 @@
       }
       callEvent('change', data);
     }
+
+    return this.init();
 
   }
 

@@ -138,6 +138,7 @@ class BrRequest extends BrSingleton {
    * @return boolean
    */
   function isAt($url) {
+
     if (@preg_match('~'.$url.'~', $this->url, $matches)) {
       return $matches;
     } else {

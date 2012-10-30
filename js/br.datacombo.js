@@ -99,8 +99,12 @@
 
     }
 
-    _this.load = _this.reload = function(callback) {
-      _this.dataSource.select({}, function(result) {
+    _this.load = _this.reload = function(filter, callback) {
+      if (typeof filter == 'function') {
+        callback = filter;
+        filter = {};
+      }
+      _this.dataSource.select(filter, function(result) {
         if (result) {
           if (callback) {
             callback.call($(_this.selector), result);
