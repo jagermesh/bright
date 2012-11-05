@@ -22,10 +22,13 @@ class BrDBTree extends BrObject {
 
   function setup() {
 
-    // ALTER TABLE .. ADD __path VARCHAR(250);
+    // ALTER TABLE .. ADD __path  VARCHAR(250);
     // ALTER TABLE .. ADD __level INTEGER;
+    // ALTER TABLE .. ADD __key   INTEGER;
     // ALTER TABLE .. ADD INDEX idx_standard__path (__path);
     // ALTER TABLE .. ADD INDEX idx_standard__path2 (__path, district_id, subject_id);
+    // ALTER TABLE .. ADD INDEX idx_standard__key (__key);
+    // UPDATE standard SET __key = IF(@tmp, @tmp:=@tmp+1, @tmp:=0) ORDER BY name;
   
     br()->db()->runQuery('UPDATE '.$this->tableName.' 
                              SET __path = NULL');
