@@ -82,14 +82,16 @@ class BrApplication extends BrSingleton {
       br()->log()->writeLn('Contoller: '.$controllerFile);
       br()->import($controllerFile);      
     } else {
-      br()->response()->send404();
+      br()->response()->send404();            
     }
 
   }
 
   function end() {
+
     br()->profiler()->logFinish('APPLICATION');
     br()->log()->write('');
+
   }
 
 }

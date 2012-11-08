@@ -162,7 +162,7 @@ class Br extends BrSingleton {
     $this->basePath = $this->fs()->filePath($scriptPath);
     $this->scriptName = $this->fs()->fileName($scriptPath);
     $this->appPath = $this->basePath.'app/';
-    $this->templatesPath = $this->basePath.'templates/';
+    $this->setTemplatesPath($this->basePath.'templates/');
     
   }
   
@@ -187,6 +187,12 @@ class Br extends BrSingleton {
   function atAppPath($path) {
   
     return $this->appPath.ltrim($path, '/');
+    
+  }
+  
+  function setTemplatesPath($templatesPath) {
+  
+    $this->templatesPath = $templatesPath;
     
   }
   
