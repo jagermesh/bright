@@ -49,11 +49,23 @@
       }
       if (form.length > 0) {
         $(form).find('input,select').each(function() {
-          data[$(this).attr('name')] = $(this).val();
+          if ($(this).attr('type') == 'checkbox') {
+            if ($(this).is(':checked')) {
+              data[$(this).attr('name')] = $(this).val();
+            }
+          } else {
+            data[$(this).attr('name')] = $(this).val();
+          }
         });
       }
       $('.login-field').each(function() {
-        data[$(this).attr('name')] = $(this).val();
+        if ($(this).attr('type') == 'checkbox') {
+          if ($(this).is(':checked')) {
+            data[$(this).attr('name')] = $(this).val();
+          }
+        } else {
+          data[$(this).attr('name')] = $(this).val();
+        }
       });
 
       users.invoke( 'login'

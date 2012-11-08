@@ -278,6 +278,16 @@ class BrDataSourceUsers extends BrDataSource {
 
     });
 
+    $this->on('getCurrentUser', function($dataSource, $params) {
+
+      if ($login = br()->auth()->getLogin()) {
+        return $dataSource->selectOne($login['id']);
+      }
+
+      return true;
+
+    });
+
     $this->on('calcFields', function($dataSource, &$row) { 
 
       $passwordField = br()->config()->get('br/auth/db/password-field', 'password');
