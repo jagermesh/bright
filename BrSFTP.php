@@ -11,19 +11,17 @@
 require_once(__DIR__.'/BrObject.php');
 require_once(__DIR__.'/BrFileSystem.php');
 
-class BrFTPFileObject {
+class BrSFTPFileObject {
 
   private $name;
   private $size;
   private $isDirectory;
 
-  function __construct($line) {
+  function __construct($name, $params) {
 
-    if (preg_match('#([-d]).* ([0-9]+) ([a-zA-Z]{3}) ([ 0-9]?[0-9]) ([0-9]{2}):([0-9]{2}) (.+)#', $line, $matches)) {
-      $this->isDirectory = ($matches[1] == 'd');
-      $this->size = $matches[2];
-      $this->name = $matches[7];
-    }
+    $this->isDirectory = ($params['type'] == 2);
+    $this->size = $params['size'];
+    $this->name = $name;
 
   }
 
@@ -53,14 +51,15 @@ class BrFTPFileObject {
 
 }
 
-class BrFTP extends BrObject {
+class BrSFTP extends BrObject {
 
-  private $connectionId;
+  private $connection;
   private $currentDirectory = '/';
   private $currentHostName;
   private $currentUserName;
   private $currentPassword;
   private $currentPassiveMode;
+  private $sftp;
 
   function __construct() {
 
@@ -68,37 +67,44 @@ class BrFTP extends BrObject {
 
   }
   
-  function connect($hostName, $userName, $password, $passiveMode = true) {
+  function connect($hostName, $userName, $password, $port = 22) {
 
     $this->currentHostName = $hostName;
     $this->currentUserName = $userName;
     $this->currentPassword = $password;
-    $this->currentPassiveMode = $passiveMode;
 
-    if ($this->connectionId = ftp_connect($hostName)) {
-      if (ftp_login($this->connectionId, $userName, $password)) {
-        ftp_pasv($this->connectionId, $passiveMode);
-      } else {
-        throw new Exception('Can not connect to ' . $hostName . ' as ' . $userName);
-      }
+    require_once(dirname(__DIR__).'/3rdparty/phpseclib0.3.0/Net/SFTP.php');
+
+    $this->connection = new Net_SFTP($hostName, $port);
+
+    if ($this->connection->login($userName, $password)) {
+      $this->changeDir('/' . $userName);
     } else {
-      throw new Exception('Can not connect to ' . $hostName);
+      throw new Exception('Can not connect to ' . $hostName . ' as ' . $userName);      
     }
+    // if ($this->connectionId = ssh2_connect($hostName, $port)) {
+    //   if ($this->sftp = ssh2_auth_password($this->connectionId, $userName, $password)) {
+
+    //   } else {
+    //     throw new Exception('Can not connect to ' . $hostName . ' as ' . $userName);
+    //   }
+    // } else {
+    //   throw new Exception('Can not connect to ' . $hostName);
+    // }
 
   }
   
   public function reset() {
 
-    ftp_close($this->connectionId);
+    // ftp_close($this->connectionId);
 
-    $this->connect($this->currentHostName, $this->currentUserName, $this->currentPassword, $this->currentPassiveMode);
-    $this->changeDir($this->currentDirectory);
+    // $this->connect($this->currentHostName, $this->currentUserName, $this->currentPassword, $this->currentPassiveMode);
 
   }
 
   public function changeDir($directory) {
 
-    if (ftp_chdir($this->connectionId, $directory)) {
+    if ($this->connection->chdir($directory)) {
       $this->currentDirectory = rtrim($directory, '/') . '/';
     } else {
       throw new Exception('Can not change remote directory to ' . $directory);      
@@ -115,10 +121,10 @@ class BrFTP extends BrObject {
       $mask = null;
     }
 
-    if ($ftpRAWList = ftp_rawlist($this->connectionId, $this->currentDirectory)) {
+    if ($ftpRAWList = $this->connection->rawlist($this->currentDirectory)) {
       if (is_array($ftpRAWList)) {
-        foreach($ftpRAWList as $line) {
-          $ftpFileObject = new BrFTPFileObject($line);
+        foreach($ftpRAWList as $name => $params) {
+          $ftpFileObject = new BrSFTPFileObject($name, $params);
           $proceed = true;
           if ($mask) {
             $proceed = preg_match('#' . $mask . '#', $ftpFileObject->name());
@@ -140,8 +146,8 @@ class BrFTP extends BrObject {
 
     $targetFileNamePartial = $targetFileName . '.partial';
 
-    if (ftp_put($this->connectionId, $targetFileNamePartial, $sourceFilePath, $mode)) {
-      if ($this->renameFile($targetFileNamePartial, $targetFileName)) {
+    if ($this->connection->put($this->currentDirectory . $targetFileNamePartial, $sourceFilePath, NET_SFTP_LOCAL_FILE)) {
+      if ($this->renameFile($this->currentDirectory . $targetFileNamePartial, $this->currentDirectory . $targetFileName)) {
         return true;
       }
     }
@@ -152,19 +158,19 @@ class BrFTP extends BrObject {
 
   public function deleteFile($fileName) {
 
-    return ftp_delete($this->connectionId, $fileName);
+    return $this->connection->delete($fileName);
 
   }
 
   public function renameFile($oldFileName, $newFileName) {
 
-    return ftp_rename($this->connectionId, $oldFileName, $newFileName);
+    return $this->connection->rename($oldFileName, $newFileName);
 
   }
 
   public function makeDir($name) {
 
-    return ftp_mkdir($this->connectionId, $name);
+    return $this->connection->mkdir($name);
 
   }
 
@@ -178,7 +184,7 @@ class BrFTP extends BrObject {
 
     $targetFileNamePartial = $targetFileName . '.partial';
 
-    if (ftp_get($this->connectionId, $targetFilePath . $targetFileNamePartial, $sourceFileName, $mode)) {
+    if ($this->connection->get($this->currentDirectory . $sourceFileName, $targetFilePath . $targetFileNamePartial)) {
       if (rename($targetFilePath . $targetFileNamePartial, $targetFilePath . $targetFileName)) {
         return true;
       }

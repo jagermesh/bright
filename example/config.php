@@ -1,7 +1,5 @@
 <?php
 
-br()->defaultConfig();
-
 br()->config()->set( 'db'
                    , array( 'engine'   => '[mysql|mongo]'
                           , 'name'     => '[databaseName]' 

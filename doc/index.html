@@ -73,11 +73,11 @@ require_once(__DIR__.'/breeze/Breeze.php');
               <tr>
                 <td>/config.php</td>
                 <td>
-<p>Configuration file. Optional, but almost every application have some settings. We suggest you to put at least one line into this file:</p>
+<p>Configuration file. Optional, but almost every application have some settings.</p>
 <pre>
-br()->defaultConfig();
+br()->config()->set('someOption', 'someValue'));
+$someValue = br()->config()->get('someOption'));
 </pre>
-<p><code>br()->defaultConfig();</code> will configure some Breeze defaults, for example logging into /_logs folder (it must be created by you with writeable permissions)</p>
                 </td>
               </tr>
             </tbody>

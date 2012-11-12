@@ -290,7 +290,12 @@ class BrMySQLProviderTable {
           break;
         default:
           if (is_array($filterValue)) {
-            $this->compileFilter($filterValue, $tableName, $currentFieldName, $link, $joins, $joinsTables, $where, $args);
+            if ($currentFieldName && br()->isRegularArray($filterValue)) {
+              $where .= $link . $fname . ' IN (?@)';
+              $args[] = br()->removeEmptyKeys($filterValue);
+            } else {
+              $this->compileFilter($filterValue, $tableName, $currentFieldName, $link, $joins, $joinsTables, $where, $args);
+            }
           } else {
             if (is_object($filterValue) && ($filterValue instanceof BrMySQLRegExp)) {
               $where .= $link.$fname.' REGEXP ?&';

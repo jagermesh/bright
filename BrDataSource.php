@@ -66,7 +66,6 @@ class BrDataSource extends BrGenericDataSource {
         $sortOrder = array($sortOrder => 1);
       }
     }
-
     $this->validateSelect($filter);
 
     $result = $this->callEvent('select', $filter, $transientData, $options);
@@ -78,7 +77,10 @@ class BrDataSource extends BrGenericDataSource {
 
       if (!strlen($limit) || ($limit > 0)) {
         $cursor = $table->find($filter, $fields);
-        if ($sortOrder) {
+        if ($sortOrder && is_array($sortOrder)) {
+          foreach($sortOrder as $fieldName => $direction) {
+            $sortOrder[$fieldName] = (int)$direction;
+          }
           $cursor = $cursor->sort($sortOrder);
         }        
         if ($skip) {
@@ -132,6 +134,7 @@ class BrDataSource extends BrGenericDataSource {
 
       }
     }
+    logme($result);
     return $result;      
     
   }

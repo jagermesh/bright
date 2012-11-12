@@ -424,60 +424,68 @@
 
       request = item;
 
-      callEvent('before:insert', request);
+      try {
 
-      if (this.options.crossdomain) {
-        request.crossdomain = 'put';
-      }
+        callEvent('before:insert', request);
 
-      function returnInsert(data) {
+        if (this.options.crossdomain) {
+          request.crossdomain = 'put';
+        }
 
-        var result;
+        function returnInsert(data) {
 
-        if (datasource.options.crossdomain) {
-          if (typeof data == 'string') {
-            result = false;
-            callEvent('error', 'insert', data.length > 0 ? data : 'Empty response. Was expecting new created records with ROWID.');
+          var result;
+
+          if (datasource.options.crossdomain) {
+            if (typeof data == 'string') {
+              result = false;
+              callEvent('error', 'insert', data.length > 0 ? data : 'Empty response. Was expecting new created records with ROWID.');
+            } else {
+              result = true;
+              callEvent('insert', data);
+            }
           } else {
-            result = true;
-            callEvent('insert', data);
+            if (data) {
+              result = true;
+              callEvent('insert', data);
+            } else {
+              result = false;
+              callEvent('error', 'insert', 'Empty response. Was expecting new created records with ROWID.');
+            }
           }
+          callEvent('after:insert', result, data, request);
+          if (result) {
+            callEvent('change', 'insert', data);
+          }
+          if (typeof callback == 'function') { callback.call(datasource, result, data, request); }
+
+        }
+
+        if (datasource.options.offlineMode) {
+          datasource.db.insert(request);
+          request.rowid = request.___id;
+          request.syncState = 'n';
+          returnInsert(request);
         } else {
-          if (data) {
-            result = true;
-            callEvent('insert', data);
-          } else {
-            result = false;
-            callEvent('error', 'insert', 'Empty response. Was expecting new created records with ROWID.');
-          }
+          $.ajax({ type: this.options.crossdomain ? 'GET' : 'PUT'
+                 , data: request
+                 , dataType: this.options.crossdomain ? 'jsonp' : 'json'
+                 , url: this.options.restServiceUrl + (this.options.authToken ? '?token=' + this.options.authToken : '')
+                 , success: function(response) {
+                     returnInsert(response);
+                   }
+                 , error: function(jqXHR, textStatus, errorThrown) {
+                     callEvent('error', 'insert', jqXHR.responseText);
+                     callEvent('after:insert', false, jqXHR.responseText, request);
+                     if (typeof callback == 'function') { callback.call(datasource, false, jqXHR.responseText, request); }
+                   }
+                 });
         }
-        callEvent('after:insert', result, data, request);
-        if (result) {
-          callEvent('change', 'insert', data);
-        }
-        if (typeof callback == 'function') { callback.call(datasource, result, data, request); }
 
-      }
-
-      if (datasource.options.offlineMode) {
-        datasource.db.insert(request);
-        request.rowid = request.___id;
-        request.syncState = 'n';
-        returnInsert(request);
-      } else {
-        $.ajax({ type: this.options.crossdomain ? 'GET' : 'PUT'
-               , data: request
-               , dataType: this.options.crossdomain ? 'jsonp' : 'json'
-               , url: this.options.restServiceUrl + (this.options.authToken ? '?token=' + this.options.authToken : '')
-               , success: function(response) {
-                   returnInsert(response);
-                 }
-               , error: function(jqXHR, textStatus, errorThrown) {
-                   callEvent('error', 'insert', jqXHR.responseText);
-                   callEvent('after:insert', false, jqXHR.responseText, request);
-                   if (typeof callback == 'function') { callback.call(datasource, false, jqXHR.responseText, request); }
-                 }
-               });
+      } catch (error) {
+        callEvent('error', 'insert', error);
+        callEvent('after:insert', false, error, request);
+        if (typeof callback == 'function') { callback.call(datasource, false, error, request); }
       }
 
     }

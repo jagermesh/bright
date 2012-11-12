@@ -233,6 +233,30 @@ class Br extends BrSingleton {
     
   }
 
+  function isMultiArray($array) {
+
+    $rv = array_filter($array, 'is_array');
+    return (count($rv) > 0);
+
+  }
+
+  function isRegularArray($array) {
+
+    if ($this->isMultiArray($array)) {
+      return false;
+    } else {
+      $prior = -1;
+      foreach($array as $idx => $value) {
+        if (!is_numeric($idx) || (abs($idx - $prior) != 1)) {
+          return false;
+        }
+        $prior = $idx;
+      }
+      return true;
+    }
+
+  }
+
   function loadFile($fileName) {
 
     $result = null;
