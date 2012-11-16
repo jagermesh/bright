@@ -164,7 +164,7 @@ class BrFTP extends BrObject {
 
   public function makeDir($name) {
 
-    return ftp_mkdir($this->connectionId, $name);
+    return @ftp_mkdir($this->connectionId, $name);
 
   }
 

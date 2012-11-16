@@ -17,7 +17,7 @@
     var $ = jQuery;
     var _this = this;
 
-    _this.selector = selector;
+    _this.selector = $(selector);
     _this.dataSource = dataSource;
     _this.options = options || {};
     _this.fields = _this.options.fields || {};
@@ -34,7 +34,7 @@
     function callEvent(event, data) {
       _this.cb[event] = _this.cb[event] || new Array();
       for (i in _this.cb[event]) {
-        _this.cb[event][i].call($(_this.selector), data);
+        _this.cb[event][i].call(_this.selector, data);
       }
     }
 
@@ -58,7 +58,7 @@
       emptyValue = options.emptyValue || '-- any --';
       selectedValue = options.selectedValue || null;
       selectedValueField = options.selectedValueField || null;
-      $(_this.selector).each(function() {
+      _this.selector.each(function() {
         var val = $(this).val();
         if (br.isEmpty(val)) {
           val = $(this).attr('data-value');
@@ -107,7 +107,7 @@
       _this.dataSource.select(filter, function(result) {
         if (result) {
           if (callback) {
-            callback.call($(_this.selector), result);
+            callback.call(_this.selector, result);
           }
         }
       }, { fields: _this.fields });
@@ -122,15 +122,15 @@
     });
 
     _this.dataSource.on('update', function(data) {
-  //    $(_this.selector).find('option[value=' + rowid +']').remove();
+  //    _this.selector.find('option[value=' + rowid +']').remove();
     });
 
     _this.dataSource.on('remove', function(rowid) {
-      $(_this.selector).find('option[value=' + rowid +']').remove();
+      _this.selector.find('option[value=' + rowid +']').remove();
       callEvent('change');
     });
 
-    $(_this.selector).change(function() {
+    _this.selector.change(function() {
       if (_this.saveSelection) {
         br.storage.set(storageTag(this), $(this).val());
       }
