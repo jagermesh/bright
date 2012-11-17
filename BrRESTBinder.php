@@ -226,7 +226,7 @@ class BrRESTBinder extends BrObject {
                       $valuesArray = false;
                     }
                     if ($valuesArray) {
-                      $filter[] = array($fields => array('$in' => $value));                      
+                      $filter[$fields] = $value;
                     }
                   } else
                   if ($value == 'null') {
