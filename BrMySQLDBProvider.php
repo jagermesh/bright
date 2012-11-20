@@ -680,6 +680,28 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   }
 
+  function getCachedRows() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    $cacheTag = 'MySQLDBProvder:getCachedRows:' . md5($sql) . md5(serialize($args));
+    $result = br()->cache()->get($cacheTag);
+    if (!$result) {
+      $query = $this->internalRunQuery($sql, $args);
+      $result = array();
+      if (is_resource($query)) {
+        while($row = $this->selectNext($query)) {
+          $result[] = $row;
+        }
+      }
+      br()->cache()->set($cacheTag, $result);
+    }
+    
+    return $result;
+
+  }
+
   function getValue() {
 
     $args = func_get_args();
