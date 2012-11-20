@@ -23,6 +23,11 @@ class BrFTPFileObject {
       $this->isDirectory = ($matches[1] == 'd');
       $this->size = $matches[2];
       $this->name = $matches[7];
+    } else
+    if (preg_match('#[0-9]{2}[-][0-9]{2}[-][0-9]{2}  [0-9]{2}:[0-9]{2}[AP]M[ ]+([0-9]+) (.+)#', $line, $matches)) {
+      $this->isDirectory = false;//($matches[1] == 'd');
+      $this->size = $matches[1];
+      $this->name = $matches[2];
     }
 
   }
