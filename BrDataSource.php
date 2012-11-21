@@ -134,7 +134,7 @@ class BrDataSource extends BrGenericDataSource {
 
       }
     }
-    logme($result);
+
     return $result;      
     
   }
