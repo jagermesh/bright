@@ -22,11 +22,11 @@ class BrGenericLogAdapter extends BrObject {
     
   }
   
-  function writeDebug($message, $group = 'DBG') {
+  function writeDebug($message) {
     
   }
   
-  function writeError($message, $group = 'ERR') {
+  function writeError($message) {
     
   }
   

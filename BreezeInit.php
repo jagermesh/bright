@@ -8,11 +8,17 @@
  * @package Breeze Core
  */
 
+// br() helper function
 require_once(__DIR__.'/Br.php');
 
+// Installing custom error handler
+require_once(__DIR__.'/BrErrorHandler.php');
+BrErrorHandler::GetInstance();
+
 // Core PHP settings
-error_reporting(E_ALL & ~E_COMPILE_WARNING & ~E_DEPRECATED);
-set_magic_quotes_runtime(0);
+if (function_exists('set_magic_quotes_runtime')) {
+  @set_magic_quotes_runtime(0);
+}
 
 if (get_magic_quotes_gpc()) { 
   br()->stripSlashes($_GET);
@@ -24,17 +30,8 @@ if (get_magic_quotes_gpc()) {
 }
 
 ini_set('url_rewriter.tags', null);
-if (function_exists("date_default_timezone_set") && function_exists("date_default_timezone_get")) {
-  @date_default_timezone_set(@date_default_timezone_get());
-}
+@date_default_timezone_set(@date_default_timezone_get());
 // Core PHP settings - End
-
-// Breeze files base path
-define('BreezePath', __DIR__ . '/');
-
-// Installing custom error handler
-require_once(__DIR__.'/BrErrorHandler.php');
-BrErrorHandler::GetInstance();
 
 // Application base path - we assuming that Breeze library inlcuded by main index.php
 $traces = debug_backtrace();

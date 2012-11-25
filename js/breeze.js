@@ -297,6 +297,14 @@
       return this;
     }
 
+    this.indexOf = function(key, arrayValue) {
+      var value = this.get(key);
+      if (br.isArray(value)) {
+        return value.indexOf(arrayValue)
+      }
+      return -1;
+    }
+
   }
 
   window.br.storage = new storage(window.localStorage);
@@ -681,7 +689,7 @@
                                       }
                                     , error: function(jqXHR, textStatus, errorThrown) {
                                         datasource.ajaxRequest = null;
-                                        var error = (jqXHR.statusText == 'abort') ? '' : jqXHR.responseText;
+                                        var error = (jqXHR.statusText == 'abort') ? '' : (jqXHR.responseText.length == 0 ? 'Server error' : jqXHR.responseText);
                                         handleError(error, jqXHR);
                                       }
                                     });

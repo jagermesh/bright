@@ -248,6 +248,10 @@ class BrMySQLProviderTable {
           $where .= $link . $fname2 . ' != ?';
           $args[] = $filterValue;
           break;
+        case '$nn':
+          $where .= $link . $fname2 . ' IS NOT NULL';
+          // $args[] = $filterValue;
+          break;
         case '$eq':
           $where .= $link . $fname2 . ' = ?';
           $args[] = $filterValue;

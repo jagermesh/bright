@@ -329,7 +329,7 @@
                                       }
                                     , error: function(jqXHR, textStatus, errorThrown) {
                                         datasource.ajaxRequest = null;
-                                        var error = (jqXHR.statusText == 'abort') ? '' : jqXHR.responseText;
+                                        var error = (jqXHR.statusText == 'abort') ? '' : (jqXHR.responseText.length == 0 ? 'Server error' : jqXHR.responseText);
                                         handleError(error, jqXHR);
                                       }
                                     });

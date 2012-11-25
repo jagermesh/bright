@@ -8,8 +8,6 @@
  * @package Breeze Core
  */
 
-require_once(__DIR__.'/Br.php');
-
 class BrException extends Exception {
 
 }
@@ -41,7 +39,7 @@ class BrErrorException extends ErrorException {
 
 	public function getType() {
 		
-		return br($this->errorTypes, $this->getSeverity(), 'Unknown Error');
+		return (isset($this->errorTypes[$this->getSeverity()]) ? $this->errorTypes[$this->getSeverity()] : 'Unknown Error');
 		
 	}
 	

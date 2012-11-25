@@ -253,6 +253,14 @@
       return this;
     }
 
+    this.indexOf = function(key, arrayValue) {
+      var value = this.get(key);
+      if (br.isArray(value)) {
+        return value.indexOf(arrayValue)
+      }
+      return -1;
+    }
+
   }
 
   window.br.storage = new storage(window.localStorage);

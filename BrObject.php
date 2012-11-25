@@ -8,8 +8,6 @@
  * @package Breeze Core
  */
 
-require_once(__DIR__.'/Br.php');
-
 class BrObject {
   
   protected $events = array();
@@ -18,7 +16,7 @@ class BrObject {
   private $enabled = 0;
   
   function __construct() {
-    
+
   }
 
   public function getAttr($name, $default = null, $saveDefault = false) {

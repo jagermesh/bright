@@ -8,25 +8,49 @@
  * @package Breeze Core
  */
 
-require_once(__DIR__.'/Br.php');
-require_once(__DIR__.'/BrSingleton.php');
+require_once(__DIR__.'/BrObject.php');
 require_once(__DIR__.'/BrException.php');
 
-class BrErrorHandler extends BrSingleton {
+class BrErrorHandler extends BrObject {
 
-
-  private $notErrors = array(
-//      E_NOTICE          => true
-      E_DEPRECATED
-  );
+  private $notErrors = array(E_DEPRECATED);
 
   function __construct() {
 
-    error_reporting(E_ALL); // & ~E_COMPILE_WARNING & ~E_DEPRECATED);
+    error_reporting(E_ALL);
     
     set_error_handler(array(&$this, "errorHandler"));
     set_exception_handler(array(&$this, "exceptionHandler"));
+    // register_shutdown_function(array(&$this, "captureShutdown"));
     
+  }
+
+  function captureShutdown() {
+
+    if ($error = error_get_last()) {
+      if ($this->isEnabled()) {
+
+        $errmsg  = $error['message'];
+        $errno   = $error['type'];
+        $errfile = $error['file'];
+        $errline = $error['line'];
+
+        // echo('errfile: '.$errfile.'<br />');
+        // echo('errmsg: '.$errmsg.'<br />');
+        // echo('errline: '.$errline.'<br />');
+        // echo('errno: '.$errno.'<br />');
+        // echo('E_NOTICE: '.E_NOTICE.'<br />');
+        // echo('error_reporting(): '.error_reporting().'<br />');
+
+        if (in_array($errno, $this->notErrors) || ((error_reporting() & $errno) != $errno)) {
+
+        } else {
+          $this->exceptionHandler(new BrErrorException($errmsg, 0, $errno, $errfile, $errline));
+        
+        }
+      }
+    }
+
   }
 
   function exceptionHandler($e) {
@@ -34,6 +58,8 @@ class BrErrorHandler extends BrSingleton {
     if ($this->isEnabled()) {
 
       try {
+
+        require_once(__DIR__.'/Br.php');
 
         br()->log()->logException($e);
 
@@ -72,12 +98,21 @@ class BrErrorHandler extends BrSingleton {
   function errorHandler($errno, $errmsg, $errfile, $errline, $vars) {
 
     if ($this->isEnabled()) {
-      if (!in_array($errno, $this->notErrors) && (error_reporting() & $errno) == $errno) {
+      // echo('errfile: '.$errfile.'<br />');
+      // echo('errmsg: '.$errmsg.'<br />');
+      // echo('errline: '.$errline.'<br />');
+      // echo('errno: '.$errno.'<br />');
+      // echo('E_NOTICE: '.E_NOTICE.'<br />');
+      // echo('error_reporting(): '.error_reporting().'<br />');
+
+      if (in_array($errno, $this->notErrors) || ((error_reporting() & $errno) != $errno)) {
+
+      } else {
         throw new BrErrorException($errmsg, 0, $errno, $errfile, $errline);
       }
+
     }
 
   }
 
 }
-
