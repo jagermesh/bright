@@ -28,6 +28,10 @@
     return (typeof value == 'string');
   }
 
+  window.br.isFunction = function (value) {
+    return (typeof value == 'function');
+  }
+
   window.br.isNull = function(value) {
     return (
              (value === undefined) || 
