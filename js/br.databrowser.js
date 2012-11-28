@@ -9,6 +9,7 @@
   function BrDataBrowser(entity, options) {
 
     var _this = this;
+    var editorRowid = null;
 
     var pagerSetuped = false;
 
@@ -28,10 +29,15 @@
     }
 
     this.options.selectors.dataTable = c(this.options.selectors.dataTable || '.data-table');
+    this.options.selectors.editForm = this.options.selectors.editForm || '.data-edit-form';
 
     this.options.templates = this.options.templates || {};
     this.options.templates.rowTemplate = this.options.templates.rowTemplate || '.data-row-template';
-    this.options.templates.noData = this.options.templates.noData || '.data-empty-template';
+    this.options.templates.noData      = this.options.templates.noData || '.data-empty-template';
+
+    var selActionCRUD = c('.action-edit') + ',' + c('.action-create') + ',' + c('.action-copy');
+
+    var $editForm = $(_this.options.selectors.editForm);
 
     this.limit = this.options.limit || 20;
     this.skip = 0;
@@ -92,10 +98,10 @@
       return br.storage.get(this.storageTag + 'stored:' + name);
     }
     this.lockEditor = function() {
-      $('.action-save').addClass('disabled');
+      $('.action-save', $editForm).addClass('disabled');
     }
     this.unLockEditor = function() {
-      $('.action-save').removeClass('disabled');
+      $('.action-save', $editForm).removeClass('disabled');
     }
     this.init = function() {
       // nav
@@ -188,119 +194,111 @@
 
       if (_this.options.features.editor) {
 
-        // actions
-        $('.data-edit-form').each(function() {
-          $('.action-create').show();
-          $('.action-edit,.action-create,.action-copy').live('click', function() {
-            var isCopy = $(this).hasClass('action-copy');
-            var rowid = $(this).closest('[data-rowid]').attr('data-rowid');
-            $('.data-edit-form').each(function() {
-              var editForm = $(this);
-              if (rowid) {
-                if (isCopy) {
-                  editForm.find('.operation').text('Copy ' + _this.options.noun);
-                  editForm.removeData('rowid');
-                } else {
-                  editForm.find('.operation').text('Edit ' + _this.options.noun);
-                  editForm.data('rowid', rowid);                
-                }
-              } else {
-                editForm.find('.operation').text('Create ' + _this.options.noun);
-                editForm.removeData('rowid');
-              }
-              editForm.find('input.data-field,select.data-field,textarea.data-field').val('');
-              editForm.find('input.data-field[type=checkbox]').val('1');
-              editForm.find('input.data-field[type=checkbox]').removeAttr('checked');
+        $editForm.on('shown', function() {
+          var firstInput = $('input,select,textarea', $(this));
+          if (firstInput.length > 0) {
+            firstInput[0].focus();
+          }
+        });
 
-              editForm.find('div.data-field[data-toggle=buttons-radio]').find('button').removeClass('active');
+        $(c('.action-create')).show();
 
-              editForm.on('shown', function() {
-                var firstInput = $(this).find('.data-field');
-                if (firstInput.length > 0) {
-                  firstInput[0].focus();
-                }
-              });
-              if (rowid) {
-                _this.dataSource.selectOne(rowid, function(result, data) {
-                  if (result) {
-                    for(i in data) {
-                      editForm.find('div.data-field[data-toggle=buttons-radio][name=' + i + '],input.data-field[name=' + i + '],select.data-field[name=' + i + '],textarea.data-field[name=' + i + ']').each(function() {
-                        if ($(this).attr('data-toggle') == 'buttons-radio') {
-                          $(this).find('button[value=' + data[i] + ']').addClass('active');
-                        } else
-                        if ($(this).attr('type') == 'checkbox') {
-                          if (data[i] == '1') {
-                            $(this).attr('checked', 'checked');
-                          }
-                        } else {
-                          $(this).val(data[i]);
-                        }
-                      });
-                    }
-                    callEvent('showEditor', data);
-                    editForm.modal('show');
-                  }
-                }, { disableEvents: true });
-              } else {
-                callEvent('showEditor');
-                editForm.modal('show');        
-              }
-            });
-          });
+        $(selActionCRUD).live('click', function() {
+          var isCopy = $(this).hasClass('action-copy');
+          editorRowid = $(this).closest('[data-rowid]').attr('data-rowid');
+          if (editorRowid) {
+            if (isCopy) {
+              $editForm.find('.operation').text('Copy ' + _this.options.noun);
+            } else {
+              $editForm.find('.operation').text('Edit ' + _this.options.noun);
+            }
+          } else {
+            $editForm.find('.operation').text('Create ' + _this.options.noun);
+          }
+          $editForm.find('input.data-field,select.data-field,textarea.data-field').val('');
+          $editForm.find('input.data-field[type=checkbox]').val('1');
+          $editForm.find('input.data-field[type=checkbox]').removeAttr('checked');
 
-          $('.action-save').live('click', function() {
-            if (!$(this).hasClass('disabled')) {
-              $('.data-edit-form').each(function() {
-                var editForm = $(this);
-                var rowid = $(this).data('rowid');
-                var data = { };
-                var edit = $(this);
-                var ok = true;
-                editForm.find('div.data-field[data-toggle=buttons-radio],input.data-field,select.data-field,textarea.data-field').each(function() {
-                  if (ok) {
+          $editForm.find('div.data-field[data-toggle=buttons-radio]').find('button').removeClass('active');
+
+          if (editorRowid) {
+            _this.dataSource.selectOne(editorRowid, function(result, data) {
+              if (result) {
+                for(i in data) {
+                  $editForm.find('div.data-field[data-toggle=buttons-radio][name=' + i + '],input.data-field[name=' + i + '],select.data-field[name=' + i + '],textarea.data-field[name=' + i + ']').each(function() {
                     if ($(this).attr('data-toggle') == 'buttons-radio') {
-                      var val = $(this).find('button.active').val();
+                      $(this).find('button[value=' + data[i] + ']').addClass('active');
                     } else
                     if ($(this).attr('type') == 'checkbox') {
-                      if ($(this).is(':checked')) {
-                        var val = 1;
-                      } else {
-                        var val = 0;
+                      if (data[i] == '1') {
+                        $(this).attr('checked', 'checked');
                       }
                     } else {
-                      var val = $(this).val();
+                      $(this).val(data[i]);
                     }
-                    if ($(this).hasClass('required') && br.isEmpty(val)) {
-                      var title = $(this).attr('title');
-                      if (br.isEmpty(title)) {
-                        title = $(this).prev('label').text();
-                      }
-                      br.growlError(title + ' must be filled');
-                      this.focus();
-                      ok = false;
-                    } else {
-                      data[$(this).attr('name')] = val;
-                    }
+                  });
+                }
+                if (isCopy) {
+                  editorRowid = null;
+                }
+                callEvent('showEditor', data);
+                $editForm.modal('show');
+              }
+            }, { disableEvents: true });
+          } else {
+            callEvent('showEditor');
+            $editForm.modal('show');        
+          }
+        });
+
+        $('.action-save', $editForm).click(function() {
+          if (!$(this).hasClass('disabled')) {
+            var data = { };
+            var edit = $(this);
+            var ok = true;
+            $editForm.find('div.data-field[data-toggle=buttons-radio],input.data-field,select.data-field,textarea.data-field').each(function() {
+              if (ok) {
+                if ($(this).attr('data-toggle') == 'buttons-radio') {
+                  var val = $(this).find('button.active').val();
+                } else
+                if ($(this).attr('type') == 'checkbox') {
+                  if ($(this).is(':checked')) {
+                    var val = 1;
+                  } else {
+                    var val = 0;
+                  }
+                } else {
+                  var val = $(this).val();
+                }
+                if ($(this).hasClass('required') && br.isEmpty(val)) {
+                  var title = $(this).attr('title');
+                  if (br.isEmpty(title)) {
+                    title = $(this).prev('label').text();
+                  }
+                  br.growlError(title + ' must be filled');
+                  this.focus();
+                  ok = false;
+                } else {
+                  data[$(this).attr('name')] = val;
+                }
+              }
+            });
+            if (ok) {
+              if (editorRowid) {
+                _this.dataSource.update(editorRowid, data, function(result) {
+                  if (result) {
+                    $editForm.modal('hide');
                   }
                 });
-                if (ok) {
-                  if (rowid) {
-                    _this.dataSource.update(rowid, data, function(result) {
-                      if (result) {
-                        editForm.modal('hide');
-                      }
-                    });
-                  } else {
-                    _this.dataSource.insert(data, function(result) {
-                      if (result) {
-                        editForm.modal('hide');
-                      }
-                    });
+              } else {
+                _this.dataSource.insert(data, function(result) {
+                  if (result) {
+                    $editForm.modal('hide');
                   }
-                }
-              });
+                });
+              }
             }
-          });
+          }
         });
 
       }
@@ -480,40 +478,44 @@
     }
 
     var slider = false;
-    $(c('.pager-page-slider')).each(function() {
-      slider = true;
-      $(this).slider({
-          min: 1
-        , value: 1
-        , change: function(event, ui) { 
-            var value = $(c('.pager-page-slider')).slider('option', 'value');
-            if (value > 0) {
-              var newSkip = _this.limit * (value - 1);
-              if (newSkip != _this.skip) {
-                _this.skip = _this.limit * (value - 1);
-                _this.refresh({}, null, true);
+
+    if ($.fn.slider) {
+      $(c('.pager-page-slider')).each(function() {
+
+        slider = true;
+        $(this).slider({
+            min: 1
+          , value: 1
+          , change: function(event, ui) { 
+              var value = $(c('.pager-page-slider')).slider('option', 'value');
+              if (value > 0) {
+                var newSkip = _this.limit * (value - 1);
+                if (newSkip != _this.skip) {
+                  _this.skip = _this.limit * (value - 1);
+                  _this.refresh({}, null, true);
+                }
               }
             }
-          }
+        });
       });
-    });
 
-    $(c('.pager-page-size-slider')).each(function() {
-      slider = true;
-      $(this).slider({
-          min: _this.limit
-        , value: _this.limit
-        , max: _this.limit * 20
-        , step: _this.limit
-        , change: function(event, ui) { 
-            var value = $(c('.pager-page-size-slider')).slider('option', 'value');
-            _this.limit = value;
-            $(c('.pager-page-slider')).slider('option', 'value', 1);
-            $(c('.pager-page-slider')).slider('option', 'max', Math.ceil(_this.recordsAmount / _this.limit));
-            _this.refresh({}, null, true);
-          }        
+      $(c('.pager-page-size-slider')).each(function() {
+        slider = true;
+        $(this).slider({
+            min: _this.limit
+          , value: _this.limit
+          , max: _this.limit * 20
+          , step: _this.limit
+          , change: function(event, ui) { 
+              var value = $(c('.pager-page-size-slider')).slider('option', 'value');
+              _this.limit = value;
+              $(c('.pager-page-slider')).slider('option', 'value', 1);
+              $(c('.pager-page-slider')).slider('option', 'max', Math.ceil(_this.recordsAmount / _this.limit));
+              _this.refresh({}, null, true);
+            }        
+        });
       });
-    });
+    }
 
     function internalUpdatePager() {
 

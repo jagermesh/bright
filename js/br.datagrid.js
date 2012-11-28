@@ -15,7 +15,6 @@
   function BrDataGrid(selector, rowTemplate, dataSource, options) {
 
     var $ = jQuery;
-    var datagrid = this;
     var _this = this;
 
     this.cb = {};
@@ -38,9 +37,9 @@
 
     function callEvent(event, data) {
 
-      datagrid.cb[event] = datagrid.cb[event] || new Array();
+      _this.cb[event] = _this.cb[event] || new Array();
 
-      for (i in datagrid.cb[event]) {
+      for (i in _this.cb[event]) {
 
         switch(event) {
           case 'insert':
@@ -48,11 +47,11 @@
           case 'remove':
           case 'select':
           case 'change':
-            datagrid.cb[event][i].call(datagrid.selector, data);
+            _this.cb[event][i].call(_this.selector, data);
             break;
           case 'renderRow':
           case 'renderHeader':
-            return datagrid.cb[event][i].call(datagrid.selector, data);
+            return _this.cb[event][i].call(_this.selector, data);
             break;
         }
 
@@ -71,36 +70,42 @@
 
     this.renderHeader = function(data) {
       var data = callEvent('renderHeader', data) || data;
-      var result = $(br.fetch(datagrid.options.templates.header, data));
+      var result = $(br.fetch(_this.options.templates.header, data));
       return result;
     }
 
     this.renderFooter = function(data) {
       var data = callEvent('renderFooter', data) || data;
-      var result = $(br.fetch(datagrid.options.templates.footer, data));
+      var result = $(br.fetch(_this.options.templates.footer, data));
       return result;
     }
 
     this.renderRow = function(data) {
       var data = callEvent('renderRow', data) || data;
-      var result = $(br.fetch(datagrid.options.templates.row, data));
+      var result = $(br.fetch(_this.options.templates.row, data));
       result.data('data-row', data);
       return result;
     }
 
     this.prepend = function(row) {
-      datagrid.selector.prepend(row);
+      return _this.selector.prepend(row);
+    }
+
+    this.addDataRow = function(row) {
+      var tableRow = _this.renderRow(row);
+      _this.prepend(tableRow);
+      return tableRow;
     }
 
     this.init = function() {
 
       function isGridEmpty() {
-        return (datagrid.selector.find('[data-rowid]').length == 0);
+        return (_this.selector.find('[data-rowid]').length == 0);
       }
 
       function checkForEmptyGrid() {
         if (isGridEmpty()) {
-          datagrid.selector.html(datagrid.options.templates.noData);
+          _this.selector.html(_this.options.templates.noData);
           callEvent('nodata');
         }
       }
@@ -110,47 +115,47 @@
         var dataSource = this.options.dataSource;
 
         dataSource.before('select', function() {
-          datagrid.selector.html('');
-          datagrid.selector.addClass('progress-big');
+          _this.selector.html('');
+          _this.selector.addClass('progress-big');
         });
 
         dataSource.after('select', function() {
-          datagrid.selector.removeClass('progress-big');
+          _this.selector.removeClass('progress-big');
         });
 
         dataSource.on('select', function(data) {
-          datagrid.selector.removeClass('progress-big');
-          datagrid.render(data);
+          _this.selector.removeClass('progress-big');
+          _this.render(data);
         });
 
         dataSource.after('insert', function(success, response) {
           if (success) {
             if (isGridEmpty()) {
-              datagrid.selector.html(''); // to remove No-Data box
+              _this.selector.html(''); // to remove No-Data box
             }
-            datagrid.prepend(datagrid.renderRow(response));
+            _this.addDataRow(response);
           }
         });
 
         dataSource.on('update', function(data) {
-          var row = datagrid.selector.find('[data-rowid=' + data.rowid + ']');
+          var row = _this.selector.find('[data-rowid=' + data.rowid + ']');
           if (row.length == 1) {
-            var ctrl = datagrid.renderRow(data);
+            var ctrl = _this.renderRow(data);
             var s = ctrl.html();
             ctrl.remove();
             if (s.length > 0) {
               $(row[0]).html(s).hide().fadeIn();
               callEvent('update');
             } else {
-              datagrid.options.dataSource.select();
+              _this.options.dataSource.select();
             }
           } else {
-            datagrid.options.dataSource.select();
+            _this.options.dataSource.select();
           }
         });
 
         dataSource.on('remove', function(rowid) {
-          var row = datagrid.selector.find('[data-rowid=' + rowid + ']');
+          var row = _this.selector.find('[data-rowid=' + rowid + ']');
           if (row.length > 0) {
             if (br.isTouchScreen()) {
               row.remove();
@@ -164,12 +169,12 @@
               });
             }
           } else {
-            datagrid.options.dataSource.select();
+            _this.options.dataSource.select();
           }
         });
 
         if (this.options.deleteSelector) {
-          datagrid.selector.on('click', this.options.deleteSelector, function() {
+          _this.selector.on('click', this.options.deleteSelector, function() {
             var row = $(this).closest('[data-rowid]');
             if (row.length > 0) {
               var rowid = $(row).attr('data-rowid');
@@ -177,7 +182,7 @@
                 br.confirm( 'Delete confirmation'
                           , 'Are you sure you want delete this record?'
                           , function() {
-                              datagrid.options.dataSource.remove(rowid);
+                              _this.options.dataSource.remove(rowid);
                             }
                           );
               }
@@ -191,59 +196,59 @@
 
     this.render = function(data) {
       if (data) {
-        if (datagrid.options.freeGrid) {
+        if (_this.options.freeGrid) {
           if (data.headers) {
             for (i in data.headers) {
               if (data.headers[i]) {
-                $(datagrid.options.headersSelector).append(datagrid.renderHeader(data.headers[i]));
+                $(_this.options.headersSelector).append(_this.renderHeader(data.headers[i]));
               }
             }
           }
           if (data.footers) {
             for (i in data.footers) {
               if (data.footers[i]) {
-                $(datagrid.options.footersSelector).append(datagrid.renderFooter(data.headers[i]));
+                $(_this.options.footersSelector).append(_this.renderFooter(data.headers[i]));
               }
             }
           }
-          datagrid.selector.html('');
-          $(datagrid.options.headersSelector).html('');
-          $(datagrid.options.footersSelector).html('');
+          _this.selector.html('');
+          $(_this.options.headersSelector).html('');
+          $(_this.options.footersSelector).html('');
           if (data.rows) {
             if (data.rows.length == 0) {
-              datagrid.selector.html(this.options.templates.noData);
+              _this.selector.html(this.options.templates.noData);
             } else {
               for (i in data.rows) {
                 if (data.rows[i]) {
                   if (data.rows[i].row) {
-                    datagrid.selector.append(datagrid.renderRow(data.rows[i].row));
+                    _this.selector.append(_this.renderRow(data.rows[i].row));
                   }
                   if (data.rows[i].header) {
-                    $(datagrid.options.headersSelector).append(datagrid.renderHeader(data.rows[i].header));
+                    $(_this.options.headersSelector).append(_this.renderHeader(data.rows[i].header));
                   }
                   if (data.rows[i].footer) {
-                    $(datagrid.options.footersSelector).append(datagrid.renderFooter(data.rows[i].footer));
+                    $(_this.options.footersSelector).append(_this.renderFooter(data.rows[i].footer));
                   }
                 }
               }
             }
           } else {
-            datagrid.selector.html(this.options.templates.noData);
+            _this.selector.html(this.options.templates.noData);
           }
         } else {
-          datagrid.selector.html('');
+          _this.selector.html('');
           if (data && (data.length > 0)) {
             for (i in data) {
               if (data[i]) {
-                datagrid.selector.append(datagrid.renderRow(data[i]));
+                _this.selector.append(_this.renderRow(data[i]));
               }
             }
           } else {
-            datagrid.selector.html(this.options.templates.noData);
+            _this.selector.html(this.options.templates.noData);
           }
         }
       } else {
-        datagrid.selector.html(this.options.templates.noData);
+        _this.selector.html(this.options.templates.noData);
       }
       callEvent('change', data);
     }
