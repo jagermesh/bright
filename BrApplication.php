@@ -45,7 +45,7 @@ class BrApplication extends BrSingleton {
     if (preg_match('/[.]htm[l]?$/', $asis)) {
       if (file_exists($asis)) {
         br()->renderer()->display($asis);
-        return;
+        exit();
       }
     }
   
@@ -80,9 +80,12 @@ class BrApplication extends BrSingleton {
 
     if ($controllerFile) {
       br()->log()->writeLn('Contoller: '.$controllerFile);
-      br()->import($controllerFile);      
+      br()->import($controllerFile);  
+      exit();
     } else {
-      br()->response()->send404();            
+      // if (!br()->config()->get('simpleMode')) {
+      //   br()->response()->send404();        
+      // }
     }
 
   }
