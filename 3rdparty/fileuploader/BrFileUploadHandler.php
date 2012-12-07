@@ -44,6 +44,8 @@ class qqUploadedFileXhr {
     $md = md5_file($srcFilePath);
     if (br($this->params, 'generateFileName')) {
       $dstFileName = $md . '.' . $pathinfo['extension'];
+    } elseif(($onGetFileName = br($this->params, 'onGetFileName')) && gettype(br($this->params, 'onGetFileName')) == 'object') {
+      $dstFileName = $onGetFileName(br()->fs()->fileName($this->getName()), $md);
     } else {
       $dstFileName = br()->fs()->fileName($this->getName());
     }
@@ -109,10 +111,11 @@ class qqUploadedFileForm {
   function save($path) {
  
     $pathinfo = pathinfo($this->getName());
-
+    $md = md5_file($_FILES['qqfile']['tmp_name']);
     if (br($this->params, 'generateFileName')) {
-      $md = md5_file($_FILES['qqfile']['tmp_name']);
       $dstFileName = $md . '.' . $pathinfo['extension'];
+    } elseif(($onGetFileName = br($this->params, 'onGetFileName')) && gettype(br($this->params, 'onGetFileName')) == 'object') {
+      $dstFileName = $onGetFileName(br()->fs()->fileName($this->getName()), $md);
     } else {
       $dstFileName = br()->fs()->fileName($this->getName());
     }

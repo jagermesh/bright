@@ -49,10 +49,11 @@ class qqUploadedFileXhr {
     br()->importLib('Image');
 
     $image = new BrImage($srcFilePath);
-
+    $md = md5_file($srcFilePath);
     if (br($this->params, 'generateFileName')) {
-      $md = md5_file($srcFilePath);
       $dstFileName = $md . '.' . $image->format();        
+    } elseif(($onGetFileName = br($this->params, 'onGetFileName')) && gettype(br($this->params, 'onGetFileName')) == 'object') {
+      $dstFileName = $onGetFileName(br()->fs()->fileName($this->getName()), $md);
     } else {
       $dstFileName = br()->fs()->fileName($this->getName());
     }
@@ -119,10 +120,11 @@ class qqUploadedFileForm {
     $dstFilePath = '';
 
     $image = new BrImage($_FILES['qqfile']['tmp_name']);
-
+    $md = md5_file($_FILES['qqfile']['tmp_name']);
     if (br($this->params, 'generateFileName')) {
-      $md = md5_file($_FILES['qqfile']['tmp_name']);
       $dstFileName = $md . '.' . $image->format();
+    } elseif(($onGetFileName = br($this->params, 'onGetFileName')) && gettype(br($this->params, 'onGetFileName')) == 'object') {
+      $dstFileName = $onGetFileName(br()->fs()->fileName($this->getName()), $md);
     } else {
       $dstFileName = br()->fs()->fileName($this->getName());
     }

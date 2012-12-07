@@ -78,7 +78,11 @@ class BrSFTP extends BrObject {
     $this->connection = new Net_SFTP($hostName, $port);
 
     if ($this->connection->login($userName, $password)) {
-      $this->changeDir('/' . $userName);
+      try {
+        $this->changeDir('/' . $userName);
+      } catch (Exception $e) {
+
+      }
     } else {
       throw new Exception('Can not connect to ' . $hostName . ' as ' . $userName);      
     }

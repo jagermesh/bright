@@ -24,7 +24,7 @@ class BrImages extends BrSingleton {
 
   }
 
-  function generateThumbnail($src, $w, $h) {
+  function generateThumbnail($src, $w, $h, $relativePath = null) {
 
     $path = $src;
 
@@ -34,6 +34,10 @@ class BrImages extends BrSingleton {
 
     if (!file_exists($path)) {
       $path = br()->atBasePath($path);
+    }
+
+    if (!file_exists($path) && $relativePath) {
+      $path = $relativePath . $src;
     }
 
     if (!file_exists($path)) {

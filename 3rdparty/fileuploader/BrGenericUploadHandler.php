@@ -16,7 +16,7 @@ class BrGenericUploadHandler {
     $allowedExtensions = br($this->params, 'allowedExtensions', array());
 
     // max file size in bytes
-    $sizeLimit = 24 * 1024 * 1024;
+    $sizeLimit = br($this->params, 'uploadLimit', 24 * 1024 * 1024);
 
     if (br($this->params, 'checkLogin')) {
       $login = br()->auth()->checkLogin();
