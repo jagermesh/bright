@@ -197,6 +197,26 @@ class BrRequest extends BrSingleton {
 
   }
 
+  function build($params) {
+
+    $result = $this->baseUrl() . $this->relativeUrl() . $this->scriptName() . '?1=1';
+    $first = true;
+    foreach($params as $name => $value) {
+      if (is_array($value)) {
+        $s = '';
+        foreach($value as $one) {
+          $s .= '&' . $name . '[]=' . urlencode($one);
+        }
+        $result .= $s;
+      } else {
+        $result .= '&' . $name . '=' . urlencode($value);
+      }
+    }
+
+    return $result;
+
+  }
+
   function frameworkUrl() {
 
     return $this->frameworkUrl;
