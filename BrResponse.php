@@ -54,7 +54,7 @@ class BrResponse extends BrSingleton {
     br()->log()->writeLn('Redirecting to ' . $url);
 
     if (headers_sent()) {
-      //echo('<script> document.location="' . $url . '"; </script>');
+      echo('<script> document.location="' . $url . '"; </script>');
     } else { 
       if ($permanent) {
         header("HTTP/1.1 301 Moved Permanently"); 
