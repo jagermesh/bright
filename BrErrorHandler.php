@@ -67,21 +67,24 @@ class BrErrorHandler extends BrObject {
 
         } else {
 
-          if (br()->request()->isLocalHost()) {
-            if ($e instanceof BrErrorException) {
-              $isFatal = $e->IsFatal();
-            } else {
-              $isFatal = true;
-            }
-            $type = (($e instanceof BrErrorException) ? $e->getType() : 'Error');
-            $errorMessage = $e->getMessage();
-            $errorInfo = '';
-            if (preg_match('/\[INFO:([^]]+)\](.+)\[\/INFO\]/ism', $errorMessage, $matches)) {
-              $info_name = $matches[1];
-              $errorInfo = $matches[2];
-              $errorMessage = str_replace('[INFO:'.$info_name.']'.$errorInfo.'[/INFO]', '', $errorMessage);
-            }
+          if ($e instanceof BrErrorException) {
+            $isFatal = $e->IsFatal();
+          } else {
+            $isFatal = true;
+          }
+          $type = (($e instanceof BrErrorException) ? $e->getType() : 'Error');
+          $errorMessage = $e->getMessage();
+          $errorInfo = '';
+          if (preg_match('/\[INFO:([^]]+)\](.+)\[\/INFO\]/ism', $errorMessage, $matches)) {
+            $info_name = $matches[1];
+            $errorInfo = $matches[2];
+            $errorMessage = str_replace('[INFO:'.$info_name.']'.$errorInfo.'[/INFO]', '', $errorMessage);
+          }
+          $errorInfo = 'asdasda sas das das dasd asd asd as d';
 
+          if (br()->request()->isLocalHost()) {
+            include(__DIR__.'/templates/ErrorReportEx.html');
+          } else {
             include(__DIR__.'/templates/ErrorReport.html');
           }
 

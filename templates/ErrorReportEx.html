@@ -21,7 +21,7 @@ div.breeze-error-panel div.wrapper {
   padding: 30px;
 }
 div.breeze-error-panel div.breeze-error-section { 
-  padding: 20px;
+  padding: 5px;
 }
 div.breeze-error-panel div.error { 
   font-size: 18pt; 
@@ -46,7 +46,25 @@ div.breeze-error-panel div.info-box {
 <div class="breeze-error-panel">
   <div class="wrapper">
     <div class="breeze-error-section">
-      <div class="error"><center><?php echo($errorMessage); ?></center></div>
+      <div class="error"><?php echo(htmlentities($errorMessage)); ?></div>
+      <div class="info">in <?php echo($e->getFile()); ?>, line <?php echo($e->getLine());?></div>
+    </div>
+    <?php if ($errorInfo) { ?>
+    <div class="breeze-error-section">
+      <div class="title">Additional info:</div>
+      <div class="info-box">
+      <?php echo(htmlentities($errorInfo)); ?>
+      </div>
+    </div>
+    <?php } ?>
+    <div class="breeze-error-section">
+      <div class="title">Call stack:</div>
+      <div class="info-box">
+      <?php foreach($e->getTrace() as $index => $statement) {?>
+      <?php echo(htmlentities(br()->log()->formatStackTraceCall($statement))); ?><br/>
+      <div class="info">in <?php echo(br()->log()->formatStackTraceSource($statement)); ?></div>
+      <?php } ?>
+      </div>
     </div>
   </div>
 </div>

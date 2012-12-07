@@ -1,9 +1,24 @@
 <style>
-div.debug_panel { margin: 10px; padding: 10px; border: #00F 1px solid; background-color: #34B0E3; }
-div.debug_panel div.title { font-family: Arial; font-size: 10pt; font-weight: bold; padding-left: 5px; padding-bottom: 10px; margin: 0px; }
-div.debug_panel div.message { font-family: Courier; font-size: 10pt; padding: 10px; margin: 0px; background-color: #FEFEFE; border: 1px solid #0B76B0; }
+
+div.breeze-debug-panel { 
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300; 
+  font-size: 12pt; 
+  margin: 5px;
+  -webkit-box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.5);
+  -moz-box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.5);
+  box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  clear:both;
+}
+div.breeze-debug-panel div.title { 
+  font-size: 12pt; 
+  border-bottom: 1px solid #aaa;
+  margin-bottom: 10px;
+}
+
 </style>
-<div class="debug_panel">
-<div class="title">Debug message</div>
-<div class="message"><pre><?php print_r($var); ?></pre></div>
+
+<div class="breeze-debug-panel">
+  <pre><div class="title">Debug output</div><?php print_r($var); ?></pre>
 </div>
