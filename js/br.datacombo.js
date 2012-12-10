@@ -92,9 +92,13 @@
         if (!br.isEmpty(val)) {
           $(this).find('option[value=' + val +']').attr('selected', 'selected');
         }
+
+        if (window.Select2) {
+          $(this).select2();
+        }
+
       });
     
-      // _this.dataSource.fillCombo(_this.selector, data, options);
       callEvent('load', data);
 
     }
