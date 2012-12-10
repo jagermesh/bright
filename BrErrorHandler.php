@@ -80,7 +80,6 @@ class BrErrorHandler extends BrObject {
             $errorInfo = $matches[2];
             $errorMessage = str_replace('[INFO:'.$info_name.']'.$errorInfo.'[/INFO]', '', $errorMessage);
           }
-          $errorInfo = 'asdasda sas das das dasd asd asd as d';
 
           if (br()->request()->isLocalHost()) {
             include(__DIR__.'/templates/ErrorReportEx.html');
