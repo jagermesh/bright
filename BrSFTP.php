@@ -79,9 +79,13 @@ class BrSFTP extends BrObject {
 
     if ($this->connection->login($userName, $password)) {
       try {
-        $this->changeDir('/' . $userName);
+        $this->changeDir('/home/' . $userName);
       } catch (Exception $e) {
+        try {
+          $this->changeDir('/' . $userName);
+        } catch (Exception $e) {
 
+        }
       }
     } else {
       throw new Exception('Can not connect to ' . $hostName . ' as ' . $userName);      
