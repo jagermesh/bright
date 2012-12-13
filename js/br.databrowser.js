@@ -95,10 +95,15 @@
       br.storage.set(this.storageTag + 'order', order);
     }
     this.setFilter = function(name, value) {
-      br.storage.set(this.storageTag + 'filter:' + name, value);
+      var filter = br.storage.get(this.storageTag + 'filter');
+      filter = filter || { };
+      filter[name] = value;
+      br.storage.set(this.storageTag + 'filter', filter);
     }
     this.getFilter = function(name) {
-      return br.storage.get(this.storageTag + 'filter:' + name);
+      var filter = br.storage.get(this.storageTag + 'filter');
+      filter = filter || { };
+      return filter[name];
     }
     this.setStored = function(name, value) {
       br.storage.set(this.storageTag + 'stored:' + name, value);
@@ -117,7 +122,7 @@
         if (isCopy) {
           $editForm.find('.operation').text('Copy ' + _this.options.noun);
         } else {
-          $editForm.find('.operation').text(_this.options.noun);
+          $editForm.find('.operation').text('Edit ' + _this.options.noun);
         }
       } else {
         $editForm.find('.operation').text('Create ' + _this.options.noun);
@@ -311,6 +316,11 @@
                       }
                     } else {
                       $(this).val(data[i]);
+                      if ($(this)[0].tagName == 'SELECT') {
+                        if (window.Select2) {
+                          $(this).select2();
+                        }
+                      }
                     }
                   });
                 }
@@ -649,7 +659,10 @@
       $(c('select.data-filter option:selected')).removeAttr('selected');
       $(c('select.data-filter')).prop('selectedIndex', 0);
       $(c('input.data-filter')).val('');
-      // br.storage.clear();
+      if (window.Select2) {
+        $(c('select.data-filter')).select2();
+      }
+      br.storage.remove(this.storageTag + 'filter');
       _this.refresh();
     }
     this.refreshDeferred = function(filter, callback, doNotResetPager) {

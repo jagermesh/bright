@@ -93,13 +93,13 @@
           $(this).find('option[value=' + val +']').attr('selected', 'selected');
         }
 
-        if (window.Select2) {
-          $(this).select2();
-        }
-
       });
     
       callEvent('load', data);
+
+      if (window.Select2) {
+        $(_this.selector).select2();
+      }
 
     }
 
@@ -112,6 +112,9 @@
         if (result) {
           if (callback) {
             callback.call(_this.selector, result);
+          }
+          if (window.Select2) {
+            $(_this.selector).select2();
           }
         }
       }, { fields: _this.fields });
