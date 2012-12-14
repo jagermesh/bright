@@ -1208,6 +1208,9 @@
         br.storage.set(storageTag(this), $(this).val());
       }
       callEvent('change');
+      if (window.Select2) {
+        $(this).select2();
+      }      
     });
 
   }

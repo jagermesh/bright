@@ -661,9 +661,6 @@
       $(c('select.data-filter')).prop('selectedIndex', 0);
       $(c('select.data-filter')).val('');
       $(c('select.data-filter')).trigger('change');
-      if (window.Select2) {
-        $(c('select.data-filter')).select2();
-      }
       br.storage.remove(this.storageTag + 'filter');
       _this.refresh();
     }
