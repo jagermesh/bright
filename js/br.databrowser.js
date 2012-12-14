@@ -656,9 +656,11 @@
     }
 
     this.resetFilters = function() {
+      $(c('input.data-filter')).val('');
       $(c('select.data-filter option:selected')).removeAttr('selected');
       $(c('select.data-filter')).prop('selectedIndex', 0);
-      $(c('input.data-filter')).val('');
+      $(c('select.data-filter')).val('');
+      $(c('select.data-filter')).trigger('change');
       if (window.Select2) {
         $(c('select.data-filter')).select2();
       }
