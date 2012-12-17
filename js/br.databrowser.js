@@ -46,6 +46,9 @@
 
     if (typeof entity == 'string') {
       this.dataSource = br.dataSource(br.baseUrl + 'api/' + this.options.entity + '/');
+      this.dataSource.on('error', function(operation, error) {
+        br.growlError(error);//, br.baseUrl + 'images/person_default_box.gif');
+      });
     } else {
       this.dataSource = entity;
     }
@@ -195,10 +198,6 @@
     this.init = function() {
       // nav
       $('.nav-item[rel=' + _this.options.nav + ']').addClass('active');
-
-      _this.dataSource.on('error', function(operation, error) {
-        br.growlError(error);//, br.baseUrl + 'images/person_default_box.gif');
-      });
 
       _this.dataSource.before('select', function(request, options) {
         options.order = _this.getOrder();

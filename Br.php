@@ -740,8 +740,12 @@ class Br extends BrSingleton {
   // utils
 
   function formatBytes($size) {
-    $unit = array('b', 'kb', 'mb', 'gb', 'tb', 'pb');
-    return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
+    if ($size > 0) {
+      $unit = array('b', 'kb', 'mb', 'gb', 'tb', 'pb');
+      return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];      
+    } else {
+      return '0 b';
+    }
   }
 
   function formatTraffic($size) {

@@ -897,9 +897,17 @@
       return _this.selector.prepend(row);
     }
 
+    this.append = function(row) {
+      return _this.selector.append(row);
+    }
+
     this.addDataRow = function(row) {
       var tableRow = _this.renderRow(row);
-      _this.prepend(tableRow);
+      if (_this.options.appendInInsert) {
+        _this.append(tableRow);
+      } else {
+        _this.prepend(tableRow);
+      }
       return tableRow;
     }
 
@@ -1591,6 +1599,11 @@
       }
     }
   };
+
+  window.br.panic = function(s) {
+    $('.container').html('<div class="row"><div class="span12"><div class="alert alert-error"><h4>Error!</h4><p>' + s + '</p></div></div></div>');
+    throw '';
+  }
 
   window.br.confirm = function(title, message, buttons, callback) {
     var s = '<div class="modal">'+

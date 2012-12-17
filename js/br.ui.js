@@ -57,6 +57,11 @@
     }
   };
 
+  window.br.panic = function(s) {
+    $('.container').html('<div class="row"><div class="span12"><div class="alert alert-error"><h4>Error!</h4><p>' + s + '</p></div></div></div>');
+    throw '';
+  }
+
   window.br.confirm = function(title, message, buttons, callback) {
     var s = '<div class="modal">'+
             '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>' + title + '</h3></div>' +

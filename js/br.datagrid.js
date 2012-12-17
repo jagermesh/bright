@@ -91,9 +91,17 @@
       return _this.selector.prepend(row);
     }
 
+    this.append = function(row) {
+      return _this.selector.append(row);
+    }
+
     this.addDataRow = function(row) {
       var tableRow = _this.renderRow(row);
-      _this.prepend(tableRow);
+      if (_this.options.appendInInsert) {
+        _this.append(tableRow);
+      } else {
+        _this.prepend(tableRow);
+      }
       return tableRow;
     }
 
