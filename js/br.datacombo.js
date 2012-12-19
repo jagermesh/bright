@@ -17,26 +17,17 @@
     var $ = jQuery;
     var _this = this;
 
-    _this.selector = $(selector);
-    _this.dataSource = dataSource;
-    _this.options = options || {};
-    _this.fields = _this.options.fields || {};
-    _this.saveSelection = _this.options.saveSelection || false;
-    _this.selectedValueField = _this.options.selectedValueField || null;
+    this.selector = $(selector);
+    this.dataSource = dataSource;
+    this.options = options || {};
+    this.fields = this.options.fields || {};
+    this.saveSelection = this.options.saveSelection || false;
+    this.selectedValueField = this.options.selectedValueField || null;
 
-    _this.cb = {};
-
-    _this.on = function(event, callback) {
-      _this.cb[event] = this.cb[event] || new Array();
-      _this.cb[event][this.cb[event].length] = callback;
-    }
-
-    function callEvent(event, data) {
-      _this.cb[event] = _this.cb[event] || new Array();
-      for (i in _this.cb[event]) {
-        _this.cb[event][i].call(_this.selector, data);
-      }
-    }
+    this.events = new BrEvents(this);
+    this.before = function(event, callback) { this.events.before(event, callback); }
+    this.on     = function(event, callback) { this.events.on(event, callback); }
+    this.after  = function(event, callback) { this.events.after(event, callback); }
 
     function storageTag(c) {
 
@@ -95,7 +86,7 @@
 
       });
     
-      callEvent('load', data);
+      _this.events.trigger('load', data);
 
       if (window.Select2) {
         $(_this.selector).select2();
@@ -134,14 +125,14 @@
 
     _this.dataSource.on('remove', function(rowid) {
       _this.selector.find('option[value=' + rowid +']').remove();
-      callEvent('change');
+      _this.events.trigger('change');
     });
 
     _this.selector.change(function() {
       if (_this.saveSelection) {
         br.storage.set(storageTag(this), $(this).val());
       }
-      callEvent('change');
+      _this.events.trigger('change');
       if (window.Select2) {
         $(this).select2();
       }      

@@ -41,7 +41,6 @@
 
     this.limit = this.options.limit || 20;
     this.skip = 0;
-    this.cb = {};
     this.recordsAmount = 0;
 
     if (typeof entity == 'string') {
@@ -63,20 +62,11 @@
                                  , deleteSelector: '.action-delete' 
                                  }
                                );
-    this.on = function(event, callback) {
-      this.cb[event] = this.cb[event] || new Array();
-      this.cb[event][this.cb[event].length] = callback;
-    }
 
-    function callEvent(event, context1, context2, context3) {
-
-      _this.cb[event] = _this.cb[event] || new Array();
-
-      for (i in _this.cb[event]) {
-        _this.cb[event][i].call(_this, context1, context2, context3);
-      }
-
-    }
+    this.events = new BrEvents(this);
+    this.before = function(event, callback) { this.events.before(event, callback); }
+    this.on     = function(event, callback) { this.events.on(event, callback); }
+    this.after  = function(event, callback) { this.events.after(event, callback); }
 
     this.getEditorRowid = function() {
       return editorRowid;
@@ -326,12 +316,12 @@
                 if (isCopy) {
                   editorRowid = null;
                 }
-                callEvent('showEditor', data);
+                _this.events.trigger('showEditor', data);
                 $editForm.modal('show');
               }
             }, { disableEvents: true });
           } else {
-            callEvent('showEditor');
+            _this.events.trigger('showEditor');
             $editForm.modal('show');        
           }
         });
@@ -423,7 +413,7 @@
 
           if ($(c('.filters-panel')).is(':visible')) {
             _this.setStored('filters-hidden', true);
-            callEvent('hideFilters');
+            _this.events.trigger('hideFilters');
             if (initial) {
               $(c('.filters-panel')).hide();
               showFiltersDesc();
@@ -433,7 +423,7 @@
             });
           } else {
             _this.setStored('filters-hidden', false);
-            callEvent('showFilters');
+            _this.events.trigger('showFilters');
             if (initial) {
               $(c('.filters-panel')).show();
               showFiltersDesc();
@@ -479,7 +469,7 @@
             $(this).closest('tr').removeClass('row-selected');
           });
         }
-        callEvent('selectionChanged');
+        _this.events.trigger('selectionChanged');
       });
 
       $(c('.action-select-row')).live('click', function() {
@@ -488,7 +478,7 @@
         } else {
           $(this).closest('tr').removeClass('row-selected');
         }
-        callEvent('selectionChanged');
+        _this.events.trigger('selectionChanged');
       });
       
       $(c('.action-delete-selected')).live('click', function() {
@@ -507,12 +497,12 @@
         } else {
           br.growlError('Please select at least one record');
         }
-        // callEvent('selectionChanged');
+        // _this.events.trigger('selectionChanged');
       });
 
       _this.dataGrid.on('change', function() {
         $(c('.action-select-all')).removeAttr('checked');
-        callEvent('selectionChanged');
+        _this.events.trigger('selectionChanged');
       });
 
       return this;
@@ -569,14 +559,14 @@
       if (_this.recordsAmount > 0) {
         $(c('.pager-control')).show();
         if (_this.recordsAmount > max) {
-          $(c('action-next')).show();
+          $(c('.action-next')).show();
         } else {
-          $(c('action-next')).hide();
+          $(c('.action-next')).hide();
         }
         if (_this.skip > 0) {
-          $(c('action-prior')).show();
+          $(c('.action-prior')).show();
         } else {
-          $(c('action-prior')).hide();
+          $(c('.action-prior')).hide();
         }
       } else {
         $(c('.pager-control')).hide();        

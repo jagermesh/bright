@@ -24,7 +24,9 @@
 
   window.br.log = function(msg) {
     if (typeof(console) != 'undefined') {
-      console.log(msg);
+      for(var i in arguments) {
+        console.log(arguments[i]);
+      }
     }
   };
 

@@ -17,7 +17,7 @@
     var $ = jQuery;
     var _this = this;
 
-    this.cb = {};
+    // this.cb = {};
     this.selector = $(selector);
     this.options = options || {};
     this.options.templates = this.options.templates || {};
@@ -30,58 +30,41 @@
     this.options.footersSelector = this.options.footersSelector || this.selector;
     this.options.selectors = this.options.selectors || {};
 
-    this.on = function(event, callback) {
-      this.cb[event] = this.cb[event] || new Array();
-      this.cb[event].push(callback);
-    }
+    this.events = new BrEvents(this);
+    this.before = function(event, callback) { this.events.before(event, callback); }
+    this.on     = function(event, callback) { this.events.on(event, callback); }
+    this.after  = function(event, callback) { this.events.after(event, callback); }
 
-    function callEvent(event, data) {
+    this.after('insert', function(data) { 
+      _this.events.trigger('change', data);
+    });
 
-      _this.cb[event] = _this.cb[event] || new Array();
+    this.after('update', function(data) { 
+      _this.events.trigger('change', data);
+    });
 
-      for (i in _this.cb[event]) {
+    this.after('remove', function(data) { 
+      _this.events.trigger('change', data);
+    });
 
-        switch(event) {
-          case 'insert':
-          case 'update':
-          case 'remove':
-          case 'select':
-          case 'change':
-            _this.cb[event][i].call(_this.selector, data);
-            break;
-          case 'renderRow':
-          case 'renderHeader':
-            return _this.cb[event][i].call(_this.selector, data);
-            break;
-        }
-
-      }
-
-      switch(event) {
-        case 'insert':
-        case 'update':
-        case 'remove':
-        case 'select':
-          callEvent('change', data);
-          break;
-      }
-
-    }
+    this.after('select', function(data) { 
+      _this.events.trigger('change', data);
+    });
 
     this.renderHeader = function(data) {
-      var data = callEvent('renderHeader', data) || data;
+      var data = _this.events.trigger('renderHeader', data) || data;
       var result = $(br.fetch(_this.options.templates.header, data));
       return result;
     }
 
     this.renderFooter = function(data) {
-      var data = callEvent('renderFooter', data) || data;
+      var data = _this.events.trigger('renderFooter', data) || data;
       var result = $(br.fetch(_this.options.templates.footer, data));
       return result;
     }
 
     this.renderRow = function(data) {
-      var data = callEvent('renderRow', data) || data;
+      var data = _this.events.trigger('renderRow', data) || data;
       var result = $(br.fetch(_this.options.templates.row, data));
       result.data('data-row', data);
       return result;
@@ -114,7 +97,7 @@
       function checkForEmptyGrid() {
         if (isGridEmpty()) {
           _this.selector.html(_this.options.templates.noData);
-          callEvent('nodata');
+          _this.events.trigger('nodata');
         }
       }
 
@@ -153,7 +136,7 @@
             ctrl.remove();
             if (s.length > 0) {
               $(row[0]).html(s).hide().fadeIn();
-              callEvent('update');
+              _this.events.trigger('update');
             } else {
               _this.options.dataSource.select();
             }
@@ -168,12 +151,12 @@
             if (br.isTouchScreen()) {
               row.remove();
               checkForEmptyGrid();
-              callEvent('remove');
+              _this.events.trigger('remove');
             } else {
               row.fadeOut(function() {
                 $(this).remove();
                 checkForEmptyGrid();
-                callEvent('remove');
+                _this.events.trigger('remove');
               });
             }
           } else {
@@ -258,7 +241,7 @@
       } else {
         _this.selector.html(this.options.templates.noData);
       }
-      callEvent('change', data);
+      _this.events.trigger('change', data);
     }
 
     return this.init();
