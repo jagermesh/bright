@@ -1,0 +1,35 @@
+{@head.html}
+
+  <body>
+
+{@navigation.html}
+
+    <div class="container fluid-box">
+
+      <div class="row">
+        <div class="span12">
+          <h1>Events</h1>
+          <p>Events module is a great thing if you want to develop pure event driven application. Usage is simple. Like in well known jQuery you can subscribe to some event:</p>
+<pre>
+br.events.on('eventName');
+</pre>
+
+          <p>And same jQuery syntax could be used to send event:</p>
+
+<pre>
+br.events.trigger('eventName', arguments);
+</pre>
+        </div>
+      </div>
+
+        </div>
+      </div>
+<script>
+$('body').click(function() {
+  br.events.trigger('a');
+});
+</script>
+    </div>
+
+  </body>
+</html>
