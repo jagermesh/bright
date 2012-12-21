@@ -251,7 +251,7 @@ class BrIMAPMailMessage extends BrObject {
 
   function getTo() {
 
-    return $this->overview->to;
+    return @$this->overview->to;
 
   }
 
