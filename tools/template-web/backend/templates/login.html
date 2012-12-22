@@ -1,0 +1,37 @@
+{@head.html}
+
+<body class="pattern-carbon">
+
+{@navigation.html}
+
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Login</h3>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false;">
+      <fieldset>
+        <div class="control-group">
+          <label>E-Mail</label>
+          <input type="text" class="input-xlarge focused login-field" name="login" placeholder="e-mail" data-click-on-enter=".action-login">
+        </div>
+        <div class="control-group">
+          <label>Password</label>
+          <input type="password" class="input-xlarge login-field" name="password" placeholder="password" data-click-on-enter=".action-login">
+        </div>
+        <div class="control-group">
+          <label for="remember" class="checkbox"><input type="checkbox" class="login-field" value="1" name="remember" > Remember me</label>
+        </div>
+        <div class="control-group">
+          <a href="javascript:;" data-loading-text="sending info..." class="action-login btn btn-primary">Login</a>&nbsp; 
+        </div>
+      </fieldset>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <a href="{/}../" class="btn action-cancel">Cancel</a>
+    </div>
+  </div>
+
+</body>
+</html>

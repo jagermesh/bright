@@ -54,21 +54,26 @@ class BrApplication extends BrSingleton {
     } 
 
     $targetScripts = array();
-    // as is     
-    $targetScripts[] = br()->atAppPath($request->relativeUrl().$scriptName);
     // if script is html - try to find regarding php
-    $path = br()->request()->relativeUrl();
-    if ($path) {
+    if ($path = br()->request()->relativeUrl()) {
+      // as is 
+      $targetScripts[] = br()->atBasePath($path.$scriptName);
+      $targetScripts[] = br()->atAppPath($path.$scriptName);
       while(($path = dirname($path)) != '.') {
+        $targetScripts[] = br()->atBasePath($path.'/'.$scriptName);   
         $targetScripts[] = br()->atAppPath($path.'/'.$scriptName);   
       }
     }
     // try to look for this script at base application path
     $targetScripts[] = br()->atAppPath($scriptName);
+    $targetScripts[] = br()->atBasePath($scriptName);
     // last chance - look for special 404.php file
     $targetScripts[] = br()->atAppPath('404.php');
+    $targetScripts[] = br()->atBasePath('404.php');
     // run default routing file
-    $targetScripts[] = br()->atAppPath('index.php');
+    if ($scriptName != 'index.php') {
+      $targetScripts[] = br()->atAppPath('index.php');
+    }
 
     $controllerFile = null;
     foreach($targetScripts as $script) {

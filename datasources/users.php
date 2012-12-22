@@ -306,6 +306,10 @@ class BrDataSourceUsers extends BrDataSource {
 
       unset($row[$passwordField]);
 
+      $row['__permissions'] = array( 'canUpdate' => $dataSource->canUpdate($row)
+                                   , 'canRemove' => $dataSource->canRemove($row)
+                                   );
+
     });
 
     $this->on('remindPassword', function($dataSource, $params) { 
@@ -373,6 +377,29 @@ class BrDataSourceUsers extends BrDataSource {
       }
 
     });
+
+  }
+
+  function canUpdate($row) {
+
+    if ($login = br()->auth()->getLogin()) {
+      $security = br()->config()->get('br/auth/db/api/select-user');
+      if (strpos($security, 'anyone') === false) {
+        if (br()->db()->rowid($login) != br()->db()->rowid($row)) {
+          return false;
+        }
+      }
+    } else {
+      return false;
+    }
+
+    return true;
+
+  }
+
+  function canRemove($row) {
+
+    return $this->canUpdate($row);
 
   }
 

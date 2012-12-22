@@ -149,6 +149,25 @@ class BrFileSystem extends BrSingleton {
     
   }
 
+  public function iteratePath($startingDir, $mask, $callback = null) {
+
+    if (gettype($mask) == 'string') {
+
+    } else {
+      $callback = $mask;
+      $mask = null;
+    }
+
+    $this->iterateDir($startingDir, function($data) use ($callback) {
+      $callback($data);
+      if ($data->isDir()) {
+        br()->fs()->iteratePath($data->nameWithPath(), $callback);
+      }
+
+    });
+
+  }
+
   public function iterateDir($startingDir, $mask, $callback = null) {
 
     if (gettype($mask) == 'string') {
