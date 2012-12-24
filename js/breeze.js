@@ -80,7 +80,7 @@
     this.get = function(key, defaultValue) {
       if (br.isArray(key)) {
         var result = {};
-        for(i in key) {
+        for(var i in key) {
           result[key[i]] = this.get(key[i]);
         }
       } else {        
@@ -139,7 +139,7 @@
           value = [];
         }
         if (br.isArray(newValue)) {
-          for(i in newValue) {
+          for(var i in newValue) {
             this.append(key, newValue[i], limit);
           }
         } else {
@@ -170,7 +170,7 @@
           value = [];
         }
         if (br.isArray(newValue)) {
-          for(i in newValue) {
+          for(var i in newValue) {
             this.prepend(key, newValue[i], limit);
           }
         } else {
@@ -199,7 +199,7 @@
       if (!br.isArray(value)) {
         value = [];
       }
-      for(i=0;i<value.length;i++) {
+      for(var i=0; i < value.length; i++) {
         fn.call(this, value[i]);
       }
       return this;
@@ -256,7 +256,7 @@
           value = {};
         }
         if (br.isObject(newValue)) {
-          for(i in newValue) {
+          for(var i in newValue) {
             value[i] = newValue[i];
           }
           this.set(key, value);
@@ -377,7 +377,7 @@ BrEvents = function(obj) {
   function triggerEx(event, pos, largs) {
 
     var args = [];
-    for(i = 0; i < largs.length; i++) {
+    for(var i = 0; i < largs.length; i++) {
       args.push(largs[i]);
     }
 
@@ -606,7 +606,7 @@ BrEvents = function(obj) {
       _this.data('br-last-change', _this.val());
       var callbacks = _this.data('br-data-change-callbacks');
       if (callbacks) {
-        for(i in callbacks) {
+        for(var i in callbacks) {
           callbacks[i].call(_this);
         }
       } else {
@@ -866,7 +866,7 @@ function BrDataSource(restServiceUrl, options) {
   this.selectCount = function(filter, callback, options) {
 
     var newFilter = {};
-    for(i in filter) {
+    for(var i in filter) {
       newFilter[i] = filter[i];
     }
     newFilter.__result = 'count';
@@ -896,7 +896,7 @@ function BrDataSource(restServiceUrl, options) {
       callback = filter;
     } else
     if (filter) {
-      for(i in filter) {
+      for(var i in filter) {
         if (i != 'rowid') {
           request[i] = filter[i];
         } else {
@@ -1054,7 +1054,7 @@ function BrDataSource(restServiceUrl, options) {
       if (!hideEmptyValue) {
         s = s + '<option value="">' + emptyValue + '</option>';
       }
-      for(i in data) {
+      for(var i in data) {
         if (!selectedValue && selectedValueField) {
           if (data[i][selectedValueField] == '1') {
             selectedValue = data[i][valueField];
@@ -1074,7 +1074,7 @@ function BrDataSource(restServiceUrl, options) {
 
   this.deferredSelect = function(filter, callback, msec) {
     var savedFilter = {}
-    for(i in filter) {
+    for(var i in filter) {
       savedFilter[i] = filter[i];
     }
     msec = msec || this.options.refreshDelay;
@@ -1408,7 +1408,7 @@ function BrDataSource(restServiceUrl, options) {
         if (!hideEmptyValue) {
           s = s + '<option value="">' + emptyValue + '</option>';
         }
-        for(i in data) {
+        for(var i in data) {
           if (!selectedValue && selectedValueField) {
             if (data[i][selectedValueField] == '1') {
               selectedValue = data[i][valueField];
@@ -1656,7 +1656,7 @@ function BrDataSource(restServiceUrl, options) {
       callback = buttons;
       s = s + '<a href="javascript:;" class="btn btn-primary action-confirm-close" rel="confirm">Yes</a>';
     } else {
-      for(i in buttons) {
+      for(var i in buttons) {
         s = s + '<a href="javascript:;" class="btn action-confirm-close" rel="' + i + '">' + buttons[i] + '</a>';
       }
     }
@@ -1687,7 +1687,7 @@ function BrDataSource(restServiceUrl, options) {
     } else {
       inputs[fields] = '';
     }
-    for(i in inputs) {
+    for(var i in inputs) {
       s = s + '<label>' + i + '</label>' +
               '<input type="text" class="span4" value="' + inputs[i] + '" data-click-on-enter=".action-confirm-close" />';
     }

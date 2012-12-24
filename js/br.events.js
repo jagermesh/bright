@@ -60,7 +60,7 @@ BrEvents = function(obj) {
   function triggerEx(event, pos, largs) {
 
     var args = [];
-    for(i = 0; i < largs.length; i++) {
+    for(var i = 0; i < largs.length; i++) {
       args.push(largs[i]);
     }
 

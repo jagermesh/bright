@@ -182,7 +182,7 @@ function BrDataSource(restServiceUrl, options) {
   this.selectCount = function(filter, callback, options) {
 
     var newFilter = {};
-    for(i in filter) {
+    for(var i in filter) {
       newFilter[i] = filter[i];
     }
     newFilter.__result = 'count';
@@ -212,7 +212,7 @@ function BrDataSource(restServiceUrl, options) {
       callback = filter;
     } else
     if (filter) {
-      for(i in filter) {
+      for(var i in filter) {
         if (i != 'rowid') {
           request[i] = filter[i];
         } else {
@@ -370,7 +370,7 @@ function BrDataSource(restServiceUrl, options) {
       if (!hideEmptyValue) {
         s = s + '<option value="">' + emptyValue + '</option>';
       }
-      for(i in data) {
+      for(var i in data) {
         if (!selectedValue && selectedValueField) {
           if (data[i][selectedValueField] == '1') {
             selectedValue = data[i][valueField];
@@ -390,7 +390,7 @@ function BrDataSource(restServiceUrl, options) {
 
   this.deferredSelect = function(filter, callback, msec) {
     var savedFilter = {}
-    for(i in filter) {
+    for(var i in filter) {
       savedFilter[i] = filter[i];
     }
     msec = msec || this.options.refreshDelay;

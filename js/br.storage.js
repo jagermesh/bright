@@ -32,7 +32,7 @@
     this.get = function(key, defaultValue) {
       if (br.isArray(key)) {
         var result = {};
-        for(i in key) {
+        for(var i in key) {
           result[key[i]] = this.get(key[i]);
         }
       } else {        
@@ -91,7 +91,7 @@
           value = [];
         }
         if (br.isArray(newValue)) {
-          for(i in newValue) {
+          for(var i in newValue) {
             this.append(key, newValue[i], limit);
           }
         } else {
@@ -122,7 +122,7 @@
           value = [];
         }
         if (br.isArray(newValue)) {
-          for(i in newValue) {
+          for(var i in newValue) {
             this.prepend(key, newValue[i], limit);
           }
         } else {
@@ -151,7 +151,7 @@
       if (!br.isArray(value)) {
         value = [];
       }
-      for(i=0;i<value.length;i++) {
+      for(var i=0; i < value.length; i++) {
         fn.call(this, value[i]);
       }
       return this;
@@ -208,7 +208,7 @@
           value = {};
         }
         if (br.isObject(newValue)) {
-          for(i in newValue) {
+          for(var i in newValue) {
             value[i] = newValue[i];
           }
           this.set(key, value);

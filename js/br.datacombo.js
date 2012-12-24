@@ -60,7 +60,7 @@
         if (!hideEmptyValue) {
           s = s + '<option value="">' + emptyValue + '</option>';
         }
-        for(i in data) {
+        for(var i in data) {
           if (!selectedValue && selectedValueField) {
             if (data[i][selectedValueField] == '1') {
               selectedValue = data[i][valueField];

@@ -147,7 +147,7 @@
       _this.data('br-last-change', _this.val());
       var callbacks = _this.data('br-data-change-callbacks');
       if (callbacks) {
-        for(i in callbacks) {
+        for(var i in callbacks) {
           callbacks[i].call(_this);
         }
       } else {

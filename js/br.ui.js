@@ -71,7 +71,7 @@
       callback = buttons;
       s = s + '<a href="javascript:;" class="btn btn-primary action-confirm-close" rel="confirm">Yes</a>';
     } else {
-      for(i in buttons) {
+      for(var i in buttons) {
         s = s + '<a href="javascript:;" class="btn action-confirm-close" rel="' + i + '">' + buttons[i] + '</a>';
       }
     }
@@ -102,7 +102,7 @@
     } else {
       inputs[fields] = '';
     }
-    for(i in inputs) {
+    for(var i in inputs) {
       s = s + '<label>' + i + '</label>' +
               '<input type="text" class="span4" value="' + inputs[i] + '" data-click-on-enter=".action-confirm-close" />';
     }

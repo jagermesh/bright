@@ -294,7 +294,7 @@
           if (editorRowid) {
             _this.dataSource.selectOne(editorRowid, function(result, data) {
               if (result) {
-                for(i in data) {
+                for(var i in data) {
                   $editForm.find('div.data-field[data-toggle=buttons-radio][name=' + i + '],input.data-field[name=' + i + '],select.data-field[name=' + i + '],textarea.data-field[name=' + i + ']').each(function() {
                     if ($(this).attr('data-toggle') == 'buttons-radio') {
                       $(this).find('button[value=' + data[i] + ']').addClass('active');
@@ -487,7 +487,7 @@
           br.confirm( 'Delete confirmation'
                     , 'Are you sure you want delete ' + selection.length + ' record(s)?'
                     , function() {
-                        for(i in selection) {
+                        for(var i in selection) {
                           _this.dataSource.remove(selection[i]);
                         }
                         // _this.refresh();
