@@ -15,7 +15,35 @@ class BrCSVParser extends BrObject {
   private $delimiter = ',';
   private $enclosure = '"';
 
+
+ function setDelimiter($fileName) {
+
+   $delimiters = array(
+          'comma'     => ','
+        , 'tab'         => "\t"
+        // , 'semicolon' => ';'
+        // , 'pipe'         => '|'
+        // , 'colon'     => ':'
+    );
+
+    if (file_exists($fileName)) {
+
+      if ($handle = fopen($fileName, 'r')) {
+
+        $complete_lines = fgets($handle);
+        foreach ($delimiters as $delimiter_key => $delimiter) {
+            $delimiter_result[$delimiter_key] = substr_count($complete_lines, $delimiter);
+        }
+
+        arsort($delimiter_result);
+        $this->delimiter = $delimiters[key($delimiter_result)];
+      }
+    }
+ } 
+
   function parse($fileName) {
+
+    $this->setDelimiter($fileName);
 
     $result = array();
 
