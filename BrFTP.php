@@ -140,7 +140,7 @@ class BrFTP extends BrObject {
   public function uploadFile($sourceFilePath, $targetFileName = null, $mode = FTP_BINARY) {
 
     if (!$targetFileName) {
-      $targetFileName = br()->fs()->fileName($targetFileName);
+      $targetFileName = br()->fs()->fileName($sourceFilePath);
     }
 
     $targetFileNamePartial = $targetFileName . '.partial';

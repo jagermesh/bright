@@ -340,6 +340,12 @@ class BrIMAPMailMessage extends BrObject {
 
   }
 
+  public function moveToFolder($folderName) {
+
+    imap_mail_move($this->getMailbox(), $this->getUID(), $folderName, CP_UID);
+    
+  }
+
   private function parseStructure($structure = null, $partNo = null) {
 
     if (!$structure) {
