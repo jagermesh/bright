@@ -339,12 +339,19 @@ class BrIMAPMailMessage extends BrObject {
     return $this->structure;
 
   }
-
+  
+  
   public function moveToFolder($folderName) {
-
-    imap_mail_move($this->getMailbox(), $this->getUID(), $folderName, CP_UID);
     
+    if (imap_mail_move($this->getMailbox(), $this->getUID(), $folderName, CP_UID)) {
+      return true;
+    } else {
+      throw new Exception(implode(', ', imap_errors()));
+    }
+
   }
+  
+ 
 
   private function parseStructure($structure = null, $partNo = null) {
 
@@ -465,6 +472,20 @@ class BrIMAP extends BrObject {
   public function openMailbox($mailbox) {
 
     return imap_open($this->connectString.$mailbox, $this->userName, $this->password);
+
+  }
+  
+  public function createMailBox($folderName) {
+      
+    if ($mailbox = imap_open($this->connectString, $this->userName, $this->password)) {
+      if (imap_createmailbox($mailbox, imap_utf7_encode($this->connectString.$folderName))) {
+
+      } else {
+        throw new Exception(implode(', ', imap_errors()));
+      }
+    } else {
+      throw new Exception(implode(', ', imap_errors()));
+    }
 
   }
    

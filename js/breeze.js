@@ -1447,10 +1447,10 @@ function BrDataSource(restServiceUrl, options) {
         callback = filter;
         filter = {};
       }
-      _this.dataSource.select(filter, function(result) {
+      _this.dataSource.select(filter, function(result, response) {
         if (result) {
           if (callback) {
-            callback.call(_this.selector, result);
+            callback.call(_this.selector, result, response);
           }
           if (window.Select2) {
             $(_this.selector).select2();
