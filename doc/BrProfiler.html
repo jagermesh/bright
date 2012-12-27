@@ -1,0 +1,58 @@
+{@head.html}
+
+  <body>
+
+{@navigation.html}
+
+    <div class="container fluid-box">
+
+      <div class="row">
+        <div class="span12">
+          <h1>Profiler</h1>
+          <p>Profiler is a great tool for making code profiling and call time measurements.</p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="span12">
+          <h2>Usage</h2>
+          <p>Profile could be called by Breeze singleton:</p>
+<pre>
+br()->profiler()
+</pre>
+          <p>Or by creating instance of BrProfiler:</p>
+<pre>
+require_once('path/to/your/breeze/BrProfiler.php');
+$profiler = new BrProfiler();
+</pre>
+          <h2>Methods</h2>
+          <h3>start($name)</h3>
+          <p>Put call to start() before the code you are going to measure</p>
+<pre>
+br()->profiler()->start('operation1');
+// some time consuming code
+</pre>
+          <p>You can do nested calls to start():</p>
+<pre>
+br()->profiler()->start('operation1');
+// some time consuming code
+br()->profiler()->start('operation2');
+// another one time consuming code
+</pre>
+          <h3>finish($name)</h3>
+          <p>Use finish() to get the time in microseconds since call to regarding start() command</p>
+<pre>
+$microsconds = br()->profiler()->finish('operation1');
+echo('Operation1 took ' . $microseconds . ' msecs'));
+</pre>
+          <h3>logStart($name)</h3>
+          <p>Same as start() but writing writing operation name into log file</p>
+          <h3>logStart($name)</h3>
+          <p>Same as finish() but with writing operation name and duration into log file</p>
+        </div>
+      </div>
+
+    </div>
+
+  </body>
+</html>

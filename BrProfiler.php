@@ -38,7 +38,9 @@ class BrProfiler extends BrSingleton {
 
   function logFinish($name) {
 
-    br()->log()->writeLn($name. ' / ' . $this->finish($name) . ' / ' . br()->durationToString($this->finish($name)), 'END');
+    $f = $this->finish($name);
+    br()->log()->writeLn($name. ' / ' . $f . ' / ' . br()->durationToString($f), 'END');
+    return $f;
 
   }
 
