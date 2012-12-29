@@ -40,6 +40,11 @@
     return /iPad/i.test(ua) || /iPhone/i.test(ua);
   };
 
+  window.br.isAndroid = function() {
+    var ua = navigator.userAgent;
+    return /android/i.test(ua);
+  };
+
   window.br.redirect = function(url) {
     if ((url.search(/^\//) == -1) && (url.search(/^http[s]?:\/\//) == -1)) {
       url = this.baseUrl + url;
