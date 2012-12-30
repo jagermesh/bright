@@ -29,7 +29,7 @@ function br($array = null, $name = null, $default = null) {
       return ( is_array($array) && 
                strlen($name) && 
                array_key_exists($name, $array) && 
-               ($array[$name] || (is_scalar($array[$name]) && strlen($array[$name])))
+               ($array[$name] || is_bool($array[$name]) || (is_scalar($array[$name]) && strlen($array[$name])))
              )
              ? $array[$name] 
              : $default;
