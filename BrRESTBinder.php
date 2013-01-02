@@ -249,6 +249,17 @@ class BrRESTBinder extends BrObject {
                     $filter[$fields] = br()->db()->regexpCondition($value);
                   }
                   break;
+                case "like":
+                  if (is_array($fields)) {
+                    $subFilter = array();
+                    foreach($fields as $field) {
+                      $subFilter[] = array($field => array('$contains' => $value));
+                    }
+                    $filter['$or'] = $subFilter;
+                  } else {
+                    $filter[$fields] = array('$contains' => $value);
+                  }
+                  break;
                 case "filter":
                   $filters = br($mapping, 'filters', br($mapping, 'filter'));
                   if (!is_array($filters)) {
