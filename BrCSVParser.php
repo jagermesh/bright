@@ -16,34 +16,7 @@ class BrCSVParser extends BrObject {
   private $enclosure = '"';
 
 
- function setDelimiter($fileName) {
-
-   $delimiters = array(
-          'comma'     => ','
-        , 'tab'         => "\t"
-        // , 'semicolon' => ';'
-        // , 'pipe'         => '|'
-        // , 'colon'     => ':'
-    );
-
-    if (file_exists($fileName)) {
-
-      if ($handle = fopen($fileName, 'r')) {
-
-        $complete_lines = fgets($handle);
-        foreach ($delimiters as $delimiter_key => $delimiter) {
-            $delimiter_result[$delimiter_key] = substr_count($complete_lines, $delimiter);
-        }
-
-        arsort($delimiter_result);
-        $this->delimiter = $delimiters[key($delimiter_result)];
-      }
-    }
- } 
-
   function parse($fileName) {
-
-    $this->setDelimiter($fileName);
 
     $result = array();
 
@@ -67,16 +40,60 @@ class BrCSVParser extends BrObject {
 
       if ($handle = fopen($fileName, 'r')) {
 
+        $encoding = '';
+        $ending = "\n";
+
+        $line = fgets($handle);
+        if (substr_count($line, "\t") > 1) {
+          $this->delimiter = "\t";
+        }
+
+        fseek($handle, 0);
+
         // Skip BOM
-        fgets($handle, 4) == "\xEF\xBB\xBF" ? fseek($handle, 3) : fseek($handle, 0);
-        fgets($handle, 3) == "\xFF\xFE" ? fseek($handle, 2) : fseek($handle, 0);
-        fgets($handle, 3) == "\xFE\xFF" ? fseek($handle, 2) : fseek($handle, 0);
-        fgets($handle, 5) == "\xFF\xFE\x00\x00" ? fseek($handle, 4) : fseek($handle, 0);
-        fgets($handle, 5) == "\x00\x00\xFE\xFF" ? fseek($handle, 4) : fseek($handle, 0);
+        if (fgets($handle, 4) == "\xEF\xBB\xBF") { 
+          fseek($handle, 3);
+        } else {
+          fseek($handle, 0); 
+          if (fgets($handle, 5) == "\xFF\xFE\x00\x00") {
+            $encoding = 'UTF-32le';
+            $ending .= "\x00\x00";
+            fseek($handle, 4);
+          } else {
+            fseek($handle, 0); 
+            if (fgets($handle, 5) == "\x00\x00\xFE\xFF") {
+              $encoding = 'UTF-32';
+              $ending = "\x00\x00" . $ending;
+              fseek($handle, 4);
+            } else {
+              fseek($handle, 0); 
+              if (fgets($handle, 3) == "\xFF\xFE") {
+                $encoding = 'UTF-16le';
+                $ending .= "\x00";
+                fseek($handle, 2);
+              } else {
+                fseek($handle, 0); 
+                if (fgets($handle, 3) == "\xFE\xFF") {
+                  $encoding = 'UTF-16';
+                  $ending = "\x00" . $ending;
+                  fseek($handle, 2);
+                } else {
+                  fseek($handle, 0);
+                }
+              }
+            }
+          }
+        }
 
         $enclosures = array( "\\" . $this->enclosure, $this->enclosure . $this->enclosure);
 
-        while (($line = fgetcsv($handle, 0, $this->delimiter, $this->enclosure)) !== FALSE) {
+        while (($line = stream_get_line($handle, 10240, $ending)) !== FALSE) {
+        // while (($line = fgets($handle)) !== FALSE) {
+          if ($encoding) {
+            $line = iconv($encoding, 'UTF-8', $line);
+          }
+          $line = trim($line);
+          $line = str_getcsv($line, $this->delimiter, $this->enclosure);
           if (count($line) == 1) {
             // jagermesh for files like this:
             // "School Name,""Course ID"",Class ID,Class Name,School Year,Teacher ID"
@@ -100,7 +117,6 @@ class BrCSVParser extends BrObject {
           $linesAmount++;
 
           $callback($values, $linesAmount);
-
         }
 
         // Close file

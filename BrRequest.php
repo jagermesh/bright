@@ -243,7 +243,8 @@ class BrRequest extends BrSingleton {
 
   function isLocalHost() {
 
-    return $this->serverAddr() == '127.0.0.1';
+    $localHosts = array('localhost', '127.0.0.1');
+    return in_array($this->domain(), $localHosts);
 
   }
 
