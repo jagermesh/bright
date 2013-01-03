@@ -41,7 +41,6 @@ class BrCSVParser extends BrObject {
       if ($handle = fopen($fileName, 'r')) {
 
         $encoding = '';
-        $ending = "\n";
 
         $line = fgets($handle);
         if (substr_count($line, "\t") > 1) {
@@ -57,25 +56,21 @@ class BrCSVParser extends BrObject {
           fseek($handle, 0); 
           if (fgets($handle, 5) == "\xFF\xFE\x00\x00") {
             $encoding = 'UTF-32le';
-            $ending .= "\x00\x00";
             fseek($handle, 4);
           } else {
             fseek($handle, 0); 
             if (fgets($handle, 5) == "\x00\x00\xFE\xFF") {
               $encoding = 'UTF-32';
-              $ending = "\x00\x00" . $ending;
               fseek($handle, 4);
             } else {
               fseek($handle, 0); 
               if (fgets($handle, 3) == "\xFF\xFE") {
                 $encoding = 'UTF-16le';
-                $ending .= "\x00";
                 fseek($handle, 2);
               } else {
                 fseek($handle, 0); 
                 if (fgets($handle, 3) == "\xFE\xFF") {
                   $encoding = 'UTF-16';
-                  $ending = "\x00" . $ending;
                   fseek($handle, 2);
                 } else {
                   fseek($handle, 0);
@@ -87,9 +82,22 @@ class BrCSVParser extends BrObject {
 
         $enclosures = array( "\\" . $this->enclosure, $this->enclosure . $this->enclosure);
 
-        while (($line = stream_get_line($handle, 10240, $ending)) !== FALSE) {
-        // while (($line = fgets($handle)) !== FALSE) {
+        while (($line = fgets($handle)) !== FALSE) {
           if ($encoding) {
+            switch ($encoding) {
+              case 'UTF-16le':
+                $line = ltrim($line, "\x00");
+                if (preg_match("![\n\r]$!", $line)) {
+                  $line .= "\x00";
+                }
+                break;
+              case 'UTF-32le':
+                $line = ltrim($line, "\x00");
+                if (preg_match("![\n\r]$!", $line)) {
+                  $line .= "\x00\x00";
+                }
+                break;
+            } 
             $line = iconv($encoding, 'UTF-8', $line);
           }
           $line = trim($line);
