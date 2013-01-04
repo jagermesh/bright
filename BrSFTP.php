@@ -58,7 +58,7 @@ class BrSFTP extends BrObject {
   private $currentHostName;
   private $currentUserName;
   private $currentPassword;
-  private $currentPassiveMode;
+  private $currentPort;
   private $sftp;
 
   function __construct() {
@@ -67,11 +67,26 @@ class BrSFTP extends BrObject {
 
   }
   
+  function connectWithKey($hostName, $userName, $keyFileName, $port = 22, $keyFilePassword = '') {
+
+    require_once(dirname(__DIR__).'/3rdparty/phpseclib0.3.0/Crypt/RSA.php');
+
+    $key = new Crypt_RSA();
+    if ($keyFilePassword) {
+      $key->setPassword($keyFilePassword);
+    }
+    $key->loadKey(file_get_contents($keyFileName));
+
+    $this->connect($hostName, $userName, $key, $port);
+
+  }
+
   function connect($hostName, $userName, $password, $port = 22) {
 
     $this->currentHostName = $hostName;
     $this->currentUserName = $userName;
     $this->currentPassword = $password;
+    $this->currentPort     = $port;
 
     require_once(dirname(__DIR__).'/3rdparty/phpseclib0.3.0/Net/SFTP.php');
 
@@ -84,29 +99,20 @@ class BrSFTP extends BrObject {
         try {
           $this->changeDir('/' . $userName);
         } catch (Exception $e) {
-
+          $this->currentDirectory = '.';
         }
       }
     } else {
       throw new Exception('Can not connect to ' . $hostName . ' as ' . $userName);      
     }
-    // if ($this->connectionId = ssh2_connect($hostName, $port)) {
-    //   if ($this->sftp = ssh2_auth_password($this->connectionId, $userName, $password)) {
-
-    //   } else {
-    //     throw new Exception('Can not connect to ' . $hostName . ' as ' . $userName);
-    //   }
-    // } else {
-    //   throw new Exception('Can not connect to ' . $hostName);
-    // }
 
   }
   
   public function reset() {
 
-    // ftp_close($this->connectionId);
-
-    // $this->connect($this->currentHostName, $this->currentUserName, $this->currentPassword, $this->currentPassiveMode);
+    $dir = $this->currentDirectory;
+    $this->connect($this->currentHostName, $this->currentUserName, $this->currentPassword, $this->currentPort);
+    $this->changeDir($dir);
 
   }
 
