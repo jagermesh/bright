@@ -11,6 +11,9 @@
 require_once(__DIR__.'/BrObject.php');
 require_once(__DIR__.'/BrFileSystem.php');
 
+require_once(dirname(__DIR__).'/3rdparty/phpseclib0.3.0/Net/SFTP.php');
+require_once(dirname(__DIR__).'/3rdparty/phpseclib0.3.0/Crypt/RSA.php');
+
 class BrSFTPFileObject {
 
   private $name;
@@ -69,8 +72,6 @@ class BrSFTP extends BrObject {
   
   function connectWithKey($hostName, $userName, $keyFileName, $port = 22, $keyFilePassword = '') {
 
-    require_once(dirname(__DIR__).'/3rdparty/phpseclib0.3.0/Crypt/RSA.php');
-
     $key = new Crypt_RSA();
     if ($keyFilePassword) {
       $key->setPassword($keyFilePassword);
@@ -87,8 +88,6 @@ class BrSFTP extends BrObject {
     $this->currentUserName = $userName;
     $this->currentPassword = $password;
     $this->currentPort     = $port;
-
-    require_once(dirname(__DIR__).'/3rdparty/phpseclib0.3.0/Net/SFTP.php');
 
     $this->connection = new Net_SFTP($hostName, $port);
 
@@ -108,9 +107,21 @@ class BrSFTP extends BrObject {
 
   }
   
+  public function disconnect() {
+
+    try {
+      $this->connection = null;
+      // $this->connection->disconnect();
+    } catch (Exception $e) {
+
+    }
+
+  }
+
   public function reset() {
 
     $dir = $this->currentDirectory;
+    $this->disconnect();
     $this->connect($this->currentHostName, $this->currentUserName, $this->currentPassword, $this->currentPort);
     $this->changeDir($dir);
 

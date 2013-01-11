@@ -181,6 +181,11 @@ function BrDataSource(restServiceUrl, options) {
 
   this.selectCount = function(filter, callback, options) {
 
+    if (typeof filter == 'function') {
+      options = callback;
+      callback = filter;
+    }
+    
     var newFilter = {};
     for(var i in filter) {
       newFilter[i] = filter[i];
