@@ -166,13 +166,13 @@ class BrFTP extends BrObject {
 
   public function deleteFile($fileName) {
 
-    return ftp_delete($this->connectionId, $fileName);
+    return @ftp_delete($this->connectionId, $fileName);
 
   }
 
   public function renameFile($oldFileName, $newFileName) {
 
-    return ftp_rename($this->connectionId, $oldFileName, $newFileName);
+    return @ftp_rename($this->connectionId, $oldFileName, $newFileName);
 
   }
 
