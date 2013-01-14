@@ -405,6 +405,33 @@ class BrMySQLProviderTable {
 
   }
 
+  function update($values, $filter) {
+
+    $fields_str = '';
+    $values_str = '';
+
+    $sql = 'UPDATE '.$this->tableName.' SET ';
+    foreach($values as $field => $value) {
+      $sql .= $field . ' = ?, ';
+    }
+    $sql = rtrim($sql, ', ');  
+    $sql .= ' WHERE 1=1';
+    foreach($filter as $field => $value) {
+      $sql .= ' AND ' . $field . ' = ?';
+    }
+
+    $args = array();  
+    foreach($values as $field => $value) {
+      array_push($args, $value);
+    }    
+    foreach($filter as $field => $value) {
+      array_push($args, $value);
+    }    
+
+    $this->provider->internalRunQuery($sql, $args);
+    
+  }
+
   function insert(&$values) {
 
     $fields_str = '';

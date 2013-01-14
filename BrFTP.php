@@ -80,9 +80,12 @@ class BrFTP extends BrObject {
     $this->currentPassword = $password;
     $this->currentPassiveMode = $passiveMode;
 
+    // br()->log('Connecting to ' . $hostName . ' as ' . $userName);
+
     if ($this->connectionId = ftp_connect($hostName)) {
       if (ftp_login($this->connectionId, $userName, $password)) {
         ftp_pasv($this->connectionId, $passiveMode);
+        $this->currentDirectory = $this->getServerDir();
       } else {
         throw new Exception('Can not connect to ' . $hostName . ' as ' . $userName);
       }
@@ -101,10 +104,16 @@ class BrFTP extends BrObject {
 
   }
 
+  public function getServerDir() {
+
+    return ftp_pwd($this->connectionId);
+
+  }
+
   public function changeDir($directory) {
 
     if (ftp_chdir($this->connectionId, $directory)) {
-      $this->currentDirectory = rtrim($directory, '/') . '/';
+      $this->currentDirectory = $this->getServerDir();
     } else {
       throw new Exception('Can not change remote directory to ' . $directory);      
     }
