@@ -241,8 +241,12 @@ class BrMySQLProviderTable {
           $this->compileLeftJoin($filterValue, $tableName, $fieldName, $link, $joins, $joinsTables, $where, $args);
           break;
         case '$in':
-          $where .= $link . $fname2 . ' IN (?@)';
-          $args[] = br()->removeEmptyKeys($filterValue);
+          if (is_array($filterValue)) {
+            $where .= $link . $fname2 . ' IN (?@)';
+            $args[] = br()->removeEmptyKeys($filterValue);
+          } else {
+            $where .= $link . $fname2 . ' IN (' . $filterValue . ')';
+          }
           break;
         case '$ne':
           $where .= $link . $fname2 . ' != ?';
