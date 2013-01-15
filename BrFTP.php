@@ -95,12 +95,22 @@ class BrFTP extends BrObject {
 
   }
   
+  public function disconnect() {
+
+    try {
+      ftp_close($this->connectionId);
+    } catch (Exception $e) {
+
+    }
+
+  }
+
   public function reset() {
 
-    ftp_close($this->connectionId);
-
+    $dir = $this->currentDirectory;
+    $this->disconnect();
     $this->connect($this->currentHostName, $this->currentUserName, $this->currentPassword, $this->currentPassiveMode);
-    $this->changeDir($this->currentDirectory);
+    $this->changeDir($dir);
 
   }
 
