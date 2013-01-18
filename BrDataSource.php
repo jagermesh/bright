@@ -69,8 +69,10 @@ class BrDataSource extends BrGenericDataSource {
     $this->validateSelect($filter);
 
     $result = $this->callEvent('select', $filter, $transientData, $options);
+
     if (is_null($result)) {
       $result = array();
+      
       $this->lastSelectAmount = 0;
 
       $table = br()->db()->table($this->dbEntity());
@@ -108,7 +110,6 @@ class BrDataSource extends BrGenericDataSource {
         if ($countOnly) {
           $result = $cursor->count();
         } else {
-          $result = array();
           $idx = 1;
           $this->lastSelectAmount = 0;
           foreach($cursor as $row) {
@@ -132,6 +133,17 @@ class BrDataSource extends BrGenericDataSource {
         }
       } else {
 
+      }
+
+    } else {
+
+      if (!$countOnly && is_array($result)) {
+        $this->lastSelectAmount = 0;
+        foreach($result as &$row) {
+          $row['rowid'] = br()->db()->rowidValue($row, $this->rowidFieldName);
+          $this->callEvent('calcFields', $row, $transientData);
+          $this->lastSelectAmount++;
+        }
       }
     }
 
