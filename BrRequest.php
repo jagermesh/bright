@@ -97,8 +97,12 @@ class BrRequest extends BrSingleton {
         $this->clientIP = '127.0.0.1';
       }
 
+      if ($this->clientIP == '//1') {
+        $this->clientIP = '127.0.0.1';
+      }
+
       if (!$this->clientIP) {
-        $this->clientIP = 'XXX.XXX.XXX.XXX';
+        $this->clientIP = '127.0.0.1';
       }
 
     } else {

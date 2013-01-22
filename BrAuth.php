@@ -136,7 +136,7 @@ class BrAuth extends BrSingleton {
     }
 
     if (!$userId) {
-      if ($token = br()->request()->get('token')) {
+      if ($token = br()->request()->get('__loginToken')) {
         $table = br()->db()->table(br()->config()->get('br/auth/db/table', 'users'));
         if ($login = $table->findOne(array('adminToken' => $token))) {
           $userId = (string)$login['_id'];

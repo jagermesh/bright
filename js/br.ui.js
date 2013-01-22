@@ -157,12 +157,12 @@
 
   var progressCounter = 0;
 
-  window.br.showProgress = function() {
+  window.br.showAJAXProgress = function() {
     progressCounter++;
     $('.ajax-in-progress').css('visibility', 'visible');
   }
 
-  window.br.hideProgress = function() {
+  window.br.hideAJAXProgress = function() {
     progressCounter--;
     if (progressCounter <= 0) {
       $('.ajax-in-progress').css('visibility', 'hidden');
@@ -174,9 +174,9 @@
 
     var notAuthorized = false;
 
-    $('body').ajaxStart(function() { br.showProgress(); });
+    $('body').ajaxStart(function() { br.showAJAXProgress(); });
 
-    $('body').ajaxStop(function() { br.hideProgress(); });
+    $('body').ajaxStop(function() { br.hideAJAXProgress(); });
     
     $('body').ajaxError(function(event, jqXHR, ajaxSettings, thrownError) {
       if (jqXHR.status == 401) {
