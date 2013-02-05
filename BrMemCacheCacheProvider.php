@@ -23,8 +23,8 @@ class BrMemCacheCacheProvider extends BrGenericCacheProvider {
     parent::__construct($cfg);
 
     $this->memCache = new Memcache();
-    $hostname = br()->value($cfg, 'hostname', self::DefaultHostName);
-    $port = br()->value($cfg, 'port', self::DefaultPort);
+    $hostname = br($cfg, 'hostname', self::DefaultHostName);
+    $port = br($cfg, 'port', self::DefaultPort);
     if (!@$this->memCache->connect($hostname, $port)) {
       throw new BrException('Can not connect to MemCache server ' . $hostname . ':' . $port);
     }
@@ -43,8 +43,8 @@ class BrMemCacheCacheProvider extends BrGenericCacheProvider {
   
   }
   
-  public function get($name, $default, $saveDefault = false) {
-             
+  public function get($name, $default = null, $saveDefault = false) {
+
     return $this->memCache->get($this->safeName($name));
 
   }

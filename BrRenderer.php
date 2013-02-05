@@ -59,6 +59,12 @@ class BrRenderer extends BrObject {
 
   }
 
+  public function fetchString($string, $subst = array()) {
+
+    return $this->renderer->fetchString($string, $subst);
+
+  }
+
   public function display($templateName, $subst = array()) {
 
     echo($this->fetch($templateName, $subst));

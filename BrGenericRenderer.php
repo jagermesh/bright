@@ -37,6 +37,10 @@ class BrGenericRenderer extends BrObject {
 
   }
 
+  function fetchString($string, $subst= array()) {
+    
+  }
+
   function fetch($templateName, $subst= array()) {
     
   }

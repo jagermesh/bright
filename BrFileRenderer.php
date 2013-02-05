@@ -29,6 +29,14 @@ class BrFileRenderer extends BrGenericRenderer {
 
   }
 
+  function fetchString($string, $subst = array()) {
+
+    $content = $this->compile($string, $subst);
+
+    return $content;
+
+  }
+
   function fetch($templateName, $subst = array()) {
 
     $template = $this->fetchFile($templateName);

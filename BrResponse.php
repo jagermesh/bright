@@ -177,4 +177,14 @@ class BrResponse extends BrSingleton {
     
   }
  
+  function sendXML($data) {
+
+    if (!headers_sent()) { 
+      header("Content-type: text/xml");
+    }
+    echo($data);
+    exit();
+    
+  }
+ 
 }

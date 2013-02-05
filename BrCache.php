@@ -12,32 +12,23 @@ require_once(__DIR__.'/BrObject.php');
 
 class BrCache extends BrObject {
 
-  public static function GetInstance($name = null) {
+  public static function GetInstance($name = 'default') {
   
     static $instances = array();
-    
-    $cacheConfig = array();
-
-    if (!$name) {
-      $name = 'memory';
-      $cacheConfig = array('engine' => $name);
-    } else {
-      $cacheList = br()->config()->get('cache');
-      if ($cacheList) {
-        $cacheConfig = br($cacheList, $name);
-      }
-      if (!$cacheConfig) {
-        $cacheConfig = json_decode($name);
-        if ($cacheConfig) {
-          $cacheConfig = get_object_vars($cacheConfig);
-        }
-      }
-    }
+    static $reconsider = true;
 
     $instance = null;
     
-    if ($cacheConfig) {
-      if (!isset($instances[$name])) { 
+    if ($reconsider || !isset($instances[$name])) {
+
+      if ($dbList = br()->config()->get('cache')) {
+
+        $reconsider = false;
+
+        $cacheConfig = br($dbList, $name, $dbList);
+
+        br()->assert($cacheConfig, 'Cache [' . $name . '] not configured');
+
         switch($cacheConfig['engine']) {
           case "memcache":
             require_once(__DIR__.'/BrMemCacheCacheProvider.php');
@@ -59,14 +50,24 @@ class BrCache extends BrObject {
             throw new BrException('Unknown cache requested: ' . $name);
             break;
         }
-        $instances[$name] = $instance;
+
       } else {
-        $instance = $instances[$name];
+
+        $cacheConfig = array();
+
+        require_once(__DIR__.'/BrMemoryCacheProvider.php');
+        $instance = new BrMemoryCacheProvider($cacheConfig);        
+
       }
+
+      $instances[$name] = $instance;
+
     } else {
-      throw new BrException('Unknown cache requested');
+
+      $instance = $instances[$name];
+
     }
-    
+        
     return $instance;
   
   }  

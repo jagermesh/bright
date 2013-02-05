@@ -204,7 +204,7 @@ class BrIMAPMailMessage extends BrObject {
 
   function getSubject() {
 
-    return $this->overview->subject;
+    return @$this->overview->subject;
     
   }
 
