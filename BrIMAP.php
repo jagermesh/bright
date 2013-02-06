@@ -389,6 +389,7 @@ class BrIMAPMailMessage extends BrObject {
         case 'alternative':
         case 'mixed':
         case 'related':
+        case 'rfc822':
           $currentParentPart = $this->parentPart;
           $this->parentPart = strtolower($structure->subtype);
           $idx = 1;
