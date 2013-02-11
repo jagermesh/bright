@@ -380,7 +380,7 @@ class BrDataSourceUsers extends BrDataSource {
 
   }
 
-  function canUpdate($row) {
+  public function canUpdate($row, $old = array()) {
 
     if ($login = br()->auth()->getLogin()) {
       $security = br()->config()->get('br/auth/db/api/select-user');
@@ -397,7 +397,7 @@ class BrDataSourceUsers extends BrDataSource {
 
   }
 
-  function canRemove($row) {
+  public function canRemove($row) {
 
     return $this->canUpdate($row);
 
