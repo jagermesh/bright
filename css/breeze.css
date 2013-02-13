@@ -203,7 +203,7 @@ h1 small {
   background: url('../images/progress-small.gif') no-repeat 50% 50%;
 }
 
-a, .clickable {
+a, .clickable, label.checkbox {
   cursor: pointer;
 }
 
