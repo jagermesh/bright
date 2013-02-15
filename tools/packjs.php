@@ -16,6 +16,7 @@ $result .= br()->fs()->loadFromFile($scriptsPath . 'br.events.js');
 $result .= br()->fs()->loadFromFile($scriptsPath . 'br.request.js');
 $result .= br()->fs()->loadFromFile($scriptsPath . 'br.js');
 
+$result .= br()->fs()->loadFromFile($scriptsPath . 'br.flagsHolder.js');
 $result .= br()->fs()->loadFromFile($scriptsPath . 'br.datasource.js');
 $result .= br()->fs()->loadFromFile($scriptsPath . 'br.datagrid.js');
 $result .= br()->fs()->loadFromFile($scriptsPath . 'br.datacombo.js');

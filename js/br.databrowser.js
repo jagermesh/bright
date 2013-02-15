@@ -54,6 +54,8 @@
 
     this.storageTag = document.location.toString() + this.dataSource.options.restServiceUrl;
 
+    this.selection = br.flagsHolder();
+
     this.countDataSource = br.dataSource(this.dataSource.options.restServiceUrl);
     this.dataGrid = br.dataGrid( this.options.selectors.dataTable
                                , this.options.templates.rowTemplate
@@ -457,16 +459,24 @@
         showFiltersDesc();
       });
 
+      function selectRow(id) {
+        var row = $('tr[data-rowid=' + id + ']', $(_this.options.selectors.dataTable));
+        row.find('.action-select-row').attr('checked', 'checked');
+        row.addClass('row-selected');
+      }
+
       $(c('.action-select-all')).live('click', function() {
         if ($(this).is(':checked')) {
           $(c('.action-select-row')).each(function() {
             $(this).attr('checked', 'checked');
             $(this).closest('tr').addClass('row-selected');
+            _this.selection.append($(this).val());
           });
         } else {
           $(c('.action-select-row')).each(function() {
             $(this).removeAttr('checked');
             $(this).closest('tr').removeClass('row-selected');
+            _this.selection.remove($(this).val());
           });
         }
         _this.events.trigger('selectionChanged');
@@ -475,20 +485,31 @@
       $(c('.action-select-row')).live('click', function() {
         if ($(this).is(':checked')) {
           $(this).closest('tr').addClass('row-selected');
+          _this.selection.append($(this).val());
         } else {
           $(this).closest('tr').removeClass('row-selected');
+          _this.selection.remove($(this).val());
         }
         _this.events.trigger('selectionChanged');
       });
       
+      $(c('.action-clear-selection')).live('click', function() {
+        _this.clearSelection();
+      });
+      
       $(c('.action-delete-selected')).live('click', function() {
-        var selection = _this.getSelection();
+        var selection = _this.selection.get();
         if (selection.length > 0) {
           br.confirm( 'Delete confirmation'
                     , 'Are you sure you want delete ' + selection.length + ' record(s)?'
                     , function() {
                         for(var i in selection) {
-                          _this.dataSource.remove(selection[i]);
+                          _this.dataSource.remove(selection[i], function(result) {
+                            if (result) {
+                              _this.selection.remove(selection[i]);
+                              _this.events.trigger('selectionChanged');
+                            }
+                          });
                         }
                         // _this.refresh();
                       }
@@ -497,12 +518,29 @@
         } else {
           br.growlError('Please select at least one record');
         }
-        // _this.events.trigger('selectionChanged');
       });
 
       _this.dataGrid.on('change', function() {
         $(c('.action-select-all')).removeAttr('checked');
+
+        var selection = _this.selection.get();
+        for(var i in selection) {
+          selectRow(selection[i]);
+        }
         _this.events.trigger('selectionChanged');
+      });
+
+      _this.events.on('selectionChanged', function() {
+        var selection = _this.selection.get();
+        if (selection.length > 0) {
+          $('.selection-stat').text(selection.length + ' record(s) currently selected');
+          $('.selection-stat').show();
+          $('.action-clear-selection').show();
+        } else {
+          $('.selection-stat').hide();
+          $('.action-clear-selection').hide();
+        }
+
       });
 
       return this;
@@ -578,14 +616,25 @@
 
     }
 
+    this.clearSelection = function() {
+      _this.selection.clear();
+      $(c('.action-select-row')).removeAttr('checked');
+      $(c('tr.row-selected')).removeClass('row-selected');
+      $(c('.action-select-all')).removeAttr('checked');
+      _this.events.trigger('selectionChanged');      
+    }
+
     this.getSelection = function() {
-      var rowids = [];
-      $(c('.action-select-row')).each(function() {
-        if ($(this).is(':checked')) {
-          rowids.push($(this).val());
-        }
-      });
-      return rowids;
+      // var rowids = [];
+      // for(var id in _this.selection) {
+      //   rowids.push(id);
+      // }
+      // $(c('.action-select-row')).each(function() {
+      //   if ($(this).is(':checked')) {
+      //     rowids.push($(this).val());
+      //   }
+      // });
+      return _this.selection.get();
     }
 
     this.updatePager = function() {
