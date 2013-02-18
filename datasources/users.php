@@ -2,6 +2,8 @@
 
 br()->importLib('DataSource');
 
+require_once(dirname(__DIR__).'/BrException.php');
+
 class BrDataSourceUsers extends BrDataSource {
 
   function __construct() {
@@ -106,7 +108,7 @@ class BrDataSourceUsers extends BrDataSource {
 
         if ($login = br()->html2text(br($row, $loginField))) {
           if ($user = $dataSource->selectOne(array($loginField => $login))) {
-            throw new Exception('Such user already exists');
+            throw new BrAppException('Such user already exists');
           } else {
             if (!br($row, $passwordField)) {
               $data['password'] = substr(br()->guid(), 0, 8);
@@ -118,7 +120,7 @@ class BrDataSourceUsers extends BrDataSource {
             //$row['adminToken'] = br()->guid();
           }
         } else {
-          throw new Exception('Please enter ' . $loginFieldLabel);
+          throw new BrAppException('Please enter ' . $loginFieldLabel);
         }
 
         
@@ -253,14 +255,19 @@ class BrDataSourceUsers extends BrDataSource {
 
               return $row;
             } else {
-              throw new Exception('Access denied');
+              throw new BrAppException('Access denied');
             }
           } else {
-            throw new Exception('Invalid login/password or user not found');
+            throw new BrAppException('Invalid login/password or user not found');
           }
         } else {
-          throw new Exception('Please enter login/password');
+          throw new BrAppException('Please enter login/password');
         }
+      } catch (BrAppException $e) {
+        $params['filter'] = $filter;
+        $params['error']  = $e->getMessage();
+        $dataSource->callEvent('loginError', $params);
+        throw new BrAppException($params['error']);
       } catch (Exception $e) {
         $params['filter'] = $filter;
         $params['error']  = $e->getMessage();
@@ -316,7 +323,7 @@ class BrDataSourceUsers extends BrDataSource {
 
       if (!br()->config()->get('br/auth/api/passwordReminderEnabled')) {
 
-        throw new Exception('Sorry. Password reminder is currently disabled.');
+        throw new BrAppException('Sorry. Password reminder is currently disabled.');
 
       } else {
 
@@ -371,7 +378,7 @@ class BrDataSourceUsers extends BrDataSource {
             throw new Exception('User not found');
           }
         } else {
-          throw new Exception('Please enter ' . $loginFieldLabel);
+          throw new BrAppException('Please enter ' . $loginFieldLabel);
         }
 
       }

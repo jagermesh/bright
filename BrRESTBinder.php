@@ -420,7 +420,11 @@ class BrRESTBinder extends BrObject {
             br()->response()->sendJSON($result);          
           }
         } catch (Exception $e) {
-          br()->log()->logException($e);
+          if ($e instanceof BrAppException) {
+
+          } else {
+            br()->log()->logException($e);
+          }
           if (br()->request()->get('crossdomain')) {
             br()->response()->sendJSONP($e->getMessage());
           } else {

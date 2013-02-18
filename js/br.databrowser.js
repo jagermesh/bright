@@ -504,14 +504,15 @@
                     , 'Are you sure you want delete ' + selection.length + ' record(s)?'
                     , function() {
                         for(var i in selection) {
-                          _this.dataSource.remove(selection[i], function(result) {
-                            if (result) {
-                              _this.selection.remove(selection[i]);
-                              _this.events.trigger('selectionChanged');
-                            }
-                          });
+                          (function(id) {
+                            _this.dataSource.remove(id, function(result, response) {
+                              if (result) {
+                                _this.selection.remove(id);
+                                _this.events.trigger('selectionChanged');
+                              }
+                            });
+                          })(selection[i]);
                         }
-                        // _this.refresh();
                       }
                     );
 
@@ -522,10 +523,13 @@
 
       _this.dataGrid.on('change', function() {
         $(c('.action-select-all')).removeAttr('checked');
-
-        var selection = _this.selection.get();
-        for(var i in selection) {
-          selectRow(selection[i]);
+        if ($(c('.action-clear-selection')).length > 0) {
+          var selection = _this.selection.get();
+          for(var i in selection) {
+            selectRow(selection[i]);
+          }
+        } else {
+          _this.selection.clear();
         }
         _this.events.trigger('selectionChanged');
       });
@@ -533,14 +537,13 @@
       _this.events.on('selectionChanged', function() {
         var selection = _this.selection.get();
         if (selection.length > 0) {
-          $('.selection-stat').text(selection.length + ' record(s) currently selected');
-          $('.selection-stat').show();
-          $('.action-clear-selection').show();
+          $(c('.selection-stat')).text(selection.length + ' record(s) currently selected');
+          $(c('.selection-stat')).show();
+          $(c('.action-clear-selection')).show();
         } else {
-          $('.selection-stat').hide();
-          $('.action-clear-selection').hide();
+          $(c('.selection-stat')).hide();
+          $(c('.action-clear-selection')).hide();
         }
-
       });
 
       return this;

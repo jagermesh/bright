@@ -81,3 +81,6 @@ class BrAssertException extends BrException {
 
 }
 
+class BrAppException extends BrException {
+
+}
