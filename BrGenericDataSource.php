@@ -150,7 +150,7 @@ class BrGenericDataSource extends BrObject {
             $result = false;
             $data = null;
             $this->callEvent('after:' . $method, $result, $data, $params, $transientData);
-            throw new Exception($e->getMessage());
+            throw new BrAppException($e->getMessage());
           } catch (Exception $e) {
             $result = false;
             $data = null;
