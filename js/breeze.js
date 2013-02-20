@@ -1457,6 +1457,15 @@ function BrDataSource(restServiceUrl, options) {
     this.on     = function(event, callback) { this.events.on(event, callback); }
     this.after  = function(event, callback) { this.events.after(event, callback); }
 
+    this.val = function() {
+      return $(this.selector).val();
+    }
+
+    this.valOrNull = function() {
+      var val = this.val();
+      return br.isEmpty(val) ? null : val; 
+    }
+
     function storageTag(c) {
 
       return document.location.toString() + ':filter-value:' + $(c).attr('name');
