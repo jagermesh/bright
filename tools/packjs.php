@@ -1,7 +1,7 @@
 <?php
 
 require_once(dirname(__DIR__).'/Breeze.php');
-require_once(__DIR__.'/BrJSCompressor.php');
+require_once(dirname(__DIR__).'/3rdparty/JShrink/Minifier.php');
 
 $scriptsPath = dirname(__DIR__) . '/js/';
 $resultScriptFile = dirname(__DIR__) . '/js/breeze.js';
@@ -28,5 +28,4 @@ br()->log('Saving to ' . $resultScriptFile);
 br()->fs()->saveToFile($resultScriptFile, $result);
 
 br()->log('Saving to ' . $packedScriptFile);
-$compressor = new BrJSCompressor();
-br()->fs()->saveToFile($packedScriptFile, $compressor->compress($result));
+br()->fs()->saveToFile($packedScriptFile, JShrink\Minifier::minify($result));
