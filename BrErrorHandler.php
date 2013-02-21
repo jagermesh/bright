@@ -85,7 +85,7 @@ class BrErrorHandler extends BrObject {
             $errorMessage = str_replace('[INFO:'.$info_name.']'.$errorInfo.'[/INFO]', '', $errorMessage);
           }
 
-          if (br()->request()->isLocalHost()) {
+          if (br()->request()->isLocalHost() && !($e instanceof BrAppException)) {
             include(__DIR__.'/templates/ErrorReportEx.html');
           } else {
             include(__DIR__.'/templates/ErrorReport.html');

@@ -3,8 +3,8 @@
 br()->config()->set( 'db'
                    , array( 'engine'     => 'mysql'
                           , 'hostname'   => 'localhost'
-                          , 'name'       => 'demo'
-                          , 'username'   => 'root'
-                          , 'password'   => ''
+                          , 'name'       => '[dbname]'
+                          , 'username'   => '[username]'
+                          , 'password'   => '[password]'
                           , 'charset'    => 'UTF8'
                           ));

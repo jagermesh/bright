@@ -237,7 +237,7 @@ class BrDataSource extends BrGenericDataSource {
         } catch (Exception $e) {
           // TODO: Move to the DB layer
           if (preg_match('/1451: Cannot delete or update a parent row/', $e->getMessage())) {
-            throw new Exception('Cannot delete this record - there are references to it in the system');
+            throw new BrAppException('Cannot delete this record - there are references to it in the system');
           } else {
             throw new Exception($e->getMessage());            
           }
