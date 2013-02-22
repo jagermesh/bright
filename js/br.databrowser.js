@@ -65,7 +65,7 @@
                                  }
                                );
 
-    this.events = new BrEvents(this);
+    this.events = br.eventQueue(this);
     this.before = function(event, callback) { this.events.before(event, callback); }
     this.on     = function(event, callback) { this.events.on(event, callback); }
     this.after  = function(event, callback) { this.events.after(event, callback); }
