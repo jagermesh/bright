@@ -415,23 +415,25 @@
 
           if ($(c('.filters-panel')).is(':visible')) {
             _this.setStored('filters-hidden', true);
-            _this.events.trigger('hideFilters');
             if (initial) {
               $(c('.filters-panel')).hide();
               showFiltersDesc();
+              _this.events.trigger('hideFilters');
             } else
             $(c('.filters-panel')).slideUp(function() {
               showFiltersDesc();
+              _this.events.trigger('hideFilters');
             });
           } else {
             _this.setStored('filters-hidden', false);
-            _this.events.trigger('showFilters');
             if (initial) {
               $(c('.filters-panel')).show();
               showFiltersDesc();
+              _this.events.trigger('showFilters');
             } else
             $(c('.filters-panel')).slideDown(function() {
               showFiltersDesc();
+              _this.events.trigger('showFilters');
             });
           }      
 
@@ -703,6 +705,7 @@
       $(c('select.data-filter')).val('');
       $(c('select.data-filter')).trigger('change');
       br.storage.remove(this.storageTag + 'filter');
+      _this.events.trigger('resetFilters');
       _this.refresh();
     }
     this.refreshDeferred = function(filter, callback, doNotResetPager) {
