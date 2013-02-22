@@ -408,6 +408,10 @@ BrEvents = function(obj) {
   window.br = window.br || {};
 
   window.br.events = new BrEvents();
+  
+  window.br.eventQueue = function() {
+    return new BrEvents();
+  }
 
 }(window);
 // 
