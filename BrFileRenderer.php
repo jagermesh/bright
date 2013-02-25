@@ -46,7 +46,9 @@ class BrFileRenderer extends BrGenericRenderer {
 
     // replace @template-name with template
     while (preg_match('/[{]@([^}]+)[}]/', $content, $matches)) {
-      $template = $this->fetchFile(dirname($templateFile).'/'.$matches[1]);
+      $includeFileName = dirname($templateFile).'/'.$matches[1];
+      $template = $this->fetchFile($includeFileName);
+      // $template['content'] = $this->compile($template['content'], $subst, dirname($includeFileName));
       $content = str_replace($matches[0], $template['content'], $content);
     }
 

@@ -41,7 +41,7 @@ class BrDataSourceUsers extends BrDataSource {
               $mail->SetFrom(br()->config()->get('br/auth/mail/from', 'noreply@localhost'));
               $mail->Subject = br()->config()->get('br/auth/mail/signup/subject', 'Registration complete');
               $user = $row;
-              $user[$passwordField] = $data['password'];
+              $user[$passwordField] = br($data, 'password');
               $message = br()->renderer()->fetch($mailTemplate, $user);
               $mail->MsgHTML($message, dirname($mailTemplate));
               br()->log()->writeLn('Sending signup mail to ' . $email);
@@ -78,9 +78,9 @@ class BrDataSourceUsers extends BrDataSource {
 
     });
 
-    $this->on('insert', function($dataSource, &$row, $t, $options) { 
+    $this->on('insert', function($dataSource, &$row, &$data, $options) { 
 
-      if (br($options, 'source') == 'RESTBinder') {
+      // if (br($options, 'source') == 'RESTBinder') {
 
         $security = br()->config()->get('br/auth/db/api/insert-user');
 
@@ -124,7 +124,7 @@ class BrDataSourceUsers extends BrDataSource {
         }
 
         
-      }
+      // }
 
     });
 
@@ -132,6 +132,7 @@ class BrDataSourceUsers extends BrDataSource {
 
       // add security checks only for REST calls
       if (br($options, 'source') == 'RESTBinder') {
+
         $security = br()->config()->get('br/auth/db/api/select-user');
         if (!$security) {
           $security = 'login';
@@ -148,6 +149,7 @@ class BrDataSourceUsers extends BrDataSource {
         if (strpos($security, 'anyone') === false) {
           throw new Exception('You are not allowed to see users');
         }
+
       }
 
     });
@@ -155,12 +157,14 @@ class BrDataSourceUsers extends BrDataSource {
     $this->before('update', function($dataSource, $row) { 
 
       if ($login = br()->auth()->getLogin()) {
+
         $security = br()->config()->get('br/auth/db/api/select-user');
         if (strpos($security, 'anyone') === false) {
           if (br()->db()->rowid($login) != br()->db()->rowid($row)) {
             throw new Exception('You are not allowed to modify this user');
           }
         }
+
       } else {
         throw new Exception('You are not allowed to modify this user');
       }
@@ -170,12 +174,14 @@ class BrDataSourceUsers extends BrDataSource {
     $this->before('remove', function($dataSource, $row) { 
 
       if ($login = br()->auth()->getLogin()) {
+
         $security = br()->config()->get('br/auth/db/api/remove-user');
         if (strpos($security, 'anyone') === false) {
           if (br()->db()->rowid($login) != br()->db()->rowid($row)) {
             throw new Exception('You are not allowed to remove this user');
           }
         }
+        
       } else {
         throw new Exception('You are not allowed to remove this user');
       }
