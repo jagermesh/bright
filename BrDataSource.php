@@ -122,7 +122,9 @@ class BrDataSource extends BrGenericDataSource {
               $this->lastSelectAmount++;
             } else
             if (!$limit || (count($result) < $limit)) {
-              $this->callEvent('calcFields', $row, $transientData);
+              if (!br($options, 'noCalcFields')) {
+                $this->callEvent('calcFields', $row, $transientData);
+              }
               $result[] = $row;
               $this->lastSelectAmount++;
             } else {
@@ -141,7 +143,9 @@ class BrDataSource extends BrGenericDataSource {
         $this->lastSelectAmount = 0;
         foreach($result as &$row) {
           $row['rowid'] = br()->db()->rowidValue($row, $this->rowidFieldName);
-          $this->callEvent('calcFields', $row, $transientData);
+          if (!br($options, 'noCalcFields')) {
+            $this->callEvent('calcFields', $row, $transientData);
+          }
           $this->lastSelectAmount++;
         }
       }

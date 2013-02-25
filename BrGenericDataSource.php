@@ -33,6 +33,16 @@ class BrGenericDataSource extends BrObject {
 
   }
 
+  function existsOne($filter = array()) {
+
+    if ($row = $this->selectOne($filter, array(), array(), array('noCalcFields' => true))) {
+      return true;
+    } else {
+      return false;
+    }
+
+  }
+
   function selectOne($filter = array(), $fields = array(), $order = array(), $options = array()) {
 
     if (!is_array($filter)) {
