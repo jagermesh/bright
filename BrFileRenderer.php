@@ -44,11 +44,13 @@ class BrFileRenderer extends BrGenericRenderer {
     $templateFile = $template['file'];
     $content = $template['content'];
 
-    // replace @template-name with template
-    while (preg_match('/[{]@([^}]+)[}]/', $content, $matches)) {
-      $includeFileName = dirname($templateFile).'/'.$matches[1];
+    // replace @@template-name with template and compile
+    while (preg_match('/[{]([@]+)([^}]+)[}]/', $content, $matches)) {
+      $includeFileName = dirname($templateFile).'/'.$matches[2];
       $template = $this->fetchFile($includeFileName);
-      // $template['content'] = $this->compile($template['content'], $subst, dirname($includeFileName));
+      if ($matches[1] == '@@') {
+        $template['content'] = $this->compile($template['content'], $subst, dirname($includeFileName));
+      }
       $content = str_replace($matches[0], $template['content'], $content);
     }
 
