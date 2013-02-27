@@ -29,7 +29,10 @@
     this.on     = function(event, callback) { this.events.on(event, callback); }
     this.after  = function(event, callback) { this.events.after(event, callback); }
 
-    this.val = function() {
+    this.val = function(value) {
+      if (value != undefined) {
+        $(this.selector).val(value); 
+      }
       return $(this.selector).val();
     }
 
