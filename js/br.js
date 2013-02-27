@@ -22,8 +22,14 @@
 
   window.br.baseUrl = baseUrl;
 
+  var logStarted = false;
+
   window.br.log = function(msg) {
     if (typeof(console) != 'undefined') {
+      if (!logStarted) {
+        console.log('*********************** LOG STARTED ***********************');
+        logStarted = true;
+      }
       for(var i in arguments) {
         console.log(arguments[i]);
       }
