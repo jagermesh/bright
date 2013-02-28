@@ -120,13 +120,13 @@ class BrNestedSet extends BrObject {
 
     $this->keys = array();
     
-    br()->db()->startTransaction();
+    // br()->db()->startTransaction();
     
     set_time_limit(0); ignore_user_abort(true);
 
     $this->internalSetup();
 
-    br()->db()->commitTransaction();
+    // br()->db()->commitTransaction();
 
   }
 
