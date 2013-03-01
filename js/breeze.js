@@ -970,7 +970,7 @@ function BrDataSource(restServiceUrl, options) {
 
   this.selectOne = function(rowid, callback, options) {
 
-    return this.select({ rowid: rowid }, callback, options);
+    return this.select({ rowid: rowid ? rowid : '-' }, callback, options);
 
   }
 

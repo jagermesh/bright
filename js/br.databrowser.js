@@ -279,6 +279,11 @@
           if (firstInput.length > 0) {
             firstInput[0].focus();
           }
+          _this.events.trigger('editor.shown');
+        });
+
+        $editForm.on('hidden', function() {
+          _this.events.trigger('editor.hidden');
         });
 
         $(c('.action-create')).show();

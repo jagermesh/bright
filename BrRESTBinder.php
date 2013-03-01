@@ -167,7 +167,7 @@ class BrRESTBinder extends BrObject {
       $security    = br($options, 'security');
 
       $event = 'select';
-      if ($matches = br()->request()->isAt(rtrim($path, '/').'/([0-9a-z]+)')) {
+      if ($matches = br()->request()->isAt(rtrim($path, '/').'/([-0-9a-z]+)')) {
         $event = 'selectOne';
       }
 
@@ -286,8 +286,12 @@ class BrRESTBinder extends BrObject {
       }
 
       $selectOne = false;
-      if ($matches = br()->request()->isAt(rtrim($path, '/').'/([0-9a-z]+)')) {
-        $filter[br()->db()->rowidField()] = br()->db()->rowid($matches[1]);
+      if ($matches = br()->request()->isAt(rtrim($path, '/').'/([-0-9a-z]+)')) {
+        $keyValue = $matches[1];
+        if ($keyValue === '-') {
+          $keyValue = null;
+        }
+        $filter[br()->db()->rowidField()] = br()->db()->rowid($keyValue);
         $selectOne = true;
       }
 
