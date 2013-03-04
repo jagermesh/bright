@@ -1,0 +1,70 @@
+{@../head.html}
+
+  <body>
+
+{@../navigation.html}
+
+    <div class="container-fluid fluid-box">
+
+      <div class="row">
+
+{@sidebar.html}        
+
+        <div class="span9">
+
+          <div class="row">
+            <div class="span12">
+              <h1>BrSession <small>helper to work with session</small></h1>
+              <h3><code>extends</code> <a href="{/}php/BrObject.html">BrObject</a></h3>
+
+              <p>Helper to work with session.</p>
+              <p>There is one global config object (singleton) accessible via <code>br()->session()</code>. You can still create own configuration storage if required by <code>$session = new BrSession();</code></p>
+
+              <h3>Object members</h3>
+
+              <table class="table table-stripped table-bordered">
+                <thead>
+                  <tr>
+                    <th>Method/property</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="info">
+                    <td colspan="2">If you are using global config, please prepend below methods with <code>br()->session()-></code></td>
+                  </tr>
+                  <tr>
+                    <td>set(name, value)</td>
+                    <td>Set session value. Value could be scalar or array.</td>
+                  </tr>
+                  <tr>
+                    <td>get()</td>
+                    <td>Get all session values</td>
+                  </tr>
+                  <tr>
+                    <td>get(name, defaultValue)</td>
+                    <td><p>Get session value or default value for this name. Name could be array path. For example:</p>
+<pre>
+br()->session()->set('SomeStructuredSetting', array('name' => 'SomeName'));
+echo(br()->session()->get('SomeStructuredSetting.name'));
+</pre>
+<p>Output:</p>
+<pre>
+SomeName
+</pre>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <p>If you are working with global session object you can use <code>br()->session(name, defaultValue)</code> instead of <code>br()->session()->get(name, defaultValue)</code> for simplicity.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </body>
+</html>

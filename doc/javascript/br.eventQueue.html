@@ -14,7 +14,7 @@
 
           <div class="row">
             <div class="span12">
-              <h1>Events <small>event queue</small></h1>
+              <h1>BrEventQueue <small>event queue</small></h1>
 
               <p>Events module is a great thing if you want to develop pure event driven application. Usage is simple. Like in well known jQuery you can subscribe to some event. There is one global events object accessible via <code>br.events</code>. You can create own events object by <code>var events = br.eventQueue();</code></p>
               <p>
@@ -40,7 +40,7 @@ $('body').click(function() {
                 </thead>
                 <tbody>
                   <tr class="info">
-                    <td colspan="2">If you are using global config, please prepend below methods with <code>br()->config()-></code></td>
+                    <td colspan="2">If you are using global config, please prepend below methods with <code>br.events.</code></td>
                   </tr>
                   <tr><td>on(name, callback)</td><td>Register event callback</td></tr>
                   <tr><td>trigger(name, ...data...)</td><td>Trigger event</td></tr>
