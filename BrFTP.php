@@ -84,7 +84,7 @@ class BrFTP extends BrObject {
 
     if ($this->connectionId = ftp_connect($hostName, $port)) {
       if (ftp_login($this->connectionId, $userName, $password)) {
-        if (ftp_pasv($this->connectionId, $passiveMode)) {
+        if (ftp_pasv($this->connectionId, $passiveMode ? true : false)) {
           $this->currentDirectory = $this->getServerDir();
         } else {
           throw new Exception('Can not switch passive mode to ' . $passiveMode);
