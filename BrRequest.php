@@ -469,8 +469,16 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function route($path, $func, $method = 'GET') {
+  function route($method, $path, $func = null) {
     
+    if ($func) {
+
+    } else {
+      $func = $path;
+      $path = $method;
+      $method = 'GET';
+    }
+
     if (!$this->routeComplete()) {
       if ($this->isMethod($method)) {
         if ($match = $this->isAt($path)) {
@@ -505,19 +513,19 @@ class BrRequest extends BrSingleton {
 
   function routePOST($path, $func) {
     
-    return $this->route($path, $func, 'POST');
+    return $this->route('POST', $path, $func);
 
   }
 
   function routePUT($path, $func) {
 
-    return $this->route($path, $func, 'PUT');
+    return $this->route('PUT', $path, $func);
 
   }
 
   function routeDELETE($path, $func) {
     
-    return $this->route($path, $func, 'DELETE');
+    return $this->route('DELETE', $path, $func);
 
   }
 

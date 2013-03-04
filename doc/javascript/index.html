@@ -1,146 +1,39 @@
-{@head.html}
+{@../head.html}
 
   <body>
 
-{@navigation.html}
+{@../navigation.html}
 
     <div class="container-fluid fluid-box">
 
       <div class="row">
-        <div class="span3">
-          <div class="well1 sidebar-nav">
-            <ul class="nav nav-list">
-              <li class="nav-header">Modules</li>
-              <li class="active"><a href="{/}brdatasource.html">BrDataSource</a></li>
-              <li class="nav-header">Snippets</li>
-            </ul>
-          </div><!--/.well -->
-        </div><!--/span-->
+
+{@sidebar.html}        
 
         <div class="span9">
           <div class="row">
             <div class="span12">
-              <h1>Bright development framework</h1>
+              <h1>Bright :: JavaScript</h1>
               <p>Bright was designed to be simple and flexible. Let's check it out.</p>
             </div>
           </div>
 
           <div class="row">
             <div class="span12">
-              <h2>1. Getting started.</h2>
-              <p>Like many others web frameworks Bright expect some predefeind folders structure of your project. But comparing to other player it's not that complex:</p>
-              <table class="table table-stripped table-bordered">
-                <thead>
-                  <tr>
-                    <th>File/Path</th>
-                    <th>Description</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>/.htaccess</td>
-                    <td>
-<p>Typical "rewriter"</p>
-<pre>
-RewriteEngine On
-RewriteRule [.](gif|css|jpg|jpeg|js|swf|png|ico|avi|htc|flv|wmv|xml)$ - [L]
-RewriteRule .* index.php
-</pre>
-                </td>
-              </tr>
-              <tr>
-                <td>/index.php</td>
-                <td>
-<p>Just include Bright main file</p>
-<pre>
-require_once(__DIR__.'/bright/Bright.php');
-</pre>
-<p>Honestly saying - that's all we need. You can start creating your application right after this line.</p>
-<pre>
-require_once(__DIR__.'/bright/Bright.php');
+              <h2>Fundamentals</h2>
+              <p>Bright have 3 key components:</p>
+              <ul>
+                <li>br() function</li>
+                <li>Data Source</li>
+                <li>REST Binder</li>
+              </ul>
+              <p>Let's start from br(). Idea of Breeeze is ability to use it anywhere - as separate application or as part of existing app. That's why all Bright components accessible via br() function.</p>
+              <p>List of functions you can check later in documentation, currently we will see how to use br()->request() to implement routing</p>
+            </div>
+          </div>
 
-// here we can put our application code
-</pre>
-<p>But we suggest you to put your application code into /app folder. If this folder exists - Bright will look into following file:
-                </td>
-              </tr>
-              <tr>
-                <td>/app/index.php</td>
-                <td>
-<p>Default main application entry point</p>
-                </td>
-              </tr>
-              <tr>
-                <td>/config.php</td>
-                <td>
-<p>Configuration file. Optional, but almost every application have some settings.</p>
-<pre>
-br()->config()->set('someOption', 'someValue'));
-$someValue = br()->config()->get('someOption'));
-</pre>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <p>That's all. We all set. If you put <pre>echo('Hello World');</pre> into your <code>/app/index.php</code> you will see your first Bright application.</p>
         </div>
-      </div>
 
-
-      <div class="row">
-        <div class="span12">
-          <h2>2. Using Bright in existing project.</h2>
-          <p>If you don't need Bright as framework you can still use it's nice functions and helpers. Just include it into your script:</p>
-<pre>
-require_once('/bright/Br.php');
-</pre>
-          <p>And use magic br() function to access Bright helpers.</p>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="span12">
-          <h2>3. Fundamentals</h2>
-          <p>Bright have 3 key components:</p>
-          <ul>
-            <li>br() function</li>
-            <li>Data Source</li>
-            <li>REST Binder</li>
-          </ul>
-          <p>Let's start from br(). Idea of Breeeze is ability to use it anywhere - as separate application or as part of existing app. That's why all Bright components accessible via br() function.</p>
-          <p>List of functions you can check later in documentation, currently we will see how to use br()->request() to implement routing</p>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="span12">
-          <h2>4. Routing and page handling.</h2>
-          <p>Routing handled by BrRequest class. You can access it's instance via br()->request() function. Let's see how to handle differend kind of requests.</p>
-<pre>
-br()
-  ->request()
-    ->route('/index.html', function() {
-        // display homepage
-      })
-    ->route('/order.html?client=([0-9]+)', function($matches) {
-        // display order of client $matches[1]
-      })
-    ->routeGET('/pay.html', function() {
-        // display payment page
-      })
-    ->routePOST('/pay.html', function() {
-        // handle POST to pay.html
-      })
-    ->routeIndex(function() {
-        // handle request to root url of your site
-      })
-    ->routeDefault()
-;
-</pre>
-          <p>Once some of the routes processed - other ones will be skipped. Simple, isn't it?</p>
-        </div>
-      </div>
-      </div>
       </div>
 
     </div>

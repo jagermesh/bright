@@ -13,24 +13,41 @@
         <div class="span9">
           <div class="row">
             <div class="span12">
-              <h1>Bright development framework</h1>
-              <p>Bright was designed to be simple and flexible. Let's check it out.</p>
+              <h1>Bright On Server</h1>
+              <p>Bright consist of both - server and client side parts. Though it's not necessary to use both. In general your application can run with Ruby server side and Bright client side. Or Bright server side and Backbone client side.</p>
+              <p>Let's check how Bright solve main needs of web application - Routing, Content rendering and Database access.</p>
             </div>
           </div>
 
           <div class="row">
             <div class="span12">
-              <h2>Fundamentals</h2>
-              <p>Bright have 3 key components:</p>
-              <ul>
-                <li>br() function</li>
-                <li>Data Source</li>
-                <li>REST Binder</li>
-              </ul>
-              <p>Let's start from br(). Idea of Breeeze is ability to use it anywhere - as separate application or as part of existing app. That's why all Bright components accessible via br() function.</p>
-              <p>List of functions you can check later in documentation, currently we will see how to use br()->request() to implement routing</p>
+              <h2>Routing</h2>
+              <p>Routing explain in the <a href="{/}php/BrRequest.html">BrRequest</a> section. Here is just a small example:</p>
+<pre>
+br()
+  ->request()
+    ->route('/index.html', function() {
+        // display homepage
+      })
+    ->route('/order.html?client=([0-9]+)', function($matches) {
+        // display order of client $matches[1]
+      })
+    ->routeGET('/pay.html', function() {
+        // display payment page
+      })
+    ->routePOST('/pay.html', function() {
+        // handle POST to pay.html
+      })
+    ->routeIndex(function() {
+        // handle request to root url of your site
+      })
+    ->routeDefault()
+;
+</pre>
             </div>
           </div>
+
+
 
         </div>
 

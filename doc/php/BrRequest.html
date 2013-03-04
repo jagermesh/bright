@@ -1,44 +1,117 @@
-{@head.html}
+{@../head.html}
 
   <body>
 
-{@navigation.html}
+{@../navigation.html}
 
-    <div class="container fluid-box">
-
-      <div class="row">
-        <div class="span12">
-          <h1>Bright Data Source</h1>
-          <p>One of the most important components of the Bright is it's Data Source.</p>
-        </div>
-      </div>
+    <div class="container-fluid fluid-box">
 
       <div class="row">
-        <div class="span12">
-          <h2>4. Routing and page handling.</h2>
-          <p>Routing handled by BrRequest class. You can access it's instance via br()->request() function. Let's see how to handle differend kind of requests.</p>
-<pre>
-br()
-  ->request()
-    ->route('/index.html', function() {
-        // display homepage
-      })
-    ->route('/order.html?client=([0-9]+)', function($matches) {
-        // display order of client $matches[1]
-      })
-    ->routeGET('/pay.html', function() {
-        // display payment page
-      })
-    ->routePOST('/pay.html', function() {
-        // handle POST to pay.html
-      })
-    ->routeIndex(function() {
-        // handle request to root url of your site
-      })
-    ->routeDefault()
-;
-</pre>
-          <p>Once some of the routes processed - other ones will be skipped. Simple, isn't it?</p>
+
+{@sidebar.html}        
+
+        <div class="span9">
+
+          <div class="row">
+            <div class="span12">
+              <h1>BrRequest <small>helper to work with request</small></h1>
+              <h3><code>extends</code> <a href="{/}BrSingleton.php">BrSingleton</a></h3>
+
+              <p>Helper to work with request.</p>
+              <p>There is one global request object (singleton) accessible via <code>br()->request()</code>. You can still create own request obejct if needed by <code>$request = new BrRequest();</code></p>
+
+              <table class="table table-stripped table-bordered">
+                <thead>
+                  <tr>
+                    <th>Method/property</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="info"><td colspan="2">If you are using global config, please prepend below methods with <code>br()->request()</code></td></tr>
+                  <tr><td>referer()</td><td></td></tr>
+                  <tr><td>isSelfReferer()</td><td></td></tr>
+                  <tr><td>isAt(url)</td><td></td></tr>
+                  <tr><td>isAtBaseUrl()</td><td></td></tr>
+                  <tr><td>path()</td><td></td></tr>
+                  <tr><td>clientIP()</td><td></td></tr>
+                  <tr><td>url()</td><td></td></tr>
+                  <tr><td>relativeUrl()</td><td></td></tr>
+                  <tr><td>baseUrl()</td><td></td></tr>
+                  <tr><td>build(array)</td><td></td></tr>
+                  <tr><td>frameworkUrl()</td><td></td></tr>
+                  <tr><td>setFrameworkUrl(path)</td><td></td></tr>
+                  <tr><td>domain()</td><td></td></tr>
+                  <tr><td>serverAddr()</td><td></td></tr>
+                  <tr><td>isLocalHost()</td><td></td></tr>
+                  <tr><td>host()</td><td></td></tr>
+                  <tr><td>scriptName()</td><td></td></tr>
+                  <tr><td>ifModifidSince()</td><td></td></tr>
+                  <tr><td>method()</td><td></td></tr>
+                  <tr><td>isMethod(method)</td><td></td></tr>
+                  <tr><td>isGET()</td><td></td></tr>
+                  <tr><td>isPOST()</td><td></td></tr>
+                  <tr><td>isPUT()</td><td></td></tr>
+                  <tr><td>isDELETE()</td><td></td></tr>
+                  <tr><td>isRedirect()</td><td></td></tr>
+                  <tr><td>isTemporaryRedirect()</td><td></td></tr>
+                  <tr><td>isPermanentRedirect()</td><td></td></tr>
+                  <tr><td>userAgent()</td><td></td></tr>
+                  <tr><td>isMobile()</td><td></td></tr>
+                  <tr><td>get(name, defaultValue)</td><td></td></tr>
+                  <tr><td>post(name, defaultValue)</td><td></td></tr>
+                  <tr><td>put(name, defaultValue)</td><td></td></tr>
+                  <tr><td>cookie(name, defaultValue)</td><td></td></tr>
+                  <tr><td>param(name, defaultValue)</td><td></td></tr>
+                  <tr><td>isFilesUploaded()</td><td></td></tr>
+                  <tr><td>file(name)</td><td></td></tr>
+                  <tr><td>fileTmp(name)</td><td></td></tr>
+                  <tr><td>fileName(name)</td><td></td></tr>
+                  <tr><td>fileSize(name)</td><td></td></tr>
+                  <tr><td>fileError(name)</td><td></td></tr>
+                  <tr><td>isFileUploaded(name)</td><td></td></tr>
+                  <tr><td>moveUploadedFile(name, destinationFolder)</td><td></td></tr>
+                  <tr><td>continueRoute()</td><td></td></tr>
+                  <tr><td>routeComplete()</td><td></td></tr>
+                  <tr><td>route(method, path, callback)</td><td></td></tr>
+                  <tr><td>route(path, callback)</td><td></td></tr>
+                  <tr><td>routeGET(path, callback)</td><td></td></tr>
+                  <tr><td>routePOST(path, callback)</td><td></td></tr>
+                  <tr><td>routePUT(path, callback)</td><td></td></tr>
+                  <tr><td>routeDELETE(path, callback)</td><td></td></tr>
+                  <tr><td>routeIndex(callback)</td><td></td></tr>
+                  <tr><td>routeDefault()</td><td></td></tr>
+                  <tr><td>check(condition, callback)</td><td></td></tr>
+                </tbody>
+              </table>
+
+              <p>Again, if you are working with global config object you can use <code>br()->config(name, defaultValue)</code> instead of <code>br()->config()->get(name, defaultValue)</code> for simplicity.</p>
+
+    <pre>
+    br()
+      ->request()
+        ->route('/index.html', function() {
+            // display homepage
+          })
+        ->route('/order.html?client=([0-9]+)', function($matches) {
+            // display order of client $matches[1]
+          })
+        ->routeGET('/pay.html', function() {
+            // display payment page
+          })
+        ->routePOST('/pay.html', function() {
+            // handle POST to pay.html
+          })
+        ->routeIndex(function() {
+            // handle request to root url of your site
+          })
+        ->routeDefault()
+    ;
+    </pre>
+              <p>Once some of the routes processed - other ones will be skipped. Simple, isn't it?</p>
+            </div>
+          </div>
+
         </div>
       </div>
 
