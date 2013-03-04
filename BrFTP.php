@@ -73,7 +73,7 @@ class BrFTP extends BrObject {
 
   }
   
-  function connect($hostName, $userName, $password, $passiveMode = true) {
+  function connect($hostName, $userName, $password, $port = 21, $passiveMode = true) {
 
     $this->currentHostName = $hostName;
     $this->currentUserName = $userName;
@@ -82,10 +82,13 @@ class BrFTP extends BrObject {
 
     // br()->log('Connecting to ' . $hostName . ' as ' . $userName);
 
-    if ($this->connectionId = ftp_connect($hostName)) {
+    if ($this->connectionId = ftp_connect($hostName, $port)) {
       if (ftp_login($this->connectionId, $userName, $password)) {
-        ftp_pasv($this->connectionId, $passiveMode);
-        $this->currentDirectory = $this->getServerDir();
+        if (ftp_pasv($this->connectionId, $passiveMode)) {
+          $this->currentDirectory = $this->getServerDir();
+        } else {
+          throw new Exception('Can not switch passive mode to ' . $passiveMode);
+        }
       } else {
         throw new Exception('Can not connect to ' . $hostName . ' as ' . $userName);
       }
