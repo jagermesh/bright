@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Project:     Breeze framework
+ * Project:     Bright framework
  * Author:      Jager Mesh (jagermesh@gmail.com)
  *
  * @version 1.1.0.0
- * @package Breeze Core
+ * @package Bright Core
  */
 
 // br() helper function
@@ -33,9 +33,9 @@ ini_set('url_rewriter.tags', null);
 @date_default_timezone_set(@date_default_timezone_get());
 // Core PHP settings - End
 
-// Application base path - we assuming that Breeze library inlcuded by main index.php
+// Application base path - we assuming that Bright library included by main index.php
 $traces = debug_backtrace();
-if (strtolower(basename($traces[0]['file'])) == 'breeze.php') {
+if (strtolower(basename($traces[0]['file'])) == 'bright.php') {
   br()->saveCallerScript($traces[1]['file']);
 } else {
   br()->saveCallerScript($traces[0]['file']);  

@@ -1,0 +1,68 @@
+{@../head.html}
+
+  <body>
+
+{@../navigation.html}
+
+    <div class="container-fluid fluid-box">
+
+      <div class="row">
+
+{@sidebar.html}        
+
+        <div class="span9">
+
+          <div class="row">
+            <div class="span12">
+              <h1>BrConfig <small>helper to work with configuration settings</small></h1>
+              <h3><code>extends</code> <a href="{/}BrSingleton.php">BrSingleton</a></h3>
+
+              <p>Helper to work with configuration settings. We suggest to put all your settings into set of config files in the root folder of your project. Good practice is to separate DB settings, project settings and Bright settings. This allow you to exclude DB configs from your version control if you are using it for deploying.</p>
+              <p>There is one global config object (singleton) accessible via <code>br()->config()</code>. You can still create own configuration storage if required by <code>$config = new BrConfig();</code></p>
+
+              <table class="table table-stripped table-bordered">
+                <thead>
+                  <tr>
+                    <th>Method/property</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="info">
+                    <td colspan="2">If you are using global config, please prepend below methods with <code>br()->config()-></code></td>
+                  </tr>
+                  <tr>
+                    <td>set(name, value)</td>
+                    <td>Set configration value. Value could be scalar or array.</td>
+                  </tr>
+                  <tr>
+                    <td>get()</td>
+                    <td>Get all configuration values</td>
+                  </tr>
+                  <tr>
+                    <td>get(name, defaultValue)</td>
+                    <td><p>Get configuration value or default value for this setting. Name could be array path. For example:</p>
+<pre>
+br()->config()->set('SomeStructuredSetting', array('name' => 'SomeName'));
+echo(br()->config()->get('SomeStructuredSetting.name'));
+</pre>
+<p>Output:</p>
+<pre>
+SomeName
+</pre>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <p>Again, if you are working with global config object you can use <code>br()->config(name, defaultValue)</code> instead of <code>br()->config()->get(name, defaultValue)</code> for simplicity.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </body>
+</html>

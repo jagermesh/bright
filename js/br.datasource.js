@@ -1,5 +1,5 @@
 // 
-// Breeze Framework : Version 0.0.5
+// Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
 // 

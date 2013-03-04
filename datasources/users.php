@@ -33,7 +33,7 @@ class BrDataSourceUsers extends BrDataSource {
         if ($mailTemplate = br()->config()->get('br/auth/mail/signup/template')) {
           $emailField = br()->config()->get('br/auth/db/email-field', 'email');
           if ($email = br($row, $emailField)) {
-            br()->importAtBasePath('breeze/3rdparty/phpmailer/class.phpmailer.php');
+            require_once(dirname(__DIR__) . '/3rdparty/phpmailer/class.phpmailer.php');
             $mail = new PHPMailer(true);
             try {
               $mail->AddReplyTo(br()->config()->get('br/auth/mail/from', 'noreply@localhost'));
@@ -342,7 +342,7 @@ class BrDataSourceUsers extends BrDataSource {
             $emailField = br()->config()->get('br/auth/db/email-field', 'email');
             if ($email = br($user, $emailField)) {
               if ($mailTemplate = br()->config()->get('br/auth/mail/forgot-password/template')) {
-                br()->importAtBasePath('breeze/3rdparty/phpmailer/class.phpmailer.php');
+                require_once(dirname(__DIR__) . '/3rdparty/phpmailer/class.phpmailer.php');
                 $mail = new PHPMailer(true);
                 try {
                   $mail->AddReplyTo(br()->config()->get('br/auth/mail/from', 'noreply@localhost'));

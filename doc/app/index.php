@@ -1,3 +1,3 @@
 <?php
 
-br()->response()->redirect('index.html');
+br()->response()->redirect('lib/index.html');

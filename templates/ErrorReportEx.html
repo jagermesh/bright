@@ -1,6 +1,6 @@
 <style>
 
-div.breeze-error-panel { 
+div.bright-error-panel { 
   font-family: Helvetica,Arial,sans-serif;
   font-weight: 300; 
   font-size: 12pt; 
@@ -18,24 +18,24 @@ div.breeze-error-panel {
   /*margin-left: 400px;*/
   /*border: #FC6 1px solid;*/
 }
-div.breeze-error-panel div.wrapper { 
+div.bright-error-panel div.wrapper { 
   padding: 30px;
 }
-div.breeze-error-panel div.breeze-error-section { 
+div.bright-error-panel div.bright-error-section { 
   padding: 5px;
 }
-div.breeze-error-panel div.error { 
+div.bright-error-panel div.error { 
   font-size: 18pt; 
   color: red; 
 }
-div.breeze-error-panel div.info { 
+div.bright-error-panel div.info { 
   padding-left: 20px;
 }
-div.breeze-error-panel div.title { 
+div.bright-error-panel div.title { 
   font-size: 14pt; 
   margin-bottom: 4px;
 }
-div.breeze-error-panel div.info-box { 
+div.bright-error-panel div.info-box { 
   font-size: 10pt; 
   padding: 10px; 
   background-color: #FEFEFE; 
@@ -44,21 +44,21 @@ div.breeze-error-panel div.info-box {
 
 </style>
 
-<div class="breeze-error-panel">
+<div class="bright-error-panel">
   <div class="wrapper">
-    <div class="breeze-error-section">
+    <div class="bright-error-section">
       <div class="error"><?php echo(htmlentities($errorMessage)); ?></div>
       <div class="info">in <?php echo($e->getFile()); ?>, line <?php echo($e->getLine());?></div>
     </div>
     <?php if ($errorInfo) { ?>
-    <div class="breeze-error-section">
+    <div class="bright-error-section">
       <div class="title">Additional info:</div>
       <div class="info-box">
       <?php echo(htmlentities($errorInfo)); ?>
       </div>
     </div>
     <?php } ?>
-    <div class="breeze-error-section">
+    <div class="bright-error-section">
       <div class="title">Call stack:</div>
       <div class="info-box">
       <?php foreach($e->getTrace() as $index => $statement) {?>

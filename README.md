@@ -3,7 +3,7 @@
 To start new app just put following line into index.php
 
 ```
-require_once('/breeze/Breeze.php');
+require_once('/bright/Bright.php');
 ```
 
 # Request br()->request()

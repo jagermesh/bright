@@ -1,0 +1,124 @@
+{@../head.html}
+
+  <body>
+
+{@../navigation.html}
+
+    <div class="container fluid-box">
+
+      <div class="row">
+        <div class="span12">
+          <h1>Bright development framework</h1>
+          <p>Bright was designed to be simple and flexible. Let's check it out.</p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="span12">
+          <h2>1. Quick start.</h2>
+          <p>The easiest way to create web site with front and and backend is following. I'm giving instructions for Mac platform with GIT as version control system.</p>
+          <p>First of al you need folder for your project. Please create directory:<p>
+<pre>
+mkdir mysite
+cd ./mysite
+</pre>
+          <p>create new git repository for your project and clone Bright repository:</p>
+<pre>
+git init
+git clone https://github.com/jagermesh/Bright5.git bright
+</pre>
+          <p>generate web site code:</p>
+<pre>
+cd ./bright/tools
+php -f init.php web
+</pre>
+          <p>That's it. You have your new web site ready. If you created your project under apache document root folder you must be able to open it via <a target="_blank" href="http://localhost/mysite/">http://localhost/mysite/</a></p>
+        </div>  
+      </div>
+
+      <div class="row">
+        <div class="span12">
+          <h2>2. Manual project creation.</h2>
+          <p>Same as before first of al you need folder for your project. Please create directory:<p>
+<pre>
+mkdir mysite
+cd ./mysite
+</pre>
+          <p>create new git repository for your project and clone Bright repository:</p>
+<pre>
+git init
+git clone https://github.com/jagermesh/Bright5.git bright
+</pre>
+          <p>Like many others frameworks Bright expect some predefeind folders structure of your project. But comparing to other player it's not that complex:</p>
+          <table class="table table-stripped table-bordered">
+            <thead>
+              <tr>
+                <th>File/Path</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>/.htaccess</td>
+                <td>
+<p>Typical "rewriter"</p>
+<pre>
+RewriteEngine On
+RewriteRule [.](gif|css|jpg|jpeg|js|swf|png|ico|avi|htc|flv|wmv|xml)$ - [L]
+RewriteRule .* index.php
+</pre>
+                </td>
+              </tr>
+              <tr>
+                <td>/index.php</td>
+                <td>
+<p>Just include Bright main file</p>
+<pre>
+require_once(__DIR__.'/bright/Bright.php');
+</pre>
+<p>Honestly saying - that's all we need. You can start creating your application right after this line.</p>
+<pre>
+require_once(__DIR__.'/bright/Bright.php');
+
+// here we can put our application code
+</pre>
+<p>But we suggest you to put your application code into /app folder. If this folder exists - Bright will look into following file:
+                </td>
+              </tr>
+              <tr>
+                <td>/app/index.php</td>
+                <td>
+<p>Default main application entry point</p>
+                </td>
+              </tr>
+              <tr>
+                <td>/config.php</td>
+                <td>
+<p>Configuration file. Optional, but almost every application have some settings.</p>
+<pre>
+br()->config()->set('someOption', 'someValue'));
+</pre>
+<p>More about config object check <a href="{/}php/BrConfig.html">here.</a></p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <p>That's all. We all set. If you put <pre>echo('Hello World');</pre> into your <code>/app/index.php</code> you will see your first Bright application.</p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="span12">
+          <h2>3. Using Bright in existing project.</h2>
+          <p>If you don't need Bright as framework but still want to use it's awesome features and helpers you can include it into your script:</p>
+<pre>
+require_once('/bright/Br.php');
+</pre>
+          <p>And use magic br() function to access Bright helpers.</p>
+        </div>
+      </div>
+
+    </div>
+
+  </body>
+</html>

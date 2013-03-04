@@ -1,11 +1,11 @@
 <?php
 
-require_once(dirname(__DIR__).'/Breeze.php');
+require_once(dirname(__DIR__).'/Bright.php');
 require_once(dirname(__DIR__).'/3rdparty/JShrink/Minifier.php');
 
 $scriptsPath = dirname(__DIR__) . '/js/';
-$resultScriptFile = dirname(__DIR__) . '/js/breeze.js';
-$packedScriptFile = dirname(__DIR__) . '/js/breeze.min.js';
+$resultScriptFile = dirname(__DIR__) . '/js/bright.js';
+$packedScriptFile = dirname(__DIR__) . '/js/bright.min.js';
 
 br()->log('Working in ' . $scriptsPath);
 
@@ -24,8 +24,8 @@ $result .= br()->fs()->loadFromFile($scriptsPath . 'br.editable.js');
 $result .= br()->fs()->loadFromFile($scriptsPath . 'br.ui.js');
 // $result .= br()->fs()->loadFromFile($scriptsPath . 'br.user.js');
 
-br()->log('Saving to ' . $resultScriptFile);
+br()->log('Saving to ' . $resultScriptFile1);
 br()->fs()->saveToFile($resultScriptFile, $result);
 
-br()->log('Saving to ' . $packedScriptFile);
+br()->log('Saving to ' . $packedScriptFile1);
 br()->fs()->saveToFile($packedScriptFile, JShrink\Minifier::minify($result));

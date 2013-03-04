@@ -1,5 +1,5 @@
 // 
-// Breeze Framework : Version 0.0.5
+// Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
 // 
@@ -159,7 +159,7 @@
         if (typeof window.Handlebars == 'undefined') {
           if (!noTemplateEngine) {
             noTemplateEngine = true;
-            this.showError('Template engine not found. Please link breeze/3rdparty/mustache.js or breeze/3rdparty/handlebars.js.');
+            this.showError('Template engine not found. Please link bright/3rdparty/mustache.js or bright/3rdparty/handlebars.js.');
           }
         } else {
           var t = Handlebars.compile(template);

@@ -1,6 +1,6 @@
 <?php
 
-require_once(dirname(__DIR__).'/Breeze.php');
+require_once(dirname(__DIR__).'/Bright.php');
 
 $templateName = $argv[1];
 
@@ -10,7 +10,7 @@ if (br()->fs()->fileExists(dirname(dirname(__DIR__)).'/index.php')) {
 
 } else {
 
-  $templateRelPath = '/breeze/tools/template-' . $templateName;
+  $templateRelPath = '/bright/tools/template-' . $templateName;
 
   br()->fs()->iteratePath(__DIR__.'/template-'.$templateName, function($file) use ($templateRelPath) {
 

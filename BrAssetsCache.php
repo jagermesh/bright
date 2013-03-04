@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Project:     Breeze framework
+ * Project:     Bright framework
  * Author:      Jager Mesh (jagermesh@gmail.com)
  *
  * @version 1.1.0.0
- * @package Breeze Core
+ * @package Bright Core
  */
 
 require_once(__DIR__.'/BrObject.php');
@@ -25,7 +25,7 @@ class BrAssetsCache extends BrObject {
     if (strpos(br()->request()->get('extra'), 'gritter') !== false) {
       $files[] = __DIR__.'/3rdparty/gritter/js/jquery.gritter.min.js';
     }
-    $files[] = __DIR__.'/js/breeze.js';
+    $files[] = __DIR__.'/js/bright.js';
 
     $lastModified = 0;
     foreach($files as $file) {

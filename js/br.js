@@ -1,5 +1,5 @@
 // 
-// Breeze Framework : Version 0.0.5
+// Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
 // 
@@ -12,7 +12,7 @@
   $('script').each(function(i, e) {
     var s = $(e).attr('src');
     if (s) {
-      var idx = s.indexOf('breeze/js/breeze.js');
+      var idx = s.indexOf('bright/js/bright.js');
       if (idx > 0) {
         baseUrl = s.substring(0, idx);
         return true;
@@ -212,7 +212,7 @@
 
   window.br.closeConfirmationMessage = 'Some changes have been made. Are you sure you want to close current window?';
 
-  function breezeConfirmClose() {
+  function brightConfirmClose() {
     return br.closeConfirmationMessage;
   }
 
@@ -221,7 +221,7 @@
       br.closeConfirmationMessage = message;
     }
 
-    window.onbeforeunload = breezeConfirmClose;
+    window.onbeforeunload = brightConfirmClose;
   }
 
   window.br.resetCloseConfirmation = function(message) {

@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Project:     Breeze framework
+ * Project:     Bright framework
  * Author:      Jager Mesh (jagermesh@gmail.com)
  *
  * @version 1.1.0.0
- * @package Breeze Core
+ * @package Bright Core
  */
 
 require_once(__DIR__.'/BrSingleton.php');
@@ -136,6 +136,19 @@ class Br extends BrSingleton {
     }
 
     return $log;
+
+  }
+
+  function config($name = null, $defaultValue = null) {
+
+    require_once(__DIR__.'/BrConfig.php');
+    $config = BrConfig::GetInstance();
+
+    if ($name) {
+      return $config->get($name, $defaultValue);
+    } else {
+      return $config;
+    }
 
   }
 

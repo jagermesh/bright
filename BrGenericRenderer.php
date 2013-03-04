@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Project:     Breeze framework
+ * Project:     Bright framework
  * Author:      Jager Mesh (jagermesh@gmail.com)
  *
  * @version 1.1.0.0
- * @package Breeze Core
+ * @package Bright Core
  */
 
 require_once(br()->atFrameworkPath('3rdparty/mustache/Mustache.php'));
@@ -62,7 +62,7 @@ class BrGenericRenderer extends BrObject {
     $m = new Mustache(null, null, null, array('delimiters' => br($this->params, 'delimiters', '[[ ]]')));
     $body = $m->render($body, $localVars);
 
-    // replace {br} with Breeze url
+    // replace {br} with Bright url
     $body = str_replace('{br}', br()->request()->frameworkUrl(), $body);
     $body = str_replace('[br]', br()->request()->frameworkUrl(), $body);
     // // replace {url} with current url

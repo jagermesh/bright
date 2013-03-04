@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Project:     Breeze framework
+ * Project:     Bright framework
  * Author:      Jager Mesh (jagermesh@gmail.com)
  *
  * @version 1.1.0.0
- * @package Breeze Core
+ * @package Bright Core
  */
 
 require_once(__DIR__.'/BrSingleton.php');
@@ -73,7 +73,7 @@ class BrRequest extends BrSingleton {
       $this->host = $host;
       $this->relativeUrl = $relativeUrl;
       $this->baseUrl = $baseUrl;
-      $this->frameworkUrl = $this->baseUrl() . 'breeze/';
+      $this->frameworkUrl = $this->baseUrl() . 'bright/';
       $this->scriptName = $scriptName;
 
       if ($this->isPUT()) {
