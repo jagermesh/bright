@@ -13,7 +13,7 @@ require_once(__DIR__.'/Br.php');
 
 // Installing custom error handler
 require_once(__DIR__.'/BrErrorHandler.php');
-BrErrorHandler::GetInstance();
+BrErrorHandler::getInstance();
 
 // Core PHP settings
 if (function_exists('set_magic_quotes_runtime')) {

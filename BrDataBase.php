@@ -17,7 +17,7 @@ class BrDataBaseException extends BrException {
 
 class BrDataBase extends BrObject {
 
-  public static function GetInstance($name = 'default') {
+  public static function getInstance($name = 'default') {
   
     static $instances = array();
 

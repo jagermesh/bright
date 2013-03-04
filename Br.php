@@ -35,7 +35,7 @@ function br($array = null, $name = null, $default = null) {
              : $default;
     }
   } else {
-    return Br::GetInstance();      
+    return Br::getInstance();      
   }
 
 }
@@ -105,19 +105,19 @@ class Br extends BrSingleton {
       require_once($classFile);
       // ARGH HOW UGLY!!!
       if (!count($arguments)) {
-        return $className::GetInstance();
+        return $className::getInstance();
       } else
       if (count($arguments) == 1) {
-        return $className::GetInstance($arguments[0]);
+        return $className::getInstance($arguments[0]);
       } else
       if (count($arguments) == 2) {
-        return $className::GetInstance($arguments[0], $arguments[1]);
+        return $className::getInstance($arguments[0], $arguments[1]);
       } else
       if (count($arguments) == 3) {
-        return $className::GetInstance($arguments[0], $arguments[1], $arguments[2]);
+        return $className::getInstance($arguments[0], $arguments[1], $arguments[2]);
       } else
       if (count($arguments) == 4) {
-        return $className::GetInstance($arguments[0], $arguments[1], $arguments[2], $arguments[3]);
+        return $className::getInstance($arguments[0], $arguments[1], $arguments[2], $arguments[3]);
       }
     } else {
       throw new Exception('Call to unknown method - ' . $name);
@@ -128,7 +128,7 @@ class Br extends BrSingleton {
   function log() {
 
     require_once(__DIR__.'/BrLog.php');
-    $log = BrLog::GetInstance();
+    $log = BrLog::getInstance();
 
     $args = func_get_args();
     foreach($args as $var) {
@@ -142,7 +142,7 @@ class Br extends BrSingleton {
   function config($name = null, $defaultValue = null) {
 
     require_once(__DIR__.'/BrConfig.php');
-    $config = BrConfig::GetInstance();
+    $config = BrConfig::getInstance();
 
     if ($name) {
       return $config->get($name, $defaultValue);

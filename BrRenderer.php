@@ -16,7 +16,7 @@ class BrRendererException extends BrException {
 
 class BrRenderer extends BrObject {
 
-  public static function GetInstance($name = null) {
+  public static function getInstance($name = null) {
   
     static $instances = array();
 

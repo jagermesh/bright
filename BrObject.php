@@ -92,7 +92,7 @@ class BrObject {
 
   }
 
-  public static function GetInstance() {
+  public static function getInstance() {
   
     static $instances;
     

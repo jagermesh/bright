@@ -15,7 +15,7 @@
           <div class="row">
             <div class="span12">
               <h1>BrRequest <small>helper to work with request</small></h1>
-              <h3><code>extends</code> <a href="{/}BrSingleton.php">BrSingleton</a></h3>
+              <h3><code>extends</code> <a href="{/}php/BrObject.html">BrObject</a></h3>
 
               <p>Helper to work with request.</p>
               <p>There is one global request object (singleton) accessible via <code>br()->request()</code>. You can still create own request obejct if needed by <code>$request = new BrRequest();</code></p>
@@ -87,27 +87,27 @@
 
               <p>Again, if you are working with global config object you can use <code>br()->config(name, defaultValue)</code> instead of <code>br()->config()->get(name, defaultValue)</code> for simplicity.</p>
 
-    <pre>
-    br()
-      ->request()
-        ->route('/index.html', function() {
-            // display homepage
-          })
-        ->route('/order.html?client=([0-9]+)', function($matches) {
-            // display order of client $matches[1]
-          })
-        ->routeGET('/pay.html', function() {
-            // display payment page
-          })
-        ->routePOST('/pay.html', function() {
-            // handle POST to pay.html
-          })
-        ->routeIndex(function() {
-            // handle request to root url of your site
-          })
-        ->routeDefault()
-    ;
-    </pre>
+<pre>
+br()
+  ->request()
+    ->route('/index.html', function() {
+        // display homepage
+      })
+    ->route('/order.html?client=([0-9]+)', function($matches) {
+        // display order of client $matches[1]
+      })
+    ->routeGET('/pay.html', function() {
+        // display payment page
+      })
+    ->routePOST('/pay.html', function() {
+        // handle POST to pay.html
+      })
+    ->routeIndex(function() {
+        // handle request to root url of your site
+      })
+    ->routeDefault()
+;
+</pre>
               <p>Once some of the routes processed - other ones will be skipped. Simple, isn't it?</p>
             </div>
           </div>
