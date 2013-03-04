@@ -6,14 +6,18 @@
 
 !function (window, undefined) {
 
+  window.br = window.br || {};
+
+  window.br.eventQueue = function(obj) {
+    return new BrEvents(obj);
+  }
+
   BrEvents = function(obj) {
 
     var _this = this;
 
     this.subscribers = {};
     this.obj = obj || this;
-
-    // var queue = br.storage.get('br.events');
 
     this.before = function(event, callback) {
       _this.subscribers[event] = _this.subscribers[event] || { on: [], before: [], after: [] };
@@ -88,12 +92,4 @@
 
   }
 
-  window.br = window.br || {};
-
-  window.br.eventQueue = function(obj) {
-    return new BrEvents(obj);
-  }
-
-  window.br.events = br.eventQueue();
-  
 }(window);

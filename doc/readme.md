@@ -6,36 +6,6 @@ To start new app just put following line into index.php
 require_once('/bright/Bright.php');
 ```
 
-# Request br()->request()
-
-```
-br()->request()->isGET();
-
-br()->request()->isSelfReferer();
-br()->request()->referer();
-br()->request()->isAt('/index.html');
-br()->request()->path();
-br()->request()->clientIP();
-br()->request()->url();
-br()->request()->relativeUrl();
-br()->request()->domain();
-br()->request()->isLocalHost();
-br()->request()->host();
-br()->request()->method();
-br()->request()->isMethod('GET');
-br()->request()->isGET();
-br()->request()->isPOST();
-br()->request()->isPUT();
-br()->request()->isDELETE();
-br()->request()->isRedirect();
-br()->request()->userAgent();
-br()->request()->isMobile();
-br()->request()->get('name');
-br()->request()->post('name');
-br()->request()->put('name');
-br()->request()->isFilesUploaded();
-```
-
 # Routing br()->request()->route*()
 
 ```

@@ -16,13 +16,8 @@
               <h1>Bright On Server</h1>
               <p>Bright consist of both - server and client side parts. Though it's not necessary to use both. In general your application can run with Ruby server side and Bright client side. Or Bright server side and Backbone client side.</p>
               <p>Let's check how Bright solve main needs of web application - Routing, Content rendering and Database access.</p>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="span12">
               <h2>Routing</h2>
-              <p>Routing explain in the <a href="{/}php/BrRequest.html">BrRequest</a> section. Here is just a small example:</p>
+              <p>Routing explained in the <a href="{/}php/BrRequest.html">BrRequest</a> section. Here is just a small example:</p>
 <pre>
 br()
   ->request()
@@ -38,11 +33,28 @@ br()
     ->routePOST('/pay.html', function() {
         // handle POST to pay.html
       })
+    ->route('POST', '/pay.html', function() {
+        // handle POST to pay.html - same as prior rule
+      })
     ->routeIndex(function() {
         // handle request to root url of your site
       })
     ->routeDefault()
 ;
+</pre>
+              <h2>Content rendering</h2>
+              <p>Rendering explained in the <a href="{/}php/BrRenderer.html">BrRenderer</a> section. Here is just a small example:</p>
+<pre>
+br()->renderer()->fetch('index.html');
+</pre>
+              <h2>Database access</h2>
+              <p>Database access explained in the <a href="{/}php/BrDatabase.html">BrDatabase</a> section. Here is just a small example:</p>
+<pre>
+$idx = 1;
+$rows = br()->db()->getRows('SELECT * FROM some_table');
+foreach($rows as $row) {
+  br()->db()->runQuery('UPDATE some_table SET field = ? WHERE id = ?', $idx++, $row['id']);
+}
 </pre>
             </div>
           </div>

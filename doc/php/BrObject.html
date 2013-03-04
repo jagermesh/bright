@@ -17,6 +17,15 @@
               <h1>BrObject <small>parent class for all Bright classes</small></h1>
 
               <p>This class is the parent for all Bright classes.</p>
+              <p>Bright object implement following:</p>
+              <p>
+                <ul><li>key/value storage</li>
+                    <li>singleton pattern</li>
+                    <li>events queue</li>
+                </ul>
+              </p>
+
+              <h3>Object members</h3>
 
               <table class="table table-stripped table-bordered">
                 <thead>
@@ -30,30 +39,64 @@
                     <td colspan="2">If you are using global config, please prepend below methods with <code>br()->config()-></code></td>
                   </tr>
                   <tr>
-                    <td>set(name, value)</td>
-                    <td>Set configration value. Value could be scalar or array.</td>
+                    <td>setAttr(name, value)</td>
+                    <td>Set value of object attribute.</td>
                   </tr>
                   <tr>
-                    <td>get()</td>
-                    <td>Get all configuration values</td>
+                    <td>getAttr(name, defaultValue, saveDefault)</td>
+                    <td>Get value of object attribute. If value is missing - get default value. If <code>saveDefault = true</code> and value is missing, default value will be stored as object attribute value.</td>
                   </tr>
                   <tr>
-                    <td>get(name, defaultValue)</td>
-                    <td><p>Get configuration value or default value for this setting. Name could be array path. For example:</p>
-<pre>
-br()->config()->set('SomeStructuredSetting', array('name' => 'SomeName'));
-echo(br()->config()->get('SomeStructuredSetting.name'));
-</pre>
-<p>Output:</p>
-<pre>
-SomeName
-</pre>
-                    </td>
+                    <td>clearAttr(name)</td>
+                    <td>Clear value of object attribute</td>
+                  </tr>
+                  <tr>
+                    <td>isAttrExists(name)</td>
+                    <td>Check is value for some object sttribute exists</td>
+                  </tr>
+                  <tr>
+                    <td>getAttributes()</td>
+                    <td>Get all object attributes</td>
+                  </tr>
+                  <tr>
+                    <td>setAttributes()</td>
+                    <td>Set all object attributes at once</td>
+                  </tr>
+                  <tr>
+                    <td>enable()</td>
+                    <td>Increase internal enable/disable counter. Set enabled flag to true if counter become 0</td>
+                  </tr>
+                  <tr>
+                    <td>disable()</td>
+                    <td>Set enabled flag to false and decrease internal enable/disable counter</td>
+                  </tr>
+                  <tr>
+                    <td>isEnabled()</td>
+                    <td>Check if enabled flag is true</td>
+                  </tr>
+                  <tr>
+                    <td>getInstance()</td>
+                    <td>Return singleton object for current class</td>
+                  </tr>
+                  <tr>
+                    <td>before(event, callback)</td>
+                    <td>Register callback which must be called before event triggered</td>
+                  </tr>
+                  <tr>
+                    <td>after(event, callback)</td>
+                    <td>Register callback which must be called after event triggered</td>
+                  </tr>
+                  <tr>
+                    <td>on(event, callback)</td>
+                    <td>Register callback which must be called when event triggered</td>
+                  </tr>
+                  <tr>
+                    <td>trigger(event, ...)</td>
+                    <td>Trigger event</td>
                   </tr>
                 </tbody>
               </table>
 
-              <p>Again, if you are working with global config object you can use <code>br()->config(name, defaultValue)</code> instead of <code>br()->config()->get(name, defaultValue)</code> for simplicity.</p>
             </div>
           </div>
 

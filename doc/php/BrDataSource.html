@@ -1,22 +1,24 @@
-{@head.html}
+{@../head.html}
 
   <body>
 
-{@navigation.html}
+{@../navigation.html}
 
-    <div class="container fluid-box">
-
-      <div class="row">
-        <div class="span12">
-          <h1>Bright Data Source</h1>
-          <p>One of the most important components of the Bright is it's Data Source.</p>
-        </div>
-      </div>
+    <div class="container-fluid fluid-box">
 
       <div class="row">
-        <div class="span12">
-          <h2>1. Getting started.</h2>
-          <p>Bright Data Source implemented by BrDataSource class and intended to help to work with data which is stored in database. Currently Bright supports MySQL and MongoDB databases. Typical Data Source definition looks like following:</p>
+
+{@sidebar.html}        
+
+        <div class="span9">
+
+          <div class="row">
+            <div class="span12">
+              <h1>Bright Data Source</h1>
+              <p>One of the most important components of the Bright is it's Data Source.</p>
+
+              <h2>1. Getting started.</h2>
+              <p>Bright Data Source implemented by BrDataSource class and intended to help to work with data which is stored in database. Currently Bright supports MySQL and MongoDB databases. Typical Data Source definition looks like following:</p>
 <pre>
 $tasks = br.dataSource('/api/tasks/');
 </pre>
@@ -29,6 +31,9 @@ $bookmarks = br.dataSource( '/api/bookmarks/'
                                  )
                           );
 </pre>
+            </div>
+          </div>
+          
         </div>
       </div>
 

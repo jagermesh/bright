@@ -13,22 +13,51 @@
         <div class="span9">
           <div class="row">
             <div class="span12">
-              <h1>Bright :: JavaScript</h1>
-              <p>Bright was designed to be simple and flexible. Let's check it out.</p>
-            </div>
-          </div>
+              <h1>Bright In Browser</h1>
+              <p>Bright consist of both - server and client side parts. Though it's not necessary to use both. In general your application can run with Ruby server side and Bright client side. Or Bright server side and Backbone client side.</p>
+              <h2>Typical HTML templates</h2>
+<pre>
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;title&gt;Site Title&lt;/title&gt;
+  &lt;meta name="description" content=""&gt;
+  &lt;meta name="author" content=""&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"&gt;
+  
+  &lt;!--[if lt IE 9]&gt;
+    &lt;script src="http://html5shim.googlecode.com/svn/trunk/html5.js"&gt;&lt;/script&gt;
+  &lt;![endif]--&gt;
 
-          <div class="row">
-            <div class="span12">
-              <h2>Fundamentals</h2>
-              <p>Bright have 3 key components:</p>
-              <ul>
-                <li>br() function</li>
-                <li>Data Source</li>
-                <li>REST Binder</li>
-              </ul>
-              <p>Let's start from br(). Idea of Breeeze is ability to use it anywhere - as separate application or as part of existing app. That's why all Bright components accessible via br() function.</p>
-              <p>List of functions you can check later in documentation, currently we will see how to use br()->request() to implement routing</p>
+  &lt;link href="/bright/css/bright.css" rel="stylesheet"&gt;
+  &lt;script src="/bright/3rdparty/jquery/jquery-1.7.1.min.js"&gt;&lt;/script&gt;    
+  &lt;script src="/bright/js/bright.js"&gt;&lt;/script&gt;
+&lt;/head&gt;  
+</pre>
+              <h2>Template with Twitter Bootstrap</h2>
+<pre>
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;title&gt;Site Title&lt;/title&gt;
+  &lt;meta name="description" content=""&gt;
+  &lt;meta name="author" content=""&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"&gt;
+  
+  &lt;!--[if lt IE 9]&gt;
+    &lt;script src="http://html5shim.googlecode.com/svn/trunk/html5.js"&gt;&lt;/script&gt;
+  &lt;![endif]--&gt;
+
+  &lt;link href="/bright/3rdparty/bootstrap/css/bootstrap.min.css" rel="stylesheet"&gt;
+  &lt;link href="/bright/3rdparty/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet"&gt;
+  &lt;link href="/bright/css/bright.css" rel="stylesheet"&gt;
+  &lt;script src="/bright/3rdparty/jquery/jquery-1.7.1.min.js"&gt;&lt;/script&gt;    
+  &lt;script src="/bright/3rdparty/bootstrap/js/bootstrap.min.js"&gt;&lt;/script&gt;
+  &lt;script src="/bright/js/bright.js"&gt;&lt;/script&gt;
+&lt;/head&gt;  
+</pre>
             </div>
           </div>
 

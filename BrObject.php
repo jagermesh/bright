@@ -133,6 +133,12 @@ class BrObject {
 
   }
 
+  public function trigger($event, &$context1 = null, &$context2 = null, &$context3 = null, &$context4 = null, &$context5 = null) {
+
+    return $this->callEvent($event, $context1, $context2, $context3, $context4, $context5);
+
+  }
+
   public function callEvent($event, &$context1 = null, &$context2 = null, &$context3 = null, &$context4 = null, &$context5 = null) {
 
     $result = null;
