@@ -603,8 +603,8 @@
           h = 500;
     }
     var left = (screen.width) ? (screen.width-w)/2 : 0;
-    var settings = 'height='+h+',width='+w+',top=20,left='+left+',menubar=0,scrollbars=1,resizable=1'
-    var win = window.open(url, '_blank', settings)
+    var settings = 'height='+h+',width='+w+',top=20,left='+left+',menubar=0,scrollbars=1,resizable=1';
+    var win = window.open(url, '_blank', settings);
     if (win) {
       win.focus();
     }
