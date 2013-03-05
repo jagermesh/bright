@@ -38,7 +38,9 @@ class BrDataSource extends BrGenericDataSource {
 
     $countOnly = (br($options, 'result') == 'count');
     $limit = $this->limit = br($options, 'limit');
-    $skip = $this->skip = br($options, 'skip');
+    $skip = br($options, 'skip');
+    if (!$skip || ($skip < 0)) { $skip = 0; }
+    $this->skip = $skip;
     $options['limit'] = $limit;
     $options['skip'] = $skip;
 
