@@ -125,7 +125,7 @@ class BrDataSource extends BrGenericDataSource {
             } else
             if (!$limit || (count($result) < $limit)) {
               if (!br($options, 'noCalcFields')) {
-                $this->callEvent('calcFields', $row, $transientData);
+                $this->callEvent('calcFields', $row, $transientData, $options);
               }
               $result[] = $row;
               $this->lastSelectAmount++;
@@ -146,7 +146,7 @@ class BrDataSource extends BrGenericDataSource {
         foreach($result as &$row) {
           $row['rowid'] = br()->db()->rowidValue($row, $this->rowidFieldName);
           if (!br($options, 'noCalcFields')) {
-            $this->callEvent('calcFields', $row, $transientData);
+            $this->callEvent('calcFields', $row, $transientData, $options);
           }
           $this->lastSelectAmount++;
         }
@@ -173,17 +173,17 @@ class BrDataSource extends BrGenericDataSource {
         $crow[$name] = $value;
       }
 
-      $this->callEvent('before:update', $crow, $transientData, $old);
+      $this->callEvent('before:update', $crow, $transientData, $old, $options);
 
       $this->validateUpdate($crow, $old);
 
-      $result = $this->callEvent('update', $crow, $transientData, $old);
+      $result = $this->callEvent('update', $crow, $transientData, $old, $options);
       if (is_null($result)) {
-        $table->save($crow);
+        $table->update($crow, $rowid, br($options, 'dataTypes'));
         $result = $crow;
-        $this->callEvent('after:update', $result, $transientData, $old);
+        $this->callEvent('after:update', $result, $transientData, $old, $options);
         $result['rowid'] = br()->db()->rowidValue($result);
-        $this->callEvent('calcFields', $result, $transientData);
+        $this->callEvent('calcFields', $result, $transientData, $options);
       }
 
       br()->db()->commitTransaction();
@@ -208,7 +208,7 @@ class BrDataSource extends BrGenericDataSource {
 
       $table = br()->db()->table($this->dbEntity());
 
-      $table->insert($row);
+      $table->insert($row, br($options, 'dataTypes'));
       $result = $row;      
       $this->callEvent('after:insert', $result, $transientData, $options);
       $result['rowid'] = br()->db()->rowidValue($result);
@@ -221,7 +221,7 @@ class BrDataSource extends BrGenericDataSource {
     
   }
 
-  function remove($rowid, &$transientData = array()) {
+  function remove($rowid, &$transientData = array(), $options = array()) {
 
     $table = br()->db()->table($this->dbEntity());
 
@@ -232,11 +232,11 @@ class BrDataSource extends BrGenericDataSource {
 
       br()->db()->startTransaction();
 
-      $this->callEvent('before:remove', $crow, $transientData);
+      $this->callEvent('before:remove', $crow, $transientData, $options);
 
       $this->validateRemove($crow);
 
-      $result = $this->callEvent('remove', $crow, $transientData);
+      $result = $this->callEvent('remove', $crow, $transientData, $options);
       if (is_null($result)) {
         try {
           $table->remove($filter);
@@ -249,9 +249,9 @@ class BrDataSource extends BrGenericDataSource {
           }
         }
         $result = $crow;
-        $this->callEvent('after:remove', $result, $transientData);
+        $this->callEvent('after:remove', $result, $transientData, $options);
         $result['rowid'] = br()->db()->rowidValue($result);
-        $this->callEvent('calcFields', $result, $transientData);
+        $this->callEvent('calcFields', $result, $transientData, $options);
       }
 
       br()->db()->commitTransaction();

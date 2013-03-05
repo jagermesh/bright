@@ -76,7 +76,7 @@ class BrDataObject extends BrObject {
     if ($doUpdate) {
       $this->doBeforeSave();
       $this->doBeforeUpdate();
-      br()->db()->update($this->tableName, $this->getData(), $this->keyValue());
+      br()->db()->table($this->tableName)->update($this->getData(), $this->keyValue());
       $this->doAfterUpdate();
       $this->doAfterSave();
     } else

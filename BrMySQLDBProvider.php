@@ -409,39 +409,76 @@ class BrMySQLProviderTable {
 
   }
 
-  function update($values, $filter) {
+  function update($values, $filter, $dataTypes = null) {
 
     $fields_str = '';
     $values_str = '';
 
     $sql = 'UPDATE '.$this->tableName.' SET ';
     foreach($values as $field => $value) {
-      $sql .= $field . ' = ?, ';
+      if ($field != $this->provider->rowidField()) {
+        $sql .= $field . ' = ?';
+        if (is_array($dataTypes)) {
+          if (br($dataTypes, $field) == 's') {
+            $sql .= '&';
+          }
+        }
+        $sql .= ', ';
+      }
     }
     $sql = rtrim($sql, ', ');  
-    $sql .= ' WHERE 1=1';
-    foreach($filter as $field => $value) {
-      $sql .= ' AND ' . $field . ' = ?';
+    $sql .= ' WHERE ';
+    $where = '';
+    if (is_array($filter)) {
+      foreach($filter as $field => $value) {
+        if ($where) {
+          $where .= ' AND ';
+        }
+        $where .= $field . ' = ?';
+      }
+    } else
+    if ($filter) {
+      $where .= $this->provider->rowidField() . ' = ?';
     }
 
-    $args = array();  
+    if ($where) {
+      $sql .= $where;
+    } else {
+      throw new Exception('Update without WHERE statements are not supported');
+    }
+
+    $args = array();
+
     foreach($values as $field => $value) {
-      array_push($args, $value);
-    }    
-    foreach($filter as $field => $value) {
-      array_push($args, $value);
-    }    
+      if ($field != $this->provider->rowidField()) {
+        array_push($args, $value);
+      }
+    }
+
+    if (is_array($filter)) {
+      foreach($filter as $field => $value) {
+        array_push($args, $value);
+      }    
+    } else
+    if ($filter) {
+      array_push($args, $filter);
+    }
 
     $this->provider->internalRunQuery($sql, $args);
+
+    return $values[$this->provider->rowidField()];
     
   }
 
-  function insert(&$values) {
+  function insert(&$values, $dataTypes = null) {
 
     $fields_str = '';
     $values_str = '';
 
     foreach($values as $field => $value) {
+      if (is_array($value)) {
+
+      }
       $fields_str .= ($fields_str?',':'').$field;
       $values_str .= ($values_str?',':'').'?';
     }  
