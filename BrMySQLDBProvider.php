@@ -466,7 +466,7 @@ class BrMySQLProviderTable {
 
     $this->provider->internalRunQuery($sql, $args);
 
-    return $values[$this->provider->rowidField()];
+    return true;//$filter;//$values[$this->provider->rowidField()];
     
   }
 
