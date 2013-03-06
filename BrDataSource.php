@@ -159,6 +159,8 @@ class BrDataSource extends BrGenericDataSource {
 
   function update($rowid, $row, &$transientData = array(), $options = array()) {
 
+    $options['operation'] = 'update';
+
     $table = br()->db()->table($this->dbEntity());
 
     $filter = array();
@@ -197,6 +199,8 @@ class BrDataSource extends BrGenericDataSource {
 
   function insert($row = array(), &$transientData = array(), $options = array()) {
 
+    $options['operation'] = 'insert';
+
     $this->callEvent('before:insert', $row, $transientData, $options);
 
     $this->validateInsert($row);
@@ -222,6 +226,8 @@ class BrDataSource extends BrGenericDataSource {
   }
 
   function remove($rowid, &$transientData = array(), $options = array()) {
+
+    $options['operation'] = 'remove';
 
     $table = br()->db()->table($this->dbEntity());
 
