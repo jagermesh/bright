@@ -10,6 +10,34 @@
 
 require_once(__DIR__.'/BrGenericDBProvider.php');
 
+class BrMongoProviderTable extends MongoCollection {
+
+  private $provider;
+
+  function __construct(&$provider, $tableName) {
+
+    $this->provider = $provider;
+
+    parent::__construct($this->provider->database, $tableName);
+
+  }
+
+  function update($values, $filter, $dataTypes = null) {
+
+    if (is_array($filter)) {
+
+    } else {
+      $rowid = $filter;
+      $filter = array();
+      $filter[br()->db()->rowidField()] = br()->db()->rowid($rowid);
+    }
+
+    parent::update($filter, $values);
+
+  }
+
+}
+
 class BrMongoDBProvider extends BrGenericDBProvider {
 
   function __construct($cfg) {
@@ -21,7 +49,7 @@ class BrMongoDBProvider extends BrGenericDBProvider {
 
   function table($name) {
 
-    return $this->database->{$name};
+    return new BrMongoProviderTable($this, $name);
 
   }
   
