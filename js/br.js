@@ -212,20 +212,34 @@
 
   window.br.closeConfirmationMessage = 'Some changes have been made. Are you sure you want to close current window?';
 
+  var closeConfirmationRequired = false;
+  var windowUnloading = false;
+  
   function brightConfirmClose() {
-    return br.closeConfirmationMessage;
+    if (closeConfirmationRequired) {
+      return br.closeConfirmationMessage;
+    } else {
+      windowUnloading = true;
+    }
   }
+
+  $(window).on('beforeunload', function(){
+    return brightConfirmClose();
+  });  
+
+  window.br.isUnloading = function() {
+    return windowUnloading;
+  }  
 
   window.br.confirmClose = function(message) {
     if (message) {
       br.closeConfirmationMessage = message;
     }
-
-    window.onbeforeunload = brightConfirmClose;
+    closeConfirmationRequired = true;
   }
 
   window.br.resetCloseConfirmation = function(message) {
-    window.onbeforeunload = null;
+    closeConfirmationRequired = false;
   }
 
   window.br.load = window.br.resourceLoader = function(j){function p(c,a){var g=j.createElement(c),b;for(b in a)a.hasOwnProperty(b)&&g.setAttribute(b,a[b]);return g}function m(c){var a=k[c],b,e;if(a)b=a.callback,e=a.urls,e.shift(),h=0,e.length||(b&&b.call(a.context,a.obj),k[c]=null,n[c].length&&i(c))}function u(){if(!b){var c=navigator.userAgent;b={async:j.createElement("script").async===!0};(b.webkit=/AppleWebKit\//.test(c))||(b.ie=/MSIE/.test(c))||(b.opera=/Opera/.test(c))||(b.gecko=/Gecko\//.test(c))||(b.unknown=!0)}}function i(c,

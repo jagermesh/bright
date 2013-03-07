@@ -94,9 +94,13 @@
                      returnInsert(response);
                    }
                  , error: function(jqXHR, textStatus, errorThrown) {
-                     _this.events.trigger('error', 'insert', jqXHR.responseText);
-                     _this.events.triggerAfter('insert', false, jqXHR.responseText, request);
-                     if (typeof callback == 'function') { callback.call(datasource, false, jqXHR.responseText, request); }
+                     if (br.isUnloading()) {
+
+                     } else {
+                       _this.events.trigger('error', 'insert', jqXHR.responseText);
+                       _this.events.triggerAfter('insert', false, jqXHR.responseText, request);
+                       if (typeof callback == 'function') { callback.call(datasource, false, jqXHR.responseText, request); }
+                     }
                    }
                  });
         }
@@ -143,9 +147,13 @@
                    returnUpdate(response);
                  }
                , error: function(jqXHR, textStatus, errorThrown) {
-                   _this.events.trigger('error', 'update', jqXHR.responseText);
-                   _this.events.triggerAfter('update', false, jqXHR.responseText, request);
-                   if (typeof callback == 'function') { callback.call(datasource, false, jqXHR.responseText, request); }
+                   if (br.isUnloading()) {
+
+                   } else {
+                     _this.events.trigger('error', 'update', jqXHR.responseText);
+                     _this.events.triggerAfter('update', false, jqXHR.responseText, request);
+                     if (typeof callback == 'function') { callback.call(datasource, false, jqXHR.responseText, request); }
+                   }
                  }
                });
       }
@@ -178,9 +186,13 @@
                    returnRemove(response);
                  }
                , error: function(jqXHR, textStatus, errorThrown) {
-                   _this.events.trigger('error', 'remove', jqXHR.responseText);
-                   _this.events.triggerAfter('remove', false, jqXHR.responseText, request);
-                   if (typeof callback == 'function') { callback.call(datasource, false, jqXHR.responseText, request); }
+                   if (br.isUnloading()) {
+
+                   } else {
+                     _this.events.trigger('error', 'remove', jqXHR.responseText);
+                     _this.events.triggerAfter('remove', false, jqXHR.responseText, request);
+                     if (typeof callback == 'function') { callback.call(datasource, false, jqXHR.responseText, request); }
+                   }
                  }
                });
       }
@@ -304,9 +316,13 @@
                                         }
                                       }
                                     , error: function(jqXHR, textStatus, errorThrown) {
-                                        datasource.ajaxRequest = null;
-                                        var error = (jqXHR.statusText == 'abort') ? '' : (jqXHR.responseText.length == 0 ? 'Server error' : jqXHR.responseText);
-                                        handleError(error, jqXHR);
+                                        if (br.isUnloading()) {
+
+                                        } else { 
+                                          datasource.ajaxRequest = null;
+                                          var error = (jqXHR.statusText == 'abort') ? '' : (jqXHR.responseText.length == 0 ? 'Server error' : jqXHR.responseText);
+                                          handleError(error, jqXHR);
+                                        }
                                       }
                                     });
         }
@@ -356,9 +372,13 @@
                  }
                }
              , error: function(jqXHR, textStatus, errorThrown) {
-                 _this.events.trigger('error', method, jqXHR.responseText);
-                 _this.events.triggerAfter('' + method, false, jqXHR.responseText, request);
-                 if (typeof callback == 'function') { callback.call(datasource, false, jqXHR.responseText, request); }
+                 if (br.isUnloading()) {
+
+                 } else {
+                   _this.events.trigger('error', method, jqXHR.responseText);
+                   _this.events.triggerAfter('' + method, false, jqXHR.responseText, request);
+                   if (typeof callback == 'function') { callback.call(datasource, false, jqXHR.responseText, request); }
+                 }
                }
              });
 
