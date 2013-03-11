@@ -65,6 +65,7 @@ class BrFTP extends BrObject {
   private $currentHostName;
   private $currentUserName;
   private $currentPassword;
+  private $currentPort;
   private $currentPassiveMode;
 
   function __construct() {
@@ -75,9 +76,10 @@ class BrFTP extends BrObject {
   
   function connect($hostName, $userName, $password, $port = 21, $passiveMode = true) {
 
-    $this->currentHostName = $hostName;
-    $this->currentUserName = $userName;
-    $this->currentPassword = $password;
+    $this->currentHostName    = $hostName;
+    $this->currentUserName    = $userName;
+    $this->currentPassword    = $password;
+    $this->currentPort        = $port;
     $this->currentPassiveMode = $passiveMode;
 
     // br()->log('Connecting to ' . $hostName . ' as ' . $userName);
@@ -112,7 +114,7 @@ class BrFTP extends BrObject {
 
     $dir = $this->currentDirectory;
     $this->disconnect();
-    $this->connect($this->currentHostName, $this->currentUserName, $this->currentPassword, $this->currentPassiveMode);
+    $this->connect($this->currentHostName, $this->currentUserName, $this->currentPassword, $this->currentPort, $this->currentPassiveMode);
     $this->changeDir($dir);
 
   }
