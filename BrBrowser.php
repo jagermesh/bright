@@ -22,20 +22,30 @@ class BrBrowser extends BrObject {
 
     $envelope = array();
     
-    foreach($data as $name => $value) {
-      if (is_array($value) || is_object($value)) {
-        $value = br()->toJSON($value);
+    if (is_array($data)) {
+      foreach($data as $name => $value) {
+        if (is_array($value) || is_object($value)) {
+          $value = br()->toJSON($value);
+        }
+        $envelope[$name] = $value;
       }
-      $envelope[$name] = $value;
     }
     
     if ($post) {
       curl_setopt($this->curl, CURLOPT_POST, 1);
-      curl_setopt($this->curl, CURLOPT_POSTFIELDS, $envelope);
+      if (is_array($data)) {
+        curl_setopt($this->curl, CURLOPT_POSTFIELDS, $envelope);
+      } else {
+        curl_setopt($this->curl, CURLOPT_POSTFIELDS, $data);
+      }
     } else {
-      $get = '';
-      foreach($envelope as $name => $value) {
-        $get .= $name.'='.urlencode($value).'&';
+      if (is_array($data)) {
+        $get = '';
+        foreach($envelope as $name => $value) {
+          $get .= $name.'='.urlencode($value).'&';
+        }
+      } else {
+        $get = $data;
       }
       $get = rtrim($get, '&');
       if (preg_match('/[?]/', $url)) {
