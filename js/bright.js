@@ -708,6 +708,37 @@
 
   window.br.events = br.eventQueue();
 
+  window.br.backToCaller = function(href, refresh) {
+
+    var inPopup = (self.opener != null);
+
+    // check opener
+    if (inPopup) {
+      // is opener still exists?
+      if (self.opener) {
+        if (!self.opener.closed) {
+          self.opener.focus();
+          try {
+            if (refresh) {
+              if (self.opener.document) {
+                self.opener.document.location.reload();
+              }
+            }
+          } catch (e) {
+
+          }
+        }
+      }
+      self.close();
+    } else
+    if (br.request.get('caller')) {
+      document.location = br.request.get('caller');
+    } else {
+      document.location = href;
+    }
+    
+  }
+
 }(jQuery, window);
 // 
 // Bright Framework : Version 0.0.5
