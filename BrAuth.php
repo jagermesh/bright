@@ -52,30 +52,37 @@ class BrAuth extends BrSingleton {
 
   function setLogin($login, $remember = false) {
 
-    $loginField = br()->config()->get('br/auth/db/login-field', 'login');
-    $passwordField = br()->config()->get('br/auth/db/password-field', 'password');
- 
-    if ($remember) {
-      $password = br($login, $passwordField);
-      $rowid = br()->db()->rowidValue($login);
-      $token = sha1(md5(sha1($password) . sha1($rowid)));
-      $cookie = array( 'login'    => br($login, $loginField)
-                     , 'token'    => $token
-                     );
-      setcookie( 'BrAuth'
-               , json_encode($cookie)
-               , time() + 60*60*24*30
-               , br()->request()->baseUrl()
-               , br()->request()->domain() == 'localhost' ? false : br()->request()->domain()
-               );
-    }
-    $loginObj = $login;
-    $loginObj['rowid'] = br()->db()->rowidValue($login);
-    if (!$loginObj['rowid']) {
-      throw new BrException('setLogin: login object must contain ID field');
-    }
+    if (is_array($login)) {
+      $loginField = br()->config()->get('br/auth/db/login-field', 'login');
+      $passwordField = br()->config()->get('br/auth/db/password-field', 'password');
+   
+      if ($remember) {
+        $password = br($login, $passwordField);
+        $rowid = br()->db()->rowidValue($login);
+        $token = sha1(md5(sha1($password) . sha1($rowid)));
+        $cookie = array( 'login'    => br($login, $loginField)
+                       , 'token'    => $token
+                       );
+        setcookie( 'BrAuth'
+                 , json_encode($cookie)
+                 , time() + 60*60*24*30
+                 , br()->request()->baseUrl()
+                 , br()->request()->domain() == 'localhost' ? false : br()->request()->domain()
+                 );
+      }
+      $loginObj = $login;
+      $loginObj['rowid'] = br()->db()->rowidValue($login);
+      if (!$loginObj['rowid']) {
+        throw new BrException('setLogin: login object must contain ID field');
+      }
 
-    return br()->session()->set('login', $login);
+      return br()->session()->set('login', $login);
+    } else
+    if ($login && $remember) {
+      $data = $this->getLogin();
+      $data[$login] = $remember;
+      return br()->session()->set('login', $data);
+    }
 
   }
 
