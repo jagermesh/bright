@@ -32,6 +32,23 @@
     return (typeof value == 'function');
   }
 
+  window.br.toString = function (value) {
+    if (br.isNull(value)) {
+      return '';
+    } else {
+      return value.toString();
+    }
+  }
+
+  window.br.split = function (value, delimiter) {
+    if (br.isEmpty(value)) {
+      return [];
+    } else 
+    if (br.isString(value)) {
+      return value.split(delimiter);
+    }
+  }
+
   window.br.isNull = function(value) {
     return (
              (value === undefined) || 
