@@ -53,11 +53,19 @@ class BrCache extends BrObject {
 
       } else {
 
-        $cacheConfig = array();
+        if (isset($instances[$name])) {
 
-        require_once(__DIR__.'/BrMemoryCacheProvider.php');
-        $instance = new BrMemoryCacheProvider($cacheConfig);        
+          $instance  = $instances[$name];
 
+        } else {
+
+          $cacheConfig = array();
+
+          require_once(__DIR__.'/BrMemoryCacheProvider.php');
+          $instance = new BrMemoryCacheProvider($cacheConfig);        
+
+        }
+        
       }
 
       $instances[$name] = $instance;

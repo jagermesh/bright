@@ -34,6 +34,12 @@ class BrGenericCacheProvider extends BrObject {
   
   }
   
+  public function exists($name) {
+  
+    return false;
+               
+  }
+  
   public function get($name, $default, $saveDefault = false) {
              
   }

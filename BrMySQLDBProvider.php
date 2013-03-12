@@ -726,11 +726,14 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     $sql = array_shift($args);
 
     $cacheTag = 'MySQLDBProvder:getCachedRow:' . md5($sql) . md5(serialize($args));
+
     $result = br()->cache()->get($cacheTag);
-    if (!$result) {
+
+    if (!$result && !br()->cache()->exists($cacheTag)) {
       $result = $this->selectNext($this->internalRunQuery($sql, $args));
       br()->cache()->set($cacheTag, $result);
     }
+
     return $result;
 
   }
@@ -758,8 +761,10 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     $sql = array_shift($args);
 
     $cacheTag = 'MySQLDBProvder:getCachedRows:' . md5($sql) . md5(serialize($args));
+
     $result = br()->cache()->get($cacheTag);
-    if (!$result) {
+
+    if (!$result && !br()->cache()->exists($cacheTag)) {
       $query = $this->internalRunQuery($sql, $args);
       $result = array();
       if (is_resource($query)) {
@@ -794,8 +799,10 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     $sql = array_shift($args);
 
     $cacheTag = 'MySQLDBProvder:getCachedValue:' . md5($sql) . md5(serialize($args));
+
     $result = br()->cache()->get($cacheTag);
-    if (!$result) {
+    
+    if (!$result && !br()->cache()->exists($cacheTag)) {
       $result = $this->selectNext($this->internalRunQuery($sql, $args));
       if (is_array($result)) {
         $result = array_shift($result);
@@ -828,8 +835,10 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     $sql = array_shift($args);
 
     $cacheTag = 'MySQLDBProvder:getCachedValues:' . $sql . serialize($args);
+
     $result = br()->cache()->get($cacheTag);
-    if (!$result) {
+    
+    if (!$result && !br()->cache()->exists($cacheTag)) {
       $query = $this->internalRunQuery($sql, $args);
       $result = array();
       if (is_resource($query)) {

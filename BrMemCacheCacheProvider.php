@@ -36,7 +36,7 @@ class BrMemCacheCacheProvider extends BrGenericCacheProvider {
     return class_exists('Memcache');
     
   }
-  
+      
   public function reset() {
   
     return $this->memCache->flush();
