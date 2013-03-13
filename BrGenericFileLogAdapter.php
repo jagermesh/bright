@@ -38,7 +38,8 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter {
     if ($this->filePointer && $this->isEnabled()) {
 
       $logMessage = '';
-      if ($message) {
+
+      if (strlen($message)) {
         if ($group) {
           $logMessage .= $group . ' ';
         }
