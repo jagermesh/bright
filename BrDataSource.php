@@ -46,6 +46,8 @@ class BrDataSource extends BrGenericDataSource {
 
     $transientData = array();
 
+    $options['fields'] = $fields;
+
     $this->callEvent('before:select', $filter, $transientData, $options);
 
     if (br($options, 'fields')) {
@@ -57,6 +59,7 @@ class BrDataSource extends BrGenericDataSource {
     $this->nextAdjancedRecord = null;
 
     $sortOrder = br($options, 'order', array());
+
     if (!$sortOrder) {
       $sortOrder = $order;
     }
