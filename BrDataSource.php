@@ -51,7 +51,7 @@ class BrDataSource extends BrGenericDataSource {
     $this->callEvent('before:select', $filter, $transientData, $options);
 
     if (br($options, 'fields')) {
-      $fields = array_merge($fields, $options['fields']);
+      $fields = array_unique(array_merge($fields, $options['fields']));
     }
 
     $this->lastSelectAmount = null;
