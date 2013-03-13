@@ -47,6 +47,7 @@ class BrDataSource extends BrGenericDataSource {
     $transientData = array();
 
     $options['fields'] = $fields;
+    $options['order']  = $order;
 
     $this->callEvent('before:select', $filter, $transientData, $options);
 

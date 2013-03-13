@@ -320,7 +320,9 @@ class BrRESTBinder extends BrObject {
             $verifiedOrder[$name] = $direction;
           }
         }
-        $dataSourceOptions['order'] = $verifiedOrder;
+        $dataSourceOrder = $verifiedOrder;
+      } else {
+        $dataSourceOrder = array();
       }
 
       if ($fields = br()->request()->get('__fields')) {
@@ -360,7 +362,7 @@ class BrRESTBinder extends BrObject {
               br()->response()->send404('Record not found');
             }
           } else {
-            $result = $dataSource->select($filter, $dataSourceFields, array(), $dataSourceOptions);
+            $result = $dataSource->select($filter, $dataSourceFields, $dataSourceOrder, $dataSourceOptions);
           }
         }
         if (br()->request()->get('crossdomain')) {

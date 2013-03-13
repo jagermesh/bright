@@ -227,7 +227,9 @@
       $(c('.sortable')).on('mouseout' , function() { $(this).css('cursor', 'auto'); });
 
       $(c('.sortable')).on('click', function() {
-        if ($(this).hasClass('icon-white')) {
+        var sorted = $(this).hasClass('icon-white');
+        $(c('.sortable')).removeClass('icon-white');
+        if (sorted) {
           $(this).removeClass('icon-white');
         } else {
           $(this).siblings('i').removeClass('icon-white'); 

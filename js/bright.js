@@ -1218,7 +1218,7 @@
       valueField = options.valueField || 'rowid';
       nameField = options.nameField || 'name';
       hideEmptyValue = options.hideEmptyValue || false;
-      emptyValue = options.emptyValue || '-- any --';
+      emptyValue = options.emptyValue || '--any--';
       selectedValue = options.selectedValue || null;
       selectedValueField = options.selectedValueField || null;
       $(selector).each(function() {
@@ -1576,7 +1576,7 @@
       nameField = options.nameField || 'name';
       hideEmptyValue = options.hideEmptyValue || false;
       levelField = options.levelField || null;
-      emptyValue = options.emptyValue || '-- any --';
+      emptyValue = options.emptyValue || '--any--';
       selectedValue = options.selectedValue || null;
       selectedValueField = options.selectedValueField || null;
       _this.selector.each(function() {
