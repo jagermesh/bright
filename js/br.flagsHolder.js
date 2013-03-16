@@ -4,13 +4,7 @@
 // jagermesh@gmail.com
 // 
 
-!function (window, undefined) {
-
-  window.br = window.br || {};
-
-  window.br.flagsHolder = function (permanent, name) {
-    return new BrFlagsHolder(permanent, name);
-  }
+(function (window) {
 
   function BrFlagsHolder(permanent, name) {
   
@@ -53,7 +47,8 @@
       if (permanent) {
         return br.storage.set(name, values);
       } else {
-        return (flags = values);
+        flags = values;
+        return flags;
       }
     }
 
@@ -67,4 +62,10 @@
 
   }
 
-}(window);
+  window.br = window.br || {};
+
+  window.br.flagsHolder = function (permanent, name) {
+    return new BrFlagsHolder(permanent, name);
+  }
+
+})(window);

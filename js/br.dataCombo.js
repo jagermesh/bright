@@ -4,17 +4,10 @@
 // jagermesh@gmail.com
 // 
 
-!function ($, window, undefined) {
-
-  window.br = window.br || {};
-
-  window.br.dataCombo = function (selector, dataSource, options) {
-    return new BrDataCombo(selector, dataSource, options);
-  }
+(function ($, window) {
 
   function BrDataCombo(selector, dataSource, options) {
 
-    var $ = jQuery;
     var _this = this;
 
     this.selector = $(selector);
@@ -30,7 +23,7 @@
     this.after  = function(event, callback) { this.events.after(event, callback); }
 
     this.val = function(value) {
-      if (value != undefined) {
+      if (value !== undefined) {
         $(this.selector).val(value); 
       }
       return $(this.selector).val();
@@ -54,13 +47,14 @@
         options.selectedValue = br.storage.get(storageTag(_this.selector));
       }
 
-      valueField = options.valueField || 'rowid';
-      nameField = options.nameField || 'name';
-      hideEmptyValue = options.hideEmptyValue || false;
-      levelField = options.levelField || null;
-      emptyValue = options.emptyValue || '--any--';
-      selectedValue = options.selectedValue || null;
-      selectedValueField = options.selectedValueField || null;
+      var valueField = options.valueField || 'rowid';
+      var nameField = options.nameField || 'name';
+      var hideEmptyValue = options.hideEmptyValue || false;
+      var levelField = options.levelField || null;
+      var emptyValue = options.emptyValue || '--any--';
+      var selectedValue = options.selectedValue || null;
+      var selectedValueField = options.selectedValueField || null;
+
       _this.selector.each(function() {
         var val = $(this).val();
         if (br.isEmpty(val)) {
@@ -79,9 +73,9 @@
             }
           }
           s = s + '<option value="' + data[i][valueField] + '">';
-          if (levelField != null) {
+          if (levelField !== null) {
             var margin = (br.toInt(data[i][levelField]) - 1) * 4;
-            for(k = 0; k < margin; k++) {
+            for(var k = 0; k < margin; k++) {
               s = s + '&nbsp;';
             }
           }        
@@ -152,6 +146,10 @@
 
   }
 
-}(jQuery, window);
+  window.br = window.br || {};
 
+  window.br.dataCombo = function (selector, dataSource, options) {
+    return new BrDataCombo(selector, dataSource, options);
+  }
 
+})(jQuery, window);

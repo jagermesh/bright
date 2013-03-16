@@ -4,7 +4,7 @@
 // jagermesh@gmail.com
 // 
 
-!function (window, undefined) {
+(function (window) {
 
   window.br = window.br || {};
 
@@ -25,7 +25,7 @@
     };
     this.anchor = function(defaultValue) {
       var value = document.location.hash.replace('#', '');
-      if (value.length == 0) {
+      if (value.length === 0) {
         value = defaultValue;
       }
       return value;
@@ -44,4 +44,4 @@
 
   }
 
-}(window);
+})(window);

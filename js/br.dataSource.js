@@ -4,23 +4,13 @@
 // jagermesh@gmail.com
 // 
 
-!function ($, window, undefined) {
-
-  window.br = window.br || {};
-
-  window.br.dataSource = function (restServiceUrl, options) {
-    return new BrDataSource(restServiceUrl, options);
-  }
+(function ($, window) {
 
   function BrDataSource(restServiceUrl, options) {
 
-    var $ = jQuery;
-    var datasource = this;
     var _this = this;
-    var ajaxRequest = null;
 
-    // this.cb = {};
-    this.refreshTimeout;
+    this.ajaxRequest = null;
     this.name = '-';
     this.options = options || {};
     this.options.restServiceUrl = restServiceUrl;
@@ -41,7 +31,36 @@
 
     this.insert = function(item, callback) {
 
-      request = item;
+      function returnInsert(data) {
+
+        var result;
+
+        if (_this.options.crossdomain) {
+          if (typeof data == 'string') {
+            result = false;
+            _this.events.trigger('error', 'insert', data.length > 0 ? data : 'Empty response. Was expecting new created records with ROWID.');
+          } else {
+            result = true;
+            _this.events.trigger('insert', data);
+          }
+        } else {
+          if (data) {
+            result = true;
+            _this.events.trigger('insert', data);
+          } else {
+            result = false;
+            _this.events.trigger('error', 'insert', 'Empty response. Was expecting new created records with ROWID.');
+          }
+        }
+        _this.events.triggerAfter('insert', result, data, request);
+        if (result) {
+          _this.events.trigger('change', 'insert', data);
+        }
+        if (typeof callback == 'function') { callback.call(_this, result, data, request); }
+
+      }
+
+      var request = item;
 
       try {
 
@@ -51,37 +70,8 @@
           request.crossdomain = 'put';
         }
 
-        function returnInsert(data) {
-
-          var result;
-
-          if (datasource.options.crossdomain) {
-            if (typeof data == 'string') {
-              result = false;
-              _this.events.trigger('error', 'insert', data.length > 0 ? data : 'Empty response. Was expecting new created records with ROWID.');
-            } else {
-              result = true;
-              _this.events.trigger('insert', data);
-            }
-          } else {
-            if (data) {
-              result = true;
-              _this.events.trigger('insert', data);
-            } else {
-              result = false;
-              _this.events.trigger('error', 'insert', 'Empty response. Was expecting new created records with ROWID.');
-            }
-          }
-          _this.events.triggerAfter('insert', result, data, request);
-          if (result) {
-            _this.events.trigger('change', 'insert', data);
-          }
-          if (typeof callback == 'function') { callback.call(datasource, result, data, request); }
-
-        }
-
-        if (datasource.options.offlineMode) {
-          datasource.db.insert(request);
+        if (_this.options.offlineMode) {
+          _this.db.insert(request);
           request.rowid = request.___id;
           request.syncState = 'n';
           returnInsert(request);
@@ -99,7 +89,7 @@
                      } else {
                        _this.events.trigger('error', 'insert', jqXHR.responseText);
                        _this.events.triggerAfter('insert', false, jqXHR.responseText, request);
-                       if (typeof callback == 'function') { callback.call(datasource, false, jqXHR.responseText, request); }
+                       if (typeof callback == 'function') { callback.call(_this, false, jqXHR.responseText, request); }
                      }
                    }
                  });
@@ -108,22 +98,18 @@
       } catch (error) {
         _this.events.trigger('error', 'insert', error);
         _this.events.triggerAfter('insert', false, error, request);
-        if (typeof callback == 'function') { callback.call(datasource, false, error, request); }
+        if (typeof callback == 'function') { callback.call(_this, false, error, request); }
       }
 
     }
 
     this.update = function(rowid, item, callback) {
 
-      request = item;
-
-      _this.events.triggerBefore('update', rowid, request);
-
       function returnUpdate(data) {
         var operation = 'update';
         if (data) {
           var res = _this.events.trigger('removeAfterUpdate', item, data);
-          if ((res != null) && res) {
+          if ((res !== null) && res) {
             operation = 'remove';
             _this.events.trigger('remove', rowid);
           } else {
@@ -132,11 +118,15 @@
         }
         _this.events.triggerAfter('' + operation, true, data, request);
         _this.events.trigger('change', operation, data);
-        if (typeof callback == 'function') { callback.call(datasource, true, data, request); }
+        if (typeof callback == 'function') { callback.call(_this, true, data, request); }
       }
 
-      if (datasource.options.offlineMode) {
-        datasource.db({rowid: rowid}).update(request);
+      var request = item;
+
+      _this.events.triggerBefore('update', rowid, request);
+
+      if (_this.options.offlineMode) {
+        _this.db({rowid: rowid}).update(request);
         returnUpdate(request);
       } else {
         $.ajax({ type: 'POST'
@@ -152,7 +142,7 @@
                    } else {
                      _this.events.trigger('error', 'update', jqXHR.responseText);
                      _this.events.triggerAfter('update', false, jqXHR.responseText, request);
-                     if (typeof callback == 'function') { callback.call(datasource, false, jqXHR.responseText, request); }
+                     if (typeof callback == 'function') { callback.call(_this, false, jqXHR.responseText, request); }
                    }
                  }
                });
@@ -162,20 +152,20 @@
 
     this.remove = function(rowid, callback) {
 
-      request = {};
-
-      _this.events.triggerBefore('remove', null, rowid);
-
       function returnRemove(data) {
         _this.events.trigger('remove', rowid);
         _this.events.triggerAfter('remove', true, data, request);
         _this.events.trigger('change', 'remove', data);
-        if (typeof callback == 'function') { callback.call(datasource, true, data, request); }
+        if (typeof callback == 'function') { callback.call(_this, true, data, request); }
       }
 
-      if (datasource.options.offlineMode) {
-        var data = datasource.db({rowid: rowid}).get();
-        datasource.db({rowid: rowid}).remove();
+      var request = {};
+
+      _this.events.triggerBefore('remove', null, rowid);
+
+      if (_this.options.offlineMode) {
+        var data = _this.db({rowid: rowid}).get();
+        _this.db({rowid: rowid}).remove();
         returnRemove(data);
       } else {
         $.ajax({ type: 'DELETE'
@@ -191,7 +181,7 @@
                    } else {
                      _this.events.trigger('error', 'remove', jqXHR.responseText);
                      _this.events.triggerAfter('remove', false, jqXHR.responseText, request);
-                     if (typeof callback == 'function') { callback.call(datasource, false, jqXHR.responseText, request); }
+                     if (typeof callback == 'function') { callback.call(_this, false, jqXHR.responseText, request); }
                    }
                  }
                });
@@ -226,6 +216,22 @@
     }
 
     this.select = function(filter, callback, options) {
+
+      function handleSuccess(data) {
+        if (!disableEvents) {
+          _this.events.trigger('select', data);
+          _this.events.triggerAfter('select', true, data, request);
+        }
+        if (typeof callback == 'function') { callback.call(_this, true, data, request); }
+      }
+
+      function handleError(error, response) {
+        if (!disableEvents) {
+          _this.events.trigger('error', 'select', error);
+          _this.events.triggerAfter('select', false, error, request);
+        }
+        if (typeof callback == 'function') { callback.call(_this, false, error, request); }
+      }
 
       var disableEvents = options && options.disableEvents;
 
@@ -284,31 +290,15 @@
           request.__order = options.order;
         }
 
-        function handleSuccess(data) {
-          if (!disableEvents) {
-            _this.events.trigger('select', data);
-            _this.events.triggerAfter('select', true, data, request);
-          }
-          if (typeof callback == 'function') { callback.call(datasource, true, data, request); }
-        }
-
-        function handleError(error, response) {
-          if (!disableEvents) {
-            _this.events.trigger('error', 'select', error);
-            _this.events.triggerAfter('select', false, error, request);
-          }
-          if (typeof callback == 'function') { callback.call(datasource, false, error, request); }
-        }
-
-        if (datasource.options.offlineMode) {
-          handleSuccess(datasource.db(request).get());
+        if (_this.options.offlineMode) {
+          handleSuccess(_this.db(request).get());
         } else {
           this.ajaxRequest = $.ajax({ type: 'GET'
                                     , data: request
                                     , dataType: 'json'
                                     , url: url + (this.options.authToken ? '?token=' + this.options.authToken : '')
                                     , success: function(response) {
-                                        datasource.ajaxRequest = null;
+                                        _this.ajaxRequest = null;
                                         if (response) {
                                           handleSuccess(response);
                                         } else {
@@ -319,8 +309,8 @@
                                         if (br.isUnloading()) {
 
                                         } else { 
-                                          datasource.ajaxRequest = null;
-                                          var error = (jqXHR.statusText == 'abort') ? '' : (jqXHR.responseText.length == 0 ? 'Server error' : jqXHR.responseText);
+                                          _this.ajaxRequest = null;
+                                          var error = (jqXHR.statusText == 'abort') ? '' : (jqXHR.responseText.length === 0 ? 'Server error' : jqXHR.responseText);
                                           handleError(error, jqXHR);
                                         }
                                       }
@@ -331,20 +321,22 @@
       }
 
     }
+
     this.requestInProgress = function() {
-      return (this.ajaxRequest != null);
+      return (this.ajaxRequest !== null);
     }
+
     this.abortRequest = function() {
-      if (this.ajaxRequest != null) {
+      if (this.ajaxRequest !== null) {
         this.ajaxRequest.abort();
       }
     }
+
     this.invoke = function(method, params, callback) {
 
-      var datasource = this;
+      var request = { };
 
       if (typeof params == 'function') {
-        request = { };
         callback = params;
       } else {
         request = params;
@@ -361,14 +353,14 @@
              , dataType: this.options.crossdomain ? 'jsonp' : 'json'
              , url: this.options.restServiceUrl + method + (this.options.authToken ? '?token=' + this.options.authToken : '')
              , success: function(response) {
-                 if (datasource.options.crossdomain && (typeof response == 'string')) {
+                 if (_this.options.crossdomain && (typeof response == 'string')) {
                    _this.events.trigger('error', method, response);
                    _this.events.triggerAfter('' + method, false, response, request);
-                   if (typeof callback == 'function') { callback.call(datasource, false, response, request); }
+                   if (typeof callback == 'function') { callback.call(_this, false, response, request); }
                  } else {
                    _this.events.trigger(method, response, params);
                    _this.events.triggerAfter('' + method, true, response, request);
-                   if (typeof callback == 'function') { callback.call(datasource, true, response, request); }
+                   if (typeof callback == 'function') { callback.call(_this, true, response, request); }
                  }
                }
              , error: function(jqXHR, textStatus, errorThrown) {
@@ -377,7 +369,7 @@
                  } else {
                    _this.events.trigger('error', method, jqXHR.responseText);
                    _this.events.triggerAfter('' + method, false, jqXHR.responseText, request);
-                   if (typeof callback == 'function') { callback.call(datasource, false, jqXHR.responseText, request); }
+                   if (typeof callback == 'function') { callback.call(_this, false, jqXHR.responseText, request); }
                  }
                }
              });
@@ -385,13 +377,16 @@
     }
 
     this.fillCombo = function(selector, data, options) {
+
       options = options || { };
-      valueField = options.valueField || 'rowid';
-      nameField = options.nameField || 'name';
-      hideEmptyValue = options.hideEmptyValue || false;
-      emptyValue = options.emptyValue || '--any--';
-      selectedValue = options.selectedValue || null;
-      selectedValueField = options.selectedValueField || null;
+
+      var valueField = options.valueField || 'rowid';
+      var nameField = options.nameField || 'name';
+      var hideEmptyValue = options.hideEmptyValue || false;
+      var emptyValue = options.emptyValue || '--any--';
+      var selectedValue = options.selectedValue || null;
+      var selectedValueField = options.selectedValueField || null;
+
       $(selector).each(function() {
         var val = $(this).val();
         if (br.isEmpty(val)) {
@@ -418,21 +413,32 @@
         if (!br.isEmpty(val)) {
           $(this).find('option[value=' + val +']').attr('selected', 'selected');
         }
-      })
+      });
+
     }
 
+    var refreshTimeout;
+
     this.deferredSelect = function(filter, callback, msec) {
+
+      msec = msec || this.options.refreshDelay;
       var savedFilter = {}
       for(var i in filter) {
         savedFilter[i] = filter[i];
       }
-      msec = msec || this.options.refreshDelay;
-      window.clearTimeout(this.refreshTimeout);
-      this.refreshTimeout = window.setTimeout(function() {
-        datasource.select(savedFilter, callback);
+      window.clearTimeout(refreshTimeout);
+      refreshTimeout = window.setTimeout(function() {
+        _this.select(savedFilter, callback);
       }, msec);
+
     }
 
   }
 
-}(jQuery, window);
+  window.br = window.br || {};
+
+  window.br.dataSource = function (restServiceUrl, options) {
+    return new BrDataSource(restServiceUrl, options);
+  }
+
+})(jQuery, window);

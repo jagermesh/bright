@@ -1,10 +1,4 @@
-!function ($, window, undefined) {
-
-  window.br = window.br || {};
-
-  window.br.googleMap = function (selector, options) {
-    return new BrGoogleMap(selector, options);
-  }
+(function ($, window, undefined) {
 
   function BrGoogleMap(selector, options) {
 
@@ -68,7 +62,7 @@
       }
     }
     this.isWeatherVisible = function() {
-      return (this.weatherLayer != null);
+      return (this.weatherLayer !== null);
     }
     this.showWeather = function(show) {
       if (show && !this.weatherVisible()) {
@@ -83,7 +77,7 @@
       }
     }
     this.clearMarkers = function() {
-      for (i = 0; i < this.markers.length; i++) {
+      for (var i = 0; i < this.markers.length; i++) {
         this.markers[i].setMap(null);
       }
       this.markers = [];      
@@ -140,7 +134,7 @@
     }
     this.pan = function() {
       var bounds = { };
-      for (i = 0; i < this.markers.length; i++) {
+      for (var i = 0; i < this.markers.length; i++) {
         var lat = this.markers[i].position.lat();
         var lng = this.markers[i].position.lng();
         if (!bounds.latMin) {
@@ -182,7 +176,7 @@
       _this.geocoder.geocode({'address': address}, function(results, status) {
         if (status == google.maps.GeocoderStatus.OK) {
           var points = [];
-          for (i = 0; i < results.length; i++) {
+          for (var i = 0; i < results.length; i++) {
             points.push({ lat: results[i].geometry.location.lat()
                         , lng: results[i].geometry.location.lng()
                         , name: results[i].formatted_address
@@ -203,20 +197,20 @@
       var origin = null;
       var destination = null;
       var waypoints = []
-      var markers = markers || this.markers;
-      for (i = 0; i < markers.length; i++) {
+      markers = markers || this.markers;
+      for (var i = 0; i < markers.length; i++) {
         var latLng = new google.maps.LatLng(markers[i].position.lat(), markers[i].position.lng());
-        if (origin == null) {
+        if (origin === null) {
           origin = latLng;
         } else 
-        if (destination == null) {
+        if (destination === null) {
           destination = latLng;
         } else {
           waypoints.push({ location: destination, stopover: true });
           destination = latLng;
         }          
       }
-      if ((origin != null) && (destination != null)) {
+      if ((origin !== null) && (destination !== null)) {
         var request = {
             origin: origin
           , destination: destination
@@ -228,9 +222,10 @@
         };
         this.directionsService.route(request, function(response, status) {
           if (status == google.maps.DirectionsStatus.OK) {
-            var distance = duration = 0;
-            for (i = 0; i < Math.min(1, response.routes.length); i++) {
-              for (k = 0; k < response.routes[i].legs.length; k++) {
+            var distance = 0;
+            var duration = 0;
+            for (var i = 0; i < Math.min(1, response.routes.length); i++) {
+              for (var k = 0; k < response.routes[i].legs.length; k++) {
                 distance += response.routes[i].legs[k].distance.value;
                 duration += response.routes[i].legs[k].duration.value;
               }
@@ -256,4 +251,10 @@
 
   }
 
-}(jQuery, window);
+  window.br = window.br || {};
+
+  window.br.googleMap = function (selector, options) {
+    return new BrGoogleMap(selector, options);
+  }
+
+})(jQuery, window);

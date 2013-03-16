@@ -4,15 +4,9 @@
 // jagermesh@gmail.com
 // 
 
-!function (window, undefined) {
+(function (window) {
 
-  window.br = window.br || {};
-
-  window.br.eventQueue = function(obj) {
-    return new BrEvents(obj);
-  }
-
-  BrEvents = function(obj) {
+  function BrEvents(obj) {
 
     var _this = this;
 
@@ -37,22 +31,23 @@
     function trigger(event, pos, args) {
 
       var result = null;
-
       var eventSubscribers = _this.subscribers[event];
+      var i;
+
       if (eventSubscribers) {
         switch(pos) {
           case 'before':
-            for (var i in eventSubscribers.before) {
+            for (i in eventSubscribers.before) {
               eventSubscribers.before[i].apply(_this.obj, args);
             }
             break;
           case 'on':
-            for (var i in eventSubscribers.on) {
+            for (i in eventSubscribers.on) {
               result = eventSubscribers.on[i].apply(_this.obj, args);
             }
             break;
           case 'after':
-            for (var i in eventSubscribers.after) {
+            for (i in eventSubscribers.after) {
               eventSubscribers.after[i].apply(_this.obj, args);
             }
             break;
@@ -92,4 +87,10 @@
 
   }
 
-}(window);
+  window.br = window.br || {};
+
+  window.br.eventQueue = function(obj) {
+    return new BrEvents(obj);
+  }
+
+})(window);

@@ -4,20 +4,12 @@
 // jagermesh@gmail.com
 // 
 
-!function ($, window, undefined) {
-
-  window.br = window.br || {};
-
-  window.br.dataGrid = function (selector, rowTemplate, dataSource, options) {
-    return new BrDataGrid(selector, rowTemplate, dataSource, options);
-  }
+(function ($, window) {
 
   function BrDataGrid(selector, rowTemplate, dataSource, options) {
 
-    var $ = jQuery;
     var _this = this;
 
-    // this.cb = {};
     this.selector = $(selector);
     this.options = options || {};
     this.options.templates = this.options.templates || {};
@@ -52,19 +44,17 @@
     });
 
     this.renderHeader = function(data) {
-      var data = _this.events.trigger('renderHeader', data) || data;
-      var result = $(br.fetch(_this.options.templates.header, data));
-      return result;
+      data = _this.events.trigger('renderHeader', data) || data;
+      return $(br.fetch(_this.options.templates.header, data));
     }
 
     this.renderFooter = function(data) {
-      var data = _this.events.trigger('renderFooter', data) || data;
-      var result = $(br.fetch(_this.options.templates.footer, data));
-      return result;
+      data = _this.events.trigger('renderFooter', data) || data;
+      return $(br.fetch(_this.options.templates.footer, data));
     }
 
     this.renderRow = function(data) {
-      var data = _this.events.trigger('renderRow', data) || data;
+      data = _this.events.trigger('renderRow', data) || data;
       var result = $(br.fetch(_this.options.templates.row, data));
       result.data('data-row', data);
       return result;
@@ -91,7 +81,7 @@
     this.init = function() {
 
       function isGridEmpty() {
-        return (_this.selector.find('[data-rowid]').length == 0);
+        return (_this.selector.find('[data-rowid]').length === 0);
       }
 
       function checkForEmptyGrid() {
@@ -187,6 +177,7 @@
 
     this.render = function(data) {
       if (data) {
+        var i;
         if (_this.options.freeGrid) {
           if (data.headers) {
             for (i in data.headers) {
@@ -206,7 +197,7 @@
           $(_this.options.headersSelector).html('');
           $(_this.options.footersSelector).html('');
           if (data.rows) {
-            if (data.rows.length == 0) {
+            if (data.rows.length === 0) {
               _this.selector.html(this.options.templates.noData);
             } else {
               for (i in data.rows) {
@@ -248,4 +239,10 @@
 
   }
 
-}(jQuery, window);
+  window.br = window.br || {};
+
+  window.br.dataGrid = function (selector, rowTemplate, dataSource, options) {
+    return new BrDataGrid(selector, rowTemplate, dataSource, options);
+  }
+
+})(jQuery, window);

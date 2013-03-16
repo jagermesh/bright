@@ -4,32 +4,56 @@
 // jagermesh@gmail.com
 // 
 
-!function (window, undefined) {
+(function (window) {
 
   window.br = window.br || {};
 
   window.br.isNumber = function(value) {
-    return (!isNaN(parseFloat(value)) && isFinite(value));
+    return (
+             !isNaN(parseFloat(value)) && 
+             isFinite(value)
+           );
+  }
+
+  window.br.isNull = function(value) {
+    return (
+             (value === undefined) || 
+             (value === null) 
+           );
+  }
+
+  window.br.isEmpty = function(value) {
+    return ( 
+             br.isNull(value) || 
+             ((typeof value.length != 'undefined') && (value.length === 0)) // Array, String
+           );
   }
 
   window.br.isArray = function (value) {
-    return (!br.isNull(value) && (Object.prototype.toString.call(value) === '[object Array]'));
+    return (
+             !br.isNull(value) && 
+             (Object.prototype.toString.call(value) === '[object Array]')
+           );
   }
 
   window.br.isObject = function (value) {
-    return (!br.isEmpty(value) && (typeof value == 'object'));
+    return (!br.isEmpty(value) && (typeof value === 'object'));
   }
 
   window.br.isBoolean = function (value) {
-    return (typeof value == 'boolean');
+    return (typeof value === 'boolean');
   }
 
   window.br.isString = function (value) {
-    return (typeof value == 'string');
+    return (typeof value === 'string');
+  }
+
+  window.br.isNumber = function (value) {
+    return (typeof value === 'number');
   }
 
   window.br.isFunction = function (value) {
-    return (typeof value == 'function');
+    return (typeof value === 'function');
   }
 
   window.br.toString = function (value) {
@@ -49,18 +73,26 @@
     }
   }
 
-  window.br.isNull = function(value) {
-    return (
-             (value === undefined) || 
-             (value === null) 
-           );
-  }
+  window.br.toInt = function(value) {
+    if (br.isString(value)) {
+      if (value.length > 0) {
+        return parseInt(value, 10);
+      }
+    } else
+    if (br.isNumber(value)) {
+      return value;
+    }
+  };
 
-  window.br.isEmpty = function(value) {
-    return ( 
-             br.isNull(value) || 
-             ((typeof value.length != 'undefined') && (value.length == 0)) // Array, String
-           );
-  }
+  window.br.toReal = function(value) {
+    if (br.isString(value)) {
+      if (value.length > 0) {
+        return parseFloat(value);
+      }
+    } else
+    if (br.isNumber(value)) {
+      return value;
+    }
+  };  
 
-}(window);
+})(window);

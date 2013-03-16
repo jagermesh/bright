@@ -4,9 +4,7 @@
 // jagermesh@gmail.com
 // 
 
-!function (window, undefined) {
-
-  window.br = window.br || {};
+(function (window) {
 
   var _helper = {
 
@@ -24,26 +22,27 @@
 
   }
 
-  var storage = function(storage) {
+  function BrStorage(storage) {
 
     var _storage = storage;
     var _this = this;
 
     this.get = function(key, defaultValue) {
+      var result;
       if (br.isArray(key)) {
-        var result = {};
+        result = {};
         for(var i in key) {
           result[key[i]] = this.get(key[i]);
         }
       } else {        
-        var result = _helper.unpack(_storage.getItem(key));
+        result = _helper.unpack(_storage.getItem(key));
       }
       return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
     }
 
     this.set = function(key, value) {
       if (br.isObject(key)) {
-        for(name in key) {
+        for(var name in key) {
           this.set(name, key[name]);
         }
       } else {
@@ -55,7 +54,7 @@
     this.inc = function(key, increment, glue) {
       var value = this.get(key);
       if (br.isNumber(value)) {
-        var increment = (br.isNumber(increment) ? increment : 1);
+        increment = (br.isNumber(increment) ? increment : 1);
         this.set(key, value + increment);
       } else
       if (br.isString(value)) {
@@ -71,15 +70,15 @@
           this.set(key, value);
         }
       } else {
-        var increment = (br.isNumber(increment) ? increment : 1);
+        increment = (br.isNumber(increment) ? increment : 1);
         this.set(key, increment);
       }
       return this;
     }
 
     this.dec = function(key, increment) {
-      var increment = (br.isNumber(increment) ? increment : 1);
       var value = this.get(key);
+      increment = (br.isNumber(increment) ? increment : 1);
       this.set(key, br.isNumber(value) ? (value - increment) : increment);
       return this;
     }
@@ -162,7 +161,7 @@
       var value = _this.get(key, defaultValue);
       if (br.isArray(value)) {
         if (value.length > 0) {
-          var result = value.pop();
+          result = value.pop();
           if (remove) {
             _this.set(key, value);
           }
@@ -184,7 +183,7 @@
       var value = _this.get(key, defaultValue);
       if (br.isArray(value)) {
         if (value.length > 0) {
-          var result = value.shift();
+          result = value.shift();
           if (remove) {
             _this.set(key, value);
           }
@@ -233,7 +232,7 @@
 
     this.all = function() {
       var result = {};
-      for(name in _storage) {
+      for(var name in _storage) {
         result[name] = this.get(name);
       }
       return result;
@@ -263,7 +262,9 @@
 
   }
 
-  window.br.storage = new storage(window.localStorage);
-  window.br.session = new storage(window.sessionStorage);
+  window.br = window.br || {};
 
-}(window);
+  window.br.storage = new BrStorage(window.localStorage);
+  window.br.session = new BrStorage(window.sessionStorage);
+
+})(window);

@@ -4,32 +4,56 @@
 // jagermesh@gmail.com
 // 
 
-!function (window, undefined) {
+(function (window) {
 
   window.br = window.br || {};
 
   window.br.isNumber = function(value) {
-    return (!isNaN(parseFloat(value)) && isFinite(value));
+    return (
+             !isNaN(parseFloat(value)) && 
+             isFinite(value)
+           );
+  }
+
+  window.br.isNull = function(value) {
+    return (
+             (value === undefined) || 
+             (value === null) 
+           );
+  }
+
+  window.br.isEmpty = function(value) {
+    return ( 
+             br.isNull(value) || 
+             ((typeof value.length != 'undefined') && (value.length === 0)) // Array, String
+           );
   }
 
   window.br.isArray = function (value) {
-    return (!br.isNull(value) && (Object.prototype.toString.call(value) === '[object Array]'));
+    return (
+             !br.isNull(value) && 
+             (Object.prototype.toString.call(value) === '[object Array]')
+           );
   }
 
   window.br.isObject = function (value) {
-    return (!br.isEmpty(value) && (typeof value == 'object'));
+    return (!br.isEmpty(value) && (typeof value === 'object'));
   }
 
   window.br.isBoolean = function (value) {
-    return (typeof value == 'boolean');
+    return (typeof value === 'boolean');
   }
 
   window.br.isString = function (value) {
-    return (typeof value == 'string');
+    return (typeof value === 'string');
+  }
+
+  window.br.isNumber = function (value) {
+    return (typeof value === 'number');
   }
 
   window.br.isFunction = function (value) {
-    return (typeof value == 'function');
+    return (typeof value === 'function');
   }
 
   window.br.toString = function (value) {
@@ -49,29 +73,36 @@
     }
   }
 
-  window.br.isNull = function(value) {
-    return (
-             (value === undefined) || 
-             (value === null) 
-           );
-  }
+  window.br.toInt = function(value) {
+    if (br.isString(value)) {
+      if (value.length > 0) {
+        return parseInt(value, 10);
+      }
+    } else
+    if (br.isNumber(value)) {
+      return value;
+    }
+  };
 
-  window.br.isEmpty = function(value) {
-    return ( 
-             br.isNull(value) || 
-             ((typeof value.length != 'undefined') && (value.length == 0)) // Array, String
-           );
-  }
+  window.br.toReal = function(value) {
+    if (br.isString(value)) {
+      if (value.length > 0) {
+        return parseFloat(value);
+      }
+    } else
+    if (br.isNumber(value)) {
+      return value;
+    }
+  };  
 
-}(window);// 
+})(window);
+// 
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
 // 
 
-!function (window, undefined) {
-
-  window.br = window.br || {};
+(function (window) {
 
   var _helper = {
 
@@ -89,26 +120,27 @@
 
   }
 
-  var storage = function(storage) {
+  function BrStorage(storage) {
 
     var _storage = storage;
     var _this = this;
 
     this.get = function(key, defaultValue) {
+      var result;
       if (br.isArray(key)) {
-        var result = {};
+        result = {};
         for(var i in key) {
           result[key[i]] = this.get(key[i]);
         }
       } else {        
-        var result = _helper.unpack(_storage.getItem(key));
+        result = _helper.unpack(_storage.getItem(key));
       }
       return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
     }
 
     this.set = function(key, value) {
       if (br.isObject(key)) {
-        for(name in key) {
+        for(var name in key) {
           this.set(name, key[name]);
         }
       } else {
@@ -120,7 +152,7 @@
     this.inc = function(key, increment, glue) {
       var value = this.get(key);
       if (br.isNumber(value)) {
-        var increment = (br.isNumber(increment) ? increment : 1);
+        increment = (br.isNumber(increment) ? increment : 1);
         this.set(key, value + increment);
       } else
       if (br.isString(value)) {
@@ -136,15 +168,15 @@
           this.set(key, value);
         }
       } else {
-        var increment = (br.isNumber(increment) ? increment : 1);
+        increment = (br.isNumber(increment) ? increment : 1);
         this.set(key, increment);
       }
       return this;
     }
 
     this.dec = function(key, increment) {
-      var increment = (br.isNumber(increment) ? increment : 1);
       var value = this.get(key);
+      increment = (br.isNumber(increment) ? increment : 1);
       this.set(key, br.isNumber(value) ? (value - increment) : increment);
       return this;
     }
@@ -227,7 +259,7 @@
       var value = _this.get(key, defaultValue);
       if (br.isArray(value)) {
         if (value.length > 0) {
-          var result = value.pop();
+          result = value.pop();
           if (remove) {
             _this.set(key, value);
           }
@@ -249,7 +281,7 @@
       var value = _this.get(key, defaultValue);
       if (br.isArray(value)) {
         if (value.length > 0) {
-          var result = value.shift();
+          result = value.shift();
           if (remove) {
             _this.set(key, value);
           }
@@ -298,7 +330,7 @@
 
     this.all = function() {
       var result = {};
-      for(name in _storage) {
+      for(var name in _storage) {
         result[name] = this.get(name);
       }
       return result;
@@ -328,25 +360,21 @@
 
   }
 
-  window.br.storage = new storage(window.localStorage);
-  window.br.session = new storage(window.sessionStorage);
+  window.br = window.br || {};
 
-}(window);
+  window.br.storage = new BrStorage(window.localStorage);
+  window.br.session = new BrStorage(window.sessionStorage);
+
+})(window);
 // 
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
 // 
 
-!function (window, undefined) {
+(function (window) {
 
-  window.br = window.br || {};
-
-  window.br.eventQueue = function(obj) {
-    return new BrEvents(obj);
-  }
-
-  BrEvents = function(obj) {
+  function BrEvents(obj) {
 
     var _this = this;
 
@@ -371,22 +399,23 @@
     function trigger(event, pos, args) {
 
       var result = null;
-
       var eventSubscribers = _this.subscribers[event];
+      var i;
+
       if (eventSubscribers) {
         switch(pos) {
           case 'before':
-            for (var i in eventSubscribers.before) {
+            for (i in eventSubscribers.before) {
               eventSubscribers.before[i].apply(_this.obj, args);
             }
             break;
           case 'on':
-            for (var i in eventSubscribers.on) {
+            for (i in eventSubscribers.on) {
               result = eventSubscribers.on[i].apply(_this.obj, args);
             }
             break;
           case 'after':
-            for (var i in eventSubscribers.after) {
+            for (i in eventSubscribers.after) {
               eventSubscribers.after[i].apply(_this.obj, args);
             }
             break;
@@ -426,14 +455,20 @@
 
   }
 
-}(window);
+  window.br = window.br || {};
+
+  window.br.eventQueue = function(obj) {
+    return new BrEvents(obj);
+  }
+
+})(window);
 // 
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
 // 
 
-!function (window, undefined) {
+(function (window) {
 
   window.br = window.br || {};
 
@@ -454,7 +489,7 @@
     };
     this.anchor = function(defaultValue) {
       var value = document.location.hash.replace('#', '');
-      if (value.length == 0) {
+      if (value.length === 0) {
         value = defaultValue;
       }
       return value;
@@ -473,14 +508,14 @@
 
   }
 
-}(window);
+})(window);
 // 
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
 // 
 
-!function ($, window, undefined) {
+(function ($, window) {
 
   window.br = window.br || {};
 
@@ -514,17 +549,17 @@
 
   window.br.isTouchScreen = function() {
     var ua = navigator.userAgent;
-    return /iPad/i.test(ua) || /iPhone/i.test(ua) || /Android/i.test(ua);
+    return ((/iPad/i.test(ua)) || (/iPhone/i.test(ua)) || (/Android/i.test(ua)));
   };
 
   window.br.isiOS = function() {
     var ua = navigator.userAgent;
-    return /iPad/i.test(ua) || /iPhone/i.test(ua);
+    return ((/iPad/i.test(ua)) || (/iPhone/i.test(ua)));
   };
 
   window.br.isAndroid = function() {
     var ua = navigator.userAgent;
-    return /android/i.test(ua);
+    return (/android/i.test(ua));
   };
 
   window.br.redirect = function(url) {
@@ -553,7 +588,7 @@
   };
 
   window.br.randomInt = function(min, max) {
-    if (max == undefined) {
+    if (max === undefined) {
       max = min;
       min = 0;
     }
@@ -575,49 +610,31 @@
     Child.superclass = Parent.prototype;
   };
 
-  window.br.toInt = function(value) {
-    if (typeof value == 'string') {
-      if (value.length > 0) {
-        return parseInt(value);
-      }
-    } else
-    if (typeof value == 'number') {
-      return value;
-    }
-  };
-
-  window.br.toReal = function(value) {
-    if (typeof value == 'string') {
-      if (value.length > 0) {
-        return parseFloat(value);
-      }
-    } else
-    if (typeof value == 'number') {
-      return value;
-    }
-  };
-
   window.br.openPopup = function(url, w, h) {
 
-    if (w == null) {
-      if (screen.width)
-        if (screen.width >= 1280)
+    if (w === null) {
+      if (screen.width) {
+        if (screen.width >= 1280) {
           w = 1000;
-        else
-        if (screen.width >= 1024)
+        } else
+        if (screen.width >= 1024) {
           w = 800;
-        else
+        } else {
           w = 600;
+        }
+      }
     }
-    if (h == null) {
-      if (screen.height)
-        if (screen.height >= 900)
+    if (h === null) {
+      if (screen.height) {
+        if (screen.height >= 900) {
           h = 700;
-        else
-        if (screen.height >= 800)
+        } else
+        if (screen.height >= 800) {
           h = 600;
-        else
+        } else {
           h = 500;
+        }
+      }
     }
     var left = (screen.width) ? (screen.width-w)/2 : 0;
     var settings = 'height='+h+',width='+w+',top=20,left='+left+',menubar=0,scrollbars=1,resizable=1';
@@ -646,7 +663,7 @@
   function setupModified(selector, callback, deferred) {
     $(selector).each(function() {
       if (!$(this).data('br-data-change-callbacks')) {
-        $(this).data('br-data-change-callbacks', new Array());
+        $(this).data('br-data-change-callbacks', []);
       }
       var callbacks = $(this).data('br-data-change-callbacks');
       callbacks.push(callback);
@@ -718,16 +735,11 @@
     closeConfirmationRequired = false;
   }
 
-  window.br.load = window.br.resourceLoader = function(j){function p(c,a){var g=j.createElement(c),b;for(b in a)a.hasOwnProperty(b)&&g.setAttribute(b,a[b]);return g}function m(c){var a=k[c],b,e;if(a)b=a.callback,e=a.urls,e.shift(),h=0,e.length||(b&&b.call(a.context,a.obj),k[c]=null,n[c].length&&i(c))}function u(){if(!b){var c=navigator.userAgent;b={async:j.createElement("script").async===!0};(b.webkit=/AppleWebKit\//.test(c))||(b.ie=/MSIE/.test(c))||(b.opera=/Opera/.test(c))||(b.gecko=/Gecko\//.test(c))||(b.unknown=!0)}}function i(c,
-    a,g,e,h){var i=function(){m(c)},o=c==="css",f,l,d,q;u();if(a)if(a=typeof a==="string"?[a]:a.concat(),o||b.async||b.gecko||b.opera)n[c].push({urls:a,callback:g,obj:e,context:h});else{f=0;for(l=a.length;f<l;++f)n[c].push({urls:[a[f]],callback:f===l-1?g:null,obj:e,context:h})}if(!k[c]&&(q=k[c]=n[c].shift())){r||(r=j.head||j.getElementsByTagName("head")[0]);a=q.urls;f=0;for(l=a.length;f<l;++f)g=a[f],o?d=b.gecko?p("style"):p("link",{href:g,rel:"stylesheet"}):(d=p("script",{src:g}),d.async=!1),d.className=
-    "lazyload",d.setAttribute("charset","utf-8"),b.ie&&!o?d.onreadystatechange=function(){if(/loaded|complete/.test(d.readyState))d.onreadystatechange=null,i()}:o&&(b.gecko||b.webkit)?b.webkit?(q.urls[f]=d.href,s()):(d.innerHTML='@import "'+g+'";',m("css")):d.onload=d.onerror=i,r.appendChild(d)}}function s(){var c=k.css,a;if(c){for(a=t.length;--a>=0;)if(t[a].href===c.urls[0]){m("css");break}h+=1;c&&(h<200?setTimeout(s,50):m("css"))}}var b,r,k={},h=0,n={css:[],js:[]},t=j.styleSheets;return{css:function(c,
-    a,b,e){i("css",c,a,b,e)},js:function(c,a,b,e){i("js",c,a,b,e)}}}(this.document);
-
   window.br.events = br.eventQueue();
 
   window.br.backToCaller = function(href, refresh) {
 
-    var inPopup = (self.opener != null);
+    var inPopup = (self.opener !== null);
 
     // check opener
     if (inPopup) {
@@ -756,20 +768,19 @@
     
   }
 
-}(jQuery, window);
+  window.br.load = window.br.resourceLoader = function(j){function p(c,a){var g=j.createElement(c),b;for(b in a)a.hasOwnProperty(b)&&g.setAttribute(b,a[b]);return g}function m(c){var a=k[c],b,e;if(a)b=a.callback,e=a.urls,e.shift(),h=0,e.length||(b&&b.call(a.context,a.obj),k[c]=null,n[c].length&&i(c))}function u(){if(!b){var c=navigator.userAgent;b={async:j.createElement("script").async===!0};(b.webkit=/AppleWebKit\//.test(c))||(b.ie=/MSIE/.test(c))||(b.opera=/Opera/.test(c))||(b.gecko=/Gecko\//.test(c))||(b.unknown=!0)}}function i(c,
+    a,g,e,h){var i=function(){m(c)},o=c==="css",f,l,d,q;u();if(a)if(a=typeof a==="string"?[a]:a.concat(),o||b.async||b.gecko||b.opera)n[c].push({urls:a,callback:g,obj:e,context:h});else{f=0;for(l=a.length;f<l;++f)n[c].push({urls:[a[f]],callback:f===l-1?g:null,obj:e,context:h})}if(!k[c]&&(q=k[c]=n[c].shift())){r||(r=j.head||j.getElementsByTagName("head")[0]);a=q.urls;f=0;for(l=a.length;f<l;++f)g=a[f],o?d=b.gecko?p("style"):p("link",{href:g,rel:"stylesheet"}):(d=p("script",{src:g}),d.async=!1),d.className=
+    "lazyload",d.setAttribute("charset","utf-8"),b.ie&&!o?d.onreadystatechange=function(){if(/loaded|complete/.test(d.readyState))d.onreadystatechange=null,i()}:o&&(b.gecko||b.webkit)?b.webkit?(q.urls[f]=d.href,s()):(d.innerHTML='@import "'+g+'";',m("css")):d.onload=d.onerror=i,r.appendChild(d)}}function s(){var c=k.css,a;if(c){for(a=t.length;--a>=0;)if(t[a].href===c.urls[0]){m("css");break}h+=1;c&&(h<200?setTimeout(s,50):m("css"))}}var b,r,k={},h=0,n={css:[],js:[]},t=j.styleSheets;return{css:function(c,
+    a,b,e){i("css",c,a,b,e)},js:function(c,a,b,e){i("js",c,a,b,e)}}}(document);
+
+})(jQuery, window);
 // 
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
 // 
 
-!function (window, undefined) {
-
-  window.br = window.br || {};
-
-  window.br.flagsHolder = function (permanent, name) {
-    return new BrFlagsHolder(permanent, name);
-  }
+(function (window) {
 
   function BrFlagsHolder(permanent, name) {
   
@@ -812,7 +823,8 @@
       if (permanent) {
         return br.storage.set(name, values);
       } else {
-        return (flags = values);
+        flags = values;
+        return flags;
       }
     }
 
@@ -826,30 +838,26 @@
 
   }
 
-}(window);
+  window.br = window.br || {};
+
+  window.br.flagsHolder = function (permanent, name) {
+    return new BrFlagsHolder(permanent, name);
+  }
+
+})(window);
 // 
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
 // 
 
-!function ($, window, undefined) {
-
-  window.br = window.br || {};
-
-  window.br.dataSource = function (restServiceUrl, options) {
-    return new BrDataSource(restServiceUrl, options);
-  }
+(function ($, window) {
 
   function BrDataSource(restServiceUrl, options) {
 
-    var $ = jQuery;
-    var datasource = this;
     var _this = this;
-    var ajaxRequest = null;
 
-    // this.cb = {};
-    this.refreshTimeout;
+    this.ajaxRequest = null;
     this.name = '-';
     this.options = options || {};
     this.options.restServiceUrl = restServiceUrl;
@@ -870,7 +878,36 @@
 
     this.insert = function(item, callback) {
 
-      request = item;
+      function returnInsert(data) {
+
+        var result;
+
+        if (_this.options.crossdomain) {
+          if (typeof data == 'string') {
+            result = false;
+            _this.events.trigger('error', 'insert', data.length > 0 ? data : 'Empty response. Was expecting new created records with ROWID.');
+          } else {
+            result = true;
+            _this.events.trigger('insert', data);
+          }
+        } else {
+          if (data) {
+            result = true;
+            _this.events.trigger('insert', data);
+          } else {
+            result = false;
+            _this.events.trigger('error', 'insert', 'Empty response. Was expecting new created records with ROWID.');
+          }
+        }
+        _this.events.triggerAfter('insert', result, data, request);
+        if (result) {
+          _this.events.trigger('change', 'insert', data);
+        }
+        if (typeof callback == 'function') { callback.call(_this, result, data, request); }
+
+      }
+
+      var request = item;
 
       try {
 
@@ -880,37 +917,8 @@
           request.crossdomain = 'put';
         }
 
-        function returnInsert(data) {
-
-          var result;
-
-          if (datasource.options.crossdomain) {
-            if (typeof data == 'string') {
-              result = false;
-              _this.events.trigger('error', 'insert', data.length > 0 ? data : 'Empty response. Was expecting new created records with ROWID.');
-            } else {
-              result = true;
-              _this.events.trigger('insert', data);
-            }
-          } else {
-            if (data) {
-              result = true;
-              _this.events.trigger('insert', data);
-            } else {
-              result = false;
-              _this.events.trigger('error', 'insert', 'Empty response. Was expecting new created records with ROWID.');
-            }
-          }
-          _this.events.triggerAfter('insert', result, data, request);
-          if (result) {
-            _this.events.trigger('change', 'insert', data);
-          }
-          if (typeof callback == 'function') { callback.call(datasource, result, data, request); }
-
-        }
-
-        if (datasource.options.offlineMode) {
-          datasource.db.insert(request);
+        if (_this.options.offlineMode) {
+          _this.db.insert(request);
           request.rowid = request.___id;
           request.syncState = 'n';
           returnInsert(request);
@@ -928,7 +936,7 @@
                      } else {
                        _this.events.trigger('error', 'insert', jqXHR.responseText);
                        _this.events.triggerAfter('insert', false, jqXHR.responseText, request);
-                       if (typeof callback == 'function') { callback.call(datasource, false, jqXHR.responseText, request); }
+                       if (typeof callback == 'function') { callback.call(_this, false, jqXHR.responseText, request); }
                      }
                    }
                  });
@@ -937,22 +945,18 @@
       } catch (error) {
         _this.events.trigger('error', 'insert', error);
         _this.events.triggerAfter('insert', false, error, request);
-        if (typeof callback == 'function') { callback.call(datasource, false, error, request); }
+        if (typeof callback == 'function') { callback.call(_this, false, error, request); }
       }
 
     }
 
     this.update = function(rowid, item, callback) {
 
-      request = item;
-
-      _this.events.triggerBefore('update', rowid, request);
-
       function returnUpdate(data) {
         var operation = 'update';
         if (data) {
           var res = _this.events.trigger('removeAfterUpdate', item, data);
-          if ((res != null) && res) {
+          if ((res !== null) && res) {
             operation = 'remove';
             _this.events.trigger('remove', rowid);
           } else {
@@ -961,11 +965,15 @@
         }
         _this.events.triggerAfter('' + operation, true, data, request);
         _this.events.trigger('change', operation, data);
-        if (typeof callback == 'function') { callback.call(datasource, true, data, request); }
+        if (typeof callback == 'function') { callback.call(_this, true, data, request); }
       }
 
-      if (datasource.options.offlineMode) {
-        datasource.db({rowid: rowid}).update(request);
+      var request = item;
+
+      _this.events.triggerBefore('update', rowid, request);
+
+      if (_this.options.offlineMode) {
+        _this.db({rowid: rowid}).update(request);
         returnUpdate(request);
       } else {
         $.ajax({ type: 'POST'
@@ -981,7 +989,7 @@
                    } else {
                      _this.events.trigger('error', 'update', jqXHR.responseText);
                      _this.events.triggerAfter('update', false, jqXHR.responseText, request);
-                     if (typeof callback == 'function') { callback.call(datasource, false, jqXHR.responseText, request); }
+                     if (typeof callback == 'function') { callback.call(_this, false, jqXHR.responseText, request); }
                    }
                  }
                });
@@ -991,20 +999,20 @@
 
     this.remove = function(rowid, callback) {
 
-      request = {};
-
-      _this.events.triggerBefore('remove', null, rowid);
-
       function returnRemove(data) {
         _this.events.trigger('remove', rowid);
         _this.events.triggerAfter('remove', true, data, request);
         _this.events.trigger('change', 'remove', data);
-        if (typeof callback == 'function') { callback.call(datasource, true, data, request); }
+        if (typeof callback == 'function') { callback.call(_this, true, data, request); }
       }
 
-      if (datasource.options.offlineMode) {
-        var data = datasource.db({rowid: rowid}).get();
-        datasource.db({rowid: rowid}).remove();
+      var request = {};
+
+      _this.events.triggerBefore('remove', null, rowid);
+
+      if (_this.options.offlineMode) {
+        var data = _this.db({rowid: rowid}).get();
+        _this.db({rowid: rowid}).remove();
         returnRemove(data);
       } else {
         $.ajax({ type: 'DELETE'
@@ -1020,7 +1028,7 @@
                    } else {
                      _this.events.trigger('error', 'remove', jqXHR.responseText);
                      _this.events.triggerAfter('remove', false, jqXHR.responseText, request);
-                     if (typeof callback == 'function') { callback.call(datasource, false, jqXHR.responseText, request); }
+                     if (typeof callback == 'function') { callback.call(_this, false, jqXHR.responseText, request); }
                    }
                  }
                });
@@ -1055,6 +1063,22 @@
     }
 
     this.select = function(filter, callback, options) {
+
+      function handleSuccess(data) {
+        if (!disableEvents) {
+          _this.events.trigger('select', data);
+          _this.events.triggerAfter('select', true, data, request);
+        }
+        if (typeof callback == 'function') { callback.call(_this, true, data, request); }
+      }
+
+      function handleError(error, response) {
+        if (!disableEvents) {
+          _this.events.trigger('error', 'select', error);
+          _this.events.triggerAfter('select', false, error, request);
+        }
+        if (typeof callback == 'function') { callback.call(_this, false, error, request); }
+      }
 
       var disableEvents = options && options.disableEvents;
 
@@ -1113,31 +1137,15 @@
           request.__order = options.order;
         }
 
-        function handleSuccess(data) {
-          if (!disableEvents) {
-            _this.events.trigger('select', data);
-            _this.events.triggerAfter('select', true, data, request);
-          }
-          if (typeof callback == 'function') { callback.call(datasource, true, data, request); }
-        }
-
-        function handleError(error, response) {
-          if (!disableEvents) {
-            _this.events.trigger('error', 'select', error);
-            _this.events.triggerAfter('select', false, error, request);
-          }
-          if (typeof callback == 'function') { callback.call(datasource, false, error, request); }
-        }
-
-        if (datasource.options.offlineMode) {
-          handleSuccess(datasource.db(request).get());
+        if (_this.options.offlineMode) {
+          handleSuccess(_this.db(request).get());
         } else {
           this.ajaxRequest = $.ajax({ type: 'GET'
                                     , data: request
                                     , dataType: 'json'
                                     , url: url + (this.options.authToken ? '?token=' + this.options.authToken : '')
                                     , success: function(response) {
-                                        datasource.ajaxRequest = null;
+                                        _this.ajaxRequest = null;
                                         if (response) {
                                           handleSuccess(response);
                                         } else {
@@ -1148,8 +1156,8 @@
                                         if (br.isUnloading()) {
 
                                         } else { 
-                                          datasource.ajaxRequest = null;
-                                          var error = (jqXHR.statusText == 'abort') ? '' : (jqXHR.responseText.length == 0 ? 'Server error' : jqXHR.responseText);
+                                          _this.ajaxRequest = null;
+                                          var error = (jqXHR.statusText == 'abort') ? '' : (jqXHR.responseText.length === 0 ? 'Server error' : jqXHR.responseText);
                                           handleError(error, jqXHR);
                                         }
                                       }
@@ -1160,20 +1168,22 @@
       }
 
     }
+
     this.requestInProgress = function() {
-      return (this.ajaxRequest != null);
+      return (this.ajaxRequest !== null);
     }
+
     this.abortRequest = function() {
-      if (this.ajaxRequest != null) {
+      if (this.ajaxRequest !== null) {
         this.ajaxRequest.abort();
       }
     }
+
     this.invoke = function(method, params, callback) {
 
-      var datasource = this;
+      var request = { };
 
       if (typeof params == 'function') {
-        request = { };
         callback = params;
       } else {
         request = params;
@@ -1190,14 +1200,14 @@
              , dataType: this.options.crossdomain ? 'jsonp' : 'json'
              , url: this.options.restServiceUrl + method + (this.options.authToken ? '?token=' + this.options.authToken : '')
              , success: function(response) {
-                 if (datasource.options.crossdomain && (typeof response == 'string')) {
+                 if (_this.options.crossdomain && (typeof response == 'string')) {
                    _this.events.trigger('error', method, response);
                    _this.events.triggerAfter('' + method, false, response, request);
-                   if (typeof callback == 'function') { callback.call(datasource, false, response, request); }
+                   if (typeof callback == 'function') { callback.call(_this, false, response, request); }
                  } else {
                    _this.events.trigger(method, response, params);
                    _this.events.triggerAfter('' + method, true, response, request);
-                   if (typeof callback == 'function') { callback.call(datasource, true, response, request); }
+                   if (typeof callback == 'function') { callback.call(_this, true, response, request); }
                  }
                }
              , error: function(jqXHR, textStatus, errorThrown) {
@@ -1206,7 +1216,7 @@
                  } else {
                    _this.events.trigger('error', method, jqXHR.responseText);
                    _this.events.triggerAfter('' + method, false, jqXHR.responseText, request);
-                   if (typeof callback == 'function') { callback.call(datasource, false, jqXHR.responseText, request); }
+                   if (typeof callback == 'function') { callback.call(_this, false, jqXHR.responseText, request); }
                  }
                }
              });
@@ -1214,13 +1224,16 @@
     }
 
     this.fillCombo = function(selector, data, options) {
+
       options = options || { };
-      valueField = options.valueField || 'rowid';
-      nameField = options.nameField || 'name';
-      hideEmptyValue = options.hideEmptyValue || false;
-      emptyValue = options.emptyValue || '--any--';
-      selectedValue = options.selectedValue || null;
-      selectedValueField = options.selectedValueField || null;
+
+      var valueField = options.valueField || 'rowid';
+      var nameField = options.nameField || 'name';
+      var hideEmptyValue = options.hideEmptyValue || false;
+      var emptyValue = options.emptyValue || '--any--';
+      var selectedValue = options.selectedValue || null;
+      var selectedValueField = options.selectedValueField || null;
+
       $(selector).each(function() {
         var val = $(this).val();
         if (br.isEmpty(val)) {
@@ -1247,44 +1260,47 @@
         if (!br.isEmpty(val)) {
           $(this).find('option[value=' + val +']').attr('selected', 'selected');
         }
-      })
+      });
+
     }
 
+    var refreshTimeout;
+
     this.deferredSelect = function(filter, callback, msec) {
+
+      msec = msec || this.options.refreshDelay;
       var savedFilter = {}
       for(var i in filter) {
         savedFilter[i] = filter[i];
       }
-      msec = msec || this.options.refreshDelay;
-      window.clearTimeout(this.refreshTimeout);
-      this.refreshTimeout = window.setTimeout(function() {
-        datasource.select(savedFilter, callback);
+      window.clearTimeout(refreshTimeout);
+      refreshTimeout = window.setTimeout(function() {
+        _this.select(savedFilter, callback);
       }, msec);
+
     }
 
   }
 
-}(jQuery, window);
+  window.br = window.br || {};
+
+  window.br.dataSource = function (restServiceUrl, options) {
+    return new BrDataSource(restServiceUrl, options);
+  }
+
+})(jQuery, window);
 // 
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
 // 
 
-!function ($, window, undefined) {
-
-  window.br = window.br || {};
-
-  window.br.dataGrid = function (selector, rowTemplate, dataSource, options) {
-    return new BrDataGrid(selector, rowTemplate, dataSource, options);
-  }
+(function ($, window) {
 
   function BrDataGrid(selector, rowTemplate, dataSource, options) {
 
-    var $ = jQuery;
     var _this = this;
 
-    // this.cb = {};
     this.selector = $(selector);
     this.options = options || {};
     this.options.templates = this.options.templates || {};
@@ -1319,19 +1335,17 @@
     });
 
     this.renderHeader = function(data) {
-      var data = _this.events.trigger('renderHeader', data) || data;
-      var result = $(br.fetch(_this.options.templates.header, data));
-      return result;
+      data = _this.events.trigger('renderHeader', data) || data;
+      return $(br.fetch(_this.options.templates.header, data));
     }
 
     this.renderFooter = function(data) {
-      var data = _this.events.trigger('renderFooter', data) || data;
-      var result = $(br.fetch(_this.options.templates.footer, data));
-      return result;
+      data = _this.events.trigger('renderFooter', data) || data;
+      return $(br.fetch(_this.options.templates.footer, data));
     }
 
     this.renderRow = function(data) {
-      var data = _this.events.trigger('renderRow', data) || data;
+      data = _this.events.trigger('renderRow', data) || data;
       var result = $(br.fetch(_this.options.templates.row, data));
       result.data('data-row', data);
       return result;
@@ -1358,7 +1372,7 @@
     this.init = function() {
 
       function isGridEmpty() {
-        return (_this.selector.find('[data-rowid]').length == 0);
+        return (_this.selector.find('[data-rowid]').length === 0);
       }
 
       function checkForEmptyGrid() {
@@ -1454,6 +1468,7 @@
 
     this.render = function(data) {
       if (data) {
+        var i;
         if (_this.options.freeGrid) {
           if (data.headers) {
             for (i in data.headers) {
@@ -1473,7 +1488,7 @@
           $(_this.options.headersSelector).html('');
           $(_this.options.footersSelector).html('');
           if (data.rows) {
-            if (data.rows.length == 0) {
+            if (data.rows.length === 0) {
               _this.selector.html(this.options.templates.noData);
             } else {
               for (i in data.rows) {
@@ -1515,24 +1530,23 @@
 
   }
 
-}(jQuery, window);
+  window.br = window.br || {};
+
+  window.br.dataGrid = function (selector, rowTemplate, dataSource, options) {
+    return new BrDataGrid(selector, rowTemplate, dataSource, options);
+  }
+
+})(jQuery, window);
 // 
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
 // 
 
-!function ($, window, undefined) {
-
-  window.br = window.br || {};
-
-  window.br.dataCombo = function (selector, dataSource, options) {
-    return new BrDataCombo(selector, dataSource, options);
-  }
+(function ($, window) {
 
   function BrDataCombo(selector, dataSource, options) {
 
-    var $ = jQuery;
     var _this = this;
 
     this.selector = $(selector);
@@ -1548,7 +1562,7 @@
     this.after  = function(event, callback) { this.events.after(event, callback); }
 
     this.val = function(value) {
-      if (value != undefined) {
+      if (value !== undefined) {
         $(this.selector).val(value); 
       }
       return $(this.selector).val();
@@ -1572,13 +1586,14 @@
         options.selectedValue = br.storage.get(storageTag(_this.selector));
       }
 
-      valueField = options.valueField || 'rowid';
-      nameField = options.nameField || 'name';
-      hideEmptyValue = options.hideEmptyValue || false;
-      levelField = options.levelField || null;
-      emptyValue = options.emptyValue || '--any--';
-      selectedValue = options.selectedValue || null;
-      selectedValueField = options.selectedValueField || null;
+      var valueField = options.valueField || 'rowid';
+      var nameField = options.nameField || 'name';
+      var hideEmptyValue = options.hideEmptyValue || false;
+      var levelField = options.levelField || null;
+      var emptyValue = options.emptyValue || '--any--';
+      var selectedValue = options.selectedValue || null;
+      var selectedValueField = options.selectedValueField || null;
+
       _this.selector.each(function() {
         var val = $(this).val();
         if (br.isEmpty(val)) {
@@ -1597,9 +1612,9 @@
             }
           }
           s = s + '<option value="' + data[i][valueField] + '">';
-          if (levelField != null) {
+          if (levelField !== null) {
             var margin = (br.toInt(data[i][levelField]) - 1) * 4;
-            for(k = 0; k < margin; k++) {
+            for(var k = 0; k < margin; k++) {
               s = s + '&nbsp;';
             }
           }        
@@ -1670,36 +1685,20 @@
 
   }
 
-}(jQuery, window);
+  window.br = window.br || {};
 
+  window.br.dataCombo = function (selector, dataSource, options) {
+    return new BrDataCombo(selector, dataSource, options);
+  }
 
+})(jQuery, window);
 // 
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
 // 
 
-!function ($, window, undefined) {
-
-  window.br = window.br || {};
-
-  window.br.editable = function(selector, callback, value) {
-    if (typeof callback == 'string') {
-      var data = $(selector).data('editable');
-      if (data) {
-        data[callback](value);
-      }
-    } else {
-      $(selector).live('click', function(e) {
-        var $this = $(this)
-          , data = $this.data('editable');
-        if (!data) {
-          $this.data('editable', (data = new BrEditable(this, callback)));
-        }
-        data.click(e);
-      });
-    }
-  }
+(function ($, window) {
 
   function BrEditable(ctrl, saveCallback) {
 
@@ -1747,7 +1746,7 @@
       }
     }
     _this.activated = function() {
-      return _this.editor != null;
+      return _this.editor !== null;
     }
     _this.apply = function(content) {
       _this.tooltip.hide();
@@ -1764,14 +1763,34 @@
 
   }
 
-}(jQuery, window);
+  window.br = window.br || {};
+
+  window.br.editable = function(selector, callback, value) {
+    if (typeof callback == 'string') {
+      var data = $(selector).data('editable');
+      if (data) {
+        data[callback](value);
+      }
+    } else {
+      $(selector).live('click', function(e) {
+        var $this = $(this)
+          , data = $this.data('editable');
+        if (!data) {
+          $this.data('editable', (data = new BrEditable(this, callback)));
+        }
+        data.click(e);
+      });
+    }
+  }
+
+})(jQuery, window);
 // 
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
 // 
 
-!function ($, window, undefined) {
+(function ($, window) {
 
   window.br = window.br || {};
 
@@ -1860,7 +1879,7 @@
 
   window.br.inform = function(title, message, callback) {
     var s = '<div class="modal">';
-    if (title != '') {
+    if (title !== '') {
       s = s + '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>' + title + '</h3></div>';
     }
     s = s + '<div class="modal-body">' + message + '</div>' +
@@ -1982,4 +2001,4 @@
 
   });
 
-}(jQuery, window);
+})(jQuery, window);

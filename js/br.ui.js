@@ -4,7 +4,7 @@
 // jagermesh@gmail.com
 // 
 
-!function ($, window, undefined) {
+(function ($, window) {
 
   window.br = window.br || {};
 
@@ -93,7 +93,7 @@
 
   window.br.inform = function(title, message, callback) {
     var s = '<div class="modal">';
-    if (title != '') {
+    if (title !== '') {
       s = s + '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>' + title + '</h3></div>';
     }
     s = s + '<div class="modal-body">' + message + '</div>' +
@@ -215,4 +215,4 @@
 
   });
 
-}(jQuery, window);
+})(jQuery, window);

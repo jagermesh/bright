@@ -25,7 +25,9 @@ $result .= br()->fs()->loadFromFile($scriptsPath . 'br.ui.js');
 // $result .= br()->fs()->loadFromFile($scriptsPath . 'br.user.js');
 
 br()->log('Saving to ' . $resultScriptFile);
-br()->fs()->saveToFile($resultScriptFile, $result);
+$notMinified = $result;
+br()->fs()->saveToFile($resultScriptFile, $notMinified);
 
 br()->log('Saving to ' . $packedScriptFile);
-br()->fs()->saveToFile($packedScriptFile, JShrink\Minifier::minify($result));
+$minified = JShrink\Minifier::minify($result);
+br()->fs()->saveToFile($packedScriptFile, $minified);

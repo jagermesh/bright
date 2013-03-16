@@ -4,7 +4,7 @@
 // jagermesh@gmail.com
 // 
 
-!function ($, window, undefined) {
+(function ($, window) {
 
   $(document).ready(function() { 
     
@@ -19,7 +19,7 @@
       var data = {};
 
       var form = $(this).closest('form');      
-      if (form.length == 0) {
+      if (form.length === 0) {
         form = $(this).closest('div.modal');
       }
       if (form.length > 0) {
@@ -44,7 +44,7 @@
       var data = {};
 
       var form = $(this).closest('form');      
-      if (form.length == 0) {
+      if (form.length === 0) {
         form = $(this).closest('div.modal');
       }
       if (form.length > 0) {
@@ -84,7 +84,7 @@
       var data = {};
 
       var form = $(this).closest('form');      
-      if (form.length == 0) {
+      if (form.length === 0) {
         form = $(this).closest('div.modal');
       }
       if (form.length > 0) {
@@ -122,4 +122,4 @@
 
   });
 
-}(jQuery, window);
+})(jQuery, window);

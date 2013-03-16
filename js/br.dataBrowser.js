@@ -1,10 +1,10 @@
-!function ($, window, undefined) {
+// 
+// Bright Framework : Version 0.0.5
+// (C) Sergiy Lavryk
+// jagermesh@gmail.com
+// 
 
-  window.br = window.br || {};
-
-  window.br.dataBrowser = function (entity, options) {
-    return new BrDataBrowser(entity, options);
-  }
+(function ($, window) {
 
   function BrDataBrowser(entity, options) {
 
@@ -21,7 +21,7 @@
     this.options.selectors.container = this.options.selectors.container || '';
 
     function c(selector) {
-      if (_this.options.selectors.container != '') {
+      if (_this.options.selectors.container !== '') {
         return _this.options.selectors.container + ' ' + selector;
       } else {
         return selector;
@@ -46,7 +46,7 @@
     if (typeof entity == 'string') {
       this.dataSource = br.dataSource(br.baseUrl + 'api/' + this.options.entity + '/');
       this.dataSource.on('error', function(operation, error) {
-        br.growlError(error);//, br.baseUrl + 'images/person_default_box.gif');
+        br.growlError(error);
       });
     } else {
       this.dataSource = entity;
@@ -129,21 +129,21 @@
         andClose = false;
       }
       var data = { };
-      var edit = $(this);
       var ok = true;
       $editForm.find('div.data-field[data-toggle=buttons-radio],input.data-field,select.data-field,textarea.data-field').each(function() {
         if (ok) {
+          var val;
           if ($(this).attr('data-toggle') == 'buttons-radio') {
-            var val = $(this).find('button.active').val();
+            val = $(this).find('button.active').val();
           } else
           if ($(this).attr('type') == 'checkbox') {
             if ($(this).is(':checked')) {
-              var val = 1;
+              val = 1;
             } else {
-              var val = 0;
+              val = 0;
             }
           } else {
-            var val = $(this).val();
+            val = $(this).val();
           }
           if ($(this).hasClass('required') && br.isEmpty(val)) {
             var title = $(this).attr('title');
@@ -217,7 +217,7 @@
 
       var order = _this.getOrder();
       if (order) {
-        for (i in order) {
+        for (var i in order) {
           $(c('.sortable[data-field="' + i + '"].' + (order[i] == -1 ? 'order-desc' : (order[i] == 1 ? 'order-asc' : 'dummy')))).addClass('icon-white');
         }
       }
@@ -351,13 +351,13 @@
           var data = {};
           data[dataField] = content;
           _this.dataSource.update( rowid
-                           , data
-                           , function(result) {
-                               if (result) {
-                                 br.editable($this, 'apply', content);
-                               }
-                             }
-                           );
+                                 , data
+                                 , function(result) {
+                                     if (result) {
+                                       br.editable($this, 'apply', content);
+                                     }
+                                   }
+                                 );
         }
       });
 
@@ -653,7 +653,7 @@
 
       if (!pagerSetuped) {
 
-        filter = {};
+        var filter = {};
         filter.__skip = _this.skip;
         filter.__limit = _this.limit;
 
@@ -743,4 +743,10 @@
 
   }
 
-}(jQuery, window);
+  window.br = window.br || {};
+
+  window.br.dataBrowser = function (entity, options) {
+    return new BrDataBrowser(entity, options);
+  }
+
+})(jQuery, window);

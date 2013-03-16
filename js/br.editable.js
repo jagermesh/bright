@@ -4,27 +4,7 @@
 // jagermesh@gmail.com
 // 
 
-!function ($, window, undefined) {
-
-  window.br = window.br || {};
-
-  window.br.editable = function(selector, callback, value) {
-    if (typeof callback == 'string') {
-      var data = $(selector).data('editable');
-      if (data) {
-        data[callback](value);
-      }
-    } else {
-      $(selector).live('click', function(e) {
-        var $this = $(this)
-          , data = $this.data('editable');
-        if (!data) {
-          $this.data('editable', (data = new BrEditable(this, callback)));
-        }
-        data.click(e);
-      });
-    }
-  }
+(function ($, window) {
 
   function BrEditable(ctrl, saveCallback) {
 
@@ -72,7 +52,7 @@
       }
     }
     _this.activated = function() {
-      return _this.editor != null;
+      return _this.editor !== null;
     }
     _this.apply = function(content) {
       _this.tooltip.hide();
@@ -89,4 +69,24 @@
 
   }
 
-}(jQuery, window);
+  window.br = window.br || {};
+
+  window.br.editable = function(selector, callback, value) {
+    if (typeof callback == 'string') {
+      var data = $(selector).data('editable');
+      if (data) {
+        data[callback](value);
+      }
+    } else {
+      $(selector).live('click', function(e) {
+        var $this = $(this)
+          , data = $this.data('editable');
+        if (!data) {
+          $this.data('editable', (data = new BrEditable(this, callback)));
+        }
+        data.click(e);
+      });
+    }
+  }
+
+})(jQuery, window);
