@@ -216,7 +216,11 @@ class BrDataSource extends BrGenericDataSource {
 
       $table = br()->db()->table($this->dbEntity());
 
-      $table->insert($row, br($options, 'dataTypes'));
+      if (br($options, 'dataTypes')) {
+        $table->insert($row, br($options, 'dataTypes'));
+      } else {
+        $table->insert($row);
+      }
       $result = $row;      
       $this->callEvent('after:insert', $result, $transientData, $options);
       $result['rowid'] = br()->db()->rowidValue($result);
