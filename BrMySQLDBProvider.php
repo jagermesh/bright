@@ -378,7 +378,7 @@ class BrMySQLProviderTable {
     }
   }
 
-  function save($values) {
+  function save($values, $dataTypes = null) {
 
     $fields_str = '';
     $values_str = '';
@@ -386,7 +386,13 @@ class BrMySQLProviderTable {
     $sql = 'UPDATE '.$this->tableName.' SET ';
     foreach($values as $field => $value) {
       if ($field != $this->provider->rowidField()) {
-        $sql .= $field . ' = ?, ';
+        $sql .= $field . ' = ?';
+        if (is_array($dataTypes)) {
+          if (br($dataTypes, $field) == 's') {
+            $sql .= '&';
+          }
+        }
+        $sql .= ', ';
       }
     }
     $sql = rtrim($sql, ', ');  
@@ -481,6 +487,11 @@ class BrMySQLProviderTable {
       }
       $fields_str .= ($fields_str?',':'').$field;
       $values_str .= ($values_str?',':'').'?';
+      if (is_array($dataTypes)) {
+        if (br($dataTypes, $field) == 's') {
+          $values_str .= '&';
+        }
+      }
     }  
     $sql = 'INSERT INTO '.$this->tableName.' ('.$fields_str.') VALUES ('.$values_str.')';
 
