@@ -1848,11 +1848,15 @@
     throw '';
   }
 
-  window.br.confirm = function(title, message, buttons, callback) {
+  window.br.confirm = function(title, message, buttons, callback, type) {
+    var addClass = '';
+    if (type == 'error') {
+      addClass = 'modal-error-footer';
+    }
     var s = '<div class="modal">'+
             '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>' + title + '</h3></div>' +
             '<div class="modal-body">' + message + '</div>' +
-            '<div class="modal-footer">';
+            '<div class="modal-footer '+addClass+'">';
     if (typeof buttons == 'function') {
       callback = buttons;
       s = s + '<a href="javascript:;" class="btn btn-primary action-confirm-close" rel="confirm">Yes</a>';
