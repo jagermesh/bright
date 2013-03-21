@@ -1848,13 +1848,22 @@
     throw '';
   }
 
-  window.br.confirm = function(title, message, buttons, callback) {
-    var s = '<div class="modal">'+
+  window.br.confirm = function(title, message, buttons, callback, params) {
+    if (typeof buttons == 'function') {
+      params   = callback;
+      callback = buttons;
+      buttons  = null;
+    }
+    params = params || {};
+    var s = '<div class="modal';
+    if (params.cssClass) {
+      s = s + ' ' + params.cssClass;
+    }
+    s = s + '">'+
             '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>' + title + '</h3></div>' +
             '<div class="modal-body">' + message + '</div>' +
             '<div class="modal-footer">';
-    if (typeof buttons == 'function') {
-      callback = buttons;
+    if (br.isEmpty(buttons)) {
       s = s + '<a href="javascript:;" class="btn btn-primary action-confirm-close" rel="confirm">Yes</a>';
     } else {
       for(var i in buttons) {
