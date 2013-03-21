@@ -1798,11 +1798,11 @@
   }
 
 })(jQuery, window);
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function ($, window) {
 
@@ -1919,20 +1919,34 @@
   }
 
   window.br.prompt = function(title, fields, callback, options) {
+
     options = options || {};
     var s = '<div class="modal">'+
             '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>' + title + '</h3></div>' +
             '<div class="modal-body">';
+
     var inputs = {}
+
     if (br.isObject(fields)) {
       inputs = fields;
     } else {
       inputs[fields] = '';
     }
+
     for(var i in inputs) {
-      s = s + '<label>' + i + '</label>' +
-              '<input type="text" class="span4" value="' + inputs[i] + '" data-click-on-enter=".action-confirm-close" />';
+      if (br.isObject(inputs[i])) {
+        s = s + '<label>' + i + '</label>'
+              + '<input type="text" '
+              + (inputs[i].id ? 'id="'+inputs[i].id+'"' : '')
+              + ' class="span4 ' + inputs[i].class + '"'
+              + ' value="' + inputs[i].value + '"'
+              + ' data-click-on-enter=".action-confirm-close" />';
+      } else {
+        s = s + '<label>' + i + '</label>' +
+                '<input type="text" class="span4" value="' + inputs[i] + '" data-click-on-enter=".action-confirm-close" />';
+      }
     }
+
     s = s + '</div>' +
             '<div class="modal-footer">';
     s = s + '<a href="javascript:;" class="btn btn-primary action-confirm-close" rel="confirm" >Ok</a>';
@@ -1997,14 +2011,14 @@
     }
   }
 
-  $(document).ready(function() { 
+  $(document).ready(function() {
 
     var notAuthorized = false;
 
     $('body').ajaxStart(function() { br.showAJAXProgress(); });
 
     $('body').ajaxStop(function() { br.hideAJAXProgress(); });
-    
+
     $('body').ajaxError(function(event, jqXHR, ajaxSettings, thrownError) {
       if (jqXHR.status == 401) {
         if (!notAuthorized) {
