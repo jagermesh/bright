@@ -525,7 +525,7 @@ class Br extends BrSingleton {
 
         $a = $args[$key];
         if ($type === '&') {
-          if ($a === "") {
+          if (strlen($a) === 0) {
             $repl = "null";
           } else {
             $repl = "'".addslashes($a)."'";
@@ -536,10 +536,10 @@ class Br extends BrSingleton {
           if (is_array($a)) {
             $error = $errmsg = "NOT_A_SCALAR_PLACEHOLDER_$key";
             break;
-          }
-          if ($a === "")
+          } else
+          if (strlen($a) === 0) {
             $repl = "null";
-          else {
+          } else {
             $repl = (preg_match('#^[-]?([1-9][0-9]*|[0-9])($|[.,][0-9]+$)#', $a)) ? str_replace(',', '.', $a) : "'".addslashes($a)."'";
           }
           break;

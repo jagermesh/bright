@@ -26,7 +26,7 @@ class BrObject {
     } else {
       if ($saveDefault) {
         $this->setAttr($name, $default);
-        return $this->getAttr($name); 
+        return $default;
       } else {
         return $default;
       }

@@ -812,14 +812,18 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     $cacheTag = 'MySQLDBProvder:getCachedValue:' . md5($sql) . md5(serialize($args));
 
     $result = br()->cache()->get($cacheTag);
-    
+
     if (!$result && !br()->cache()->exists($cacheTag)) {
-      $result = $this->selectNext($this->internalRunQuery($sql, $args));
-      if (is_array($result)) {
-        $result = array_shift($result);
+      if ($value = $this->selectNext($this->internalRunQuery($sql, $args))) {
+        if (is_array($value)) {
+          $result = array_shift($value);
+        } else {
+          $result = $value;
+        }
       }
       br()->cache()->set($cacheTag, $result);
     }
+
     return $result;
     
   }
