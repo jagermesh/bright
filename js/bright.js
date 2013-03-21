@@ -479,13 +479,27 @@
     this.continueRoute = true;
     this.get = function(name, defaultValue) {
       var vars = document.location.search.replace('?', '').split('&');
+      var vals = {};
       for (var i = 0; i < vars.length; i++) {
         var pair = vars[i].split("=");
-        if (pair[0] == name) {
-          return unescape(pair[1]);
+        if (pair[0].indexOf('[') != -1) {
+          var n = pair[0].substr(0, pair[0].indexOf('['));
+          vals[n] = vals[n] || [];
+          vals[n].push(unescape(pair[1]));
+        } else {
+          vals[pair[0]] = unescape(pair[1]);
         }
       }
-      return defaultValue;
+      if (name) {
+        for (var i in vals) {
+          if (i == name) {
+            return vals[i];
+          }
+        }
+        return defaultValue;
+      } else {
+        return vals;
+      }
     };
     this.anchor = function(defaultValue) {
       var value = document.location.hash.replace('#', '');
@@ -2000,7 +2014,7 @@
       }
     });
 
-    $('input[data-click-on-enter]').live('keypress', function(e) {
+    $(document).on('keypress', 'input[data-click-on-enter]', function(e) {
       if (e.keyCode == 13) { $($(this).attr('data-click-on-enter')).trigger('click'); }
     });
 

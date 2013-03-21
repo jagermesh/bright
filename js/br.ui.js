@@ -214,7 +214,7 @@
       }
     });
 
-    $('input[data-click-on-enter]').live('keypress', function(e) {
+    $(document).on('keypress', 'input[data-click-on-enter]', function(e) {
       if (e.keyCode == 13) { $($(this).attr('data-click-on-enter')).trigger('click'); }
     });
 

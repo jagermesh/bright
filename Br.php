@@ -13,7 +13,15 @@ require_once(__DIR__.'/BrException.php');
 
 function br($array = null, $name = null, $default = null) {
 
-  if (func_num_args() > 0) {
+  if (func_num_args() === 0) {
+    return Br::getInstance();      
+  } else
+  if (func_num_args() === 1) {
+    // if (is_string($array)) {
+      require_once(__DIR__ . '/BrString.php');
+      return new BrString($array);
+    // }
+  } else {
     if (is_array($array) && is_array($name)) {
       $result = null;
       foreach($name as $oneName) {
@@ -34,8 +42,6 @@ function br($array = null, $name = null, $default = null) {
              ? $array[$name] 
              : $default;
     }
-  } else {
-    return Br::getInstance();      
   }
 
 }
