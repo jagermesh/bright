@@ -35,8 +35,12 @@ class BrGenericUploadHandler {
 
     $sizeLimit = min($sizeLimit, $postSize, $uploadSize);
 
-    if (br($this->params, 'checkLogin')) {
-      $login = br()->auth()->checkLogin();
+    if (br($this->params, 'checkLogin') || br($this->params, 'userBasedPath')) {
+      if ($login = br()->auth()->checkLogin()) {
+
+      } else {
+        br()->response()->sendNotAuthorized();
+      }
     }
 
     if (br($this->params, 'url')) {
