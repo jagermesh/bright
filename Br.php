@@ -729,19 +729,41 @@ class Br extends BrSingleton {
     
   } 
 
-  function sendMail($email, $subject, $body) {
+  function sendMail($email, $subject, $body, $params = array()) {
 
     if (!class_exists('PHPMailer')) {
       require_once(__DIR__.'/3rdparty/phpmailer/class.phpmailer.php');
     }
     $mail = new PHPMailer(true);
     try {
-      $from = br()->config()->get('br/Br/sendMail/from', 'noreply@localhost');
+      $from = br()->config()->get('br/Br/sendMail/from', br($params, 'sender', 'noreply@localhost'));
+
       $mail->AddReplyTo($from);
       $mail->AddAddress($email);
       $mail->SetFrom($from);
+
+      if (br($params, 'mailer') == 'smtp') {
+        $mail->Mailer = br($params, 'mailer');
+        $mail->Host = br($params, 'hostname');
+        if (br($params, 'port')) {
+          $mail->Port = br($params, 'port');
+        }
+        if (br($params, 'username')) {
+          $mail->Username = br($params, 'username');
+          $mail->Password = br($params, 'password');
+          $mail->SMTPAuth = true;
+        }
+        if (br($params, 'secure')) {
+          $mail->SMTPSecure = br($params, 'secure');
+        }
+      } else {
+        $mail->Mailer = 'mail';
+        $mail->SMTPSecure = '';
+      }
+
       $mail->Subject = $subject;
-      $mail->MsgHTML($body);
+      $mail->MsgHTML($body);      
+
       br()->log()->writeLn('Sending mail to ' . $email);
       if ($mail->Send()) {
         br()->log()->writeLn('Sent');

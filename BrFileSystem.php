@@ -80,6 +80,13 @@ class BrFileSystem extends BrSingleton {
   
   }
 
+  public function fileNameOnly($fileName) {
+   
+    $pathinfo = pathinfo($fileName);
+    return br($pathinfo, 'filename');
+  
+  }
+
   public function filePath($path) {
    
     return $this->normalizePath(dirname($path));

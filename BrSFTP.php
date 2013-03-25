@@ -137,6 +137,12 @@ class BrSFTP extends BrObject {
 
   }
 
+  public function getServerDir() {
+
+    return $this->currentDirectory;
+
+  }
+
   public function iterateDir($mask, $callback = null) {
 
     if (gettype($mask) == 'string') {
