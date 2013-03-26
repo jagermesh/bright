@@ -1874,9 +1874,15 @@
       s = s + ' ' + params.cssClass;
     }
     s = s + '">'+
-            '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>' + title + '</h3></div>' +
+            '<div class="modal-header"><a class="close" data-dismiss="modal">?</a><h3>' + title + '</h3></div>' +
             '<div class="modal-body">' + message + '</div>' +
             '<div class="modal-footer">';
+    if (params.showDontAskMeAgain) {
+      var dontAskMeAgainTitle = (params.dontAskMeAgainTitle) ? params.dontAskMeAgainTitle : "Don't ask me again";
+      s = s + ' <label style="text-align: left; width: 150px; float: left;" class="checkbox">' +
+                '<input id="showDontAskMeAgain" name="showDontAskMeAgain" type="checkbox" value="1"> ' + dontAskMeAgainTitle +
+                '</label>';
+    }
     if (br.isEmpty(buttons)) {
       s = s + '<a href="javascript:;" class="btn btn-primary action-confirm-close" rel="confirm">Yes</a>';
     } else {
@@ -1890,8 +1896,13 @@
     $(dialog)
       .on('show', function(e) {
         $(this).find('.action-confirm-close').click(function() {
+          if (params.showDontAskMeAgain){
+            var dontAskMeAgain = ($('#showDontAskMeAgain[name=showDontAskMeAgain]:checked').val()) ? true : false;
+            callback.call(dialog, $(this).attr('rel'), dontAskMeAgain);
+          } else {
+            callback.call(dialog, $(this).attr('rel'));
+          }
           $(dialog).modal('hide');
-          callback.call(this, $(this).attr('rel'));
         });
       })
       .on('hide', function(e) {
