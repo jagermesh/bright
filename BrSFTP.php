@@ -137,6 +137,12 @@ class BrSFTP extends BrObject {
 
   }
 
+  public function getCurrentDir() {
+
+    return $this->getServerDir();
+
+  }
+
   public function getServerDir() {
 
     return $this->currentDirectory;

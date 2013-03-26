@@ -57,6 +57,8 @@ class BrFileSystemObject {
 
 class BrFileSystem extends BrSingleton {
 
+  private $currentDir;
+
   public function normalizePath($path) {
    
      return rtrim($path, '/').'/';
@@ -138,6 +140,54 @@ class BrFileSystem extends BrSingleton {
     
   }
   
+  public function getCurrentDir() {
+
+    return $this->currentDir;
+
+  }
+
+  public function changeDir($path, $createIfMissing = false) {
+
+    $newDir = br()->fs()->normalizePath($path);
+    if ($createIfMissing) {
+      $this->makeDir($newDir);      
+    }
+    if (is_dir($newDir)) {
+      $this->currentDir = $newDir;
+    } else {
+      throw new Exception('Can not change folder to ' . $path);
+    }
+
+  }
+
+  public function isFileExists($fileName) {
+
+    // TODO: Check for local path
+    return file_exists($this->getCurrentDir() . $fileName);
+
+  }
+
+  public function renameFile($oldFileName, $newFileName) {
+
+    // TODO: Check for local path
+    return rename($this->getCurrentDir() . $oldFileName, $this->getCurrentDir() . $newFileName);
+
+  }
+
+  public function uploadFile($sourceFilePath, $targetFileName = null) {
+
+    // TODO: Check for local path
+    if ($targetFileName) {
+
+    } else {
+      $targetFileName = $this->fileName($sourceFilePath);
+    }
+
+    return copy($sourceFilePath, $this->getCurrentDir() . $targetFileName);
+    // return file_exists($this->getCurrentDir() . $fileName);
+
+  }
+
   public function createDir($path, $access = 0777) {
 
     if (!$this->makeDir($path, $access)) {

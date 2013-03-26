@@ -119,6 +119,12 @@ class BrFTP extends BrObject {
 
   }
 
+  public function getCurrentDir() {
+
+    return $this->getServerDir();
+
+  }
+
   public function getServerDir() {
 
     return ftp_pwd($this->connectionId);
