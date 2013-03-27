@@ -3,7 +3,7 @@
 }
 
 .template {
-  display: none;  
+  display: none;
 }
 
 .centered {
@@ -15,7 +15,7 @@ textarea.justified {
   box-sizing: border-box;
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
-  -ms-box-sizing: border-box;  
+  -ms-box-sizing: border-box;
   margin-top: 2px;
   margin-bottom: 2px;
 }
@@ -26,7 +26,7 @@ input.justified {
   box-sizing: border-box;
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
-  -ms-box-sizing: border-box;  
+  -ms-box-sizing: border-box;
   margin-top: 2px;
   margin-bottom: 2px;
 }
@@ -45,6 +45,7 @@ input.justified {
 /* Bootstrap fx */
 .navbar .nav > li > img {
   margin-top: 8px;
+  margin-left: 6px;
   margin-right: 6px;
 }
 
@@ -61,7 +62,7 @@ input.justified {
     -webkit-linear-gradient(rgba(255,255,255,.3) 1px, transparent 1px),
     -webkit-linear-gradient(0, rgba(255,255,255,.3) 1px, transparent 1px);
   background-size:100px 100px, 100px 100px, 20px 20px, 20px 20px;
-  background-position:-2px -2px, -2px -2px, -1px -1px, -1px -1px  
+  background-position:-2px -2px, -2px -2px, -1px -1px, -1px -1px
 }
 
 .pattern-carbon {
@@ -77,19 +78,19 @@ input.justified {
     -webkit-radial-gradient(rgba(255,255,255,.1) 15%, transparent 20%) 0 1px,
     -webkit-radial-gradient(rgba(255,255,255,.1) 15%, transparent 20%) 8px 9px;
   background-color:#282828;
-  background-size:16px 16px;  
+  background-size:16px 16px;
 }
 
 .pattern-lined-paper {
-  background-color: #fff; 
-  background-image: 
+  background-color: #fff;
+  background-image:
     -webkit-linear-gradient(0deg, transparent 79px, #abced4 79px, #abced4 81px, transparent 81px),
     -webkit-linear-gradient(#eee .05em, transparent .05em);
-  background-size: 100% 1.2em;; background-color: #fff; 
-  background-image: 
+  background-size: 100% 1.2em;; background-color: #fff;
+  background-image:
     -webkit-linear-gradient(0deg, transparent 79px, #abced4 79px, #abced4 81px, transparent 81px),
     -webkit-linear-gradient(#eee .05em, transparent .05em);
-  background-size: 100% 1.2em;  
+  background-size: 100% 1.2em;
 }
 
 .shadow-paper-box {
@@ -131,12 +132,12 @@ input.justified {
   .navbar-fixed-top .navbar-inner {
     padding: 0px;
     padding-left: 0px;
-    padding-right: 24px;
-  }  
+    padding-right: 5px;
+  }
   .navbar-fixed-top .navbar-inner .container-fluid {
     padding-left: 5px;
-    padding-right: 20px;
-  }  
+    padding-right: 5px;
+  }
   .shadow-paper-box, .shadow-paper-box-fluid {
     margin-top: 10px !important;
     padding: 23px !important;
@@ -174,19 +175,19 @@ input.justified {
 
 h3 {
   font-size: 18px;
-  font-weight: 300; 
+  font-weight: 300;
   margin-bottom: 2px;
 }
 
 h2 {
   font-size: 22px;
-  font-weight: 300; 
+  font-weight: 300;
   margin-bottom: 2px;
 }
 
 h1 {
   font-size: 32px;
-  font-weight: 300; 
+  font-weight: 300;
   margin-bottom: 5px;
 }
 
