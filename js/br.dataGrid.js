@@ -1,8 +1,8 @@
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function ($, window) {
 
@@ -27,19 +27,19 @@
     this.on     = function(event, callback) { this.events.on(event, callback); }
     this.after  = function(event, callback) { this.events.after(event, callback); }
 
-    this.after('insert', function(data) { 
+    this.after('insert', function(data) {
       _this.events.trigger('change', data);
     });
 
-    this.after('update', function(data) { 
+    this.after('update', function(data) {
       _this.events.trigger('change', data);
     });
 
-    this.after('remove', function(data) { 
+    this.after('remove', function(data) {
       _this.events.trigger('change', data);
     });
 
-    this.after('select', function(data) { 
+    this.after('select', function(data) {
       _this.events.trigger('change', data);
     });
 
