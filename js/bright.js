@@ -1879,7 +1879,7 @@
             '<div class="modal-footer">';
     if (params.showDontAskMeAgain) {
       var dontAskMeAgainTitle = (params.dontAskMeAgainTitle) ? params.dontAskMeAgainTitle : "Don't ask me again";
-      s = s + ' <label style="text-align: left; width: 150px; float: left;" class="checkbox">' +
+      s = s + ' <label style="text-align: left; float: left;" class="checkbox">' +
                 '<input id="showDontAskMeAgain" name="showDontAskMeAgain" type="checkbox" value="1"> ' + dontAskMeAgainTitle +
                 '</label>';
     }
