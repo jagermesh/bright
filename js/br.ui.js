@@ -1,8 +1,8 @@
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function ($, window) {
 
@@ -73,10 +73,17 @@
     if (params.cssClass) {
       s = s + ' ' + params.cssClass;
     }
+
     s = s + '">'+
-            '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>' + title + '</h3></div>' +
+            '<div class="modal-header"><h3>' + title + '</h3></div>' +
             '<div class="modal-body">' + message + '</div>' +
             '<div class="modal-footer">';
+    if (params.showDontAskMeAgain) {
+      var dontAskMeAgainTitle = (params.dontAskMeAgainTitle) ? params.dontAskMeAgainTitle : "Don't ask me again";
+      s = s + ' <label style="text-align: left; width: 150px; float: left;" class="checkbox">' +
+                '<input name="showDontAskMeAgain" type="checkbox" value="1"> ' + dontAskMeAgainTitle +
+                '</label>';
+    }
     if (br.isEmpty(buttons)) {
       s = s + '<a href="javascript:;" class="btn btn-primary action-confirm-close" rel="confirm">Yes</a>';
     } else {
@@ -90,8 +97,12 @@
     $(dialog)
       .on('show', function(e) {
         $(this).find('.action-confirm-close').click(function() {
+          if (params.showDontAskMeAgain) {
+            callback.call(dialog, $(this).attr('rel'), $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked'));
+          } else {
+            callback.call(dialog, $(this).attr('rel'));
+          }
           $(dialog).modal('hide');
-          callback.call(this, $(this).attr('rel'));
         });
       })
       .on('hide', function(e) {
@@ -197,14 +208,14 @@
     }
   }
 
-  $(document).ready(function() { 
+  $(document).ready(function() {
 
     var notAuthorized = false;
 
     $('body').ajaxStart(function() { br.showAJAXProgress(); });
 
     $('body').ajaxStop(function() { br.hideAJAXProgress(); });
-    
+
     $('body').ajaxError(function(event, jqXHR, ajaxSettings, thrownError) {
       if (jqXHR.status == 401) {
         if (!notAuthorized) {

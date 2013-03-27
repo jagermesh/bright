@@ -1303,11 +1303,11 @@
   }
 
 })(jQuery, window);
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function ($, window) {
 
@@ -1332,19 +1332,19 @@
     this.on     = function(event, callback) { this.events.on(event, callback); }
     this.after  = function(event, callback) { this.events.after(event, callback); }
 
-    this.after('insert', function(data) { 
+    this.after('insert', function(data) {
       _this.events.trigger('change', data);
     });
 
-    this.after('update', function(data) { 
+    this.after('update', function(data) {
       _this.events.trigger('change', data);
     });
 
-    this.after('remove', function(data) { 
+    this.after('remove', function(data) {
       _this.events.trigger('change', data);
     });
 
-    this.after('select', function(data) { 
+    this.after('select', function(data) {
       _this.events.trigger('change', data);
     });
 
@@ -1798,11 +1798,11 @@
   }
 
 })(jQuery, window);
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function ($, window) {
 
@@ -1873,14 +1873,15 @@
     if (params.cssClass) {
       s = s + ' ' + params.cssClass;
     }
+
     s = s + '">'+
-            '<div class="modal-header"><a class="close" data-dismiss="modal">?</a><h3>' + title + '</h3></div>' +
+            '<div class="modal-header"><h3>' + title + '</h3></div>' +
             '<div class="modal-body">' + message + '</div>' +
             '<div class="modal-footer">';
     if (params.showDontAskMeAgain) {
       var dontAskMeAgainTitle = (params.dontAskMeAgainTitle) ? params.dontAskMeAgainTitle : "Don't ask me again";
       s = s + ' <label style="text-align: left; width: 150px; float: left;" class="checkbox">' +
-                '<input id="showDontAskMeAgain" name="showDontAskMeAgain" type="checkbox" value="1"> ' + dontAskMeAgainTitle +
+                '<input name="showDontAskMeAgain" type="checkbox" value="1"> ' + dontAskMeAgainTitle +
                 '</label>';
     }
     if (br.isEmpty(buttons)) {
@@ -1896,9 +1897,8 @@
     $(dialog)
       .on('show', function(e) {
         $(this).find('.action-confirm-close').click(function() {
-          if (params.showDontAskMeAgain){
-            var dontAskMeAgain = ($('#showDontAskMeAgain[name=showDontAskMeAgain]:checked').val()) ? true : false;
-            callback.call(dialog, $(this).attr('rel'), dontAskMeAgain);
+          if (params.showDontAskMeAgain) {
+            callback.call(dialog, $(this).attr('rel'), $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked'));
           } else {
             callback.call(dialog, $(this).attr('rel'));
           }
@@ -2008,14 +2008,14 @@
     }
   }
 
-  $(document).ready(function() { 
+  $(document).ready(function() {
 
     var notAuthorized = false;
 
     $('body').ajaxStart(function() { br.showAJAXProgress(); });
 
     $('body').ajaxStop(function() { br.hideAJAXProgress(); });
-    
+
     $('body').ajaxError(function(event, jqXHR, ajaxSettings, thrownError) {
       if (jqXHR.status == 401) {
         if (!notAuthorized) {
