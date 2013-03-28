@@ -111,6 +111,24 @@
     $(dialog).modal();
   }
 
+  window.br.error = function(title, message, callback) {
+    var s = '<div class="modal">';
+    if (title !== '') {
+      s = s + '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>' + title + '</h3></div>';
+    }
+    s = s + '<div class="modal-body">' + message + '</div>' +
+            '<div class="modal-footer" style="background-color:red;"><a href="javascript:;" class="btn" data-dismiss="modal">&nbsp;Dismiss&nbsp;</a></div></div>';
+    var dialog = $(s);
+    $(dialog)
+      .on('hide', function(e) {
+        if (callback) {
+          callback.call(this);
+        }
+        dialog.remove();
+      });
+    $(dialog).modal();
+  }
+
   window.br.inform = function(title, message, callback) {
     var s = '<div class="modal">';
     if (title !== '') {
