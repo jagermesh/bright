@@ -70,7 +70,7 @@ class BrString {
     return preg_match_all($pattern, $this->value, $matches, $flags, $offset);
   }
 
-  function regExpReplace($pattern, $replacement , $limit = -1, &$count = NULL) {
+  function replaceRegExp($pattern, $replacement , $limit = -1, &$count = NULL) {
     return preg_replace($pattern, $replacement, $this->value, $limit, $count);
   }
 
@@ -91,6 +91,12 @@ class BrString {
     } else {
       return $result;
     }
+
+  }
+
+  function split($delimiters = ',;') {
+
+    return br(preg_split('/[' . $delimiters . ']/', $this->value))->removeEmptyValues();
 
   }
 

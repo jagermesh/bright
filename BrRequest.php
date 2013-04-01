@@ -78,7 +78,7 @@ class BrRequest extends BrSingleton {
 
       if ($this->isPUT()) {
         parse_str(file_get_contents("php://input"), $this->putVars);
-        if (get_magic_quotes_gpc()) { 
+        if (get_magic_quotes_gpc()) {
           br()->stripSlashes($this->putVars);
         }
       }
@@ -111,9 +111,9 @@ class BrRequest extends BrSingleton {
       $this->domain     = br()->config()->get('br/request/consoleModeBaseDomain', 'localhost');
       $this->host       = br()->config()->get('br/request/consoleModeBaseHost',    'http://'.$this->domain);
       $this->baseUrl    = br()->config()->get('br/request/consoleModeBaseUrl',     '/');
-      
+
     }
-            
+
   }
 
   /**
@@ -133,7 +133,7 @@ class BrRequest extends BrSingleton {
   function isSelfReferer() {
 
     return strpos($this->referer(), $this->host.$this->baseUrl) !== false;
-    
+
   }
 
   /**
@@ -152,10 +152,10 @@ class BrRequest extends BrSingleton {
   }
 
   function isAtBaseUrl() {
-  
+
     return $this->isAt($this->baseUrl.'$');
-    
-  }  
+
+  }
 
   function path() {
 
@@ -180,7 +180,7 @@ class BrRequest extends BrSingleton {
   function url() {
 
     return $this->url;
-    
+
   }
 
   function relativeUrl() {
@@ -201,9 +201,14 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function build($params) {
+  function build($url, $params = array()) {
 
-    $result = $this->baseUrl() . $this->relativeUrl() . $this->scriptName() . '?1=1';
+    if ($params) {
+      $result = $url . '?1=1';
+    } else {
+      $params = $url;
+      $result = $this->baseUrl() . $this->relativeUrl() . $this->scriptName() . '?1=1';
+    }
     $first = true;
     foreach($params as $name => $value) {
       if (is_array($value)) {
@@ -362,9 +367,9 @@ class BrRequest extends BrSingleton {
   function put($name = null, $default = null) {
 
     if ($name) {
-      return br($this->putVars, $name, $default);      
+      return br($this->putVars, $name, $default);
     } else {
-      return $this->putVars;      
+      return $this->putVars;
     }
 
   }
@@ -384,14 +389,14 @@ class BrRequest extends BrSingleton {
   function isFilesUploaded() {
 
     return count($_FILES);
-    
+
   }
 
   function file($name) {
 
     $result = br($_FILES, $name);
     return $result;
-    
+
   }
 
   function fileTmp($name) {
@@ -399,7 +404,7 @@ class BrRequest extends BrSingleton {
     if ($this->isFileUploaded($name)) {
       return br($this->file($name), 'tmp_name');
     }
-    
+
   }
 
   function fileName($name) {
@@ -407,7 +412,7 @@ class BrRequest extends BrSingleton {
     if ($this->isFileUploaded($name)) {
       return br($this->file($name), 'name');
     }
-    
+
   }
 
   function fileSize($name) {
@@ -415,7 +420,7 @@ class BrRequest extends BrSingleton {
     if ($this->isFileUploaded($name)) {
       return br($this->file($name), 'size');
     }
-    
+
   }
 
   function fileError($name) {
@@ -425,11 +430,11 @@ class BrRequest extends BrSingleton {
         return br($this->file($name), 'error');
       }
     }
-    
+
   }
 
   function isFileUploaded($name) {
-    
+
     if ($this->isFilesUploaded()) {
       if ($result = $this->file($name)) {
         return br($result, 'tmp_name') &&
@@ -443,7 +448,7 @@ class BrRequest extends BrSingleton {
   }
 
   function moveUploadedFile($name, $destFolder) {
-  
+
     if ($this->isFileUploaded($name)) {
       $destFolder = br()->fs()->normalizePath($destFolder);
       if (br()->fs()->makeDir($destFolder)) {
@@ -454,7 +459,7 @@ class BrRequest extends BrSingleton {
     } else {
       throw new BrException("Cannot move file - it's not uploaded");
     }
-    
+
   }
 
   function continueRoute($value) {
@@ -470,7 +475,7 @@ class BrRequest extends BrSingleton {
   }
 
   function route($method, $path, $func = null) {
-    
+
     if ($func) {
 
     } else {
@@ -493,7 +498,7 @@ class BrRequest extends BrSingleton {
   }
 
   function check($condition, $func) {
-    
+
     if (!$this->routeComplete()) {
       if ($condition) {
         $this->continueRoute(false);
@@ -506,13 +511,13 @@ class BrRequest extends BrSingleton {
   }
 
   function routeGET($path, $func) {
-    
+
     return $this->route($path, $func);
 
   }
 
   function routePOST($path, $func) {
-    
+
     return $this->route('POST', $path, $func);
 
   }
@@ -524,7 +529,7 @@ class BrRequest extends BrSingleton {
   }
 
   function routeDELETE($path, $func) {
-    
+
     return $this->route('DELETE', $path, $func);
 
   }
@@ -549,7 +554,7 @@ class BrRequest extends BrSingleton {
 
       br()->response()->send404();
     }
-    
+
   }
 
 }

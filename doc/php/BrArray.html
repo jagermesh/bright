@@ -1,0 +1,58 @@
+{@../head.html}
+
+  <body>
+
+{@../navigation.html}
+
+    <div class="container-fluid fluid-box">
+
+      <div class="row">
+
+{@sidebar.html}
+
+        <div class="span9">
+
+          <div class="row">
+            <div class="span12">
+              <h1>BrArray <small>code sugar around array</small></h1>
+
+              <p>This class is developed because PHP sometimes is very confusing in parameters and calling conventions.</p>
+              <p>You don't need to create objects of this class directly, rather use <code>br()</code> magic function. For example:</p>
+              <pre>
+$array = br($array);
+</pre>
+              <p>In most cases you don't even need BrArray itself but need it's great functions. For example:</p>
+              <pre>
+echo(br($array)->length());
+
+if (br($array)->exists('some string')) {
+  echo('some string exists in this array');
+}
+
+echo(br($array)->indexOf('Some string'));
+</pre>
+
+              <h3>Object members</h3>
+
+              <table class="table table-stripped table-bordered">
+                <thead>
+                  <tr><th>Method/property</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>exists($value)</td><td>Find value in array</td></tr>
+                  <tr><td>length()</td><td>Return array length</td></tr>
+                  <tr><td>indexOf($value)</td><td>Return index of value if it's exists</td></tr>
+                  <tr><td>removeEmptyValues()</td><td>Return array with empty values removed.</td></tr>
+                </tbody>
+              </table>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </body>
+</html>

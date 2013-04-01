@@ -1,0 +1,82 @@
+{@../head.html}
+
+  <body>
+
+{@../navigation.html}
+
+    <div class="container-fluid fluid-box">
+
+      <div class="row">
+
+{@sidebar.html}
+
+        <div class="span9">
+
+          <div class="row">
+            <div class="span12">
+              <h1>br() <small>magic function to access everything</small></h1>
+
+              <p>This function is the key of framework. Depending on calling paramaters it will work as best as you need to.</p>
+
+              <h2>br()</h2>
+
+              <p>When called without paramateres - instance of <a href="{/}php/Br.html">Br</a> class will be returned. Via calling to br() you can access all Bright objects and functions. For example:</p>
+
+              <pre>
+// db
+br()->db()->runQuery('UPDATE table SET field = ? WHERE key = ?', $val, $keyValue);
+
+// session
+$value = br()->session()->get('name');
+
+// authorization
+$login = br()->auth()->getLogin();
+
+// cache
+$value = br()->cache()->get('name');
+
+// routing
+br()->
+  request()->
+    route('/', function() {
+      br()->response()->send404();
+    });
+
+// file system
+br()->fs()->maekDir('/path/to/dir');
+
+// Logger
+br()->log()->writeLn('log message');
+
+// etc...
+</pre>
+
+              <h2>br($value)</h2>
+
+              <p>When called with one paramater - instance of the corresponsing "sugar syntax" class will be returned: <a href="{/}php/BrString.html">BrString</a> if $value is a string, <a href="{/}php/BrArray.html">BrArray</a> if $value is an array.</p>
+
+              <h2>br($array, $keyName, $defaultValue = null)</h2>
+
+              <p>When called with more that one paramateres - it will replace you following code:</p>
+              <pre>
+$value = br($_POST, 'postParamName', 'defaultValue');
+
+// equal to
+
+if (isset($_POST['postParamName'])) {
+  $value = $_POST['postParamName'];
+} else {
+  $value = 'defaultValue';
+}
+</pre>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </body>
+</html>

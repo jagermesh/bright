@@ -1,0 +1,80 @@
+{@../head.html}
+
+  <body>
+
+{@../navigation.html}
+
+    <div class="container-fluid fluid-box">
+
+      <div class="row">
+
+{@sidebar.html}
+
+        <div class="span9">
+
+          <div class="row">
+            <div class="span12">
+              <h1>BrString <small>code sugar around string</small></h1>
+
+              <p>This class is developed because PHP sometimes is very confusing in parameters and calling conventions.</p>
+              <p>You don't need to create objects of this class directly, rather use <code>br()</code> magic function. For example:</p>
+              <pre>
+$s = br('Some string');
+</pre>
+              <p>In most cases you don't even need BrString itself but need it's great functions. For example:</p>
+              <pre>
+echo(br('Some string')->trim());
+
+if (br($fileName)->like('%txt')) {
+  echo('Text file');
+}
+
+if (br($fileName)->match('|txt$|')) {
+  echo('Also text file');
+}
+
+echo(br('Some string')->indexOf('ome'));
+</pre>
+
+              <h3>Object members</h3>
+
+              <table class="table table-stripped table-bordered">
+                <thead>
+                  <tr><th>Method/property</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>like($pattern)</td><td>Check string against syntax of SQL command LIKE</td></tr>
+                  <tr><td>inArray($array)</td><td>Find string in array</td></tr>
+                  <tr><td>trim($charlist = " \t\n\r\0\x0B")</td><td>Trim empty spaces from beginning and end of the string</td></tr>
+                  <tr><td>trimLeft($charlist = " \t\n\r\0\x0B")</td><td>Trim empty spaces from beginning of the string</td></tr>
+                  <tr><td>trimRight($charlist = " \t\n\r\0\x0B")</td><td>Trim empty spaces from end of the string</td></tr>
+                  <tr><td>length()</td><td>Return string length</td></tr>
+                  <tr><td>toLowerCase()</td><td>Convert string to lower case</td></tr>
+                  <tr><td>toUpperCase()</td><td>Convert string to upper case</td></tr>
+                  <tr><td>substring($start = 0, $length = 0xFFFFFFF)</td><td>Return substring of the string</td></tr>
+                  <tr><td>replace/replaceIgnoreCase($search, $replace, &$count = NULL)</td><td>Replace string occurance</td></tr>
+                  <tr><td>replaceRegExp($pattern, $replacement , $limit = -1, &$count = NULL)</td><td>Replace string occurance using regular expression</td></tr>
+                  <tr><td>match/matchAll($pattern, &$matches = NULL, $flags = 0, $offset = 0)</td><td>Match regular expression</td></tr>
+                  <tr><td>charAt($index)</td><td>Return chart at $index position</td></tr>
+                  <tr><td>indexOf($search)</td><td>Return index of substring if it's exists</td></tr>
+                  <tr><td>subst($patern, ...array of values...)</td><td>Substitute placholders with values. For example:
+<pre>
+$sql = br('SELECT * FROM table WHERE id = ?')->subst(1);
+echo($sql);
+
+// SELECT * FROM table WHERE id = 1
+</pre>                  </td></tr>
+                  <tr><td>split($delimiters = ',;')</td><td>Convert string to array.</td></tr>
+                </tbody>
+              </table>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </body>
+</html>

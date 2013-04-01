@@ -14,13 +14,17 @@ require_once(__DIR__.'/BrException.php');
 function br($array = null, $name = null, $default = null) {
 
   if (func_num_args() === 0) {
-    return Br::getInstance();      
+    return Br::getInstance();
   } else
   if (func_num_args() === 1) {
+    if (is_array($array)) {
+      require_once(__DIR__ . '/BrArray.php');
+      return new BrArray($array);
+    } else {
     // if (is_string($array)) {
       require_once(__DIR__ . '/BrString.php');
       return new BrString($array);
-    // }
+    }
   } else {
     if (is_array($array) && is_array($name)) {
       $result = null;
@@ -34,12 +38,12 @@ function br($array = null, $name = null, $default = null) {
         return $default;
       }
     } else {
-      return ( is_array($array) && 
-               strlen($name) && 
-               array_key_exists($name, $array) && 
+      return ( is_array($array) &&
+               strlen($name) &&
+               array_key_exists($name, $array) &&
                ($array[$name] || is_bool($array[$name]) || (is_scalar($array[$name]) && strlen($array[$name])))
              )
-             ? $array[$name] 
+             ? $array[$name]
              : $default;
     }
   }
@@ -53,17 +57,17 @@ if (!function_exists('debug')) {
     $args = func_get_args();
     foreach($args as $var) {
       br()->log()->writeLn($var, 'DBG');
-      
+
       $message = print_r($var, true);
       if (br()->isConsoleMode()) {
-        // echo($message);      
+        // echo($message);
         // echo("\n");
       } else
       if (br()->request()->isLocalHost()) {
-        include(__DIR__.'/templates/DebugMessage.html');      
+        include(__DIR__.'/templates/DebugMessage.html');
       }
     }
-    
+
   }
 
 }
@@ -72,10 +76,10 @@ if (!function_exists('callstack')) {
 
   function callStack() {
 
-    br()->log()->callStack(); 
-    
+    br()->log()->callStack();
+
   }
-  
+
 }
 
 if (!function_exists('logme')) {
@@ -84,11 +88,11 @@ if (!function_exists('logme')) {
 
     $args = func_get_args();
     foreach($args as $var) {
-      br()->log()->writeLn($var);      
+      br()->log()->writeLn($var);
     }
-    
+
   }
-  
+
 }
 
 class Br extends BrSingleton {
@@ -100,7 +104,7 @@ class Br extends BrSingleton {
     $this->frameWorkPath = str_replace('\\', '/', rtrim(__DIR__, '/').'/');
     $this->processId = null;
     parent::__construct();
-    
+
   }
 
   public function __call($name, $arguments) {
@@ -167,7 +171,7 @@ class Br extends BrSingleton {
   function db($name = null) {
 
     return $this->DataBase($name);
-    
+
   }
 
   private $scriptName = null;
@@ -176,79 +180,79 @@ class Br extends BrSingleton {
   private $APIPath = null;
   private $frameWorkPath = null;
   private $application = null;
-  
+
   function saveCallerScript($scriptPath) {
-  
+
     $this->basePath = $this->fs()->filePath($scriptPath);
     $this->scriptName = $this->fs()->fileName($scriptPath);
     $this->appPath = $this->basePath.'app/';
     $this->APIPath = $this->basePath.'api/';
     $this->setTemplatesPath($this->basePath.'templates/');
-    
+
   }
-  
+
   function scriptName() {
-  
+
     return $this->scriptName;
-    
+
   }
-  
+
   function atBasePath($path) {
-  
+
     return $this->basePath.ltrim($path, '/');
-    
+
   }
-  
+
   function basePath() {
-  
+
     return $this->basePath;
-    
+
   }
-  
+
   function atAppPath($path) {
-  
+
     return $this->appPath.ltrim($path, '/');
-    
+
   }
-  
+
   function atAPIPath($path) {
-  
+
     return $this->APIPath.ltrim($path, '/');
-    
+
   }
-  
+
   function setTemplatesPath($templatesPath) {
-  
+
     $this->templatesPath = $templatesPath;
-    
+
   }
-  
+
   function templatesPath() {
-  
+
     return $this->templatesPath;
-    
+
   }
-  
+
   function atTemplatesPath($path) {
-  
+
     return $this->templatesPath.ltrim($path, '/');
-    
+
   }
-  
+
   function atFrameWorkPath($path) {
-  
+
     return $this->frameWorkPath.$path;
-    
+
   }
 
   function removeEmptyKeys($array) {
-  
+
     $result = array();
     foreach($array as $key => $value) {
       $go = false;
       if (is_array($value)) {
         $value = br()->RemoveEmptyKeys($value);
-        $go = $value; 
+        $go = $value;
       } else {
         $go = strlen($value);
       }
@@ -257,7 +261,7 @@ class Br extends BrSingleton {
       }
     }
     return $result;
-    
+
   }
 
   function isMultiArray($array) {
@@ -298,20 +302,20 @@ class Br extends BrSingleton {
     }
 
     return $result;
-    
+
   }
 
   function isConsoleMode() {
 
     return (!array_key_exists('REQUEST_METHOD', $_SERVER));
-    
+
   }
 
   function getMicrotime(){
-    
+
     list($usec, $sec) = explode(" ",microtime());
     return ((float)$usec + (float)$sec);
-    
+
   }
 
   function placeholder() {
@@ -323,11 +327,11 @@ class Br extends BrSingleton {
       return 'ERROR:'.$error;
     else
       return $result;
-    
+
   }
 
   function assert($value, $error = null) {
-    
+
     if (!$value) {
       // if ($error && br()->isConsoleMode()) {
       //   echo($error . "\n");
@@ -335,7 +339,7 @@ class Br extends BrSingleton {
       throw new BrAssertException($error ? $error : 'Assertion error');
       // }
     }
-    
+
   }
 
   function importAtBasePath($fileName) {
@@ -349,13 +353,13 @@ class Br extends BrSingleton {
     $FileName = 'Br'.$FileName.'.php';
 
     require_once(__DIR__ . '/' . $FileName);
-    
+
   }
 
   function importDataSource($name) {
 
     require_once(__DIR__ . '/datasources/' . $name. '.php');
-    
+
   }
 
   function import($FileName) {
@@ -370,7 +374,7 @@ class Br extends BrSingleton {
     } else {
       return false;
     }
-    
+
   }
 
   function formatDuration($duration) {
@@ -389,7 +393,7 @@ class Br extends BrSingleton {
     }
 
     $result = '';
-    
+
     if ($secs) {
       $result = number_format($secs, 3);
     }
@@ -420,7 +424,7 @@ class Br extends BrSingleton {
     }
 
     $result = '';
-    
+
     if ($secs) {
       $result = number_format($secs, 3).' '.'secs';
     }
@@ -445,29 +449,29 @@ class Br extends BrSingleton {
     while (false !== ($start = $p = strpos($tmpl, "?", $p))) {
 
       switch ($c = substr($tmpl, ++$p, 1)) {
-        case '&': 
-        case '%': 
-        case '@': 
+        case '&':
+        case '%':
+        case '@':
         case '#':
-          $type = $c; 
-          ++$p; 
+          $type = $c;
+          ++$p;
           break;
         default:
-          $type = ''; 
+          $type = '';
           break;
       }
 
       if (preg_match('/^((?:[^\s[:punct:]]|_)+)/', substr($tmpl, $p), $pock)) {
 
         $key = $pock[1];
-        if ($type != '#') 
+        if ($type != '#')
           $has_named = true;
         $p += strlen($key);
 
       } else {
 
         $key = $i;
-        if ($type != '#') 
+        if ($type != '#')
           $i++;
 
       }
@@ -489,7 +493,7 @@ class Br extends BrSingleton {
 
     list ($compiled, $tmpl, $has_named) = $compiled;
 
-    if ($has_named) 
+    if ($has_named)
       $args = @$args[0];
 
     $p   = 0;
@@ -507,7 +511,7 @@ class Br extends BrSingleton {
       $errmsg = '';
 
       do {
-        
+
         if (!isset($args[$key]))
           $args[$key] = "";
 
@@ -581,10 +585,10 @@ class Br extends BrSingleton {
 
       } while (false);
 
-      if ($errmsg) 
+      if ($errmsg)
         $compiled[$num]['error'] = $errmsg;
 
-      if (!$error) 
+      if (!$error)
         $out .= $repl;
 
     }
@@ -618,7 +622,7 @@ class Br extends BrSingleton {
     throw new BrException($error ? $error : "Critical error");
 
   }
-  
+
   function halt($check, $error = null) {
 
     if (!$error) {
@@ -630,41 +634,41 @@ class Br extends BrSingleton {
     }
 
   }
-  
+
   function fromJSON($json, $default = null) {
-  
+
     $result = json_decode($json, true);
     if (!$result) {
       $result = $default;
     }
     return $result;
-    
+
   }
-   
+
   function toJSON($data) {
-  
+
     return json_encode($data);
-    
+
   }
 
   public function defaultConfig() {
-    
+
   }
-    
-  function html2text($html) { 
+
+  function html2text($html) {
 
     return $this->HTML()->toText($html);
 
   }
 
-  function text2html($html) { 
+  function text2html($html) {
 
     return $this->HTML()->fromText($html);
 
   }
 
   function guid() {
-     
+
     // The field names refer to RFC 4122 section 4.1.2
     return sprintf('%04x%04x-%04x-%03x4-%04x-%04x%04x%04x',
       mt_rand(0, 65535), mt_rand(0, 65535), // 32 bits for "time_low"
@@ -674,7 +678,7 @@ class Br extends BrSingleton {
          // 8 bits, the last two of which (positions 6 and 7) are 01, for "clk_seq_hi_res"
          // (hence, the 2nd hex digit after the 3rd hyphen can only be 1, 5, 9 or d)
          // 8 bits for "clk_seq_low"
-      mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535) // 48 bits for "node"  
+      mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535) // 48 bits for "node"
     );
 
   }
@@ -696,8 +700,8 @@ class Br extends BrSingleton {
     $key1_pos  = rand($rand2_pos + 1, strlen($result2)-1);
     $result3 = substr_replace($result2, $key1_len, $key1_pos, 0);
     return $result3;
-  
-  } 
+
+  }
 
   function decryptInt($num) {
 
@@ -722,12 +726,12 @@ class Br extends BrSingleton {
         }
       } else {
         return null;
-      }    
+      }
     } else {
       return null;
-    }  
-    
-  } 
+    }
+
+  }
 
   function sendMail($email, $subject, $body, $params = array()) {
 
@@ -762,7 +766,7 @@ class Br extends BrSingleton {
       }
 
       $mail->Subject = $subject;
-      $mail->MsgHTML($body);      
+      $mail->MsgHTML($body);
 
       br()->log()->writeLn('Sending mail to ' . $email);
       if ($mail->Send()) {
@@ -779,7 +783,7 @@ class Br extends BrSingleton {
   }
 
   function inc(&$var, $secondVar, $glue = ', ') {
-    
+
     if (is_integer($var)) {
       $var = $var + $secondVar;
     } else {
@@ -788,13 +792,13 @@ class Br extends BrSingleton {
 
   }
 
-  function stripSlashes(&$element) { 
-    if (is_array($element)) { 
+  function stripSlashes(&$element) {
+    if (is_array($element)) {
       foreach($element as $key => $value) {
-        $this->stripSlashes($element[$key]); 
+        $this->stripSlashes($element[$key]);
       }
     } else {
-      $element = stripslashes($element); 
+      $element = stripslashes($element);
     }
   }
 
@@ -803,7 +807,7 @@ class Br extends BrSingleton {
   function formatBytes($size) {
     if ($size > 0) {
       $unit = array('b', 'kb', 'mb', 'gb', 'tb', 'pb');
-      return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];      
+      return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
     } else {
       return '0 b';
     }
@@ -826,6 +830,6 @@ class Br extends BrSingleton {
     return $this->processId;
 
   }
-  
+
 }
 
