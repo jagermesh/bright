@@ -1,3 +1,3 @@
-# What is it?
+# Bright Web Development framework
 
-Something awesome. Readme coming sooon....
+If you are ready for incomplete documentation - [here it is](http://brightfw.com/) :)
