@@ -1,8 +1,8 @@
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function ($, window) {
 
@@ -96,7 +96,7 @@
           _this.dataSource.update(editorRowid, data, function(result) {
             if (result) {
               if (andClose) {
-                $editForm.modal('hide');                
+                $editForm.modal('hide');
               }
               if (callback) {
                 callback.call(this);
@@ -107,7 +107,7 @@
           _this.dataSource.insert(data, function(result, response) {
             if (result) {
               if (andClose) {
-                $editForm.modal('hide');                
+                $editForm.modal('hide');
               } else {
                 editorRowid = response.rowid;
                 _this.editorConfigure(false);
@@ -121,7 +121,7 @@
       }
     }
     this.init = function() {
-        
+
       if ($.datepicker) {
         $('.datepicker').each(function() {
           $(this).datepicker({ dateFormat: $(this).attr('data-format') });
@@ -147,7 +147,7 @@
       });
 
       return this;
-    }    
+    }
     this.showEditor = function(rowid, isCopy) {
       editorRowid = rowid;
       _this.editorConfigure(isCopy);
@@ -187,8 +187,13 @@
           }
         }, { disableEvents: true });
       } else {
+        $editForm.find('select.data-field').each(function() {
+          if (window.Select2) {
+            $(this).select2();
+          }
+        });
         _this.events.trigger('showEditor');
-        $editForm.modal('show');        
+        $editForm.modal('show');
       }
     }
 

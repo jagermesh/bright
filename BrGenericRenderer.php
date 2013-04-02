@@ -11,7 +11,7 @@
 require_once(br()->atFrameworkPath('3rdparty/mustache/Mustache.php'));
 
 class BrGenericRenderer extends BrObject {
-  
+
   private $templates = array();
   private $vars = array();
   protected $params = array();
@@ -22,27 +22,27 @@ class BrGenericRenderer extends BrObject {
     if (file_exists($templateFile)) {
       $this->templates[] = array('file' => $templateFile);
     }
-    
+
   }
 
   function getTemplates() {
 
     return $this->templates;
-    
+
   }
 
   public function assign($name, $values) {
-    
+
     $this->vars[$name] = $values;
 
   }
 
   function fetchString($string, $subst= array()) {
-    
+
   }
 
   function fetch($templateName, $subst= array()) {
-    
+
   }
 
   public function configure($params = array()) {
@@ -87,7 +87,7 @@ class BrGenericRenderer extends BrObject {
       $translation = br()->config()->get('translation');
       $body = str_replace($matches[0], br($translation, $matches[1], $matches[1]), $body);
     }
-    // 
+    //
     // replace {login:var-name} with config variable value
     while (preg_match('/[{]login.([^}]+)[}]/', $body, $matches)) {
       $vars = preg_split('/[ ]/', $matches[1]);
@@ -140,6 +140,22 @@ class BrGenericRenderer extends BrObject {
                     $body = str_replace($match[0], '', $body);
                   }
                   break;
+                case '!in':
+                  $values = preg_split('~,~', $value);
+                  $ok = true;
+                  foreach($values as $value) {
+                    $value = trim(trim($value), "'\"");
+                    if (br($login, $field) == $value) {
+                      $ok = false;
+                      break;
+                    }
+                  }
+                  if ($ok) {
+                    $body = str_replace($match[0], $match[2], $body);
+                  } else {
+                    $body = str_replace($match[0], '', $body);
+                  }
+                  break;
                 case '==':
                   $value = trim(trim($value, "'"), '"');
                   if (br($login, $field) == $value) {
@@ -168,9 +184,9 @@ class BrGenericRenderer extends BrObject {
           }
         }
       }
-      $body = preg_replace('/[{][-][}].+?[{]-[}]/sm', '', $body);      
+      $body = preg_replace('/[{][-][}].+?[{]-[}]/sm', '', $body);
     } else {
-      $body = preg_replace('/[{][$][^}]*?[}].+?[{][$][}]/sm', '', $body);      
+      $body = preg_replace('/[{][$][^}]*?[}].+?[{][$][}]/sm', '', $body);
       $body = preg_replace('/[{][-][}]/sm', '', $body);
     }
 

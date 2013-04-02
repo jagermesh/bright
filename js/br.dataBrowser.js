@@ -330,6 +330,11 @@
               }
             }, { disableEvents: true });
           } else {
+            $editForm.find('select.data-field').each(function() {
+              if (window.Select2) {
+                $(this).select2();
+              }
+            });
             _this.events.trigger('showEditor');
             $editForm.modal('show');
           }
