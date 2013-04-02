@@ -34,6 +34,12 @@ class BrArray {
 
   }
 
+  function split() {
+
+    return $this->value;
+
+  }
+
   function removeEmptyValues() {
 
     $result = array();
