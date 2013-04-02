@@ -22,6 +22,7 @@ $result .= br()->fs()->loadFromFile($scriptsPath . 'br.dataGrid.js');
 $result .= br()->fs()->loadFromFile($scriptsPath . 'br.dataCombo.js');
 $result .= br()->fs()->loadFromFile($scriptsPath . 'br.editable.js');
 $result .= br()->fs()->loadFromFile($scriptsPath . 'br.ui.js');
+$result .= br()->fs()->loadFromFile($scriptsPath . 'br.clipboard.js');
 // $result .= br()->fs()->loadFromFile($scriptsPath . 'br.user.js');
 
 br()->log('Saving to ' . $resultScriptFile);
