@@ -4,20 +4,26 @@
 
 {@../navigation.html}
 
-    <div class="container fluid-box">
+    <div class="container-fluid fluid-box">
 
       <div class="row">
-        <div class="span12">
-          <h1>Bright Web Development framework</h1>
-          <p>Bright was designed to be simple and flexible. Let's check it out.</p>
-        </div>
-      </div>
 
-      <div class="row">
-        <div class="span12">
-          <h2>1. Quick start.</h2>
-          <p>The easiest way to create web site with front and and backend is following. I'm giving instructions for Mac platform with GIT as version control system.</p>
-          <p>First of al you need folder for your project. Please create directory:<p>
+{@sidebar.html}
+
+        <div class="span9">
+
+          <div class="row">
+            <div class="span12">
+              <h1>Bright Web Development framework</h1>
+              <p>Bright was designed to be simple and flexible. Let's check it out.</p>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="span12">
+              <h2>1. Quick start.</h2>
+              <p>The easiest way to create web site with front and and backend is following. I'm giving instructions for Mac platform with GIT as version control system.</p>
+              <p>First of al you need folder for your project. Please create directory:<p>
 <pre>
 mkdir mysite
 cd ./mysite
@@ -32,14 +38,14 @@ git clone https://github.com/jagermesh/bright.git bright
 cd ./bright/tools
 php -f init.php web
 </pre>
-          <p>That's it. You have your new web site ready. If you created your project under apache document root folder you must be able to open it via <a target="_blank" href="http://localhost/mysite/">http://localhost/mysite/</a></p>
-        </div>  
-      </div>
+              <p>That's it. You have your new web site ready. If you created your project under apache document root folder you must be able to open it via <a target="_blank" href="http://localhost/mysite/">http://localhost/mysite/</a></p>
+            </div>
+          </div>
 
-      <div class="row">
-        <div class="span12">
-          <h2>2. Manual project creation.</h2>
-          <p>Same as before first of al you need folder for your project. Please create directory:<p>
+          <div class="row">
+            <div class="span12">
+              <h2>2. Manual project creation.</h2>
+              <p>Same as before first of al you need folder for your project. Please create directory:<p>
 <pre>
 mkdir mysite
 cd ./mysite
@@ -49,18 +55,18 @@ cd ./mysite
 git init
 git clone https://github.com/jagermesh/bright.git bright
 </pre>
-          <p>Like many others frameworks Bright expect some predefeind folders structure of your project. But comparing to other player it's not that complex:</p>
-          <table class="table table-stripped table-bordered">
-            <thead>
-              <tr>
-                <th>File/Path</th>
-                <th>Description</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>/.htaccess</td>
-                <td>
+              <p>Like many others frameworks Bright expect some predefeind folders structure of your project. But comparing to other player it's not that complex:</p>
+              <table class="table table-stripped table-bordered">
+                <thead>
+                  <tr>
+                    <th>File/Path</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>/.htaccess</td>
+                    <td>
 <p>Typical "rewriter"</p>
 <pre>
 RewriteEngine On
@@ -116,6 +122,8 @@ require_once('/bright/Br.php');
 </pre>
           <p>And use magic br() function to access Bright helpers.</p>
         </div>
+      </div>
+      </div>
       </div>
 
     </div>
