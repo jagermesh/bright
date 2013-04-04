@@ -153,6 +153,9 @@
             br.growlError(title + ' must be filled');
             this.focus();
             ok = false;
+          } else
+          if (br.isEmpty(val)) {
+            data[$(this).attr('name')] = '';
           } else {
             data[$(this).attr('name')] = val;
           }

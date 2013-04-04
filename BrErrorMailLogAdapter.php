@@ -15,7 +15,7 @@ class BrErrorMailLogAdapter extends BrGenericLogAdapter {
   function writeError($message) {
 
     if (br()->request()->isLocalHost() && !br()->isConsoleMode()) {
-      
+
     } else {
       $email = br()->config()->get('br/BrErrorHandler/exceptionHandler/sendErrorsTo');
       if (!$email) {
@@ -49,7 +49,7 @@ class BrErrorMailLogAdapter extends BrGenericLogAdapter {
   }
 
   function writeMessage($message, $group = 'MSG') {
-    
+
     if ($group == 'ERR') {
 
       $this->writeError($message);
@@ -57,9 +57,9 @@ class BrErrorMailLogAdapter extends BrGenericLogAdapter {
     }
 
   }
-  
+
   function writeDebug($message) {
 
   }
-  
+
 }
