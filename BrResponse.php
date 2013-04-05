@@ -168,12 +168,17 @@ class BrResponse extends BrSingleton {
 
   }
 
-  function sendSuccess() {
+  function sendSuccess($body = null) {
 
     if (!headers_sent()) {
       header('HTTP/1.0 200 OK');
-      exit();
     }
+
+    if ($body) {
+      echo($body);
+    }
+
+    exit();
 
   }
 

@@ -1551,11 +1551,11 @@
   }
 
 })(jQuery, window);
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function ($, window) {
 
@@ -1577,14 +1577,14 @@
 
     this.val = function(value) {
       if (value !== undefined) {
-        $(this.selector).val(value); 
+        $(this.selector).val(value);
       }
       return $(this.selector).val();
     }
 
     this.valOrNull = function() {
       var val = this.val();
-      return br.isEmpty(val) ? null : val; 
+      return br.isEmpty(val) ? null : val;
     }
 
     function storageTag(c) {
@@ -1604,7 +1604,8 @@
       var nameField = options.nameField || 'name';
       var hideEmptyValue = options.hideEmptyValue || false;
       var levelField = options.levelField || null;
-      var emptyValue = options.emptyValue || '--any--';
+      var emptyName = (typeof options.emptyName == 'undefined' ? '--any--' : options.emptyName);
+      var emptyValue = (typeof options.emptyValue == 'undefined' ? '' : options.emptyValue);
       var selectedValue = options.selectedValue || null;
       var selectedValueField = options.selectedValueField || null;
 
@@ -1617,7 +1618,7 @@
         $(this).html('');
         var s = '';
         if (!hideEmptyValue) {
-          s = s + '<option value="">' + emptyValue + '</option>';
+          s = s + '<option value="' + emptyValue + '">' + emptyName + '</option>';
         }
         for(var i in data) {
           if (!selectedValue && selectedValueField) {
@@ -1631,7 +1632,7 @@
             for(var k = 0; k < margin; k++) {
               s = s + '&nbsp;';
             }
-          }        
+          }
           s = s + data[i][nameField];
           s = s + '</option>';
         }
@@ -1644,7 +1645,7 @@
         }
 
       });
-    
+
       _this.events.trigger('load', data);
 
       if (window.Select2) {
@@ -1694,7 +1695,7 @@
       _this.events.trigger('change');
       if (window.Select2) {
         $(this).select2();
-      }      
+      }
     });
 
   }
