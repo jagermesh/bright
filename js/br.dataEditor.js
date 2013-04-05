@@ -11,6 +11,7 @@
     var _this = this;
     var editorRowid = null;
     var active = false;
+    var goodHide = false;
 
     this.options = options || {};
     this.options.noun = this.options.noun || '';
@@ -44,6 +45,10 @@
     }
     this.unLockEditor = function() {
       $('.action-save', $editForm).removeClass('disabled');
+    }
+    this.hide = function() {
+      goodHide = true;
+      $editForm.modal('hide');
     }
     this.editorConfigure = function(isCopy) {
       if (editorRowid) {
@@ -96,10 +101,13 @@
       });
       if (ok) {
         if (editorRowid) {
-          _this.dataSource.update(editorRowid, data, function(result) {
+          _this.dataSource.update(editorRowid, data, function(result, response) {
             if (result) {
               if (andClose) {
+                goodHide = true;
                 $editForm.modal('hide');
+                _this.events.trigger('hideEditor', true, response);
+                _this.events.trigger('editor.hide', true, response);
               }
               if (callback) {
                 callback.call(this);
@@ -110,7 +118,10 @@
           _this.dataSource.insert(data, function(result, response) {
             if (result) {
               if (andClose) {
+                goodHide = true;
                 $editForm.modal('hide');
+                _this.events.trigger('hideEditor', true, response);
+                _this.events.trigger('editor.hide', true, response);
               } else {
                 editorRowid = response.rowid;
                 _this.editorConfigure(false);
@@ -139,8 +150,27 @@
         _this.events.trigger('editor.shown');
       });
 
+      $editForm.on('hide', function() {
+        if (goodHide) {
+        } else {
+          _this.events.trigger('editor.hide', false, editorRowid);
+        }
+
+      });
+
       $editForm.on('hidden', function() {
-        _this.events.trigger('editor.hidden');
+        if (goodHide) {
+        } else {
+         _this.events.trigger('editor.hidden', false, editorRowid);
+        }
+      });
+
+      $('.action-cancel', $editForm).removeAttr('data-dismiss');
+      $('.action-cancel', $editForm).click(function() {
+        goodHide = true;
+        $editForm.modal('hide');
+        _this.events.trigger('hideEditor', false);
+        _this.events.trigger('editor.hide', false, editorRowid);
       });
 
       $('.action-save', $editForm).click(function() {
@@ -186,6 +216,7 @@
               editorRowid = null;
             }
             _this.events.trigger('showEditor', data, isCopy);
+            _this.events.trigger('editor.show', data, isCopy);
             $editForm.modal('show');
           }
         }, { disableEvents: true });
@@ -196,6 +227,7 @@
           }
         });
         _this.events.trigger('showEditor');
+        _this.events.trigger('editor.show');
         $editForm.modal('show');
       }
     }
