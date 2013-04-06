@@ -95,9 +95,11 @@ class BrString {
   }
 
   function split($delimiters = ',;') {
-
     return br(preg_split('/[' . $delimiters . ']/', $this->value))->removeEmptyValues();
+  }
 
+  function inc($var, $glue = ', ') {
+    return $this->value . ($this->value ? $glue : '') . $var;
   }
 
 }

@@ -1,8 +1,8 @@
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function (window) {
 
@@ -10,28 +10,28 @@
 
   window.br.isNumber = function(value) {
     return (
-             !isNaN(parseFloat(value)) && 
+             !isNaN(parseFloat(value)) &&
              isFinite(value)
            );
   }
 
   window.br.isNull = function(value) {
     return (
-             (value === undefined) || 
-             (value === null) 
+             (value === undefined) ||
+             (value === null)
            );
   }
 
   window.br.isEmpty = function(value) {
-    return ( 
-             br.isNull(value) || 
+    return (
+             br.isNull(value) ||
              ((typeof value.length != 'undefined') && (value.length === 0)) // Array, String
            );
   }
 
   window.br.isArray = function (value) {
     return (
-             !br.isNull(value) && 
+             !br.isNull(value) &&
              (Object.prototype.toString.call(value) === '[object Array]')
            );
   }
@@ -67,7 +67,7 @@
   window.br.split = function (value, delimiter) {
     if (br.isEmpty(value)) {
       return [];
-    } else 
+    } else
     if (br.isString(value)) {
       return value.split(delimiter);
     }
@@ -93,14 +93,14 @@
     if (br.isNumber(value)) {
       return value;
     }
-  };  
+  };
 
 })(window);
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function (window) {
 
@@ -132,7 +132,7 @@
         for(var i in key) {
           result[key[i]] = this.get(key[i]);
         }
-      } else {        
+      } else {
         result = _helper.unpack(_storage.getItem(key));
       }
       return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
@@ -366,11 +366,11 @@
   window.br.session = new BrStorage(window.sessionStorage);
 
 })(window);
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function (window) {
 
@@ -443,14 +443,14 @@
 
     }
 
-    this.triggerBefore = function(event) { 
-      return triggerEx(event, 'before', arguments); 
+    this.triggerBefore = function(event) {
+      return triggerEx(event, 'before', arguments);
     }
-    this.trigger = function(event) { 
-      return triggerEx(event, 'on',     arguments); 
+    this.trigger = function(event) {
+      return triggerEx(event, 'on',     arguments);
     }
-    this.triggerAfter = function(event) { 
-      return triggerEx(event, 'after',  arguments); 
+    this.triggerAfter = function(event) {
+      return triggerEx(event, 'after',  arguments);
     }
 
   }
@@ -462,11 +462,11 @@
   }
 
 })(window);
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function (window) {
 
@@ -523,11 +523,11 @@
   }
 
 })(window);
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function ($, window) {
 
@@ -721,7 +721,7 @@
 
   var closeConfirmationRequired = false;
   var windowUnloading = false;
-  
+
   function brightConfirmClose() {
     if (closeConfirmationRequired) {
       return br.closeConfirmationMessage;
@@ -730,13 +730,17 @@
     }
   }
 
-  $(window).on('beforeunload', function(){
+  $(window).on('beforeunload', function() {
     return brightConfirmClose();
-  });  
+  });
 
-  window.br.isUnloading = function() {
-    return windowUnloading;
-  }  
+  window.br.isUnloading = function(value) {
+    if (typeof value == 'undefined') {
+      return windowUnloading;
+    } else {
+      windowUnloading = value;
+    }
+  }
 
   window.br.confirmClose = function(message) {
     if (message) {
@@ -779,7 +783,7 @@
     } else {
       document.location = href;
     }
-    
+
   }
 
   window.br.load = window.br.resourceLoader = function(j){function p(c,a){var g=j.createElement(c),b;for(b in a)a.hasOwnProperty(b)&&g.setAttribute(b,a[b]);return g}function m(c){var a=k[c],b,e;if(a)b=a.callback,e=a.urls,e.shift(),h=0,e.length||(b&&b.call(a.context,a.obj),k[c]=null,n[c].length&&i(c))}function u(){if(!b){var c=navigator.userAgent;b={async:j.createElement("script").async===!0};(b.webkit=/AppleWebKit\//.test(c))||(b.ie=/MSIE/.test(c))||(b.opera=/Opera/.test(c))||(b.gecko=/Gecko\//.test(c))||(b.unknown=!0)}}function i(c,
@@ -788,16 +792,16 @@
     a,b,e){i("css",c,a,b,e)},js:function(c,a,b,e){i("js",c,a,b,e)}}}(document);
 
 })(jQuery, window);
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function (window) {
 
   function BrFlagsHolder(permanent, name) {
-  
+
     var flags = [];
 
     this.append = function(id) {
@@ -859,11 +863,11 @@
   }
 
 })(window);
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function ($, window) {
 
@@ -1056,7 +1060,7 @@
         options = callback;
         callback = filter;
       }
-      
+
       var newFilter = {};
       for(var i in filter) {
         newFilter[i] = filter[i];
@@ -1169,7 +1173,7 @@
                                     , error: function(jqXHR, textStatus, errorThrown) {
                                         if (br.isUnloading()) {
 
-                                        } else { 
+                                        } else {
                                           _this.ajaxRequest = null;
                                           var error = (jqXHR.statusText == 'abort') ? '' : (jqXHR.responseText.length === 0 ? 'Server error' : jqXHR.responseText);
                                           handleError(error, jqXHR);
@@ -1178,7 +1182,7 @@
                                     });
         }
       } else {
-        
+
       }
 
     }
@@ -1707,11 +1711,11 @@
   }
 
 })(jQuery, window);
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function ($, window) {
 

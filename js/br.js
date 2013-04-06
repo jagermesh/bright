@@ -1,8 +1,8 @@
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function ($, window) {
 
@@ -196,7 +196,7 @@
 
   var closeConfirmationRequired = false;
   var windowUnloading = false;
-  
+
   function brightConfirmClose() {
     if (closeConfirmationRequired) {
       return br.closeConfirmationMessage;
@@ -207,11 +207,15 @@
 
   $(window).on('beforeunload', function(){
     return brightConfirmClose();
-  });  
+  });
 
-  window.br.isUnloading = function() {
-    return windowUnloading;
-  }  
+  window.br.isUnloading = function(value) {
+    if (typeof value == 'undefined') {
+      return windowUnloading;
+    } else {
+      windowUnloading = value;
+    }
+  }
 
   window.br.confirmClose = function(message) {
     if (message) {
@@ -254,7 +258,7 @@
     } else {
       document.location = href;
     }
-    
+
   }
 
   window.br.load = window.br.resourceLoader = function(j){function p(c,a){var g=j.createElement(c),b;for(b in a)a.hasOwnProperty(b)&&g.setAttribute(b,a[b]);return g}function m(c){var a=k[c],b,e;if(a)b=a.callback,e=a.urls,e.shift(),h=0,e.length||(b&&b.call(a.context,a.obj),k[c]=null,n[c].length&&i(c))}function u(){if(!b){var c=navigator.userAgent;b={async:j.createElement("script").async===!0};(b.webkit=/AppleWebKit\//.test(c))||(b.ie=/MSIE/.test(c))||(b.opera=/Opera/.test(c))||(b.gecko=/Gecko\//.test(c))||(b.unknown=!0)}}function i(c,
