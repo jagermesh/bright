@@ -253,3 +253,7 @@ span.required {
 .filter-block label {
   color: black;
 }
+
+li.ajax-in-progress span.icon-spin {
+  margin-top: 5px;
+}
