@@ -260,3 +260,8 @@ li.ajax-in-progress span.icon-spin {
   margin-top: 5px;
   color: white;
 }
+
+
+.text-right {
+  text-align: right;
+}
