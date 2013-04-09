@@ -182,6 +182,9 @@
       return this;
     }
     this.showEditor = function(rowid, isCopy) {
+      return this.show(rowid, isCopy);
+    }
+    this.show = function(rowid, isCopy) {
       editorRowid = rowid;
       _this.editorConfigure(isCopy);
       $editForm.find('input.data-field,select.data-field,textarea.data-field').val('');
@@ -230,6 +233,7 @@
         _this.events.trigger('editor.show');
         $editForm.modal('show');
       }
+      return $editForm;
     }
 
     return this.init();
