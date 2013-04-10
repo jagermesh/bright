@@ -221,7 +221,7 @@
       var order = _this.getOrder();
       if (order) {
         for (var i in order) {
-          $(c('.sortable[data-field="' + i + '"].' + (order[i] == -1 ? 'order-desc' : (order[i] == 1 ? 'order-asc' : 'dummy')))).addClass('icon-white');
+          $(c('.sortable[data-field="' + i + '"].' + (order[i] == -1 ? 'order-desc' : (order[i] == 1 ? 'order-asc' : 'dummy')))).addClass('icon-white').addClass('icon-border');
         }
       }
 
@@ -230,18 +230,17 @@
       $(c('.sortable')).on('mouseout' , function() { $(this).css('cursor', 'auto'); });
 
       $(c('.sortable')).on('click', function() {
-        var sorted = $(this).hasClass('icon-white');
-        $(c('.sortable')).removeClass('icon-white');
+        var sorted = ($(this).hasClass('icon-white') || $(this).hasClass('icon-border'));
+        // $(c('.sortable')).removeClass('icon-white').removeClass('icon-border');
         if (sorted) {
-          $(this).removeClass('icon-white');
+          $(this).removeClass('icon-white').removeClass('icon-border');
         } else {
-          $(this).siblings('i').removeClass('icon-white');
-          $(this).addClass('icon-white');
+          $(this).siblings('i').removeClass('icon-white').removeClass('icon-border');
+          $(this).addClass('icon-white').addClass('icon-border');
         }
-        _this.setOrder({});
         var tmp = {};
         $(c('.sortable')).each(function() {
-          if ($(this).hasClass('icon-white')) {
+          if ($(this).hasClass('icon-white') || $(this).hasClass('icon-border')) {
             if ($(this).hasClass('order-asc')) {
               tmp[$(this).attr('data-field')] = 1;
             }
@@ -250,9 +249,7 @@
             }
           }
         });
-        if (tmp) {
-          _this.setOrder(tmp);
-        }
+        _this.setOrder(tmp);
         _this.refresh({}, null, true);
       });
 
