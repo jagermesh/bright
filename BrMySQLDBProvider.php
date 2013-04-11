@@ -17,7 +17,7 @@ class BrMySQLRegExp {
   public function __construct($value) {
 
     $this->value = $value;
-      
+
   }
 
   public function getValue() {
@@ -39,7 +39,7 @@ class BrMySQLProviderCursor implements Iterator {
     $this->provider = $provider;
     $this->position = -1;
     $this->unbuffered = $unbuffered;
-      
+
   }
 
   // Interface methods
@@ -82,7 +82,7 @@ class BrMySQLProviderCursor implements Iterator {
 
     $this->limit = $limit;
     return $this;
-    
+
   }
 
   function skip($skip) {
@@ -131,7 +131,7 @@ class BrMySQLProviderCursor implements Iterator {
 }
 
 class BrMySQLProviderTable {
-  
+
   private $tableName;
   private $provider;
 
@@ -150,7 +150,7 @@ class BrMySQLProviderTable {
         if (strpos($fieldName, '.') === false) {
           $joins .= ' INNER JOIN '.$joinTableName.' ON '.$tableName.'.'.$fieldName.' = '.$joinTableName.'.'.$joinField;
         } else {
-          $joins .= ' INNER JOIN '.$joinTableName.' ON '.$fieldName.' = '.$joinTableName.'.'.$joinField;        
+          $joins .= ' INNER JOIN '.$joinTableName.' ON '.$fieldName.' = '.$joinTableName.'.'.$joinField;
         }
       } else {
 
@@ -167,7 +167,7 @@ class BrMySQLProviderTable {
         if (strpos($fieldName, '.') === false) {
           $joins .= ' LEFT JOIN '.$joinTableName.' ON '.$tableName.'.'.$fieldName.' = '.$joinTableName.'.'.$joinField;
         } else {
-          $joins .= ' LEFT JOIN '.$joinTableName.' ON '.$fieldName.' = '.$joinTableName.'.'.$joinField;        
+          $joins .= ' LEFT JOIN '.$joinTableName.' ON '.$fieldName.' = '.$joinTableName.'.'.$joinField;
         }
       } else {
 
@@ -249,7 +249,11 @@ class BrMySQLProviderTable {
           }
           break;
         case '$ne':
-          $where .= $link . $fname2 . ' != ?';
+          if (is_array($filterValue)) {
+            $where .= $link . $fname2 . ' NOT IN (?@)';
+          } else {
+            $where .= $link . $fname2 . ' != ?';
+          }
           $args[] = $filterValue;
           break;
         case '$nn':
@@ -311,7 +315,7 @@ class BrMySQLProviderTable {
             } else {
               if (!strlen($filterValue)) {
                 $where .= $link.$fname.' IS NULL';
-              } else {          
+              } else {
                 $where .= $link.$fname.' = ?';
                 $args[] = $filterValue;
               }
@@ -353,7 +357,7 @@ class BrMySQLProviderTable {
     return new BrMySQLProviderCursor($sql, $args, $this->provider);
 
   }
-  
+
   function remove($filter) {
 
     $where = '';
@@ -368,7 +372,7 @@ class BrMySQLProviderTable {
     return $this->provider->internalRunQuery($sql, $args);
 
   }
-  
+
   function findOne($filter = array()) {
 
     if ($rows = $this->find($filter)) {
@@ -395,10 +399,10 @@ class BrMySQLProviderTable {
         $sql .= ', ';
       }
     }
-    $sql = rtrim($sql, ', ');  
+    $sql = rtrim($sql, ', ');
     $sql .= ' WHERE ' . $this->provider->rowidField() . ' = ?';
 
-    $args = array();  
+    $args = array();
     $key = null;
     foreach($values as $field => $value) {
       if ($field != $this->provider->rowidField()) {
@@ -406,11 +410,11 @@ class BrMySQLProviderTable {
       } else {
         $key = $value;
       }
-    }    
+    }
     array_push($args, $key);
 
     $this->provider->internalRunQuery($sql, $args);
-    
+
     return $values[$this->provider->rowidField()];
 
   }
@@ -432,7 +436,7 @@ class BrMySQLProviderTable {
         $sql .= ', ';
       }
     }
-    $sql = rtrim($sql, ', ');  
+    $sql = rtrim($sql, ', ');
     $sql .= ' WHERE ';
     $where = '';
     if (is_array($filter)) {
@@ -464,7 +468,7 @@ class BrMySQLProviderTable {
     if (is_array($filter)) {
       foreach($filter as $field => $value) {
         array_push($args, $value);
-      }    
+      }
     } else
     if ($filter) {
       array_push($args, $filter);
@@ -473,7 +477,7 @@ class BrMySQLProviderTable {
     $this->provider->internalRunQuery($sql, $args);
 
     return true;//$filter;//$values[$this->provider->rowidField()];
-    
+
   }
 
   function insert(&$values, $dataTypes = null) {
@@ -492,20 +496,20 @@ class BrMySQLProviderTable {
           $values_str .= '&';
         }
       }
-    }  
+    }
     $sql = 'INSERT INTO '.$this->tableName.' ('.$fields_str.') VALUES ('.$values_str.')';
 
-    $args = array();  
+    $args = array();
     foreach($values as $field => $value) {
       array_push($args, $value);
     }
-    
+
     $this->provider->internalRunQuery($sql, $args);
     if ($newId = $this->provider->getLastId()) {
       $values = $this->findOne(array($this->provider->rowidField() => $newId));
       return $newId;
     }
-    
+
   }
 
 }
@@ -526,7 +530,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
       $this->connection = $cfg['connection'];
     } else {
       $this->connection = mysql_connect($hostName, $userName, $password, true);
-      
+
       if (!$this->connection) {
         if (br()->config()->get('db.connection_error_page')) {
           br()->config()->set('db.connection_in_error', true);
@@ -564,62 +568,62 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
   }
 
   function rowidValue($row, $fieldName = null) {
-    
+
     if (is_array($row)) {
       return br($row, $fieldName?$fieldName:$this->rowidField());
     } else {
       return $row;
     }
-    
+
   }
-  
+
   function rowid($row, $fieldName = null) {
-    
+
     if (is_array($row)) {
       return br($row, $fieldName?$fieldName:$this->rowidField());
     } else {
       return $row;
     }
-    
+
   }
-  
+
   function rowidField() {
-    
+
     return 'id';
-    
+
   }
-  
+
   function regexpCondition($value) {
-    
+
     return new BrMySQLRegExp($value);
 
   }
 
   function startTransaction() {
-     
+
     $this->internalRunQuery("START TRANSACTION");
-     
+
   }
 
   function commitTransaction() {
-     
+
     $this->internalRunQuery("COMMIT");
-     
+
   }
 
   function rollbackTransaction() {
-     
+
     $this->internalRunQuery("ROLLBACK");
-     
+
   }
-  
+
 
   function getLastError() {
-     
+
     if (mysql_errno($this->connection)) {
       return mysql_errno($this->connection).": ".mysql_error($this->connection);
     }
-     
+
   }
 
   function getCursor() {
@@ -628,7 +632,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     $sql = array_shift($args);
 
     return new BrMySQLProviderCursor($sql, $args, $this, true);
-    
+
   }
 
   function select() {
@@ -640,16 +644,16 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   }
 
-  function selectNext($query) { 
+  function selectNext($query) {
 
     $result = mysql_fetch_assoc($query);
     if (is_array($result)) {
       $result = array_change_key_case($result, CASE_LOWER);
     }
     return $result;
-    
+
   }
-  
+
   function runQuery() {
 
     $args = func_get_args();
@@ -682,10 +686,10 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     if ($unbuffered) {
       $query = mysql_unbuffered_query($sql, $this->connection);
     } else {
-      $query = mysql_query($sql, $this->connection);      
+      $query = mysql_query($sql, $this->connection);
     }
     br()->log()->writeln('Query complete', 'SEP');
-    
+
     if (!$query) {
       $error = $this->getLastError();
       if (!preg_match('/1329: No data/', $error)) {
@@ -703,7 +707,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
       //   if ($plan = $this->internal_query("EXPLAIN ".$sql, $args)) {
       //     $log->writeln("Query plan: ");
       //     while ($plan_row = $this->next_row($plan)) {
-      //       if (safe($plan_row, "table")) 
+      //       if (safe($plan_row, "table"))
       //         $log->writeln("table:".$plan_row["table"].
       //                       "; type:".$plan_row["type"].
       //                       "; keys:".$plan_row["possible_keys"].
@@ -730,7 +734,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     return $this->selectNext($this->internalRunQuery($sql, $args));
 
   }
-  
+
   function getCachedRow() {
 
     $args = func_get_args();
@@ -748,7 +752,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     return $result;
 
   }
-  
+
   function getRows() {
 
     $args = func_get_args();
@@ -761,7 +765,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
         $result[] = $row;
       }
     }
-    
+
     return $result;
 
   }
@@ -785,7 +789,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
       }
       br()->cache()->set($cacheTag, $result);
     }
-    
+
     return $result;
 
   }
@@ -799,13 +803,13 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     if (is_array($result)) {
       return array_shift($result);
     } else {
-      return null;      
+      return null;
     }
 
   }
 
   public function getCachedValue() {
-  
+
     $args = func_get_args();
     $sql = array_shift($args);
 
@@ -825,7 +829,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     }
 
     return $result;
-    
+
   }
 
   function getValues() {
@@ -837,7 +841,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     $result = array();
     if (is_resource($query)) {
       while($row = $this->selectNext($query)) {
-        array_push($result, array_shift($row));  
+        array_push($result, array_shift($row));
       }
     }
     return $result;
@@ -852,13 +856,13 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     $cacheTag = 'MySQLDBProvder:getCachedValues:' . $sql . serialize($args);
 
     $result = br()->cache()->get($cacheTag);
-    
+
     if (!$result && !br()->cache()->exists($cacheTag)) {
       $query = $this->internalRunQuery($sql, $args);
       $result = array();
       if (is_resource($query)) {
         while($row = $this->selectNext($query)) {
-          array_push($result, array_shift($row));  
+          array_push($result, array_shift($row));
         }
       }
       br()->cache()->set($cacheTag, $result);
@@ -867,7 +871,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   }
 
-  function getRowsAmount() { 
+  function getRowsAmount() {
 
     $args = func_get_args();
     $sql = array_shift($args);
@@ -876,7 +880,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   }
 
-  function internalGetRowsAmount($sql, $args) { 
+  function internalGetRowsAmount($sql, $args) {
 
     $sql = str_replace("\n", " ", $sql);
     $sql = str_replace("\r", " ", $sql);
@@ -887,18 +891,18 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
         try {
           $query = $this->internalRunQuery($count_sql, $args);
           if ($row = $this->selectNext($query)) {
-            return array_shift($row);  
+            return array_shift($row);
           } else  {
-            return mysql_num_rows($this->internalRunQuery($sql, $args)); 
+            return mysql_num_rows($this->internalRunQuery($sql, $args));
           }
         } catch (Exception $e) {
-          return mysql_num_rows($this->internalRunQuery($sql, $args)); 
+          return mysql_num_rows($this->internalRunQuery($sql, $args));
         }
       } else {
-        return mysql_num_rows($this->internalRunQuery($sql, $args)); 
+        return mysql_num_rows($this->internalRunQuery($sql, $args));
       }
-    } 
-    return mysql_num_rows($this->internalRunQuery($sql, $args)); 
+    }
+    return mysql_num_rows($this->internalRunQuery($sql, $args));
 
   }
 
@@ -931,7 +935,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
       case "varchar":
       case "char":
       case "long varchar":
-      case "varying":    
+      case "varying":
         return "text";
       default:
         return 'unknown';
@@ -939,7 +943,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     }
 
   }
-  
+
   function getTableStructure($tableName) {
 
     $field_defs = array();
@@ -962,12 +966,12 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
   }
 
   function getLastId() {
-     
+
     return mysql_insert_id($this->connection);
-     
+
   }
 
-  function isEmptyDate($date) { 
+  function isEmptyDate($date) {
 
     return (($date == "0000-00-00") or ($date == "0000-00-00 00:00:00") or !$date);
 
@@ -982,7 +986,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
   function getAffectedRowsAmount() {
 
     return mysql_affected_rows($this->connection);
-    
+
   }
 
   function getLimitSQL($sql, $from, $count) {
