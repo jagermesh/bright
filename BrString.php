@@ -48,6 +48,14 @@ class BrString {
     return mb_strtoupper($this->value);
   }
 
+  function trimByLength($length, $addPoints = false) {
+    $s = $this->substring(0, $length);
+    if ($addPoints && ($this->length() > $length)) {
+      $s .= '...';
+    }
+    return $s;
+  }
+
   function substring($start = 0, $length = 0xFFFFFFF) {
     return mb_substr($this->value, $start, $length);
   }
