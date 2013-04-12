@@ -52,15 +52,15 @@ class BrGenericDataSource extends BrObject {
     $options['limit'] = 1;
 
     if ($result = $this->select($filter, $fields, $order, $options)) {
-      $result = $result[0];  
+      $result = $result[0];
     }
-    
-    return $result; 
+
+    return $result;
 
   }
 
   function selectCount($filter = array(), $fields = array(), $order = array(), $options = array()) {
-    
+
     $options['result'] = 'count';
 
     return $this->select($filter, array(), array(), $options);
@@ -96,8 +96,8 @@ class BrGenericDataSource extends BrObject {
 
     $result = $this->callEvent('select', $filter, $transientData, $options);
 
-    return $result;      
-    
+    return $result;
+
   }
 
   function update($rowid, $row, &$transientData = array()) {
@@ -115,7 +115,7 @@ class BrGenericDataSource extends BrObject {
     $this->validateInsert($row);
 
     return $this->callEvent('insert', $row, $transientData);
-    
+
   }
 
   function remove($rowid, &$transientData = array()) {
@@ -125,7 +125,7 @@ class BrGenericDataSource extends BrObject {
     $this->validateRemove($row);
 
     return $this->callEvent('remove', $row, $transientData);
-    
+
   }
 
   function invokeMethodExists($method) {
@@ -133,7 +133,7 @@ class BrGenericDataSource extends BrObject {
     return br($this->events, $method);
 
   }
-  
+
   function invoke($method, $params, &$transientData = array()) {
 
     $method = trim($method);
@@ -168,12 +168,12 @@ class BrGenericDataSource extends BrObject {
             $this->callEvent('after:' . $method, $result, $data, $params, $transientData);
             throw new Exception($e->getMessage());
           }
-        }    
+        }
         break;
     }
-    
+
   }
- 
+
   public function canTraverseBack() {
 
     return $this->lastSelectAmount > $this->limit;
@@ -205,7 +205,7 @@ class BrGenericDataSource extends BrObject {
 
   }
 
-  public function canUpdate($row, $old = array()) {
+  public function canUpdate($row, $new = array()) {
 
     return true;
 
@@ -231,13 +231,13 @@ class BrGenericDataSource extends BrObject {
 
   }
 
-  protected function validateUpdate($row, $old = array()) {
+  protected function validateUpdate($row, $new = array()) {
 
-    if (!$this->canUpdate($row, $old)) {
+    if (!$this->canUpdate($row, $new)) {
       throw new Exception('Access denied');
     }
 
-  }  
+  }
 
   protected function validateRemove($row) {
 
@@ -245,14 +245,14 @@ class BrGenericDataSource extends BrObject {
       throw new Exception('Access denied');
     }
 
-  }    
-  
+  }
+
   protected function validateSelect($filter) {
 
     if (!$this->canSelect($filter)) {
       throw new Exception('Access denied');
     }
 
-  }    
- 
+  }
+
 }

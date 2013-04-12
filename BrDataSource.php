@@ -13,7 +13,7 @@ require_once(__DIR__.'/BrException.php');
 require_once(__DIR__.'/BrGenericDataSource.php');
 
 class BrDataSourceNotFound extends BrException {
-  
+
 }
 
 class BrDataSource extends BrGenericDataSource {
@@ -78,7 +78,7 @@ class BrDataSource extends BrGenericDataSource {
 
     if (is_null($result)) {
       $result = array();
-      
+
       $this->lastSelectAmount = 0;
 
       $table = br()->db()->table($this->dbEntity());
@@ -90,12 +90,12 @@ class BrDataSource extends BrGenericDataSource {
             $sortOrder[$fieldName] = (int)$direction;
           }
           $cursor = $cursor->sort($sortOrder);
-        }        
+        }
         if ($skip) {
           if ($this->selectAdjancedRecords) {
             $cursor = $cursor->skip($skip - 1);
           } else {
-            $cursor = $cursor->skip($skip);          
+            $cursor = $cursor->skip($skip);
           }
         }
         if (strlen($limit)) {
@@ -105,7 +105,7 @@ class BrDataSource extends BrGenericDataSource {
             } else {
               $cursor = $cursor->limit($limit + 1);
             }
-          } else 
+          } else
           if ($this->checkTraversing) {
             $cursor = $cursor->limit($limit + 1);
           } else {
@@ -157,8 +157,8 @@ class BrDataSource extends BrGenericDataSource {
       }
     }
 
-    return $result;      
-    
+    return $result;
+
   }
 
   function update($rowid, $row, &$transientData = array(), $options = array()) {
@@ -181,7 +181,7 @@ class BrDataSource extends BrGenericDataSource {
 
       $this->callEvent('before:update', $crow, $transientData, $old, $options);
 
-      $this->validateUpdate($crow, $old);
+      $this->validateUpdate($old, $crow);
 
       $result = $this->callEvent('update', $crow, $transientData, $old, $options);
       if (is_null($result)) {
@@ -194,7 +194,7 @@ class BrDataSource extends BrGenericDataSource {
 
       br()->db()->commitTransaction();
 
-      return $result;      
+      return $result;
     } else {
       throw new BrDataSourceNotFound();
     }
@@ -221,7 +221,7 @@ class BrDataSource extends BrGenericDataSource {
       } else {
         $table->insert($row);
       }
-      $result = $row;      
+      $result = $row;
       $this->callEvent('after:insert', $result, $transientData, $options);
       $result['rowid'] = br()->db()->rowidValue($result);
       $this->callEvent('calcFields', $result, $transientData, $options);
@@ -229,8 +229,8 @@ class BrDataSource extends BrGenericDataSource {
       br()->db()->commitTransaction();
     }
 
-    return $result;      
-    
+    return $result;
+
   }
 
   function remove($rowid, &$transientData = array(), $options = array()) {
@@ -259,7 +259,7 @@ class BrDataSource extends BrGenericDataSource {
           if (preg_match('/1451: Cannot delete or update a parent row/', $e->getMessage())) {
             throw new BrAppException('Cannot delete this record - there are references to it in the system');
           } else {
-            throw new Exception($e->getMessage());            
+            throw new Exception($e->getMessage());
           }
         }
         $result = $crow;
@@ -274,7 +274,7 @@ class BrDataSource extends BrGenericDataSource {
     } else {
       throw new BrDataSourceNotFound();
     }
-    
+
   }
- 
+
 }

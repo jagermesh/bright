@@ -12,7 +12,7 @@ class BrDataSourceUsers extends BrDataSource {
 
     parent::__construct(br()->config()->get('br/auth/db/table', 'users'), array('defaultOrder' => $loginField));
 
-    $this->on('signup', function($dataSource, $params) { 
+    $this->on('signup', function($dataSource, $params) {
 
       if (!br()->config()->get('br/auth/api/signupEnabled')) {
 
@@ -78,7 +78,7 @@ class BrDataSourceUsers extends BrDataSource {
 
     });
 
-    $this->on('insert', function($dataSource, &$row, &$data, $options) { 
+    $this->on('insert', function($dataSource, &$row, &$data, $options) {
 
       // if (br($options, 'source') == 'RESTBinder') {
 
@@ -123,7 +123,7 @@ class BrDataSourceUsers extends BrDataSource {
           throw new BrAppException('Please enter ' . $loginFieldLabel);
         }
 
-        
+
       // }
 
     });
@@ -154,7 +154,7 @@ class BrDataSourceUsers extends BrDataSource {
 
     });
 
-    $this->before('update', function($dataSource, $row) { 
+    $this->before('update', function($dataSource, $row) {
 
       if ($login = br()->auth()->getLogin()) {
 
@@ -171,7 +171,7 @@ class BrDataSourceUsers extends BrDataSource {
 
     });
 
-    $this->before('remove', function($dataSource, $row) { 
+    $this->before('remove', function($dataSource, $row) {
 
       if ($login = br()->auth()->getLogin()) {
 
@@ -181,14 +181,14 @@ class BrDataSourceUsers extends BrDataSource {
             throw new Exception('You are not allowed to remove this user');
           }
         }
-        
+
       } else {
         throw new Exception('You are not allowed to remove this user');
       }
 
     });
 
-    $this->before('update', function($dataSource, &$row, $t, $old) { 
+    $this->before('update', function($dataSource, &$row, $t, $old) {
 
       $passwordField = br()->config()->get('br/auth/db/password-field', 'password');
       $plainPasswords = br()->config()->get('br/auth/plainPasswords', false);
@@ -209,11 +209,11 @@ class BrDataSourceUsers extends BrDataSource {
 
     });
 
-    $this->before('update', function($dataSource, &$row) { 
+    $this->before('update', function($dataSource, &$row) {
 
       $loginField = br()->config()->get('br/auth/db/login-field', 'login');
       $loginFieldLabel = br()->config()->get('br/auth/db/login-field-label', 'login');
-      
+
       if (isset($row[$loginField])) {
         if ($login = br()->html2text($row[$loginField])) {
           if ($user = $dataSource->selectOne(array($loginField => $login, br()->db()->rowidField() => array('$ne' => br()->db()->rowid($row))))) {
@@ -227,7 +227,7 @@ class BrDataSourceUsers extends BrDataSource {
 
     });
 
-    $this->on('login', function($dataSource, $params) { 
+    $this->on('login', function($dataSource, $params) {
 
       $loginField = br()->config()->get('br/auth/db/login-field', 'login');
       $passwordField = br()->config()->get('br/auth/db/password-field', 'password');
@@ -242,7 +242,7 @@ class BrDataSourceUsers extends BrDataSource {
             $password = md5($password);
           }
           $filter = array( $loginField    => $params[$loginField]
-                         , $passwordField => $password 
+                         , $passwordField => $password
                          );
           $dataSource->callEvent('before:loginSelectUser', $params, $filter);
           if ($row = $dataSource->selectOne($filter)) {
@@ -283,7 +283,7 @@ class BrDataSourceUsers extends BrDataSource {
 
     });
 
-    $this->on('logout', function($dataSource, $params) { 
+    $this->on('logout', function($dataSource, $params) {
 
       br()->auth()->clearLogin();
 
@@ -301,7 +301,7 @@ class BrDataSourceUsers extends BrDataSource {
 
     });
 
-    $this->on('calcFields', function($dataSource, &$row) { 
+    $this->on('calcFields', function($dataSource, &$row) {
 
       $passwordField = br()->config()->get('br/auth/db/password-field', 'password');
 
@@ -325,7 +325,7 @@ class BrDataSourceUsers extends BrDataSource {
 
     });
 
-    $this->on('remindPassword', function($dataSource, $params) { 
+    $this->on('remindPassword', function($dataSource, $params) {
 
       if (!br()->config()->get('br/auth/api/passwordReminderEnabled')) {
 
@@ -350,7 +350,7 @@ class BrDataSourceUsers extends BrDataSource {
                   $mail->SetFrom(br()->config()->get('br/auth/mail/from', 'noreply@localhost'));
                   $mail->Subject = br()->config()->get('br/auth/mail/forgot-password/subject', 'Password reminder');
                   $data = array();
-                  $data[$passwordField] = substr(br()->guid(), 0, 8);                
+                  $data[$passwordField] = substr(br()->guid(), 0, 8);
                   $user[$passwordField] = $data[$passwordField];
                   $data[$passwordField] = md5($data[$passwordField]);
                   //$data['token']        = br()->guid();
@@ -393,7 +393,7 @@ class BrDataSourceUsers extends BrDataSource {
 
   }
 
-  public function canUpdate($row, $old = array()) {
+  public function canUpdate($row, $new = array()) {
 
     if ($login = br()->auth()->getLogin()) {
       $security = br()->config()->get('br/auth/db/api/select-user');
