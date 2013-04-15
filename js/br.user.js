@@ -1,13 +1,13 @@
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function ($, window) {
 
-  $(document).ready(function() { 
-    
+  $(document).ready(function() {
+
     var users = br.dataSource(br.baseUrl + 'api/users/');
 
     users.on('error', function(operation, error) {
@@ -18,7 +18,7 @@
 
       var data = {};
 
-      var form = $(this).closest('form');      
+      var form = $(this).closest('form');
       if (form.length === 0) {
         form = $(this).closest('div.modal');
       }
@@ -43,7 +43,7 @@
 
       var data = {};
 
-      var form = $(this).closest('form');      
+      var form = $(this).closest('form');
       if (form.length === 0) {
         form = $(this).closest('div.modal');
       }
@@ -83,7 +83,7 @@
 
       var data = {};
 
-      var form = $(this).closest('form');      
+      var form = $(this).closest('form');
       if (form.length === 0) {
         form = $(this).closest('div.modal');
       }
