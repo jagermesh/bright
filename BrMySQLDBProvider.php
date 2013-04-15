@@ -107,6 +107,21 @@ class BrMySQLProviderCursor implements Iterator {
 
   }
 
+  function group($order) {
+
+    if ($order) {
+      $sql = ' GROUP BY ';
+      foreach($order as $field) {
+        $sql .= $field . ', ';
+      }
+      $sql = rtrim($sql, ', ');
+      $this->sql .= $sql;
+    }
+
+    return $this;
+
+  }
+
   function count() {
 
     return $this->provider->internalGetRowsAmount($this->sql, $this->args);
@@ -327,7 +342,7 @@ class BrMySQLProviderTable {
     }
   }
 
-  function find($filter = array(), $fields = array()) {
+  function find($filter = array(), $fields = array(), $distinct = false) {
 
     $where = '';
     $joins = '';
@@ -339,6 +354,9 @@ class BrMySQLProviderTable {
     $this->compileFilter($filter, $this->tableName, '', ' AND ', $joins, $joinsTables, $where, $args);
 
     $sql = 'SELECT ';
+    if ($distinct) {
+      $sql .= ' DISTINCT ';
+    }
     if ($fields) {
       foreach($fields as $name => $rule) {
         if (is_numeric($name)) {

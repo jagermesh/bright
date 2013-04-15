@@ -55,6 +55,8 @@ class BrDataSource extends BrGenericDataSource {
       $fields = array_unique(array_merge($fields, $options['fields']));
     }
 
+    $distinct = br($options, 'distinct');
+
     $this->lastSelectAmount = null;
     $this->priorAdjancedRecord = null;
     $this->nextAdjancedRecord = null;
@@ -72,6 +74,13 @@ class BrDataSource extends BrGenericDataSource {
         $sortOrder = array($sortOrder => 1);
       }
     }
+
+    if ($groupBy = br($options, 'groupBy', array())) {
+      if (!is_array($groupBy)) {
+        $groupBy = array($groupBy);
+      }
+    }
+
     $this->validateSelect($filter);
 
     $result = $this->callEvent('select', $filter, $transientData, $options);
@@ -84,7 +93,16 @@ class BrDataSource extends BrGenericDataSource {
       $table = br()->db()->table($this->dbEntity());
 
       if (!strlen($limit) || ($limit > 0)) {
-        $cursor = $table->find($filter, $fields);
+
+        if ($distinct) {
+          $cursor = $table->find($filter, $fields, true);
+        } else {
+          $cursor = $table->find($filter, $fields);
+        }
+
+        if ($groupBy && is_array($groupBy)) {
+          $cursor = $cursor->group($groupBy);
+        }
         if ($sortOrder && is_array($sortOrder)) {
           foreach($sortOrder as $fieldName => $direction) {
             $sortOrder[$fieldName] = (int)$direction;
