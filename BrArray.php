@@ -21,7 +21,16 @@ class BrArray {
   }
 
   function exists($value) {
-    return in_array($value, $this->value);
+    if (is_array($value)) {
+      foreach($value as $val) {
+        if (in_array($val, $this->value)) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      return in_array($value, $this->value);
+    }
   }
 
   function indexOf($value) {
