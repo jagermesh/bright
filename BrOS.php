@@ -13,17 +13,17 @@ require_once(__DIR__.'/BrObject.php');
 class BrOS extends BrObject {
 
   function execute($command) {
-  
+
     exec($command, $output);
     return $output;
-    
+
   }
-  
+
   function killProcess($pid) {
-  
+
     $this->execute('kill ' . $pid);
     return !$this->findProcess($pid);
-    
+
   }
 
   function findProcess($pid) {
@@ -46,7 +46,7 @@ class BrOS extends BrObject {
     }
 
     return false;
-    
+
   }
 
   function findProcessLike($command) {
@@ -60,14 +60,14 @@ class BrOS extends BrObject {
     }
 
     return false;
-    
+
   }
 
   function nohup($command) {
 
     $output = $this->execute('nohup '.$command.' >/dev/null 2>&1 & echo $!');
     return (int)$output[0];
-      
+
   }
 
   function isPHPScriptRunning($scriptCommand) {
@@ -81,7 +81,30 @@ class BrOS extends BrObject {
         }
       }
     }
+
     return false;
+
+  }
+
+  function lockIfRunning($scriptCommand = null) {
+
+    if ($scriptCommand) {
+      $lockFile = sys_get_temp_dir() . '/' . md5($scriptCommand) . '.lock';
+    } else {
+      $lockFile = sys_get_temp_dir() . '/' . md5(__DIR__) . '.lock';
+    }
+
+    br()->log($lockFile);
+
+    if ($handle = fopen($lockFile, 'w')) {
+      if (flock($handle, LOCK_EX)) {
+        return $handle;
+      } else {
+        throw new Exception('Can not acquire script lock');
+      }
+    } else {
+      throw new Exception('Can not acquire script lock');
+    }
 
   }
 

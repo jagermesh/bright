@@ -60,68 +60,68 @@ class BrFileSystem extends BrSingleton {
   private $currentDir;
 
   public function normalizePath($path) {
-   
+
      return rtrim($path, '/').'/';
-  
+
   }
 
   public function normalizeFileName($fileName) {
-   
+
     return preg_replace('~[^-A-Za-z0-9_.#$!()\[\]]~', '_', $fileName);
-  
+
   }
 
   public function fileName($fileName, $addIndex = null) {
-   
+
     $pathinfo = pathinfo($fileName);
     if ($addIndex) {
       return br($pathinfo, 'filename').'-'.$addIndex.'.'.br($pathinfo, 'extension');
     } else {
       return br($pathinfo, 'basename');
     }
-  
+
   }
 
   public function fileNameOnly($fileName) {
-   
+
     $pathinfo = pathinfo($fileName);
     return br($pathinfo, 'filename');
-  
+
   }
 
   public function filePath($path) {
-   
+
     return $this->normalizePath(dirname($path));
-  
+
   }
 
   public function dirName($path) {
-   
+
     return rtrim(str_replace('\\', '/', dirname($path)), '/');
-  
+
   }
 
   public function fileExt($fileName) {
-   
+
     $pathinfo = pathinfo($fileName);
     return br($pathinfo, 'extension');
-  
+
   }
 
   public function fileExists($filePath) {
-    
+
     return file_exists($filePath);
 
   }
 
   public function loadFromFile($fileName) {
-    
+
     return file_get_contents($fileName);
 
   }
 
   public function saveToFile($fileName, $content) {
-    
+
     file_put_contents($fileName, $content);
 
   }
@@ -137,9 +137,9 @@ class BrFileSystem extends BrSingleton {
     br()->errorHandler()->enable();
 
     return $result;
-    
+
   }
-  
+
   public function getCurrentDir() {
 
     return $this->currentDir;
@@ -150,7 +150,7 @@ class BrFileSystem extends BrSingleton {
 
     $newDir = br()->fs()->normalizePath($path);
     if ($createIfMissing) {
-      $this->makeDir($newDir);      
+      $this->makeDir($newDir);
     }
     if (is_dir($newDir)) {
       $this->currentDir = $newDir;
@@ -195,7 +195,7 @@ class BrFileSystem extends BrSingleton {
     }
 
     return $this;
-    
+
   }
 
   public function checkWriteable($path) {
@@ -203,7 +203,7 @@ class BrFileSystem extends BrSingleton {
     if (!is_writeable($path)) {
       throw new Exception('Can not create directory "' . $path .'"');
     }
-    
+
   }
 
   public function iteratePath($startingDir, $mask, $callback = null) {
@@ -252,6 +252,6 @@ class BrFileSystem extends BrSingleton {
     }
 
   }
-  
+
 }
 
