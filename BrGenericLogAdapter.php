@@ -60,4 +60,3 @@ class BrGenericLogAdapter extends BrObject {
   }
 
 }
-

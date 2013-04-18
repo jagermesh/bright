@@ -23,14 +23,28 @@ class BrErrorMailLogAdapter extends BrGenericLogAdapter {
       }
       if ($email) {
         try {
+          $requestData = '';
+          if (br()->request()->isGET()) {
+            $requestData = json_encode(br()->request()->get());
+          }
+          if (br()->request()->isPOST()) {
+            $requestData = json_encode(br()->request()->post());
+          }
+          if (br()->request()->isPUT()) {
+            $requestData = json_encode(br()->request()->put());
+          }
           $result  = '<html>'
                    . '<body>'
                    . '<strong>Timestamp:</strong> ' . date('r') . '<br />'
                    . '<strong>Script name:</strong> ' . br()->scriptName() . '<br />'
-                   . '<strong>Request type:</strong> ' . br()->request()->method(). '<br />'
                    . '<strong>Request URL:</strong> <a href="' . br()->request()->url() . '">' . br()->request()->url(). '</a><br />'
                    . '<strong>Referer URL:</strong> <a href="' . br()->request()->referer() . '">' . br()->request()->referer() . '</a><br />'
                    . '<strong>Client IP:</strong> ' . br()->request()->clientIP() . '<br />'
+                   . '<strong>Request type:</strong> ' . br()->request()->method(). '<br />'
+                   . '<strong>Request data:</strong><br />'
+                   . '<pre>'
+                   . $requestData
+                   . '</pre>'
                    . '<hr size="1" />'
                    . '<pre>'
                    . $message
