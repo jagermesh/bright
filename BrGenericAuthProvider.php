@@ -18,15 +18,21 @@ class BrGenericAuthProvider extends BrSingleton {
 
   }
 
-  function checkLogin($returnNotAuthorized = true) {
+  function getAuthTag() {
 
-    throw new Exception('Abstract error');
+    return 'Bright_AuthTag';
 
   }
 
   function isLoggedIn() {
 
     return br()->session()->get('login');
+
+  }
+
+  function checkLogin($returnNotAuthorized = true) {
+
+    throw new Exception('Abstract error');
 
   }
 
@@ -39,7 +45,7 @@ class BrGenericAuthProvider extends BrSingleton {
         $cookie   = array( 'login'    => $login['login']
                          , 'token'    => $token
                          );
-        setcookie( get_class()
+        setcookie( $this->getAuthTag()
                  , json_encode($cookie)
                  , time() + 60*60*24*30
                  , br()->request()->baseUrl()
@@ -76,7 +82,7 @@ class BrGenericAuthProvider extends BrSingleton {
 
   function clearLogin() {
 
-    setcookie( get_class()
+    setcookie( $this->getAuthTag()
              , ''
              , time() - 60*60*24*30
              , br()->request()->baseUrl()

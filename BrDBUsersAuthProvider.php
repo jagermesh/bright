@@ -102,7 +102,7 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
 
     $login = $this->getLogin();
     if (!$login) {
-      if ($cookie = json_decode(br($_COOKIE, get_class()))) {
+      if ($cookie = json_decode(br($_COOKIE, $this->getAuthTag()))) {
         if (br()->db() && @$cookie->{'login'} && @$cookie->{'token'}) {
           $users = br()->db()->table($usersTable);
           if ($login = $users->findOne(array($loginField => $cookie->{'login'}))) {
@@ -138,7 +138,7 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
         $cookie   = array( 'login'    => br($login, $loginField)
                          , 'token'    => $token
                          );
-        setcookie( get_class()
+        setcookie( $this->getAuthTag()
                  , json_encode($cookie)
                  , time() + 60*60*24*30
                  , br()->request()->baseUrl()
