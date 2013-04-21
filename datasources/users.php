@@ -166,6 +166,7 @@ class BrDataSourceUsers extends BrDataSource {
       if ($this->getAttr('passwordReminder.enabled')) {
 
         $loginField      = br()->auth()->getAttr('usersTable.loginField');
+        $loginFieldLabel = br()->auth()->getAttr('usersTable.loginFieldLabel');
         $passwordField   = br()->auth()->getAttr('usersTable.passwordField');
         $emailField      = br()->auth()->getAttr('usersTable.emailField');
         $plainPasswords  = br()->auth()->getAttr('plainPasswords');
