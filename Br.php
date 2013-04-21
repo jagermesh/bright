@@ -740,7 +740,7 @@ class Br extends BrSingleton {
     }
     $mail = new PHPMailer(true);
 
-    $from = br()->config()->get('br/Br/sendMail/from', br($params, 'sender', 'noreply@localhost'));
+    $from = br()->config()->get('br/mail/from', br()->config()->get('br/Br/sendMail/from', br($params, 'sender', 'noreply@localhost')));
 
     $mail->AddReplyTo($from);
     $mail->AddAddress($email);

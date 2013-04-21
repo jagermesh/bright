@@ -9,83 +9,93 @@
  */
 
 class BrObject {
-  
+
   protected $events = array();
 
   private $attributes = array();
   private $enabled = 0;
-  
+
   function __construct() {
 
   }
 
   public function getAttr($name, $default = null, $saveDefault = false) {
-  
+
     if ($this->isAttrExists($name)) {
-      return $this->attributes[$name];    
+      return $this->attributes[$name];
     } else {
-      if ($saveDefault) {
-        $this->setAttr($name, $default);
-        return $default;
-      } else {
-        return $default;
+      $result = $this->getAttributes();
+      $names = preg_split('~[.]~', $name);
+      foreach($names as $name) {
+        if (is_array($result)) {
+          if (array_key_exists($name, $result)) {
+            $result = $result[$name];
+          } else {
+            $result = $default;
+            break;
+          }
+        } else {
+          $result = $default;
+          break;
+        }
       }
+      return $result;
     }
-  
-  }  
-  
-  public function setAttr($name, $value) {
-  
-    return $this->attributes[$name] = $value;
-  
-  }  
-  
-  public function clearAttr($name) {
-  
-    unset($this->attributes[$name]);
-  	  
+
   }
-  
+
+  public function setAttr($name, $value) {
+
+    return $this->attributes[$name] = $value;
+
+  }
+
+  public function clearAttr($name) {
+
+    unset($this->attributes[$name]);
+
+  }
+
   public function isAttrExists($name) {
-  
+
     return array_key_exists($name, $this->attributes);
-  
-  }  
-  
+
+  }
+
   public function getAttributes() {
 
     return $this->attributes;
-    
+
   }
 
   public function setAttributes($attributes) {
 
-    $this->attributes = $attributes;  
-    
+    $this->attributes = $attributes;
+
   }
 
   public function clearAttributes() {
 
-    $this->attributes = array();  
-    
+    $this->attributes = array();
+
   }
 
   public function enable($force = false) {
 
     if ($force) {
-      $this->enabled = 0;      
+      $this->enabled = 0;
     } else {
-      $this->enabled--;      
+      $this->enabled--;
     }
-    
+
   }
-  
+
   public function disable() {
 
-    $this->enabled++;      
-    
+    $this->enabled++;
+
   }
-  
+
   public function isEnabled() {
 
     return ($this->enabled == 0);
@@ -93,17 +103,17 @@ class BrObject {
   }
 
   public static function getInstance() {
-  
+
     static $instances;
-    
+
     $className = get_called_class();
-    
-    if (!isset($instances[$className])) { 
+
+    if (!isset($instances[$className])) {
       $instances[$className] = new $className();
     }
-    
+
     return $instances[$className];
-  
+
   }
 
   public function before($event, $func) {
@@ -116,7 +126,7 @@ class BrObject {
   }
 
   public function on($event, $func) {
-    
+
     $events = preg_split('~[,]~', $event);
     foreach($events as $event) {
       $this->events[$event][] = $func;
@@ -125,7 +135,7 @@ class BrObject {
   }
 
   public function after($event, $func) {
-    
+
     $events = preg_split('~[,]~', $event);
     foreach($events as $event) {
       $this->events['after:'.$event][] = $func;
@@ -151,6 +161,6 @@ class BrObject {
 
   }
 
-  
+
 }
 

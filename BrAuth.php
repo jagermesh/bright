@@ -8,156 +8,64 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrSingleton.php');
+require_once(__DIR__.'/BrObject.php');
 
-class BrAuth extends BrSingleton {
+class BrAuth extends BrObject {
 
-  var $isDbSynced = false;
+  public static function getInstance($name = 'default') {
 
-  function isLoggedIn() {
-    
-    return br()->session()->get('login');
-    
-  }
+    static $instances = array();
+    static $reconsider = true;
 
-  function checkLogin($returnNotAuthorized = true) {
- 
-    $loginField = br()->config()->get('br/auth/db/login-field', 'login');
-    $passwordField = br()->config()->get('br/auth/db/password-field', 'password');
+    $instance = null;
 
-    $login = $this->getLogin();
-    if (!$login) {
-      if ($cookie = json_decode(br($_COOKIE, 'BrAuth'))) {
-        if (br()->db() && @$cookie->{'login'} && @$cookie->{'token'}) {
-          $users = br()->db()->table(br()->config()->get('br/auth/db/table', 'users'));
-          if ($login = $users->findOne( array( $loginField    => $cookie->{'login'} ))) {
-            if (($password = br($login, $passwordField)) && ($rowid = br()->db()->rowidValue($login))) {
-              $token = sha1(md5(sha1($password) . sha1($rowid)));
-              if ($token == $cookie->{'token'}) {
-                $this->isDbSynced = true;
-                br()->auth()->setLogin($login);
-                return $login;
-              }
-            }
-          }
+    if ($reconsider || !isset($instances[$name])) {
+
+      if ($authList = br()->config()->get('auth')) {
+
+        $reconsider = false;
+
+        $authConfig = br($authList, $name, $authList);
+
+        br()->assert($authConfig, 'Auth [' . $name . '] not configured');
+
+        switch($authConfig['type']) {
+          case "DBUsers":
+            require_once(__DIR__.'/BrDBUsersAuthProvider.php');
+            $instance = new BrDBUsersAuthProvider($authConfig);
+            break;
+          default:
+            throw new BrException('Unknown auth provider requested: ' . $name);
+            break;
         }
-      }
-      if ($returnNotAuthorized) {
-        br()->response()->sendNotAuthorized();       
-      }
-    }
-    return $login;
-  
-  }
 
-  function setLogin($login, $remember = false) {
-
-    if (is_array($login)) {
-      $loginField = br()->config()->get('br/auth/db/login-field', 'login');
-      $passwordField = br()->config()->get('br/auth/db/password-field', 'password');
-   
-      if ($remember) {
-        $password = br($login, $passwordField);
-        $rowid = br()->db()->rowidValue($login);
-        $token = sha1(md5(sha1($password) . sha1($rowid)));
-        $cookie = array( 'login'    => br($login, $loginField)
-                       , 'token'    => $token
-                       );
-        setcookie( 'BrAuth'
-                 , json_encode($cookie)
-                 , time() + 60*60*24*30
-                 , br()->request()->baseUrl()
-                 , br()->request()->domain() == 'localhost' ? false : br()->request()->domain()
-                 );
-      }
-      $loginObj = $login;
-      $loginObj['rowid'] = br()->db()->rowidValue($login);
-      if (!$loginObj['rowid']) {
-        throw new BrException('setLogin: login object must contain ID field');
-      }
-
-      return br()->session()->set('login', $login);
-    } else
-    if ($login && $remember) {
-      $data = $this->getLogin();
-      $data[$login] = $remember;
-      return br()->session()->set('login', $data);
-    }
-
-  }
-
-  function getLogin($param = null, $default = null) {
-    
-    if ($login = br()->session()->get('login')) {
-      if (!$this->isDbSynced && br()->db()) {
-        $users = br()->db()->table(br()->config()->get('br/auth/db/table', 'users'));
-        if ($login = $users->findOne(array(br()->db()->rowidField() => br()->db()->rowid($login)))) {
-          br()->auth()->setLogin($login);
-        }
-        $this->isDbSynced = true;
-      }
-    }
-    if ($login = br()->session()->get('login')) {
-      $loginObj = $login;
-      if (br()->db()) {
-        $loginObj['rowid'] = br()->db()->rowidValue($login);
-      }
-      if ($param) {
-        return br($loginObj, $param, $default);
       } else {
-        return $loginObj;
-      }
-    } else {
-      if ($param) {
-        return $default;
-      }
-    }
-    return null;
 
-  }
+        if (isset($instances[$name])) {
 
-  function clearLogin() {
-    
-    setcookie( 'BrAuth'
-             , ''
-             , time() - 60*60*24*30
-             , br()->request()->baseUrl() 
-             , br()->request()->domain() == 'localhost' ? false : br()->request()->domain()
-             );
+          $instance  = $instances[$name];
 
-    return br()->session()->clear('login');
+        } else {
 
-  }
+          $authConfig = array();
 
-  function findLogin($options = array()) {
+          require_once(__DIR__.'/BrDBUsersAuthProvider.php');
+          $instance = new BrDBUsersAuthProvider($authConfig);
 
-    // Check permissions
-    $userId      = br($options, 'userId');
-    $accessLevel = br($options, 'accessLevel');
-
-    if (!$userId) {
-      if ($login = br()->auth()->getLogin()) {
-        $userId = $login['rowid'];
-        $accessLevel = 'full-access';  // TODO: different access levels
-      }
-    }
-
-    if (!$userId) {
-      if ($token = br()->request()->get('__loginToken')) {
-        $table = br()->db()->table(br()->config()->get('br/auth/db/table', 'users'));
-        if ($login = $table->findOne(array('adminToken' => $token))) {
-          $userId = (string)$login['_id'];
-          $accessLevel = 'full-access';
-        } else
-        if ($login = $table->findOne(array('token' => $token))) {
-          $userId = (string)$login['_id'];
-          $accessLevel = 'read-only';
         }
+
       }
+
+      $instances[$name] = $instance;
+
+    } else {
+
+      $instance = $instances[$name];
+
     }
 
-    return array('userId' => $userId, 'accessLevel' => $accessLevel);
-    
+    return $instance;
+
   }
 
 }

@@ -50,7 +50,7 @@ class BrRESTBinder extends BrObject {
     }
 
     return $this;
-    
+
   }
 
   function routeGET($path, $dataSource, $options = array()) {
@@ -67,21 +67,21 @@ class BrRESTBinder extends BrObject {
   function routePOST($path, $dataSource, $options = array()) {
 
     $method = strtolower(br()->request()->get('crossdomain', br()->request()->method()));
-    if ($method == 'post') {      
+    if ($method == 'post') {
       $this->routeAsPOST($path, $dataSource, $options);
     }
 
     return $this;
-    
+
   }
 
   function routePUT($path, $dataSource, $options = array()) {
-    
+
     $method = strtolower(br()->request()->get('crossdomain', br()->request()->method()));
-    if ($method == 'put') {      
+    if ($method == 'put') {
       $this->routeAsPUT($path, $dataSource, $options);
     }
-    
+
     return $this;
 
   }
@@ -89,19 +89,17 @@ class BrRESTBinder extends BrObject {
   function routeDELETE($path, $dataSource, $options = array()) {
 
     $method = strtolower(br()->request()->get('crossdomain', br()->request()->method()));
-    if ($method == 'delete') {      
+    if ($method == 'delete') {
       $this->routeAsDELETE($path, $dataSource, $options);
     }
-    
+
     return $this;
 
   }
 
   private function checkPermissions($options, $methods) {
 
-    $permissions   = br()->auth()->findLogin($options);
-    $userId        = $permissions['userId'];
-    $accessLevel   = $permissions['accessLevel'];
+    $userId        = br()->auth()->findLogin($options);
     $securityRules = br($options, 'security');
     $result        = 'login';
 
@@ -113,7 +111,7 @@ class BrRESTBinder extends BrObject {
         if (array_key_exists($method, $securityRules)) {
           $result = $securityRules[$method];
           $found = true;
-        }          
+        }
         if ($found) {
           break;
         }
@@ -138,15 +136,19 @@ class BrRESTBinder extends BrObject {
       }
 
     } else {
+
       $result = $securityRules;
+
     }
 
-    if ($result && (!$userId || !$accessLevel)) {
+    if ($result && !$userId) {
+
       if (br()->request()->get('crossdomain')) {
         br()->response()->sendJSONP('Not Authorized');
       } else {
         br()->response()->sendNotAuthorized();
       }
+
     }
 
   }
@@ -158,13 +160,8 @@ class BrRESTBinder extends BrObject {
       if (is_string($dataSource)) {
         $dataSource = new $dataSource();
       }
-      
-      br()->request()->continueRoute(false);
 
-      $permissions = br()->auth()->findLogin($options);
-      $userId      = $permissions['userId'];
-      $accessLevel = $permissions['accessLevel'];
-      $security    = br($options, 'security');
+      br()->request()->continueRoute(false);
 
       $event = 'select';
       if ($matches = br()->request()->isAt(rtrim($path, '/').'/([-0-9a-z]+)')) {
@@ -343,7 +340,7 @@ class BrRESTBinder extends BrObject {
       try {
         if (br()->request()->get('__result') == 'count') {
           $allowEmptyFilter = br($options, 'allowEmptyFilter');
-          
+
           if (!$filter && !$allowEmptyFilter) {
             $result = 0;
           } else {
@@ -351,7 +348,7 @@ class BrRESTBinder extends BrObject {
           }
         } else {
           $allowEmptyFilter = br($options, 'allowEmptyFilter');
-          
+
           if (!$filter && !$allowEmptyFilter) {
             $dataSourceOptions['limit'] = 0;
           }
@@ -368,7 +365,7 @@ class BrRESTBinder extends BrObject {
         if (br()->request()->get('crossdomain')) {
           br()->response()->sendJSONP($result);
         } else {
-          br()->response()->sendJSON($result);          
+          br()->response()->sendJSON($result);
         }
       } catch (Exception $e) {
         if ($e instanceof BrAppException) {
@@ -385,7 +382,7 @@ class BrRESTBinder extends BrObject {
 
     }
 
-    return $this;    
+    return $this;
 
   }
 
@@ -427,7 +424,7 @@ class BrRESTBinder extends BrObject {
           if (br()->request()->get('crossdomain')) {
             br()->response()->sendJSONP($result);
           } else {
-            br()->response()->sendJSON($result);          
+            br()->response()->sendJSON($result);
           }
         } catch (Exception $e) {
           if ($e instanceof BrAppException) {
@@ -466,14 +463,14 @@ class BrRESTBinder extends BrObject {
           if (br()->request()->get('crossdomain')) {
             br()->response()->sendJSONP($result);
           } else {
-            br()->response()->sendJSON($result);          
+            br()->response()->sendJSON($result);
           }
         } catch (BrDataSourceNotFound $e) {
           br()->log()->logException($e);
           if (br()->request()->get('crossdomain')) {
             br()->response()->sendJSONP('Record not found');
           } else {
-            br()->response()->send404();            
+            br()->response()->send404();
           }
         } catch (Exception $e) {
           if ($e instanceof BrAppException) {
@@ -540,7 +537,7 @@ class BrRESTBinder extends BrObject {
         if (br()->request()->get('crossdomain')) {
           br()->response()->sendJSONP($result);
         } else {
-          br()->response()->sendJSON($result);          
+          br()->response()->sendJSON($result);
         }
       } catch (Exception $e) {
         if ($e instanceof BrAppException) {
@@ -557,7 +554,7 @@ class BrRESTBinder extends BrObject {
     }
 
     return $this;
-    
+
   }
 
   function routeAsDELETE($path, $dataSource, $options = array()) {
@@ -580,14 +577,14 @@ class BrRESTBinder extends BrObject {
           if (br()->request()->get('crossdomain')) {
             br()->response()->sendJSONP($result);
           } else {
-            br()->response()->sendJSON($result);          
+            br()->response()->sendJSON($result);
           }
         } catch (BrDataSourceNotFound $e) {
           br()->log()->logException($e);
           if (br()->request()->get('crossdomain')) {
             br()->response()->sendJSONP('Record not found');
           } else {
-            br()->response()->send404();            
+            br()->response()->send404();
           }
         } catch (Exception $e) {
           if ($e instanceof BrAppException) {
@@ -615,7 +612,7 @@ class BrRESTBinder extends BrObject {
     }
 
     return $this;
-    
+
   }
 
 }

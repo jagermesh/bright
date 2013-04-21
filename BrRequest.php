@@ -109,8 +109,8 @@ class BrRequest extends BrSingleton {
 
       $this->serverAddr = br()->config()->get('br/request/consoleModeServerAddr', '127.0.0.1');
       $this->domain     = br()->config()->get('br/request/consoleModeBaseDomain', 'localhost');
-      $this->host       = br()->config()->get('br/request/consoleModeBaseHost',    'http://'.$this->domain);
-      $this->baseUrl    = br()->config()->get('br/request/consoleModeBaseUrl',     '/');
+      $this->host       = br()->config()->get('br/request/consoleModeBaseHost',   'http://'.$this->domain);
+      $this->baseUrl    = br()->config()->get('br/request/consoleModeBaseUrl',    '/');
 
     }
 

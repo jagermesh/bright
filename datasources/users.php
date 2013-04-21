@@ -8,38 +8,36 @@ class BrDataSourceUsers extends BrDataSource {
 
   function __construct() {
 
-    $loginField = br()->config()->get('br/auth/db/login-field', 'login');
+    $usersTable    = br()->auth()->getAttr('usersTable.name');
+    $loginField    = br()->auth()->getAttr('usersTable.loginField');
 
-    parent::__construct(br()->config()->get('br/auth/db/table', 'users'), array('defaultOrder' => $loginField));
+    parent::__construct($usersTable, array('defaultOrder' => $loginField));
 
     $this->on('signup', function($dataSource, $params) {
 
-      if (!br()->config()->get('br/auth/api/signupEnabled')) {
+      $loginField    = br()->auth()->getAttr('usersTable.loginField');
+      $passwordField = br()->auth()->getAttr('usersTable.passwordField');
+      $emailField    = br()->auth()->getAttr('usersTable.emailField');
 
-        throw new Exception('Sorry. Signup is currently disabled.');
-
-      } else {
+      if (br()->auth()->getAttr('signup.enabled')) {
 
         $data = array();
 
         $row = $dataSource->insert($params, $data);
 
-        $passwordField = br()->config()->get('br/auth/db/password-field', 'password');
-
         br()->log()->writeLn('User registered:');
         br()->log()->writeLn($row);
         br()->log()->writeLn($data);
 
-        if ($mailTemplate = br()->config()->get('br/auth/mail/signup/template')) {
-          $emailField = br()->config()->get('br/auth/db/email-field', 'email');
+        if ($mailTemplate = br()->auth()->getAttr('signup.mail.template')) {
           if ($email = br($row, $emailField)) {
             require_once(dirname(__DIR__) . '/3rdparty/phpmailer/class.phpmailer.php');
             $mail = new PHPMailer(true);
             try {
-              $mail->AddReplyTo(br()->config()->get('br/auth/mail/from', 'noreply@localhost'));
+              $mail->AddReplyTo(br()->auth()->getAttr('mail.from'));
               $mail->AddAddress($email);
-              $mail->SetFrom(br()->config()->get('br/auth/mail/from', 'noreply@localhost'));
-              $mail->Subject = br()->config()->get('br/auth/mail/signup/subject', 'Registration complete');
+              $mail->SetFrom(br()->auth()->getAttr('mail.from'));
+              $mail->Subject = br()->auth()->getAttr('signup.mail.subject');
               $user = $row;
               $user[$passwordField] = br($data, 'password');
               $message = br()->renderer()->fetch($mailTemplate, $user);
@@ -64,185 +62,42 @@ class BrDataSourceUsers extends BrDataSource {
 
         br()->auth()->setLogin($row);
 
+        $row = $dataSource->selectOne(br()->db()->rowidValue($row));
+
         unset($row[$passwordField]);
 
         $row['loginToken'] = br()->guid();
-        $row['expiresAt'] = time() + 60 * 60;
+        $row['expiresAt']  = time() + 60 * 60;
+
+        br()->auth()->trigger('after:signup', $row);
 
         return $row;
 
-      }
-
-
-      //br()->response()->redirect('?from=signup&password='.$data['password']);
-
-    });
-
-    $this->on('insert', function($dataSource, &$row, &$data, $options) {
-
-      // if (br($options, 'source') == 'RESTBinder') {
-
-        $security = br()->config()->get('br/auth/db/api/insert-user');
-
-        if (!$security) {
-          $security = 'login';
-        }
-
-        if (strpos($security, 'login') !== false) {
-          $login = br()->auth()->getLogin();
-          if (!$login) {
-            throw new Exception('You are not allowed to insert users');
-          }
-          if (strpos($security, 'anyone') === false) {
-            throw new Exception('You are not allowed to insert users');
-          }
-        } else
-        if (strpos($security, 'anyone') === false) {
-          throw new Exception('You are not allowed to insert users');
-        }
-
-        // we are here so let's work
-        $loginField = br()->config()->get('br/auth/db/login-field', 'login');
-        $loginFieldLabel = br()->config()->get('br/auth/db/login-field-label', 'login');
-        $passwordField = br()->config()->get('br/auth/db/password-field', 'password');
-
-        if ($login = br()->html2text(br($row, $loginField))) {
-          if ($user = $dataSource->selectOne(array($loginField => $login))) {
-            throw new BrAppException('Such user already exists');
-          } else {
-            if (!br($row, $passwordField)) {
-              $data['password'] = substr(br()->guid(), 0, 8);
-            } else {
-              $data['password'] = $row[$passwordField];
-            }
-            $row[$passwordField]   = md5($data['password']);
-            //$row['token']      = br()->guid();
-            //$row['adminToken'] = br()->guid();
-          }
-        } else {
-          throw new BrAppException('Please enter ' . $loginFieldLabel);
-        }
-
-
-      // }
-
-    });
-
-    $this->on('select', function($dataSource, &$filter, $t, $options) {
-
-      // add security checks only for REST calls
-      if (br($options, 'source') == 'RESTBinder') {
-
-        $security = br()->config()->get('br/auth/db/api/select-user');
-        if (!$security) {
-          $security = 'login';
-        }
-        if (strpos($security, 'login') !== false) {
-          $login = br()->auth()->getLogin();
-          if (!$login) {
-            throw new Exception('You are not allowed to see users');
-          }
-          if (strpos($security, 'anyone') === false) {
-            $filter[br()->db()->rowidField()] = br()->db()->rowid($login);
-          }
-        } else
-        if (strpos($security, 'anyone') === false) {
-          throw new Exception('You are not allowed to see users');
-        }
-
-      }
-
-    });
-
-    $this->before('update', function($dataSource, $row) {
-
-      if ($login = br()->auth()->getLogin()) {
-
-        $security = br()->config()->get('br/auth/db/api/select-user');
-        if (strpos($security, 'anyone') === false) {
-          if (br()->db()->rowid($login) != br()->db()->rowid($row)) {
-            throw new Exception('You are not allowed to modify this user');
-          }
-        }
-
       } else {
-        throw new Exception('You are not allowed to modify this user');
-      }
 
-    });
+        throw new Exception('Sorry. Signup is currently disabled.');
 
-    $this->before('remove', function($dataSource, $row) {
-
-      if ($login = br()->auth()->getLogin()) {
-
-        $security = br()->config()->get('br/auth/db/api/remove-user');
-        if (strpos($security, 'anyone') === false) {
-          if (br()->db()->rowid($login) != br()->db()->rowid($row)) {
-            throw new Exception('You are not allowed to remove this user');
-          }
-        }
-
-      } else {
-        throw new Exception('You are not allowed to remove this user');
-      }
-
-    });
-
-    $this->before('update', function($dataSource, &$row, $t, $old) {
-
-      $passwordField = br()->config()->get('br/auth/db/password-field', 'password');
-      $plainPasswords = br()->config()->get('br/auth/plainPasswords', false);
-
-      if (isset($row[$passwordField])) {
-        if ($row[$passwordField]) {
-          if ($row[$passwordField] != br($old, $passwordField)) {
-            if ($plainPasswords) {
-
-            } else {
-              $row[$passwordField] = md5($row[$passwordField]);
-            }
-          }
-        } else {
-          $row[$passwordField] = $old[$passwordField];
-        }
-      }
-
-    });
-
-    $this->before('update', function($dataSource, &$row) {
-
-      $loginField = br()->config()->get('br/auth/db/login-field', 'login');
-      $loginFieldLabel = br()->config()->get('br/auth/db/login-field-label', 'login');
-
-      if (isset($row[$loginField])) {
-        if ($login = br()->html2text($row[$loginField])) {
-          if ($user = $dataSource->selectOne(array($loginField => $login, br()->db()->rowidField() => array('$ne' => br()->db()->rowid($row))))) {
-            throw new Exception('Such user already exists');
-          } else {
-          }
-        } else {
-          throw new Exception('Please enter ' . $loginFieldLabel);
-        }
       }
 
     });
 
     $this->on('login', function($dataSource, $params) {
 
-      $loginField = br()->config()->get('br/auth/db/login-field', 'login');
-      $passwordField = br()->config()->get('br/auth/db/password-field', 'password');
-      $plainPasswords = br()->config()->get('br/auth/plainPasswords', false);
+      $loginField      = br()->auth()->getAttr('usersTable.loginField');
+      $passwordField   = br()->auth()->getAttr('usersTable.passwordField');
+      $plainPasswords  = br()->auth()->getAttr('plainPasswords');
+
       $filter = array();
 
       try {
         if (br($params, $loginField) && br($params, $passwordField)) {
-          $password = $params[$passwordField];
           if ($plainPasswords) {
+
           } else {
-            $password = md5($password);
+            $params[$passwordField] = md5($params[$passwordField]);
           }
           $filter = array( $loginField    => $params[$loginField]
-                         , $passwordField => $password
+                         , $passwordField => $params[$passwordField]
                          );
           $dataSource->callEvent('before:loginSelectUser', $params, $filter);
           if ($row = $dataSource->selectOne($filter)) {
@@ -251,13 +106,18 @@ class BrDataSourceUsers extends BrDataSource {
               $denied = $dataSource->invoke('isAccessDenied', $row);
             }
             if (!$denied) {
-              $row[$passwordField] = md5($params[$passwordField]);
+              $row[$passwordField] = $params[$passwordField];
+
               br()->auth()->setLogin($row, br($params, 'remember'));
+
+              $row = $dataSource->selectOne(br()->db()->rowidValue($row));
 
               unset($row[$passwordField]);
 
               $row['loginToken'] = br()->guid();
-              $row['expiresAt'] = time() + 60 * 60;
+              $row['expiresAt']  = time() + 60 * 60;
+
+              br()->auth()->trigger('after:login', $row);
 
               return $row;
             } else {
@@ -301,60 +161,30 @@ class BrDataSourceUsers extends BrDataSource {
 
     });
 
-    $this->on('calcFields', function($dataSource, &$row) {
-
-      $passwordField = br()->config()->get('br/auth/db/password-field', 'password');
-
-      if ($login = br()->auth()->getLogin()) {
-        if (br()->config()->get('br/auth/db/api/select-user') != 'anyone') {
-          if (br()->db()->rowid($row) != $row['rowid']) {
-            unset($row['adminToken']);
-            unset($row['token']);
-          }
-        }
-      } else {
-        unset($row['adminToken']);
-        unset($row['token']);
-      }
-
-      unset($row[$passwordField]);
-
-      $row['__permissions'] = array( 'canUpdate' => $dataSource->canUpdate($row)
-                                   , 'canRemove' => $dataSource->canRemove($row)
-                                   );
-
-    });
-
     $this->on('remindPassword', function($dataSource, $params) {
 
-      if (!br()->config()->get('br/auth/api/passwordReminderEnabled')) {
+      if ($this->getAttr('passwordReminder.enabled')) {
 
-        throw new BrAppException('Sorry. Password reminder is currently disabled.');
-
-      } else {
-
-        $loginField = br()->config()->get('br/auth/db/login-field', 'login');
-        $loginFieldLabel = br()->config()->get('br/auth/db/login-field-label', 'login');
-        $passwordField = br()->config()->get('br/auth/db/password-field', 'password');
+        $loginField      = br()->auth()->getAttr('usersTable.loginField');
+        $passwordField   = br()->auth()->getAttr('usersTable.passwordField');
+        $emailField      = br()->auth()->getAttr('usersTable.emailField');
+        $plainPasswords  = br()->auth()->getAttr('plainPasswords');
 
         if ($login = br($params, $loginField)) {
           if ($user = $dataSource->selectOne(array($loginField => $login))) {
-            $emailField = br()->config()->get('br/auth/db/email-field', 'email');
             if ($email = br($user, $emailField)) {
-              if ($mailTemplate = br()->config()->get('br/auth/mail/forgot-password/template')) {
+              if ($mailTemplate = $this->getAttr('passwordReminder.mail.template')) {
                 require_once(dirname(__DIR__) . '/3rdparty/phpmailer/class.phpmailer.php');
                 $mail = new PHPMailer(true);
                 try {
-                  $mail->AddReplyTo(br()->config()->get('br/auth/mail/from', 'noreply@localhost'));
+                  $mail->AddReplyTo($this->getAttr('passwordReminder.mail.from'));
                   $mail->AddAddress($login);
-                  $mail->SetFrom(br()->config()->get('br/auth/mail/from', 'noreply@localhost'));
-                  $mail->Subject = br()->config()->get('br/auth/mail/forgot-password/subject', 'Password reminder');
+                  $mail->SetFrom($this->getAttr('passwordReminder.mail.from'));
+                  $mail->Subject = $this->getAttr('passwordReminder.mail.subject');
                   $data = array();
                   $data[$passwordField] = substr(br()->guid(), 0, 8);
                   $user[$passwordField] = $data[$passwordField];
                   $data[$passwordField] = md5($data[$passwordField]);
-                  //$data['token']        = br()->guid();
-                  //$data['adminToken']   = br()->guid();
                   $message = br()->renderer()->fetch($mailTemplate, $user);
                   $mail->MsgHTML($message, br()->templatesPath());
                   if ($mail->Body) {
@@ -387,6 +217,172 @@ class BrDataSourceUsers extends BrDataSource {
           throw new BrAppException('Please enter ' . $loginFieldLabel);
         }
 
+      } else {
+
+        throw new BrAppException('Sorry. Password reminder is currently disabled.');
+
+      }
+
+    });
+
+    // DML Events
+    $this->before('select', function($dataSource, &$filter, $t, $options) {
+
+      // add security checks only for REST calls
+      if (br($options, 'source') == 'RESTBinder') {
+
+        if ($security = br()->auth()->getAttr('usersAPI.select')) {
+
+        } else {
+          $security = 'login';
+        }
+
+        if (strpos($security, 'login') !== false) {
+          if ($login = br()->auth()->getLogin()) {
+
+          } else {
+            throw new Exception('You are not allowed to see users');
+          }
+          if (strpos($security, 'anyone') === false) {
+            $filter[br()->db()->rowidField()] = br()->db()->rowid($login);
+          }
+        } else
+        if (strpos($security, 'anyone') === false) {
+          throw new Exception('You are not allowed to see users');
+        }
+
+      }
+
+    });
+
+    $this->on('calcFields', function($dataSource, &$row) {
+
+      $passwordField = br()->auth()->getAttr('usersTable.passwordField');
+
+      if ($login = br()->auth()->getLogin()) {
+        if (br()->auth()->getAttr('usersAPI.select') != 'anyone') {
+          if (br()->db()->rowid($row) != $row['rowid']) {
+            unset($row['loginToken']);
+          }
+        }
+      } else {
+        unset($row['loginToken']);
+      }
+
+      unset($row[$passwordField]);
+
+      $row['__permissions'] = array( 'canUpdate' => $dataSource->canUpdate($row)
+                                   , 'canRemove' => $dataSource->canRemove($row)
+                                   );
+
+    });
+
+    $this->before('insert', function($dataSource, &$row, &$data, $options) {
+
+      $loginField      = br()->auth()->getAttr('usersTable.loginField');
+      $loginFieldLabel = br()->auth()->getAttr('usersTable.loginFieldLabel');
+      $passwordField   = br()->auth()->getAttr('usersTable.passwordField');
+
+      if ($security = br()->auth()->getAttr('usersAPI.insert')) {
+
+      } else {
+        $security = 'login';
+      }
+
+      if (strpos($security, 'login') !== false) {
+        if ($login = br()->auth()->getLogin()) {
+
+        } else {
+          throw new BrAppException('Access denied');
+        }
+        if (strpos($security, 'anyone') === false) {
+          throw new BrAppException('Access denied');
+        }
+      } else
+      if (strpos($security, 'anyone') === false) {
+        throw new BrAppException('Access denied');
+      }
+
+      // we are here so let's work
+      if ($login = trim(br()->html2text(br($row, $loginField)))) {
+        $row[$loginField] = $login;
+        if ($user = $dataSource->selectOne(array($loginField => $login))) {
+          throw new BrAppException('Such user already exists');
+        } else {
+          if (br($row, $passwordField)) {
+            $data['password'] = $row[$passwordField];
+          } else {
+            $data['password'] = substr(br()->guid(), 0, 8);
+          }
+          $row[$passwordField] = md5($data['password']);
+        }
+      } else {
+        throw new BrAppException('Please enter ' . $loginFieldLabel);
+      }
+
+    });
+
+    $this->before('update', function($dataSource, &$row, $t, $old) {
+
+      if ($login = br()->auth()->getLogin()) {
+
+        $security = br()->auth()->getAttr('usersAPI.update');
+        if (strpos($security, 'anyone') === false) {
+          if (br()->db()->rowid($login) != br()->db()->rowid($row)) {
+            throw new BrAppException('Access denied');
+          }
+        }
+
+      } else {
+        throw new BrAppException('Access denied');
+      }
+
+      $loginField      = br()->auth()->getAttr('usersTable.loginField');
+      $loginFieldLabel = br()->auth()->getAttr('usersTable.loginFieldLabel');
+      $passwordField   = br()->auth()->getAttr('usersTable.passwordField');
+      $plainPasswords  = br()->auth()->getAttr('plainPasswords');
+
+      if (isset($row[$loginField])) {
+        if ($login = trim(br()->html2text($row[$loginField]))) {
+          $row[$loginField] = $login;
+          if ($user = $dataSource->selectOne(array($loginField => $login, br()->db()->rowidField() => array('$ne' => br()->db()->rowid($row))))) {
+            throw new Exception('Such user already exists');
+          } else {
+          }
+        } else {
+          throw new Exception('Please enter ' . $loginFieldLabel);
+        }
+      }
+
+      if (isset($row[$passwordField])) {
+        if ($row[$passwordField]) {
+          if ($row[$passwordField] != br($old, $passwordField)) {
+            if ($plainPasswords) {
+
+            } else {
+              $row[$passwordField] = md5($row[$passwordField]);
+            }
+          }
+        } else {
+          $row[$passwordField] = $old[$passwordField];
+        }
+      }
+
+    });
+
+    $this->before('remove', function($dataSource, $row) {
+
+      if ($login = br()->auth()->getLogin()) {
+
+        $security = br()->auth()->getAttr('usersAPI.remove');
+        if (strpos($security, 'anyone') === false) {
+          if (br()->db()->rowid($login) != br()->db()->rowid($row)) {
+            throw new BrAppException('Access denied');
+          }
+        }
+
+      } else {
+        throw new BrAppException('Access denied');
       }
 
     });
@@ -396,7 +392,7 @@ class BrDataSourceUsers extends BrDataSource {
   public function canUpdate($row, $new = array()) {
 
     if ($login = br()->auth()->getLogin()) {
-      $security = br()->config()->get('br/auth/db/api/select-user');
+      $security = br()->auth()->getAttr('usersAPI.update');
       if (strpos($security, 'anyone') === false) {
         if (br()->db()->rowid($login) != br()->db()->rowid($row)) {
           return false;
@@ -412,13 +408,22 @@ class BrDataSourceUsers extends BrDataSource {
 
   public function canRemove($row) {
 
-    return $this->canUpdate($row);
+    if ($login = br()->auth()->getLogin()) {
+      $security = br()->auth()->getAttr('usersAPI.remove');
+      if (strpos($security, 'anyone') === false) {
+        if (br()->db()->rowid($login) != br()->db()->rowid($row)) {
+          return false;
+        }
+      }
+    } else {
+      return false;
+    }
+
+    return true;
 
   }
 
 }
-
-//br()->registerDataSource($usersDataSource);
 
 br()->importLib('RESTBinder');
 
@@ -438,7 +443,7 @@ class BrRESTUsersBinder extends BrRESTBinder {
 
   function doRouting() {
 
-    $loginField = br()->config()->get('br/auth/db/login-field', 'login');
+    $loginField = br()->auth()->getAttr('usersTable.loginField');
 
     parent::route( '/api/users'
                  , $this->usersDataSource
