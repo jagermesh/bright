@@ -18,11 +18,11 @@ class BrErrorHandler extends BrObject {
   function __construct() {
 
     error_reporting(E_ALL);
-    
+
     set_error_handler(array(&$this, "errorHandler"));
     set_exception_handler(array(&$this, "exceptionHandler"));
     // register_shutdown_function(array(&$this, "captureShutdown"));
-    
+
   }
 
   function captureShutdown() {
@@ -46,7 +46,7 @@ class BrErrorHandler extends BrObject {
 
         } else {
           $this->exceptionHandler(new BrErrorException($errmsg, 0, $errno, $errfile, $errline));
-        
+
         }
       }
     }
@@ -92,15 +92,15 @@ class BrErrorHandler extends BrObject {
           }
 
         }
-        
+
       } catch (Exception $e) {
 
-      }   
-       	 
+      }
+
     }
 
   }
-  
+
   function errorHandler($errno, $errmsg, $errfile, $errline, $vars) {
 
     if ($this->isEnabled()) {

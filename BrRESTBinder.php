@@ -368,16 +368,7 @@ class BrRESTBinder extends BrObject {
           br()->response()->sendJSON($result);
         }
       } catch (Exception $e) {
-        if ($e instanceof BrAppException) {
-
-        } else {
-          br()->log()->logException($e);
-        }
-        if (br()->request()->get('crossdomain')) {
-          br()->response()->sendJSONP($e->getMessage());
-        } else {
-          br()->response()->sendForbidden($e->getMessage());
-        }
+        $this->returnException($e);
       }
 
     }
@@ -427,16 +418,7 @@ class BrRESTBinder extends BrObject {
             br()->response()->sendJSON($result);
           }
         } catch (Exception $e) {
-          if ($e instanceof BrAppException) {
-
-          } else {
-            br()->log()->logException($e);
-          }
-          if (br()->request()->get('crossdomain')) {
-            br()->response()->sendJSONP($e->getMessage());
-          } else {
-            br()->response()->sendForbidden($e->getMessage());
-          }
+          $this->returnException($e);
         }
       } else
       if ($matches = br()->request()->isAt(rtrim($path, '/').'/([0-9a-z]+)')) {
@@ -473,16 +455,7 @@ class BrRESTBinder extends BrObject {
             br()->response()->send404();
           }
         } catch (Exception $e) {
-          if ($e instanceof BrAppException) {
-
-          } else {
-            br()->log()->logException($e);
-          }
-          if (br()->request()->get('crossdomain')) {
-            br()->response()->sendJSONP($e->getMessage());
-          } else {
-            br()->response()->sendForbidden($e->getMessage());
-          }
+          $this->returnException($e);
         }
 
       } else {
@@ -540,16 +513,7 @@ class BrRESTBinder extends BrObject {
           br()->response()->sendJSON($result);
         }
       } catch (Exception $e) {
-        if ($e instanceof BrAppException) {
-
-        } else {
-          br()->log()->logException($e);
-        }
-        if (br()->request()->get('crossdomain')) {
-          br()->response()->sendJSONP($e->getMessage());
-        } else {
-          br()->response()->sendForbidden($e->getMessage());
-        }
+        $this->returnException($e);
       }
     }
 
@@ -569,7 +533,6 @@ class BrRESTBinder extends BrObject {
 
       if ($matches = br()->request()->isAt(rtrim($path, '/').'/([0-9a-z]+)')) {
 
-
         $this->checkPermissions($options, array('remove', 'delete'));
 
         try {
@@ -587,16 +550,7 @@ class BrRESTBinder extends BrObject {
             br()->response()->send404();
           }
         } catch (Exception $e) {
-          if ($e instanceof BrAppException) {
-
-          } else {
-            br()->log()->logException($e);
-          }
-          if (br()->request()->get('crossdomain')) {
-            br()->response()->sendJSONP($e->getMessage());
-          } else {
-            br()->response()->sendForbidden($e->getMessage());
-          }
+          $this->returnException($e);
         }
 
       } else {
@@ -612,6 +566,26 @@ class BrRESTBinder extends BrObject {
     }
 
     return $this;
+
+  }
+
+  function returnException($e) {
+
+    if ($e instanceof BrAppException) {
+
+    } else {
+      br()->log()->logException($e);
+    }
+    if ($e instanceof BrDBException) {
+      $message = 'Database error';
+    } else {
+      $message = $e->getMessage();
+    }
+    if (br()->request()->get('crossdomain')) {
+      br()->response()->sendJSONP($message);
+    } else {
+      br()->response()->sendForbidden($message);
+    }
 
   }
 

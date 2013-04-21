@@ -696,7 +696,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
       $sql = br()->placeholderEx($sql, $args, $error);
       if (!$sql) {
         $error .= '[INFO:SQL]'.$sql.'[/INFO]';
-        throw new BrException($error);
+        throw new BrDBException($error);
       }
     }
     br()->log()->writeln($sql, "QRY");
@@ -712,7 +712,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
       $error = $this->getLastError();
       if (!preg_match('/1329: No data/', $error)) {
         $error .= '[INFO:SQL]'.$sql.'[/INFO]';
-        throw new BrException($error);
+        throw new BrDBException($error);
       }
     } else {
         // if ($duration > 1)

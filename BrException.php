@@ -38,15 +38,15 @@ class BrErrorException extends ErrorException {
 	);
 
 	public function getType() {
-		
+
 		return (isset($this->errorTypes[$this->getSeverity()]) ? $this->errorTypes[$this->getSeverity()] : 'Unknown Error');
-		
+
 	}
-	
+
 	public function isFatal() {
-		
+
 		return (($this->getSeverity() == E_ERROR) || ($this->getSeverity() == E_USER_ERROR));
-		
+
 	}
 
 }
@@ -82,5 +82,9 @@ class BrAssertException extends BrException {
 }
 
 class BrAppException extends BrException {
+
+}
+
+class BrDBException extends BrException {
 
 }

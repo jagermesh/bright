@@ -66,9 +66,6 @@ class BrDataSourceUsers extends BrDataSource {
 
         unset($row[$passwordField]);
 
-        $row['loginToken'] = br()->guid();
-        $row['expiresAt']  = time() + 60 * 60;
-
         br()->auth()->trigger('after:signup', $row);
 
         return $row;
@@ -113,9 +110,6 @@ class BrDataSourceUsers extends BrDataSource {
               $row = $dataSource->selectOne(br()->db()->rowidValue($row));
 
               unset($row[$passwordField]);
-
-              $row['loginToken'] = br()->guid();
-              $row['expiresAt']  = time() + 60 * 60;
 
               br()->auth()->trigger('after:login', $row);
 
@@ -259,16 +253,6 @@ class BrDataSourceUsers extends BrDataSource {
     $this->on('calcFields', function($dataSource, &$row) {
 
       $passwordField = br()->auth()->getAttr('usersTable.passwordField');
-
-      if ($login = br()->auth()->getLogin()) {
-        if (br()->auth()->getAttr('usersAPI.select') != 'anyone') {
-          if (br()->db()->rowid($row) != $row['rowid']) {
-            unset($row['loginToken']);
-          }
-        }
-      } else {
-        unset($row['loginToken']);
-      }
 
       unset($row[$passwordField]);
 
