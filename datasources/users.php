@@ -378,7 +378,6 @@ class BrDataSourceUsers extends BrDataSource {
 
     if ($login = br()->auth()->getLogin()) {
       $security = br()->auth()->getAttr('usersAPI.update');
-
       if (strpos($security, 'anyone') === false) {
         if (br()->db()->rowid($login) != br()->db()->rowid($row)) {
           return false;
