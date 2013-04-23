@@ -11,7 +11,11 @@
     var users = br.dataSource(br.baseUrl + 'api/users/');
 
     users.on('error', function(operation, error) {
-      br.growlError(error);
+      if ($('.login-error').length > 0) {
+        $('.login-error').text(error).fadeIn();
+      } else {
+        br.growlError(error);
+      }
     });
 
     $('.action-signup').click(function() {
