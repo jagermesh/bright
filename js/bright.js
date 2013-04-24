@@ -1,8 +1,8 @@
-//
+// 
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-//
+// 
 
 (function (window) {
 
@@ -10,28 +10,28 @@
 
   window.br.isNumber = function(value) {
     return (
-             !isNaN(parseFloat(value)) &&
+             !isNaN(parseFloat(value)) && 
              isFinite(value)
            );
   }
 
   window.br.isNull = function(value) {
     return (
-             (value === undefined) ||
-             (value === null)
+             (value === undefined) || 
+             (value === null) 
            );
   }
 
   window.br.isEmpty = function(value) {
-    return (
-             br.isNull(value) ||
+    return ( 
+             br.isNull(value) || 
              ((typeof value.length != 'undefined') && (value.length === 0)) // Array, String
            );
   }
 
   window.br.isArray = function (value) {
     return (
-             !br.isNull(value) &&
+             !br.isNull(value) && 
              (Object.prototype.toString.call(value) === '[object Array]')
            );
   }
@@ -67,7 +67,7 @@
   window.br.split = function (value, delimiter) {
     if (br.isEmpty(value)) {
       return [];
-    } else
+    } else 
     if (br.isString(value)) {
       return value.split(delimiter);
     }
@@ -93,14 +93,14 @@
     if (br.isNumber(value)) {
       return value;
     }
-  };
+  };  
 
 })(window);
-//
+// 
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-//
+// 
 
 (function (window) {
 
@@ -132,7 +132,7 @@
         for(var i in key) {
           result[key[i]] = this.get(key[i]);
         }
-      } else {
+      } else {        
         result = _helper.unpack(_storage.getItem(key));
       }
       return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
@@ -366,11 +366,11 @@
   window.br.session = new BrStorage(window.sessionStorage);
 
 })(window);
-//
+// 
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-//
+// 
 
 (function (window) {
 
@@ -443,14 +443,14 @@
 
     }
 
-    this.triggerBefore = function(event) {
-      return triggerEx(event, 'before', arguments);
+    this.triggerBefore = function(event) { 
+      return triggerEx(event, 'before', arguments); 
     }
-    this.trigger = function(event) {
-      return triggerEx(event, 'on',     arguments);
+    this.trigger = function(event) { 
+      return triggerEx(event, 'on',     arguments); 
     }
-    this.triggerAfter = function(event) {
-      return triggerEx(event, 'after',  arguments);
+    this.triggerAfter = function(event) { 
+      return triggerEx(event, 'after',  arguments); 
     }
 
   }
@@ -462,11 +462,11 @@
   }
 
 })(window);
-//
+// 
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-//
+// 
 
 (function (window) {
 
@@ -730,7 +730,7 @@
     }
   }
 
-  $(window).on('beforeunload', function() {
+  $(window).on('beforeunload', function(){
     return brightConfirmClose();
   });
 
@@ -792,16 +792,16 @@
     a,b,e){i("css",c,a,b,e)},js:function(c,a,b,e){i("js",c,a,b,e)}}}(document);
 
 })(jQuery, window);
-//
+// 
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-//
+// 
 
 (function (window) {
 
   function BrFlagsHolder(permanent, name) {
-
+  
     var flags = [];
 
     this.append = function(id) {
@@ -863,11 +863,11 @@
   }
 
 })(window);
-//
+// 
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-//
+// 
 
 (function ($, window) {
 
@@ -1060,7 +1060,7 @@
         options = callback;
         callback = filter;
       }
-
+      
       var newFilter = {};
       for(var i in filter) {
         newFilter[i] = filter[i];
@@ -1173,7 +1173,7 @@
                                     , error: function(jqXHR, textStatus, errorThrown) {
                                         if (br.isUnloading()) {
 
-                                        } else {
+                                        } else { 
                                           _this.ajaxRequest = null;
                                           var error = (jqXHR.statusText == 'abort') ? '' : (jqXHR.responseText.length === 0 ? 'Server error' : jqXHR.responseText);
                                           handleError(error, jqXHR);
@@ -1182,7 +1182,7 @@
                                     });
         }
       } else {
-
+        
       }
 
     }
@@ -1579,6 +1579,11 @@
     this.on     = function(event, callback) { this.events.on(event, callback); }
     this.after  = function(event, callback) { this.events.after(event, callback); }
 
+    function storageTag(c) {
+
+      return document.location.toString() + ':filter-value:' + $(c).attr('name');
+    }
+
     this.val = function(value) {
       if (value !== undefined) {
         $(this.selector).val(value);
@@ -1591,10 +1596,20 @@
       return br.isEmpty(val) ? null : val;
     }
 
-    function storageTag(c) {
-
-      return document.location.toString() + ':filter-value:' + $(c).attr('name');
+    this.reset = function(triggerChange) {
+      br.storage.remove(storageTag(this.selector));
+      this.selector.val('');
+      if (triggerChange) {
+        $(this.selector).trigger('change');
+      } else
+      if (window.Select2) {
+        $(this.selector).select2();
+      }
     }
+
+    this.selector.on('reset', function() {
+      _this.reset();
+    });
 
     function render(data) {
 
@@ -1711,11 +1726,11 @@
   }
 
 })(jQuery, window);
-//
+// 
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-//
+// 
 
 (function ($, window) {
 

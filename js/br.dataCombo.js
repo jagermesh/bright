@@ -22,6 +22,11 @@
     this.on     = function(event, callback) { this.events.on(event, callback); }
     this.after  = function(event, callback) { this.events.after(event, callback); }
 
+    function storageTag(c) {
+
+      return document.location.toString() + ':filter-value:' + $(c).attr('name');
+    }
+
     this.val = function(value) {
       if (value !== undefined) {
         $(this.selector).val(value);
@@ -34,10 +39,20 @@
       return br.isEmpty(val) ? null : val;
     }
 
-    function storageTag(c) {
-
-      return document.location.toString() + ':filter-value:' + $(c).attr('name');
+    this.reset = function(triggerChange) {
+      br.storage.remove(storageTag(this.selector));
+      this.selector.val('');
+      if (triggerChange) {
+        $(this.selector).trigger('change');
+      } else
+      if (window.Select2) {
+        $(this.selector).select2();
+      }
     }
+
+    this.selector.on('reset', function() {
+      _this.reset();
+    });
 
     function render(data) {
 

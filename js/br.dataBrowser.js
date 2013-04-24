@@ -712,13 +712,11 @@
 
     this.resetFilters = function() {
       $(c('input.data-filter')).val('');
-      $(c('select.data-filter option:selected')).removeAttr('selected');
-      $(c('select.data-filter')).prop('selectedIndex', 0);
       $(c('select.data-filter')).val('');
-      $(c('select.data-filter')).trigger('change');
+      $(c('select.data-filter')).trigger('reset');
       br.storage.remove(this.storageTag + 'filter');
       _this.events.trigger('resetFilters');
-      _this.refresh();
+      br.refresh();
     }
     this.refreshDeferred = function(filter, callback, doNotResetPager) {
       if (typeof filter == 'function') {
