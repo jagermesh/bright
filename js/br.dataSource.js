@@ -87,9 +87,10 @@
                      if (br.isUnloading()) {
 
                      } else {
-                       _this.events.trigger('error', 'insert', jqXHR.responseText);
-                       _this.events.triggerAfter('insert', false, jqXHR.responseText, request);
-                       if (typeof callback == 'function') { callback.call(_this, false, jqXHR.responseText, request); }
+                       var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                       _this.events.trigger('error', 'insert', errorMessage);
+                       _this.events.triggerAfter('insert', false, errorMessage, request);
+                       if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
                      }
                    }
                  });
@@ -140,9 +141,10 @@
                    if (br.isUnloading()) {
 
                    } else {
-                     _this.events.trigger('error', 'update', jqXHR.responseText);
-                     _this.events.triggerAfter('update', false, jqXHR.responseText, request);
-                     if (typeof callback == 'function') { callback.call(_this, false, jqXHR.responseText, request); }
+                     var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                     _this.events.trigger('error', 'update', errorMessage);
+                     _this.events.triggerAfter('update', false, errorMessage, request);
+                     if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
                    }
                  }
                });
@@ -179,9 +181,10 @@
                    if (br.isUnloading()) {
 
                    } else {
-                     _this.events.trigger('error', 'remove', jqXHR.responseText);
-                     _this.events.triggerAfter('remove', false, jqXHR.responseText, request);
-                     if (typeof callback == 'function') { callback.call(_this, false, jqXHR.responseText, request); }
+                     var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                     _this.events.trigger('error', 'remove', errorMessage);
+                     _this.events.triggerAfter('remove', false, errorMessage, request);
+                     if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
                    }
                  }
                });
@@ -310,8 +313,8 @@
 
                                         } else { 
                                           _this.ajaxRequest = null;
-                                          var error = (jqXHR.statusText == 'abort') ? '' : (jqXHR.responseText.length === 0 ? 'Server error' : jqXHR.responseText);
-                                          handleError(error, jqXHR);
+                                          var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                                          handleError(errorMessage, jqXHR);
                                         }
                                       }
                                     });
@@ -367,9 +370,10 @@
                  if (br.isUnloading()) {
 
                  } else {
-                   _this.events.trigger('error', method, jqXHR.responseText);
-                   _this.events.triggerAfter('' + method, false, jqXHR.responseText, request);
-                   if (typeof callback == 'function') { callback.call(_this, false, jqXHR.responseText, request); }
+                   var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                   _this.events.trigger('error', method, errorMessage);
+                   _this.events.triggerAfter('' + method, false, errorMessage, request);
+                   if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
                  }
                }
              });

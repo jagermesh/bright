@@ -952,9 +952,10 @@
                      if (br.isUnloading()) {
 
                      } else {
-                       _this.events.trigger('error', 'insert', jqXHR.responseText);
-                       _this.events.triggerAfter('insert', false, jqXHR.responseText, request);
-                       if (typeof callback == 'function') { callback.call(_this, false, jqXHR.responseText, request); }
+                       var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                       _this.events.trigger('error', 'insert', errorMessage);
+                       _this.events.triggerAfter('insert', false, errorMessage, request);
+                       if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
                      }
                    }
                  });
