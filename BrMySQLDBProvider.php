@@ -303,6 +303,26 @@ class BrMySQLProviderTable {
           $where .= $link . $fname2 . ' LIKE ?';
           $args[] = '%'.$filterValue.'%';
           break;
+        case '$fulltext':
+          if (is_array($filterValue)) {
+            $tmpFName = '';
+            $tmpValue = '';
+            foreach($filterValue as $name => $value) {
+              if (strpos($name, '.') === false) {
+                $tmpFName2 = $tableName.'.'.$name;
+              } else {
+                $tmpFName2 = $name;
+              }
+              $tmpFName = br($tmpFName)->inc($tmpFName2);
+              $tmpValue = $value;
+            }
+            $where .= $link . 'MATCH (' . $tmpFName . ') AGAINST (? IN BOOLEAN MODE)';
+            $args[] = $tmpValue;
+          } else {
+            $where .= $link . 'MATCH (' . $fname2 . ') AGAINST (? IN BOOLEAN MODE)';
+            $args[] = $filterValue;
+          }
+          break;
         case '$starts':
           $where .= $link . $fname2 . ' LIKE ?';
           $args[] = $filterValue.'%';

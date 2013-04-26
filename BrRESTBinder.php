@@ -257,6 +257,17 @@ class BrRESTBinder extends BrObject {
                     $filter[$fields] = array('$contains' => $value);
                   }
                   break;
+                case "fulltext":
+                  if (is_array($fields)) {
+                    $subFilter = array();
+                    foreach($fields as $field) {
+                      $subFilter[$field] = $value;
+                    }
+                    $filter['$fulltext'] = $subFilter;
+                  } else {
+                    $filter[$fields] = array('$fulltext' => $value);
+                  }
+                  break;
                 case "filter":
                   $filters = br($mapping, 'filters', br($mapping, 'filter'));
                   if (!is_array($filters)) {
@@ -576,7 +587,7 @@ class BrRESTBinder extends BrObject {
     } else {
       br()->log()->logException($e);
     }
-    if ($e instanceof BrDBException) {
+    if (($e instanceof BrDBException) && !br()->request()->isLocalHost()) {
       $message = 'Database error';
     } else {
       $message = $e->getMessage();
