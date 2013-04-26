@@ -304,23 +304,42 @@ class BrMySQLProviderTable {
           $args[] = '%'.$filterValue.'%';
           break;
         case '$fulltext':
-          if (is_array($filterValue)) {
-            $tmpFName = '';
-            $tmpValue = '';
-            foreach($filterValue as $name => $value) {
-              if (strpos($name, '.') === false) {
-                $tmpFName2 = $tableName.'.'.$name;
-              } else {
-                $tmpFName2 = $name;
+          if ((br()->db()->getMajorVersion() >= 5) && (br()->db()->getMinorVersion() >= 6) && (br()->db()->getBuildNumber() >= 4)) {
+            if (is_array($filterValue)) {
+              $tmpFName = '';
+              $tmpValue = '';
+              foreach($filterValue as $name => $value) {
+                if (strpos($name, '.') === false) {
+                  $tmpFName2 = $tableName.'.'.$name;
+                } else {
+                  $tmpFName2 = $name;
+                }
+                $tmpFName = br($tmpFName)->inc($tmpFName2);
+                $tmpValue = $value;
               }
-              $tmpFName = br($tmpFName)->inc($tmpFName2);
-              $tmpValue = $value;
-            }
-            $where .= $link . 'MATCH (' . $tmpFName . ') AGAINST (? IN BOOLEAN MODE)';
-            $args[] = $tmpValue;
+              $where .= $link . 'MATCH (' . $tmpFName . ') AGAINST (? IN BOOLEAN MODE)';
+              $args[] = $tmpValue;
+            } else {
+              $where .= $link . 'MATCH (' . $fname2 . ') AGAINST (? IN BOOLEAN MODE)';
+              $args[] = $filterValue;
+            }            
           } else {
-            $where .= $link . 'MATCH (' . $fname2 . ') AGAINST (? IN BOOLEAN MODE)';
-            $args[] = $filterValue;
+            if (is_array($filterValue)) {
+              $where .= $link . '(1=2 ';
+              foreach($filterValue as $name => $value) {
+                if (strpos($name, '.') === false) {
+                  $tmpFName2 = $tableName.'.'.$name;
+                } else {
+                  $tmpFName2 = $name;
+                }
+                $where .= ' OR ' . $tmpFName2 . ' LIKE ?';
+                $args[] = '%'.$value.'%';
+              }
+              $where .= ')';
+            } else {
+              $where .= $link . $fname2 . ' LIKE ?';
+              $args[] = '%'.$filterValue.'%';
+            }
           }
           break;
         case '$starts':
@@ -1040,6 +1059,42 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
       $count = number_format($count, 0, '', '');
     }
     return $sql.br()->placeholder(' LIMIT ?, ?', $from, $count);
+
+  }
+
+  function getMajorVersion() {
+
+    if ($version = mysql_get_server_info()) {
+      if (preg_match('~^([0-9]+)[.]([0-9]+)[.]([0-9]+)~', $version, $matches)) {
+        return (int)$matches[1];
+      }
+    }
+    
+    return 0;
+
+  }
+
+  function getMinorVersion() {
+
+    if ($version = mysql_get_server_info()) {
+      if (preg_match('~^([0-9]+)[.]([0-9])[.]([0-9]+)~', $version, $matches)) {
+        return (int)$matches[2];
+      }
+    }
+
+    return 0;
+
+  }
+
+  function getBuildNumber() {
+
+    if ($version = mysql_get_server_info()) {
+      if (preg_match('~^([0-9]+)[.]([0-9]+)[.]([0-9]+)~', $version, $matches)) {
+        return (int)$matches[3];
+      }
+    }
+
+    return 0;
 
   }
 

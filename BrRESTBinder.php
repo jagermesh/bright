@@ -261,7 +261,7 @@ class BrRESTBinder extends BrObject {
                   if (is_array($fields)) {
                     $subFilter = array();
                     foreach($fields as $field) {
-                      $subFilter[$field] = $value;
+                      $subFilter[] = array($field => $value);
                     }
                     $filter['$fulltext'] = $subFilter;
                   } else {
