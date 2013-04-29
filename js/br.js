@@ -134,18 +134,33 @@
 
   };
 
-  function handleModified(element, callback) {
-    var _this = $(element);
-    if (_this.data('br-last-change') != _this.val()) {
-      _this.data('br-last-change', _this.val());
-      var callbacks = _this.data('br-data-change-callbacks');
+  function handleModified(element, deferred) {
+    if (deferred) {
+      window.clearTimeout(element.data('BrModified_Timeout'));
+      var listName1 = 'BrModified_Callbacks1';
+      var listName2 = 'BrModified_LastCahange1';
+    } else {
+      var listName1 = 'BrModified_Callbacks2';
+      var listName2 = 'BrModified_LastCahange2';
+    }
+    if (element.data(listName2) != element.val()) {
+      element.data(listName2, element.val());
+      var callbacks = element.data(listName1);
       if (callbacks) {
         for(var i in callbacks) {
-          callbacks[i].call(_this);
+          callbacks[i].call(element);
         }
-      } else {
-        callback.call(_this);
       }
+    }
+  }
+
+  function handleModified1(element) {
+    handleModified(element, false);
+    if (element.data('BrModified_Callbacks1')) {
+      window.clearTimeout(element.data('BrModified_Timeout'));
+      element.data('BrModified_Timeout', window.setTimeout(function() {
+        handleModified(element, true);
+      }, 1000));
     }
   }
 
@@ -154,32 +169,30 @@
       if (!$(this).data('br-data-change-callbacks')) {
         $(this).data('br-data-change-callbacks', []);
       }
-      var callbacks = $(this).data('br-data-change-callbacks');
-      callbacks.push(callback);
-      $(this).data('br-data-change-callbacks', callbacks);
-    });
-    $(selector).live('change', function() {
-      var $this = $(this);
       if (deferred) {
-        window.clearTimeout($this.data('br-modified-timeout'));
-        $(this).data('br-modified-timeout', window.setTimeout(function() {
-          handleModified($this, callback);
-        }, 500));
+        var listName = 'BrModified_Callbacks1';
       } else {
-        handleModified($this, callback);
+        var listName = 'BrModified_Callbacks2';
       }
+      var callbacks = $(this).data(listName);
+      if (callbacks) {
+
+      } else {
+        callbacks = [];
+      }
+      callbacks.push(callback);
+      $(this).data(listName, callbacks);
     });
-    $(selector).live('keyup', function(e) {
-      if ((e.keyCode == 8) || (e.keyCode == 32) || ((e.keyCode >= 48) && (e.keyCode <= 90)) || ((e.keyCode >= 96) && (e.keyCode <= 111)) || ((e.keyCode >= 186) && (e.keyCode <= 222))) {
-        var $this = $(this);
-        if (deferred) {
-          window.clearTimeout($this.data('br-modified-timeout'));
-          $(this).data('br-modified-timeout', window.setTimeout(function() {
-            handleModified($this, callback);
-          }, 500));
-        } else {
-          handleModified($this, callback);
-        }
+    $(document).on('change', selector, function() {
+      handleModified1($(this));
+    });
+    $(document).on('keyup', selector, function(e) {
+      if (e.keyCode == 13) {
+        handleModified($(this), false);
+        handleModified($(this), true);
+      } else
+      if ((e.keyCode == 8) || (e.keyCode == 32)  || (e.keyCode == 91) || (e.keyCode == 93) || ((e.keyCode >= 48) && (e.keyCode <= 90)) || ((e.keyCode >= 96) && (e.keyCode <= 111)) || ((e.keyCode >= 186) && (e.keyCode <= 222))) {
+        handleModified1($(this));
       }
     });
   }
