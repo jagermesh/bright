@@ -21,9 +21,9 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
     $this->setAttr('plainPasswords', br()->config()->get('br/auth/plainPasswords', $this->getAttr('plainPasswords')));
 
     if ($data = $this->getAttr('mail')) {
-      $this->setAttr('mail.from', br($data, 'from', 'noreply@localhost'));
+      $this->setAttr('mail.from', br($data, 'from'));
     } else {
-      $this->setAttr('mail.from', br()->config()->get('br/auth/mail/from', 'noreply@localhost'));
+      $this->setAttr('mail.from', br()->config()->get('br/auth/mail/from'));
     }
 
     if ($data = $this->getAttr('usersTable')) {

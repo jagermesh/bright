@@ -34,9 +34,11 @@ class BrDataSourceUsers extends BrDataSource {
             require_once(dirname(__DIR__) . '/3rdparty/phpmailer/class.phpmailer.php');
             $mail = new PHPMailer(true);
             try {
-              $mail->AddReplyTo(br()->auth()->getAttr('mail.from'));
               $mail->AddAddress($email);
-              $mail->SetFrom(br()->auth()->getAttr('mail.from'));
+              if (br()->auth()->getAttr('mail.from')) {
+                $mail->AddReplyTo(br()->auth()->getAttr('mail.from'));
+                $mail->SetFrom(br()->auth()->getAttr('mail.from'));
+              }
               $mail->Subject = br()->auth()->getAttr('signup.mail.subject');
               $user = $row;
               $user[$passwordField] = br($data, 'password');
@@ -172,9 +174,11 @@ class BrDataSourceUsers extends BrDataSource {
                 require_once(dirname(__DIR__) . '/3rdparty/phpmailer/class.phpmailer.php');
                 $mail = new PHPMailer(true);
                 try {
-                  $mail->AddReplyTo($this->getAttr('passwordReminder.mail.from'));
-                  $mail->AddAddress($login);
-                  $mail->SetFrom($this->getAttr('passwordReminder.mail.from'));
+                  $mail->AddAddress($email);
+                  if (br()->auth()->getAttr('passwordReminder.mail.from')) {
+                    $mail->AddReplyTo(br()->auth()->getAttr('passwordReminder.mail.from'));
+                    $mail->SetFrom(br()->auth()->getAttr('passwordReminder.mail.from'));
+                  }
                   $mail->Subject = $this->getAttr('passwordReminder.mail.subject');
                   $data = array();
                   $data[$passwordField] = substr(br()->guid(), 0, 8);

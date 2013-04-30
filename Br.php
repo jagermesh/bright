@@ -740,11 +740,12 @@ class Br extends BrSingleton {
     }
     $mail = new PHPMailer(true);
 
-    $from = br()->config()->get('br/mail/from', br()->config()->get('br/Br/sendMail/from', br($params, 'sender', 'noreply@localhost')));
-
-    $mail->AddReplyTo($from);
     $mail->AddAddress($email);
-    $mail->SetFrom($from);
+
+    if ($from = br()->config()->get('br/mail/from', br()->config()->get('br/Br/sendMail/from', br($params, 'sender')))) {
+      $mail->AddReplyTo($from);
+      $mail->SetFrom($from);
+    }
 
     if (br($params, 'mailer') == 'smtp') {
       $mail->Mailer = br($params, 'mailer');
