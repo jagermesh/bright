@@ -463,7 +463,7 @@ class BrRESTBinder extends BrObject {
           if (br()->request()->get('crossdomain')) {
             br()->response()->sendJSONP('Record not found');
           } else {
-            br()->response()->send404();
+            br()->response()->send404('Record not found');
           }
         } catch (Exception $e) {
           $this->returnException($e);
@@ -558,7 +558,7 @@ class BrRESTBinder extends BrObject {
           if (br()->request()->get('crossdomain')) {
             br()->response()->sendJSONP('Record not found');
           } else {
-            br()->response()->send404();
+            br()->response()->send404('Record not found');
           }
         } catch (Exception $e) {
           $this->returnException($e);

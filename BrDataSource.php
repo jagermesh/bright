@@ -14,6 +14,12 @@ require_once(__DIR__.'/BrGenericDataSource.php');
 
 class BrDataSourceNotFound extends BrException {
 
+  function __construct() {
+
+    parent::__construct('Record not found');
+
+  }
+
 }
 
 class BrDataSource extends BrGenericDataSource {
