@@ -241,8 +241,6 @@ class qqFileUploader {
     }
 
     $pathinfo = pathinfo($this->file->getName());
-    $filename = $pathinfo['filename'];
-    //$filename = md5(uniqid());
     $ext = $pathinfo['extension'];
 
     if($this->allowedExtensions && !in_array(strtolower($ext), $this->allowedExtensions)){
@@ -259,9 +257,11 @@ class qqFileUploader {
         }
         return array( 'success'          => true
                     , 'url'              => $url . $fileName
+                    , 'href'             => br()->request()->baseUrl(-1) . $url . $fileName
                     , 'originalFileName' => $this->file->getName()
                     , 'fileName'         => $fileName
                     , 'fileSize'         => filesize($uploadDirectory . $fileName)
+                    , 'fileSizeStr'      => br()->formatBytes(filesize($uploadDirectory . $fileName))
                     , 'thumbnail'        => $thumbnail
                     );
       } else {

@@ -300,8 +300,22 @@ class BrMySQLProviderTable {
           $args[] = $filterValue;
           break;
         case '$contains':
-          $where .= $link . $fname2 . ' LIKE ?';
-          $args[] = '%'.$filterValue.'%';
+          if (is_array($filterValue)) {
+            $where .= $link . '(1=2 ';
+            foreach($filterValue as $name => $value) {
+              if (strpos($name, '.') === false) {
+                $tmpFName2 = $tableName.'.'.$name;
+              } else {
+                $tmpFName2 = $name;
+              }
+              $where .= ' OR ' . $tmpFName2 . ' LIKE ?';
+              $args[] = '%'.$value.'%';
+            }
+            $where .= ')';
+          } else {
+            $where .= $link . $fname2 . ' LIKE ?';
+            $args[] = '%'.$filterValue.'%';
+          }
           break;
         case '$fulltext':
           if ((br()->db()->getMajorVersion() >= 5) && (br()->db()->getMinorVersion() >= 6) && (br()->db()->getBuildNumber() >= 4)) {
@@ -322,7 +336,7 @@ class BrMySQLProviderTable {
             } else {
               $where .= $link . 'MATCH (' . $fname2 . ') AGAINST (? IN BOOLEAN MODE)';
               $args[] = $filterValue;
-            }            
+            }
           } else {
             if (is_array($filterValue)) {
               $where .= $link . '(1=2 ';
@@ -1069,7 +1083,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
         return (int)$matches[1];
       }
     }
-    
+
     return 0;
 
   }
