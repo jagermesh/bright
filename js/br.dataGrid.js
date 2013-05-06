@@ -180,14 +180,14 @@
         var i;
         if (_this.options.freeGrid) {
           if (data.headers) {
-            for (i in data.headers) {
+            for (var i in data.headers) {
               if (data.headers[i]) {
                 $(_this.options.headersSelector).append(_this.renderHeader(data.headers[i]));
               }
             }
           }
           if (data.footers) {
-            for (i in data.footers) {
+            for (var i in data.footers) {
               if (data.footers[i]) {
                 $(_this.options.footersSelector).append(_this.renderFooter(data.headers[i]));
               }
@@ -200,7 +200,7 @@
             if (data.rows.length === 0) {
               _this.selector.html(this.options.templates.noData);
             } else {
-              for (i in data.rows) {
+              for (var i in data.rows) {
                 if (data.rows[i]) {
                   if (data.rows[i].row) {
                     _this.selector.append(_this.renderRow(data.rows[i].row));
@@ -220,7 +220,7 @@
         } else {
           _this.selector.html('');
           if (data && (data.length > 0)) {
-            for (i in data) {
+            for (var i in data) {
               if (data[i]) {
                 _this.selector.append(_this.renderRow(data[i]));
               }

@@ -366,11 +366,11 @@
   window.br.session = new BrStorage(window.sessionStorage);
 
 })(window);
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function (window) {
 
@@ -405,17 +405,17 @@
       if (eventSubscribers) {
         switch(pos) {
           case 'before':
-            for (i in eventSubscribers.before) {
+            for (var i in eventSubscribers.before) {
               eventSubscribers.before[i].apply(_this.obj, args);
             }
             break;
           case 'on':
-            for (i in eventSubscribers.on) {
+            for (var i in eventSubscribers.on) {
               result = eventSubscribers.on[i].apply(_this.obj, args);
             }
             break;
           case 'after':
-            for (i in eventSubscribers.after) {
+            for (var i in eventSubscribers.after) {
               eventSubscribers.after[i].apply(_this.obj, args);
             }
             break;
@@ -443,14 +443,14 @@
 
     }
 
-    this.triggerBefore = function(event) { 
-      return triggerEx(event, 'before', arguments); 
+    this.triggerBefore = function(event) {
+      return triggerEx(event, 'before', arguments);
     }
-    this.trigger = function(event) { 
-      return triggerEx(event, 'on',     arguments); 
+    this.trigger = function(event) {
+      return triggerEx(event, 'on',     arguments);
     }
-    this.triggerAfter = function(event) { 
-      return triggerEx(event, 'after',  arguments); 
+    this.triggerAfter = function(event) {
+      return triggerEx(event, 'after',  arguments);
     }
 
   }
@@ -1506,14 +1506,14 @@
         var i;
         if (_this.options.freeGrid) {
           if (data.headers) {
-            for (i in data.headers) {
+            for (var i in data.headers) {
               if (data.headers[i]) {
                 $(_this.options.headersSelector).append(_this.renderHeader(data.headers[i]));
               }
             }
           }
           if (data.footers) {
-            for (i in data.footers) {
+            for (var i in data.footers) {
               if (data.footers[i]) {
                 $(_this.options.footersSelector).append(_this.renderFooter(data.headers[i]));
               }
@@ -1526,7 +1526,7 @@
             if (data.rows.length === 0) {
               _this.selector.html(this.options.templates.noData);
             } else {
-              for (i in data.rows) {
+              for (var i in data.rows) {
                 if (data.rows[i]) {
                   if (data.rows[i].row) {
                     _this.selector.append(_this.renderRow(data.rows[i].row));
@@ -1546,7 +1546,7 @@
         } else {
           _this.selector.html('');
           if (data && (data.length > 0)) {
-            for (i in data) {
+            for (var i in data) {
               if (data[i]) {
                 _this.selector.append(_this.renderRow(data[i]));
               }

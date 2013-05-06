@@ -1,8 +1,8 @@
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function (window) {
 
@@ -37,17 +37,17 @@
       if (eventSubscribers) {
         switch(pos) {
           case 'before':
-            for (i in eventSubscribers.before) {
+            for (var i in eventSubscribers.before) {
               eventSubscribers.before[i].apply(_this.obj, args);
             }
             break;
           case 'on':
-            for (i in eventSubscribers.on) {
+            for (var i in eventSubscribers.on) {
               result = eventSubscribers.on[i].apply(_this.obj, args);
             }
             break;
           case 'after':
-            for (i in eventSubscribers.after) {
+            for (var i in eventSubscribers.after) {
               eventSubscribers.after[i].apply(_this.obj, args);
             }
             break;
@@ -75,14 +75,14 @@
 
     }
 
-    this.triggerBefore = function(event) { 
-      return triggerEx(event, 'before', arguments); 
+    this.triggerBefore = function(event) {
+      return triggerEx(event, 'before', arguments);
     }
-    this.trigger = function(event) { 
-      return triggerEx(event, 'on',     arguments); 
+    this.trigger = function(event) {
+      return triggerEx(event, 'on',     arguments);
     }
-    this.triggerAfter = function(event) { 
-      return triggerEx(event, 'after',  arguments); 
+    this.triggerAfter = function(event) {
+      return triggerEx(event, 'after',  arguments);
     }
 
   }
