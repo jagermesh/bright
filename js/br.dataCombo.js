@@ -23,13 +23,15 @@
     this.after  = function(event, callback) { this.events.after(event, callback); }
 
     function storageTag(c) {
-
-      return document.location.toString() + ':filter-value:' + $(c).attr('name');
+      return document.location.pathname + ':filter-value:' + $(c).attr('name');
     }
 
     this.val = function(value) {
       if (value !== undefined) {
         $(this.selector).val(value);
+        if (_this.saveSelection) {
+          br.storage.set(storageTag($(this.selector)), value);
+        }
       }
       return $(this.selector).val();
     }

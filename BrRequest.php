@@ -15,6 +15,7 @@ class BrRequest extends BrSingleton {
   private $host = null;
   private $url = null;
   private $path = null;
+  private $pathname = null;
   private $relativeUrl = null;
   private $baseUrl = null;
   private $frameworkUrl = null;
@@ -258,6 +259,12 @@ class BrRequest extends BrSingleton {
   }
 
   function host() {
+
+    return $this->host;
+
+  }
+
+  function origin() {
 
     return $this->host;
 

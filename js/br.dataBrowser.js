@@ -52,7 +52,7 @@
       this.dataSource = entity;
     }
 
-    this.storageTag = document.location.toString() + this.dataSource.options.restServiceUrl;
+    this.storageTag = document.location.pathname + this.dataSource.options.restServiceUrl;
 
     this.selection = br.flagsHolder();
 
