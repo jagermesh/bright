@@ -265,3 +265,7 @@ li.ajax-in-progress span.icon-spin {
 .text-right {
   text-align: right;
 }
+
+a i:hover {
+  text-decoration: none;
+}
