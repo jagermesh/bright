@@ -15,7 +15,7 @@ class BrResponse extends BrSingleton {
   function sendJSON($response, $alreadyPacked = false) {
 
     if (!$alreadyPacked) {
-      $response = json_encode($response);
+      $response = @json_encode($response);
     }
 
     header('Cache-Control: no-cache, must-revalidate');
@@ -30,7 +30,7 @@ class BrResponse extends BrSingleton {
   function sendJSONP($response, $callback = null) {
 
     $callback = $callback?$callback:br()->request()->get('callback');
-    $response = json_encode($response);
+    $response = @json_encode($response);
     $response = $callback . '(' . $response . ')';
 
     header('Cache-Control: no-cache, must-revalidate');
