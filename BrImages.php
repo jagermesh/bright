@@ -24,6 +24,17 @@ class BrImages extends BrSingleton {
 
   }
 
+  function getFormat($path) {
+
+    try {
+      $image = new BrImage($path);
+      return $image->format();
+    } catch (Exception $e) {
+      return false;
+    }
+
+  }
+
   function generateThumbnail($src, $w, $h, $relativePath = null) {
 
     $path = $src;
@@ -56,7 +67,7 @@ class BrImages extends BrSingleton {
     if (file_exists($dstPath)) {
 
       return $dst;
-      
+
     } else {
 
       br()->log()->writeLn('Creating thumbnail from ' . $src . ' in ' . $dstPath);

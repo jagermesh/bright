@@ -120,6 +120,19 @@ class BrFileSystem extends BrSingleton {
 
   }
 
+  public function getCharsPath($fileName) {
+
+    $s = '';
+    $fileNameOnly = $this->fileNameOnly($fileName);
+
+    for($i = 0; $i < min(6, strlen($fileNameOnly)); $i++) {
+      $s .= $fileName[$i] . '/';
+    }
+
+    return $s . $fileName;
+
+  }
+
   public function saveToFile($fileName, $content) {
 
     file_put_contents($fileName, $content);
