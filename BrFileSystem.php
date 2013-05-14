@@ -101,6 +101,16 @@ class BrFileSystem extends BrSingleton {
 
   }
 
+  public function folderName($path) {
+
+    if ($s = preg_split('|/|', $this->dirname($path))) {
+      return $s[count($s) - 1];
+    } else {
+      return '';
+    }
+
+  }
+
   public function fileExt($fileName) {
 
     $pathinfo = pathinfo($fileName);

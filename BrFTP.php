@@ -73,7 +73,7 @@ class BrFTP extends BrObject {
     parent::__construct();
 
   }
-  
+
   function connect($hostName, $userName, $password, $port = 21, $passiveMode = true) {
 
     $this->currentHostName    = $hostName;
@@ -99,7 +99,7 @@ class BrFTP extends BrObject {
     }
 
   }
-  
+
   public function disconnect() {
 
     try {
@@ -136,7 +136,7 @@ class BrFTP extends BrObject {
     if (ftp_chdir($this->connectionId, $directory)) {
       $this->currentDirectory = $this->getServerDir();
     } else {
-      throw new Exception('Can not change remote directory to ' . $directory);      
+      throw new Exception('Can not change remote directory to ' . $directory);
     }
 
   }
@@ -182,7 +182,7 @@ class BrFTP extends BrObject {
     }
 
     throw new Exception('Can not upload file ' . $sourceFilePath);
-    
+
   }
 
   public function deleteFile($fileName) {
@@ -232,6 +232,6 @@ class BrFTP extends BrObject {
     return $exists;
 
   }
-  
+
 }
 

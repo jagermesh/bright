@@ -20,12 +20,12 @@ if (function_exists('set_magic_quotes_runtime')) {
   @set_magic_quotes_runtime(0);
 }
 
-if (get_magic_quotes_gpc()) { 
+if (get_magic_quotes_gpc()) {
   br()->stripSlashes($_GET);
   br()->stripSlashes($_POST);
-  br()->stripSlashes($_COOKIE); 
+  br()->stripSlashes($_COOKIE);
   br()->stripSlashes($_REQUEST);
-  if (isset($_SERVER['PHP_AUTH_USER'])) br()->stripSlashes($_SERVER['PHP_AUTH_USER']); 
+  if (isset($_SERVER['PHP_AUTH_USER'])) br()->stripSlashes($_SERVER['PHP_AUTH_USER']);
   if (isset($_SERVER['PHP_AUTH_PW'])) br()->stripSlashes($_SERVER['PHP_AUTH_PW']);
 }
 
@@ -38,7 +38,7 @@ $traces = debug_backtrace();
 if (strtolower(basename($traces[0]['file'])) == 'bright.php') {
   br()->saveCallerScript($traces[1]['file']);
 } else {
-  br()->saveCallerScript($traces[0]['file']);  
+  br()->saveCallerScript($traces[0]['file']);
 }
 
 // Loading application settings
