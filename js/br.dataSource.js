@@ -1,8 +1,8 @@
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function ($, window) {
 
@@ -198,7 +198,7 @@
         options = callback;
         callback = filter;
       }
-      
+
       var newFilter = {};
       for(var i in filter) {
         newFilter[i] = filter[i];
@@ -293,15 +293,22 @@
           request.__order = options.order;
         }
 
+        if (this.options.crossdomain) {
+          request.crossdomain = 'get';
+        }
+
         if (_this.options.offlineMode) {
           handleSuccess(_this.db(request).get());
         } else {
           this.ajaxRequest = $.ajax({ type: 'GET'
                                     , data: request
-                                    , dataType: 'json'
+                                    , dataType: this.options.crossdomain ? 'jsonp' : 'json'
                                     , url: url + (this.options.authToken ? '?token=' + this.options.authToken : '')
                                     , success: function(response) {
                                         _this.ajaxRequest = null;
+                                        if (_this.options.crossdomain && (typeof response == 'string')) {
+                                          handleError('', response);
+                                        } else
                                         if (response) {
                                           handleSuccess(response);
                                         } else {
@@ -311,7 +318,7 @@
                                     , error: function(jqXHR, textStatus, errorThrown) {
                                         if (br.isUnloading()) {
 
-                                        } else { 
+                                        } else {
                                           _this.ajaxRequest = null;
                                           var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
                                           handleError(errorMessage, jqXHR);
@@ -320,7 +327,7 @@
                                     });
         }
       } else {
-        
+
       }
 
     }
