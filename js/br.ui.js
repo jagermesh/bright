@@ -167,7 +167,7 @@
         s = s + '<label>' + i + '</label>'
               + '<input type="text" '
               + (inputs[i].id ? 'id="'+inputs[i].id+'"' : '')
-              + ' class="span4 ' + inputs[i].class + '"'
+              + ' class="span4 ' + (br.isEmpty(inputs[i]['class']) ? '' : inputs[i]['class']) + '"'
               + ' value="' + inputs[i].value + '"'
               + ' data-click-on-enter=".action-confirm-close" />';
       } else {
@@ -262,7 +262,7 @@
     });
 
     if ($('.focused').length > 0) {
-      $('.focused')[0].focus();
+      try { $('.focused')[0].focus(); } catch (ex) { }
     }
 
   });
