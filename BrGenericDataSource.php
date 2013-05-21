@@ -33,6 +33,12 @@ class BrGenericDataSource extends BrObject {
 
   }
 
+  function setDefaultOrder($value = array()) {
+
+    $this->defaultOrder = $value;
+
+  }
+
   function existsOne($filter = array()) {
 
     if ($row = $this->selectOne($filter, array(), array(), array('noCalcFields' => true))) {
