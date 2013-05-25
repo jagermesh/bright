@@ -100,6 +100,17 @@ input.justified, select.justified {
   box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.5);
 }
 
+.shadow-paper-box-internal {
+  margin: 0px auto;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  padding: 30px;
+  background: white;
+  -webkit-box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.5);
+  -moz-box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.5);
+  box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.5);
+}
+
 .shadow-paper-box-fluid {
   margin: 0px 10px;
   margin-top: 50px;
