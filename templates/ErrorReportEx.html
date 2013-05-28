@@ -1,9 +1,9 @@
 <style>
 
-div.bright-error-panel { 
+div.bright-error-panel {
   font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300; 
-  font-size: 12pt; 
+  font-weight: 300;
+  font-size: 12pt;
   margin: 50px;
   background: #FFC;
   -webkit-box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.5);
@@ -18,27 +18,34 @@ div.bright-error-panel {
   /*margin-left: 400px;*/
   /*border: #FC6 1px solid;*/
 }
-div.bright-error-panel div.wrapper { 
+div.bright-error-panel div.wrapper {
   padding: 30px;
 }
-div.bright-error-panel div.bright-error-section { 
+div.bright-error-panel div.bright-error-section {
   padding: 5px;
 }
-div.bright-error-panel div.error { 
-  font-size: 18pt; 
-  color: red; 
+div.bright-error-panel div.error {
+  font-size: 18pt;
+  color: red;
 }
-div.bright-error-panel div.info { 
+div.bright-error-panel div.error-type {
+  border-radius: 5px;
+  background-color: #fc3;
+  padding: 5px;
+  margin-right: 4px;
+  float:left;
+}
+div.bright-error-panel div.info {
   padding-left: 20px;
 }
-div.bright-error-panel div.title { 
-  font-size: 14pt; 
+div.bright-error-panel div.title {
+  font-size: 14pt;
   margin-bottom: 4px;
 }
-div.bright-error-panel div.info-box { 
-  font-size: 10pt; 
-  padding: 10px; 
-  background-color: #FEFEFE; 
+div.bright-error-panel div.info-box {
+  font-size: 10pt;
+  padding: 10px;
+  background-color: #FEFEFE;
   border: 1px solid #BFBFBF;
 }
 
@@ -47,8 +54,9 @@ div.bright-error-panel div.info-box {
 <div class="bright-error-panel">
   <div class="wrapper">
     <div class="bright-error-section">
+      <div class="error-type"><?php echo($type); ?></div>
       <div class="error"><?php echo(htmlentities($errorMessage)); ?></div>
-      <div class="info">in <?php echo($e->getFile()); ?>, line <?php echo($e->getLine());?></div>
+      <div>in <?php echo($e->getFile()); ?>, line <?php echo($e->getLine());?></div>
     </div>
     <?php if ($errorInfo) { ?>
     <div class="bright-error-section">
