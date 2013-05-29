@@ -53,25 +53,27 @@ class BrImage extends BrObject {
             $this->format = "gif";
           }
           break;
-        default:
-          br()->log('Trying open ' . $path . ' as PNG');
-          $this->image = ImageCreateFromPNG($path);
+      }
+      if ($this->image) {
+
+      } else {
+        br()->log('Trying open ' . $path . ' as PNG');
+        $this->image = ImageCreateFromPNG($path);
+        if ($this->image) {
+          $this->format = "png";
+        } else {
+          br()->log('Trying open ' . $path . ' as JPEG');
+          $this->image = ImageCreateFromJPEG($path);
           if ($this->image) {
-            $this->format = "png";
+            $this->format = "jpg";
           } else {
-            br()->log('Trying open ' . $path . ' as JPEG');
-            $this->image = ImageCreateFromJPEG($path);
+            br()->log('Trying open ' . $path . ' as GIF');
+            $this->image = ImageCreateFromGIF($path);
             if ($this->image) {
-              $this->format = "jpg";
-            } else {
-              br()->log('Trying open ' . $path . ' as GIF');
-              $this->image = ImageCreateFromGIF($path);
-              if ($this->image) {
-                $this->format = "gif";
-              }
-            }            
+              $this->format = "gif";
+            }
           }
-          break;
+        }
       }
     } else {
       throw new Exception('It seems GD is not installed.');
@@ -81,7 +83,7 @@ class BrImage extends BrObject {
       $this->width = imagesx($this->image);
       $this->height = imagesy($this->image);
     } else {
-      throw new Exception($path . ' is not invalid image file.');
+      throw new Exception($path . ' is not valid image file.');
     }
 
     $this->filePath = $path;
@@ -97,25 +99,25 @@ class BrImage extends BrObject {
   }
 
   function format() {
-    
+
     return $this->format;
 
-  } 
-
-  function width() { 
-    
-    return $this->width; 
-      
   }
-  
-  function height() { 
-    
-    return $this->height; 
-      
+
+  function width() {
+
+    return $this->width;
+
+  }
+
+  function height() {
+
+    return $this->height;
+
   }
 
   function generateThumbnail($w, $h, $dstPath) {
-    
+
     $cw = $this->width();
     $ch = $this->height();
 
@@ -130,8 +132,8 @@ class BrImage extends BrObject {
         $new_height_before = $new_height;
         $new_height = $h;
         $new_width = round($new_width * ($new_height * 100 / $new_height_before) / 100);
-      } 
-    } else 
+      }
+    } else
     if ($ch > $h) {
       $new_height = $h;
       $new_width = round($cw * ($new_height * 100 / $ch) / 100);
@@ -149,14 +151,14 @@ class BrImage extends BrObject {
         $new_height_before = $new_height;
         $new_height = $h;
         $new_width = round($new_width * ($new_height * 100 / $new_height_before) / 100);
-      } 
+      }
     }
 
     if (function_exists("ImageCreateTrueColor"))
       $new_image = ImageCreateTrueColor($new_width, $new_height);
     else
       $new_image = ImageCreate($new_width, $new_height);
-      
+
     if (function_exists("imagecopyresampled")) {
       if ($format == "png" || $format == "gif") {
         imagecolortransparent($new_image, imagecolorallocatealpha($new_image, 0, 0, 0, 127));
@@ -206,6 +208,6 @@ class BrImage extends BrObject {
     }
 
   }
-   
+
 }
 

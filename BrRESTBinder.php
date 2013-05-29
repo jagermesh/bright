@@ -446,10 +446,12 @@ class BrRESTBinder extends BrObject {
           $data = $data['__values'];
         }
         foreach($data as $name => $value) {
-          if (!is_array($value)) {
-            $value = trim($value);
+          if ($name != '__loginToken') {
+            if (!is_array($value)) {
+              $value = trim($value);
+            }
+            $row[$name] = $value;
           }
-          $row[$name] = $value;
         }
         try {
           $result = $dataSource->update($matches[1], $row);
@@ -510,10 +512,12 @@ class BrRESTBinder extends BrObject {
         $data = $data['__values'];
       }
       foreach($data as $name => $value) {
-        if (!is_array($value)) {
-          $value = trim($value);
+        if ($name != '__loginToken') {
+          if (!is_array($value)) {
+            $value = trim($value);
+          }
+          $row[$name] = $value;
         }
-        $row[$name] = $value;
       }
       try {
         $t = array();

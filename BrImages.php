@@ -35,6 +35,30 @@ class BrImages extends BrSingleton {
 
   }
 
+  function generateThumbnails($src, $thumbnails = null) {
+
+    if ($thumbnails) {
+
+      if (!is_array($thumbnails)) {
+        $dimensions = preg_split('~[,;]~', $thumbnails);
+        $thumbnails = array();
+        foreach($dimensions as $dimension) {
+          $dimension = trim($dimension);
+          if (preg_match('~([0-9]+)x([0-9]+)~i', $dimension, $matches)) {
+            $thumbnails[$dimension] = array( 'width'  => $matches[1]
+                                           , 'height' => $matches[2]
+                                           );
+          }
+        }
+      }
+
+      foreach($thumbnails as $thumbnail_code => $thumbnail_desc) {
+        $this->generateThumbnail($src, $thumbnail_desc['width'], $thumbnail_desc['height']);
+      }
+    }
+
+  }
+
   function generateThumbnail($src, $w, $h, $relativePath = null) {
 
     $path = $src;
