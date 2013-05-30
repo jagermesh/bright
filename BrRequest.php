@@ -78,9 +78,16 @@ class BrRequest extends BrSingleton {
       $this->scriptName = $scriptName;
 
       if ($this->isPUT()) {
-        parse_str(file_get_contents("php://input"), $this->putVars);
-        if (get_magic_quotes_gpc()) {
-          br()->stripSlashes($this->putVars);
+        $phpinput = file_get_contents("php://input");
+        if ($json = @json_decode($phpinput, true)) {
+          $this->putVars = $json;
+        } else {
+          parse_str($phpinput, $this->putVars);
+        }
+        if ($this->putVars) {
+          if (get_magic_quotes_gpc()) {
+            br()->stripSlashes($this->putVars);
+          }
         }
       }
 

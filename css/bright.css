@@ -272,11 +272,10 @@ li.ajax-in-progress span.icon-spin {
   color: white;
 }
 
-
 .text-right {
   text-align: right;
 }
 
-a i:hover {
+a i:hover, .brand:hover {
   text-decoration: none;
 }
