@@ -827,5 +827,10 @@ class Br extends BrSingleton {
 
   }
 
+  function trn($phrase) {
+    $translation = br()->config()->get('translation');
+    return br($translation, $phrase, $phrase);
+  }
+
 }
 

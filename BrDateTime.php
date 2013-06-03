@@ -9,9 +9,9 @@
  */
 
 require_once(__DIR__.'/BrObject.php');
-  
+
 class BrDateTime extends BrObject {
-  
+
   var $weekday;
   var $day;
   var $month;
@@ -19,17 +19,18 @@ class BrDateTime extends BrObject {
   var $hour;
   var $mute;
   var $second;
-  
+
   function __construct($date = null) {
-    
+
     $this->set($date);
-    
+
   }
-  
+
   function set($date = null) {
-    
-    if (!$date)
+
+    if (!$date) {
       $date = mktime();
+    }
 
     $date_parts = explode('-', date('d-m-Y-N-H-i-s-D', $date));
 
@@ -41,53 +42,53 @@ class BrDateTime extends BrObject {
     $this->minute       = $date_parts[5];
     $this->second       = $date_parts[6];
     $this->weekday_name = $date_parts[7];
-    
+
   }
-  
+
   function setDay($day) {
 
     $this->day = $day;
     $this->set($this->asDateTime());
-    
+
   }
-  
+
   function setDayToLast() {
 
     $this->setDay(1);
     $this->incMonth(1);
     $this->decDay(1);
-    
+
   }
-  
+
   function setMonth($month) {
 
     $this->month = $month;
     $this->set($this->asDateTime());
-    
+
   }
 
   function asDateTime() {
-  
+
     return mktime($this->hour, $this->minute, $this->second, $this->month, $this->day, $this->year);
-    
+
   }
-  
+
   function asDate() {
-    
+
     return mktime(0, 0, 0, $this->month, $this->day, $this->year);
-    
+
   }
-  
+
   function incDay($increment = 1) {
-    
+
     $this->day += $increment;
     $this->set($this->asDateTime());
     return $this;
 
   }
-  
+
   function incHour($increment = 1) {
-    
+
     $this->hour += $increment;
     $this->set($this->asDateTime());
     return $this;
@@ -95,7 +96,7 @@ class BrDateTime extends BrObject {
   }
 
   function incMinute($increment = 1) {
-    
+
     $this->minute += $increment;
     $this->set($this->asDateTime());
     return $this;
@@ -103,7 +104,7 @@ class BrDateTime extends BrObject {
   }
 
   function incSec($increment = 1) {
-    
+
     $this->second += $increment;
     $this->set($this->asDateTime());
     return $this;
@@ -111,23 +112,23 @@ class BrDateTime extends BrObject {
   }
 
   function incMonth($increment = 1) {
-    
+
     $this->month += $increment;
     $this->set($this->asDateTime());
     return $this;
 
   }
-  
+
   function incYear($increment = 1) {
-    
+
     $this->year += $increment;
     $this->set($this->asDateTime());
     return $this;
 
   }
-  
+
   function decDay($decrement = 1) {
-    
+
     $this->day -= $decrement;
     $this->set($this->asDateTime());
     return $this;
@@ -135,7 +136,7 @@ class BrDateTime extends BrObject {
   }
 
   function decMonth($decrement = 1) {
-    
+
     $this->month -= $decrement;
     $this->set($this->asDateTime());
     return $this;
@@ -143,7 +144,7 @@ class BrDateTime extends BrObject {
   }
 
   function daysBetween($date = null, $with_sign = false) {
-    
+
     if (!$date) {
       $date = mktime();
     }
@@ -151,13 +152,13 @@ class BrDateTime extends BrObject {
     $diff = ($this->asDate() - $date->asDate())/60/60/24;
     if (!$with_sign) {
       $diff = abs($diff);
-    }  
+    }
     return $diff;
 
   }
 
   function minutesBetween($date = null) {
-    
+
     if (!$date) {
       $date = mktime();
     }
@@ -166,9 +167,9 @@ class BrDateTime extends BrObject {
     return $diff;
 
   }
-  
+
   function secondsBetween($date = null) {
-    
+
     if (!$date)
       $date = mktime();
     $date = new BrDateTime($date);
@@ -178,26 +179,26 @@ class BrDateTime extends BrObject {
   }
 
   function differenceToString($date = null) {
-    
+
     return $this->secondsToString($this->secondsBetween($date));
-    
+
   }
-  
+
   function daysDifferenceToString($date = null) {
-    
+
     return $this->secondsToString($this->secondsBetween($date), 'days');
-    
+
   }
-  
+
   function secondsToString($diff = null, $stopOn = '') {
-    
+
     $result = '';
-    
+
     if ($diff >= 60*60*24) {
       $days = round($diff/60/60/24);
       if ($days == 1)
         $result = $days.' day';
-      else  
+      else
         $result = $days.' days';
     }
 
@@ -205,7 +206,7 @@ class BrDateTime extends BrObject {
       if ($hours = ltrim(date("H", mktime(0, 0, $diff)), '0')) {
         if (($hours == 1) ||  ($hours == 21))
           $result .= ' '.$hours.' hour';
-        else  
+        else
           $result .= ' '.$hours.' hours';
       }
 
@@ -214,19 +215,20 @@ class BrDateTime extends BrObject {
           $result .= ' '.$minutes.' minute';
         else
           $result .= ' '.$minutes.' minutes';
-      }    
+      }
     }
-    
+
     //.' часов';
     //$custom['expiration_term'] .= ' '.date("i", mktime(0, $date_time->minutes_between(), 0)).' минут';
     return trim($result);
-    
+
   }
 
   function hoursBetween($date = null) {
-    
-    if (!$date)
+
+    if (!$date) {
       $date = mktime();
+    }
     $date = new BrDateTime($date);
     $diff = abs($this->asDateTime() - $date->asDateTime())/60/60;
     return $diff;
@@ -234,9 +236,10 @@ class BrDateTime extends BrObject {
   }
 
   function daysTill($date = null) {
-    
-    if (!$date)
+
+    if (!$date) {
       $date = mktime();
+    }
     $date = new BrDateTime($date);
     $diff = ($this->asDate() - $date->asDate())/60/60/24;
     return $diff;
@@ -255,13 +258,13 @@ class BrDateTime extends BrObject {
     } else {
       $days_beetween -= $this->weekday;
     }
-    
+
     return round($days_beetween / 7);
 
   }
 
   function monthsBetween($date = null, $with_sign = false) {
-    
+
     if (!$date) {
       $date = mktime();
     }
@@ -273,29 +276,24 @@ class BrDateTime extends BrObject {
     return $diff;
 
   }
-  
+
   function isSameDate($date) {
 
     return ($date->asDate() == $this->asDate());
-    
+
   }
-  
+
   function equalTo($dateTime) {
 
     return ($dateTime->asDateTime() == $this->asDateTime());
-    
+
   }
 
-  static function isToday($date = null) {
-    
-    $today = new BrDateTime();
-    if ($date) {
-      $date = new BrDateTime($date);
-      return $date->isSameDate($today);      
-    } else {
-      return $this->isSameDate($today);      
-    }
-    
+  function isToday() {
+
+    $date = new BrDateTime();
+    return $date->isSameDate($this);
+
   }
 
   function isYesterday() {
@@ -305,7 +303,7 @@ class BrDateTime extends BrObject {
     return $this->isSameDate($yesterday);
 
   }
-  
+
   function isTomorrow() {
 
     $yesterday = new BrDateTime();
@@ -318,7 +316,7 @@ class BrDateTime extends BrObject {
 
     $today = new BrDateTime();
     $days_between = $this->daysBetween(null, true);
-    
+
     if ($days_between < 0) {
       return (abs($days_between) < $today->weekday);
     } else {
@@ -329,8 +327,8 @@ class BrDateTime extends BrObject {
 
   function isWeekend() {
 
-    return $this->weekday > 5;  
-    
+    return $this->weekday > 5;
+
   }
 
   function isThisMonth() {
@@ -344,7 +342,7 @@ class BrDateTime extends BrObject {
 
     $today = new BrDateTime();
     $days_between = $this->daysBetween(null, true);
-    
+
     return ($days_between < 0) && ((abs($days_between) - $today->weekday) >= 0) && ((abs($days_between) - $today->weekday) < 7);
 
   }
@@ -353,7 +351,7 @@ class BrDateTime extends BrObject {
 
     $today = new BrDateTime();
     $days_between = $this->daysBetween(null, true);
-    
+
     return ($days_between > 0) && ($today->weekday + $days_between > 7) && ($today->weekday + $days_between < 14);
 
   }
@@ -364,89 +362,100 @@ class BrDateTime extends BrObject {
     return ($today->year == $this->year);
 
   }
-  
+
   function daysInCurrentMonth() {
-    
+
     $date = new BrDateTime($this->asDateTime());
     $date->day = 1;
     $date->incMonth();
     $date->decDay();
     return $date->day;
-    
-  }
-  
-  function toString() { 
-     
-    return strftime('%H:%M, %d %B, %Y', $this->asDateTime());
-    
+
   }
 
-  function toDateString() { 
-     
-    return strftime('%d %B, %Y', $this->asDateTime());
-    
+  function toString() {
+
+    return strftime('%H:%M, %d %B, %Y', $this->asDateTime());
+
   }
-  
+
+  function toDateString() {
+
+    return strftime('%d %B, %Y', $this->asDateTime());
+
+  }
+
   function toMySQLDateString() {
-     
+
     return date('Y-m-d', $this->asDateTime());
-    
+
   }
 
   function toMySQLDString() {
-     
+
     return date('Y-m-d H:i:s', $this->asDateTime());
-    
+
   }
 
   function toTimeMarker() {
-    
-    if ($this->isToday())
-      $result = trn('Today');
-    else  
-    if ($this->isYesterday())
-      $result = trn('Yesterday');
-    else  
-    if ($this->isTomorrow())
-      $result = trn('Tomorrow');
-    else  
-    if ($this->isThisWeek())
-      $result = trn('This week');
-    else  
-    if ($this->isPastWeek())
-      $result = trn('Past week');
-    else  
-    if ($this->isNextWeek())
-      $result = trn('Next week');
-    else  
+
+    if ($this->isToday()) {
+      $result = br()->trn('Today');
+    } else
+    if ($this->isYesterday()) {
+      $result = br()->trn('Yesterday');
+    } else
+    if ($this->isTomorrow()) {
+      $result = br()->trn('Tomorrow');
+    } else
+    if ($this->isThisWeek()) {
+      $result = br()->trn('On this week');
+    } else
+    if ($this->isPastWeek()) {
+      $result = br()->trn('On past week');
+    } else
+    if ($this->isNextWeek()) {
+      $result = br()->trn('On next week');
+    } else
     if ($this->weeksBetween() < 5) {
       if ($this->weeksBetween(null, true) < 0) {
-        $result = sprintf(trn('%d weeks ago'), $this->weeksBetween());
+        if ($this->weeksBetween(null, true) == -1) {
+          $result = br()->trn('In past week');
+        } else
+        if ($this->weeksBetween() == 2) {
+          $result = br()->trn('One week ago');
+        } else {
+          $result = sprintf(br()->trn('%d weeks ago'), $this->weeksBetween()-1);
+        }
       } else {
-        $result = sprintf(trn('In next %d weeks'), $this->weeksBetween());
-      }        
-    } else  
+        $result = sprintf(br()->trn('In next %d weeks'), $this->weeksBetween());
+      }
+    } else
     if ($this->monthsBetween() < 13) {
       if ($this->monthsBetween(null, true) < 0) {
         if ($this->monthsBetween(null, true) == -1) {
-          $result = trn('In past month');
+          $result = br()->trn('On past month');
+        } else
+        if ($this->monthsBetween() == 2) {
+          $result = br()->trn('1 month ago');
         } else {
-          $result = sprintf(trn('%d months ago'), $this->monthsBetween());
+          $result = sprintf(br()->trn('%d months ago'), $this->monthsBetween() - 1);
         }
       } else {
         if ($this->monthsBetween(null, true) == 1) {
-          $result = trn('In next month');
+          $result = br()->trn('In next month');
         } else {
-          $result = sprintf(trn('In next %d months'), $this->monthsBetween());
-        }        
+          $result = sprintf(br()->trn('In next %d months'), $this->monthsBetween());
+        }
       }
-    } else  
-      $result = trn("Year ago");
-      
+    } else {
+      $result = br()->trn("Year ago");
+    }
+
     return $result;
-      
+
   }
-  
+
 }
 
 ?>
