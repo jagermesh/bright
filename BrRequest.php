@@ -206,6 +206,12 @@ class BrRequest extends BrSingleton {
 
   }
 
+  function setBaseUrl($value) {
+
+    $this->baseUrl = $value;
+
+  }
+
   function baseUrl($dec = 0) {
 
     $result = $this->baseUrl;
