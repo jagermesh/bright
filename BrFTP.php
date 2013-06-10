@@ -19,10 +19,10 @@ class BrFTPFileObject {
 
   function __construct($line) {
 
-    if (preg_match('#([-d]).* ([0-9]+) ([a-zA-Z]{3}) ([ 0-9]?[0-9]) ([0-9]{2}):([0-9]{2}) (.+)#', $line, $matches)) {
+    if (preg_match('#([-d]).* ([0-9]+) ([a-zA-Z]{3}) ([ 0-9]?[0-9]) (([0-9]{2}):([0-9]{2})| [0-9]{4}) (.+)#', $line, $matches)) {
       $this->isDirectory = ($matches[1] == 'd');
       $this->size = $matches[2];
-      $this->name = $matches[7];
+      $this->name = $matches[8];
     } else
     if (preg_match('#[0-9]{2}[-][0-9]{2}[-][0-9]{2}  [0-9]{2}:[0-9]{2}[AP]M[ ]+([0-9]+) (.+)#', $line, $matches)) {
       $this->isDirectory = false;//($matches[1] == 'd');
@@ -127,7 +127,7 @@ class BrFTP extends BrObject {
 
   public function getServerDir() {
 
-    return ftp_pwd($this->connectionId);
+    return rtrim(str_replace('\\', '/', ftp_pwd($this->connectionId)), '/') . '/';
 
   }
 

@@ -9,6 +9,7 @@
  */
 
 require_once(__DIR__.'/BrObject.php');
+require_once(__DIR__.'/BrException.php');
 
 class BrOS extends BrObject {
 
@@ -96,14 +97,14 @@ class BrOS extends BrObject {
 
     br()->log($lockFile);
 
-    if ($handle = fopen($lockFile, 'w')) {
-      if (flock($handle, LOCK_EX)) {
+    if ($handle = @fopen($lockFile, 'w')) {
+      if (@flock($handle, LOCK_EX)) {
         return $handle;
       } else {
-        throw new Exception('Can not acquire script lock');
+        throw new BrAppException('Can not acquire script lock');
       }
     } else {
-      throw new Exception('Can not acquire script lock');
+      throw new BrAppException('Can not acquire script lock');
     }
 
   }

@@ -69,7 +69,7 @@ class BrSFTP extends BrObject {
     parent::__construct();
 
   }
-  
+
   function connectWithKey($hostName, $userName, $keyFileName, $port = 22, $keyFilePassword = '') {
 
     $key = new Crypt_RSA();
@@ -92,26 +92,17 @@ class BrSFTP extends BrObject {
     $this->connection = new Net_SFTP($hostName, $port);
 
     if ($this->connection->login($userName, $password)) {
-      try {
-        $this->changeDir('/home/' . $userName);
-      } catch (Exception $e) {
-        try {
-          $this->changeDir('/' . $userName);
-        } catch (Exception $e) {
-          $this->currentDirectory = '.';
-        }
-      }
+      $this->currentDirectory = $this->getServerDir();
     } else {
-      throw new Exception('Can not connect to ' . $hostName . ' as ' . $userName);      
+      throw new Exception('Can not connect to ' . $hostName . ' as ' . $userName);
     }
 
   }
-  
+
   public function disconnect() {
 
     try {
       $this->connection = null;
-      // $this->connection->disconnect();
     } catch (Exception $e) {
 
     }
@@ -130,9 +121,9 @@ class BrSFTP extends BrObject {
   public function changeDir($directory) {
 
     if ($this->connection->chdir($directory)) {
-      $this->currentDirectory = rtrim($directory, '/') . '/';
+      $this->currentDirectory = $this->getServerDir();
     } else {
-      throw new Exception('Can not change remote directory to ' . $directory);      
+      throw new Exception('Can not change remote directory to ' . $directory);
     }
 
   }
@@ -145,7 +136,7 @@ class BrSFTP extends BrObject {
 
   public function getServerDir() {
 
-    return $this->currentDirectory;
+    return rtrim(str_replace('\\', '/', $this->connection->pwd()), '/') . '/';
 
   }
 
@@ -190,7 +181,7 @@ class BrSFTP extends BrObject {
     }
 
     throw new Exception('Can not upload file ' . $sourceFilePath);
-    
+
   }
 
   public function deleteFile($fileName) {
@@ -240,6 +231,6 @@ class BrSFTP extends BrObject {
     return $exists;
 
   }
-  
+
 }
 
