@@ -97,8 +97,8 @@ class BrOS extends BrObject {
 
     br()->log($lockFile);
 
-    if ($handle = @fopen($lockFile, 'w')) {
-      if (@flock($handle, LOCK_EX)) {
+    if ($handle = @fopen($lockFile, 'w+')) {
+      if (@flock($handle, LOCK_EX | LOCK_NB)) {
         return $handle;
       } else {
         throw new BrAppException('Can not acquire script lock');

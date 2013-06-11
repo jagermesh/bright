@@ -140,17 +140,33 @@ class BrSFTP extends BrObject {
 
   }
 
-  public function iterateDir($mask, $callback = null) {
+  public function iterateDir($mask, $callback = null, $options = array()) {
 
     if (gettype($mask) == 'string') {
 
     } else {
+      $options  = $callback;
       $callback = $mask;
-      $mask = null;
+      $mask     = null;
     }
+
+    $order = br($options, 'order');
 
     if ($ftpRAWList = $this->connection->rawlist($this->currentDirectory)) {
       if (is_array($ftpRAWList)) {
+        switch ($order) {
+          case 'datetime':
+          case 'datetimeAsc':
+            uasort($ftpRAWList, function($a, $b) {
+              return br($a, 'mtime') == br($b, 'mtime') ? 0 : (br($a, 'mtime') > br($b, 'mtime') ? -1 : 1 );
+            });
+            break;
+          case 'datetimeDesc':
+            uasort($ftpRAWList, function($a, $b) {
+              return br($a, 'mtime') == br($b, 'mtime') ? 0 : (br($a, 'mtime') > br($b, 'mtime') ? 1 : -1 );
+            });
+            break;
+        }
         foreach($ftpRAWList as $name => $params) {
           $ftpFileObject = new BrSFTPFileObject($name, $params);
           $proceed = true;
