@@ -110,4 +110,12 @@ class BrString {
     return $this->value . ($this->value ? $glue : '') . $var;
   }
 
+  function padLeft($amount, $glue = ' ') {
+    if ($amount > strlen($this->value)) {
+      return str_pad($this->value, $amount * strlen($glue), $glue, STR_PAD_LEFT);
+    } else {
+      return substr($this->value, 0, $amount);
+    }
+  }
+
 }
