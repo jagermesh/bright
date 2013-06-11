@@ -95,10 +95,15 @@ class BrOS extends BrObject {
       $lockFile = sys_get_temp_dir() . '/' . md5(__DIR__) . '.lock';
     }
 
+    if (file_exists($lockFile)) {
+      @chmod($lockFile, 0777);
+    }
+
     br()->log($lockFile);
 
     if ($handle = @fopen($lockFile, 'w+')) {
       if (@flock($handle, LOCK_EX | LOCK_NB)) {
+        @chmod($lockFile, 0777);
         return $handle;
       } else {
         throw new BrAppException('Can not acquire script lock');
