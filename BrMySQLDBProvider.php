@@ -371,8 +371,12 @@ class BrMySQLProviderTable {
         default:
           if (is_array($filterValue)) {
             if ($currentFieldName && br()->isRegularArray($filterValue)) {
-              $where .= $link . $fname . ' IN (?@)';
-              $args[] = br()->removeEmptyKeys($filterValue);
+              if ($filterValue) {
+                $where .= $link . $fname . ' IN (?@)';
+                $args[] = br()->removeEmptyKeys($filterValue);
+              } else {
+                $where .= $link . $fname . ' IS NULL';
+              }
             } else {
               $this->compileFilter($filterValue, $tableName, $currentFieldName, $link, $joins, $joinsTables, $where, $args);
             }
