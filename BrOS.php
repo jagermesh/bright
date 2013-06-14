@@ -27,6 +27,51 @@ class BrOS extends BrObject {
 
   }
 
+  function getCoresAmount() {
+
+    $result = 0;
+
+    if (is_readable('/proc/cpuinfo')) {
+      $data = br()->fs()->loadFromFile('/proc/cpuinfo');
+      if (preg_match_all('#processor.*?:.*?[0-9]+#ism', $data, $matches, PREG_SET_ORDER)) {
+        $result = count($matches);
+      }
+    } else {
+      exec('sysctl hw.ncpu', $data);
+      $data = implode("\n", $data);
+      if (preg_match('#hw[.]ncpu:[ ]*([0-9]+)#', $data, $matches)) {
+        $result = $matches[1];
+      }
+    }
+
+    if ($result > 0) {
+
+    } else {
+      $result = 1;
+    }
+
+    return $result;
+
+  }
+
+  function getProcessesAmount($pid) {
+
+    $result = 0;
+
+    if (is_numeric($pid)) {
+      $output = $this->execute('ps -p ' . $pid);
+      if (isset($output[1])) {
+        $result++;
+      }
+    } else {
+      $output = $this->execute("ps ax | grep '" . $pid . "' 2>&1");
+      $result = (count($output) - 1);
+    }
+
+    return $result;
+
+  }
+
   function findProcess($pid) {
 
     if (is_numeric($pid)) {
