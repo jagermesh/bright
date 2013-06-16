@@ -1,8 +1,8 @@
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function (window) {
 
@@ -10,28 +10,28 @@
 
   window.br.isNumber = function(value) {
     return (
-             !isNaN(parseFloat(value)) && 
+             !isNaN(parseFloat(value)) &&
              isFinite(value)
            );
   }
 
   window.br.isNull = function(value) {
     return (
-             (value === undefined) || 
-             (value === null) 
+             (value === undefined) ||
+             (value === null)
            );
   }
 
   window.br.isEmpty = function(value) {
-    return ( 
-             br.isNull(value) || 
+    return (
+             br.isNull(value) ||
              ((typeof value.length != 'undefined') && (value.length === 0)) // Array, String
            );
   }
 
   window.br.isArray = function (value) {
     return (
-             !br.isNull(value) && 
+             !br.isNull(value) &&
              (Object.prototype.toString.call(value) === '[object Array]')
            );
   }
@@ -67,7 +67,7 @@
   window.br.split = function (value, delimiter) {
     if (br.isEmpty(value)) {
       return [];
-    } else 
+    } else
     if (br.isString(value)) {
       return value.split(delimiter);
     }
@@ -93,14 +93,14 @@
     if (br.isNumber(value)) {
       return value;
     }
-  };  
+  };
 
 })(window);
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function (window) {
 
@@ -132,7 +132,7 @@
         for(var i in key) {
           result[key[i]] = this.get(key[i]);
         }
-      } else {        
+      } else {
         result = _helper.unpack(_storage.getItem(key));
       }
       return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
@@ -462,11 +462,11 @@
   }
 
 })(window);
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function (window) {
 
@@ -805,16 +805,16 @@
     a,b,e){i("css",c,a,b,e)},js:function(c,a,b,e){i("js",c,a,b,e)}}}(document);
 
 })(jQuery, window);
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function (window) {
 
   function BrFlagsHolder(permanent, name) {
-  
+
     var flags = [];
 
     this.append = function(id) {
@@ -1752,11 +1752,11 @@
   }
 
 })(jQuery, window);
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function ($, window) {
 

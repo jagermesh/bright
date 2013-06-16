@@ -739,34 +739,35 @@ class Br extends BrSingleton {
       require_once(__DIR__.'/3rdparty/phpmailer/class.phpmailer.php');
     }
     $mail = new PHPMailer(true);
-
+    $mail->CharSet = 'UTF-8';
     $mail->AddAddress($email);
 
-    if ($from = br()->config()->get('br/mail/from', br()->config()->get('br/Br/sendMail/from', br($params, 'sender')))) {
+    if ($from = br($params, 'sender', br()->config()->get('br/mail/sender', br()->config()->get('br/mail/from', br()->config()->get('br/Br/sendMail/from'))))) {
       $mail->AddReplyTo($from);
       $mail->SetFrom($from);
     }
 
-    if (br($params, 'mailer') == 'smtp') {
-      $mail->Mailer = br($params, 'mailer');
-      $mail->Host = br($params, 'hostname');
-      if (br($params, 'port')) {
-        $mail->Port = br($params, 'port');
+    if (($mailer = br($params, 'mailer', br()->config()->get('br/mail/mailer'))) == 'smtp') {
+      $mail->Mailer = $mailer;
+      $mail->Host   = br($params, 'hostname', br()->config()->get('br/mail/SMTP/hostname'));
+      if ($port = br($params, 'port', br()->config()->get('br/mail/SMTP/port'))) {
+        $mail->Port = $port;
       }
-      if (br($params, 'username')) {
-        $mail->Username = br($params, 'username');
-        $mail->Password = br($params, 'password');
+      if ($username = br($params, 'username', br()->config()->get('br/mail/SMTP/username'))) {
+        $mail->Username = $username;
+        $mail->Password = br($params, 'password', br()->config()->get('br/mail/SMTP/password'));
         $mail->SMTPAuth = true;
       }
-      if (br($params, 'secure')) {
-        $mail->SMTPSecure = br($params, 'secure');
+      if ($secure = br($params, 'secure', br()->config()->get('br/mail/SMTP/secure'))) {
+        $mail->SMTPSecure = $secure;
       }
     } else {
-      $mail->Mailer = 'mail';
+      $mail->Mailer     = 'mail';
       $mail->SMTPSecure = '';
     }
 
     $mail->Subject = $subject;
+
     $mail->MsgHTML($body);
 
     br()->log()->writeLn('Sending mail to ' . $email);
@@ -775,6 +776,8 @@ class Br extends BrSingleton {
     } else {
       throw new Exception('Mail was not sent because of unknown error');
     }
+
+    return true;
 
   }
 

@@ -31,29 +31,14 @@ class BrDataSourceUsers extends BrDataSource {
 
         if ($mailTemplate = br()->auth()->getAttr('signup.mail.template')) {
           if ($email = br($row, $emailField)) {
-            require_once(dirname(__DIR__) . '/3rdparty/phpmailer/class.phpmailer.php');
-            $mail = new PHPMailer(true);
-            try {
-              $mail->AddAddress($email);
-              if (br()->auth()->getAttr('mail.from')) {
-                $mail->AddReplyTo(br()->auth()->getAttr('mail.from'));
-                $mail->SetFrom(br()->auth()->getAttr('mail.from'));
-              }
-              $mail->Subject = br()->auth()->getAttr('signup.mail.subject');
-              $user = $row;
-              $user[$passwordField] = br($data, 'password');
-              $message = br()->renderer()->fetch($mailTemplate, $user);
-              $mail->MsgHTML($message, dirname($mailTemplate));
-              br()->log()->writeLn('Sending signup mail to ' . $email);
-              if ($mail->Send()) {
-                br()->log()->writeLn('Sent');
-              } else {
-                throw new Exception('Mail was not sent because of unknown error');
-              }
-            } catch (phpmailerException $e) {
-              br()->log()->writeLn('Can not send signup mail to ' . $email . '. Error: ' . $e->getMessage());
-            } catch (Exception $e) {
-              br()->log()->writeLn('Can not send signup mail to ' . $email . '. Error: ' . $e->getMessage());
+            $user = $row;
+            $user[$passwordField] = br($data, 'password');
+            $message = br()->renderer()->fetch($mailTemplate, $user);
+            br()->log()->writeLn('Sending signup mail to ' . $email);
+            if (br()->sendMail($email, br()->auth()->getAttr('signup.mail.subject'), $message, array('sender' => br()->auth()->getAttr('mail.from')))) {
+              br()->log()->writeLn('Sent');
+            } else {
+              throw new Exception('Mail was not sent because of unknown error');
             }
           } else {
             br()->log()->writeLn('Signup mail was not sent - email field not found or empty');
@@ -159,49 +144,34 @@ class BrDataSourceUsers extends BrDataSource {
 
     $this->on('remindPassword', function($dataSource, $params) {
 
-      if ($this->getAttr('passwordReminder.enabled')) {
+      if (br()->auth()->getAttr('passwordReminder.enabled')) {
 
-        $loginField      = br()->auth()->getAttr('usersTable.loginField');
-        $loginFieldLabel = br()->auth()->getAttr('usersTable.loginFieldLabel');
-        $passwordField   = br()->auth()->getAttr('usersTable.passwordField');
-        $emailField      = br()->auth()->getAttr('usersTable.emailField');
-        $plainPasswords  = br()->auth()->getAttr('plainPasswords');
+        $usersTable         = br()->auth()->getAttr('usersTable.name');
+        $loginField         = br()->auth()->getAttr('usersTable.loginField');
+        $loginFieldLabel    = br()->auth()->getAttr('usersTable.loginFieldLabel');
+        $passwordResetField = br()->auth()->getAttr('usersTable.passwordResetField');
+        $emailField         = br()->auth()->getAttr('usersTable.emailField');
+        $plainPasswords     = br()->auth()->getAttr('plainPasswords');
 
         if ($login = br($params, $loginField)) {
           if ($user = $dataSource->selectOne(array($loginField => $login))) {
             if ($email = br($user, $emailField)) {
-              if ($mailTemplate = $this->getAttr('passwordReminder.mail.template')) {
-                require_once(dirname(__DIR__) . '/3rdparty/phpmailer/class.phpmailer.php');
-                $mail = new PHPMailer(true);
-                try {
-                  $mail->AddAddress($email);
-                  if (br()->auth()->getAttr('passwordReminder.mail.from')) {
-                    $mail->AddReplyTo(br()->auth()->getAttr('passwordReminder.mail.from'));
-                    $mail->SetFrom(br()->auth()->getAttr('passwordReminder.mail.from'));
-                  }
-                  $mail->Subject = $this->getAttr('passwordReminder.mail.subject');
-                  $data = array();
-                  $data[$passwordField] = substr(br()->guid(), 0, 8);
-                  $user[$passwordField] = $data[$passwordField];
-                  $data[$passwordField] = md5($data[$passwordField]);
-                  $message = br()->renderer()->fetch($mailTemplate, $user);
-                  $mail->MsgHTML($message, br()->templatesPath());
-                  if ($mail->Body) {
-                    if ($mail->Send()) {
-                      $dataSource->update(br()->db()->rowidValue($user), $data);
-                      br()->log()->writeLn('New password sent to ' . $email);
-                      br()->log()->writeLn($user);
-                      return true;
-                    } else {
-                      throw new Exception('Mail was not sent because of unknown error');
-                    }
+              if ($mailTemplate = br()->auth()->getAttr('passwordReminder.verificationMail.template')) {
+
+                $user[$passwordResetField] = br()->guid();
+                $user['passwordResetUrl']  = br()->request()->host() . br()->request()->baseUrl() . 'api/users/resetPassword/' . $user[$passwordResetField];
+
+                if ($message = br()->renderer()->fetch($mailTemplate, $user)) {
+                  if (br()->sendMail($email, br()->auth()->getAttr('passwordReminder.verificationMail.subject'), $message, array('sender' => br()->auth()->getAttr('passwordReminder.verificationMail.from')))) {
+                    br()->db()->runQuery('UPDATE ' . $usersTable . ' SET ' . $passwordResetField . ' = ? WHERE id = ?', $user[$passwordResetField], br()->db()->rowidValue($user));
+                    br()->log()->writeLn('Password reset verification sent to ' . $email);
+                    br()->log()->writeLn($user);
+                    return true;
                   } else {
-                    throw new Exception('We can not send you new password because mail template is empty');
+                    throw new Exception('Mail was not sent because of unknown error');
                   }
-                } catch (phpmailerException $e) {
-                  throw new Exception(br()->html2text($e->getMessage()));
-                } catch (Exception $e) {
-                  throw new Exception(br()->html2text($e->getMessage()));
+                } else {
+                  throw new Exception('We can not send you new password because mail template is empty');
                 }
               } else {
                 throw new Exception('We can not reset your password - there is no mail template for this');
@@ -433,6 +403,51 @@ class BrRESTUsersBinder extends BrRESTBinder {
   function doRouting() {
 
     $loginField = br()->auth()->getAttr('usersTable.loginField');
+
+    br()->
+      request()->
+        route('/api/users/resetPassword/([-a-zA-Z0-9]+)', function($matches) {
+          $usersTable         = br()->auth()->getAttr('usersTable.name');
+          $passwordField      = br()->auth()->getAttr('usersTable.passwordField');
+          $passwordResetField = br()->auth()->getAttr('usersTable.passwordResetField');
+          $emailField         = br()->auth()->getAttr('usersTable.emailField');
+          $plainPasswords     = br()->auth()->getAttr('plainPasswords');
+
+          if ($user = br()->db()->getRow('SELECT * FROM ' . $usersTable . ' WHERE ' . $passwordResetField . ' = ?&', $matches[1])) {
+            if ($email = br($user, $emailField)) {
+              if ($mailTemplate = br()->auth()->getAttr('passwordReminder.passwordMail.template')) {
+                $password = substr(br()->guid(), 0, 8);
+                if ($plainPasswords) {
+                  $finalPassword = $password;
+                } else {
+                  $finalPassword = md5($password);
+                }
+                $data = array();
+                $data['password'] = $password;
+                $data['loginUrl'] = br()->request()->host() . br()->request()->baseUrl() . 'login.html?login=' . $user['login'] . '&' . 'from=passwordReset';
+                if ($message = br()->renderer()->fetch($mailTemplate, array('user' => $user, 'data' => $data))) {
+                  if (br()->sendMail($email, br()->auth()->getAttr('passwordReminder.passwordMail.subject'), $message, array('sender' => br()->auth()->getAttr('passwordReminder.passwordMail.from')))) {
+                    br()->db()->runQuery('UPDATE ' . $usersTable . ' SET ' . $passwordField . ' = ?& WHERE id = ?', $finalPassword, $user['id']);
+                    br()->log()->writeLn('New password sent to ' . $email);
+                    br()->log()->writeLn($user);
+                    br()->response()->redirect($data['loginUrl']);
+                    return true;
+                  } else {
+                    throw new Exception('Mail was not sent because of unknown error');
+                  }
+                } else {
+                  throw new Exception('We can not send you new password because mail template is empty');
+                }
+              } else {
+                throw new Exception('We can not send you new password because mail template is empty');
+              }
+            } else {
+              throw new Exception('We can not send you new password because ther is not e-mail for your account');
+            }
+          } else {
+            throw new Exception('Access denied');
+          }
+        });
 
     parent::route( '/api/users'
                  , $this->usersDataSource

@@ -28,18 +28,20 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
 
     if ($data = $this->getAttr('usersTable')) {
       // new style
-      $this->setAttr('usersTable.name',            br($data, 'name', 'users'));
-      $this->setAttr('usersTable.loginField',      br($data, 'loginField', 'login'));
-      $this->setAttr('usersTable.loginFieldLabel', br($data, 'loginFieldLabel', 'login'));
-      $this->setAttr('usersTable.passwordField',   br($data, 'passwordField', 'password'));
-      $this->setAttr('usersTable.emailField',      br($data, 'emailField', 'email'));
+      $this->setAttr('usersTable.name',               br($data, 'name', 'users'));
+      $this->setAttr('usersTable.loginField',         br($data, 'loginField', 'login'));
+      $this->setAttr('usersTable.loginFieldLabel',    br($data, 'loginFieldLabel', 'login'));
+      $this->setAttr('usersTable.passwordField',      br($data, 'passwordField', 'password'));
+      $this->setAttr('usersTable.passwordResetField', br($data, 'passwordResetField', 'password_reset'));
+      $this->setAttr('usersTable.emailField',         br($data, 'emailField', 'email'));
     } else {
       // old style
-      $this->setAttr('usersTable.name',            br()->config()->get('br/auth/db/table', 'users'));
-      $this->setAttr('usersTable.loginField',      br()->config()->get('br/auth/db/login-field', 'login'));
-      $this->setAttr('usersTable.loginFieldLabel', br()->config()->get('br/auth/db/login-field-label', 'login'));
-      $this->setAttr('usersTable.passwordField',   br()->config()->get('br/auth/db/password-field', 'password'));
-      $this->setAttr('usersTable.emailField',      br()->config()->get('br/auth/db/email-field', 'email'));
+      $this->setAttr('usersTable.name',               br()->config()->get('br/auth/db/table', 'users'));
+      $this->setAttr('usersTable.loginField',         br()->config()->get('br/auth/db/login-field', 'login'));
+      $this->setAttr('usersTable.loginFieldLabel',    br()->config()->get('br/auth/db/login-field-label', 'login'));
+      $this->setAttr('usersTable.passwordField',      br()->config()->get('br/auth/db/password-field', 'password'));
+      $this->setAttr('usersTable.passwordResetField', br()->config()->get('br/auth/db/password-reset-field', 'password_reset'));
+      $this->setAttr('usersTable.emailField',         br()->config()->get('br/auth/db/email-field', 'email'));
     }
 
     if ($data = $this->getAttr('usersAPI')) {
@@ -76,20 +78,18 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
 
     if ($data = $this->getAttr('passwordReminder')) {
       $this->setAttr('passwordReminder.enabled', br($data, 'enabled', false));
-      if ($data2 = br($data, 'mail')) {
-        $this->setAttr('passwordReminder.mail.template', br($data2, 'template'));
-        $this->setAttr('passwordReminder.mail.subject',  br($data2, 'subject', 'Password reminder'));
-        $this->setAttr('passwordReminder.mail.from',     br($data2, 'from', $this->getAttr('mail.from')));
-      } else {
-        $this->setAttr('passwordReminder.mail.template', br()->config()->get('br/auth/mail/forgot-password/template'));
-        $this->setAttr('passwordReminder.mail.subject',  br()->config()->get('br/auth/mail/forgot-password/subject', 'Password reminder'));
-        $this->setAttr('passwordReminder.mail.from',     br()->config()->get('br/auth/mail/from', $this->getAttr('mail.from')));
+      if ($data2 = br($data, 'verificationMail')) {
+        $this->setAttr('passwordReminder.verificationMail.template', br($data2, 'template'));
+        $this->setAttr('passwordReminder.verificationMail.subject',  br($data2, 'subject', 'Password reset request'));
+        $this->setAttr('passwordReminder.verificationMail.from',     br($data2, 'from', $this->getAttr('mail.from')));
+      }
+      if ($data2 = br($data, 'passwordMail')) {
+        $this->setAttr('passwordReminder.passwordMail.template',     br($data2, 'template'));
+        $this->setAttr('passwordReminder.passwordMail.subject',      br($data2, 'subject', 'New password'));
+        $this->setAttr('passwordReminder.passwordMail.from',         br($data2, 'from', $this->getAttr('mail.from')));
       }
     } else {
-      $this->setAttr('passwordReminder.enabled',       br()->config()->get('br/auth/api/passwordReminderEnabled', false));
-      $this->setAttr('passwordReminder.mail.template', br()->config()->get('br/auth/mail/forgot-password/template'));
-      $this->setAttr('passwordReminder.mail.subject',  br()->config()->get('br/auth/mail/forgot-password/subject', 'Password reminder'));
-      $this->setAttr('passwordReminder.mail.from',     br()->config()->get('br/auth/mail/from', $this->getAttr('mail.from')));
+      $this->setAttr('passwordReminder.enabled', false);
     }
 
   }
