@@ -118,4 +118,8 @@ class BrString {
     }
   }
 
+  function floor($precision = 0) {
+    return floor($this->value * pow(10, $precision))/pow(10,$precision);
+  }
+
 }
