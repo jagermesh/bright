@@ -619,7 +619,7 @@ class Br extends BrSingleton {
 
   function panic($error = null) {
 
-    throw new BrException($error ? $error : "Critical error");
+    throw new BrAppException($error ? $error : "Critical error");
 
   }
 
