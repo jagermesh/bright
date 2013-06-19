@@ -130,7 +130,11 @@ class BrFileSystem extends BrSingleton {
 
   }
 
-  public function getCharsPath($fileName) {
+  public function getCharsPath($fileName, $finalFileName = null) {
+
+    if (!$finalFileName) {
+      $finalFileName = $fileName;
+    }
 
     $s = '';
     $fileNameOnly = $this->fileNameOnly($fileName);
@@ -139,13 +143,13 @@ class BrFileSystem extends BrSingleton {
       $s .= $fileName[$i] . '/';
     }
 
-    return $s . $fileName;
+    return $s . $finalFileName;
 
   }
 
   public function saveToFile($fileName, $content) {
 
-    file_put_contents($fileName, $content);
+    return file_put_contents($fileName, $content);
 
   }
 

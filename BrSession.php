@@ -14,16 +14,22 @@ class BrSession extends BrSingleton {
 
   private $tag = '';
 
-  function __construct() {  
+  function __construct() {
 
+    if (isset($_SESSION)) {
+
+    } else {
+      global $_SESSION;
+      $_SESSION = array();
+    }
     $this->tag = md5(__FILE__);
-      
+
     parent::__construct();
-        
+
   }
 
   public function get($name, $default = null) {
-   
+
     $name = $this->tag.':'.$name;
 
     if (isset($_SESSION)) {
@@ -31,28 +37,30 @@ class BrSession extends BrSingleton {
     } else {
       return null;
     }
-  
+
   }
 
   public function set($name, $value) {
-   
+
     $name = $this->tag.':'.$name;
 
     if (isset($_SESSION)) {
       $_SESSION[$name] = $value;
     }
-  
+
+    return $value;
+
   }
-  
+
   public function clear($name) {
-   
+
     $name = $this->tag.':'.$name;
 
     if (isset($_SESSION)) {
       unset($_SESSION[$name]);
     }
-  
+
   }
-  
+
 }
 

@@ -44,12 +44,20 @@ class qqUploadedFileXhr {
     $md = md5_file($srcFilePath);
     if (br($this->params, 'generateFileName')) {
       $dstFileName = $md . '.' . $pathinfo['extension'];
-    } elseif(($onGetFileName = br($this->params, 'onGetFileName')) && gettype(br($this->params, 'onGetFileName')) == 'object') {
+    } else
+    if (($onGetFileName = br($this->params, 'onGetFileName')) && gettype(br($this->params, 'onGetFileName')) == 'object') {
       $dstFileName = $onGetFileName(br()->fs()->fileName($this->getName()), $md);
     } else {
-      $dstFileName = br()->fs()->fileName($this->getName());
+      if (br($this->params, 'saveToCharsSubFolder')) {
+        $dstFileName = br()->fs()->getCharsPath($md, br()->fs()->fileName($this->getName()));
+      } else {
+        $dstFileName = br()->fs()->fileName($this->getName());
+      }
     }
+
     $dstFilePath = $path . $dstFileName;
+
+    br()->fs()->createDir(br()->fs()->filePath($dstFilePath));
 
     if (!br($this->params, 'generateFileName') && br($this->params, 'checkExistance')) {
       $idx = 1;
@@ -114,12 +122,20 @@ class qqUploadedFileForm {
     $md = md5_file($_FILES['qqfile']['tmp_name']);
     if (br($this->params, 'generateFileName')) {
       $dstFileName = $md . '.' . $pathinfo['extension'];
-    } elseif(($onGetFileName = br($this->params, 'onGetFileName')) && gettype(br($this->params, 'onGetFileName')) == 'object') {
+    } else
+    if (($onGetFileName = br($this->params, 'onGetFileName')) && gettype(br($this->params, 'onGetFileName')) == 'object') {
       $dstFileName = $onGetFileName(br()->fs()->fileName($this->getName()), $md);
     } else {
-      $dstFileName = br()->fs()->fileName($this->getName());
+      if (br($this->params, 'saveToCharsSubFolder')) {
+        $dstFileName = br()->fs()->getCharsPath($md, br()->fs()->fileName($this->getName()));
+      } else {
+        $dstFileName = br()->fs()->fileName($this->getName());
+      }
     }
+
     $dstFilePath = $path . $dstFileName;
+
+    br()->fs()->createDir(br()->fs()->filePath($dstFilePath));
 
     if (!br($this->params, 'generateFileName') && br($this->params, 'checkExistance')) {
       $idx = 1;

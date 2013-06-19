@@ -196,27 +196,34 @@ class BrDataSource extends BrGenericDataSource {
 
     if ($crow = $table->findOne($filter)) {
 
-      br()->db()->startTransaction();
+      try {
+        br()->db()->startTransaction();
 
-      $old = $crow;
-      foreach($row as $name => $value) {
-        $crow[$name] = $value;
+        $old = $crow;
+        foreach($row as $name => $value) {
+          $crow[$name] = $value;
+        }
+
+        $this->callEvent('before:update', $crow, $transientData, $old, $options);
+
+        $this->validateUpdate($old, $crow);
+
+        $result = $this->callEvent('update', $crow, $transientData, $old, $options);
+        if (is_null($result)) {
+          $table->update($crow, $rowid, br($options, 'dataTypes'));
+          $result = $crow;
+          $this->callEvent('after:update', $result, $transientData, $old, $options);
+          $result['rowid'] = br()->db()->rowidValue($result);
+          $this->callEvent('calcFields', $result, $transientData, $options);
+        }
+
+        br()->db()->commitTransaction();
+      } catch (Exception $e) {
+        $operation = 'update';
+        $error = $e->getMessage();
+        $this->trigger('error', $error, $operation, $e);
+        throw $e;
       }
-
-      $this->callEvent('before:update', $crow, $transientData, $old, $options);
-
-      $this->validateUpdate($old, $crow);
-
-      $result = $this->callEvent('update', $crow, $transientData, $old, $options);
-      if (is_null($result)) {
-        $table->update($crow, $rowid, br($options, 'dataTypes'));
-        $result = $crow;
-        $this->callEvent('after:update', $result, $transientData, $old, $options);
-        $result['rowid'] = br()->db()->rowidValue($result);
-        $this->callEvent('calcFields', $result, $transientData, $options);
-      }
-
-      br()->db()->commitTransaction();
 
       return $result;
     } else {
@@ -236,21 +243,28 @@ class BrDataSource extends BrGenericDataSource {
     $result = $this->callEvent('insert', $row, $transientData, $options);
     if (is_null($result)) {
 
-      br()->db()->startTransaction();
+      try {
+        br()->db()->startTransaction();
 
-      $table = br()->db()->table($this->dbEntity());
+        $table = br()->db()->table($this->dbEntity());
 
-      if (br($options, 'dataTypes')) {
-        $table->insert($row, br($options, 'dataTypes'));
-      } else {
-        $table->insert($row);
+        if (br($options, 'dataTypes')) {
+          $table->insert($row, br($options, 'dataTypes'));
+        } else {
+          $table->insert($row);
+        }
+        $result = $row;
+        $this->callEvent('after:insert', $result, $transientData, $options);
+        $result['rowid'] = br()->db()->rowidValue($result);
+        $this->callEvent('calcFields', $result, $transientData, $options);
+
+        br()->db()->commitTransaction();
+      } catch (Exception $e) {
+        $operation = 'insert';
+        $error = $e->getMessage();
+        $this->trigger('error', $error, $operation, $e);
+        throw $e;
       }
-      $result = $row;
-      $this->callEvent('after:insert', $result, $transientData, $options);
-      $result['rowid'] = br()->db()->rowidValue($result);
-      $this->callEvent('calcFields', $result, $transientData, $options);
-
-      br()->db()->commitTransaction();
     }
 
     return $result;
@@ -268,31 +282,38 @@ class BrDataSource extends BrGenericDataSource {
 
     if ($crow = $table->findOne($filter)) {
 
-      br()->db()->startTransaction();
+      try {
+        br()->db()->startTransaction();
 
-      $this->callEvent('before:remove', $crow, $transientData, $options);
+        $this->callEvent('before:remove', $crow, $transientData, $options);
 
-      $this->validateRemove($crow);
+        $this->validateRemove($crow);
 
-      $result = $this->callEvent('remove', $crow, $transientData, $options);
-      if (is_null($result)) {
-        try {
-          $table->remove($filter);
-        } catch (Exception $e) {
-          // TODO: Move to the DB layer
-          if (preg_match('/1451: Cannot delete or update a parent row/', $e->getMessage())) {
-            throw new BrAppException('Cannot delete this record - there are references to it in the system');
-          } else {
-            throw new Exception($e->getMessage());
+        $result = $this->callEvent('remove', $crow, $transientData, $options);
+        if (is_null($result)) {
+          try {
+            $table->remove($filter);
+          } catch (Exception $e) {
+            // TODO: Move to the DB layer
+            if (preg_match('/1451: Cannot delete or update a parent row/', $e->getMessage())) {
+              throw new BrAppException('Cannot delete this record - there are references to it in the system');
+            } else {
+              throw new Exception($e->getMessage());
+            }
           }
+          $result = $crow;
+          $this->callEvent('after:remove', $result, $transientData, $options);
+          $result['rowid'] = br()->db()->rowidValue($result);
+          $this->callEvent('calcFields', $result, $transientData, $options);
         }
-        $result = $crow;
-        $this->callEvent('after:remove', $result, $transientData, $options);
-        $result['rowid'] = br()->db()->rowidValue($result);
-        $this->callEvent('calcFields', $result, $transientData, $options);
-      }
 
-      br()->db()->commitTransaction();
+        br()->db()->commitTransaction();
+      } catch (Exception $e) {
+        $operation = 'remove';
+        $error = $e->getMessage();
+        $this->trigger('error', $error, $operation, $e);
+        throw $e;
+      }
 
       return $result;
     } else {
