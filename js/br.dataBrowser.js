@@ -231,7 +231,11 @@
 
       $(c('.sortable')).on('click', function() {
         var sorted = ($(this).hasClass('icon-white') || $(this).hasClass('icon-border'));
-        // $(c('.sortable')).removeClass('icon-white').removeClass('icon-border');
+        if ($(this).hasClass('multi-sort')) {
+
+        } else {
+          $(c('.sortable')).removeClass('icon-white').removeClass('icon-border');
+        }
         if (sorted) {
           $(this).removeClass('icon-white').removeClass('icon-border');
         } else {
