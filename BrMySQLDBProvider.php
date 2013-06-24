@@ -264,8 +264,9 @@ class BrMySQLProviderTable {
             }
             $args[] = $filterValue;
           } else {
-            $where .= $link . $fname2 . ' = ?';
-            $args[] = $filterValue;
+            $where .= $link . $fname2 . ' IN (' . $filterValue . ')';
+            // $where .= $link . $fname2 . ' = ?';
+            // $args[] = $filterValue;
           }
           break;
         case '$ne':
@@ -277,8 +278,7 @@ class BrMySQLProviderTable {
             }
             $args[] = $filterValue;
           } else {
-            $where .= $link . $fname2 . ' != ?';
-            $args[] = $filterValue;
+            $where .= $link . $fname2 . ' NOT IN (' . $filterValue . ')';
           }
           break;
         case '$nn':
