@@ -258,18 +258,28 @@ class BrMySQLProviderTable {
         case '$in':
           if (is_array($filterValue)) {
             $where .= $link . $fname2 . ' IN (?@)';
-            $args[] = br()->removeEmptyKeys($filterValue);
+            $filterValue = br()->removeEmptyKeys($filterValue);
+            if (count($filterValue) == 0) {
+              $filterValue = array(NULL);
+            }
+            $args[] = $filterValue;
           } else {
-            $where .= $link . $fname2 . ' IN (' . $filterValue . ')';
+            $where .= $link . $fname2 . ' = ?';
+            $args[] = $filterValue;
           }
           break;
         case '$ne':
           if (is_array($filterValue)) {
             $where .= $link . $fname2 . ' NOT IN (?@)';
+            $filterValue = br()->removeEmptyKeys($filterValue);
+            if (count($filterValue) == 0) {
+              $filterValue = array(NULL);
+            }
+            $args[] = $filterValue;
           } else {
             $where .= $link . $fname2 . ' != ?';
+            $args[] = $filterValue;
           }
-          $args[] = $filterValue;
           break;
         case '$nn':
           $where .= $link . $fname2 . ' IS NOT NULL';
@@ -373,7 +383,11 @@ class BrMySQLProviderTable {
             if ($currentFieldName && br()->isRegularArray($filterValue)) {
               if ($filterValue) {
                 $where .= $link . $fname . ' IN (?@)';
-                $args[] = br()->removeEmptyKeys($filterValue);
+                $filterValue = br()->removeEmptyKeys($filterValue);
+                if (count($filterValue) == 0) {
+                  $filterValue = array(NULL);
+                }
+                $args[] = $filterValue;
               } else {
                 $where .= $link . $fname . ' IS NULL';
               }
