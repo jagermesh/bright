@@ -136,6 +136,8 @@ class BrFileSystem extends BrSingleton {
       $finalFileName = $fileName;
     }
 
+    $finalFileName = $this->normalizeFileName($finalFileName);
+
     $s = '';
     $fileNameOnly = $this->fileNameOnly($fileName);
 
