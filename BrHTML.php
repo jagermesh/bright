@@ -30,6 +30,8 @@ class BrHTML extends BrSingleton {
     $html = preg_replace('|onload="[^"]+"|ism', '', $html);
     $html = preg_replace('|<p>[\s\r\t\n ]*&nbsp;</p>|i', '', $html);
 
+    $html = str_replace('%u2019', '&lsquo;', $html);
+
     $html = trim($html);
 
     return $html;
