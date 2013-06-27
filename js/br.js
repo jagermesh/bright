@@ -16,6 +16,12 @@
       if (idx > 0) {
         baseUrl = s.substring(0, idx);
         return true;
+      } else {
+        idx = s.indexOf('bright/js/bright.min.js');
+        if (idx > 0) {
+          baseUrl = s.substring(0, idx);
+          return true;
+        }
       }
     }
   });

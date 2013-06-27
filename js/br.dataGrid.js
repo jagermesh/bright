@@ -29,18 +29,17 @@
 
     this.after('insert', function(data) {
       _this.events.trigger('change', data);
+      _this.events.triggerAfter('change', data);
     });
 
     this.after('update', function(data) {
       _this.events.trigger('change', data);
+      _this.events.triggerAfter('change', data);
     });
 
     this.after('remove', function(data) {
       _this.events.trigger('change', data);
-    });
-
-    this.after('select', function(data) {
-      _this.events.trigger('change', data);
+      _this.events.triggerAfter('change', data);
     });
 
     this.renderHeader = function(data) {
@@ -69,12 +68,15 @@
     }
 
     this.addDataRow = function(row) {
+      _this.events.triggerBefore('insert', row);
       var tableRow = _this.renderRow(row);
+      _this.events.trigger('insert', row, tableRow);
       if (_this.options.appendInInsert) {
         _this.append(tableRow);
       } else {
         _this.prepend(tableRow);
       }
+      _this.events.triggerAfter('insert', row, tableRow);
       return tableRow;
     }
 
@@ -86,8 +88,10 @@
 
       function checkForEmptyGrid() {
         if (isGridEmpty()) {
+          _this.events.triggerBefore('nodata');
           _this.selector.html(_this.options.templates.noData);
           _this.events.trigger('nodata');
+          _this.events.triggerAfter('nodata');
         }
       }
 
@@ -125,8 +129,11 @@
             var s = ctrl.html();
             ctrl.remove();
             if (s.length > 0) {
+              _this.events.triggerBefore('update', data);
+              var $row0 = $(row[0]);
+              _this.events.trigger('update', data, $row0);
               $(row[0]).html(s).hide().fadeIn();
-              _this.events.trigger('update');
+              _this.events.triggerAfter('update', data, $row0);
             } else {
               _this.options.dataSource.select();
             }
@@ -139,14 +146,18 @@
           var row = _this.selector.find('[data-rowid=' + rowid + ']');
           if (row.length > 0) {
             if (br.isTouchScreen()) {
+              _this.events.triggerBefore('remove', rowid);
+              _this.events.trigger('remove', rowid, row);
               row.remove();
               checkForEmptyGrid();
-              _this.events.trigger('remove');
+              _this.events.triggerAfter('remove', rowid, row);
             } else {
+              _this.events.triggerBefore('remove', rowid);
               row.fadeOut(function() {
+                _this.events.trigger('remove', rowid, $(this));
                 $(this).remove();
+                _this.events.triggerAfter('remove', rowid, $(this));
                 checkForEmptyGrid();
-                _this.events.trigger('remove');
               });
             }
           } else {
@@ -176,6 +187,7 @@
     }
 
     this.render = function(data) {
+      _this.events.triggerBefore('change', data);
       if (data) {
         var i;
         if (_this.options.freeGrid) {
@@ -233,6 +245,7 @@
         _this.selector.html(this.options.templates.noData);
       }
       _this.events.trigger('change', data);
+      _this.events.triggerAfter('change', data);
     }
 
     return this.init();

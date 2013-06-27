@@ -117,7 +117,7 @@
             _this.events.trigger('update', data, rowid);
           }
         }
-        _this.events.triggerAfter('' + operation, true, data, request);
+        _this.events.triggerAfter(operation, true, data, request);
         _this.events.trigger('change', operation, data);
         if (typeof callback == 'function') { callback.call(_this, true, data, request); }
       }
