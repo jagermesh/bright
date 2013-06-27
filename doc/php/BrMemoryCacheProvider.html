@@ -1,0 +1,58 @@
+{@../head.html}
+
+  <body>
+
+{@../navigation.html}
+
+    <div class="container-fluid fluid-box">
+
+      <div class="row">
+
+{@sidebar.html}
+
+        <div class="span9">
+
+          <div class="row">
+            <div class="span12">
+              <h1>BrMemoryCacheProvider</h1>
+              <h3><code>extends</code> <a href="{/}php/BrGenericCacheProvider.html">BrGenericCacheProvider</a></h3>
+              <p>Implements simple in memory caching class.</p>
+
+              <h2>Usage</h2>
+              <p>There is singleton object for every cache types suported by the application, so you can access cache via magic br() function:</p>
+<pre>
+// getting cache instance for futher usage
+$cache = br()->cache('memory');
+
+// because memory cache is default cache type - you can call it withotu specifying "memory" as paramater
+$cache = br()->cache();
+
+// accessing cache method directly
+$value = br()->cache()->get('cacheValueKey');
+</pre>
+              <h2>Class fields</h2>
+
+              <p>There is no public fiels in this class</p>
+
+              <h2>Class methods</h2>
+              <table class="table table-stripped table-bordered">
+                <thead><tr><th>Name</th><th>Description</th></tr></thead>
+                <tbody>
+                  <tr><th colspan="2">Inherited from <a href="{/}php/BrGenericCacheProvider.html">BrGenericCacheProvider</a></th></tr>
+                  <tr><td nowrap>set ($name, $value);</td><td>Set cached value for specified $name.</td></tr>
+                  <tr><td nowrap>get ($name, $defaultValue = null, $saveDefaultValue = false);</td><td>Get cached value for specified $name. If value missing in cache - $defaulValue will be returned. If $saveDefaultValue set to TRUE - $defaultValue wil be saved as cached value for specified $name.</td></tr>
+                  <tr><td nowrap>exists ($name);</td><td>Check if specified $name has cached value.</td></tr>
+                  <tr><td nowrap>remove ($name);</td><td>Remove cached value for specified $name.</td></tr>
+                </tbody>
+              </table>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </body>
+</html>

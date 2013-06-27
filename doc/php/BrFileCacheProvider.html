@@ -1,0 +1,138 @@
+{@../head.html}
+
+  <body>
+
+{@../navigation.html}
+
+    <div class="container-fluid fluid-box">
+
+      <div class="row">
+
+{@sidebar.html}
+
+        <div class="span9">
+
+          <div class="row">
+            <div class="span12">
+              <h1>BrFileCacheProvider</h1>
+              <h3><code>extends</code> <a href="{/}php/BrGenericCacheProvider.html">BrGenericCacheProvider</a></h3>
+              <p>Implements simple caching class based on files in local file system.</p>
+
+              <h2>Usage</h2>
+              <p>There is singleton object for every cache types suported by the application, so you can access cache via magic br() function:</p>
+<pre>
+// getting cache instance for futher usage
+$cache = br()->cache('file');
+
+// accessing cache method directly
+$value = br()->cache('file')->get('cacheValueKey');
+</pre>
+
+              <p>If required you can create separate instance for file based cache. For example with different life time or different cache files location:</p>
+<pre>
+require_once(__DIR__ . '/bright/BrFileCacheProvider.php');
+
+$fileCache = new BrFileCacheProvider();
+
+$fileCache->setCacheLifeTime(5);
+$fileCache->set('someName', 'someValue');
+</pre>
+
+              <h2>Class fields</h2>
+
+              <p>There is no public fiels in this class</p>
+
+              <h2>Class methods</h2>
+              <table class="table table-stripped table-bordered">
+                <thead><tr><th>Name</th><th>Description</th></tr></thead>
+                <tbody>
+                  <tr><td>setCachePath ($cacheFilePath);</td><td>Path the the cache files storage. By default cache files will be created in the /cache subfolder of the root folder of your websie.</td></tr>
+                  <tr><td>setCacheLifeTime ($seconds);</td><td>Change default cache life time of 300 seconds to specified $seconds amount.</td></tr>
+                  <tr><th colspan="2">Inherited from <a href="{/}php/BrGenericCacheProvider.html">BrGenericCacheProvider</a></th></tr>
+                  <tr><td nowrap>set ($name, $value);</td><td>Set cached value for specified $name.</td></tr>
+                  <tr><td nowrap>get ($name, $defaultValue = null, $saveDefaultValue = false);</td><td>Get cached value for specified $name. If value missing in cache - $defaulValue will be returned. If $saveDefaultValue set to TRUE - $defaultValue wil be saved as cached value for specified $name.</td></tr>
+                  <tr><td nowrap>exists ($name);</td><td>Check if specified $name has cached value.</td></tr>
+                  <tr><td nowrap>remove ($name);</td><td>Remove cached value for specified $name.</td></tr>
+                </tbody>
+              </table>
+
+              <h2>Test script</h2>
+
+<pre>
+&lt;?php
+
+require_once(dirname(__DIR__) . '/bright/BrFileCacheProvider.php');
+
+$fileCache = br()->cache('file');
+$fileCache = new BrFileCacheProvider();
+
+$randName       = '76a05677-1d23-c1c4-0d5c-86cbf2917fc5';
+$randValue      = br()->guid();
+
+$randArrayName  = 'e17b0472-f173-5dc4-951d-39105e5d86d5';
+$randArrayValue = array('guid' => br()->guid());
+
+br()->log('Step 1: Initial check');
+br()->assert(!$fileCache->exists($randName), 'Scalar value exists');
+br()->assert(!$fileCache->get($randName), 'Scalar value not null');
+br()->assert(!$fileCache->exists($randArrayName), 'Array value exists');
+br()->assert(!$fileCache->get($randArrayName), 'Array value not null');
+
+$fileCache->set($randName, $randValue);
+$fileCache->set($randArrayName, $randArrayValue);
+
+br()->log('Step 2: Check after setting values');
+br()->assert($fileCache->exists($randName), 'Scalar value missing');
+br()->assert($fileCache->get($randName) == $randValue, 'Scalar value wrong');
+br()->assert($fileCache->exists($randArrayName), 'Array value missing');
+br()->assert($fileCache->get($randArrayName) == $randArrayValue, 'Array value wrong');
+
+$fileCache = new BrFileCacheProvider();
+
+br()->log('Step 3: Check after setting values and reinitializing cache object');
+br()->assert($fileCache->exists($randName), 'Scalar value missing');
+br()->assert($fileCache->get($randName) == $randValue, 'Scalar value wrong');
+br()->assert($fileCache->exists($randArrayName), 'Array value missing');
+br()->assert($fileCache->get($randArrayName) == $randArrayValue, 'Array value wrong');
+
+$fileCache = new BrFileCacheProvider();
+$fileCache->setCacheLifeTime(5);
+
+sleep(10);
+
+br()->log('Step 4: Setting lifetime to 5 seconds and waiting 10 seconds');
+br()->assert(!$fileCache->exists($randName), 'Scalar value exists');
+br()->assert(!$fileCache->get($randName), 'Scalar value not null');
+br()->assert(!$fileCache->exists($randArrayName), 'Array value exists');
+br()->assert(!$fileCache->get($randArrayName), 'Array value not null');
+
+$fileCache = new BrFileCacheProvider();
+$fileCache->set($randName, $randValue);
+$fileCache->set($randArrayName, $randArrayValue);
+
+br()->log('Step 5: Check after setting values again');
+br()->assert($fileCache->exists($randName), 'Scalar value missing');
+br()->assert($fileCache->get($randName) == $randValue, 'Scalar value wrong');
+br()->assert($fileCache->exists($randArrayName), 'Array value missing');
+br()->assert($fileCache->get($randArrayName) == $randArrayValue, 'Array value wrong');
+
+$fileCache->remove($randName);
+$fileCache->remove($randArrayName);
+
+br()->log('Step 6: Check after removing values');
+br()->assert(!$fileCache->exists($randName), 'Scalar value exists');
+br()->assert(!$fileCache->get($randName), 'Scalar value not null');
+br()->assert(!$fileCache->exists($randArrayName), 'Array value exists');
+br()->assert(!$fileCache->get($randArrayName), 'Array value not null');
+</pre>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </body>
+</html>
