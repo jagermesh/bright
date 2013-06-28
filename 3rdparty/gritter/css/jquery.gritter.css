@@ -25,11 +25,19 @@
 .gritter-item-wrapper {
   /*opacity: 0.8;*/
   color: white;
-  background-color: red;
   border-radius: 6px;
+  position:relative;
+  margin:0 0 10px 0;
+}
+.gritter-item-wrapper.gritter-red {
+  /*opacity: 0.8;*/
+  background-color: red;
   border: 1px solid red;
-	position:relative;
-	margin:0 0 10px 0;
+}
+.gritter-item-wrapper.gritter-light {
+  /*opacity: 0.8;*/
+  background-color: #5bb2de;
+  border: 1px solid #5bb2de;
 }
 .gritter-item {
 	display:block;

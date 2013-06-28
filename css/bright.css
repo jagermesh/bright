@@ -27,6 +27,11 @@ input.justified, select.justified {
   margin-bottom: 2px;
 }
 
+td.optimal-width {
+  width:10px;
+  white-space:nowrap;
+}
+
 .right-aligned {
   text-align: right !important;
 }
