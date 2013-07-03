@@ -33,6 +33,9 @@ class BrHTML extends BrSingleton {
     $html = str_replace('%u2019', '&lsquo;', $html);
 
     $html = trim($html);
+    if ($html == '&nbsp;') {
+      $html = '';
+    };
 
     return $html;
 

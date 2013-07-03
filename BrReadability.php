@@ -15,9 +15,9 @@ class BrReadability extends BrBrowser {
   private $token;
   private $lastResult;
 
-  function __construct($token) {
+  function __construct($tokens) {
 
-    $this->token = $token;
+    $this->tokens = $tokens;
 
     parent::__construct();
 
@@ -45,7 +45,14 @@ class BrReadability extends BrBrowser {
 
   function parse($url) {
 
-    $this->lastResult = $this->getJSON('http://readability.com/api/content/v1/parser?url=' . urlencode($url) . '&token=' . $this->token);
+    foreach($this->tokens as $token) {
+      $this->lastResult = $this->getJSON('http://readability.com/api/content/v1/parser?url=' . urlencode($url) . '&token=' . $token);
+      if ($this->lastWasError() && $this->hourlyLimitReached()) {
+
+      } else {
+        break;
+      }
+    }
 
     return $this->lastResult;
 
