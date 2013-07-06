@@ -224,24 +224,36 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function build($url, $params = array()) {
+  function build($url = array(), $params = array()) {
 
     if ($params) {
-      $result = $url . '?1=1';
+      $result = $url;
     } else {
       $params = $url;
-      $result = $this->baseUrl() . $this->relativeUrl() . $this->scriptName() . '?1=1';
+      $result = $this->baseUrl() . $this->relativeUrl() . $this->scriptName();
     }
     $first = true;
     foreach($params as $name => $value) {
       if (is_array($value)) {
         $s = '';
         foreach($value as $one) {
-          $s .= '&' . $name . '[]=' . urlencode($one);
+          if ($first) {
+            $first = false;
+            $s .= '?';
+          } else {
+            $s .= '&';
+          }
+          $s .= $name . '[]=' . urlencode($one);
         }
         $result .= $s;
       } else {
-        $result .= '&' . $name . '=' . urlencode($value);
+        if ($first) {
+          $first = false;
+          $result .= '?';
+        } else {
+          $result .= '&';
+        }
+        $result .= $name . '=' . urlencode($value);
       }
     }
 
