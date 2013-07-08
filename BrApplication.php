@@ -35,7 +35,7 @@ class BrApplication extends BrSingleton {
           })
     ;
 
-    br()->auth()->checkLogin(false);      
+    br()->auth()->checkLogin(false);
 
     $request = br()->request();
     $scriptName = $request->scriptName();
@@ -48,20 +48,20 @@ class BrApplication extends BrSingleton {
         exit();
       }
     }
-  
+
     if (preg_match('/[.]html$/', $scriptName)) {
       $scriptName = 'index.php';
-    } 
+    }
 
     $targetScripts = array();
     // if script is html - try to find regarding php
     if ($path = br()->request()->relativeUrl()) {
-      // as is 
+      // as is
       $targetScripts[] = br()->atBasePath($path.$scriptName);
       $targetScripts[] = br()->atAppPath($path.$scriptName);
       while(($path = dirname($path)) != '.') {
-        $targetScripts[] = br()->atBasePath($path.'/'.$scriptName);   
-        $targetScripts[] = br()->atAppPath($path.'/'.$scriptName);   
+        $targetScripts[] = br()->atBasePath($path.'/'.$scriptName);
+        $targetScripts[] = br()->atAppPath($path.'/'.$scriptName);
       }
     }
     // try to look for this script at base application path
@@ -85,11 +85,11 @@ class BrApplication extends BrSingleton {
 
     if ($controllerFile) {
       br()->log()->writeLn('Contoller: '.$controllerFile);
-      br()->import($controllerFile);  
+      br()->import($controllerFile);
       exit();
     } else {
       // if (!br()->config()->get('simpleMode')) {
-      //   br()->response()->send404();        
+      //   br()->response()->send404();
       // }
     }
 

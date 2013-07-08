@@ -117,6 +117,12 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
           }
         }
       }
+      if ($this->trigger('findLogin', $options)) {
+        if ($login = br()->auth()->getLogin()) {
+          $this->isDbSynced = true;
+          return $login;
+        }
+      }
       if ($returnNotAuthorized) {
         br()->response()->sendNotAuthorized();
       }
