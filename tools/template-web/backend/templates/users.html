@@ -6,7 +6,7 @@
 
     <script class="data-row-template" type="text/template">
       <tr data-rowid="{{rowid}}">
-        <td width="10"><input type="checkbox" class="action-select-row" name="check" id="check" title="Check"/> </td>
+        <td width="10"><input type="checkbox" class="action-select-row" value="{{rowid}}" /></td>
         <td width="10">{{#if __permissions.canUpdate}}<a class="action-edit btn btn-mini" title="Edit"><i class="icon-pencil"></i></a>{{/if}}</td>
         <td class="editable" data-field="login">{{login}}</td>
         <td class="editable" data-field="name">{{name}}</td>
@@ -17,7 +17,7 @@
 
     <script class="data-empty-template" type="text/template">
       <tr>
-        <td colspan="4">
+        <td colspan="6">
           <h2 class="centered">No items in this view</h2>
         </td>
       </tr>
