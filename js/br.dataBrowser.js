@@ -112,6 +112,9 @@
     this.unLockEditor = function() {
       $('.action-save', $editForm).removeClass('disabled');
     }
+    this.reloadRow = function(rowid) {
+      _this.dataGrid.reloadRow(rowid);
+    }
     this.editorConfigure = function(isCopy) {
       if (editorRowid) {
         if (isCopy) {

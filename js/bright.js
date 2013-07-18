@@ -1361,6 +1361,8 @@
     this.options.footersSelector = this.options.footersSelector || this.selector;
     this.options.selectors = this.options.selectors || {};
 
+    this.dataSource = this.options.dataSource;
+
     this.events = br.eventQueue(this);
     this.before = function(event, callback) { this.events.before(event, callback); }
     this.on     = function(event, callback) { this.events.on(event, callback); }
@@ -1419,6 +1421,38 @@
       return tableRow;
     }
 
+    this.reloadRow = function(rowid) {
+      _this.dataSource.selectOne(rowid, function(result, response) {
+        if (result) {
+          if (_this.refreshRow(response)) {
+          } else {
+            // _this.render([response]);
+          }
+        }
+      }, {disableEvents: true});
+    }
+
+    this.refreshRow = function(data) {
+      var row = _this.selector.find('[data-rowid=' + data.rowid + ']');
+      if (row.length == 1) {
+        var ctrl = _this.renderRow(data);
+        var s = ctrl.html();
+        ctrl.remove();
+        if (s.length > 0) {
+          _this.events.triggerBefore('update', data);
+          var $row0 = $(row[0]);
+          _this.events.trigger('update', data, $row0);
+          $(row[0]).html(s).hide().fadeIn();
+          _this.events.triggerAfter('update', data, $row0);
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    }
+
     this.init = function() {
 
       function isGridEmpty() {
@@ -1434,25 +1468,19 @@
         }
       }
 
-      if (this.options.dataSource) {
+      if (_this.dataSource) {
 
-        var dataSource = this.options.dataSource;
-
-        dataSource.before('select', function() {
+        _this.dataSource.before('select', function() {
           _this.selector.html('');
           _this.selector.addClass('progress-big');
         });
 
-        dataSource.after('select', function() {
+        _this.dataSource.after('select', function(result, response, request) {
           _this.selector.removeClass('progress-big');
+          _this.render(response);
         });
 
-        dataSource.on('select', function(data) {
-          _this.selector.removeClass('progress-big');
-          _this.render(data);
-        });
-
-        dataSource.after('insert', function(success, response) {
+        _this.dataSource.after('insert', function(success, response) {
           if (success) {
             if (isGridEmpty()) {
               _this.selector.html(''); // to remove No-Data box
@@ -1461,27 +1489,15 @@
           }
         });
 
-        dataSource.on('update', function(data) {
-          var row = _this.selector.find('[data-rowid=' + data.rowid + ']');
-          if (row.length == 1) {
-            var ctrl = _this.renderRow(data);
-            var s = ctrl.html();
-            ctrl.remove();
-            if (s.length > 0) {
-              _this.events.triggerBefore('update', data);
-              var $row0 = $(row[0]);
-              _this.events.trigger('update', data, $row0);
-              $(row[0]).html(s).hide().fadeIn();
-              _this.events.triggerAfter('update', data, $row0);
-            } else {
-              _this.options.dataSource.select();
-            }
+        _this.dataSource.on('update', function(data) {
+          if (_this.refreshRow(data)) {
+
           } else {
-            _this.options.dataSource.select();
+            _this.dataSource.select();
           }
         });
 
-        dataSource.on('remove', function(rowid) {
+        _this.dataSource.on('remove', function(rowid) {
           var row = _this.selector.find('[data-rowid=' + rowid + ']');
           if (row.length > 0) {
             if (br.isTouchScreen()) {
@@ -1500,7 +1516,7 @@
               });
             }
           } else {
-            _this.options.dataSource.select();
+            _this.dataSource.select();
           }
         });
 
@@ -1513,7 +1529,7 @@
                 br.confirm( 'Delete confirmation'
                           , 'Are you sure you want delete this record?'
                           , function() {
-                              _this.options.dataSource.remove(rowid);
+                              _this.dataSource.remove(rowid);
                             }
                           );
               }
