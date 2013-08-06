@@ -15,6 +15,11 @@ class BrCSVParser extends BrObject {
   private $delimiter = ',';
   private $enclosure = '"';
 
+  function setDelimiter($delimiter) {
+
+    $this->delimiter = $delimiter;
+
+  }
 
   function parse($fileName) {
 
@@ -31,7 +36,7 @@ class BrCSVParser extends BrObject {
   }
 
   function iterate($fileName, $callback) {
-  
+
     ini_set('auto_detect_line_endings', true);
 
     $linesAmount = 0;
@@ -50,25 +55,25 @@ class BrCSVParser extends BrObject {
         fseek($handle, 0);
 
         // Skip BOM
-        if (fgets($handle, 4) == "\xEF\xBB\xBF") { 
+        if (fgets($handle, 4) == "\xEF\xBB\xBF") {
           fseek($handle, 3);
         } else {
-          fseek($handle, 0); 
+          fseek($handle, 0);
           if (fgets($handle, 5) == "\xFF\xFE\x00\x00") {
             $encoding = 'UTF-32le';
             fseek($handle, 4);
           } else {
-            fseek($handle, 0); 
+            fseek($handle, 0);
             if (fgets($handle, 5) == "\x00\x00\xFE\xFF") {
               $encoding = 'UTF-32';
               fseek($handle, 4);
             } else {
-              fseek($handle, 0); 
+              fseek($handle, 0);
               if (fgets($handle, 3) == "\xFF\xFE") {
                 $encoding = 'UTF-16le';
                 fseek($handle, 2);
               } else {
-                fseek($handle, 0); 
+                fseek($handle, 0);
                 if (fgets($handle, 3) == "\xFE\xFF") {
                   $encoding = 'UTF-16';
                   fseek($handle, 2);
@@ -97,7 +102,7 @@ class BrCSVParser extends BrObject {
                   $line .= "\x00\x00";
                 }
                 break;
-            } 
+            }
             $line = iconv($encoding, 'UTF-8', $line);
           }
           $line = trim($line);
@@ -137,7 +142,7 @@ class BrCSVParser extends BrObject {
         throw new Exception("Could not open file " . $fileName. " for reading.");
 
       }
-    } else { 
+    } else {
 
       throw new Exception("File " . $fileName . " does not exist.");
 
