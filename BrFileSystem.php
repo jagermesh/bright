@@ -67,7 +67,7 @@ class BrFileSystem extends BrSingleton {
 
   public function normalizeFileName($fileName) {
 
-    return preg_replace('~[^-A-Za-z0-9_.#$!()\[\]]~', '_', $fileName);
+    return preg_replace('~[^-A-Za-z0-9_.$!()\[\]]~', '_', $fileName);
 
   }
 
