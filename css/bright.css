@@ -16,9 +16,19 @@ textarea.justified {
   margin-bottom: 2px;
 }
 
-input.justified, select.justified, div.justified {
+input.justified, div.justified {
   width: 100%;
   height: 2em;
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -ms-box-sizing: border-box;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+select.justified {
+  width: 100%;
   box-sizing: border-box;
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;

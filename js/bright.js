@@ -1425,8 +1425,9 @@
       _this.dataSource.selectOne(rowid, function(result, response) {
         if (result) {
           if (_this.refreshRow(response)) {
+
           } else {
-            // _this.render([response]);
+
           }
         }
       }, {disableEvents: true});
@@ -1632,6 +1633,7 @@
     this.fields = this.options.fields || {};
     this.saveSelection = this.options.saveSelection || false;
     this.selectedValueField = this.options.selectedValueField || null;
+    this.noDecoration = this.options.noDecoration || false;
 
     this.events = br.eventQueue(this);
     this.before = function(event, callback) { this.events.before(event, callback); }
@@ -1648,6 +1650,9 @@
         if (_this.saveSelection) {
           br.storage.set(storageTag($(this.selector)), value);
         }
+        if (window.Select2 && !_this.noDecoration) {
+          $(this.selector).select2();
+        }
       }
       return $(this.selector).val();
     }
@@ -1663,7 +1668,7 @@
       if (triggerChange) {
         $(this.selector).trigger('change');
       } else
-      if (window.Select2) {
+      if (window.Select2 && !_this.noDecoration) {
         $(this.selector).select2();
       }
     }
@@ -1682,7 +1687,7 @@
 
       var valueField = options.valueField || 'rowid';
       var nameField = options.nameField || 'name';
-      var hideEmptyValue = options.hideEmptyValue || false;
+      var hideEmptyValue = options.hideEmptyValue || (_this.selector.attr('multiple') == 'multiple');
       var levelField = options.levelField || null;
       var emptyName = (typeof options.emptyName == 'undefined' ? '--any--' : options.emptyName);
       var emptyValue = (typeof options.emptyValue == 'undefined' ? '' : options.emptyValue);
@@ -1728,7 +1733,7 @@
 
       _this.events.trigger('load', data);
 
-      if (window.Select2) {
+      if (window.Select2 && !_this.noDecoration) {
         $(_this.selector).select2();
       }
 
@@ -1744,7 +1749,7 @@
           if (callback) {
             callback.call(_this.selector, result, response);
           }
-          if (window.Select2) {
+          if (window.Select2 && !_this.noDecoration) {
             $(_this.selector).select2();
           }
         }
@@ -1773,7 +1778,7 @@
         br.storage.set(storageTag(this), $(this).val());
       }
       _this.events.trigger('change');
-      if (window.Select2) {
+      if (window.Select2 && !_this.noDecoration) {
         $(this).select2();
       }
     });
