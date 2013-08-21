@@ -1906,7 +1906,7 @@
     if (!br.isEmpty(s)) {
       if (typeof $.gritter != 'undefined') {
         $.gritter.add({
-            title: ' '
+            title: 'Error'
           , text: s
           , class_name: 'gritter-red'
           , image: image
@@ -1929,11 +1929,14 @@
     }
   };
 
-  window.br.growlMessage = function(s, image) {
+  window.br.growlMessage = function(s, title, image) {
     if (!br.isEmpty(s)) {
       if (typeof $.gritter != 'undefined') {
+        if (br.isEmpty(title)) {
+          title = ' ';
+        }
         $.gritter.add({
-            title: ' '
+            title: title
           , text: s
           , class_name: 'gritter-light'
           , image: image
