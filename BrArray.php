@@ -49,6 +49,12 @@ class BrArray {
 
   }
 
+  function join($glue = ', ') {
+
+    return implode($this->value, $glue);
+
+  }
+
   function removeEmptyValues() {
 
     $result = array();
