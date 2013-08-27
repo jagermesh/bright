@@ -105,6 +105,8 @@ class BrCSVParser extends BrObject {
             }
             $line = iconv($encoding, 'UTF-8', $line);
           }
+          // remove The character is "\xa0" (i.e. 160), which is the standard Unicode translation for &nbsp;
+          $line = str_replace(chr(160), ' ', $line);
           $line = trim($line);
           $line = str_getcsv($line, $this->delimiter, $this->enclosure);
           if (count($line) == 1) {

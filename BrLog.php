@@ -22,7 +22,7 @@ class BrLog extends BrSingleton {
 
     $this->initMicroTime = Br()->getMicrotime();
     $this->initTime = @strftime('%H:%M:%S');
-    
+
   }
 
   function addAdapter($adapter) {
@@ -58,18 +58,18 @@ class BrLog extends BrSingleton {
   private function writeToAdapters($message, $group = 'MSG') {
 
     if ($this->isEnabled()) {
-      
+
       if (is_array($message)) {
         if (count($message)) {
-          $logText = var_export($message, true);          
+          $logText = var_export($message, true);
         } else {
-          $logText = '[Empty Array]';          
+          $logText = '[Empty Array]';
         }
       } else
       if (is_object($message)) {
-        $logText = var_export($message, true);        
+        $logText = var_export($message, true);
       } else {
-        $logText = $message;         
+        $logText = $message;
       }
 
       $time = Br()->FormatDuration(Br()->GetMicrotime() - $this->initMicroTime);
@@ -92,43 +92,43 @@ class BrLog extends BrSingleton {
   }
 
   function incLevel() {
-    
+
     $this->logLevel++;
 
   }
 
   function decLevel() {
-    
+
     $this->logLevel--;
 
   }
 
   function resetLevel() {
-    
+
     $this->logLevel = 0;
 
   }
 
   function getLevel() {
-    
+
     return $this->logLevel;
 
   }
 
   function write($message, $group = 'MSG') {
-    
+
     $this->writeToAdapters($message, $group);
 
   }
 
   function writeLn($message, $group = 'MSG') {
-    
+
     $this->writeToAdapters($message, $group);
 
   }
 
   function formatCallParams($params, $level = 0) {
-    
+
     $result = '';
     foreach($params as $arg) {
       if (is_numeric($arg)) {
@@ -146,19 +146,19 @@ class BrLog extends BrSingleton {
       } else
       if (is_resource($arg)) {
         $result .= '#' . (string)$arg . ', ';
-      } else 
+      } else
       if (!$arg) {
         $result .= 'null, ';
       } else {
-        $result .= '"' . substr((string)$arg, 0, 255) . '", ';          
+        $result .= '"' . substr((string)$arg, 0, 255) . '", ';
       }
     }
-    return rtrim($result, ', ');    
+    return rtrim($result, ', ');
 
   }
 
   function formatStackTraceCall($trace) {
-    
+
     $result = '';
     if (br($trace, 'class')) {
       $result .= $trace['class'];
@@ -172,13 +172,13 @@ class BrLog extends BrSingleton {
     }
     $result = rtrim($result, ', ');
     $result .= ');';
-    
+
     return $result;
-    
+
   }
-  
+
   function formatStackTraceSource($trace) {
-    
+
     $result = '';
     if (br($trace, 'file')) {
       $result .= $trace['file'];
@@ -188,13 +188,13 @@ class BrLog extends BrSingleton {
     if (br($trace, 'line')) {
       $result .= ', ' . $trace['line'];
     }
-    
+
     return $result;
-    
+
   }
 
   //
-  
+
   public function logException($e) {
 
     $isFatal = (!($e instanceof BrErrorException) || $e->IsFatal());
@@ -231,7 +231,7 @@ class BrLog extends BrSingleton {
   }
 
   public function error($message, $object = null) {
-    
+
     if ($object) {
       $message = get_class($object) . ' :: ' . $message;
     }
@@ -257,7 +257,7 @@ class BrLog extends BrSingleton {
       $this->writeLn($callStackInfo, 'DBG');
 
       if (br()->isConsoleMode()) {
-        
+
       } else {
         include(__DIR__.'/templates/CallStack.html');
       }
@@ -270,14 +270,14 @@ class BrLog extends BrSingleton {
     $args = func_get_args();
     foreach($args as $var) {
       $this->writeToAdapters($var, 'ERR', true);
-      
+
       $message = print_r($var, true);
       if (br()->isConsoleMode()) {
-        // echo($message);      
+        // echo($message);
         // echo("\n");
       } else
       if (br()->request()->isLocalHost()) {
-        include(__DIR__.'/templates/DebugMessage.html');      
+        include(__DIR__.'/templates/DebugMessage.html');
       }
     }
 

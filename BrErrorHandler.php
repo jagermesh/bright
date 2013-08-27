@@ -62,11 +62,9 @@ class BrErrorHandler extends BrObject {
         require_once(__DIR__.'/Br.php');
 
         if ($e instanceof BrAppException) {
-
           if (br()->isConsoleMode()) {
             br()->log($e->getMessage());
           }
-
         } else {
           br()->log()->logException($e);
         }

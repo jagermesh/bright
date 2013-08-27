@@ -48,8 +48,11 @@ class BrString {
     return mb_strtoupper($this->value);
   }
 
-  function trimByLength($length, $addPoints = false) {
+  function trimByLength($length, $addPoints = false, $aligned = false) {
     $s = $this->substring(0, $length);
+    if ($aligned) {
+      $s = preg_replace('/[\s]*[\w]*?$/', '', $s);
+    }
     if ($addPoints && ($this->length() > $length)) {
       $s .= '...';
     }

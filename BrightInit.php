@@ -41,6 +41,19 @@ if (strtolower(basename($traces[0]['file'])) == 'bright.php') {
   br()->saveCallerScript($traces[0]['file']);
 }
 
+// Logging
+br()->importLib('FileLogAdapter');
+br()->importLib('ErrorFileLogAdapter');
+br()->importLib('ErrorMailLogAdapter');
+br()->log()->addAdapter(new BrFileLogAdapter(br()->atBasePath('_logs')));
+br()->log()->addAdapter(new BrErrorFileLogAdapter(br()->atBasePath('_logs')));
+br()->log()->addAdapter(new BrErrorMailLogAdapter());
+
+if (br()->isConsoleMode()) {
+  br()->importLib('ConsoleLogAdapter');
+  br()->log()->addAdapter(new BrConsoleLogAdapter());
+}
+
 // Loading application settings
 br()->importAtBasePath('config.php');
 
@@ -49,15 +62,3 @@ ini_set('session.gc_maxlifetime', br()->config()->get('php/session.gc_maxlifetim
 ini_set('session.cache_expire', br()->config()->get('php/session.cache_expire', 180));
 ini_set('session.cookie_lifetime', br()->config()->get('php/session.cookie_lifetime', 0));
 // Core PHP settings - Secondary - End
-
-// Logging
-br()->importLib('FileLogAdapter');
-br()->importLib('ErrorFileLogAdapter');
-br()->importLib('ErrorMailLogAdapter');
-br()->log()->addAdapter(new BrFileLogAdapter(br()->atBasePath('_logs')));
-br()->log()->addAdapter(new BrErrorFileLogAdapter(br()->atBasePath('_logs')));
-br()->log()->addAdapter(new BrErrorMailLogAdapter());
-if (br()->isConsoleMode()) {
-  br()->importLib('ConsoleLogAdapter');
-  br()->log()->addAdapter(new BrConsoleLogAdapter());
-}
