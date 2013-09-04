@@ -637,11 +637,22 @@ class BrMySQLProviderTable {
 
 class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
-  var $connection;
+  private $connection;
+  private $ownConnection;
 
   function __construct($cfg) {
 
     $this->connect(br($cfg, 'hostname'), br($cfg, 'name'), br($cfg, 'username'), br($cfg, 'password'), $cfg);
+
+    register_shutdown_function(array(&$this, "captureShutdown"));
+
+  }
+
+  function captureShutdown() {
+
+    if ($this->ownConnection) {
+      @mysql_close($this->connection);
+    }
 
   }
 
@@ -649,8 +660,10 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
     if (br($cfg, 'connection')) {
       $this->connection = $cfg['connection'];
+      $this->ownConnection = false;
     } else {
       $this->connection = mysql_connect($hostName, $userName, $password, true);
+      $this->ownConnection = true;
 
       if (!$this->connection) {
         if (br()->config()->get('db.connection_error_page')) {
