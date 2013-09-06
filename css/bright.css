@@ -219,6 +219,10 @@ h1 {
   margin-bottom: 5px;
 }
 
+.modal-header h1 {
+  margin-top: 5px; !important;
+}
+
 h1 small {
   font-size: 14px;
 }
