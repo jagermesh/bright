@@ -45,23 +45,23 @@ class BrNestedSet extends BrObject {
   function verify() {
 
     if (br()->db()->getRow('SELECT id FROM '.$this->tableName.' WHERE left_key >= right_key')) {
-      throw new Exception('Nested set is broken: ' . 1);
+      throw new BrAppException('Nested set is broken: ' . 1);
     }
     if ($row = br()->db()->getRow('SELECT COUNT(1) amount, MIN(left_key) min_left, MAX(right_key) max_right FROM '.$this->tableName)) {
       if ($row['amount']) {
         if ($row['min_left'] != 1) {
-          throw new Exception('Nested set is broken: ' . 2);
+          throw new BrAppException('Nested set is broken: ' . 2);
         }
         if ($row['max_right'] != $row['amount']*2) {
-          throw new Exception('Nested set is broken: ' . 3);
+          throw new BrAppException('Nested set is broken: ' . 3);
         }
       }
     }
     if (br()->db()->getValue('SELECT 1 FROM '.$table.' WHERE (right_key - left_key) % 2 = 0')) {
-      throw new Exception('Nested set is broken: ' . 4);
+      throw new BrAppException('Nested set is broken: ' . 4);
     }
     if ($db->value('SELECT 1 FROM '.$table.' WHERE (left_key - level + 2) % 2  = 1 ')) {
-      throw new Exception('Nested set is broken: ' . 5);
+      throw new BrAppException('Nested set is broken: ' . 5);
     }
 
     return true;
