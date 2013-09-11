@@ -25,53 +25,48 @@ class BrNestedSet extends BrObject {
 
   }
 
-  // function check() {
-
-  //   global $db;
-
-  //   $table = strtolower($table);
+  // function checkStructure() {
 
   //   if (!array_key_exists('left_key', $this->fields($table))) {
-  //     $db->query("ALTER TABLE ".$table." ADD left_key INTEGER");
+  //     $db->query("ALTER TABLE ".$this->tableName." ADD left_key INTEGER");
   //     unset($this->fields[$table]);
   //   }
   //   if (!array_key_exists('right_key', $this->fields($table))) {
-  //     $db->query("ALTER TABLE ".$table." ADD right_key INTEGER");
+  //     $db->query("ALTER TABLE ".$this->tableName." ADD right_key INTEGER");
   //     unset($this->fields[$table]);
   //   }
   //   if (!array_key_exists('level', $this->fields($table))) {
-  //     $db->query("ALTER TABLE ".$table." ADD level INTEGER");
+  //     $db->query("ALTER TABLE ".$this->tableName." ADD level INTEGER");
   //     unset($this->fields[$table]);
   //   }
 
   // }
 
-  // function isBroken() {
+  function verify() {
 
-  //   global $db;
+    if (br()->db()->getRow('SELECT id FROM '.$this->tableName.' WHERE left_key >= right_key')) {
+      throw new Exception('Nested set is broken: ' . 1);
+    }
+    if ($row = br()->db()->getRow('SELECT COUNT(1) amount, MIN(left_key) min_left, MAX(right_key) max_right FROM '.$this->tableName)) {
+      if ($row['amount']) {
+        if ($row['min_left'] != 1) {
+          throw new Exception('Nested set is broken: ' . 2);
+        }
+        if ($row['max_right'] != $row['amount']*2) {
+          throw new Exception('Nested set is broken: ' . 3);
+        }
+      }
+    }
+    if (br()->db()->getValue('SELECT 1 FROM '.$table.' WHERE (right_key - left_key) % 2 = 0')) {
+      throw new Exception('Nested set is broken: ' . 4);
+    }
+    if ($db->value('SELECT 1 FROM '.$table.' WHERE (left_key - level + 2) % 2  = 1 ')) {
+      throw new Exception('Nested set is broken: ' . 5);
+    }
 
-  //   $table = strtolower($table);
+    return true;
 
-  //   $this->check_nested_set_struct($table);
-
-  //   if ($db->row('SELECT id FROM '.$table.' WHERE left_key >= right_key'))
-  //     return 1;
-  //   if ($row = $db->row('SELECT COUNT(1) amount, MIN(left_key) min_left, MAX(right_key) max_right FROM '.$table))
-  //     if ($row['amount']) {
-  //       if ($row['min_left'] != 1)
-  //         return 2;
-  //       if ($row['max_right'] != $row['amount']*2)
-  //         return 3;
-  //     }
-  //   if ($db->value('SELECT 1 FROM '.$table.' WHERE (right_key - left_key) % 2 = 0'))
-  //     return 4;
-  //   if ($db->value('SELECT 1 FROM '.$table.' WHERE (left_key - level + 2) % 2  = 1 '))
-  //     return 5;
-
-
-  //   return 0;
-
-  // }
+  }
 
   function internalSetup($key = null, $left = 0, $level = 0, $check_only = false) {
 
@@ -179,41 +174,73 @@ class BrNestedSet extends BrObject {
   }
 
   function processUpdate($old, $new) {
-
     if (br($old, $this->parentField) != br($new, $this->parentField)) {
       $key_field    = $this->keyField;
       $parent_field = $this->parentField;
+
+      $type = '';
 
       $level        = $old['level'];
       $left_key     = $old['left_key'];
       $right_key    = $old['right_key'];
 
-      // removing from tree
-      br()->db()->runQuery( 'UPDATE ' . $this->tableName . '
-                                SET right_key = -1
-                              WHERE left_key >= ?
-                                AND right_key <= ?'
-                          , $left_key
-                          , $right_key
-                          );
+      if(br($new, 'parent_id')){
+        $parent = br()->db()->getRow('SELECT level, right_key, left_key FROM ' . $this->tableName . ' WHERE id = ?', $new['parent_id']);
+        $level_up = $parent['level'];
+      }else{
+        $level_up = 0;
+        $type = 'moveToRoot';
+      }
 
-      // process deletion
-      $this->processDelete($old);
+      if(!$type) {
+        if($parent['left_key'] < $left_key && $parent['right_key'] > $right_key) {
+          $type = 'moveUp';
+        }
+      }
 
-      // emulate insert
-      $query = br()->db()->select('SELECT * FROM ' . $this->tableName . ' WHERE right_key = -1 ORDER BY level, left_key');
-      while ($row = br()->db()->selectNext($query)) {
-        $this->processInsert($row);
+      switch($type){
+        case 'moveToRoot':
+          $right_key_near = br()->db()->getValue('SELECT MAX(right_key) FROM ' . $this->tableName);
+          break;
+        case 'moveUp':
+          $right_key_near = br()->db()->getValue('SELECT right_key FROM ' . $this->tableName . ' WHERE id = ?', $old['parent_id']);
+          break;
+        case 'moveInRow':
+          break;
+        default:
+          $right_key_near = br()->db()->getValue('SELECT (right_key - 1) AS right_key FROM ' . $this->tableName . ' WHERE id = ?', $new['parent_id']);
+          break;
+      }
+
+      $skew_level = $level_up - $level + 1;
+      $skew_tree = $right_key - $left_key + 1;
+
+      $ids_edit = br()->db()->getValue('SELECT id FROM ' . $this->tableName . ' WHERE left_key >= ? AND right_key <= ?', $left_key, $right_key);
+
+      if($right_key_near > $right_key){
+        $skew_edit = $right_key_near - $left_key + 1;
+        br()->db()->runQuery('UPDATE ' . $this->tableName . ' SET right_key = IF(left_key >= ?, right_key + ?, IF(right_key < ?, right_key + ?, right_key)),
+                        level = IF(left_key >= ?, level + ?, level),
+                        left_key = IF(left_key >= ?, left_key + ?, IF(left_key > ?, left_key + ?, left_key))
+                        WHERE right_key > ? AND left_key < ?', $left_key, $skew_edit, $left_key, $skew_tree, $left_key, $skew_level,
+                              $left_key, $skew_edit, $right_key_near, $skew_tree, $right_key_near, $right_key
+                            );
+      }else{
+        $skew_edit = $right_key_near - $left_key + 1 - $skew_tree;
+                          br()->db()->runQuery('UPDATE ' . $this->tableName . ' SET left_key = IF(right_key <= ?, left_key + ?, IF(left_key > ?, left_key - ?, left_key)),
+                  level = IF(right_key <= ?, level + ?, level),
+                  right_key = IF(right_key <= ?, right_key + ?, IF(right_key <= ?, right_key - ?, right_key))
+                  WHERE right_key > ? AND left_key <= ?', $right_key, $right_key, $right_key, $skew_tree,
+                   $right_key, $skew_level, $right_key, $skew_edit, $right_key_near, $skew_tree, $left_key, $right_key_near
+                            );
       }
     }
-
   }
 
   function processDelete($values) {
 
     $left_key  = $values['left_key'];
     $right_key = $values['right_key'];
-
     br()->db()->runQuery( 'UPDATE ' . $this->tableName . '
                               SET right_key = right_key - ?
                             WHERE right_key > ?
@@ -223,6 +250,7 @@ class BrNestedSet extends BrObject {
                         , $right_key
                         , $left_key
                         );
+
     br()->db()->runQuery(' UPDATE ' . $this->tableName . '
                               SET left_key  = left_key - ?
                                 , right_key = right_key - ?
