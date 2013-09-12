@@ -25,6 +25,7 @@ class BrDataSourceNotFound extends BrException {
 class BrDataSource extends BrGenericDataSource {
 
   private $dbEntity;
+  private $DMLType;
 
   function __construct($dbEntity, $options = array()) {
 
@@ -40,7 +41,15 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
+  function getDMLType() {
+
+    return $this->DMLType;
+
+  }
+
   function select($filter = array(), $fields = array(), $order = array(), $options = array()) {
+
+    $this->DMLType = '';
 
     $countOnly = (br($options, 'result') == 'count');
     $limit = $this->limit = br($options, 'limit');
@@ -187,6 +196,8 @@ class BrDataSource extends BrGenericDataSource {
 
   function update($rowid, $row, &$transientData = array(), $options = array()) {
 
+    $this->DMLType = 'update';
+
     $options['operation'] = 'update';
 
     $table = br()->db()->table($this->dbEntity());
@@ -234,6 +245,8 @@ class BrDataSource extends BrGenericDataSource {
 
   function insert($row = array(), &$transientData = array(), $options = array()) {
 
+    $this->DMLType = 'insert';
+
     $options['operation'] = 'insert';
 
     $this->callEvent('before:insert', $row, $transientData, $options);
@@ -272,6 +285,8 @@ class BrDataSource extends BrGenericDataSource {
   }
 
   function remove($rowid, &$transientData = array(), $options = array()) {
+
+    $this->DMLType = 'remove';
 
     $options['operation'] = 'remove';
 

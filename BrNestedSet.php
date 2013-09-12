@@ -174,7 +174,9 @@ class BrNestedSet extends BrObject {
   }
 
   function processUpdate($old, $new) {
+
     if (br($old, $this->parentField) != br($new, $this->parentField)) {
+
       $key_field    = $this->keyField;
       $parent_field = $this->parentField;
 
@@ -184,21 +186,21 @@ class BrNestedSet extends BrObject {
       $left_key     = $old['left_key'];
       $right_key    = $old['right_key'];
 
-      if(br($new, 'parent_id')){
+      if (br($new, 'parent_id')) {
         $parent = br()->db()->getRow('SELECT level, right_key, left_key FROM ' . $this->tableName . ' WHERE id = ?', $new['parent_id']);
         $level_up = $parent['level'];
-      }else{
+      } else {
         $level_up = 0;
         $type = 'moveToRoot';
       }
 
-      if(!$type) {
+      if (!$type) {
         if($parent['left_key'] < $left_key && $parent['right_key'] > $right_key) {
           $type = 'moveUp';
         }
       }
 
-      switch($type){
+      switch($type) {
         case 'moveToRoot':
           $right_key_near = br()->db()->getValue('SELECT MAX(right_key) FROM ' . $this->tableName);
           break;
@@ -217,21 +219,47 @@ class BrNestedSet extends BrObject {
 
       $ids_edit = br()->db()->getValue('SELECT id FROM ' . $this->tableName . ' WHERE left_key >= ? AND right_key <= ?', $left_key, $right_key);
 
-      if($right_key_near > $right_key){
+      if ($right_key_near > $right_key) {
         $skew_edit = $right_key_near - $left_key + 1;
-        br()->db()->runQuery('UPDATE ' . $this->tableName . ' SET right_key = IF(left_key >= ?, right_key + ?, IF(right_key < ?, right_key + ?, right_key)),
-                        level = IF(left_key >= ?, level + ?, level),
-                        left_key = IF(left_key >= ?, left_key + ?, IF(left_key > ?, left_key + ?, left_key))
-                        WHERE right_key > ? AND left_key < ?', $left_key, $skew_edit, $left_key, $skew_tree, $left_key, $skew_level,
-                              $left_key, $skew_edit, $right_key_near, $skew_tree, $right_key_near, $right_key
+        br()->db()->runQuery( 'UPDATE ' . $this->tableName .
+                              '   SET right_key = IF(left_key >= ?, right_key + ?, IF(right_key < ?, right_key + ?, right_key))
+                                    , level = IF(left_key >= ?, level + ?, level)
+                                    , left_key = IF(left_key >= ?, left_key + ?, IF(left_key > ?, left_key + ?, left_key))
+                                WHERE right_key > ?
+                                  AND left_key < ?'
+                            , $left_key
+                            , $skew_edit
+                            , $left_key
+                            , $skew_tree
+                            , $left_key
+                            , $skew_level
+                            , $left_key
+                            , $skew_edit
+                            , $right_key_near
+                            , $skew_tree
+                            , $right_key_near
+                            , $right_key
                             );
-      }else{
+      } else {
         $skew_edit = $right_key_near - $left_key + 1 - $skew_tree;
-                          br()->db()->runQuery('UPDATE ' . $this->tableName . ' SET left_key = IF(right_key <= ?, left_key + ?, IF(left_key > ?, left_key - ?, left_key)),
-                  level = IF(right_key <= ?, level + ?, level),
-                  right_key = IF(right_key <= ?, right_key + ?, IF(right_key <= ?, right_key - ?, right_key))
-                  WHERE right_key > ? AND left_key <= ?', $right_key, $right_key, $right_key, $skew_tree,
-                   $right_key, $skew_level, $right_key, $skew_edit, $right_key_near, $skew_tree, $left_key, $right_key_near
+        br()->db()->runQuery( 'UPDATE ' . $this->tableName .
+                              '   SET left_key = IF(right_key <= ?, left_key + ?, IF(left_key > ?, left_key - ?, left_key))
+                                    , level = IF(right_key <= ?, level + ?, level)
+                                    , right_key = IF(right_key <= ?, right_key + ?, IF(right_key <= ?, right_key - ?, right_key))
+                                WHERE right_key > ?
+                                  AND left_key <= ?'
+                            , $right_key
+                            , $skew_edit
+                            , $right_key
+                            , $skew_tree
+                            , $right_key
+                            , $skew_level
+                            , $right_key
+                            , $skew_edit
+                            , $right_key_near
+                            , $skew_tree
+                            , $left_key
+                            , $right_key_near
                             );
       }
     }
@@ -241,6 +269,7 @@ class BrNestedSet extends BrObject {
 
     $left_key  = $values['left_key'];
     $right_key = $values['right_key'];
+
     br()->db()->runQuery( 'UPDATE ' . $this->tableName . '
                               SET right_key = right_key - ?
                             WHERE right_key > ?
