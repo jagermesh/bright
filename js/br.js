@@ -9,22 +9,15 @@
   window.br = window.br || {};
 
   var baseUrl = '';
-  $('script').each(function(i, e) {
-    var s = $(e).attr('src');
-    if (s) {
-      var idx = s.indexOf('bright/js/bright.js');
-      if (idx > 0) {
-        baseUrl = s.substring(0, idx);
-        return true;
-      } else {
-        idx = s.indexOf('bright/js/bright.min.js');
-        if (idx > 0) {
-          baseUrl = s.substring(0, idx);
-          return true;
-        }
-      }
+  var lookFor = ['vendor/jagermesh/bright/js/bright.min.js', 'vendor/jagermesh/bright/js/bright.js', 'bright/js/bright.min.js', 'bright/js/bright.js'];
+  for(var i in lookFor) {
+    var scr = $('script[src$="' + lookFor[i] + '"]');
+    if (scr.length > 0) {
+      var s = $(scr).attr('src');
+      baseUrl = s.substring(0, s.indexOf(lookFor[i]));
+      break;
     }
-  });
+  }
 
   window.br.baseUrl = baseUrl;
 

@@ -74,7 +74,7 @@ class BrRequest extends BrSingleton {
       $this->host = $host;
       $this->relativeUrl = $relativeUrl;
       $this->baseUrl = $baseUrl;
-      $this->frameworkUrl = $this->baseUrl() . 'bright/';
+      $this->frameworkUrl = $this->baseUrl() . br()->relativePath();
       $this->scriptName = $scriptName;
 
       if ($this->isPUT()) {

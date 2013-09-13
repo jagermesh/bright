@@ -179,6 +179,7 @@ class Br extends BrSingleton {
   private $appPath = null;
   private $APIPath = null;
   private $frameWorkPath = null;
+  private $relativePath = null;
   private $application = null;
 
   function saveCallerScript($scriptPath) {
@@ -188,6 +189,18 @@ class Br extends BrSingleton {
     $this->appPath = $this->basePath.'app/';
     $this->APIPath = $this->basePath.'api/';
     $this->setTemplatesPath($this->basePath.'templates/');
+
+    if (stripos($this->frameWorkPath, $this->basePath) === 0) {
+      $this->relativePath = substr($this->frameWorkPath, strlen($this->basePath));
+    } else {
+      $this->relativePath = 'bright/';
+    }
+
+  }
+
+  function relativePath() {
+
+    return $this->relativePath;
 
   }
 
