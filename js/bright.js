@@ -535,14 +535,17 @@
 
   var baseUrl = '';
   var lookFor = ['vendor/jagermesh/bright/js/bright.min.js', 'vendor/jagermesh/bright/js/bright.js', 'bright/js/bright.min.js', 'bright/js/bright.js'];
-  for(var i in lookFor) {
-    var scr = $('script[src$="' + lookFor[i] + '"]');
-    if (scr.length > 0) {
-      var s = $(scr).attr('src');
-      baseUrl = s.substring(0, s.indexOf(lookFor[i]));
-      break;
+  $('script').each(function() {
+    if (baseUrl == '') {
+      var src = $(this).attr('src');
+      for(var i in lookFor) {
+        var idx = src.indexOf(lookFor[i]);
+        if (idx != -1) {
+          baseUrl = src.substring(0, idx);
+        }
+      }
     }
-  }
+  });
 
   window.br.baseUrl = baseUrl;
 
