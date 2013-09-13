@@ -109,6 +109,14 @@ class BrString {
     return br(preg_split('/[' . $delimiters . ']/', $this->value))->removeEmptyValues();
   }
 
+  function toCharPath() {
+    $charPath = '';
+    for($i = 0; $i < strlen($this->value); $i++) {
+      $charPath .= $this->value[$i] . '/';
+    }
+    return $charPath;
+  }
+
   function inc($var, $glue = ', ') {
     return $this->value . ($this->value ? $glue : '') . $var;
   }

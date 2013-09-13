@@ -98,6 +98,10 @@ class BrBrowser extends BrObject {
 
     $this->responseCode = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
 
+    if ($this->responseCode >= 400) {
+      return false;//throw new BrAppException('Request to ' . $url . ' failed. Response code: ' . $this->responseCode);
+    }
+
     switch ($dataType) {
       case 'json':
       case 'jsonp':
