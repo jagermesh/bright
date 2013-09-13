@@ -221,7 +221,11 @@ class BrDataSource extends BrGenericDataSource {
 
         $result = $this->callEvent('update', $crow, $transientData, $old, $options);
         if (is_null($result)) {
-          $table->update($crow, $rowid, br($options, 'dataTypes'));
+          if ($crow) {
+            $table->update($crow, $rowid, br($options, 'dataTypes'));
+          } else {
+            $crow = $table->findOne($filter);
+          }
           $result = $crow;
           $this->callEvent('after:update', $result, $transientData, $old, $options);
           $result['rowid'] = br()->db()->rowidValue($result);

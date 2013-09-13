@@ -601,6 +601,38 @@ class BrMySQLProviderTable {
 
   }
 
+  function replace(&$values, $dataTypes = null) {
+
+    $fields_str = '';
+    $values_str = '';
+
+    foreach($values as $field => $value) {
+      if (is_array($value)) {
+
+      }
+      $fields_str .= ($fields_str?',':'').$field;
+      $values_str .= ($values_str?',':'').'?';
+      if (is_array($dataTypes)) {
+        if (br($dataTypes, $field) == 's') {
+          $values_str .= '&';
+        }
+      }
+    }
+    $sql = 'REPLACE INTO '.$this->tableName.' ('.$fields_str.') VALUES ('.$values_str.')';
+
+    $args = array();
+    foreach($values as $field => $value) {
+      array_push($args, $value);
+    }
+
+    $this->provider->internalRunQuery($sql, $args);
+    if ($newId = $this->provider->getLastId()) {
+      $values = $this->findOne(array($this->provider->rowidField() => $newId));
+      return $newId;
+    }
+
+  }
+
   function insert(&$values, $dataTypes = null) {
 
     $fields_str = '';
