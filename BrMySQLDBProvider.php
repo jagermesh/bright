@@ -159,16 +159,23 @@ class BrMySQLProviderTable {
 
   private function compileJoin($filter, $tableName, $fieldName, $link, &$joins, &$joinsTables, &$where, &$args) {
 
+    $first = true;
+    $initialJoinTableName = '';
     foreach($filter as $joinTableName => $joinField) {
-      if (!in_array($joinTableName, $joinsTables)) {
-        $joinsTables[] = $joinTableName;
-        if (strpos($fieldName, '.') === false) {
-          $joins .= ' INNER JOIN '.$joinTableName.' ON '.$tableName.'.'.$fieldName.' = '.$joinTableName.'.'.$joinField;
+      if ($first) {
+        if (!in_array($joinTableName, $joinsTables)) {
+          $joinsTables[] = $joinTableName;
+          if (strpos($fieldName, '.') === false) {
+            $joins .= ' INNER JOIN '.$joinTableName.' ON '.$tableName.'.'.$fieldName.' = '.$joinTableName.'.'.$joinField;
+          } else {
+            $joins .= ' INNER JOIN '.$joinTableName.' ON '.$fieldName.' = '.$joinTableName.'.'.$joinField;
+          }
         } else {
-          $joins .= ' INNER JOIN '.$joinTableName.' ON '.$fieldName.' = '.$joinTableName.'.'.$joinField;
-        }
-      } else {
 
+        }
+        $first = false;
+      } else {
+        $joins .= ' AND '.$initialJoinTableName.'.'.$joinTableName.' = '.$joinField;
       }
     }
 
@@ -176,16 +183,24 @@ class BrMySQLProviderTable {
 
   private function compileLeftJoin($filter, $tableName, $fieldName, $link, &$joins, &$joinsTables, &$where, &$args) {
 
+    $first = true;
+    $initialJoinTableName = '';
     foreach($filter as $joinTableName => $joinField) {
-      if (!in_array($joinTableName, $joinsTables)) {
-        $joinsTables[] = $joinTableName;
-        if (strpos($fieldName, '.') === false) {
-          $joins .= ' LEFT JOIN '.$joinTableName.' ON '.$tableName.'.'.$fieldName.' = '.$joinTableName.'.'.$joinField;
+      if ($first) {
+        $initialJoinTableName = $joinTableName;
+        if (!in_array($joinTableName, $joinsTables)) {
+          $joinsTables[] = $joinTableName;
+          if (strpos($fieldName, '.') === false) {
+            $joins .= ' LEFT JOIN '.$joinTableName.' ON '.$tableName.'.'.$fieldName.' = '.$joinTableName.'.'.$joinField;
+          } else {
+            $joins .= ' LEFT JOIN '.$joinTableName.' ON '.$fieldName.' = '.$joinTableName.'.'.$joinField;
+          }
         } else {
-          $joins .= ' LEFT JOIN '.$joinTableName.' ON '.$fieldName.' = '.$joinTableName.'.'.$joinField;
-        }
-      } else {
 
+        }
+        $first = false;
+      } else {
+        $joins .= ' AND '.$initialJoinTableName.'.'.$joinTableName.' = '.$joinField;
       }
     }
 
