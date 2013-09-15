@@ -1,8 +1,8 @@
-// 
+//
 // Bright Framework : Version 0.0.5
 // (C) Sergiy Lavryk
 // jagermesh@gmail.com
-// 
+//
 
 (function ($, window) {
 
@@ -22,7 +22,8 @@
         _this.ctrl.text('');
         _this.editor = $('<input type="text" />');
         _this.editor.css('width', '100%');
-        _this.editor.css('height', height + 'px');
+        _this.editor.css('height', '100%');
+        _this.editor.css('min-height', '30px');
         _this.editor.css('font-size', _this.ctrl.css('font-size'));
         _this.editor.css('font-weight', _this.ctrl.css('font-weight'));
         _this.editor.css('box-sizing', '100%');
