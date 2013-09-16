@@ -177,27 +177,30 @@ class BrNestedSet extends BrObject {
 
     if (br($old, $this->parentField) != br($new, $this->parentField)) {
 
-      $key_field    = $this->keyField;
-      $parent_field = $this->parentField;
-
-      $type = '';
-
       $level        = $old['level'];
       $left_key     = $old['left_key'];
       $right_key    = $old['right_key'];
 
-      if (br($new, 'parent_id')) {
-        $parent = br()->db()->getRow('SELECT level, right_key, left_key FROM ' . $this->tableName . ' WHERE id = ?', $new['parent_id']);
+      $type = '';
+
+      if (br($new, $this->parentField)) {
+        $parent = br()->db()->getRow('SELECT level, right_key, left_key FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ?', $new[$this->parentField]);
         $level_up = $parent['level'];
       } else {
         $level_up = 0;
         $type = 'moveToRoot';
       }
 
-      if (!$type) {
-        if($parent['left_key'] < $left_key && $parent['right_key'] > $right_key) {
-          $type = 'moveUp';
+      if (!$type && br($old, $this->parentField)) {
+        if ($oldParentId = br()->db()->getValue('SELECT ' . $this->parentField . ' FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ?', $old[$this->parentField])) {
+          if ($oldParentId == $new[$this->parentField]) {
+            $type = 'moveUp';
+          }
         }
+      }
+
+      if (!$type) {
+        $type = 'generalMove';
       }
 
       switch($type) {
@@ -205,21 +208,19 @@ class BrNestedSet extends BrObject {
           $right_key_near = br()->db()->getValue('SELECT MAX(right_key) FROM ' . $this->tableName);
           break;
         case 'moveUp':
-          $right_key_near = br()->db()->getValue('SELECT right_key FROM ' . $this->tableName . ' WHERE id = ?', $old['parent_id']);
+          $right_key_near = br()->db()->getValue('SELECT right_key FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ?', $old[$this->parentField]);
           break;
         case 'moveInRow':
           break;
-        default:
-          $right_key_near = br()->db()->getValue('SELECT (right_key - 1) AS right_key FROM ' . $this->tableName . ' WHERE id = ?', $new['parent_id']);
+        case 'generalMove':
+          $right_key_near = br()->db()->getValue('SELECT (right_key - 1) AS right_key FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ?', $new[$this->parentField]);
           break;
       }
 
       $skew_level = $level_up - $level + 1;
       $skew_tree = $right_key - $left_key + 1;
 
-      $ids_edit = br()->db()->getValue('SELECT id FROM ' . $this->tableName . ' WHERE left_key >= ? AND right_key <= ?', $left_key, $right_key);
-
-      if ($right_key_near > $right_key) {
+      if ($right_key_near < $right_key) {
         $skew_edit = $right_key_near - $left_key + 1;
         br()->db()->runQuery( 'UPDATE ' . $this->tableName .
                               '   SET right_key = IF(left_key >= ?, right_key + ?, IF(right_key < ?, right_key + ?, right_key))
