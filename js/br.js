@@ -13,10 +13,12 @@
   $('script').each(function() {
     if (baseUrl == '') {
       var src = $(this).attr('src');
-      for(var i in lookFor) {
-        var idx = src.indexOf(lookFor[i]);
-        if (idx != -1) {
-          baseUrl = src.substring(0, idx);
+      if (!br.isEmpty(src)) {
+        for(var i in lookFor) {
+          var idx = src.indexOf(lookFor[i]);
+          if (idx != -1) {
+            baseUrl = src.substring(0, idx);
+          }
         }
       }
     }
