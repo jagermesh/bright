@@ -15,8 +15,12 @@ if (br()->isConsoleMode()) {
   // If we are in console mode - Bright is just a set of useful functions
 } else {
   // Starting session
-  session_cache_limiter('none');
-  session_start();
+  if (isset($_SESSION)) {
+
+  } else {
+    session_cache_limiter('none');
+    session_start();
+  }
 
   br()->request()->routeGET('/bright-scripts', function($matches) {
     br()->assetsCache()->send($matches);

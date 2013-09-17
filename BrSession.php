@@ -19,9 +19,10 @@ class BrSession extends BrSingleton {
     if (isset($_SESSION)) {
 
     } else {
-      global $_SESSION;
-      $_SESSION = array();
+      session_cache_limiter('none');
+      session_start();
     }
+
     $this->tag = md5(__FILE__);
 
     parent::__construct();
