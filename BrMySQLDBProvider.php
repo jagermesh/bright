@@ -261,6 +261,9 @@ class BrMySQLProviderTable {
         case '$exists':
           $this->compileExists($filterValue, $tableName, '', $link, $joins, $joinsTables, $where, $args);
           break;
+        case '$sql':
+          $where .= $link . ' (' . $filterValue . ')';
+          break;
         case '$notExists':
           $this->compileNotExists($filterValue, $tableName, '', $link, $joins, $joinsTables, $where, $args);
           break;

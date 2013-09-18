@@ -64,8 +64,15 @@ class BrOS extends BrObject {
         $result++;
       }
     } else {
-      $output = $this->execute("ps ax | grep '" . $pid . "' 2>&1");
-      $result = (count($output) - 1);
+      $output = $this->execute('ps ax | grep "' . $pid . '" 2>&1');
+      foreach($output as $line) {
+        $line = trim($line);
+        if (preg_match('#grep.*?' . $pid . '#', $line)) {
+
+        } else {
+          $result++;
+        }
+      }
     }
 
     return $result;
@@ -80,12 +87,16 @@ class BrOS extends BrObject {
         return $pid;
       }
     } else {
-      $output = $this->execute("ps ax | grep '" . $pid . "' 2>&1");
+      $output = $this->execute('ps ax | grep "' . $pid . '" 2>&1');
       foreach ($output as $line) {
         $line = trim($line);
-        if (preg_match('#^([0-9]+).*?[0-9]+:[0-9]+ (.+)$#', $line, $matches)) {
-          if (strtolower(trim($matches[2])) == strtolower(trim($pid))) {
-            return $matches[1];
+        if (preg_match('#grep.*?' . $pid . '#', $line)) {
+
+        } else {
+          if (preg_match('#^([0-9]+).*?[0-9]+:[0-9]+ (.+)$#', $line, $matches)) {
+            if (strtolower(trim($matches[2])) == strtolower(trim($pid))) {
+              return $matches[1];
+            }
           }
         }
       }
@@ -100,8 +111,12 @@ class BrOS extends BrObject {
     $output = $this->execute("ps ax | grep '" . $command . "' 2>&1");
     foreach ($output as $line) {
       $line = trim($line);
-      if (preg_match('#^([0-9]+) .+?[0-9]+:[0-9.]+ ' . $command . '#', $line, $matches)) {
-        return $matches[1];
+      if (preg_match('#grep.*?' . $pid . '#', $line)) {
+
+      } else {
+        if (preg_match('#^([0-9]+) .+?[0-9]+:[0-9.]+ ' . $command . '#', $line, $matches)) {
+          return $matches[1];
+        }
       }
     }
 
@@ -121,9 +136,13 @@ class BrOS extends BrObject {
     exec("ps ax | grep '".$scriptCommand."' 2>&1", $output);
     foreach ($output as $line) {
       $line = trim($line);
-      if (preg_match('#^([0-9]+).*?[0-9]+:[0-9.]+ .*?php .*?' . $scriptCommand . '$#', $line, $matches)) {
-        if (getmypid() != $matches[1]) {
-          return $matches[1];
+      if (preg_match('#grep.*?' . $pid . '#', $line)) {
+
+      } else {
+        if (preg_match('#^([0-9]+).*?[0-9]+:[0-9.]+ .*?php .*?' . $scriptCommand . '$#', $line, $matches)) {
+          if (getmypid() != $matches[1]) {
+            return $matches[1];
+          }
         }
       }
     }

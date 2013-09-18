@@ -139,7 +139,9 @@
 
         _this.dataSource.after('select', function(result, response, request) {
           _this.selector.removeClass('progress-big');
-          _this.render(response);
+          if (result) {
+            _this.render(response);
+          }
         });
 
         _this.dataSource.after('insert', function(success, response) {
