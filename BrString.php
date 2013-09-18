@@ -133,4 +133,20 @@ class BrString {
     return floor($this->value * pow(10, $precision))/pow(10,$precision);
   }
 
+  function fromHtmlToText() {
+
+    $html = preg_replace("/&nbsp;/ism", ' ', $this->value);
+    $flags = ENT_COMPAT;
+    if (defined('ENT_HTML401')) {
+      $flags = $flags | ENT_HTML401;
+    }
+    $html = html_entity_decode($html, $flags, 'UTF-8');
+    $html = preg_replace("/(\n\n|\r\n\r\n|\r\r)/ism", '', $html);
+    $html = preg_replace('/<br[^>]*>/ism', "\n", $html);
+    $html = preg_replace('/<[^>]+>/ism', '', $html);
+    $html = preg_replace('/<\/[^>]+>/ism', '', $html);
+    return $html;
+
+  }
+
 }
