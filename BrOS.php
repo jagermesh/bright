@@ -111,7 +111,7 @@ class BrOS extends BrObject {
     $output = $this->execute("ps ax | grep '" . $command . "' 2>&1");
     foreach ($output as $line) {
       $line = trim($line);
-      if (preg_match('#grep.*?' . $pid . '#', $line)) {
+      if (preg_match('#grep.*?' . $command . '#', $line)) {
 
       } else {
         if (preg_match('#^([0-9]+) .+?[0-9]+:[0-9.]+ ' . $command . '#', $line, $matches)) {
@@ -136,7 +136,7 @@ class BrOS extends BrObject {
     exec("ps ax | grep '".$scriptCommand."' 2>&1", $output);
     foreach ($output as $line) {
       $line = trim($line);
-      if (preg_match('#grep.*?' . $pid . '#', $line)) {
+      if (preg_match('#grep.*?' . $scriptCommand . '#', $line)) {
 
       } else {
         if (preg_match('#^([0-9]+).*?[0-9]+:[0-9.]+ .*?php .*?' . $scriptCommand . '$#', $line, $matches)) {
