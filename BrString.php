@@ -133,9 +133,24 @@ class BrString {
     return floor($this->value * pow(10, $precision))/pow(10,$precision);
   }
 
-  function fromHtmlToText() {
+  function textToHtml() {
 
-    $html = preg_replace("/&nbsp;/ism", ' ', $this->value);
+    $html = $this->value;
+    $flags = ENT_COMPAT;
+    if (defined('ENT_HTML401')) {
+      $flags = $flags | ENT_HTML401;
+    }
+    $html = htmlspecialchars($html, $flags, 'UTF-8');
+    $html = preg_replace("/\n/ism", '<br />', $html);
+    $html = preg_replace("/\r/ism", '', $html);
+    return $html;
+
+  }
+
+  function htmlToText() {
+
+    $html = $this->value;
+    $html = preg_replace("/&nbsp;/ism", ' ', $html);
     $flags = ENT_COMPAT;
     if (defined('ENT_HTML401')) {
       $flags = $flags | ENT_HTML401;
