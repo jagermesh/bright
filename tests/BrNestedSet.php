@@ -22,12 +22,30 @@ $inserts = array( 'A.1' => array( 'A.1.1' => array('A.1.1.1' => array(), 'A.1.1.
 $updates = array( array('A.2.1' => 'A.1')
                 , array('A.1.1' => 'A.2')
                 , array('A.1'   => 'A.2.2.2')
-                // , array('A.1'   => '')
-                // , array('A.1.1' => 'A.1')
-                // , array('A.2.1' => 'A.2')
+                , array('A.1'   => '')
+                , array('A.1.1' => 'A.1')
+                , array('A.2.1' => 'A.2')
                 );
 
-$deletes = array( 'A.1' );
+$deletes = array( 'A.1.1.1'
+                , 'A.1.1.2'
+                , 'A.1.1.3'
+                , 'A.1.2.1'
+                , 'A.1.2.2'
+                , 'A.1.2.3'
+                , 'A.1.1'
+                , 'A.1.2'
+                , 'A.1'
+                , 'A.2.1.1'
+                , 'A.2.1.2'
+                , 'A.2.1.3'
+                , 'A.2.2.1'
+                , 'A.2.2.2'
+                , 'A.2.2.3'
+                , 'A.2.1'
+                , 'A.2.2'
+                , 'A.2'
+                );
 
 function printTree() {
   br()->log(br()->db()->getValues("SELECT CONCAT(LPAD('', (level - 1) * 2, '  '), name), left_key, right_key FROM br_nested_set ORDER BY left_key"));
@@ -41,7 +59,9 @@ function inserts($nestedSet, $inserts, $parentId = null) {
     }
     br()->db()->table('br_nested_set')->insert($row);
     $nestedSet->processInsert($row);
+    printTree();
     $nestedSet->verify();
+
     if ($values) {
       inserts($nestedSet, $values, $row['id']);
     }
@@ -49,7 +69,6 @@ function inserts($nestedSet, $inserts, $parentId = null) {
 }
 
 inserts($nestedSet, $inserts);
-printTree();
 
 function updates($nestedSet, $updates) {
   foreach($updates as $update) {
@@ -72,4 +91,15 @@ function updates($nestedSet, $updates) {
 }
 
 updates($nestedSet, $updates);
-// printTree();
+
+function deletes($nestedSet, $deletes) {
+  foreach($deletes as $delete) {
+    $row = br()->db()->getRow('SELECT * FROM br_nested_set WHERE name = ?', $delete);
+    br()->db()->table('br_nested_set')->remove($row['id']);
+    $nestedSet->processDelete($row);
+    printTree();
+    $nestedSet->verify();
+  }
+}
+
+deletes($nestedSet, $deletes);

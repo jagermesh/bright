@@ -81,15 +81,14 @@ class BrNestedSet extends BrObject {
     // the right value of this node is the left value + 1
     $right = $left + 1;
 
-    $key_field        = $this->keyField;;
     $nested_set_order = $this->orderField;
     $parent_field     = $this->parentField;
 
     // get all children of this node
     if (strlen($key)) {
-      $sql = br()->placeholder('SELECT '.$key_field.' FROM '.$this->tableName.' WHERE '.$parent_field.' = ? ORDER BY '.$nested_set_order, $key);
+      $sql = br()->placeholder('SELECT '.$this->keyField.' FROM '.$this->tableName.' WHERE '.$parent_field.' = ? ORDER BY '.$nested_set_order, $key);
     } else {
-      $sql = 'SELECT '.$key_field.' FROM '.$this->tableName.' WHERE '.$parent_field.' IS NULL ORDER BY '.$nested_set_order;
+      $sql = 'SELECT '.$this->keyField.' FROM '.$this->tableName.' WHERE '.$parent_field.' IS NULL ORDER BY '.$nested_set_order;
     }
     $query = br()->db()->select($sql);
     while ($row = br()->db()->selectNext($query)) {
@@ -97,7 +96,7 @@ class BrNestedSet extends BrObject {
       // child of this node
       // $right is the current right value, which is
       // incremented by the rebuild_tree function
-      $right = $this->internalSetup($row[$key_field], $right, $level + 1, $check_only);
+      $right = $this->internalSetup($row[$this->keyField], $right, $level + 1, $check_only);
     }
 
     if (!$check_only) {
@@ -128,47 +127,32 @@ class BrNestedSet extends BrObject {
 
   function processInsert($values) {
 
-    $key_field        = $this->keyField;
-    $parent_field     = $this->parentField;
-    $key              = $values['id'];
-
-    if (!br($values, $parent_field)) {
-      $right_key = br()->db()->getValue('SELECT IFNULL(MAX(right_key), 0) + 1 FROM '.$this->tableName.' WHERE right_key != -1');
-      $level     = 0;
-    } else {
-      $parent    = br()->db()->getRow('SELECT right_key, level FROM ' . $this->tableName . ' WHERE ' . $key_field.' = ?', $values[$parent_field]);
+    if (br($values, $this->parentField)) {
+      $parent    = br()->db()->getRow('SELECT right_key, level FROM ' . $this->tableName . ' WHERE ' . $this->keyField.' = ?', $values[$this->parentField]);
       $right_key = $parent['right_key'];
       $level     = $parent['level'];
+    } else {
+      $right_key = br()->db()->getValue('SELECT IFNULL(MAX(right_key), 0) + 1 FROM '.$this->tableName.' WHERE right_key != -1');
+      $level     = 0;
     }
 
     br()->db()->runQuery( 'UPDATE ' . $this->tableName . '
-                              SET left_key = left_key + 2
-                                , right_key = right_key + 2
-                            WHERE left_key > ?
-                              AND right_key != -1
-                              AND id != ?'
-                        , $right_key
-                        , $key
-                        );
-    br()->db()->runQuery( 'UPDATE ' . $this->tableName . '
                               SET right_key = right_key + 2
-                            WHERE right_key >= ?
-                              AND left_key < ?
-                              AND right_key != -1
-                              AND id != ?'
+                                , left_key = IF(left_key > ?, left_key + 2, left_key)
+                            WHERE right_key >= ?'
                         , $right_key
                         , $right_key
-                        , $key
                         );
+
     br()->db()->runQuery( 'UPDATE ' . $this->tableName . '
                               SET left_key = ?
                                 , right_key = ?
                                 , level = ?
-                            WHERE '.$key_field.' = ?'
+                            WHERE '.$this->keyField.' = ?'
                         , $right_key
                         , $right_key + 1
                         , $level + 1
-                        , $key
+                        , $values[$this->keyField]
                         );
 
   }
@@ -271,21 +255,11 @@ class BrNestedSet extends BrObject {
     $left_key  = $values['left_key'];
     $right_key = $values['right_key'];
 
-    br()->db()->runQuery( 'UPDATE ' . $this->tableName . '
-                              SET right_key = right_key - ?
-                            WHERE right_key > ?
-                              AND left_key  < ?
-                              AND right_key != -1'
-                        , $right_key - $left_key + 1
-                        , $right_key
-                        , $left_key
-                        );
-
     br()->db()->runQuery(' UPDATE ' . $this->tableName . '
-                              SET left_key  = left_key - ?
+                              SET left_key = IF(left_key > ?, left_key - ?, left_key)
                                 , right_key = right_key - ?
-                            WHERE left_key > ?
-                              AND right_key != -1'
+                            WHERE right_key > ?'
+                        , $left_key
                         , $right_key - $left_key + 1
                         , $right_key - $left_key + 1
                         , $right_key

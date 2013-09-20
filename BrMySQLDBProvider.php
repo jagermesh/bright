@@ -469,13 +469,28 @@ class BrMySQLProviderTable {
 
     $where = '';
     $joins = '';
-    $joinsTables = array();
     $args = array();
 
-    $filter = array('$and' => $filter);
-    $this->compileFilter($filter, $this->tableName, '', ' AND ', $joins, $joinsTables, $where, $args);
-    $sql = 'DELETE ';
-    $sql .= ' FROM '.$this->tableName.$joins.' WHERE 1=1 '.$where;
+    if ($filter) {
+      if (is_array($filter)) {
+        $joinsTables = array();
+        $filter = array('$and' => $filter);
+        $this->compileFilter($filter, $this->tableName, '', ' AND ', $joins, $joinsTables, $where, $args);
+      } else {
+        $where .= ' AND ' . $this->provider->rowidField() . ' = ?';
+        $args[] = $filter;
+      }
+    } else {
+      throw Exception('It is not allowed to invoke remove method without passing filter condition');
+    }
+
+    if ($where) {
+      $sql = 'DELETE ';
+      $sql .= ' FROM '.$this->tableName.$joins.' WHERE 1=1 '.$where;
+    } else {
+      throw Exception('It is not allowed to invoke remove method without passing filter condition');
+    }
+
     return $this->provider->internalRunQuery($sql, $args);
 
   }
@@ -545,17 +560,22 @@ class BrMySQLProviderTable {
     }
     $sql = rtrim($sql, ', ');
     $sql .= ' WHERE ';
+
     $where = '';
-    if (is_array($filter)) {
-      foreach($filter as $field => $value) {
-        if ($where) {
-          $where .= ' AND ';
-        }
-        $where .= $field . ' = ?';
-      }
-    } else
+
     if ($filter) {
-      $where .= $this->provider->rowidField() . ' = ?';
+      if (is_array($filter)) {
+        foreach($filter as $field => $value) {
+          if ($where) {
+            $where .= ' AND ';
+          }
+          $where .= $field . ' = ?';
+        }
+      } else {
+        $where .= $this->provider->rowidField() . ' = ?';
+      }
+    } else {
+      throw Exception('It is not allowed to invoke update method without passing filter condition');
     }
 
     if ($where) {
