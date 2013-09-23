@@ -453,6 +453,8 @@ class BrRESTBinder extends BrObject {
             $row[$name] = $value;
           }
         }
+        // do not allow to modify ID via REST API
+        // unset($row['id']);
         try {
           $result = $dataSource->update($matches[1], $row);
           if (br()->request()->get('crossdomain')) {
@@ -519,6 +521,8 @@ class BrRESTBinder extends BrObject {
           $row[$name] = $value;
         }
       }
+      // do not allow to insert record with ID, passed via REST API
+      // unset($row['id']);
       try {
         $t = array();
         $result = $dataSource->insert($row, $t, $dataSourceOptions);

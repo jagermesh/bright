@@ -243,6 +243,17 @@
     }
   }
 
+  window.br.jsonEncode = function(data) {
+    return JSON.stringify(data);
+  }
+  window.br.jsonDecode = function(data) {
+    try {
+      return JSON.parse(data);
+    } catch(ex) {
+      return null;
+    }
+  }
+
   $(document).ready(function() {
 
     var notAuthorized = false;

@@ -133,6 +133,12 @@ class BrString {
     return floor($this->value * pow(10, $precision))/pow(10,$precision);
   }
 
+  function fromJSON() {
+
+    return json_decode($this->value, true);
+
+  }
+
   function textToHtml() {
 
     $html = $this->value;
