@@ -44,7 +44,11 @@
     this.recordsAmount = 0;
 
     if (typeof entity == 'string') {
-      this.dataSource = br.dataSource(br.baseUrl + 'api/' + this.options.entity + '/');
+      if (this.options.entity.indexOf('/') == -1) {
+        this.dataSource = br.dataSource(br.baseUrl + 'api/' + this.options.entity + '/');
+      } else {
+        this.dataSource = br.dataSource(br.baseUrl + this.options.entity);
+      }
       this.dataSource.on('error', function(operation, error) {
         br.growlError(error);
       });

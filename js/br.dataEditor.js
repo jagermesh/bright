@@ -15,8 +15,12 @@
 
     this.options = options || {};
     this.options.noun = this.options.noun || '';
-
-    var $editForm = $(selector);
+    this.container = $(selector);
+    if (this.options.inputsContainer) {
+      this.inputsContainer = $(this.options.inputsContainer);
+    } else {
+      this.inputsContainer = this.container;
+    }
 
     this.dataSource = dataSource;
     this.dataSource.on('error', function(o, e) {
@@ -32,7 +36,7 @@
       return editorRowid;
     }
     this.isActive = function() {
-      return $editForm.is(':visible');
+      return _this.container.is(':visible');
     }
     this.isEditMode = function() {
       return !br.isNull(editorRowid);
@@ -41,24 +45,24 @@
       return br.isNull(editorRowid);
     }
     this.lockEditor = function() {
-      $('.action-save', $editForm).addClass('disabled');
+      $('.action-save', _this.container).addClass('disabled');
     }
     this.unLockEditor = function() {
-      $('.action-save', $editForm).removeClass('disabled');
+      $('.action-save', _this.container).removeClass('disabled');
     }
     this.hide = function() {
       goodHide = true;
-      $editForm.modal('hide');
+      _this.container.modal('hide');
     }
     this.editorConfigure = function(isCopy) {
       if (editorRowid) {
         if (isCopy) {
-          $editForm.find('.operation').text('Copy ' + _this.options.noun);
+          _this.container.find('.operation').text('Copy ' + _this.options.noun);
         } else {
-          $editForm.find('.operation').text('Edit ' + _this.options.noun);
+          _this.container.find('.operation').text('Edit ' + _this.options.noun);
         }
       } else {
-        $editForm.find('.operation').text('Create ' + _this.options.noun);
+        _this.container.find('.operation').text('Create ' + _this.options.noun);
       }
     }
     this.editorSave = function(andClose, callback) {
@@ -68,7 +72,8 @@
       }
       var data = { };
       var ok = true;
-      $editForm.find('div.data-field[data-toggle=buttons-radio],input.data-field,select.data-field,textarea.data-field').each(function() {
+      _this.events.triggerBefore('editor.save');
+      _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio],input.data-field,select.data-field,textarea.data-field').each(function() {
         if (ok) {
           var val;
           if ($(this).attr('data-toggle') == 'buttons-radio') {
@@ -105,7 +110,7 @@
             if (result) {
               if (andClose) {
                 goodHide = true;
-                $editForm.modal('hide');
+                _this.container.modal('hide');
                 _this.events.trigger('hideEditor', true, response);
                 _this.events.trigger('editor.hide', true, response);
               }
@@ -119,7 +124,7 @@
             if (result) {
               if (andClose) {
                 goodHide = true;
-                $editForm.modal('hide');
+                _this.container.modal('hide');
                 _this.events.trigger('hideEditor', true, response);
                 _this.events.trigger('editor.hide', true, response);
               } else {
@@ -142,7 +147,7 @@
         });
       }
 
-      $editForm.on('shown', function() {
+      _this.container.on('shown', function() {
         var firstInput = $('input,select,textarea', $(this));
         if (firstInput.length > 0) {
           firstInput[0].focus();
@@ -150,30 +155,31 @@
         _this.events.trigger('editor.shown');
       });
 
-      $editForm.on('hide', function() {
+      _this.container.on('hide', function() {
         if (goodHide) {
+
         } else {
           _this.events.trigger('editor.hide', false, editorRowid);
         }
-
       });
 
-      $editForm.on('hidden', function() {
+      _this.container.on('hidden', function() {
         if (goodHide) {
+
         } else {
          _this.events.trigger('editor.hidden', false, editorRowid);
         }
       });
 
-      $('.action-cancel', $editForm).removeAttr('data-dismiss');
-      $('.action-cancel', $editForm).click(function() {
+      $('.action-cancel', _this.container).removeAttr('data-dismiss');
+      $('.action-cancel', _this.container).click(function() {
         goodHide = true;
-        $editForm.modal('hide');
+        _this.container.modal('hide');
         _this.events.trigger('hideEditor', false);
         _this.events.trigger('editor.hide', false, editorRowid);
       });
 
-      $('.action-save', $editForm).click(function() {
+      $('.action-save', _this.container).click(function() {
         if (!$(this).hasClass('disabled')) {
           _this.editorSave(true);
         }
@@ -187,17 +193,17 @@
     this.show = function(rowid, isCopy) {
       editorRowid = rowid;
       _this.editorConfigure(isCopy);
-      $editForm.find('input.data-field,select.data-field,textarea.data-field').val('');
-      $editForm.find('input.data-field[type=checkbox]').val('1');
-      $editForm.find('input.data-field[type=checkbox]').removeAttr('checked');
+      _this.container.find('input.data-field,select.data-field,textarea.data-field').val('');
+      _this.container.find('input.data-field[type=checkbox]').val('1');
+      _this.container.find('input.data-field[type=checkbox]').removeAttr('checked');
 
-      $editForm.find('div.data-field[data-toggle=buttons-radio]').find('button').removeClass('active');
+      _this.container.find('div.data-field[data-toggle=buttons-radio]').find('button').removeClass('active');
 
       if (editorRowid) {
         _this.dataSource.selectOne(editorRowid, function(result, data) {
           if (result) {
             for(var i in data) {
-              $editForm.find('div.data-field[data-toggle=buttons-radio][name=' + i + '],input.data-field[name=' + i + '],select.data-field[name=' + i + '],textarea.data-field[name=' + i + ']').each(function() {
+              _this.container.find('div.data-field[data-toggle=buttons-radio][name=' + i + '],input.data-field[name=' + i + '],select.data-field[name=' + i + '],textarea.data-field[name=' + i + ']').each(function() {
                 if ($(this).attr('data-toggle') == 'buttons-radio') {
                   $(this).find('button[value=' + data[i] + ']').addClass('active');
                 } else
@@ -220,20 +226,20 @@
             }
             _this.events.trigger('showEditor', data, isCopy);
             _this.events.trigger('editor.show', data, isCopy);
-            $editForm.modal('show');
+            _this.container.modal('show');
           }
         }, { disableEvents: true });
       } else {
-        $editForm.find('select.data-field').each(function() {
+        _this.container.find('select.data-field').each(function() {
           if (window.Select2) {
             $(this).select2();
           }
         });
         _this.events.trigger('showEditor');
         _this.events.trigger('editor.show');
-        $editForm.modal('show');
+        _this.container.modal('show');
       }
-      return $editForm;
+      return _this.container;
     }
 
     return this.init();
