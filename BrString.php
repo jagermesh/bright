@@ -40,6 +40,22 @@ class BrString {
     return mb_strlen($this->value);
   }
 
+  function exists($value, $ignoreCase = false) {
+    if (is_array($value)) {
+      foreach($value as $val) {
+        if ($this->exists($val)) {
+          return true;
+        }
+      }
+      return false;
+    } else
+    if ($ignoreCase) {
+      return (strtolower($value) === strtolower($this->value));
+    } else {
+      return ((string)$value === (string)$this->value);
+    }
+  }
+
   function toLowerCase() {
     return mb_strtolower($this->value);
   }

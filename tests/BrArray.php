@@ -16,7 +16,9 @@ br()->assert(br($array)->exists('raspberry'), '5');
 br()->assert(!br($array)->exists('apples'), '5');
 br()->assert(!br($array)->exists('raspberries'), '5');
 br()->assert(br($array)->exists(array('apple', 'cow')), '6');
+br()->assert(br($array)->exists(array('cow', 'apple')), '6');
 br()->assert(br($array)->exists(array('apple', 'raspberry')), '6');
+br()->assert(!br($array)->exists(array('apples', 'raspberies')), '6');
 br()->assert(!br($array)->exists(array('apples', 'raspberies')), '6');
 br()->assert(br($array)->exists('Apple', true), '7');
 br()->assert(br($array)->exists('ApplE', true), '8');
@@ -46,3 +48,10 @@ br()->assert(!br($array3)->exists(array()), '15');
 br()->assert(!br($array3)->exists(array(null)), '16');
 
 br()->assert(br($array)->exists(array(array('apple'))), '5');
+
+br()->assert(br('apple')->exists('apple'), '5');
+br()->assert(br('apple')->exists(array('apple')), '5');
+br()->assert(br('apple')->exists(array('apples', 'apple')), '5');
+br()->assert(br('apple')->exists(array('apple', 'apples')), '5');
+br()->assert(!br('apple')->exists('apples'), '5');
+br()->assert(!br('apple')->exists(array('apples')), '5');
