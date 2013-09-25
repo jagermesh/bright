@@ -34,6 +34,11 @@ class BrFileLogAdapter extends BrGenericFileLogAdapter {
 
     if (br()->isConsoleMode()) {
       $filePath .= br()->scriptName();
+      if ($arguments = br()->getCommandLineArguments()) {
+        if ($arguments = br()->fs()->normalizeFileName(br($arguments)->join('_'))) {
+          $filePath .= '_' . $arguments;
+        }
+      }
     } else {
       $filePath .= br()->request()->clientIP();
     }
@@ -54,13 +59,13 @@ class BrFileLogAdapter extends BrGenericFileLogAdapter {
         $fileName .= br()->request()->clientIP().'-';
       }
       $fileName .= $hour.'.log';
-    } 
+    }
 
     parent::__construct($filePath, $fileName);
 
     $this->writeAppInfo();
 
-    register_shutdown_function(array(&$this, "end"));    
+    register_shutdown_function(array(&$this, "end"));
 
   }
 
@@ -70,7 +75,7 @@ class BrFileLogAdapter extends BrGenericFileLogAdapter {
       $this->writeMessage('Memory usage:  ' . memory_get_usage(), '---');
     }
 
-  }  
+  }
 
 }
 

@@ -680,6 +680,17 @@ class Br extends BrSingleton {
 
   }
 
+  function getCommandLineArguments() {
+
+    global $argv;
+    $result = array();
+    for($i = 1; $i < count($argv); $i++) {
+      $result[] = $argv[$i];
+    }
+    return $result;
+
+  }
+
   function guid() {
 
     // The field names refer to RFC 4122 section 4.1.2
