@@ -38,6 +38,7 @@ class BrGenericLogAdapter extends BrObject {
     $this->writeMessage('Script Name:   ' . br()->scriptName(),            $group);
     $this->writeMessage('PHP Version:   ' . phpversion(),                  $group);
     if (br()->isConsoleMode()) {
+      $this->writeMessage('Comand line:   ' . br(br()->getCommandLineArguments())->join(' '),      $group);
     } else {
       $this->writeMessage('Request url:   ' . br()->request()->url(),      $group);
       $this->writeMessage('Referer url:   ' . br()->request()->referer(),  $group);
