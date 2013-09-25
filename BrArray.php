@@ -20,16 +20,24 @@ class BrArray {
     return count($this->value);
   }
 
-  function exists($value) {
+  function exists($value, $ignoreCase = false) {
     if (is_array($value)) {
       foreach($value as $val) {
-        if (in_array($val, $this->value)) {
+        if ($this->exists($val)) {
           return true;
         }
       }
       return false;
-    } else {
-      return in_array($value, $this->value);
+    } else
+    foreach ($this->value as $val) {
+      if ($ignoreCase) {
+        if (strtolower($val) === strtolower($value)) {
+          return true;
+        }
+      } else
+      if ((string)$val === (string)$value) {
+        return true;
+      }
     }
   }
 
