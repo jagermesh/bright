@@ -154,7 +154,7 @@ class BrBrowser extends BrObject {
         return true;
       }
     } catch (Exception $e) {
-      br()->log()->logException($e);
+      // br()->log()->logException($e);
     }
 
     return false;
@@ -171,7 +171,7 @@ class BrBrowser extends BrObject {
         }
         sleep(5);
       } catch (Exception $e) {
-        br()->log()->logException($e);
+        // br()->log()->logException($e);
         sleep(5);
       }
     }
