@@ -14,20 +14,20 @@ class BrGenericDBProvider extends BrObject {
 
   function now() {
 
-    return $this->toDateTime(mktime());
+    return $this->toDateTime(time());
 
   }
 
   function startTransaction() {
-          
+
   }
 
-  function commitTransaction() {     
-     
+  function commitTransaction() {
+
   }
 
   function rollbackTransaction() {
-          
+
   }
-      
+
 }

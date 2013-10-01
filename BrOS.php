@@ -64,6 +64,7 @@ class BrOS extends BrObject {
         $result++;
       }
     } else {
+      $pid = trim($pid);
       $output = $this->execute('ps ax | grep "' . $pid . '" 2>&1');
       foreach($output as $line) {
         $line = trim($line);
@@ -87,6 +88,7 @@ class BrOS extends BrObject {
         return $pid;
       }
     } else {
+      $pid = trim($pid);
       $output = $this->execute('ps ax | grep "' . $pid . '" 2>&1');
       foreach ($output as $line) {
         $line = trim($line);
@@ -108,6 +110,7 @@ class BrOS extends BrObject {
 
   function findProcessLike($command) {
 
+    $command = trim($command);
     $output = $this->execute("ps ax | grep '" . $command . "' 2>&1");
     foreach ($output as $line) {
       $line = trim($line);
@@ -133,6 +136,7 @@ class BrOS extends BrObject {
 
   function isPHPScriptRunning($scriptCommand) {
 
+    $scriptCommand = trim($scriptCommand);
     exec("ps ax | grep '".$scriptCommand."' 2>&1", $output);
     foreach ($output as $line) {
       $line = trim($line);

@@ -149,6 +149,10 @@ class BrString {
     return floor($this->value * pow(10, $precision))/pow(10,$precision);
   }
 
+  function join() {
+    return $this->value;
+  }
+
   function fromJSON() {
 
     return json_decode($this->value, true);
@@ -183,6 +187,21 @@ class BrString {
     $html = preg_replace('/<[^>]+>/ism', '', $html);
     $html = preg_replace('/<\/[^>]+>/ism', '', $html);
     return $html;
+
+  }
+
+  function decodeNumHtmlEntities() {
+
+    $html = $this->value;
+    $html = preg_replace_callback("/(&#[0-9]+;)/", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $html);
+    $html = preg_replace_callback("/(&#x[0-9A-Z]+;)/i", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $html);
+    return $html;
+
+  }
+
+  function toSingleLine() {
+
+    return preg_replace('#[\n\r]#', ' ', $this->value);
 
   }
 

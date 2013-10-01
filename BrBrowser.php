@@ -99,7 +99,11 @@ class BrBrowser extends BrObject {
     $this->responseCode = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
 
     if ($this->responseCode >= 400) {
-      return false;//throw new BrAppException('Request to ' . $url . ' failed. Response code: ' . $this->responseCode);
+      if ($response) {
+        throw new BrAppException($response);
+      } else {
+        throw new BrAppException('Request to ' . $url . ' failed. Response code: ' . $this->responseCode);
+      }
     }
 
     switch ($dataType) {
@@ -144,10 +148,15 @@ class BrBrowser extends BrObject {
 
   public function download($url, $filePath, $params = array()) {
 
-    if ($result = $this->get($url, array(), $params)) {
-      file_put_contents($filePath, $result);
-      return true;
+    try {
+      if ($result = $this->get($url, array(), $params)) {
+        file_put_contents($filePath, $result);
+        return true;
+      }
+    } catch (Exception $e) {
+      br()->log()->logException($e);
     }
+
     return false;
 
   }
@@ -155,12 +164,18 @@ class BrBrowser extends BrObject {
   public function downloadUntilDone($url, $filePath, $params = array()) {
 
     for($i = 0; $i < 5; $i++) {
-      if ($result = $this->get($url, array(), $params)) {
-        file_put_contents($filePath, $result);
-        return true;
+      try {
+        if ($result = $this->get($url, array(), $params)) {
+          file_put_contents($filePath, $result);
+          return true;
+        }
+        sleep(5);
+      } catch (Exception $e) {
+        br()->log()->logException($e);
+        sleep(5);
       }
-      sleep(5);
     }
+
     return false;
 
   }

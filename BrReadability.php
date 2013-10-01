@@ -23,6 +23,12 @@ class BrReadability extends BrBrowser {
 
   }
 
+  function getLastResult() {
+
+    return $this->lastResult;
+
+  }
+
   function lastWasError() {
 
     if ($this->lastResult && br($this->lastResult, 'error')) {
@@ -35,7 +41,7 @@ class BrReadability extends BrBrowser {
 
   function hourlyLimitReached() {
 
-    if ($this->lastResult && br(br($this->lastResult, 'messages'))->like('%1000%')) {
+    if ($this->lastResult && br(br($this->lastResult, 'messages'))->like('%Exceeded hourly allowance%')) {
       return true;
     }
 
@@ -46,11 +52,19 @@ class BrReadability extends BrBrowser {
   function parse($url) {
 
     foreach($this->tokens as $token) {
-      $this->lastResult = $this->getJSON('http://readability.com/api/content/v1/parser?url=' . urlencode($url) . '&token=' . $token);
-      if ($this->lastWasError() && $this->hourlyLimitReached()) {
-
-      } else {
-        break;
+      try {
+        $this->lastResult = $this->getJSON('http://readability.com/api/content/v1/parser?url=' . urlencode($url) . '&token=' . $token);
+        if (isset($this->lastResult['content'])) {
+          $this->lastResult['content'] = br($this->lastResult['content'])->decodeNumHtmlEntities();
+        }
+        if (isset($this->lastResult['excerpt'])) {
+          $this->lastResult['excerpt'] = html_entity_decode($this->lastResult['excerpt']);
+        }
+        if (isset($this->lastResult['title'])) {
+          $this->lastResult['title'] = html_entity_decode($this->lastResult['title']);
+        }
+      } catch (Exception $e) {
+        $this->lastResult = @json_decode($e->getMessage(), true);
       }
     }
 

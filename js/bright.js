@@ -1441,7 +1441,8 @@
           _this.events.triggerBefore('update', data);
           var $row0 = $(row[0]);
           _this.events.trigger('update', data, $row0);
-          $(row[0]).html(s).hide().fadeIn();
+          // $(row[0]).html(s).hide().fadeIn();
+          $(row[0]).html(s);
           _this.events.triggerAfter('update', data, $row0);
           return true;
         } else {
