@@ -454,7 +454,11 @@ class BrRESTBinder extends BrObject {
           }
         }
         // do not allow to modify ID via REST API
-        // unset($row['id']);
+        if (br()->config()->get('br/rest/post/allowRowid')) {
+
+        } else {
+          unset($row['id']);
+        }
         try {
           $result = $dataSource->update($matches[1], $row);
           if (br()->request()->get('crossdomain')) {
@@ -507,6 +511,9 @@ class BrRESTBinder extends BrObject {
       $row = array();
       if (br()->request()->isPUT()) {
         $data = br()->request()->put();
+      } else
+      if (br()->request()->isPOST()) {
+        $data = br()->request()->post();
       } else {
         $data = br()->request()->get();
       }
@@ -522,7 +529,11 @@ class BrRESTBinder extends BrObject {
         }
       }
       // do not allow to insert record with ID, passed via REST API
-      // unset($row['id']);
+      if (br()->config()->get('br/rest/put/allowRowid')) {
+
+      } else {
+        unset($row['id']);
+      }
       try {
         $t = array();
         $result = $dataSource->insert($row, $t, $dataSourceOptions);
