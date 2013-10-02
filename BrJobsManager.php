@@ -64,7 +64,7 @@ class BrJobsManager {
                     $output = '';
                     exec($command, $output);
                     br()->log('  Started, PID = ' . @$output[0]);
-                    sleep(5);
+                    sleep(3);
                   }
                 } else {
                   br()->log('Too much processes started already.');

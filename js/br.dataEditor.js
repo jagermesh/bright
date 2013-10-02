@@ -148,9 +148,14 @@
       }
 
       _this.container.on('shown', function() {
-        var firstInput = $('input,select,textarea', $(this));
-        if (firstInput.length > 0) {
-          firstInput[0].focus();
+        var focusedInput = $('input.focus[type!=hidden]:visible,select.focus:visible,textarea.focus:visible', $(this));
+        if (focusedInput.length > 0) {
+          try { focusedInput[0].focus(); } catch (e) { }
+        } else {
+          focusedInput = $('input[type!=hidden]:visible,select:visible,textarea:visible', $(this));
+          if (focusedInput.length > 0) {
+            try { focusedInput[0].focus(); } catch (e) { }
+          }
         }
         _this.events.trigger('editor.shown');
       });

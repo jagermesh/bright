@@ -168,6 +168,10 @@ class BrResponse extends BrSingleton {
 
   }
 
+  function send($body = null) {
+    $this->sendSuccess($body);
+  }
+
   function sendSuccess($body = null) {
 
     if (!headers_sent()) {

@@ -11,7 +11,7 @@
 require_once(__DIR__.'/BrObject.php');
 
 class BrAssetsCache extends BrObject {
-  
+
   function send($requestedAssests = null) {
 
     $files = array();
@@ -25,7 +25,7 @@ class BrAssetsCache extends BrObject {
     if (strpos(br()->request()->get('extra'), 'gritter') !== false) {
       $files[] = __DIR__.'/3rdparty/gritter/js/jquery.gritter.min.js';
     }
-    $files[] = __DIR__.'/js/bright.js';
+    $files[] = __DIR__.'/js/bright.min.js';
 
     $lastModified = 0;
     foreach($files as $file) {
@@ -40,7 +40,7 @@ class BrAssetsCache extends BrObject {
       }
     }
 
-    header('Content-type: application/x-javascript');  
+    header('Content-type: application/x-javascript');
     header('Last-Modified: ' . date('r', $lastModified));
     //header('Cache-Control:max-age=5, proxy-revalidate, must-revalidate');
 
