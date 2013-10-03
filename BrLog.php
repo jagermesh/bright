@@ -111,7 +111,7 @@ class BrLog extends BrSingleton {
 
   function getLevel() {
 
-    return $this->logLevel;
+    return $this->logLevel >= 0 ? $this->logLevel : 0;
 
   }
 
