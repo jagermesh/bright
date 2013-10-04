@@ -106,6 +106,7 @@
       });
       if (ok) {
         if (editorRowid) {
+          _this.events.trigger('editor.save', 'update', data);
           _this.dataSource.update(editorRowid, data, function(result, response) {
             if (result) {
               if (andClose) {
@@ -120,6 +121,7 @@
             }
           });
         } else {
+          _this.events.trigger('editor.save', 'insert', data);
           _this.dataSource.insert(data, function(result, response) {
             if (result) {
               if (andClose) {
