@@ -300,6 +300,12 @@ qq.FileUploaderBasic.prototype = {
     getInProgress: function(){
         return this._filesInProgress;
     },
+    getQueue: function() {
+        return this._handler.getQueue();
+    },
+    cancelAll: function() {
+        return this._handler.cancelAll();
+    },
     _createUploadButton: function(element){
         var self = this;
 

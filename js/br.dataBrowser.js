@@ -32,8 +32,9 @@
     this.options.selectors.editForm = this.options.selectors.editForm || '.data-edit-form';
 
     this.options.templates = this.options.templates || {};
-    this.options.templates.rowTemplate = this.options.templates.rowTemplate || '.data-row-template';
-    this.options.templates.noData      = this.options.templates.noData || '.data-empty-template';
+    this.options.templates.row = this.options.templates.row || this.options.templates.rowTemplate || '.data-row-template';
+    this.options.templates.groupRow = this.options.templates.groupRow || '.data-group-row-template';
+    this.options.templates.noData = this.options.templates.noData || '.data-empty-template';
 
     var selActionCRUD = c('.action-edit') + ',' + c('.action-create') + ',' + c('.action-copy');
 
@@ -61,11 +62,18 @@
     this.selection = br.flagsHolder();
 
     this.countDataSource = br.dataSource(this.dataSource.options.restServiceUrl);
+
+    if (this.options.selectors.container !== '') {
+      var headerContainer = this.options.selectors.container;
+    } else {
+      var headerContainer = 'body';
+    }
+
     this.dataGrid = br.dataGrid( this.options.selectors.dataTable
-                               , this.options.templates.rowTemplate
+                               , this.options.templates.row
                                , this.dataSource
-                               , { templates: { noData: this.options.templates.noData }
-                                 , deleteSelector: '.action-delete'
+                               , { templates: { noData: this.options.templates.noData, groupRow: this.options.templates.groupRow }
+                                 , selectors: { header: headerContainer, remove: '.action-delete' }
                                  }
                                );
 
@@ -88,10 +96,10 @@
       this.countDataSource.before(operation, callback);
     }
     this.getOrder = function() {
-      return br.storage.get(this.storageTag + 'order');
+      return _this.dataGrid.getOrder();
     }
     this.setOrder = function(order) {
-      br.storage.set(this.storageTag + 'order', order);
+      _this.dataGrid.setOrder(order);
     }
     this.setFilter = function(name, value) {
       var filter = br.storage.get(this.storageTag + 'filter');
@@ -202,7 +210,9 @@
       $('.nav-item[rel=' + _this.options.nav + ']').addClass('active');
 
       _this.dataSource.before('select', function(request, options) {
-        options.order = _this.getOrder();
+        request = request || {};
+        request.__skip = _this.skip;
+        request.__limit = _this.limit;
         if ($(c('input.data-filter[name=keyword]')).length > 0) {
           request.keyword = $(c('input.data-filter[name=keyword]')).val();
           _this.setFilter('keyword', request.keyword);
@@ -223,45 +233,6 @@
         if ($(c('input.data-filter[name=keyword]')).length > 0) {
           request.keyword = $(c('input.data-filter[name=keyword]')).val();
         }
-      });
-
-      var order = _this.getOrder();
-      if (order) {
-        for (var i in order) {
-          $(c('.sortable[data-field="' + i + '"].' + (order[i] == -1 ? 'order-desc' : (order[i] == 1 ? 'order-asc' : 'dummy')))).addClass('icon-white').addClass('icon-border');
-        }
-      }
-
-      $(c('.sortable')).on('mouseover', function() { $(this).css('cursor', 'pointer'); });
-
-      $(c('.sortable')).on('mouseout' , function() { $(this).css('cursor', 'auto'); });
-
-      $(c('.sortable')).on('click', function() {
-        var sorted = ($(this).hasClass('icon-white') || $(this).hasClass('icon-border'));
-        if ($(this).hasClass('multi-sort')) {
-
-        } else {
-          $(c('.sortable')).removeClass('icon-white').removeClass('icon-border');
-        }
-        if (sorted) {
-          $(this).removeClass('icon-white').removeClass('icon-border');
-        } else {
-          $(this).siblings('i').removeClass('icon-white').removeClass('icon-border');
-          $(this).addClass('icon-white').addClass('icon-border');
-        }
-        var tmp = {};
-        $(c('.sortable')).each(function() {
-          if ($(this).hasClass('icon-white') || $(this).hasClass('icon-border')) {
-            if ($(this).hasClass('order-asc')) {
-              tmp[$(this).attr('data-field')] = 1;
-            }
-            if ($(this).hasClass('order-desc')) {
-              tmp[$(this).attr('data-field')] = -1;
-            }
-          }
-        });
-        _this.setOrder(tmp);
-        _this.refresh({}, null, true);
       });
 
       // search
@@ -481,6 +452,7 @@
       setupFilters(true);
 
       _this.dataSource.after('select', function() {
+        _this.updatePager();
         showFiltersDesc();
       });
 
@@ -669,11 +641,11 @@
 
       if (!pagerSetuped) {
 
-        var filter = {};
-        filter.__skip = _this.skip;
-        filter.__limit = _this.limit;
+        // var filter = {};
+        // filter.__skip = _this.skip;
+        // filter.__limit = _this.limit;
 
-        _this.countDataSource.selectCount(filter, function(success, result) {
+        _this.countDataSource.selectCount(function(success, result) {
           if (success) {
             _this.recordsAmount = result;
             internalUpdatePager();
@@ -690,20 +662,15 @@
 
     function internalRefresh(deferred, filter, callback) {
 
-      filter = filter || {};
-      filter.__skip = _this.skip;
-      filter.__limit = _this.limit;
-
       if (deferred) {
         _this.dataSource.deferredSelect(filter, function() {
-          _this.updatePager();
           if (typeof callback == 'function') {
             callback.call(this);
           }
         });
       } else {
         _this.dataSource.select(filter, function() {
-          _this.updatePager();
+          // _this.updatePager();
           if (typeof callback == 'function') {
             callback.call(this);
           }

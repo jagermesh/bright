@@ -14,15 +14,18 @@
     this.options = options || {};
     this.options.templates = this.options.templates || {};
     this.options.templates.row = $(rowTemplate).html();
+    this.options.templates.groupRow = this.options.templates.groupRow ? $(this.options.templates.groupRow).html() : '';
     this.options.templates.header = this.options.templates.header ? $(this.options.templates.header).html() : '';
     this.options.templates.footer = this.options.templates.footer ? $(this.options.templates.footer).html() : '';
     this.options.templates.noData = this.options.templates.noData ? $(this.options.templates.noData).html() : '';
     this.options.dataSource = dataSource;
-    this.options.headersSelector = this.options.headersSelector || this.selector;
-    this.options.footersSelector = this.options.footersSelector || this.selector;
     this.options.selectors = this.options.selectors || {};
+    this.options.selectors.header = this.options.selectors.header || this.options.headersSelector || this.selector;
+    this.options.selectors.footer = this.options.selectors.footer || this.options.footersSelector || this.selector;
+    this.options.selectors.remove = this.options.selectors.remove || this.options.deleteSelector  || '.action-delete';
 
     this.dataSource = this.options.dataSource;
+    this.storageTag = document.location.pathname + this.dataSource.options.restServiceUrl;
 
     this.events = br.eventQueue(this);
     this.before = function(event, callback) { this.events.before(event, callback); }
@@ -57,6 +60,13 @@
     this.renderRow = function(data) {
       data = _this.events.trigger('renderRow', data) || data;
       var result = $(br.fetch(_this.options.templates.row, data));
+      result.data('data-row', data);
+      return result;
+    }
+
+    this.renderGroupRow = function(data) {
+      data = _this.events.trigger('renderGroupRow', data) || data;
+      var result = $(br.fetch(_this.options.templates.groupRow, data));
       result.data('data-row', data);
       return result;
     }
@@ -115,6 +125,27 @@
       }
     }
 
+    this.getOrder = function() {
+      var order = _this.getOrderAndGroup();
+      var result = {};
+      if (br.isArray(order)) {
+        for(var i = 0; i < order.length; i++) {
+          if (order[i].asc) {
+            result[order[i].fieldName] = 1;
+          } else {
+            result[order[i].fieldName] = -1;
+          }
+        }
+      }
+      return result;
+    }
+    this.setOrderAndGroup = function(order) {
+      br.storage.set(this.storageTag + 'orderAndGroup', order);
+    }
+    this.getOrderAndGroup = function() {
+      return br.storage.get(this.storageTag + 'orderAndGroup', []);
+    }
+
     this.init = function() {
 
       function isGridEmpty() {
@@ -130,9 +161,61 @@
         }
       }
 
+      var order = _this.getOrderAndGroup();
+      if (br.isArray(order)) {
+        for(i = 0; i < order.length; i++) {
+          $('.sortable[data-field="' + order[i].fieldName + '"].' + (order[i].asc ? 'order-asc' : 'order-desc'), $(this.options.selectors.header)).addClass('icon-white').addClass('icon-border');
+        }
+      }
+
+      $('.sortable', $(_this.options.selectors.header)).each(function() {
+        if ($(this).attr('data-sort-order')) {
+        } else {
+          $(this).attr('data-no-sort-order', true);
+        }
+      });
+
+      $(this.options.selectors.header).on('click', '.sortable', function() {
+        var sorted = ($(this).hasClass('icon-white') || $(this).hasClass('icon-border'));
+        if (br.isEmpty($(this).attr('data-sort-order'))) {
+          $('.sortable', $(_this.options.selectors.header)).removeClass('icon-white').removeClass('icon-border');
+        } else {
+          $('.sortable[data-no-sort-order]', $(_this.options.selectors.header)).removeClass('icon-white').removeClass('icon-border');
+        }
+        if (sorted) {
+          $(this).removeClass('icon-white').removeClass('icon-border');
+        } else {
+          $(this).siblings('i').removeClass('icon-white').removeClass('icon-border');
+          $(this).addClass('icon-white').addClass('icon-border');
+        }
+        var tmp = [];
+        var maxIndex = 0;
+        $('.sortable', $(_this.options.selectors.header)).each(function() {
+          if ($(this).hasClass('icon-white') || $(this).hasClass('icon-border')) {
+            var index = br.isEmpty($(this).attr('data-order-index')) ? maxIndex : br.toInt($(this).attr('data-order-index'));
+            maxIndex = index + 1;
+            tmp.push({ fieldName: $(this).attr('data-field'), asc: $(this).hasClass('order-asc'), group: $(this).hasClass('group-by'), index: index });
+          }
+        });
+        tmp.sort(function(a, b) {
+          if (a.index < b.index) {
+            return -1;
+          } else
+          if (a.index < b.index) {
+            return 1;
+          } else {
+            return 0;
+          }
+        });
+        _this.setOrderAndGroup(tmp);
+        _this.dataSource.select();
+      });
+
+
       if (_this.dataSource) {
 
-        _this.dataSource.before('select', function() {
+        _this.dataSource.before('select', function(request, options) {
+          options.order = _this.getOrder();
           _this.selector.html('');
           _this.selector.addClass('progress-big');
         });
@@ -184,8 +267,8 @@
           }
         });
 
-        if (this.options.deleteSelector) {
-          _this.selector.on('click', this.options.deleteSelector, function() {
+        if (this.options.selectors.remove) {
+          _this.selector.on('click', this.options.selectors.remove, function() {
             var row = $(this).closest('[data-rowid]');
             if (row.length > 0) {
               var rowid = $(row).attr('data-rowid');
@@ -213,20 +296,20 @@
           if (data.headers) {
             for (var i in data.headers) {
               if (data.headers[i]) {
-                $(_this.options.headersSelector).append(_this.renderHeader(data.headers[i]));
+                $(_this.options.selectors.header).append(_this.renderHeader(data.headers[i]));
               }
             }
           }
           if (data.footers) {
             for (var i in data.footers) {
               if (data.footers[i]) {
-                $(_this.options.footersSelector).append(_this.renderFooter(data.headers[i]));
+                $(_this.options.selectors.footer).append(_this.renderFooter(data.headers[i]));
               }
             }
           }
           _this.selector.html('');
-          $(_this.options.headersSelector).html('');
-          $(_this.options.footersSelector).html('');
+          $(_this.options.selectors.header).html('');
+          $(_this.options.selectors.footer).html('');
           if (data.rows) {
             if (data.rows.length === 0) {
               _this.selector.html(this.options.templates.noData);
@@ -237,10 +320,10 @@
                     _this.selector.append(_this.renderRow(data.rows[i].row));
                   }
                   if (data.rows[i].header) {
-                    $(_this.options.headersSelector).append(_this.renderHeader(data.rows[i].header));
+                    $(_this.options.selectors.header).append(_this.renderHeader(data.rows[i].header));
                   }
                   if (data.rows[i].footer) {
-                    $(_this.options.footersSelector).append(_this.renderFooter(data.rows[i].footer));
+                    $(_this.options.selectors.footer).append(_this.renderFooter(data.rows[i].footer));
                   }
                 }
               }
@@ -251,8 +334,35 @@
         } else {
           _this.selector.html('');
           if (data && (data.length > 0)) {
+            var group = _this.getOrderAndGroup();
+            var groupValues = {};
+            var groupFieldName = '';
             for (var i in data) {
               if (data[i]) {
+                if (br.isArray(group)) {
+                  for(var k = 0; k < group.length; k++) {
+                    groupFieldName = group[k].fieldName;
+                    if (group[k].group && (groupValues[groupFieldName] != data[i][groupFieldName])) {
+                      for(var j = k; j < group.length; j++) {
+                        groupFieldName = group[j].fieldName;
+                        groupValues[groupFieldName] = undefined;
+                      }
+                      break;
+                    }
+                  }
+                  for(var k = 0; k < group.length; k++) {
+                    groupFieldName = group[k].fieldName;
+                    if (group[k].group && (groupValues[groupFieldName] != data[i][groupFieldName])) {
+                      groupValues[groupFieldName] = data[i][groupFieldName];
+                      var tmp = data[i];
+                      tmp.__groupBy = {};
+                      tmp.__groupBy['__field'] = groupFieldName;
+                      tmp.__groupBy['__value'] = data[i][groupFieldName];
+                      tmp.__groupBy[groupFieldName] = true;
+                      _this.selector.append(_this.renderGroupRow(tmp));
+                    }
+                  }
+                }
                 _this.selector.append(_this.renderRow(data[i]));
               }
             }
