@@ -100,6 +100,9 @@ class BrLog extends BrSingleton {
   function decLevel() {
 
     $this->logLevel--;
+    if ($this->logLevel < 0) {
+      $this->logLevel = 0;
+    }
 
   }
 
@@ -121,7 +124,7 @@ class BrLog extends BrSingleton {
 
   }
 
-  function writeLn($message, $group = 'MSG') {
+  function writeLn($message = '', $group = 'MSG') {
 
     $this->writeToAdapters($message, $group);
 

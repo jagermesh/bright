@@ -757,6 +757,8 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
     $this->version = mysql_get_server_info();
 
+    $this->triggerSticky('after:connect');
+
   }
 
   function table($name) {

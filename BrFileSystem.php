@@ -241,7 +241,7 @@ class BrFileSystem extends BrSingleton {
 
     } else {
       $callback = $mask;
-      $mask = null;
+      $mask = '';
     }
 
     $startingDir = $this->normalizePath($startingDir);

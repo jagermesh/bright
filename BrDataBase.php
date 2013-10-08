@@ -18,11 +18,11 @@ class BrDataBaseException extends BrException {
 class BrDataBase extends BrObject {
 
   public static function getInstance($name = 'default') {
-  
+
     static $instances = array();
 
     $instance = null;
-    
+
     if (!isset($instances[$name])) {
 
       if ($dbList = br()->config()->get('db')) {
@@ -41,7 +41,9 @@ class BrDataBase extends BrObject {
             $instance = new BrMongoDBProvider($dbConfig);
             break;
         }
+
         $instances[$name] = $instance;
+
       }
 
     } else {
@@ -49,15 +51,15 @@ class BrDataBase extends BrObject {
       $instance = $instances[$name];
 
     }
-        
+
     return $instance;
-  
-  }  
-  
+
+  }
+
   function __construct() {
-    
+
     parent::__construct();
-        
+
   }
 
 }

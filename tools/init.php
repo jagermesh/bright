@@ -4,13 +4,25 @@ require_once(dirname(__DIR__).'/Bright.php');
 
 $templateName = $argv[1];
 
-if (br()->fs()->fileExists(dirname(dirname(__DIR__)).'/index.php')) {
+$exists = false;
 
-  br()->log('Error: Project already initialized - index.php found at root path.');
+$templateRelPath = '/bright/tools/template-' . $templateName;
 
-} else {
+try {
+  br()->fs()->iteratePath(__DIR__.'/template-'.$templateName, function($file) use ($templateRelPath) {
 
-  $templateRelPath = '/bright/tools/template-' . $templateName;
+    $dst = str_replace($templateRelPath, '', $file->nameWithPath());
+
+    if ($file->isDir()) {
+      br()->fs()->makeDir($dst);
+    }
+    if ($file->isFile() && ($file->name() != '.DS_Store') && ($file->name() != '.description')) {
+      if (file_exists($dst)) {
+        throw new BrAppException('Error: Project already initialized - ' . $file->name() . ' found at root path.');
+      }
+    }
+
+  });
 
   br()->fs()->iteratePath(__DIR__.'/template-'.$templateName, function($file) use ($templateRelPath) {
 
@@ -19,14 +31,23 @@ if (br()->fs()->fileExists(dirname(dirname(__DIR__)).'/index.php')) {
     if ($file->isDir()) {
       br()->fs()->makeDir($dst);
     }
-    if ($file->isFile()) {
+    if ($file->isFile() && ($file->name() != '.DS_Store') && ($file->name() != '.description')) {
       copy($file->nameWithPath(), $dst);
     }
 
   });
 
-  br()->log('Web template initialized');
+  br()->log()->writeLn($templateName . ' template initialized');
+
+} catch(Exception $e) {
+
+  br()->log()->writeLn($e->getMessage());
 
 }
 
+br()->log()->writeLn();
 
+$descFile = __DIR__.'/template-'.$templateName . '/.description';
+if (file_exists($descFile)) {
+  br()->log()->writeLn(br()->fs()->loadFromFile($descFile));
+}

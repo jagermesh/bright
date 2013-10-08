@@ -11,6 +11,7 @@
 class BrObject {
 
   protected $events = array();
+  protected $stickyEvents = array();
 
   private $attributes = array();
   private $enabled = 0;
@@ -120,7 +121,11 @@ class BrObject {
 
     $events = preg_split('~[,]~', $event);
     foreach($events as $event) {
-      $this->events['before:'.$event][] = $func;
+      $event = 'before:'.$event;
+      $this->events[$event][] = $func;
+      if (in_array($event, $this->stickyEvents)) {
+        $func($this);
+      }
     }
 
   }
@@ -130,6 +135,9 @@ class BrObject {
     $events = preg_split('~[,]~', $event);
     foreach($events as $event) {
       $this->events[$event][] = $func;
+      if (in_array($event, $this->stickyEvents)) {
+        $func($this);
+      }
     }
 
   }
@@ -138,12 +146,24 @@ class BrObject {
 
     $events = preg_split('~[,]~', $event);
     foreach($events as $event) {
-      $this->events['after:'.$event][] = $func;
+      $event = 'after:'.$event;
+      $this->events[$event][] = $func;
+      if (in_array($event, $this->stickyEvents)) {
+        $func($this);
+      }
     }
 
   }
 
   public function trigger($event, &$context1 = null, &$context2 = null, &$context3 = null, &$context4 = null, &$context5 = null) {
+
+    return $this->callEvent($event, $context1, $context2, $context3, $context4, $context5);
+
+  }
+
+  public function triggerSticky($event, &$context1 = null, &$context2 = null, &$context3 = null, &$context4 = null, &$context5 = null) {
+
+    $this->stickyEvents[] = $event;
 
     return $this->callEvent($event, $context1, $context2, $context3, $context4, $context5);
 
