@@ -1750,21 +1750,31 @@
     this.on     = function(event, callback) { this.events.on(event, callback); }
     this.after  = function(event, callback) { this.events.after(event, callback); }
 
+    this.isValid = function() {
+      return _this.selector.length > 0;
+    }
+
     function storageTag(c) {
       return document.location.pathname + ':filter-value:' + $(c).attr('name');
     }
 
     this.val = function(value) {
       if (value !== undefined) {
-        $(this.selector).val(value);
         if (_this.saveSelection) {
-          br.storage.set(storageTag($(this.selector)), value);
+          br.storage.set(storageTag(_this.selector), value);
         }
-        if (window.Select2 && !_this.noDecoration) {
-          $(this.selector).select2();
+        if (_this.isValid()) {
+          _this.selector.val(value);
+          if (window.Select2 && !_this.noDecoration) {
+            _this.selector.select2();
+          }
         }
       }
-      return $(this.selector).val();
+      if (_this.isValid()) {
+        return _this.selector.val();
+      } else {
+        return undefined;
+      }
     }
 
     this.valOrNull = function() {
@@ -1774,12 +1784,14 @@
 
     this.reset = function(triggerChange) {
       br.storage.remove(storageTag(this.selector));
-      this.selector.val('');
-      if (triggerChange) {
-        $(this.selector).trigger('change');
-      } else
-      if (window.Select2 && !_this.noDecoration) {
-        $(this.selector).select2();
+      if (_this.isValid()) {
+        this.selector.val('');
+        if (triggerChange) {
+          _this.selector.trigger('change');
+        } else
+        if (window.Select2 && !_this.noDecoration) {
+          _this.selector.select2();
+        }
       }
     }
 
@@ -1854,32 +1866,43 @@
         callback = filter;
         filter = {};
       }
-      _this.dataSource.select(filter, function(result, response) {
-        if (result) {
-          if (callback) {
-            callback.call(_this.selector, result, response);
+      if (_this.isValid()) {
+        _this.dataSource.select(filter, function(result, response) {
+          if (result) {
+            if (callback) {
+              callback.call(_this.selector, result, response);
+            }
+            if (window.Select2 && !_this.noDecoration) {
+              $(_this.selector).select2();
+            }
           }
-          if (window.Select2 && !_this.noDecoration) {
-            $(_this.selector).select2();
-          }
+        }, { fields: _this.fields });
+      } else {
+        _this.events.trigger('load', []);
+        if (callback) {
+          callback.call(_this.selector, result, response);
         }
-      }, { fields: _this.fields });
+      }
     }
 
     _this.dataSource.on('select', function(data) {
-      render(data);
+      if (_this.isValid()) {
+        render(data);
+      }
     });
 
     _this.dataSource.on('insert', function(data) {
-  //    insert(data, true);
+
     });
 
     _this.dataSource.on('update', function(data) {
-  //    _this.selector.find('option[value=' + rowid +']').remove();
+
     });
 
     _this.dataSource.on('remove', function(rowid) {
-      _this.selector.find('option[value=' + rowid +']').remove();
+      if (_this.isValid()) {
+        _this.selector.find('option[value=' + rowid +']').remove();
+      }
       _this.events.trigger('change');
     });
 

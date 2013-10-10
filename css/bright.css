@@ -37,6 +37,16 @@ select.justified {
   margin-bottom: 2px;
 }
 
+a.justified {
+  width: 100%;
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -ms-box-sizing: border-box;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
 td.optimal-width {
   width:10px;
   white-space:nowrap;

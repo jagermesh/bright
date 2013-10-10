@@ -107,16 +107,16 @@
       filter[name] = value;
       br.storage.set(this.storageTag + 'filter', filter);
     }
-    this.getFilter = function(name) {
-      var filter = br.storage.get(this.storageTag + 'filter');
+    this.getFilter = function(name, defaultValue) {
+      var filter = br.storage.get(this.storageTag + 'filter', defaultValue);
       filter = filter || { };
       return filter[name];
     }
     this.setStored = function(name, value) {
       br.storage.set(this.storageTag + 'stored:' + name, value);
     }
-    this.getStored = function(name) {
-      return br.storage.get(this.storageTag + 'stored:' + name);
+    this.getStored = function(name, defaultValue) {
+      return br.storage.get(this.storageTag + 'stored:' + name, defaultValue);
     }
     this.lockEditor = function() {
       $('.action-save', $editForm).addClass('disabled');
