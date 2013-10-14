@@ -153,7 +153,7 @@
       } else {
         _this.events.trigger('load', []);
         if (callback) {
-          callback.call(_this.selector, result, response);
+          callback.call(_this.selector, true, []);
         }
       }
     }
