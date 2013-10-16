@@ -31,6 +31,12 @@
       return document.location.pathname + ':filter-value:' + $(c).attr('name');
     }
 
+    function uiSync() {
+      if (_this.isValid() && window.Select2 && !_this.noDecoration) {
+        _this.selector.select2();
+      }
+    }
+
     this.val = function(value) {
       if (value !== undefined) {
         if (_this.saveSelection) {
@@ -38,9 +44,7 @@
         }
         if (_this.isValid()) {
           _this.selector.val(value);
-          if (window.Select2 && !_this.noDecoration) {
-            _this.selector.select2();
-          }
+          uiSync();
         }
       }
       if (_this.isValid()) {
@@ -61,9 +65,8 @@
         this.selector.val('');
         if (triggerChange) {
           _this.selector.trigger('change');
-        } else
-        if (window.Select2 && !_this.noDecoration) {
-          _this.selector.select2();
+        } else {
+          uiSync();
         }
       }
     }
@@ -74,63 +77,63 @@
 
     function render(data) {
 
-      var options = _this.options;
+      if (_this.isValid()) {
+        var options = _this.options;
 
-      if (_this.saveSelection) {
-        options.selectedValue = br.storage.get(storageTag(_this.selector));
+        if (_this.saveSelection) {
+          options.selectedValue = br.storage.get(storageTag(_this.selector));
+        }
+
+        var valueField = options.valueField || 'rowid';
+        var nameField = options.nameField || 'name';
+        var hideEmptyValue = options.hideEmptyValue || (_this.selector.attr('multiple') == 'multiple');
+        var levelField = options.levelField || null;
+        var emptyName = (typeof options.emptyName == 'undefined' ? '--any--' : options.emptyName);
+        var emptyValue = (typeof options.emptyValue == 'undefined' ? '' : options.emptyValue);
+        var selectedValue = options.selectedValue || null;
+        var selectedValueField = options.selectedValueField || null;
+
+        _this.selector.each(function() {
+          var val = $(this).val();
+          if (br.isEmpty(val)) {
+            val = $(this).attr('data-value');
+            $(this).removeAttr('data-value');
+          }
+          $(this).html('');
+          var s = '';
+          if (!hideEmptyValue) {
+            s = s + '<option value="' + emptyValue + '">' + emptyName + '</option>';
+          }
+          for(var i in data) {
+            if (!selectedValue && selectedValueField) {
+              if (data[i][selectedValueField] == '1') {
+                selectedValue = data[i][valueField];
+              }
+            }
+            s = s + '<option value="' + data[i][valueField] + '">';
+            if (levelField !== null) {
+              var margin = (br.toInt(data[i][levelField]) - 1) * 4;
+              for(var k = 0; k < margin; k++) {
+                s = s + '&nbsp;';
+              }
+            }
+            s = s + data[i][nameField];
+            s = s + '</option>';
+          }
+          $(this).html(s);
+          if (!br.isEmpty(selectedValue)) {
+            val = selectedValue;
+          }
+          if (!br.isEmpty(val)) {
+            $(this).find('option[value=' + val +']').attr('selected', 'selected');
+          }
+
+        });
+
+        uiSync();
       }
-
-      var valueField = options.valueField || 'rowid';
-      var nameField = options.nameField || 'name';
-      var hideEmptyValue = options.hideEmptyValue || (_this.selector.attr('multiple') == 'multiple');
-      var levelField = options.levelField || null;
-      var emptyName = (typeof options.emptyName == 'undefined' ? '--any--' : options.emptyName);
-      var emptyValue = (typeof options.emptyValue == 'undefined' ? '' : options.emptyValue);
-      var selectedValue = options.selectedValue || null;
-      var selectedValueField = options.selectedValueField || null;
-
-      _this.selector.each(function() {
-        var val = $(this).val();
-        if (br.isEmpty(val)) {
-          val = $(this).attr('data-value');
-          $(this).removeAttr('data-value');
-        }
-        $(this).html('');
-        var s = '';
-        if (!hideEmptyValue) {
-          s = s + '<option value="' + emptyValue + '">' + emptyName + '</option>';
-        }
-        for(var i in data) {
-          if (!selectedValue && selectedValueField) {
-            if (data[i][selectedValueField] == '1') {
-              selectedValue = data[i][valueField];
-            }
-          }
-          s = s + '<option value="' + data[i][valueField] + '">';
-          if (levelField !== null) {
-            var margin = (br.toInt(data[i][levelField]) - 1) * 4;
-            for(var k = 0; k < margin; k++) {
-              s = s + '&nbsp;';
-            }
-          }
-          s = s + data[i][nameField];
-          s = s + '</option>';
-        }
-        $(this).html(s);
-        if (!br.isEmpty(selectedValue)) {
-          val = selectedValue;
-        }
-        if (!br.isEmpty(val)) {
-          $(this).find('option[value=' + val +']').attr('selected', 'selected');
-        }
-
-      });
 
       _this.events.trigger('load', data);
-
-      if (window.Select2 && !_this.noDecoration) {
-        $(_this.selector).select2();
-      }
 
     }
 
@@ -139,29 +142,18 @@
         callback = filter;
         filter = {};
       }
-      if (_this.isValid()) {
-        _this.dataSource.select(filter, function(result, response) {
-          if (result) {
-            if (callback) {
-              callback.call(_this.selector, result, response);
-            }
-            if (window.Select2 && !_this.noDecoration) {
-              $(_this.selector).select2();
-            }
+      _this.dataSource.select(filter, function(result, response) {
+        if (result) {
+          if (callback) {
+            callback.call(_this.selector, result, response);
           }
-        }, { fields: _this.fields });
-      } else {
-        _this.events.trigger('load', []);
-        if (callback) {
-          callback.call(_this.selector, true, []);
+          uiSync();
         }
-      }
+      }, { fields: _this.fields });
     }
 
     _this.dataSource.on('select', function(data) {
-      if (_this.isValid()) {
-        render(data);
-      }
+      render(data);
     });
 
     _this.dataSource.on('insert', function(data) {
@@ -184,9 +176,7 @@
         br.storage.set(storageTag(this), $(this).val());
       }
       _this.events.trigger('change');
-      if (window.Select2 && !_this.noDecoration) {
-        $(this).select2();
-      }
+      uiSync();
     });
 
   }
