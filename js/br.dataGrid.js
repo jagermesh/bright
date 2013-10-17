@@ -32,6 +32,9 @@
     this.on     = function(event, callback) { this.events.on(event, callback); }
     this.after  = function(event, callback) { this.events.after(event, callback); }
 
+    var loadingMoreData = false;
+    var noMoreData = false;
+
     this.after('insert', function(data) {
       _this.events.trigger('change', data);
       _this.events.triggerAfter('change', data);
@@ -146,6 +149,17 @@
       return br.storage.get(this.storageTag + 'orderAndGroup', []);
     }
 
+    this.loadMore = function() {
+      if (noMoreData || loadingMoreData) {
+
+      } else {
+        loadingMoreData = true;
+        _this.dataSource.select(function(result, response) {
+          loadingMoreData = false;
+        });
+      }
+    }
+
     this.init = function() {
 
       function isGridEmpty() {
@@ -216,14 +230,17 @@
 
         _this.dataSource.before('select', function(request, options) {
           options.order = _this.getOrder();
-          _this.selector.html('');
-          _this.selector.addClass('progress-big');
+          if (!loadingMoreData) {
+            _this.selector.html('');
+            _this.selector.addClass('progress-big');
+          }
         });
 
         _this.dataSource.after('select', function(result, response, request) {
           _this.selector.removeClass('progress-big');
           if (result) {
-            _this.render(response);
+            noMoreData = (response.length == 0);
+            _this.render(response, loadingMoreData);
           }
         });
 
@@ -288,10 +305,13 @@
 
     }
 
-    this.render = function(data) {
+    this.render = function(data, loadingMoreData) {
       _this.events.triggerBefore('change', data);
       if (data) {
         var i;
+        if (!loadingMoreData) {
+          _this.selector.html('');
+        }
         if (_this.options.freeGrid) {
           if (data.headers) {
             for (var i in data.headers) {
@@ -307,7 +327,6 @@
               }
             }
           }
-          _this.selector.html('');
           $(_this.options.selectors.header).html('');
           $(_this.options.selectors.footer).html('');
           if (data.rows) {
@@ -332,7 +351,6 @@
             _this.selector.html(this.options.templates.noData);
           }
         } else {
-          _this.selector.html('');
           if (data && (data.length > 0)) {
             var group = _this.getOrderAndGroup();
             var groupValues = {};
@@ -366,7 +384,8 @@
                 _this.selector.append(_this.renderRow(data[i]));
               }
             }
-          } else {
+          } else
+          if (!loadingMoreData) {
             _this.selector.html(this.options.templates.noData);
           }
         }
