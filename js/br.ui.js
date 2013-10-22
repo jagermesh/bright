@@ -201,6 +201,9 @@
       })
       .on('hide', function(e) {
         dialog.remove();
+        if (options.onhide) {
+          options.onhide.call(this);
+        }
       });
     $(dialog).modal();
   }

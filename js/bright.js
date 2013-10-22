@@ -1373,18 +1373,18 @@
     var noMoreData = false;
 
     this.after('insert', function(data) {
-      _this.events.trigger('change', data);
-      _this.events.triggerAfter('change', data);
+      _this.events.trigger('change', data, 'insert');
+      _this.events.triggerAfter('change', data, 'insert');
     });
 
     this.after('update', function(data) {
-      _this.events.trigger('change', data);
-      _this.events.triggerAfter('change', data);
+      _this.events.trigger('change', data, 'update');
+      _this.events.triggerAfter('change', data, 'update');
     });
 
     this.after('remove', function(data) {
-      _this.events.trigger('change', data);
-      _this.events.triggerAfter('change', data);
+      _this.events.trigger('change', data, 'remove');
+      _this.events.triggerAfter('change', data, 'remove');
     });
 
     this.renderHeader = function(data) {
@@ -1643,7 +1643,7 @@
     }
 
     this.render = function(data, loadingMoreData) {
-      _this.events.triggerBefore('change', data);
+      _this.events.triggerBefore('change', data, 'render');
       if (data) {
         var i;
         if (!loadingMoreData) {
@@ -1729,8 +1729,8 @@
       } else {
         _this.selector.html(this.options.templates.noData);
       }
-      _this.events.trigger('change', data);
-      _this.events.triggerAfter('change', data);
+      _this.events.trigger('change', data, 'render');
+      _this.events.triggerAfter('change', data, 'render');
     }
 
     return this.init();
@@ -2234,6 +2234,9 @@
       })
       .on('hide', function(e) {
         dialog.remove();
+        if (options.onhide) {
+          options.onhide.call(this);
+        }
       });
     $(dialog).modal();
   }
