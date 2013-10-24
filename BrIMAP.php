@@ -117,19 +117,19 @@ class BrIMAPAttachment extends BrObject {
   function getFileName() {
 
     return $this->fileName;
-    
+
   }
 
   function getFileExt() {
 
     return br()->fs()->fileExt($this->getFileName());
-    
+
   }
 
   function getSize() {
 
     return $this->size;
-    
+
   }
 
   function getID() {
@@ -177,7 +177,7 @@ class BrIMAPMailMessage extends BrObject {
     $this->parse();
 
     return $this->HTMLBody;
-    
+
   }
 
   function getTextBody() {
@@ -205,7 +205,7 @@ class BrIMAPMailMessage extends BrObject {
   function getSubject() {
 
     return @$this->overview->subject;
-    
+
   }
 
   function getFrom() {
@@ -287,6 +287,24 @@ class BrIMAPMailMessage extends BrObject {
 
   }
 
+  function getMessageID() {
+
+    return $this->overview->message_id;
+
+  }
+
+  function getReferences() {
+
+    return br(@$this->overview->references)->split(' ,;');
+
+  }
+
+  function getInReplyTo() {
+
+    return @$this->overview->in_reply_to;
+
+  }
+
   function getHeaders() {
 
     if ($this->headers === null) {
@@ -339,10 +357,10 @@ class BrIMAPMailMessage extends BrObject {
     return $this->structure;
 
   }
-  
-  
+
+
   public function moveToFolder($folderName) {
-    
+
     if (imap_mail_move($this->getMailbox(), $this->getUID(), $folderName, CP_UID)) {
       return true;
     } else {
@@ -350,8 +368,8 @@ class BrIMAPMailMessage extends BrObject {
     }
 
   }
-  
- 
+
+
 
   private function parseStructure($structure = null, $partNo = null) {
 
@@ -398,7 +416,7 @@ class BrIMAPMailMessage extends BrObject {
             $idx++;
           }
           $this->parentPart = $currentParentPart;
-          break;      
+          break;
         default:
           switch ($this->parentPart) {
             case 'related':
@@ -444,7 +462,7 @@ class BrIMAP extends BrObject {
             if (!@$messages[$i]->deleted) {
               $result[] = new BrIMAPMailMessage($this, $path, $messages[$i]);
             }
-          }        
+          }
         }
       }
     }
@@ -475,9 +493,9 @@ class BrIMAP extends BrObject {
     return imap_open($this->connectString.$mailbox, $this->userName, $this->password);
 
   }
-  
+
   public function createMailBox($folderName) {
-      
+
     if ($mailbox = imap_open($this->connectString, $this->userName, $this->password)) {
       if (imap_createmailbox($mailbox, imap_utf7_encode($this->connectString.$folderName))) {
 
@@ -489,30 +507,30 @@ class BrIMAP extends BrObject {
     }
 
   }
-   
+
   static function decode($body, $encoding) {
-   
-    for ($i=0;$i<256;$i++) { 
+
+    for ($i=0;$i<256;$i++) {
       $c1 = dechex($i);
       if (strlen($c1)==1) {
         $c1 = "0".$c1;
-      } 
+      }
       $c1 = "=".$c1;
       $myqprinta[] = $c1;
       $myqprintb[] = chr($i);
     }
 
     switch ($encoding) {
-      // case 0: 
+      // case 0:
       //   return imap_utf7_decode($body);
-      // case 1: 
+      // case 1:
       //   return imap_utf8($body);
-      // case 2: 
+      // case 2:
         // return imap_binary($body);
         // return $body;
-      case 3: 
+      case 3:
         return imap_base64($body);
-      case 4: 
+      case 4:
         return imap_qprint(str_replace($myqprinta, $myqprintb, $body));
     }
 

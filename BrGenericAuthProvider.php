@@ -52,6 +52,7 @@ class BrGenericAuthProvider extends BrSingleton {
                  , br()->request()->domain() == 'localhost' ? false : br()->request()->domain()
                  );
       }
+      $this->trigger('setLogin', $login);
       return br()->session()->set('login', $login);
     } else
     if ($login && $remember) {
@@ -89,6 +90,7 @@ class BrGenericAuthProvider extends BrSingleton {
              , br()->request()->domain() == 'localhost' ? false : br()->request()->domain()
              );
 
+    $this->trigger('clearLogin', $login);
     return br()->session()->clear('login');
 
   }

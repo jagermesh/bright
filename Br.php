@@ -761,14 +761,23 @@ class Br extends BrSingleton {
 
   }
 
-  function sendMail($email, $subject, $body, $params = array()) {
+  function sendMail($emails, $subject, $body, $params = array()) {
 
     if (!class_exists('PHPMailer')) {
       require_once(__DIR__.'/3rdparty/phpmailer/class.phpmailer.php');
     }
     $mail = new PHPMailer(true);
     $mail->CharSet = 'UTF-8';
-    $mail->AddAddress($email);
+
+    if (is_array($emails)) {
+
+    } else {
+      $emails = array($emails);
+    }
+
+    foreach($emails as $email) {
+      $mail->AddAddress($email);
+    }
 
     if ($from = br($params, 'sender', br()->config()->get('br/mail/sender', br()->config()->get('br/mail/from', br()->config()->get('br/Br/sendMail/from'))))) {
       $mail->AddReplyTo($from);
@@ -794,11 +803,17 @@ class Br extends BrSingleton {
       $mail->SMTPSecure = '';
     }
 
+    if (br($params, 'customHeaders')) {
+      foreach($params['customHeaders'] as $customHeader) {
+        $mail->AddCustomHeader($customHeader);
+      }
+    }
+
     $mail->Subject = $subject;
 
     $mail->MsgHTML($body);
 
-    br()->log()->writeLn('Sending mail to ' . $email);
+    br()->log()->writeLn('Sending mail to ' . br($emails)->join());
     if ($mail->Send()) {
       br()->log()->writeLn('Sent');
     } else {
