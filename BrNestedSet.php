@@ -13,15 +13,20 @@ require_once(__DIR__.'/BrException.php');
 
 class BrNestedSet extends BrObject {
 
-  private $tableName = '';
+  private $tableName;
+  private $keyField;
+  private $parentField;
+  private $orderField;
+
   private $keys = array();
 
   function __construct($tableName, $params = array()) {
 
     $this->tableName   = $tableName;
-    $this->keyField    = 'id';
-    $this->parentField = 'parent_id';
-    $this->orderField  = 'name';
+
+    $this->keyField    = br($params, 'keyField',    'id');
+    $this->parentField = br($params, 'parentField', 'parent_id');
+    $this->orderField  = br($params, 'orderField',  'name');
 
   }
 
@@ -127,21 +132,44 @@ class BrNestedSet extends BrObject {
 
   function processInsert($values) {
 
+    $node = array();
+
+    if ($this->orderField) {
+
+      $parentFilter = br($values, $this->parentField) ? br()->placeholder($this->parentField . ' = ?', $values[$this->parentField])
+                                                      : $this->parentField . ' IS NULL'
+                                                      ;
+
+      $node = br()->db()->getRow('SELECT right_key + 1 left_key
+                                      ,  level - 1 level
+                                    FROM ' . $this->tableName . '
+                                   WHERE ' . $parentFilter . '
+                                     AND right_key != -1
+                                     AND name < CONCAT(?, "")
+                                   ORDER BY ' . $this->orderField . ' DESC
+                                   LIMIT 1', br($values, $this->orderField));
+
+    }
+
+    if ($node) {
+
+    } else
     if (br($values, $this->parentField)) {
-      $parent    = br()->db()->getRow('SELECT right_key, level FROM ' . $this->tableName . ' WHERE ' . $this->keyField.' = ?', $values[$this->parentField]);
-      $right_key = $parent['right_key'];
-      $level     = $parent['level'];
+      $node = br()->db()->getRow('SELECT left_key + 1 left_key, level
+                                    FROM '.$this->tableName.'
+                                   WHERE ' . $this->keyField . ' = ?', $values[$this->parentField]
+                                );
     } else {
-      $right_key = br()->db()->getValue('SELECT IFNULL(MAX(right_key), 0) + 1 FROM '.$this->tableName.' WHERE right_key != -1');
-      $level     = 0;
+      $node['left_key'] = 1;
+      $node['level'] = 0;
     }
 
     br()->db()->runQuery( 'UPDATE ' . $this->tableName . '
                               SET right_key = right_key + 2
-                                , left_key = IF(left_key > ?, left_key + 2, left_key)
+                                , left_key = IF(left_key >= ?, left_key + 2, left_key)
                             WHERE right_key >= ?'
-                        , $right_key
-                        , $right_key
+                        , $node['left_key']
+                        , $node['left_key']
                         );
 
     br()->db()->runQuery( 'UPDATE ' . $this->tableName . '
@@ -149,9 +177,9 @@ class BrNestedSet extends BrObject {
                                 , right_key = ?
                                 , level = ?
                             WHERE '.$this->keyField.' = ?'
-                        , $right_key
-                        , $right_key + 1
-                        , $level + 1
+                        , $node['left_key']
+                        , $node['left_key'] + 1
+                        , $node['level'] + 1
                         , $values[$this->keyField]
                         );
 
@@ -159,32 +187,36 @@ class BrNestedSet extends BrObject {
 
   function processUpdate($old, $new) {
 
-    if (br($old, $this->parentField) != br($new, $this->parentField)) {
+    if (br($old, $this->parentField) != br($new, $this->parentField) || br($new, 'rightNode') || br($new, 'leftNode')) {
 
       $level        = $old['level'];
       $left_key     = $old['left_key'];
       $right_key    = $old['right_key'];
-
+      $move_to_node_id = $old[$this->parentField];
       $type = '';
 
-      if (br($new, $this->parentField)) {
-        $parent = br()->db()->getRow('SELECT level, right_key, left_key FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ?', $new[$this->parentField]);
-        $level_up = $parent['level'];
-      } else {
-        $level_up = 0;
-        $type = 'moveToRoot';
-      }
-
-      if (!$type && br($old, $this->parentField)) {
-        if ($oldParentId = br()->db()->getValue('SELECT ' . $this->parentField . ' FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ?', $old[$this->parentField])) {
-          if ($oldParentId == $new[$this->parentField]) {
-            $type = 'moveUp';
+      if (br($old, $this->parentField) != br($new, $this->parentField)) {
+        if (br($new, $this->parentField)) {
+          $parent = br()->db()->getRow('SELECT level, right_key, left_key FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ?', $new[$this->parentField]);
+          $level_up = $parent['level'];
+        } else {
+          $level_up = 0;
+          if(!(br($new, 'rightNode') || br($new, 'leftNode'))) {
+            $type = 'moveToRoot';
           }
         }
-      }
 
-      if (!$type) {
-        $type = 'generalMove';
+        if (!$type) {
+          if((br($new, 'rightNode') || br($new, 'leftNode'))) {
+            $type = 'moveInRow';
+          } else {
+            $type = 'generalMove';
+            $move_to_node_id = $new[$this->parentField];
+          }
+        }
+      } else {
+        $level_up = $level-1;
+        $type = 'moveInRow';
       }
 
       switch($type) {
@@ -192,12 +224,24 @@ class BrNestedSet extends BrObject {
           $right_key_near = br()->db()->getValue('SELECT MAX(right_key) FROM ' . $this->tableName);
           break;
         case 'moveUp':
-          $right_key_near = br()->db()->getValue('SELECT right_key FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ?', $old[$this->parentField]);
+          $right_key_near = br()->db()->getValue('SELECT right_key FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ?', $move_to_node_id);
           break;
         case 'moveInRow':
+
+            if(br($new, 'leftNode')) {
+              $move_to_node_id = br($new, 'leftNode');
+            } else {
+              $rightNodeKey = br()->db()->getValue('SELECT left_key FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ? ', br($new, 'rightNode'));
+              $move_to_node_id = br()->db()->getValue('SELECT ' . $this->keyField . ' FROM ' . $this->tableName . ' WHERE right_key < ? ORDER BY right_key DESC LIMIT 1', $rightNodeKey);
+            }
+
+            $res = br()->db()->getRow('SELECT right_key, left_key FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ?', $move_to_node_id);
+            $right_key_near = $res['right_key'];
+
           break;
         case 'generalMove':
-          $right_key_near = br()->db()->getValue('SELECT (right_key - 1) AS right_key FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ?', $new[$this->parentField]);
+
+          $right_key_near = br()->db()->getValue('SELECT (right_key - 1) AS right_key FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ?', $move_to_node_id);
           break;
       }
 
@@ -205,6 +249,7 @@ class BrNestedSet extends BrObject {
       $skew_tree = $right_key - $left_key + 1;
 
       if ($right_key_near < $right_key) {
+
         $skew_edit = $right_key_near - $left_key + 1;
         br()->db()->runQuery( 'UPDATE ' . $this->tableName .
                               '   SET right_key = IF(left_key >= ?, right_key + ?, IF(right_key < ?, right_key + ?, right_key))
@@ -226,6 +271,7 @@ class BrNestedSet extends BrObject {
                             , $right_key
                             );
       } else {
+
         $skew_edit = $right_key_near - $left_key + 1 - $skew_tree;
         br()->db()->runQuery( 'UPDATE ' . $this->tableName .
                               '   SET left_key = IF(right_key <= ?, left_key + ?, IF(left_key > ?, left_key - ?, left_key))
