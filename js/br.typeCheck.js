@@ -1,37 +1,40 @@
-// 
-// Bright Framework : Version 0.0.5
-// (C) Sergiy Lavryk
-// jagermesh@gmail.com
-// 
+/*!
+ * Bright 0.0.5
+ *
+ * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+  * http://brightfw.com
+ *
+ */
 
-(function (window) {
+;(function (window) {
 
   window.br = window.br || {};
 
   window.br.isNumber = function(value) {
     return (
-             !isNaN(parseFloat(value)) && 
+             !isNaN(parseFloat(value)) &&
              isFinite(value)
            );
   }
 
   window.br.isNull = function(value) {
     return (
-             (value === undefined) || 
-             (value === null) 
+             (value === undefined) ||
+             (value === null)
            );
   }
 
   window.br.isEmpty = function(value) {
-    return ( 
-             br.isNull(value) || 
+    return (
+             br.isNull(value) ||
              ((typeof value.length != 'undefined') && (value.length === 0)) // Array, String
            );
   }
 
   window.br.isArray = function (value) {
     return (
-             !br.isNull(value) && 
+             !br.isNull(value) &&
              (Object.prototype.toString.call(value) === '[object Array]')
            );
   }
@@ -67,7 +70,7 @@
   window.br.split = function (value, delimiter) {
     if (br.isEmpty(value)) {
       return [];
-    } else 
+    } else
     if (br.isString(value)) {
       return value.split(delimiter);
     }
@@ -93,6 +96,6 @@
     if (br.isNumber(value)) {
       return value;
     }
-  };  
+  };
 
 })(window);

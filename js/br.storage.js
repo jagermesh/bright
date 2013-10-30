@@ -1,10 +1,13 @@
-// 
-// Bright Framework : Version 0.0.5
-// (C) Sergiy Lavryk
-// jagermesh@gmail.com
-// 
+/*!
+ * Bright 0.0.5
+ *
+ * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+  * http://brightfw.com
+ *
+ */
 
-(function (window) {
+;(function (window) {
 
   var _helper = {
 
@@ -34,7 +37,7 @@
         for(var i in key) {
           result[key[i]] = this.get(key[i]);
         }
-      } else {        
+      } else {
         result = _helper.unpack(_storage.getItem(key));
       }
       return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;

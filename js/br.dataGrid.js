@@ -1,10 +1,13 @@
-//
-// Bright Framework : Version 0.0.5
-// (C) Sergiy Lavryk
-// jagermesh@gmail.com
-//
+/*!
+ * Bright 0.0.5
+ *
+ * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+  * http://brightfw.com
+ *
+ */
 
-(function ($, window) {
+;(function ($, window) {
 
   function BrDataGrid(selector, rowTemplate, dataSource, options) {
 

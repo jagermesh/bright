@@ -1,4 +1,13 @@
-(function ($, window, undefined) {
+/*!
+ * Bright 0.0.5
+ *
+ * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+  * http://brightfw.com
+ *
+ */
+
+;(function ($, window, undefined) {
 
   function BrGoogleMap(selector, options) {
 
@@ -40,7 +49,7 @@
     this.mapSelector = selector;
     this.mapContainer = $(this.mapSelector)[0];
     this.map = new google.maps.Map(this.mapContainer, this.mapOptions);
-    this.directionsService = new google.maps.DirectionsService();      
+    this.directionsService = new google.maps.DirectionsService();
     this.directionsDisplay = new google.maps.DirectionsRenderer();
     this.directionsDisplay.setMap(this.map);
     this.geocoder = new google.maps.Geocoder();
@@ -69,7 +78,7 @@
         this.weatherLayer = new google.maps.weather.WeatherLayer({
           //temperatureUnits: google.maps.weather.TemperatureUnit.CELSIUS
         });
-        this.weatherLayer.setMap(this.map);              
+        this.weatherLayer.setMap(this.map);
       } else
       if (!show && this.weatherVisible()) {
         this.weatherLayer.setMap(null);
@@ -80,7 +89,7 @@
       for (var i = 0; i < this.markers.length; i++) {
         this.markers[i].setMap(null);
       }
-      this.markers = [];      
+      this.markers = [];
     }
     this.addLocation = function(lat, lng, data, onClick) {
       var latLng = new google.maps.LatLng(lat, lng);
@@ -96,9 +105,9 @@
       if (onClick) {
         google.maps.event.addListener(marker, 'click', function() {
           onClick.call(this);
-        });            
+        });
       }
-      return marker;  
+      return marker;
     }
     this.setMapType = function(value) {
       switch(value) {
@@ -146,11 +155,11 @@
           bounds.lngMax = Math.max(bounds.lngMax, lng);
         }
       }
-      if (this.markers.length > 0) {  
+      if (this.markers.length > 0) {
         var point = { lat: bounds.latMin + (bounds.latMax - bounds.latMin)/2
                     , lng: bounds.lngMin + (bounds.lngMax - bounds.lngMin)/2
                     }
-        if (this.markers.length > 1) {  
+        if (this.markers.length > 1) {
           var mapBounds = new google.maps.LatLngBounds(new google.maps.LatLng(bounds.latMin, bounds.lngMin), new google.maps.LatLng(bounds.latMax, bounds.lngMax));
           this.map.panToBounds(mapBounds);
           this.map.fitBounds(mapBounds);
@@ -202,13 +211,13 @@
         var latLng = new google.maps.LatLng(markers[i].position.lat(), markers[i].position.lng());
         if (origin === null) {
           origin = latLng;
-        } else 
+        } else
         if (destination === null) {
           destination = latLng;
         } else {
           waypoints.push({ location: destination, stopover: true });
           destination = latLng;
-        }          
+        }
       }
       if ((origin !== null) && (destination !== null)) {
         var request = {
@@ -239,7 +248,7 @@
               callback.call(this, false);
             }
           }
-        });      
+        });
       }
     }
 

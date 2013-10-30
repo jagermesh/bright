@@ -1,37 +1,40 @@
-// 
-// Bright Framework : Version 0.0.5
-// (C) Sergiy Lavryk
-// jagermesh@gmail.com
-// 
+/*!
+ * Bright 0.0.5
+ *
+ * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+  * http://brightfw.com
+ *
+ */
 
-(function (window) {
+;(function (window) {
 
   window.br = window.br || {};
 
   window.br.isNumber = function(value) {
     return (
-             !isNaN(parseFloat(value)) && 
+             !isNaN(parseFloat(value)) &&
              isFinite(value)
            );
   }
 
   window.br.isNull = function(value) {
     return (
-             (value === undefined) || 
-             (value === null) 
+             (value === undefined) ||
+             (value === null)
            );
   }
 
   window.br.isEmpty = function(value) {
-    return ( 
-             br.isNull(value) || 
+    return (
+             br.isNull(value) ||
              ((typeof value.length != 'undefined') && (value.length === 0)) // Array, String
            );
   }
 
   window.br.isArray = function (value) {
     return (
-             !br.isNull(value) && 
+             !br.isNull(value) &&
              (Object.prototype.toString.call(value) === '[object Array]')
            );
   }
@@ -67,7 +70,7 @@
   window.br.split = function (value, delimiter) {
     if (br.isEmpty(value)) {
       return [];
-    } else 
+    } else
     if (br.isString(value)) {
       return value.split(delimiter);
     }
@@ -93,16 +96,19 @@
     if (br.isNumber(value)) {
       return value;
     }
-  };  
+  };
 
 })(window);
-// 
-// Bright Framework : Version 0.0.5
-// (C) Sergiy Lavryk
-// jagermesh@gmail.com
-// 
+/*!
+ * Bright 0.0.5
+ *
+ * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+  * http://brightfw.com
+ *
+ */
 
-(function (window) {
+;(function (window) {
 
   var _helper = {
 
@@ -132,7 +138,7 @@
         for(var i in key) {
           result[key[i]] = this.get(key[i]);
         }
-      } else {        
+      } else {
         result = _helper.unpack(_storage.getItem(key));
       }
       return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
@@ -366,13 +372,16 @@
   window.br.session = new BrStorage(window.sessionStorage);
 
 })(window);
-//
-// Bright Framework : Version 0.0.5
-// (C) Sergiy Lavryk
-// jagermesh@gmail.com
-//
+/*!
+ * Bright 0.0.5
+ *
+ * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+  * http://brightfw.com
+ *
+ */
 
-(function (window) {
+;(function (window) {
 
   function BrEvents(obj) {
 
@@ -462,13 +471,16 @@
   }
 
 })(window);
-// 
-// Bright Framework : Version 0.0.5
-// (C) Sergiy Lavryk
-// jagermesh@gmail.com
-// 
+/*!
+ * Bright 0.0.5
+ *
+ * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+  * http://brightfw.com
+ *
+ */
 
-(function (window) {
+;(function (window) {
 
   window.br = window.br || {};
 
@@ -523,13 +535,16 @@
   }
 
 })(window);
-//
-// Bright Framework : Version 0.0.5
-// (C) Sergiy Lavryk
-// jagermesh@gmail.com
-//
+/*!
+ * Bright 0.0.5
+ *
+ * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+  * http://brightfw.com
+ *
+ */
 
-(function ($, window) {
+;(function ($, window) {
 
   window.br = window.br || {};
 
@@ -809,16 +824,19 @@
     a,b,e){i("css",c,a,b,e)},js:function(c,a,b,e){i("js",c,a,b,e)}}}(document);
 
 })(jQuery, window);
-// 
-// Bright Framework : Version 0.0.5
-// (C) Sergiy Lavryk
-// jagermesh@gmail.com
-// 
+/*!
+ * Bright 0.0.5
+ *
+ * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+  * http://brightfw.com
+ *
+ */
 
-(function (window) {
+;(function (window) {
 
   function BrFlagsHolder(permanent, name) {
-  
+
     var flags = [];
 
     this.append = function(id) {
@@ -880,13 +898,16 @@
   }
 
 })(window);
-//
-// Bright Framework : Version 0.0.5
-// (C) Sergiy Lavryk
-// jagermesh@gmail.com
-//
+/*!
+ * Bright 0.0.5
+ *
+ * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+  * http://brightfw.com
+ *
+ */
 
-(function ($, window) {
+;(function ($, window) {
 
   function BrDataSource(restServiceUrl, options) {
 
@@ -1335,13 +1356,16 @@
   }
 
 })(jQuery, window);
-//
-// Bright Framework : Version 0.0.5
-// (C) Sergiy Lavryk
-// jagermesh@gmail.com
-//
+/*!
+ * Bright 0.0.5
+ *
+ * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+  * http://brightfw.com
+ *
+ */
 
-(function ($, window) {
+;(function ($, window) {
 
   function BrDataGrid(selector, rowTemplate, dataSource, options) {
 
@@ -1744,13 +1768,16 @@
   }
 
 })(jQuery, window);
-//
-// Bright Framework : Version 0.0.5
-// (C) Sergiy Lavryk
-// jagermesh@gmail.com
-//
+/*!
+ * Bright 0.0.5
+ *
+ * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+  * http://brightfw.com
+ *
+ */
 
-(function ($, window) {
+;(function ($, window) {
 
   function BrDataCombo(selector, dataSource, options) {
 
@@ -1934,13 +1961,16 @@
   }
 
 })(jQuery, window);
-//
-// Bright Framework : Version 0.0.5
-// (C) Sergiy Lavryk
-// jagermesh@gmail.com
-//
+/*!
+ * Bright 0.0.5
+ *
+ * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+  * http://brightfw.com
+ *
+ */
 
-(function ($, window) {
+;(function ($, window) {
 
   function BrEditable(ctrl, saveCallback) {
 
@@ -2035,13 +2065,16 @@
   }
 
 })(jQuery, window);
-//
-// Bright Framework : Version 0.0.5
-// (C) Sergiy Lavryk
-// jagermesh@gmail.com
-//
+/*!
+ * Bright 0.0.5
+ *
+ * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+  * http://brightfw.com
+ *
+ */
 
-(function ($, window) {
+;(function ($, window) {
 
   window.br = window.br || {};
 
@@ -2332,13 +2365,16 @@
   });
 
 })(jQuery, window);
-//
-// Bright Framework : Version 0.0.5
-// (C) Sergiy Lavryk
-// jagermesh@gmail.com
-//
+/*!
+ * Bright 0.0.5
+ *
+ * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+  * http://brightfw.com
+ *
+ */
 
-(function ($, window) {
+;(function ($, window) {
 
   window.br = window.br || {};
 
