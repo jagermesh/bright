@@ -1949,10 +1949,12 @@
     _this.saveCallback = saveCallback;
     _this.editor = null;
     _this.tooltip = null;
+    _this.savedWidth = '';
     _this.click = function(element, e) {
       if (!_this.activated()) {
         var content = _this.ctrl.text();
         _this.ctrl.data('original-content', content);
+        _this.ctrl.data('original-width', _this.ctrl.css('width'));
         var width = _this.ctrl.innerWidth();
         var height = _this.ctrl.innerHeight();
         _this.ctrl.text('');
@@ -2000,12 +2002,14 @@
       _this.editor.remove();
       _this.editor = null;
       _this.ctrl.text(content);
+      _this.ctrl.css('width', '');
     }
     _this.cancel = function() {
       _this.tooltip.hide();
       _this.editor.remove();
       _this.editor = null;
       _this.ctrl.text(_this.ctrl.data('original-content'));
+      _this.ctrl.css('width', '');
     }
 
   }

@@ -52,7 +52,9 @@
     }
     this.hide = function() {
       goodHide = true;
-      _this.container.modal('hide');
+      if (_this.container.hasClass('modal')) {
+        _this.container.modal('hide');
+      }
     }
     this.editorConfigure = function(isCopy) {
       if (editorRowid) {
@@ -111,9 +113,17 @@
             if (result) {
               if (andClose) {
                 goodHide = true;
-                _this.container.modal('hide');
+                if (_this.container.hasClass('modal')) {
+                  _this.container.modal('hide');
+                }
                 _this.events.trigger('hideEditor', true, response);
                 _this.events.trigger('editor.hide', true, response);
+                if (!_this.container.hasClass('modal')) {
+                  br.backToCaller(_this.options.returnUrl, true);
+                }
+              } else {
+                br.growlMessage('Changes saved', 'Success');
+                _this.events.trigger('editor.save', true, response);
               }
               if (callback) {
                 callback.call(this);
@@ -126,10 +136,17 @@
             if (result) {
               if (andClose) {
                 goodHide = true;
-                _this.container.modal('hide');
+                if (_this.container.hasClass('modal')) {
+                  _this.container.modal('hide');
+                }
                 _this.events.trigger('hideEditor', true, response);
                 _this.events.trigger('editor.hide', true, response);
+                if (!_this.container.hasClass('modal')) {
+                  br.backToCaller(_this.options.returnUrl, true);
+                }
               } else {
+                br.growlMessage('Changes saved', 'Success');
+                _this.events.trigger('editor.save', true, response);
                 editorRowid = response.rowid;
                 _this.editorConfigure(false);
               }
@@ -181,14 +198,19 @@
       $('.action-cancel', _this.container).removeAttr('data-dismiss');
       $('.action-cancel', _this.container).click(function() {
         goodHide = true;
-        _this.container.modal('hide');
+        if (_this.container.hasClass('modal')) {
+          _this.container.modal('hide');
+        }
         _this.events.trigger('hideEditor', false);
         _this.events.trigger('editor.hide', false, editorRowid);
+        if (!_this.container.hasClass('modal')) {
+          br.backToCaller(_this.options.returnUrl, false);
+        }
       });
 
       $('.action-save', _this.container).click(function() {
         if (!$(this).hasClass('disabled')) {
-          _this.editorSave(true);
+          _this.editorSave($(this).hasClass('action-close'));
         }
       });
 
@@ -233,7 +255,9 @@
             }
             _this.events.trigger('showEditor', data, isCopy);
             _this.events.trigger('editor.show', data, isCopy);
-            _this.container.modal('show');
+            if (_this.container.hasClass('modal')) {
+              _this.container.modal('show');
+            }
           }
         }, { disableEvents: true });
       } else {
@@ -244,7 +268,9 @@
         });
         _this.events.trigger('showEditor');
         _this.events.trigger('editor.show');
-        _this.container.modal('show');
+        if (_this.container.hasClass('modal')) {
+          _this.container.modal('show');
+        }
       }
       return _this.container;
     }

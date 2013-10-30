@@ -132,7 +132,10 @@ class BrFileSystem extends BrSingleton {
 
   public function getCharsPath($fileName, $finalFileName = null) {
 
-    if (!$finalFileName) {
+    $md5mode = false;
+    if ($finalFileName) {
+      $md5mode = true;
+    } else {
       $finalFileName = $fileName;
     }
 
@@ -143,6 +146,9 @@ class BrFileSystem extends BrSingleton {
 
     for($i = 0; $i < min(6, strlen($fileNameOnly)); $i++) {
       $s .= $fileName[$i] . '/';
+    }
+    if ($md5mode) {
+      $s .= $fileName . '/';
     }
 
     return $s . $finalFileName;
