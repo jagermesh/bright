@@ -47,7 +47,7 @@ a.justified {
   margin-bottom: 2px;
 }
 
-td.optimal-width {
+td.optimal-width, th.optimal-width {
   width:10px;
   white-space:nowrap;
 }

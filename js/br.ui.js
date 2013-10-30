@@ -94,7 +94,7 @@
         s = s + '<a href="javascript:;" class="btn action-confirm-close" rel="' + i + '">' + buttons[i] + '</a>';
       }
     }
-    s = s + '<a href="javascript:;" class="btn" data-dismiss="modal">&nbsp;Cancel&nbsp;</a>';
+    s = s + '<a href="javascript:;" class="btn action-confirm-cancel">&nbsp;Cancel&nbsp;</a>';
     s = s + '</div></div>';
     var dialog = $(s);
     $(dialog)
@@ -104,6 +104,12 @@
             callback.call(dialog, $(this).attr('rel'), $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked'));
           } else {
             callback.call(dialog, $(this).attr('rel'));
+          }
+          $(dialog).modal('hide');
+        });
+        $(this).find('.action-confirm-cancel').click(function() {
+          if (params.onCancel) {
+            params.onCancel.call(dialog);
           }
           $(dialog).modal('hide');
         });
