@@ -194,5 +194,12 @@ class BrGenericRenderer extends BrObject {
 
   }
 
+  function reject($pattern) {
+    foreach ($this->vars as $key=>$value) {
+      if (preg_match($pattern, $key)) {
+        unset($this->vars[$key]);
+      }
+    }
+  }
 
 }
