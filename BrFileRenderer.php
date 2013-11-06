@@ -11,7 +11,7 @@
 require_once(__DIR__.'/BrGenericRenderer.php');
 
 class BrFileRenderer extends BrGenericRenderer {
-  
+
   private function fetchFile($templateName) {
 
     $result = '';
@@ -29,7 +29,7 @@ class BrFileRenderer extends BrGenericRenderer {
 
   }
 
-  function fetchString($string, $subst = array()) {
+  public function fetchString($string, $subst = array()) {
 
     $content = $this->compile($string, $subst);
 
@@ -37,7 +37,13 @@ class BrFileRenderer extends BrGenericRenderer {
 
   }
 
-  function fetch($templateName, $subst = array()) {
+  public function display($templateName, $subst = array()) {
+
+    echo($this->fetch($templateName, $subst));
+
+  }
+
+  public function fetch($templateName, $subst = array()) {
 
     $template = $this->fetchFile($templateName);
 
@@ -57,7 +63,7 @@ class BrFileRenderer extends BrGenericRenderer {
     $content = $this->compile($content, $subst, dirname($templateName));
 
     return $content;
-    
+
   }
 
 }

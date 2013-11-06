@@ -16,7 +16,7 @@ class BrGenericRenderer extends BrObject {
   private $vars = array();
   protected $params = array();
 
-  function render($templateName) {
+  public function render($templateName) {
 
     $templateFile = br()->atTemplatesPath($templateName);
     if (file_exists($templateFile)) {
@@ -25,7 +25,7 @@ class BrGenericRenderer extends BrObject {
 
   }
 
-  function getTemplates() {
+  public function getTemplates() {
 
     return $this->templates;
 
@@ -37,11 +37,31 @@ class BrGenericRenderer extends BrObject {
 
   }
 
-  function fetchString($string, $subst= array()) {
+  public function unassign($name) {
+
+    unset($this->vars[$name]);
 
   }
 
-  function fetch($templateName, $subst= array()) {
+  public function unassignByPattern($pattern) {
+
+    foreach($this->vars as $key => $value) {
+      if (preg_match($pattern, $key)) {
+        unset($this->vars[$key]);
+      }
+    }
+
+  }
+
+  public function fetchString($string, $subst= array()) {
+
+  }
+
+  public function display($templateName, $subst = array()) {
+
+  }
+
+  public function fetch($templateName, $subst= array()) {
 
   }
 
