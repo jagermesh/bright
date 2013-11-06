@@ -32,23 +32,6 @@ class BrNestedSet extends BrObject {
 
   }
 
-  // function checkStructure() {
-
-  //   if (!array_key_exists('left_key', $this->fields($table))) {
-  //     $db->query("ALTER TABLE ".$this->tableName." ADD left_key INTEGER");
-  //     unset($this->fields[$table]);
-  //   }
-  //   if (!array_key_exists('right_key', $this->fields($table))) {
-  //     $db->query("ALTER TABLE ".$this->tableName." ADD right_key INTEGER");
-  //     unset($this->fields[$table]);
-  //   }
-  //   if (!array_key_exists('level', $this->fields($table))) {
-  //     $db->query("ALTER TABLE ".$this->tableName." ADD level INTEGER");
-  //     unset($this->fields[$table]);
-  //   }
-
-  // }
-
   function verify() {
 
     if (br()->db()->getRow('SELECT id FROM '.$this->tableName.' WHERE left_key >= right_key')) {
