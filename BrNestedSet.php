@@ -17,6 +17,7 @@ class BrNestedSet extends BrObject {
   private $keyField;
   private $parentField;
   private $orderField;
+  private $rangeField;
 
   private $keys = array();
 
@@ -27,6 +28,7 @@ class BrNestedSet extends BrObject {
     $this->keyField    = br($params, 'keyField',    'id');
     $this->parentField = br($params, 'parentField', 'parent_id');
     $this->orderField  = br($params, 'orderField',  'name');
+    $this->rangeField  = br($params, 'rangeField');
 
   }
 
@@ -86,14 +88,11 @@ class BrNestedSet extends BrObject {
     // the right value of this node is the left value + 1
     $right = $left + 1;
 
-    $nested_set_order = $this->orderField;
-    $parent_field     = $this->parentField;
-
     // get all children of this node
     if (strlen($key)) {
-      $sql = br()->placeholder('SELECT '.$this->keyField.' FROM '.$this->tableName.' WHERE '.$parent_field.' = ? ORDER BY '.$nested_set_order, $key);
+      $sql = br()->placeholder('SELECT '.$this->keyField.' FROM '.$this->tableName.' WHERE '.$this->parentField.' = ? ORDER BY ' . $this->orderField, $key);
     } else {
-      $sql = 'SELECT '.$this->keyField.' FROM '.$this->tableName.' WHERE '.$parent_field.' IS NULL ORDER BY '.$nested_set_order;
+      $sql = 'SELECT '.$this->keyField.' FROM '.$this->tableName.' WHERE '.$this->parentField.' IS NULL ORDER BY ' . $this->orderField;
     }
     $query = br()->db()->select($sql);
     while ($row = br()->db()->selectNext($query)) {
@@ -140,14 +139,20 @@ class BrNestedSet extends BrObject {
                                                       : $this->parentField . ' IS NULL'
                                                       ;
 
-      $node = br()->db()->getRow('SELECT right_key + 1 left_key
-                                      ,  level - 1 level
-                                    FROM ' . $this->tableName . '
-                                   WHERE ' . $parentFilter . '
-                                     AND right_key != -1
-                                     AND name < CONCAT(?, "")
-                                   ORDER BY ' . $this->orderField . ' DESC
-                                   LIMIT 1', br($values, $this->orderField));
+      $sql = br()->placeholder( 'SELECT right_key + 1 left_key'
+                              . '     ,  level - 1 level'
+                              . '  FROM ' . $this->tableName
+                              . ' WHERE ' . $parentFilter
+                              . '   AND ' . $this->orderField . ' < CONCAT(?, "")'
+                              , br($values, $this->orderField)
+                              );
+      if ($this->rangeField && br($values, $this->rangeField)) {
+        $sql .= br()->placeholder(' AND ' . $this->rangeField . ' = ?', $values[$this->rangeField]);
+      }
+      $sql .= ' ORDER BY ' . $this->orderField . ' DESC '
+            . ' LIMIT 1';
+
+      $node = br()->db()->getRow($sql);
 
     }
 
@@ -164,13 +169,17 @@ class BrNestedSet extends BrObject {
       $node['level'] = 0;
     }
 
-    br()->db()->runQuery( 'UPDATE ' . $this->tableName . '
-                              SET right_key = right_key + 2
-                                , left_key = IF(left_key >= ?, left_key + 2, left_key)
-                            WHERE right_key >= ?'
-                        , $node['left_key']
-                        , $node['left_key']
-                        );
+    $sql = br()->placeholder( 'UPDATE ' . $this->tableName . '
+                                  SET right_key = right_key + 2
+                                    , left_key = IF(left_key >= ?, left_key + 2, left_key)
+                                WHERE right_key >= ?'
+                            , $node['left_key']
+                            , $node['left_key']
+                            );
+    if ($this->rangeField && br($values, $this->rangeField)) {
+      $sql .= br()->placeholder(' AND ' . $this->rangeField . ' = ?', $values[$this->rangeField]);
+    }
+    br()->db()->runQuery($sql);
 
     br()->db()->runQuery( 'UPDATE ' . $this->tableName . '
                               SET left_key = ?
@@ -185,9 +194,9 @@ class BrNestedSet extends BrObject {
 
   }
 
-  function processUpdate($old, $new) {
+  function processUpdate($old, $values) {
 
-    if (br($old, $this->parentField) != br($new, $this->parentField) || br($new, 'rightNode') || br($new, 'leftNode')) {
+    if (br($old, $this->parentField) != br($values, $this->parentField) || br($values, 'rightNode') || br($values, 'leftNode')) {
 
       $level        = $old['level'];
       $left_key     = $old['left_key'];
@@ -195,23 +204,23 @@ class BrNestedSet extends BrObject {
       $move_to_node_id = $old[$this->parentField];
       $type = '';
 
-      if (br($old, $this->parentField) != br($new, $this->parentField)) {
-        if (br($new, $this->parentField)) {
-          $parent = br()->db()->getRow('SELECT level, right_key, left_key FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ?', $new[$this->parentField]);
+      if (br($old, $this->parentField) != br($values, $this->parentField)) {
+        if (br($values, $this->parentField)) {
+          $parent = br()->db()->getRow('SELECT level, right_key, left_key FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ?', $values[$this->parentField]);
           $level_up = $parent['level'];
         } else {
           $level_up = 0;
-          if(!(br($new, 'rightNode') || br($new, 'leftNode'))) {
+          if(!(br($values, 'rightNode') || br($values, 'leftNode'))) {
             $type = 'moveToRoot';
           }
         }
 
         if (!$type) {
-          if((br($new, 'rightNode') || br($new, 'leftNode'))) {
+          if((br($values, 'rightNode') || br($values, 'leftNode'))) {
             $type = 'moveInRow';
           } else {
             $type = 'generalMove';
-            $move_to_node_id = $new[$this->parentField];
+            $move_to_node_id = $values[$this->parentField];
           }
         }
       } else {
@@ -221,26 +230,33 @@ class BrNestedSet extends BrObject {
 
       switch($type) {
         case 'moveToRoot':
-          $right_key_near = br()->db()->getValue('SELECT MAX(right_key) FROM ' . $this->tableName);
+          $sql = br()->placeholder('SELECT MAX(right_key) FROM ' . $this->tableName);
+          if ($this->rangeField && br($values, $this->rangeField)) {
+            $sql .= br()->placeholder(' WHERE ' . $this->rangeField . ' = ?', br($values, $this->rangeField));
+          }
+          $right_key_near = br()->db()->getValue($sql);
           break;
         case 'moveUp':
           $right_key_near = br()->db()->getValue('SELECT right_key FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ?', $move_to_node_id);
           break;
         case 'moveInRow':
-
-            if(br($new, 'leftNode')) {
-              $move_to_node_id = br($new, 'leftNode');
-            } else {
-              $rightNodeKey = br()->db()->getValue('SELECT left_key FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ? ', br($new, 'rightNode'));
-              $move_to_node_id = br()->db()->getValue('SELECT ' . $this->keyField . ' FROM ' . $this->tableName . ' WHERE right_key < ? ORDER BY right_key DESC LIMIT 1', $rightNodeKey);
+          if (br($values, 'leftNode')) {
+            $move_to_node_id = br($values, 'leftNode');
+          } else {
+            $rightNodeKey = br()->db()->getValue('SELECT left_key FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ? ', br($values, 'rightNode'));
+            $sql = br()->placeholder('SELECT ' . $this->keyField . ' FROM ' . $this->tableName . ' WHERE right_key < ?', $rightNodeKey);
+            if ($this->rangeField && br($values, $this->rangeField)) {
+              $sql .= br()->placeholder(' AND ' . $this->rangeField . ' = ?', br($values, $this->rangeField));
             }
+            $sql .= ' ORDER BY right_key DESC LIMIT 1';
+            $move_to_node_id = br()->db()->getValue($sql);
+          }
 
-            $res = br()->db()->getRow('SELECT right_key, left_key FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ?', $move_to_node_id);
-            $right_key_near = $res['right_key'];
+          $res = br()->db()->getRow('SELECT right_key, left_key FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ?', $move_to_node_id);
+          $right_key_near = $res['right_key'];
 
           break;
         case 'generalMove':
-
           $right_key_near = br()->db()->getValue('SELECT (right_key - 1) AS right_key FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ?', $move_to_node_id);
           break;
       }
@@ -249,50 +265,55 @@ class BrNestedSet extends BrObject {
       $skew_tree = $right_key - $left_key + 1;
 
       if ($right_key_near < $right_key) {
-
         $skew_edit = $right_key_near - $left_key + 1;
-        br()->db()->runQuery( 'UPDATE ' . $this->tableName .
-                              '   SET right_key = IF(left_key >= ?, right_key + ?, IF(right_key < ?, right_key + ?, right_key))
-                                    , level = IF(left_key >= ?, level + ?, level)
-                                    , left_key = IF(left_key >= ?, left_key + ?, IF(left_key > ?, left_key + ?, left_key))
-                                WHERE right_key > ?
-                                  AND left_key < ?'
-                            , $left_key
-                            , $skew_edit
-                            , $left_key
-                            , $skew_tree
-                            , $left_key
-                            , $skew_level
-                            , $left_key
-                            , $skew_edit
-                            , $right_key_near
-                            , $skew_tree
-                            , $right_key_near
-                            , $right_key
-                            );
+        $sql = br()->placeholder( 'UPDATE ' . $this->tableName .
+                                  '   SET right_key = IF(left_key >= ?, right_key + ?, IF(right_key < ?, right_key + ?, right_key))
+                                        , level = IF(left_key >= ?, level + ?, level)
+                                        , left_key = IF(left_key >= ?, left_key + ?, IF(left_key > ?, left_key + ?, left_key))
+                                    WHERE right_key > ?
+                                      AND left_key < ?'
+                                , $left_key
+                                , $skew_edit
+                                , $left_key
+                                , $skew_tree
+                                , $left_key
+                                , $skew_level
+                                , $left_key
+                                , $skew_edit
+                                , $right_key_near
+                                , $skew_tree
+                                , $right_key_near
+                                , $right_key
+                                );
       } else {
-
         $skew_edit = $right_key_near - $left_key + 1 - $skew_tree;
-        br()->db()->runQuery( 'UPDATE ' . $this->tableName .
-                              '   SET left_key = IF(right_key <= ?, left_key + ?, IF(left_key > ?, left_key - ?, left_key))
-                                    , level = IF(right_key <= ?, level + ?, level)
-                                    , right_key = IF(right_key <= ?, right_key + ?, IF(right_key <= ?, right_key - ?, right_key))
-                                WHERE right_key > ?
-                                  AND left_key <= ?'
-                            , $right_key
-                            , $skew_edit
-                            , $right_key
-                            , $skew_tree
-                            , $right_key
-                            , $skew_level
-                            , $right_key
-                            , $skew_edit
-                            , $right_key_near
-                            , $skew_tree
-                            , $left_key
-                            , $right_key_near
-                            );
+        $sql = br()->placeholder( 'UPDATE ' . $this->tableName .
+                                  '   SET left_key = IF(right_key <= ?, left_key + ?, IF(left_key > ?, left_key - ?, left_key))
+                                        , level = IF(right_key <= ?, level + ?, level)
+                                        , right_key = IF(right_key <= ?, right_key + ?, IF(right_key <= ?, right_key - ?, right_key))
+                                    WHERE right_key > ?
+                                      AND left_key <= ?'
+                                , $right_key
+                                , $skew_edit
+                                , $right_key
+                                , $skew_tree
+                                , $right_key
+                                , $skew_level
+                                , $right_key
+                                , $skew_edit
+                                , $right_key_near
+                                , $skew_tree
+                                , $left_key
+                                , $right_key_near
+                                );
       }
+
+      if ($this->rangeField && br($values, $this->rangeField)) {
+        $sql .= br()->placeholder(' AND ' . $this->rangeField . ' = ?', br($values, $this->rangeField));
+      }
+
+      br()->db()->runQuery($sql);
+
     }
   }
 
@@ -301,15 +322,19 @@ class BrNestedSet extends BrObject {
     $left_key  = $values['left_key'];
     $right_key = $values['right_key'];
 
-    br()->db()->runQuery(' UPDATE ' . $this->tableName . '
-                              SET left_key = IF(left_key > ?, left_key - ?, left_key)
-                                , right_key = right_key - ?
-                            WHERE right_key > ?'
-                        , $left_key
-                        , $right_key - $left_key + 1
-                        , $right_key - $left_key + 1
-                        , $right_key
-                        );
+    $sql = br()->placeholder(' UPDATE ' . $this->tableName . '
+                                  SET left_key = IF(left_key > ?, left_key - ?, left_key)
+                                    , right_key = right_key - ?
+                                WHERE right_key > ?'
+                            , $left_key
+                            , $right_key - $left_key + 1
+                            , $right_key - $left_key + 1
+                            , $right_key
+                            );
+    if ($this->rangeField && br($values, $this->rangeField)) {
+      $sql .= br()->placeholder(' AND ' . $this->rangeField . ' = ?', br($values, $this->rangeField));
+    }
+    br()->db()->runQuery($sql);
 
   }
 

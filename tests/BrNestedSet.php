@@ -5,10 +5,11 @@ require_once(dirname(dirname(__DIR__)).'/config.db.php');
 
 br()->importLib('NestedSet');
 
-$nestedSet = new BrNestedSet('br_nested_set');
+$nestedSet = new BrNestedSet('br_nested_set', array('rangeField' => 'range_id'));
 
 // create test table
-br()->db()->runQuery('CREATE TABLE IF NOT EXISTS br_nested_set (id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY, parent_id INTEGER, name VARCHAR(250), left_key INTEGER, right_key INTEGER, level INTEGER, CONSTRAINT fk_br_nested_set_parent FOREIGN KEY (parent_id) REFERENCES br_nested_set (id) ON DELETE CASCADE) ENGINE=InnoDB');
+br()->db()->runQuery('DROP TABLE IF EXISTS br_nested_set');
+br()->db()->runQuery('CREATE TABLE IF NOT EXISTS br_nested_set (id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY, parent_id INTEGER, range_id INTEGER, name VARCHAR(250), left_key INTEGER, right_key INTEGER, level INTEGER, CONSTRAINT fk_br_nested_set_parent FOREIGN KEY (parent_id) REFERENCES br_nested_set (id) ON DELETE CASCADE) ENGINE=InnoDB');
 br()->db()->runQuery('TRUNCATE TABLE br_nested_set');
 
 $inserts = array( 'A.1' => array( 'A.1.1' => array('A.1.1.1' => array(), 'A.1.1.2' => array(), 'A.1.1.3' => array())
@@ -53,7 +54,7 @@ function printTree() {
 
 function inserts($nestedSet, $inserts, $parentId = null) {
   foreach($inserts as $name => $values) {
-    $row = array('name' => $name);
+    $row = array('name' => $name, 'range_id' => 1);
     if ($parentId) {
       $row['parent_id'] = $parentId;
     }
