@@ -569,7 +569,7 @@ class Br extends BrSingleton {
 
         if ($type === '@') {
           foreach ($a as $v) {
-            $repl .= ($repl===''? "" : ",").(preg_match('#^[-]?([1-9][0-9]*|[0-9])($|[.,][0-9]+$)#', $v) ? str_replace(',', '.', $v):"'".$v."'");
+            $repl .= ($repl===''? "" : ",").(preg_match('#^[-]?([1-9][0-9]*|[0-9])($|[.,][0-9]+$)#', $v) ? str_replace(',', '.', $v):"'".addslashes($v)."'");
           }
         } else
         if ($type === '%') {
