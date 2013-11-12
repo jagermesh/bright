@@ -13,6 +13,11 @@
 
   var baseUrl = '';
   var lookFor = ['vendor/jagermesh/bright/js/bright.min.js', 'vendor/jagermesh/bright/js/bright.js', 'bright/js/bright.min.js', 'bright/js/bright.js'];
+
+  if (typeof(window.br.frameworkUrl) != 'undefined') {
+    lookFor.push(window.br.frameworkUrl);
+  }
+
   $('script').each(function() {
     if (baseUrl == '') {
       var src = $(this).attr('src');
