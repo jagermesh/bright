@@ -112,7 +112,7 @@ class BrNestedSet extends BrObject {
 
   }
 
-  function processInsert($values) {
+  function getNodePosition($values) {
 
     $node = array();
 
@@ -139,18 +139,27 @@ class BrNestedSet extends BrObject {
 
     }
 
-    if ($node) {
+    if (!$node) {
 
-    } else
-    if (br($values, $this->parentField)) {
-      $node = br()->db()->getRow('SELECT left_key + 1 left_key, level
-                                    FROM '.$this->tableName.'
-                                   WHERE ' . $this->keyField . ' = ?', $values[$this->parentField]
-                                );
-    } else {
-      $node['left_key'] = 1;
-      $node['level'] = 0;
+      if (br($values, $this->parentField)) {
+        $node = br()->db()->getRow('SELECT left_key + 1 left_key, level
+                                      FROM '.$this->tableName.'
+                                     WHERE ' . $this->keyField . ' = ?', $values[$this->parentField]
+                                  );
+      } else {
+        $node['left_key'] = 1;
+        $node['level'] = 0;
+      }
+
     }
+
+    return $node;
+  }
+
+  function processInsert($values) {
+
+    $node = $this->getNodePosition($values);
+
 
     $sql = br()->placeholder( 'UPDATE ' . $this->tableName . '
                                   SET right_key = right_key + 2
@@ -179,7 +188,7 @@ class BrNestedSet extends BrObject {
 
   function processUpdate($old, $values) {
 
-    if (br($old, $this->parentField) != br($values, $this->parentField) || br($values, 'rightNode') || br($values, 'leftNode')) {
+    if (br($old, $this->parentField) != br($values, $this->parentField) || br($old, $this->orderField) != br($values, $this->orderField)) {
 
       $level        = $old['level'];
       $left_key     = $old['left_key'];
@@ -187,62 +196,9 @@ class BrNestedSet extends BrObject {
       $move_to_node_id = $old[$this->parentField];
       $type = '';
 
-      if (br($old, $this->parentField) != br($values, $this->parentField)) {
-        if (br($values, $this->parentField)) {
-          $parent = br()->db()->getRow('SELECT level, right_key, left_key FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ?', $values[$this->parentField]);
-          $level_up = $parent['level'];
-        } else {
-          $level_up = 0;
-          if(!(br($values, 'rightNode') || br($values, 'leftNode'))) {
-            $type = 'moveToRoot';
-          }
-        }
-
-        if (!$type) {
-          if((br($values, 'rightNode') || br($values, 'leftNode'))) {
-            $type = 'moveInRow';
-          } else {
-            $type = 'generalMove';
-            $move_to_node_id = $values[$this->parentField];
-          }
-        }
-      } else {
-        $level_up = $level-1;
-        $type = 'moveInRow';
-      }
-
-      switch($type) {
-        case 'moveToRoot':
-          $sql = br()->placeholder('SELECT MAX(right_key) FROM ' . $this->tableName);
-          if ($this->rangeField && br($values, $this->rangeField)) {
-            $sql .= br()->placeholder(' WHERE ' . $this->rangeField . ' = ?', br($values, $this->rangeField));
-          }
-          $right_key_near = br()->db()->getValue($sql);
-          break;
-        case 'moveUp':
-          $right_key_near = br()->db()->getValue('SELECT right_key FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ?', $move_to_node_id);
-          break;
-        case 'moveInRow':
-          if (br($values, 'leftNode')) {
-            $move_to_node_id = br($values, 'leftNode');
-          } else {
-            $rightNodeKey = br()->db()->getValue('SELECT left_key FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ? ', br($values, 'rightNode'));
-            $sql = br()->placeholder('SELECT ' . $this->keyField . ' FROM ' . $this->tableName . ' WHERE right_key < ?', $rightNodeKey);
-            if ($this->rangeField && br($values, $this->rangeField)) {
-              $sql .= br()->placeholder(' AND ' . $this->rangeField . ' = ?', br($values, $this->rangeField));
-            }
-            $sql .= ' ORDER BY right_key DESC LIMIT 1';
-            $move_to_node_id = br()->db()->getValue($sql);
-          }
-
-          $res = br()->db()->getRow('SELECT right_key, left_key FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ?', $move_to_node_id);
-          $right_key_near = $res['right_key'];
-
-          break;
-        case 'generalMove':
-          $right_key_near = br()->db()->getValue('SELECT (right_key - 1) AS right_key FROM ' . $this->tableName . ' WHERE ' . $this->keyField . ' = ?', $move_to_node_id);
-          break;
-      }
+      $node = $this->getNodePosition($values);
+      $level_up = $node['level'];
+      $right_key_near = $node['left_key']-1;
 
       $skew_level = $level_up - $level + 1;
       $skew_tree = $right_key - $left_key + 1;

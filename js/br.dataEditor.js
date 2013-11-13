@@ -213,7 +213,7 @@
 
       $('.action-save', _this.container).click(function() {
         if (!$(this).hasClass('disabled')) {
-          _this.editorSave($(this).hasClass('action-close'));
+          _this.editorSave($(this).hasClass('action-close') || _this.container.hasClass('modal'));
         }
       });
 
