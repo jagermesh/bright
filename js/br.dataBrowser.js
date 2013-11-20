@@ -17,6 +17,7 @@
     var pagerSetuped = false;
 
     this.options = options || {};
+    this.options.autoLoad = this.options.autoLoad || false;
     this.options.entity = entity;
     this.options.features = this.options.features || { editor: true };
     this.options.noun = this.options.noun || '';
@@ -454,7 +455,12 @@
 
       setupFilters(true);
 
-      _this.dataSource.after('select', function() {
+      _this.dataSource.after('select', function(result, response) {
+        if (result) {
+          if (_this.options.autoLoad) {
+            _this.skip = _this.skip + response.length;
+          }
+        }
         _this.updatePager();
         showFiltersDesc();
       });
@@ -463,6 +469,21 @@
         var row = $('tr[data-rowid=' + id + ']', $(_this.options.selectors.dataTable));
         row.find('.action-select-row').attr('checked', 'checked');
         row.addClass('row-selected');
+      }
+
+      function checkAutoLoad() {
+        var docsHeight = $(_this.options.selectors.dataTable).height();
+        var docsContainerHeight = $(c(_this.options.selectors.scrollContainer)).height();
+        var scrollTop = $(c(_this.options.selectors.scrollContainer)).scrollTop();
+        if (scrollTop + docsContainerHeight > docsHeight) {
+          _this.dataGrid.loadMore();
+        }
+      }
+
+      if (_this.options.autoLoad) {
+        $(c(_this.options.selectors.scrollContainer)).on('scroll', function() {
+          checkAutoLoad();
+        });
       }
 
       $(c('.action-select-all')).live('click', function() {

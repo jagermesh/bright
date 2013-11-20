@@ -15,7 +15,6 @@
     _this.ctrl = $(ctrl);
     _this.saveCallback = saveCallback;
     _this.editor = null;
-    _this.tooltip = null;
     _this.savedWidth = '';
     _this.click = function(element, e) {
       if (!_this.activated()) {
@@ -26,6 +25,7 @@
         var height = _this.ctrl.innerHeight();
         _this.ctrl.text('');
         _this.editor = $('<input type="text" />');
+        _this.editor.addClass('form-control');
         _this.editor.css('width', '100%');
         _this.editor.css('height', '100%');
         _this.editor.css('min-height', '30px');
@@ -44,7 +44,6 @@
         _this.editor.attr('data-original-title', 'Press [Enter] to save changes, [Esc] to cancel changes.');
         _this.editor.tooltip({placement: 'bottom', trigger: 'focus'});
         _this.editor.tooltip('show');
-        _this.tooltip = _this.editor.data('tooltip');
         $(_this.editor).keyup(function(e) {
           if (e.keyCode == 13) {
             var content = $(this).val();
@@ -65,14 +64,14 @@
       return _this.editor !== null;
     }
     _this.apply = function(content) {
-      _this.tooltip.hide();
+      _this.editor.tooltip('hide');
       _this.editor.remove();
       _this.editor = null;
       _this.ctrl.text(content);
       _this.ctrl.css('width', '');
     }
     _this.cancel = function() {
-      _this.tooltip.hide();
+      _this.editor.tooltip('hide');
       _this.editor.remove();
       _this.editor = null;
       _this.ctrl.text(_this.ctrl.data('original-content'));

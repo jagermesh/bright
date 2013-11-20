@@ -13,7 +13,7 @@
 
     var _this = this;
 
-    this.selector = $(selector);
+    this.selector = selector;
     this.options = options || {};
     this.options.templates = this.options.templates || {};
     this.options.templates.row = $(rowTemplate).html();
@@ -78,11 +78,11 @@
     }
 
     this.prepend = function(row) {
-      return _this.selector.prepend(row);
+      return $(_this.selector).prepend(row);
     }
 
     this.append = function(row) {
-      return _this.selector.append(row);
+      return $(_this.selector).append(row);
     }
 
     this.addDataRow = function(row) {
@@ -111,7 +111,7 @@
     }
 
     this.refreshRow = function(data) {
-      var row = _this.selector.find('[data-rowid=' + data.rowid + ']');
+      var row = $(_this.selector).find('[data-rowid=' + data.rowid + ']');
       if (row.length == 1) {
         var ctrl = _this.renderRow(data);
         var s = ctrl.html();
@@ -166,13 +166,13 @@
     this.init = function() {
 
       function isGridEmpty() {
-        return (_this.selector.find('[data-rowid]').length === 0);
+        return ($(_this.selector).find('[data-rowid]').length === 0);
       }
 
       function checkForEmptyGrid() {
         if (isGridEmpty()) {
           _this.events.triggerBefore('nodata');
-          _this.selector.html(_this.options.templates.noData);
+          $(_this.selector).html(_this.options.templates.noData);
           _this.events.trigger('nodata');
           _this.events.triggerAfter('nodata');
         }
@@ -234,13 +234,13 @@
         _this.dataSource.before('select', function(request, options) {
           options.order = _this.getOrder();
           if (!loadingMoreData) {
-            _this.selector.html('');
-            _this.selector.addClass('progress-big');
+            // $(_this.selector).html('');
+            // $(_this.selector).addClass('progress-big');
           }
         });
 
         _this.dataSource.after('select', function(result, response, request) {
-          _this.selector.removeClass('progress-big');
+          $(_this.selector).removeClass('progress-big');
           if (result) {
             noMoreData = (response.length == 0);
             _this.render(response, loadingMoreData);
@@ -250,7 +250,7 @@
         _this.dataSource.after('insert', function(success, response) {
           if (success) {
             if (isGridEmpty()) {
-              _this.selector.html(''); // to remove No-Data box
+              $(_this.selector).html(''); // to remove No-Data box
             }
             _this.addDataRow(response);
           }
@@ -265,7 +265,7 @@
         });
 
         _this.dataSource.on('remove', function(rowid) {
-          var row = _this.selector.find('[data-rowid=' + rowid + ']');
+          var row = $(_this.selector).find('[data-rowid=' + rowid + ']');
           if (row.length > 0) {
             if (br.isTouchScreen()) {
               _this.events.triggerBefore('remove', rowid);
@@ -288,7 +288,7 @@
         });
 
         if (this.options.selectors.remove) {
-          _this.selector.on('click', this.options.selectors.remove, function() {
+          $(_this.selector).on('click', this.options.selectors.remove, function() {
             var row = $(this).closest('[data-rowid]');
             if (row.length > 0) {
               var rowid = $(row).attr('data-rowid');
@@ -309,11 +309,12 @@
     }
 
     this.render = function(data, loadingMoreData) {
+      var $selector = $(_this.selector);
       _this.events.triggerBefore('change', data, 'render');
       if (data) {
         var i;
         if (!loadingMoreData) {
-          _this.selector.html('');
+          $selector.html('');
         }
         if (_this.options.freeGrid) {
           if (data.headers) {
@@ -334,12 +335,12 @@
           $(_this.options.selectors.footer).html('');
           if (data.rows) {
             if (data.rows.length === 0) {
-              _this.selector.html(this.options.templates.noData);
+              $selector.html(this.options.templates.noData);
             } else {
               for (var i in data.rows) {
                 if (data.rows[i]) {
                   if (data.rows[i].row) {
-                    _this.selector.append(_this.renderRow(data.rows[i].row));
+                    $selector.append(_this.renderRow(data.rows[i].row));
                   }
                   if (data.rows[i].header) {
                     $(_this.options.selectors.header).append(_this.renderHeader(data.rows[i].header));
@@ -351,7 +352,7 @@
               }
             }
           } else {
-            _this.selector.html(this.options.templates.noData);
+            $selector.html(this.options.templates.noData);
           }
         } else {
           if (data && (data.length > 0)) {
@@ -380,20 +381,20 @@
                       tmp.__groupBy['__field'] = groupFieldName;
                       tmp.__groupBy['__value'] = data[i][groupFieldName];
                       tmp.__groupBy[groupFieldName] = true;
-                      _this.selector.append(_this.renderGroupRow(tmp));
+                      $selector.append(_this.renderGroupRow(tmp));
                     }
                   }
                 }
-                _this.selector.append(_this.renderRow(data[i]));
+                $selector.append(_this.renderRow(data[i]));
               }
             }
           } else
           if (!loadingMoreData) {
-            _this.selector.html(this.options.templates.noData);
+            $selector.html(this.options.templates.noData);
           }
         }
       } else {
-        _this.selector.html(this.options.templates.noData);
+        $selector.html(this.options.templates.noData);
       }
       _this.events.trigger('change', data, 'render');
       _this.events.triggerAfter('change', data, 'render');

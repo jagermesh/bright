@@ -1378,7 +1378,7 @@
 
     var _this = this;
 
-    this.selector = $(selector);
+    this.selector = selector;
     this.options = options || {};
     this.options.templates = this.options.templates || {};
     this.options.templates.row = $(rowTemplate).html();
@@ -1443,11 +1443,11 @@
     }
 
     this.prepend = function(row) {
-      return _this.selector.prepend(row);
+      return $(_this.selector).prepend(row);
     }
 
     this.append = function(row) {
-      return _this.selector.append(row);
+      return $(_this.selector).append(row);
     }
 
     this.addDataRow = function(row) {
@@ -1476,7 +1476,7 @@
     }
 
     this.refreshRow = function(data) {
-      var row = _this.selector.find('[data-rowid=' + data.rowid + ']');
+      var row = $(_this.selector).find('[data-rowid=' + data.rowid + ']');
       if (row.length == 1) {
         var ctrl = _this.renderRow(data);
         var s = ctrl.html();
@@ -1531,13 +1531,13 @@
     this.init = function() {
 
       function isGridEmpty() {
-        return (_this.selector.find('[data-rowid]').length === 0);
+        return ($(_this.selector).find('[data-rowid]').length === 0);
       }
 
       function checkForEmptyGrid() {
         if (isGridEmpty()) {
           _this.events.triggerBefore('nodata');
-          _this.selector.html(_this.options.templates.noData);
+          $(_this.selector).html(_this.options.templates.noData);
           _this.events.trigger('nodata');
           _this.events.triggerAfter('nodata');
         }
@@ -1599,13 +1599,13 @@
         _this.dataSource.before('select', function(request, options) {
           options.order = _this.getOrder();
           if (!loadingMoreData) {
-            _this.selector.html('');
-            _this.selector.addClass('progress-big');
+            // $(_this.selector).html('');
+            // $(_this.selector).addClass('progress-big');
           }
         });
 
         _this.dataSource.after('select', function(result, response, request) {
-          _this.selector.removeClass('progress-big');
+          $(_this.selector).removeClass('progress-big');
           if (result) {
             noMoreData = (response.length == 0);
             _this.render(response, loadingMoreData);
@@ -1615,7 +1615,7 @@
         _this.dataSource.after('insert', function(success, response) {
           if (success) {
             if (isGridEmpty()) {
-              _this.selector.html(''); // to remove No-Data box
+              $(_this.selector).html(''); // to remove No-Data box
             }
             _this.addDataRow(response);
           }
@@ -1630,7 +1630,7 @@
         });
 
         _this.dataSource.on('remove', function(rowid) {
-          var row = _this.selector.find('[data-rowid=' + rowid + ']');
+          var row = $(_this.selector).find('[data-rowid=' + rowid + ']');
           if (row.length > 0) {
             if (br.isTouchScreen()) {
               _this.events.triggerBefore('remove', rowid);
@@ -1653,7 +1653,7 @@
         });
 
         if (this.options.selectors.remove) {
-          _this.selector.on('click', this.options.selectors.remove, function() {
+          $(_this.selector).on('click', this.options.selectors.remove, function() {
             var row = $(this).closest('[data-rowid]');
             if (row.length > 0) {
               var rowid = $(row).attr('data-rowid');
@@ -1674,11 +1674,12 @@
     }
 
     this.render = function(data, loadingMoreData) {
+      var $selector = $(_this.selector);
       _this.events.triggerBefore('change', data, 'render');
       if (data) {
         var i;
         if (!loadingMoreData) {
-          _this.selector.html('');
+          $selector.html('');
         }
         if (_this.options.freeGrid) {
           if (data.headers) {
@@ -1699,12 +1700,12 @@
           $(_this.options.selectors.footer).html('');
           if (data.rows) {
             if (data.rows.length === 0) {
-              _this.selector.html(this.options.templates.noData);
+              $selector.html(this.options.templates.noData);
             } else {
               for (var i in data.rows) {
                 if (data.rows[i]) {
                   if (data.rows[i].row) {
-                    _this.selector.append(_this.renderRow(data.rows[i].row));
+                    $selector.append(_this.renderRow(data.rows[i].row));
                   }
                   if (data.rows[i].header) {
                     $(_this.options.selectors.header).append(_this.renderHeader(data.rows[i].header));
@@ -1716,7 +1717,7 @@
               }
             }
           } else {
-            _this.selector.html(this.options.templates.noData);
+            $selector.html(this.options.templates.noData);
           }
         } else {
           if (data && (data.length > 0)) {
@@ -1745,20 +1746,20 @@
                       tmp.__groupBy['__field'] = groupFieldName;
                       tmp.__groupBy['__value'] = data[i][groupFieldName];
                       tmp.__groupBy[groupFieldName] = true;
-                      _this.selector.append(_this.renderGroupRow(tmp));
+                      $selector.append(_this.renderGroupRow(tmp));
                     }
                   }
                 }
-                _this.selector.append(_this.renderRow(data[i]));
+                $selector.append(_this.renderRow(data[i]));
               }
             }
           } else
           if (!loadingMoreData) {
-            _this.selector.html(this.options.templates.noData);
+            $selector.html(this.options.templates.noData);
           }
         }
       } else {
-        _this.selector.html(this.options.templates.noData);
+        $selector.html(this.options.templates.noData);
       }
       _this.events.trigger('change', data, 'render');
       _this.events.triggerAfter('change', data, 'render');
@@ -1985,7 +1986,6 @@
     _this.ctrl = $(ctrl);
     _this.saveCallback = saveCallback;
     _this.editor = null;
-    _this.tooltip = null;
     _this.savedWidth = '';
     _this.click = function(element, e) {
       if (!_this.activated()) {
@@ -1996,6 +1996,7 @@
         var height = _this.ctrl.innerHeight();
         _this.ctrl.text('');
         _this.editor = $('<input type="text" />');
+        _this.editor.addClass('form-control');
         _this.editor.css('width', '100%');
         _this.editor.css('height', '100%');
         _this.editor.css('min-height', '30px');
@@ -2014,7 +2015,6 @@
         _this.editor.attr('data-original-title', 'Press [Enter] to save changes, [Esc] to cancel changes.');
         _this.editor.tooltip({placement: 'bottom', trigger: 'focus'});
         _this.editor.tooltip('show');
-        _this.tooltip = _this.editor.data('tooltip');
         $(_this.editor).keyup(function(e) {
           if (e.keyCode == 13) {
             var content = $(this).val();
@@ -2035,14 +2035,14 @@
       return _this.editor !== null;
     }
     _this.apply = function(content) {
-      _this.tooltip.hide();
+      _this.editor.tooltip('hide');
       _this.editor.remove();
       _this.editor = null;
       _this.ctrl.text(content);
       _this.ctrl.css('width', '');
     }
     _this.cancel = function() {
-      _this.tooltip.hide();
+      _this.editor.tooltip('hide');
       _this.editor.remove();
       _this.editor = null;
       _this.ctrl.text(_this.ctrl.data('original-content'));
@@ -2149,13 +2149,16 @@
       buttons  = null;
     }
     params = params || {};
+    params.cancelTitle = params.cancelTitle || 'Cancel';
     var s = '<div class="modal';
     if (params.cssClass) {
       s = s + ' ' + params.cssClass;
     }
 
     s = s + '">'+
-            '<div class="modal-header"><h3>' + title + '</h3></div>' +
+            '<div class="modal-dialog">' +
+            '<div class="modal-content">' +
+            '<div class="modal-header"><h3 class="modal-title">' + title + '</h3></div>' +
             '<div class="modal-body">' + message + '</div>' +
             '<div class="modal-footer">';
     if (params.showDontAskMeAgain) {
@@ -2165,45 +2168,48 @@
                 '</label>';
     }
     if (br.isEmpty(buttons)) {
-      s = s + '<a href="javascript:;" class="btn btn-primary action-confirm-close" rel="confirm">Yes</a>';
+      s = s + '<a href="javascript:;" class="btn btn-primary action-confirm-close" rel="confirm">&nbsp;Yes&nbsp;</a>';
     } else {
       for(var i in buttons) {
-        s = s + '<a href="javascript:;" class="btn action-confirm-close" rel="' + i + '">' + buttons[i] + '</a>';
+        s = s + '<a href="javascript:;" class="btn btn-default action-confirm-close" rel="' + i + '">&nbsp;' + buttons[i] + '&nbsp;</a>';
       }
     }
-    s = s + '<a href="javascript:;" class="btn action-confirm-cancel">&nbsp;Cancel&nbsp;</a>';
-    s = s + '</div></div>';
+    s = s + '<a href="javascript:;" class="btn btn-default action-confirm-cancel">&nbsp;' + params.cancelTitle + '&nbsp;</a>';
+    s = s + '</div></div></div></div>';
     var dialog = $(s);
-    $(dialog)
-      .on('show', function(e) {
-        $(this).find('.action-confirm-close').click(function() {
-          if (params.showDontAskMeAgain) {
-            callback.call(dialog, $(this).attr('rel'), $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked'));
-          } else {
-            callback.call(dialog, $(this).attr('rel'));
-          }
-          $(dialog).modal('hide');
-        });
-        $(this).find('.action-confirm-cancel').click(function() {
-          if (params.onCancel) {
-            params.onCancel.call(dialog);
-          }
-          $(dialog).modal('hide');
-        });
-      })
-      .on('hide', function(e) {
-        dialog.remove();
+    var onShow = function(e) {
+      $(this).find('.action-confirm-close').click(function() {
+        if (params.showDontAskMeAgain) {
+          callback.call(dialog, $(this).attr('rel'), $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked'));
+        } else {
+          callback.call(dialog, $(this).attr('rel'));
+        }
+        $(dialog).modal('hide');
       });
+      $(this).find('.action-confirm-cancel').click(function() {
+        if (params.onCancel) {
+          params.onCancel.call(dialog);
+        }
+        $(dialog).modal('hide');
+      });
+    };
+    var onHide = function(e) {
+      dialog.remove();
+    };
+    $(dialog).on('show.bs.modal', onShow);
+    $(dialog).on('hide.bs.modal', onHide);
     $(dialog).modal();
   }
 
   window.br.error = function(title, message, callback) {
-    var s = '<div class="modal">';
+    var s = '<div class="modal">' +
+            '<div class="modal-dialog">' +
+            '<div class="modal-content">';
     if (title !== '') {
-      s = s + '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>' + title + '</h3></div>';
+      s = s + '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>';
     }
     s = s + '<div class="modal-body">' + message + '</div>' +
-            '<div class="modal-footer" style="background-color:red;"><a href="javascript:;" class="btn" data-dismiss="modal">&nbsp;Dismiss&nbsp;</a></div></div>';
+            '<div class="modal-footer" style="background-color:red;"><a href="javascript:;" class="btn btn-default" data-dismiss="modal">&nbsp;Dismiss&nbsp;</a></div></div></div></div>';
     var dialog = $(s);
     $(dialog)
       .on('hide', function(e) {
@@ -2216,12 +2222,14 @@
   }
 
   window.br.inform = function(title, message, callback) {
-    var s = '<div class="modal">';
+    var s = '<div class="modal">' +
+            '<div class="modal-dialog">' +
+            '<div class="modal-content">';
     if (title !== '') {
-      s = s + '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>' + title + '</h3></div>';
+      s = s + '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>';
     }
     s = s + '<div class="modal-body">' + message + '</div>' +
-            '<div class="modal-footer"><a href="javascript:;" class="btn" data-dismiss="modal">&nbsp;Dismiss&nbsp;</a></div></div>';
+            '<div class="modal-footer"><a href="javascript:;" class="btn btn-default" data-dismiss="modal">&nbsp;Dismiss&nbsp;</a></div></div></div></div>';
     var dialog = $(s);
     $(dialog)
       .on('hide', function(e) {
@@ -2237,6 +2245,8 @@
 
     options = options || {};
     var s = '<div class="modal">'+
+            '<div class="modal-dialog">' +
+            '<div class="modal-content">' +
             '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>' + title + '</h3></div>' +
             '<div class="modal-body">';
 
@@ -2265,8 +2275,8 @@
     s = s + '</div>' +
             '<div class="modal-footer">';
     s = s + '<a href="javascript:;" class="btn btn-primary action-confirm-close" rel="confirm" >Ok</a>';
-    s = s + '<a href="javascript:;" class="btn" data-dismiss="modal">&nbsp;Cancel&nbsp;</a>';
-    s = s + '</div></div>';
+    s = s + '<a href="javascript:;" class="btn btn-default" data-dismiss="modal">&nbsp;Cancel&nbsp;</a>';
+    s = s + '</div></div></div></div>';
     var dialog = $(s);
     $(dialog)
       .on('shown', function(e) {

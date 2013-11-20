@@ -200,7 +200,11 @@ class BrLog extends BrSingleton {
 
   public function logException($e) {
 
-    $isFatal = (!($e instanceof BrErrorException) || $e->IsFatal());
+    if ($e instanceof BrErrorException) {
+      $isFatal = $e->IsFatal();
+    } else {
+      $isFatal = true;
+    }
     $type = (($e instanceof BrErrorException) ? $e->getType() : 'Error');
     $errorMessage = $e->getMessage();
     $errorInfo = '';
@@ -209,8 +213,11 @@ class BrLog extends BrSingleton {
       $errorInfo = $matches[2];
       $errorMessage = str_replace('[INFO:'.$info_name.']'.$errorInfo.'[/INFO]', '', $errorMessage);
     }
-
-    $errorLog = ($isFatal ? 'FATAL ':' ') . 'ERROR: ' . $errorMessage;
+    $errorLog = '';
+    if ($isFatal) {
+      $errorLog .= '[FATAL] ';
+    }
+    $errorLog .= $type . ': ' . $errorMessage;
     $errorLog .= "\n" . '  ' . $e->getFile() . ', line ' . $e->getLine();
     if ($errorInfo) {
       $errorLog .= "\n" . '  ' . $errorInfo;

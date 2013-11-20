@@ -75,13 +75,16 @@
       buttons  = null;
     }
     params = params || {};
+    params.cancelTitle = params.cancelTitle || 'Cancel';
     var s = '<div class="modal';
     if (params.cssClass) {
       s = s + ' ' + params.cssClass;
     }
 
     s = s + '">'+
-            '<div class="modal-header"><h3>' + title + '</h3></div>' +
+            '<div class="modal-dialog">' +
+            '<div class="modal-content">' +
+            '<div class="modal-header"><h3 class="modal-title">' + title + '</h3></div>' +
             '<div class="modal-body">' + message + '</div>' +
             '<div class="modal-footer">';
     if (params.showDontAskMeAgain) {
@@ -91,45 +94,48 @@
                 '</label>';
     }
     if (br.isEmpty(buttons)) {
-      s = s + '<a href="javascript:;" class="btn btn-primary action-confirm-close" rel="confirm">Yes</a>';
+      s = s + '<a href="javascript:;" class="btn btn-primary action-confirm-close" rel="confirm">&nbsp;Yes&nbsp;</a>';
     } else {
       for(var i in buttons) {
-        s = s + '<a href="javascript:;" class="btn action-confirm-close" rel="' + i + '">' + buttons[i] + '</a>';
+        s = s + '<a href="javascript:;" class="btn btn-default action-confirm-close" rel="' + i + '">&nbsp;' + buttons[i] + '&nbsp;</a>';
       }
     }
-    s = s + '<a href="javascript:;" class="btn action-confirm-cancel">&nbsp;Cancel&nbsp;</a>';
-    s = s + '</div></div>';
+    s = s + '<a href="javascript:;" class="btn btn-default action-confirm-cancel">&nbsp;' + params.cancelTitle + '&nbsp;</a>';
+    s = s + '</div></div></div></div>';
     var dialog = $(s);
-    $(dialog)
-      .on('show', function(e) {
-        $(this).find('.action-confirm-close').click(function() {
-          if (params.showDontAskMeAgain) {
-            callback.call(dialog, $(this).attr('rel'), $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked'));
-          } else {
-            callback.call(dialog, $(this).attr('rel'));
-          }
-          $(dialog).modal('hide');
-        });
-        $(this).find('.action-confirm-cancel').click(function() {
-          if (params.onCancel) {
-            params.onCancel.call(dialog);
-          }
-          $(dialog).modal('hide');
-        });
-      })
-      .on('hide', function(e) {
-        dialog.remove();
+    var onShow = function(e) {
+      $(this).find('.action-confirm-close').click(function() {
+        if (params.showDontAskMeAgain) {
+          callback.call(dialog, $(this).attr('rel'), $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked'));
+        } else {
+          callback.call(dialog, $(this).attr('rel'));
+        }
+        $(dialog).modal('hide');
       });
+      $(this).find('.action-confirm-cancel').click(function() {
+        if (params.onCancel) {
+          params.onCancel.call(dialog);
+        }
+        $(dialog).modal('hide');
+      });
+    };
+    var onHide = function(e) {
+      dialog.remove();
+    };
+    $(dialog).on('show.bs.modal', onShow);
+    $(dialog).on('hide.bs.modal', onHide);
     $(dialog).modal();
   }
 
   window.br.error = function(title, message, callback) {
-    var s = '<div class="modal">';
+    var s = '<div class="modal">' +
+            '<div class="modal-dialog">' +
+            '<div class="modal-content">';
     if (title !== '') {
-      s = s + '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>' + title + '</h3></div>';
+      s = s + '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>';
     }
     s = s + '<div class="modal-body">' + message + '</div>' +
-            '<div class="modal-footer" style="background-color:red;"><a href="javascript:;" class="btn" data-dismiss="modal">&nbsp;Dismiss&nbsp;</a></div></div>';
+            '<div class="modal-footer" style="background-color:red;"><a href="javascript:;" class="btn btn-default" data-dismiss="modal">&nbsp;Dismiss&nbsp;</a></div></div></div></div>';
     var dialog = $(s);
     $(dialog)
       .on('hide', function(e) {
@@ -142,12 +148,14 @@
   }
 
   window.br.inform = function(title, message, callback) {
-    var s = '<div class="modal">';
+    var s = '<div class="modal">' +
+            '<div class="modal-dialog">' +
+            '<div class="modal-content">';
     if (title !== '') {
-      s = s + '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>' + title + '</h3></div>';
+      s = s + '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>';
     }
     s = s + '<div class="modal-body">' + message + '</div>' +
-            '<div class="modal-footer"><a href="javascript:;" class="btn" data-dismiss="modal">&nbsp;Dismiss&nbsp;</a></div></div>';
+            '<div class="modal-footer"><a href="javascript:;" class="btn btn-default" data-dismiss="modal">&nbsp;Dismiss&nbsp;</a></div></div></div></div>';
     var dialog = $(s);
     $(dialog)
       .on('hide', function(e) {
@@ -163,6 +171,8 @@
 
     options = options || {};
     var s = '<div class="modal">'+
+            '<div class="modal-dialog">' +
+            '<div class="modal-content">' +
             '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>' + title + '</h3></div>' +
             '<div class="modal-body">';
 
@@ -191,8 +201,8 @@
     s = s + '</div>' +
             '<div class="modal-footer">';
     s = s + '<a href="javascript:;" class="btn btn-primary action-confirm-close" rel="confirm" >Ok</a>';
-    s = s + '<a href="javascript:;" class="btn" data-dismiss="modal">&nbsp;Cancel&nbsp;</a>';
-    s = s + '</div></div>';
+    s = s + '<a href="javascript:;" class="btn btn-default" data-dismiss="modal">&nbsp;Cancel&nbsp;</a>';
+    s = s + '</div></div></div></div>';
     var dialog = $(s);
     $(dialog)
       .on('shown', function(e) {

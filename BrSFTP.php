@@ -214,6 +214,12 @@ class BrSFTP extends BrObject {
 
   public function makeDir($name) {
 
+    if ($name[0] == '/') {
+
+    } else {
+      $name = $this->currentDirectory . $name;
+    }
+
     return $this->connection->mkdir($name);
 
   }
