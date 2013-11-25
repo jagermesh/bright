@@ -11,6 +11,83 @@
 require_once(__DIR__.'/BrObject.php');
 require_once(__DIR__.'/BrException.php');
 
+class BrGenericDataSourceRow {
+
+  private $dataSource;
+  private $data;
+  private $rowid;
+
+  public function __construct(&$dataSource, $data) {
+
+    $this->dataSource = $dataSource;
+    $this->data = $data;
+    $this->rowid = $data['rowid'];
+
+  }
+
+  public function remove() {
+
+    return $this->dataSource->remove($this->rowid);
+
+  }
+
+  public function update($data) {
+
+    return $this->dataSource->update($this->rowid, $data);
+
+  }
+
+}
+
+class BrGenericDataSourceCursor implements Iterator {
+
+  private $dataSource;
+  private $data;
+  private $position;
+
+  public function __construct(&$dataSource, $data) {
+
+    $this->dataSource = $dataSource;
+    $this->data = array();
+    foreach($data as $row) {
+      $this->data[] = new BrGenericDataSourceRow($this->dataSource, $row);
+    }
+    $this->position = 0;
+
+  }
+
+  function current() {
+
+    return $this->data[$this->position];
+
+  }
+
+  function key() {
+
+    return $this->position;
+
+  }
+
+  function next() {
+
+     ++$this->position;;
+
+  }
+
+  function rewind() {
+
+    $this->position = 0;
+
+  }
+
+  function valid() {
+
+    return isset($this->data[$this->position]);
+
+  }
+
+}
+
 class BrGenericDataSource extends BrObject {
 
   protected $defaultOrder;
@@ -105,7 +182,6 @@ class BrGenericDataSource extends BrObject {
 
   }
 
-
   function selectOne($filter = array(), $fields = array(), $order = array(), $options = array()) {
 
     if (!is_array($filter)) {
@@ -133,6 +209,14 @@ class BrGenericDataSource extends BrObject {
   function select($filter = array(), $fields = array(), $order = array(), $options = array()) {
 
     return $this->internalSelect($filter, $fields, $order, $options);
+
+  }
+
+  function find($filter = array(), $fields = array(), $order = array(), $options = array()) {
+
+    $data = $this->internalSelect($filter, $fields, $order, $options);
+
+    return new BrGenericDataSourceCursor($this, $data);
 
   }
 

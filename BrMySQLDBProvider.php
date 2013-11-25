@@ -1185,7 +1185,13 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   function toDateTime($date) {
 
-    return date("Y-m-d H:i:s", $date);
+    return date('Y-m-d H:i:s', $date);
+
+  }
+
+  function toDate($date) {
+
+    return date('Y-m-d', $date);
 
   }
 

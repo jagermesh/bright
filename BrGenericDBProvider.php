@@ -18,6 +18,12 @@ class BrGenericDBProvider extends BrObject {
 
   }
 
+  function today() {
+
+    return $this->toDate(time());
+
+  }
+
   function startTransaction() {
 
   }
