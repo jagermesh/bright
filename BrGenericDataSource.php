@@ -49,6 +49,63 @@ class BrGenericDataSource extends BrObject {
 
   }
 
+  function selectOneCached($filter = array(), $fields = array(), $order = array(), $options = array()) {
+
+    if (!is_array($filter)) {
+      $filter = array(br()->db()->rowidField() => br()->db()->rowid($filter));
+    }
+
+    $options['limit'] = 1;
+
+    $cacheTag = 'DataSource:selectOneCached:' . md5(serialize($filter) . serialize($fields) . serialize($order) . serialize($options));
+
+    if (br()->cache()->exists($cacheTag)) {
+      $result = br()->cache()->get($cacheTag);
+    } else {
+      if ($result = $this->select($filter, $fields, $order, $options)) {
+        $result = $result[0];
+      }
+      br()->cache()->set($cacheTag, $result);
+    }
+
+    return $result;
+
+  }
+
+  function selectCached($filter = array(), $fields = array(), $order = array(), $options = array()) {
+
+    $cacheTag = 'DataSource:selectCached:' . md5(serialize($filter) . serialize($fields) . serialize($order) . serialize($options));
+
+    if (br()->cache()->exists($cacheTag)) {
+      $result = br()->cache()->get($cacheTag);
+    } else {
+      $result = $this->select($filter = array(), $fields = array(), $order = array(), $options = array());
+      br()->cache()->set($cacheTag, $result);
+    }
+
+    return $result;
+
+  }
+
+  function selectCountCached($filter = array(), $fields = array(), $order = array(), $options = array()) {
+
+    $options['result'] = 'count';
+
+    $cacheTag = 'DataSource:selectCountCached:' . md5(serialize($filter) . serialize($fields) . serialize($order) . serialize($options));
+
+    if (br()->cache()->exists($cacheTag)) {
+      $result = br()->cache()->get($cacheTag);
+    } else {
+      $result = $this->select($filter = array(), $fields = array(), $order = array(), $options = array());
+      br()->cache()->set($cacheTag, $result);
+    }
+
+    return $result;
+
+
+  }
+
+
   function selectOne($filter = array(), $fields = array(), $order = array(), $options = array()) {
 
     if (!is_array($filter)) {
@@ -74,6 +131,12 @@ class BrGenericDataSource extends BrObject {
   }
 
   function select($filter = array(), $fields = array(), $order = array(), $options = array()) {
+
+    return $this->internalSelect($filter, $fields, $order, $options);
+
+  }
+
+  protected function internalSelect($filter = array(), $fields = array(), $order = array(), $options = array()) {
 
     $countOnly = (br($options, 'result') == 'count');
     $limit = $this->limit = br($options, 'limit');

@@ -225,6 +225,7 @@
           }
         });
         _this.setOrderAndGroup(tmp);
+        _this.events.triggerBefore('changeOrder', tmp);
         _this.dataSource.select();
       });
 

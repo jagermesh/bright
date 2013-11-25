@@ -542,6 +542,10 @@
         }
       });
 
+      _this.dataGrid.before('changeOrder', function() {
+        _this.resetPager();
+      });
+
       _this.dataGrid.on('change', function() {
         $(c('.action-select-all')).removeAttr('checked');
         if ($(c('.action-clear-selection')).length > 0) {
@@ -673,6 +677,7 @@
           if (success) {
             _this.recordsAmount = result;
             internalUpdatePager();
+            _this.events.triggerAfter('recordsCountRetrieved', result)
           } else {
             $(c('.pager-control')).hide();
           }
