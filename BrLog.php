@@ -55,7 +55,7 @@ class BrLog extends BrSingleton {
 
   }
 
-  private function writeToAdapters($message, $group = 'MSG') {
+  private function writeToAdapters($message, $group = 'MSG', $tagline = '') {
 
     if ($this->isEnabled()) {
 
@@ -76,13 +76,13 @@ class BrLog extends BrSingleton {
       foreach($this->adapters as $adapter) {
         switch($group) {
           case 'DBG':
-            $adapter->writeDebug($logText);
+            $adapter->writeDebug($logText, $tagline);
             break;
           case 'ERR':
-            $adapter->writeError($logText);
+            $adapter->writeError($logText, $tagline);
             break;
           default:
-            $adapter->writeMessage($logText, $group ? $group : 'MSG');
+            $adapter->writeMessage($logText, $group ? $group : 'MSG', $tagline);
             break;
         }
       }
@@ -124,9 +124,9 @@ class BrLog extends BrSingleton {
 
   }
 
-  function writeLn($message = '', $group = 'MSG') {
+  function writeLn($message = '', $group = 'MSG', $tagline = '') {
 
-    $this->writeToAdapters($message, $group);
+    $this->writeToAdapters($message, $group, $tagline);
 
   }
 
@@ -236,7 +236,7 @@ class BrLog extends BrSingleton {
       $idx++;
     }
 
-    $this->writeLn($errorLog, 'ERR');
+    $this->writeLn($errorLog, 'ERR', $errorMessage);
 
   }
 
@@ -245,7 +245,7 @@ class BrLog extends BrSingleton {
     if ($object) {
       $message = get_class($object) . ' :: ' . $message;
     }
-    $this->writeToAdapters($message, 'ERR', true);
+    $this->writeToAdapters($message, 'ERR');
 
   }
 
@@ -279,12 +279,11 @@ class BrLog extends BrSingleton {
 
     $args = func_get_args();
     foreach($args as $var) {
-      $this->writeToAdapters($var, 'ERR', true);
+      $this->writeToAdapters($var, 'DBG');
 
       $message = print_r($var, true);
       if (br()->isConsoleMode()) {
-        // echo($message);
-        // echo("\n");
+
       } else
       if (br()->request()->isLocalHost()) {
         include(__DIR__.'/templates/DebugMessage.html');
