@@ -20,10 +20,11 @@ class BrSession extends BrSingleton {
 
     } else {
 
-      try {
-        session_cache_limiter('none');
-        session_start();
-      } catch (Exception $e) {
+      session_cache_limiter('none');
+
+      if (@session_start()) {
+
+      } else {
         if (br()->isConsoleMode()) {
           global $_SESSION;
           $_SESSION = array();
