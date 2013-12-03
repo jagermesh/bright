@@ -104,7 +104,7 @@
           if (_this.refreshRow(response)) {
 
           } else {
-
+            _this.addDataRow(response);
           }
         }
       }, {disableEvents: true});
