@@ -2,7 +2,7 @@
 
 class BrJobStarter {
 
-  function run() {
+  function run($dirName = null) {
 
     if (!br()->isConsoleMode()) { br()->panic('Console mode only'); }
 
@@ -12,7 +12,14 @@ class BrJobStarter {
     $arguments = br()->getCommandLineArguments();
 
     if ($classFile = @$arguments[0]) {
-      if ($className = @$arguments[1]) {
+      if ($classFile[0] != '/') {
+        $classFile = $dirName . '/' . $classFile;
+      }
+      $className = @$arguments[1];
+      if (!$className) {
+        $className = br()->fs()->fileNameOnly($classFile);
+      }
+      if ($className) {
         array_splice($arguments, 0, 2);
         require_once($classFile);
         $job = new $className();
