@@ -14,6 +14,7 @@ class BrCSVParser extends BrObject {
 
   private $delimiter = ',';
   private $enclosure = '"';
+  private $enclosureArr = array('"',"'");  
 
   function setDelimiter($delimiter) {
 
@@ -86,6 +87,12 @@ class BrCSVParser extends BrObject {
         }
 
         $enclosures = array( "\\" . $this->enclosure, $this->enclosure . $this->enclosure);
+        //------------------
+        $enclosuresArr = array();
+        foreach ($this->enclosureArr as $enclosure) {
+          $enclosuresArr[] = array( "\\" . $enclosure, $enclosure . $enclosure);
+        }
+        //------------------
 
         while (($line = fgets($handle)) !== FALSE) {
           if ($encoding) {
@@ -108,13 +115,26 @@ class BrCSVParser extends BrObject {
           // remove The character is "\xa0" (i.e. 160), which is the standard Unicode translation for &nbsp;
           $line = str_replace(chr(160), ' ', $line);
           $line = trim($line);
-          $line = str_getcsv($line, $this->delimiter, $this->enclosure);
+          //------------------
+          $ind = 0;
+          $tcount = 0;
+          foreach ($this->enclosureArr as $key => $enclosure) {
+            if ($tcount < substr_count($line, $enclosure)) {
+              $tcount = substr_count($line, $enclosure);
+              $ind = $key;
+            }
+          }          
+          //------------------
+
+          // $line = str_getcsv($line, $this->delimiter, $this->enclosure);
+          $line = str_getcsv($line, $this->delimiter, $this->enclosureArr[$ind]);
           if (count($line) == 1) {
             // jagermesh for files like this:
             // "School Name,""Course ID"",Class ID,Class Name,School Year,Teacher ID"
             // "NEMO VISTA ELEMENTARY,200110,200110-1-0,""LANG ART K KIRTLAND, REGINA Per 01"",2013,1155"
             if (strpos($line[0], $this->delimiter) !== false) {
-              $line = str_getcsv($line[0], $this->delimiter, $this->enclosure);
+              // $line = str_getcsv($line[0], $this->delimiter, $this->enclosure);
+              $line = str_getcsv($line[0], $this->delimiter, $this->enclosureArr[$ind]);
             }
           }
           $values = array();
@@ -122,7 +142,8 @@ class BrCSVParser extends BrObject {
           foreach($line as $col) {
 
             if (strlen($col)) {
-              $col = str_replace($enclosures, $this->enclosure, $col);
+              // $col = str_replace($enclosures, $this->enclosure, $col);
+              $col = str_replace($enclosuresArr[$ind], $this->enclosureArr[$ind], $col);
               $col = trim($col, '"\' ');
             }
             $values[] = $col;
