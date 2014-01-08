@@ -305,6 +305,13 @@
       try { $('.focused')[0].focus(); } catch (ex) { }
     }
 
+    if (!br.isTouchScreen) {
+      var disableBounceContainer = $('body').attr('data-disable-bounce-container');
+      if (!br.isEmpty(disableBounceContainer)) {
+        br.disableBounce($(disableBounceContainer));
+      }
+    }
+
   });
 
 })(jQuery, window);

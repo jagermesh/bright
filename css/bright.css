@@ -208,24 +208,28 @@ td.optimal-width, th.optimal-width {
 h4 {
   font-size: 18px;
   font-weight: 300;
+  margin-top: 5px;
   margin-bottom: 2px;
 }
 
 h3 {
   font-size: 20px;
   font-weight: 300;
+  margin-top: 5px;
   margin-bottom: 2px;
 }
 
 h2 {
   font-size: 24px;
   font-weight: 300;
+  margin-top: 5px;
   margin-bottom: 2px;
 }
 
 h1 {
   font-size: 32px;
   font-weight: 300;
+  margin-top: 5px;
   margin-bottom: 5px;
 }
 

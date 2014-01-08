@@ -44,10 +44,6 @@
 
     var $editForm = $(_this.options.selectors.editForm);
 
-    this.limit = this.options.limit || 20;
-    this.skip = 0;
-    this.recordsAmount = 0;
-
     if (typeof entity == 'string') {
       if (this.options.entity.indexOf('/') == -1) {
         this.dataSource = br.dataSource(br.baseUrl + 'api/' + this.options.entity + '/');
@@ -62,6 +58,18 @@
     }
 
     this.storageTag = document.location.pathname + this.dataSource.options.restServiceUrl;
+
+    this.setStored = function(name, value) {
+      br.storage.set(this.storageTag + 'stored:' + name, value);
+    }
+    this.getStored = function(name, defaultValue) {
+      return br.storage.get(this.storageTag + 'stored:' + name, defaultValue);
+    }
+
+    this.defaultLimit = this.options.limit || 20;
+    this.limit = _this.getStored('pager_PageSize', this.defaultLimit);
+    this.skip = 0;
+    this.recordsAmount = 0;
 
     this.selection = br.flagsHolder();
 
@@ -115,12 +123,6 @@
       var filter = br.storage.get(this.storageTag + 'filter', defaultValue);
       filter = filter || { };
       return filter[name];
-    }
-    this.setStored = function(name, value) {
-      br.storage.set(this.storageTag + 'stored:' + name, value);
-    }
-    this.getStored = function(name, defaultValue) {
-      return br.storage.get(this.storageTag + 'stored:' + name, defaultValue);
     }
     this.lockEditor = function() {
       $('.action-save', $editForm).addClass('disabled');
@@ -578,7 +580,6 @@
 
     if ($.fn.slider) {
       $(c('.pager-page-slider')).each(function() {
-
         slider = true;
         $(this).slider({
             min: 1
@@ -589,6 +590,7 @@
                 var newSkip = _this.limit * (value - 1);
                 if (newSkip != _this.skip) {
                   _this.skip = _this.limit * (value - 1);
+                  _this.setStored('pager_PageNo', _this.skip);
                   _this.refresh({}, null, true);
                 }
               }
@@ -597,15 +599,17 @@
       });
 
       $(c('.pager-page-size-slider')).each(function() {
+
         slider = true;
         $(this).slider({
-            min: _this.limit
+            min: _this.defaultLimit
           , value: _this.limit
-          , max: _this.limit * 20
-          , step: _this.limit
+          , max: _this.defaultLimit * 20
+          , step: _this.defaultLimit
           , change: function(event, ui) {
               var value = $(c('.pager-page-size-slider')).slider('option', 'value');
               _this.limit = value;
+              _this.setStored('pager_PageSize', _this.limit);
               $(c('.pager-page-slider')).slider('option', 'value', 1);
               $(c('.pager-page-slider')).slider('option', 'max', Math.ceil(_this.recordsAmount / _this.limit));
               _this.refresh({}, null, true);
