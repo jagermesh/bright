@@ -114,6 +114,7 @@
           _this.events.trigger('editor.save', 'update', data);
           _this.dataSource.update(editorRowid, data, function(result, response) {
             if (result) {
+              br.resetCloseConfirmation();
               if (andClose) {
                 goodHide = true;
                 if (_this.container.hasClass('modal')) {
@@ -137,6 +138,7 @@
           _this.events.trigger('editor.save', 'insert', data);
           _this.dataSource.insert(data, function(result, response) {
             if (result) {
+              br.resetCloseConfirmation();
               if (andClose) {
                 goodHide = true;
                 if (_this.container.hasClass('modal')) {

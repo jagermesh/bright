@@ -1830,7 +1830,11 @@
     }
 
     function storageTag(c) {
-      return document.location.pathname + ':filter-value:' + $(c).attr('name');
+      var storageKey = $(c).attr('data-storage-key');
+      if (br.isEmpty(storageKey)) {
+        storageKey = ':';
+      }
+      return document.location.pathname + ':filter-value:' + $(c).attr('name') + storageKey;
     }
 
     function uiSync() {
