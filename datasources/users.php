@@ -284,14 +284,12 @@ class BrDataSourceUsers extends BrDataSource {
     $this->before('update', function($dataSource, &$row, $t, $old) {
 
       if ($login = br()->auth()->getLogin()) {
-
         $security = br()->auth()->getAttr('usersAPI.update');
         if (strpos($security, 'anyone') === false) {
           if (br()->db()->rowid($login) != br()->db()->rowid($row)) {
             throw new BrAppException('Access denied');
           }
         }
-
       } else {
         throw new BrAppException('Access denied');
       }
@@ -301,7 +299,7 @@ class BrDataSourceUsers extends BrDataSource {
       $passwordField   = br()->auth()->getAttr('usersTable.passwordField');
       $plainPasswords  = br()->auth()->getAttr('plainPasswords');
 
-      if (isset($row[$loginField])) {
+      if (array_key_exists($loginField, $row)) {
         if ($login = trim(br()->html2text($row[$loginField]))) {
           $row[$loginField] = $login;
           if ($user = $dataSource->selectOne(array($loginField => $login, br()->db()->rowidField() => array('$ne' => br()->db()->rowid($row))))) {
@@ -313,7 +311,7 @@ class BrDataSourceUsers extends BrDataSource {
         }
       }
 
-      if (isset($row[$passwordField])) {
+      if (array_key_exists($passwordField, $row)) {
         if ($row[$passwordField]) {
           if ($row[$passwordField] != br($old, $passwordField)) {
             if ($plainPasswords) {
@@ -332,14 +330,12 @@ class BrDataSourceUsers extends BrDataSource {
     $this->before('remove', function($dataSource, $row) {
 
       if ($login = br()->auth()->getLogin()) {
-
         $security = br()->auth()->getAttr('usersAPI.remove');
         if (strpos($security, 'anyone') === false) {
           if (br()->db()->rowid($login) != br()->db()->rowid($row)) {
             throw new BrAppException('Access denied');
           }
         }
-
       } else {
         throw new BrAppException('Access denied');
       }

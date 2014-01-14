@@ -503,7 +503,7 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function continueRoute($value) {
+  function continueRoute($value = true) {
 
     $this->continueRoute = $value;
 

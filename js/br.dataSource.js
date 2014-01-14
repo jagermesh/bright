@@ -100,6 +100,7 @@
         }
 
       } catch (error) {
+        br.log(error);
         _this.events.trigger('error', 'insert', error);
         _this.events.triggerAfter('insert', false, error, request);
         if (typeof callback == 'function') { callback.call(_this, false, error, request); }
@@ -271,6 +272,7 @@
         try {
           _this.events.triggerBefore('select', request, options);
         } catch(e) {
+          br.log(e);
           proceed = false;
         }
       }
