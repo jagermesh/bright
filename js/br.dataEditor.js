@@ -64,13 +64,13 @@
         if (isCopy) {
           _this.container.find('.operation').text('Copy ' + _this.options.noun);
         } else {
-          _this.container.find('.operation').text('Edit ' + _this.options.noun);
+          _this.container.find('.operation').text('Edit ' + _this.options.noun + ' (#' + editorRowid + ')');
         }
       } else {
         _this.container.find('.operation').text('Create ' + _this.options.noun);
       }
     }
-    this.editorSave = function(andClose, callback) {
+    this.save = this.editorSave = function(andClose, callback) {
       if (br.isFunction(andClose)) {
         callback = andClose;
         andClose = false;
@@ -153,6 +153,7 @@
                 br.growlMessage('Changes saved', 'Success');
                 _this.events.trigger('editor.save', true, response);
                 editorRowid = response.rowid;
+                document.location.hash = editorRowid;
                 _this.editorConfigure(false);
               }
               if (callback) {

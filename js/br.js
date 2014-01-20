@@ -249,10 +249,12 @@
       br.closeConfirmationMessage = message;
     }
     closeConfirmationRequired = true;
+    br.events.trigger('closeConfirmationRequested')
   }
 
   window.br.resetCloseConfirmation = function(message) {
     closeConfirmationRequired = false;
+    br.events.trigger('closeConfirmationReset')
   }
 
   window.br.events = br.eventQueue();
