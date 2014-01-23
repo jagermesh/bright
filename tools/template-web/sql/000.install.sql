@@ -5,7 +5,7 @@ USE demo;
 
 */
 
-CREATE TABLE users (
+CREATE TABLE user (
     id       INTEGER PRIMARY KEY AUTO_INCREMENT
   , login    VARCHAR(250) NOT NULL
   , password VARCHAR(250) NOT NULL
@@ -13,5 +13,5 @@ CREATE TABLE users (
   , name     VARCHAR(250) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-INSERT INTO users (login, password, name) VALUES ('admin', md5('admin'), 'John Administrator');
+INSERT INTO user (login, password, name) VALUES ('admin', md5('admin'), 'John Administrator');
 

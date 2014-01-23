@@ -4,34 +4,48 @@
 
 {@navigation.html}
 
-  <div class="modal">
-    <div class="modal-header">
-      <h3>Login</h3>
-    </div>
-    <div class="modal-body">
-      <form onsubmit="return false;">
-      <fieldset>
-        <div class="control-group">
-          <label>E-Mail</label>
-          <input type="text" class="input-xlarge focused login-field" name="login" placeholder="e-mail" data-click-on-enter=".action-login">
+<div class="container">
+  <div class="container-box">
+    <div class="modal" style="display:inline;position:relative;">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Login</h3>
+          </div>
+          <div class="modal-body">
+            <form class="form-horizontal" role="form" action="javascript:;" onsubmit="return false;">
+              <div class="form-group">
+                <label class="col-lg-2 control-label">Login</label>
+                <div class="col-lg-10">
+                  <input type="text" class="focus form-control login-field" name="login" placeholder="login" data-click-on-enter=".action-login">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-lg-2 control-label">Password</label>
+                <div class="col-lg-10">
+                  <input type="password" class="form-control login-field" name="password" placeholder="password" data-click-on-enter=".action-login">
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="col-lg-offset-2 col-lg-10">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" class="login-field" value="1" name="remember"> Remember me
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button data-loading-text="sending info..." class="action-login btn btn-primary">Login</button>&nbsp;
+            <a href="{/}" class="btn btn-default">Cancel</a>
+          </div>
         </div>
-        <div class="control-group">
-          <label>Password</label>
-          <input type="password" class="input-xlarge login-field" name="password" placeholder="password" data-click-on-enter=".action-login">
-        </div>
-        <div class="control-group">
-          <label for="remember" class="checkbox"><input type="checkbox" class="login-field" value="1" name="remember" > Remember me</label>
-        </div>
-        <div class="control-group">
-          <a href="javascript:;" data-loading-text="sending info..." class="action-login btn btn-primary">Login</a>&nbsp; 
-        </div>
-      </fieldset>
-      </form>
-    </div>
-    <div class="modal-footer">
-      <a href="{/}../" class="btn action-cancel">Cancel</a>
+      </div>
     </div>
   </div>
+</div>
 
 </body>
 </html>

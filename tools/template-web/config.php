@@ -10,7 +10,8 @@ require_once($dbConfig);
 
 br()->config()->set('site-name', 'Another one great site');
 
-br()->config()->set('br/auth/db/api/select-user', 'anyone login');
-br()->config()->set('br/auth/db/api/insert-user', 'anyone');
-br()->config()->set('br/auth/db/api/remove-user', 'anyone');
-br()->config()->set('br/auth/db/api/update-user', 'anyone');
+br()->auth()->setAttr('usersTable.name', 'user');
+br()->auth()->setAttr('usersAPI.select', 'anyone login');
+br()->auth()->setAttr('usersAPI.insert', 'anyone');
+br()->auth()->setAttr('usersAPI.remove', 'anyone');
+br()->auth()->setAttr('usersAPI.update', 'anyone');
