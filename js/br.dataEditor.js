@@ -18,6 +18,9 @@
 
     this.options = options || {};
     this.options.noun = this.options.noun || '';
+    this.options.selectors = this.options.selectors || {};
+    this.options.selectors.save = this.options.selectors.save || '.action-save';
+    this.options.selectors.cancel = this.options.selectors.cancel || '.action-cancel';
     this.container = $(selector);
     if (this.options.inputsContainer) {
       this.inputsContainer = $(this.options.inputsContainer);
@@ -48,10 +51,10 @@
       return br.isNull(editorRowid);
     }
     this.lockEditor = function() {
-      $('.action-save', _this.container).addClass('disabled');
+      $(this.options.selectors.save, _this.container).addClass('disabled');
     }
     this.unLockEditor = function() {
-      $('.action-save', _this.container).removeClass('disabled');
+      $(this.options.selectors.save, _this.container).removeClass('disabled');
     }
     this.hide = function() {
       goodHide = true;
@@ -201,8 +204,8 @@
         }
       });
 
-      $('.action-cancel', _this.container).removeAttr('data-dismiss');
-      $('.action-cancel', _this.container).click(function() {
+      $(this.options.selectors.cancel, _this.container).removeAttr('data-dismiss');
+      $(this.options.selectors.cancel, _this.container).click(function() {
         goodHide = true;
         if (_this.container.hasClass('modal')) {
           _this.container.modal('hide');
@@ -214,7 +217,7 @@
         }
       });
 
-      $('.action-save', _this.container).click(function() {
+      $(this.options.selectors.save, _this.container).click(function() {
         if (!$(this).hasClass('disabled')) {
           _this.editorSave($(this).hasClass('action-close') || _this.container.hasClass('modal'));
         }
@@ -228,9 +231,9 @@
     this.show = function(rowid, isCopy) {
       editorRowid = rowid;
       _this.editorConfigure(isCopy);
-      _this.container.find('input.data-field,select.data-field,textarea.data-field').val('');
-      _this.container.find('input.data-field[type=checkbox]').val('1');
-      _this.container.find('input.data-field[type=checkbox]').removeAttr('checked');
+      _this.inputsContainer.find('input.data-field,select.data-field,textarea.data-field').val('');
+      _this.inputsContainer.find('input.data-field[type=checkbox]').val('1');
+      _this.inputsContainer.find('input.data-field[type=checkbox]').removeAttr('checked');
 
       _this.container.find('div.data-field[data-toggle=buttons-radio]').find('button').removeClass('active');
 
@@ -238,7 +241,7 @@
         _this.dataSource.selectOne(editorRowid, function(result, data) {
           if (result) {
             for(var i in data) {
-              _this.container.find('div.data-field[data-toggle=buttons-radio][name=' + i + '],input.data-field[name=' + i + '],select.data-field[name=' + i + '],textarea.data-field[name=' + i + ']').each(function() {
+              _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio][name=' + i + '],input.data-field[name=' + i + '],select.data-field[name=' + i + '],textarea.data-field[name=' + i + ']').each(function() {
                 if ($(this).attr('data-toggle') == 'buttons-radio') {
                   $(this).find('button[value=' + data[i] + ']').addClass('active');
                 } else
@@ -267,7 +270,7 @@
           }
         }, { disableEvents: true });
       } else {
-        _this.container.find('select.data-field').each(function() {
+        _this.inputsContainer.find('select.data-field').each(function() {
           if (window.Select2) {
             $(this).select2();
           }
