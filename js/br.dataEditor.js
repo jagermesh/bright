@@ -234,7 +234,6 @@
       _this.inputsContainer.find('input.data-field,select.data-field,textarea.data-field').val('');
       _this.inputsContainer.find('input.data-field[type=checkbox]').val('1');
       _this.inputsContainer.find('input.data-field[type=checkbox]').removeAttr('checked');
-
       _this.container.find('div.data-field[data-toggle=buttons-radio]').find('button').removeClass('active');
 
       if (editorRowid) {
