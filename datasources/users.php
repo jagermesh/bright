@@ -138,7 +138,7 @@ class BrDataSourceUsers extends BrDataSource {
         return $dataSource->selectOne($login['id']);
       }
 
-      return true;
+      return false;
 
     });
 

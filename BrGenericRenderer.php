@@ -77,7 +77,9 @@ class BrGenericRenderer extends BrObject {
 
     $localVars['get']    = br()->request()->get();
     $localVars['config'] = br()->config()->get();
-    $localVars['login']  = br()->auth()->getLogin();
+    if ($localVars['login']  = br()->auth()->getLogin()) {
+      $localVars['authorized'] = true;
+    }
 
     $m = new Mustache(null, null, null, array('delimiters' => br($this->params, 'delimiters', '[[ ]]')));
     $body = $m->render($body, $localVars);
