@@ -63,15 +63,20 @@
       }
     }
     this.editorConfigure = function(isCopy) {
+      var s = '';
       if (editorRowid) {
         if (isCopy) {
-          _this.container.find('.operation').text('Copy ' + _this.options.noun);
+          s = 'Copy ' + _this.options.noun;
         } else {
-          _this.container.find('.operation').text('Edit ' + _this.options.noun + ' (#' + editorRowid + ')');
+          s = 'Edit ' + _this.options.noun;
+          if (!_this.options.hideRowid) {
+            s = s + ' (#' + editorRowid + ')';
+          }
         }
       } else {
-        _this.container.find('.operation').text('Create ' + _this.options.noun);
+        s = 'Create ' + _this.options.noun;
       }
+      _this.container.find('.operation').text(s);
     }
     this.save = this.editorSave = function(andClose, callback) {
       if (br.isFunction(andClose)) {
@@ -130,7 +135,7 @@
                 }
               } else {
                 br.growlMessage('Changes saved', 'Success');
-                _this.events.trigger('editor.save', true, response);
+                _this.events.triggerAfter('editor.save', true, response);
               }
               if (callback) {
                 callback.call(this);
@@ -154,7 +159,7 @@
                 }
               } else {
                 br.growlMessage('Changes saved', 'Success');
-                _this.events.trigger('editor.save', true, response);
+                _this.events.triggerAfter('editor.save', true, response);
                 editorRowid = response.rowid;
                 document.location.hash = editorRowid;
                 _this.editorConfigure(false);
@@ -175,34 +180,36 @@
         });
       }
 
-      _this.container.on('shown', function() {
-        var focusedInput = $('input.focus[type!=hidden]:visible,select.focus:visible,textarea.focus:visible', $(this));
-        if (focusedInput.length > 0) {
-          try { focusedInput[0].focus(); } catch (e) { }
-        } else {
-          focusedInput = $('input[type!=hidden]:visible,select:visible,textarea:visible', $(this));
+      if (_this.container.hasClass('modal')) {
+        _this.container.on('shown', function() {
+          var focusedInput = $('input.focus[type!=hidden]:visible,select.focus:visible,textarea.focus:visible', $(this));
           if (focusedInput.length > 0) {
             try { focusedInput[0].focus(); } catch (e) { }
+          } else {
+            focusedInput = $('input[type!=hidden]:visible,select:visible,textarea:visible', $(this));
+            if (focusedInput.length > 0) {
+              try { focusedInput[0].focus(); } catch (e) { }
+            }
           }
-        }
-        _this.events.trigger('editor.shown');
-      });
+          _this.events.trigger('editor.shown');
+        });
 
-      _this.container.on('hide', function() {
-        if (goodHide) {
+        _this.container.on('hide', function() {
+          if (goodHide) {
 
-        } else {
-          _this.events.trigger('editor.hide', false, editorRowid);
-        }
-      });
+          } else {
+            _this.events.trigger('editor.hide', false, editorRowid);
+          }
+        });
 
-      _this.container.on('hidden', function() {
-        if (goodHide) {
+        _this.container.on('hidden', function() {
+          if (goodHide) {
 
-        } else {
-         _this.events.trigger('editor.hidden', false, editorRowid);
-        }
-      });
+          } else {
+           _this.events.trigger('editor.hidden', false, editorRowid);
+          }
+        });
+      }
 
       $(this.options.selectors.cancel, _this.container).removeAttr('data-dismiss');
       $(this.options.selectors.cancel, _this.container).click(function() {
