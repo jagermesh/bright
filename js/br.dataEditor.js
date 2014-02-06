@@ -118,8 +118,17 @@
         }
       });
       if (ok) {
+        var op = '';
+        if (editorRowid) { op = 'update'; } else { op = 'insert'; }
+          try {
+            _this.events.trigger('editor.save', op, data);
+          } catch (e) {
+            br.growlError(e.message);
+            ok = false;
+          }
+      }
+      if (ok) {
         if (editorRowid) {
-          _this.events.trigger('editor.save', 'update', data);
           _this.dataSource.update(editorRowid, data, function(result, response) {
             if (result) {
               br.resetCloseConfirmation();
@@ -143,7 +152,6 @@
             }
           });
         } else {
-          _this.events.trigger('editor.save', 'insert', data);
           _this.dataSource.insert(data, function(result, response) {
             if (result) {
               br.resetCloseConfirmation();
@@ -159,10 +167,10 @@
                 }
               } else {
                 br.growlMessage('Changes saved', 'Success');
-                _this.events.triggerAfter('editor.save', true, response);
                 editorRowid = response.rowid;
                 document.location.hash = editorRowid;
                 _this.editorConfigure(false);
+                _this.events.triggerAfter('editor.save', true, response);
               }
               if (callback) {
                 callback.call(this);
@@ -237,7 +245,6 @@
     }
     this.show = function(rowid, isCopy) {
       editorRowid = rowid;
-      _this.editorConfigure(isCopy);
       _this.inputsContainer.find('input.data-field,select.data-field,textarea.data-field').val('');
       _this.inputsContainer.find('input.data-field[type=checkbox]').val('1');
       _this.inputsContainer.find('input.data-field[type=checkbox]').removeAttr('checked');
@@ -246,6 +253,8 @@
       if (editorRowid) {
         _this.dataSource.selectOne(editorRowid, function(result, data) {
           if (result) {
+            _this.events.triggerBefore('editor.show', data, isCopy);
+            _this.editorConfigure(isCopy);
             for(var i in data) {
               _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio][name=' + i + '],input.data-field[name=' + i + '],select.data-field[name=' + i + '],textarea.data-field[name=' + i + ']').each(function() {
                 if ($(this).attr('data-toggle') == 'buttons-radio') {
@@ -282,6 +291,8 @@
           }
         }, { disableEvents: true });
       } else {
+        _this.events.triggerBefore('editor.show');
+        _this.editorConfigure(isCopy);
         _this.inputsContainer.find('select.data-field').each(function() {
           if (window.Select2) {
             $(this).select2();
