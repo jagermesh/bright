@@ -273,6 +273,12 @@
             if (_this.container.hasClass('modal')) {
               _this.container.modal('show');
             }
+          } else {
+            if (!_this.container.hasClass('modal')) {
+              br.backToCaller(_this.options.returnUrl, true);
+            } else {
+              br.growlError(data);
+            }
           }
         }, { disableEvents: true });
       } else {
