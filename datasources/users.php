@@ -238,9 +238,11 @@ class BrDataSourceUsers extends BrDataSource {
 
     $this->before('insert', function($dataSource, &$row, &$data, $options) {
 
-      $loginField      = br()->auth()->getAttr('usersTable.loginField');
-      $loginFieldLabel = br()->auth()->getAttr('usersTable.loginFieldLabel');
-      $passwordField   = br()->auth()->getAttr('usersTable.passwordField');
+      $loginField         = br()->auth()->getAttr('usersTable.loginField');
+      $loginFieldLabel    = br()->auth()->getAttr('usersTable.loginFieldLabel');
+      $passwordField      = br()->auth()->getAttr('usersTable.passwordField');
+      $passwordFieldLabel = br()->auth()->getAttr('usersTable.passwordFieldLabel');
+      $passwordRequired   = br()->auth()->getAttr('signup.passwordRequired');
 
       if ($security = br()->auth()->getAttr('usersAPI.insert')) {
 
@@ -262,14 +264,21 @@ class BrDataSourceUsers extends BrDataSource {
         throw new BrAppException('Access denied');
       }
 
+      if ($password = trim(br($row, $passwordField))) {
+
+      } else
+      if ($passwordRequired) {
+        throw new BrAppException('Please enter ' . $passwordFieldLabel);
+      }
+
       // we are here so let's work
       if ($login = trim(br()->html2text(br($row, $loginField)))) {
         $row[$loginField] = $login;
         if ($user = $dataSource->selectOne(array($loginField => $login))) {
           throw new BrAppException('Such user already exists');
         } else {
-          if (br($row, $passwordField)) {
-            $data['password'] = $row[$passwordField];
+          if ($password) {
+            $data['password'] = $password;
           } else {
             $data['password'] = substr(br()->guid(), 0, 8);
           }

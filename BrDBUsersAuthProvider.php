@@ -32,6 +32,7 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
       $this->setAttr('usersTable.loginField',         br($data, 'loginField', 'login'));
       $this->setAttr('usersTable.loginFieldLabel',    br($data, 'loginFieldLabel', 'login'));
       $this->setAttr('usersTable.passwordField',      br($data, 'passwordField', 'password'));
+      $this->setAttr('usersTable.passwordFieldLabel', br($data, 'passwordFieldLabel', 'password'));
       $this->setAttr('usersTable.passwordResetField', br($data, 'passwordResetField', 'password_reset'));
       $this->setAttr('usersTable.emailField',         br($data, 'emailField', 'email'));
     } else {
@@ -40,6 +41,7 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
       $this->setAttr('usersTable.loginField',         br()->config()->get('br/auth/db/login-field', 'login'));
       $this->setAttr('usersTable.loginFieldLabel',    br()->config()->get('br/auth/db/login-field-label', 'login'));
       $this->setAttr('usersTable.passwordField',      br()->config()->get('br/auth/db/password-field', 'password'));
+      $this->setAttr('usersTable.passwordFieldLabel', br()->config()->get('br/auth/db/password-field', 'password'));
       $this->setAttr('usersTable.passwordResetField', br()->config()->get('br/auth/db/password-reset-field', 'password_reset'));
       $this->setAttr('usersTable.emailField',         br()->config()->get('br/auth/db/email-field', 'email'));
     }
@@ -60,6 +62,7 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
 
     if ($data = $this->getAttr('signup')) {
       $this->setAttr('signup.enabled', br($data, 'enabled', false));
+      $this->setAttr('signup.passwordRequired', br($data, 'passwordRequired', false));
       if ($data2 = br($data, 'mail')) {
         $this->setAttr('signup.mail.template', br($data2, 'template'));
         $this->setAttr('signup.mail.subject',  br($data2, 'subject', 'Registration complete'));
