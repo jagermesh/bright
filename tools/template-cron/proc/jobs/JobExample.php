@@ -1,16 +1,8 @@
 <?php
 
-class JobExample {
+br()->importLib('JobCustomJob');
 
-  function __construct() {
-
-  }
-
-  function timeTotStart() {
-
-    return array('some params');
-
-  }
+class JobExample extends BrJobCustomJob {
 
   function run($params) {
 
