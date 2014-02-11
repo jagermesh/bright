@@ -2,7 +2,7 @@
 
 class BrJobCustomJob {
 
-  private $temporaryDir;
+  protected $temporaryDir;
 
   function __construct() {
 
