@@ -382,7 +382,7 @@ class BrGenericDataSource extends BrObject {
   protected function validateInsert($row = array()) {
 
     if (!$this->canInsert($row)) {
-      throw new Exception('Access denied');
+      throw new BrAppException('Access denied');
     }
 
   }
@@ -390,7 +390,7 @@ class BrGenericDataSource extends BrObject {
   protected function validateUpdate($row, $new = array()) {
 
     if (!$this->canUpdate($row, $new)) {
-      throw new Exception('Access denied');
+      throw new BrAppException('Access denied');
     }
 
   }
@@ -398,7 +398,7 @@ class BrGenericDataSource extends BrObject {
   protected function validateRemove($row) {
 
     if (!$this->canRemove($row)) {
-      throw new Exception('Access denied');
+      throw new BrAppException('Access denied');
     }
 
   }
@@ -406,7 +406,7 @@ class BrGenericDataSource extends BrObject {
   protected function validateSelect($filter) {
 
     if (!$this->canSelect($filter)) {
-      throw new Exception('Access denied');
+      throw new BrAppException('Access denied');
     }
 
   }
