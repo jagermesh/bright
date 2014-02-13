@@ -137,6 +137,14 @@ class BrString {
     return $this->value . ($this->value ? $glue : '') . $var;
   }
 
+  function repeat($amount) {
+    $result = '';
+    for ($i = 0; $i < $amount; $i++) {
+      $result .= $this->value;
+    }
+    return $result;
+  }
+
   function padLeft($amount, $glue = ' ') {
     if ($amount > strlen($this->value)) {
       return str_pad($this->value, $amount * strlen($glue), $glue, STR_PAD_LEFT);
