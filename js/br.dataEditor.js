@@ -261,8 +261,10 @@
                   $(this).find('button[value=' + data[i] + ']').addClass('active');
                 } else
                 if ($(this).attr('type') == 'checkbox') {
-                  if (data[i] == '1') {
+                  if (br.toInt(data[i]) == 1) {
                     $(this).attr('checked', 'checked');
+                  } else {
+                    $(this).removeAttr('checked');
                   }
                 } else {
                   $(this).val(data[i]);
