@@ -429,7 +429,7 @@ class BrRESTUsersBinder extends BrRESTBinder {
                 }
                 $data = array();
                 $data['password'] = $password;
-                $data['loginUrl'] = br()->request()->host() . br()->request()->baseUrl() . 'login.html?login=' . $user['login'] . '&' . 'from=passwordReset';
+                $data['loginUrl'] = br()->request()->host() . br()->request()->baseUrl() . 'login.html?login=' . $user['login'] . '&' . 'from=passwordRemind';
                 if ($message = br()->renderer()->fetch($mailTemplate, array('user' => $user, 'data' => $data))) {
                   if (br()->sendMail($email, br()->auth()->getAttr('passwordReminder.passwordMail.subject'), $message, array('sender' => br()->auth()->getAttr('passwordReminder.passwordMail.from')))) {
                     br()->db()->runQuery('UPDATE ' . $usersTable . ' SET ' . $passwordField . ' = ?& WHERE id = ?', $finalPassword, $user['id']);
