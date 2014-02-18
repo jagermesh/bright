@@ -153,7 +153,7 @@ class BrDateTime extends BrObject {
     if (!$with_sign) {
       $diff = abs($diff);
     }
-    return $diff;
+    return round($diff);
 
   }
 
@@ -373,27 +373,27 @@ class BrDateTime extends BrObject {
 
   }
 
-  function toString() {
+  function toString($format = '%H:%M, %d %B, %Y') {
 
-    return strftime('%H:%M, %d %B, %Y', $this->asDateTime());
+    return strftime($format, $this->asDateTime());
 
   }
 
-  function toDateString() {
+  function toDateString($format = '%d %B, %Y') {
 
-    return strftime('%d %B, %Y', $this->asDateTime());
+    return $this->toString($format);
 
   }
 
   function toMySQLDateString() {
 
-    return date('Y-m-d', $this->asDateTime());
+    return $this->toString('%Y-%m-%d');
 
   }
 
-  function toMySQLDString() {
+  function toMySQLDateTimeString() {
 
-    return date('Y-m-d H:i:s', $this->asDateTime());
+    return $this->toString('%Y-%m-%d %H:%M:%S');
 
   }
 

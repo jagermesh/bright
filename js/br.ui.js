@@ -137,13 +137,13 @@
     s = s + '<div class="modal-body">' + message + '</div>' +
             '<div class="modal-footer" style="background-color:red;"><a href="javascript:;" class="btn btn-default" data-dismiss="modal">&nbsp;Dismiss&nbsp;</a></div></div></div></div>';
     var dialog = $(s);
-    $(dialog)
-      .on('hide', function(e) {
-        if (callback) {
-          callback.call(this);
-        }
-        dialog.remove();
-      });
+    var onHide = function(e) {
+      dialog.remove();
+      if (callback) {
+        callback.call(this);
+      }
+    }
+    $(dialog).on('hide.bs.modal', onHide);
     $(dialog).modal();
   }
 
@@ -157,13 +157,13 @@
     s = s + '<div class="modal-body">' + message + '</div>' +
             '<div class="modal-footer"><a href="javascript:;" class="btn btn-default" data-dismiss="modal">&nbsp;Dismiss&nbsp;</a></div></div></div></div>';
     var dialog = $(s);
-    $(dialog)
-      .on('hide', function(e) {
-        if (callback) {
-          callback.call(this);
-        }
-        dialog.remove();
-      });
+    var onHide = function(e) {
+      dialog.remove();
+      if (callback) {
+        callback.call(this);
+      }
+    }
+    $(dialog).on('hide.bs.modal', onHide);
     $(dialog).modal();
   }
 

@@ -144,6 +144,7 @@
                 }
               } else {
                 br.growlMessage('Changes saved', 'Success');
+                _this.events.triggerAfter('editor.update', true, response);
                 _this.events.triggerAfter('editor.save', true, response);
               }
               if (callback) {
@@ -170,6 +171,7 @@
                 editorRowid = response.rowid;
                 document.location.hash = editorRowid;
                 _this.editorConfigure(false);
+                _this.events.triggerAfter('editor.insert', true, response);
                 _this.events.triggerAfter('editor.save', true, response);
               }
               if (callback) {

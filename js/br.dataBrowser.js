@@ -313,7 +313,8 @@
                 if (isCopy) {
                   editorRowid = null;
                 }
-                _this.events.trigger('showEditor', data);
+                _this.events.trigger('showEditor', data, isCopy);
+                _this.events.trigger('editor.show', data, isCopy);
                 $editForm.modal('show');
               }
             }, { disableEvents: true });
@@ -324,6 +325,7 @@
               }
             });
             _this.events.trigger('showEditor');
+            _this.events.trigger('editor.show');
             $editForm.modal('show');
           }
         });
