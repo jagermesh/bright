@@ -89,31 +89,33 @@
       _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio],input.data-field,select.data-field,textarea.data-field').each(function() {
         if (ok) {
           var val;
-          if ($(this).attr('data-toggle') == 'buttons-radio') {
-            val = $(this).find('button.active').val();
-          } else
-          if ($(this).attr('type') == 'checkbox') {
-            if ($(this).is(':checked')) {
-              val = 1;
+          if (($(this).attr('readonly') != 'readonly') && ($(this).attr('disabled') != 'disabled')) {
+            if ($(this).attr('data-toggle') == 'buttons-radio') {
+              val = $(this).find('button.active').val();
+            } else
+            if ($(this).attr('type') == 'checkbox') {
+              if ($(this).is(':checked')) {
+                val = 1;
+              } else {
+                val = 0;
+              }
             } else {
-              val = 0;
+              val = $(this).val();
             }
-          } else {
-            val = $(this).val();
-          }
-          if ($(this).hasClass('required') && br.isEmpty(val)) {
-            var title = $(this).attr('title');
-            if (br.isEmpty(title)) {
-              title = $(this).prev('label').text();
+            if ($(this).hasClass('required') && br.isEmpty(val)) {
+              var title = $(this).attr('title');
+              if (br.isEmpty(title)) {
+                title = $(this).prev('label').text();
+              }
+              br.growlError(title + ' must be filled');
+              this.focus();
+              ok = false;
+            } else
+            if (br.isEmpty(val)) {
+              data[$(this).attr('name')] = '';
+            } else {
+              data[$(this).attr('name')] = val;
             }
-            br.growlError(title + ' must be filled');
-            this.focus();
-            ok = false;
-          } else
-          if (br.isEmpty(val)) {
-            data[$(this).attr('name')] = '';
-          } else {
-            data[$(this).attr('name')] = val;
           }
         }
       });
