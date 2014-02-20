@@ -1817,8 +1817,19 @@
     var _this = this;
 
     this.selector = $(selector);
+
     this.dataSource = dataSource;
+
     this.options = options || {};
+    this.options.valueField = this.options.valueField || 'rowid';
+    this.options.nameField = this.options.nameField || 'name';
+    this.options.levelField = this.options.levelField || null;
+    this.options.selectedValue = this.options.selectedValue || null;
+    this.options.selectedValueField = this.options.selectedValueField || null;
+    this.options.hideEmptyValue = this.options.hideEmptyValue || (this.selector.attr('multiple') == 'multiple');
+    this.options.emptyName = (typeof this.options.emptyName == 'undefined' ? '--any--' : this.options.emptyName);
+    this.options.emptyValue = (typeof this.options.emptyValue == 'undefined' ? '' : this.options.emptyValue);
+
     this.fields = this.options.fields || {};
     this.saveSelection = this.options.saveSelection || false;
     this.selectedValueField = this.options.selectedValueField || null;
@@ -1885,23 +1896,32 @@
       _this.reset();
     });
 
+    function renderRow(data) {
+
+      var s = '';
+      s = s + '<option value="' + data[_this.options.valueField] + '">';
+      if (br.isEmpty(_this.options.levelField)) {
+
+      } else {
+        var margin = (br.toInt(data[_this.options.levelField]) - 1) * 4;
+        for (var k = 0; k < margin; k++) {
+          s = s + '&nbsp;';
+        }
+      }
+      s = s + data[_this.options.nameField];
+      s = s + '</option>';
+
+      return s;
+
+    }
+
     function render(data) {
 
       if (_this.isValid()) {
-        var options = _this.options;
 
         if (_this.saveSelection) {
-          options.selectedValue = br.storage.get(storageTag(_this.selector));
+          _this.options.selectedValue = br.storage.get(storageTag(_this.selector));
         }
-
-        var valueField = options.valueField || 'rowid';
-        var nameField = options.nameField || 'name';
-        var hideEmptyValue = options.hideEmptyValue || (_this.selector.attr('multiple') == 'multiple');
-        var levelField = options.levelField || null;
-        var emptyName = (typeof options.emptyName == 'undefined' ? '--any--' : options.emptyName);
-        var emptyValue = (typeof options.emptyValue == 'undefined' ? '' : options.emptyValue);
-        var selectedValue = options.selectedValue || null;
-        var selectedValueField = options.selectedValueField || null;
 
         _this.selector.each(function() {
           var val = $(this).val();
@@ -1911,31 +1931,23 @@
           }
           $(this).html('');
           var s = '';
-          if (!hideEmptyValue) {
-            s = s + '<option value="' + emptyValue + '">' + emptyName + '</option>';
+          if (_this.options.hideEmptyValue) {
+
+          } else {
+            s = s + '<option value="' + _this.options.emptyValue + '">' + _this.options.emptyName + '</option>';
           }
           for(var i in data) {
-            if (!selectedValue && selectedValueField) {
-              if (data[i][selectedValueField] == '1') {
-                selectedValue = data[i][valueField];
+            s = s + renderRow(data[i]);
+            if (br.isEmpty(_this.options.selectedValue) && !br.isEmpty(_this.options.selectedValueField)) {
+              if (br.toInt(data[i][_this.options.selectedValueField]) == 1) {
+                _this.options.selectedValue = data[i][_this.options.valueField];
               }
             }
-            s = s + '<option value="' + data[i][valueField] + '">';
-            if (levelField !== null) {
-              var margin = (br.toInt(data[i][levelField]) - 1) * 4;
-              for(var k = 0; k < margin; k++) {
-                s = s + '&nbsp;';
-              }
-            }
-            s = s + data[i][nameField];
-            s = s + '</option>';
           }
           $(this).html(s);
-          if (!br.isEmpty(selectedValue)) {
-            val = selectedValue;
-          }
-          if (!br.isEmpty(val)) {
-            $(this).find('option[value=' + val +']').attr('selected', 'selected');
+
+          if (!br.isEmpty(_this.options.selectedValue)) {
+            $(this).find('option[value=' + _this.options.selectedValue +']').attr('selected', 'selected');
           }
 
         });
@@ -1966,17 +1978,30 @@
       render(data);
     });
 
-    _this.dataSource.on('insert', function(data) {
-
+    _this.dataSource.after('insert', function(result, data) {
+      if (result && _this.isValid()) {
+        _this.selector.append($(renderRow(data)));
+        uiSync();
+      }
+      _this.events.trigger('change');
     });
 
-    _this.dataSource.on('update', function(data) {
-
+    _this.dataSource.after('update', function(result, data) {
+      if (result && _this.isValid()) {
+        if (data[_this.options.valueField]) {
+          _this.selector.find('option[value=' + data[_this.options.valueField] +']').text(data[_this.options.nameField]);
+          uiSync();
+        }
+      }
+      _this.events.trigger('change');
     });
 
-    _this.dataSource.on('remove', function(rowid) {
-      if (_this.isValid()) {
-        _this.selector.find('option[value=' + rowid +']').remove();
+    _this.dataSource.after('remove', function(result, data) {
+      if (result && _this.isValid()) {
+        if (data[_this.options.valueField]) {
+          _this.selector.find('option[value=' + data[_this.options.valueField] +']').remove();
+          uiSync();
+        }
       }
       _this.events.trigger('change');
     });
