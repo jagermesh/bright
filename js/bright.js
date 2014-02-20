@@ -2009,17 +2009,20 @@
 
 ;(function ($, window) {
 
-  function BrEditable(ctrl, saveCallback) {
+  function BrEditable(ctrl, options) {
 
     var _this = this;
     _this.ctrl = $(ctrl);
-    _this.saveCallback = saveCallback;
+    if (br.isFunction(options)) {
+      options = { onSave: options };
+    }
+    options = options || {};
+    _this.options = options;
     _this.editor = null;
     _this.savedWidth = '';
     _this.click = function(element, e) {
       if (!_this.activated()) {
         var content = _this.ctrl.text();
-        _this.ctrl.data('original-content', content);
         _this.ctrl.data('original-width', _this.ctrl.css('width'));
         var width = _this.ctrl.innerWidth();
         var height = _this.ctrl.innerHeight();
@@ -2037,8 +2040,14 @@
         _this.editor.css('-ms-box-sizing', 'border-box');
         _this.editor.css('margin-top', '2px');
         _this.editor.css('margin-bottom', '2px');
-        _this.editor.val(content);
         _this.ctrl.append(_this.editor);
+
+        if (_this.options.onGetContent) {
+          content = _this.options.onGetContent.call(_this.ctrl, _this.editor, content);
+        }
+        _this.ctrl.data('original-content', content);
+        _this.editor.val(content);
+
         _this.ctrl.css('width', width - 10);
         _this.editor.focus();
         _this.editor.attr('data-original-title', 'Press [Enter] to save changes, [Esc] to cancel changes.');
@@ -2047,9 +2056,9 @@
         $(_this.editor).keyup(function(e) {
           if (e.keyCode == 13) {
             var content = $(this).val();
-            if (typeof _this.saveCallback == 'function') {
+            if (_this.options.onSave) {
               _this.editor.tooltip('hide');
-              _this.saveCallback.call(_this.ctrl, content);
+              _this.options.onSave.call(_this.ctrl, content);
             } else {
               _this.apply(content);
             }

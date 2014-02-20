@@ -26,8 +26,6 @@ if ($tableName = br($argv, 1)) {
     }
   }
 
-  // debug($data);
-
   br()->fs()->saveToFile($scriptsPath.$tableName.'.js', br()->renderer()->fetch(__DIR__.'/template.databrowser.js', $data));
   br()->fs()->saveToFile($templatesPath.$tableName.'.html', br()->renderer()->fetch(__DIR__.'/template.databrowser.html', $data));
 

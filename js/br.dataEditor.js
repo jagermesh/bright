@@ -29,9 +29,9 @@
     }
 
     this.dataSource = dataSource;
-    this.dataSource.on('error', function(o, e) {
-      br.growlError(e);
-    });
+    // this.dataSource.on('error', function(o, e) {
+    //   br.growlError(e);
+    // });
 
     this.events = br.eventQueue(this);
     this.before = function(event, callback) { this.events.before(event, callback); }
