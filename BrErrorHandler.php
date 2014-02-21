@@ -35,13 +35,6 @@ class BrErrorHandler extends BrObject {
         $errfile = $error['file'];
         $errline = $error['line'];
 
-        // echo('errfile: '.$errfile.'<br />');
-        // echo('errmsg: '.$errmsg.'<br />');
-        // echo('errline: '.$errline.'<br />');
-        // echo('errno: '.$errno.'<br />');
-        // echo('E_NOTICE: '.E_NOTICE.'<br />');
-        // echo('error_reporting(): '.error_reporting().'<br />');
-
         if (in_array($errno, $this->notErrors) || ((error_reporting() & $errno) != $errno)) {
 
         } else {
