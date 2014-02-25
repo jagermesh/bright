@@ -72,7 +72,7 @@ if (!function_exists('debug')) {
 
 }
 
-if (!function_exists('callstack')) {
+if (!function_exists('callStack')) {
 
   function callStack() {
 

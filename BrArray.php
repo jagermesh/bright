@@ -90,4 +90,21 @@ class BrArray {
 
   }
 
+  function compare($arr2) {
+
+    $result = array();
+
+    foreach($this->value as $name => $value) {
+      if (!array_key_exists($name, $arr2)) {
+        $result[$name] = $value;
+      } else
+      if ($value != $arr2[$name]) {
+        $result[$name] = $value;
+      }
+    }
+
+    return $result;
+
+  }
+
 }
