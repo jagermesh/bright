@@ -29,9 +29,6 @@
     }
 
     this.dataSource = dataSource;
-    // this.dataSource.on('error', function(o, e) {
-    //   br.growlError(e);
-    // });
 
     this.events = br.eventQueue(this);
     this.before = function(event, callback) { this.events.before(event, callback); }
@@ -145,7 +142,9 @@
                   br.backToCaller(_this.options.returnUrl, true);
                 }
               } else {
-                br.growlMessage('Changes saved', 'Success');
+                if (!_this.options.hideSaveNotification) {
+                  br.growlMessage('Changes saved', 'Success');
+                }
                 _this.events.triggerAfter('editor.update', true, response);
                 _this.events.triggerAfter('editor.save', true, response);
               }
@@ -169,9 +168,10 @@
                   br.backToCaller(_this.options.returnUrl, true);
                 }
               } else {
-                br.growlMessage('Changes saved', 'Success');
+                if (!_this.options.hideSaveNotification) {
+                  br.growlMessage('Changes saved', 'Success');
+                }
                 editorRowid = response.rowid;
-                document.location.hash = editorRowid;
                 _this.editorConfigure(false);
                 _this.events.triggerAfter('editor.insert', true, response);
                 _this.events.triggerAfter('editor.save', true, response);
@@ -224,25 +224,29 @@
       }
 
       $(this.options.selectors.cancel, _this.container).removeAttr('data-dismiss');
+
       $(this.options.selectors.cancel, _this.container).click(function() {
-        goodHide = true;
-        if (_this.container.hasClass('modal')) {
-          _this.container.modal('hide');
-        }
-        _this.events.trigger('hideEditor', false);
-        _this.events.trigger('editor.hide', false, editorRowid);
-        if (!_this.container.hasClass('modal')) {
-          br.backToCaller(_this.options.returnUrl, false);
-        }
+        _this.cancel();
       });
 
       $(this.options.selectors.save, _this.container).click(function() {
         if (!$(this).hasClass('disabled')) {
-          _this.editorSave($(this).hasClass('action-close') || _this.container.hasClass('modal'));
+          _this.save($(this).hasClass('action-close') || _this.container.hasClass('modal'));
         }
       });
 
       return this;
+    }
+    this.cancel = function() {
+      goodHide = true;
+      if (_this.container.hasClass('modal')) {
+        _this.container.modal('hide');
+      }
+      _this.events.trigger('hideEditor', false);
+      _this.events.trigger('editor.hide', false, editorRowid);
+      if (!_this.container.hasClass('modal')) {
+        br.backToCaller(_this.options.returnUrl, false);
+      }
     }
     this.showEditor = function(rowid, isCopy) {
       return this.show(rowid, isCopy);
