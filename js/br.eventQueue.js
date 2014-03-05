@@ -40,17 +40,17 @@
       if (eventSubscribers) {
         switch(pos) {
           case 'before':
-            for (var i in eventSubscribers.before) {
+            for (var i = 0; i < eventSubscribers.before.length; i++) {
               eventSubscribers.before[i].apply(_this.obj, args);
             }
             break;
           case 'on':
-            for (var i in eventSubscribers.on) {
+            for (var i = 0; i < eventSubscribers.on.length; i++) {
               result = eventSubscribers.on[i].apply(_this.obj, args);
             }
             break;
           case 'after':
-            for (var i in eventSubscribers.after) {
+            for (var i = 0; i < eventSubscribers.after.length; i++) {
               eventSubscribers.after[i].apply(_this.obj, args);
             }
             break;
