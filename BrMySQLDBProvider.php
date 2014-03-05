@@ -394,7 +394,7 @@ class BrMySQLProviderTable {
           break;
         case '$regexp':
           $where .= $link . $fname2 . ' REGEXP ?&';
-          $args[] = preg_replace('~([?*+])~', '[$1]', str_replace('\\', '\\\\', rtrim(ltrim($filterValue, '/'), '/i')));
+          $args[] = preg_replace('~([?*+\(\)])~', '[$1]', str_replace('\\', '\\\\', rtrim(ltrim($filterValue, '/'), '/i')));
           break;
         default:
           if (is_array($filterValue)) {
@@ -415,7 +415,7 @@ class BrMySQLProviderTable {
           } else {
             if (is_object($filterValue) && ($filterValue instanceof BrMySQLRegExp)) {
               $where .= $link.$fname.' REGEXP ?&';
-              $args[] = preg_replace('~([?*+])~', '[$1]', str_replace('\\', '\\\\', rtrim(ltrim($filterValue->getValue(), '/'), '/i')));
+              $args[] = preg_replace('~([?*+\(\)])~', '[$1]', str_replace('\\', '\\\\', rtrim(ltrim($filterValue->getValue(), '/'), '/i')));
             } else {
               if (!strlen($filterValue)) {
                 $where .= $link.$fname.' IS NULL';

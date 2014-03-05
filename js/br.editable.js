@@ -28,9 +28,14 @@
         var height = _this.ctrl.innerHeight();
         _this.ctrl.text('');
         _this.editor = $('<input type="text" />');
+        if (_this.ctrl.attr('data-editable-style')) {
+          _this.editor.attr('style', _this.ctrl.attr('data-editable-style'));
+        }
         _this.editor.addClass('form-control');
         _this.editor.css('width', '100%');
-        _this.editor.css('height', '100%');
+        if (br.isEmpty(_this.editor.css('height'))) {
+          _this.editor.css('height', '100%');
+        }
         _this.editor.css('min-height', '30px');
         _this.editor.css('font-size', _this.ctrl.css('font-size'));
         _this.editor.css('font-weight', _this.ctrl.css('font-weight'));

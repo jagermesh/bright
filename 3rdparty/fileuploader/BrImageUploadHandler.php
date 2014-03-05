@@ -59,7 +59,7 @@ class qqUploadedFileXhr {
       if (br($this->params, 'saveToCharsSubFolder')) {
         $dstFileName = br()->fs()->getCharsPath($md, br()->fs()->fileName($this->getName()));
       } else {
-        $dstFileName = br()->fs()->fileName($this->getName());
+        $dstFileName = br()->fs()->fileName(br()->fs()->normalizeFileName($this->getName()));
       }
     }
 
@@ -138,7 +138,7 @@ class qqUploadedFileForm {
       if (br($this->params, 'saveToCharsSubFolder')) {
         $dstFileName = br()->fs()->getCharsPath($md, br()->fs()->fileName($this->getName()));
       } else {
-        $dstFileName = br()->fs()->fileName($this->getName());
+        $dstFileName = br()->fs()->fileName(br()->fs()->normalizeFileName($this->getName()));
       }
     }
     $dstFilePath = $path . $dstFileName;
