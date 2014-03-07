@@ -145,6 +145,7 @@ class BrIMAPMailMessage extends BrObject {
   private $mailService;
   private $path;
   private $headers;
+  private $rawHeaders;
   private $overview;
 
   private $HTMLBody;
@@ -202,72 +203,96 @@ class BrIMAPMailMessage extends BrObject {
 
   }
 
+  function mimeDecode($s) {
+
+    $r = '';
+
+    $elements = imap_mime_header_decode($s);
+    foreach($elements as $element) {
+      if ($element->charset == 'default') {
+        $r .= $element->text;
+      } else {
+        if ($t = @iconv($element->charset, 'UTF-8', $element->text)) {
+          $r .= $t;
+        } else {
+          $r .= $element->text;
+        }
+      }
+    }
+
+    return $r;
+
+  }
+
   function getSubject() {
 
-    return @$this->overview->subject;
+    return $this->mimeDecode(@$this->overview->subject);
+
+  }
+
+  function getFromStr() {
+
+    return $this->mimeDecode(@$this->overview->from);
 
   }
 
   function getFrom() {
 
-    return $this->overview->from;
-
-  }
-
-  private function parseAddress($address) {
-
-    $name = $address;
-    if (preg_match('#[<]?([-A-Za-z0-9.-_]+@[-A-Za-z0-9._]+)[>]?#', $name, $matches)) {
-      $name = str_replace($matches[0], '', $name);
-    }
-    $name = ltrim($name, "'");
-    $name = ltrim($name, '"');
-    $name = rtrim($name, "'");
-    $name = rtrim($name, '"');
-    $name = trim($name);
-
-    $email = $address;
-    if (preg_match('#[<]?([-A-Za-z0-9._]+@[-A-Za-z0-9._]+)[>]?#', $email, $matches)) {
-      $email = $matches[1];
-    }
-
-    return array('name' => $name, 'email' => $email);
+    $from = imap_rfc822_parse_adrlist($this->getFromStr(), 'unknown.com');
+    return $from[0];
 
   }
 
   function getFromName() {
 
-    $address = $this->parseAddress($this->getFrom());
-    return $address['name'];
+    $from = $this->getFrom();
+    return (@$from->personal ? $from->personal : 'unknown');
 
   }
 
   function getFromEmail() {
 
-    $address = $this->parseAddress($this->getFrom());
-    return $address['email'];
+    $from = $this->getFrom();
+    return (@$from->mailbox ? $from->mailbox : 'unknown') . '@' . (@$from->host ? $from->host : 'unknown.com');
 
   }
 
   function getTo() {
 
-    return @$this->overview->to;
+    $headers = $this->getHeaders();
+    if (@$headers->to) {
+      return $headers->to;
+    } else {
+      return array();
+    }
 
   }
 
-  function getToName() {
+  function getToStr() {
 
-    $address = $this->parseAddress($this->getTo());
-    return $address['name'];
+    $headers = $this->getHeaders();
+    return @$headers->toaddress;
+
+  }
+
+  function getCC() {
+
+    $headers = $this->getHeaders();
+    if (@$headers->cc) {
+      return $headers->cc;
+    } else {
+      return array();
+    }
 
   }
 
-  function getToEmail() {
+  function getCCStr() {
 
-    $address = $this->parseAddress($this->getTo());
-    return $address['email'];
+    $headers = $this->getHeaders();
+    return @$headers->ccaddress;
 
   }
+
 
   function getDate() {
 
@@ -289,7 +314,7 @@ class BrIMAPMailMessage extends BrObject {
 
   function getMessageID() {
 
-    return $this->overview->message_id;
+    return @$this->overview->message_id;
 
   }
 
@@ -305,17 +330,20 @@ class BrIMAPMailMessage extends BrObject {
 
   }
 
+  function getRawHeaders() {
+
+    if ($this->rawHeaders === null) {
+      $this->rawHeaders = imap_fetchheader($this->getMailbox(), $this->getUID(), FT_UID);
+    }
+
+    return $this->rawHeaders;
+
+  }
+
   function getHeaders() {
 
     if ($this->headers === null) {
-      $this->headers = array();
-      $headers = imap_fetchheader($this->getMailbox(), $this->getUID(), FT_UID);
-      $headers = preg_split("#[\n]#", $headers);
-      foreach ($headers as $header) {
-        if (preg_match('#^([^:]+): (.+)#', $header, $matches)) {
-          $this->headers[$matches[1]] = trim($matches[2]);
-        }
-      }
+      $this->headers = imap_rfc822_parse_headers($this->getRawHeaders());
     }
 
     return $this->headers;
@@ -368,8 +396,6 @@ class BrIMAPMailMessage extends BrObject {
     }
 
   }
-
-
 
   private function parseStructure($structure = null, $partNo = null) {
 
@@ -433,10 +459,11 @@ class BrIMAPMailMessage extends BrObject {
 
 class BrIMAP extends BrObject {
 
-  private $conectString, $userName, $password;
+  private $hostName, $conectString, $userName, $password;
 
   public function __construct($hostName, $userName, $password, $protocol = 'ssl', $port = 993) {
 
+    $this->hostName = $hostName;
     $this->connectString = '{' . $hostName;
     if ($port) {
       $this->connectString .= ':' . $port;
@@ -449,6 +476,31 @@ class BrIMAP extends BrObject {
 
     $this->userName = $userName;
     $this->password = $password;
+
+  }
+
+  public function getFolders($mask = '*') {
+
+    $result = array();
+
+    if ($list = imap_getmailboxes($this->openMailbox(), '{' . $this->hostName . '}', $mask)) {
+      foreach ($list as $element) {
+        $name = str_replace('{' . $this->hostName . '}', '', imap_utf7_decode($element->name));
+        $path = br($name)->split($element->delimiter);
+        $result[] = array( 'name'       => $path[count($path) - 1]
+                         , 'path'       => $name
+                         , 'pathArray'  => $path
+                         , 'delimiter'  => $element->delimiter
+                         , 'attributes' => $element->attributes
+                         );
+          // echo "($key) ";
+          // echo  . ",";
+          // echo "'" . $val->delimiter . "',";
+          // echo $val->attributes . "<br />\n";
+      }
+    }
+
+    return $result;
 
   }
 
@@ -478,7 +530,9 @@ class BrIMAP extends BrObject {
       if ($sortedMessages = imap_sort($mailbox, SORTDATE, 0, SE_UID)) {
         for ($i = 0; $i < count($sortedMessages); $i++) {
           if ($messages = imap_fetch_overview($mailbox, $sortedMessages[$i], FT_UID)) {
-            $result[] = new BrIMAPMailMessage($this, $path, $messages[0]);
+            if (!@$messages[$i]->deleted) {
+              $result[] = new BrIMAPMailMessage($this, $path, $messages[0]);
+            }
           }
         }
       }
@@ -488,7 +542,7 @@ class BrIMAP extends BrObject {
 
   }
 
-  public function openMailbox($mailbox) {
+  public function openMailbox($mailbox = '') {
 
     return imap_open($this->connectString.$mailbox, $this->userName, $this->password);
 
