@@ -35,7 +35,7 @@
           result['dataValue']   = evt.target.result;
           result['data'][result_dataType] = result['data'][result_dataType] || { };
           result['data'][result_dataType][result_dataSubType] = evt.target.result;
-          for(var i in callbacks) {
+          for(var i = 0; i < callbacks.length; i++) {
             callbacks[i].call(evt, result);
           }
         };

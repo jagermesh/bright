@@ -593,4 +593,3 @@ class BrIMAP extends BrObject {
   }
 
 }
-
