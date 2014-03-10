@@ -312,6 +312,32 @@
       }
     }
 
+    $('.br-scrollable').each(function() {
+      var $container = $(this).parent('.br-container');
+
+      $('body').css('overflow', 'hidden');
+
+      function resize() {
+        var $navBar = $('nav.navbar');
+        var navBarHeight = $navBar.height();
+        var height = $(window).height() - navBarHeight;
+        if (navBarHeight) {
+          if ($navBar.css('position') == 'static') {
+            $container.css('margin-top', '0px');
+          } else {
+            $container.css('margin-top', navBarHeight + 'px');
+          }
+          $container.css('height', height + 'px');
+        }
+      }
+
+      $(window).on('resize', function() {
+        resize();
+      });
+
+      resize();
+    });
+
   });
 
 })(jQuery, window);
