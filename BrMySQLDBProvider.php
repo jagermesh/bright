@@ -360,11 +360,12 @@ class BrMySQLProviderTable {
                 $tmpValue = $value;
               }
               $where .= $link . 'MATCH (' . $tmpFName . ') AGAINST (? IN BOOLEAN MODE)';
-              $args[] = $tmpValue;
+              $filterValue = $tmpValue;
             } else {
               $where .= $link . 'MATCH (' . $fname2 . ') AGAINST (? IN BOOLEAN MODE)';
-              $args[] = $filterValue;
             }
+            $filterValue = preg_replace('~[@()]~', '', $filterValue);
+            $args[] = $filterValue;
           } else {
             if (is_array($filterValue)) {
               $where .= $link . '(1=2 ';
