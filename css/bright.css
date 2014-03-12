@@ -364,3 +364,18 @@ table.table th {
   height:33px;
   padding-top: 3px;
 }
+
+.br-ajax-dropdown li {
+  white-space:nowrap;
+}
+
+.br-ajax-dropdown li a {
+  line-height:14px !important;
+  font-size:10pt;
+}
+
+.br-ajax-dropdown li.group-item {
+  padding-left:20px;
+  padding-right:20px;
+  cursor:pointer;
+}
