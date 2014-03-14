@@ -136,7 +136,8 @@
           for(var i in data) {
             s = s + renderRow(data[i]);
             if (br.isEmpty(_this.options.selectedValue) && !br.isEmpty(_this.options.selectedValueField)) {
-              if (br.toInt(data[i][_this.options.selectedValueField]) == 1) {
+              var selectedValue = data[i][_this.options.selectedValueField];
+              if ((br.isBoolean(selectedValue) && selectedValue) || (br.toInt(selectedValue) == 1)) {
                 _this.options.selectedValue = data[i][_this.options.valueField];
               }
             }
