@@ -847,18 +847,18 @@
 
   }
 
-  var ctx, osc;
+  var ctx;
 
   window.br.beep = function(callback) {
 
     try {
-      var duration = 200;
+      var duration = 100;
       if (!ctx) {
         ctx = new(window.audioContext || window.webkitAudioContext);
-        osc = ctx.createOscillator();
-        osc.type = 0;
-        osc.connect(ctx.destination);
       }
+      var osc = ctx.createOscillator();
+      osc.type = 0;
+      osc.connect(ctx.destination);
       osc.noteOn(0);
       setTimeout(function () {
         osc.noteOff(0);
