@@ -507,6 +507,7 @@ qq.FileUploader = function(o){
         element: null,
         // if set, will be used instead of qq-upload-list in template
         listElement: null,
+        buttonElement: null,
 
         template: '<div class="qq-uploader">' +
                   '<div class="qq-upload-drop-area"><span>Drop files here to upload</span></div>' +
@@ -545,7 +546,9 @@ qq.FileUploader = function(o){
     });
     // overwrite options with user supplied
     qq.extend(this._options, o);
-
+    if (this._options.buttonElement) {
+        this._options.classes.button = this._options.buttonElement;
+    }
     this._element = this._options.element;
     this._element.innerHTML = this._options.template;
     this._listElement = this._options.listElement || this._find(this._element, 'list');

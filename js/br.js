@@ -310,21 +310,28 @@
 
   }
 
+  var ctx, osc;
+
   window.br.beep = function(callback) {
 
-    var duration = 200;
-    var type = 0;
-    var ctx = new(window.audioContext || window.webkitAudioContext);
-    var osc = ctx.createOscillator();
-    osc.type = type;
-    osc.connect(ctx.destination);
-    osc.noteOn(0);
-    setTimeout(function () {
-      osc.noteOff(0);
-      if (callback) {
-        callback();
+    try {
+      var duration = 200;
+      if (!ctx) {
+        ctx = new(window.audioContext || window.webkitAudioContext);
+        osc = ctx.createOscillator();
+        osc.type = 0;
+        osc.connect(ctx.destination);
       }
-    }, duration);
+      osc.noteOn(0);
+      setTimeout(function () {
+        osc.noteOff(0);
+        if (callback) {
+          callback();
+        }
+      }, duration);
+    } catch (error) {
+      br.log(error);
+    }
 
   }
 

@@ -23,12 +23,25 @@
     this.options.noun = this.options.noun || '';
     this.options.selectors = this.options.selectors || {};
     this.options.selectors.container = this.options.selectors.container || '';
+    this.options.selectors.scrollContainer = this.options.selectors.scrollContainer || '';
 
     function c(selector) {
       if (_this.options.selectors.container !== '') {
         return _this.options.selectors.container + ' ' + selector;
       } else {
         return selector;
+      }
+    }
+
+    this.scrollContainer = function() {
+      if (_this.options.selectors.container !== '') {
+        if (_this.options.selectors.scrollContainer !== '') {
+          return _this.options.selectors.container + ' ' + _this.options.selectors.scrollContainer;
+        } else {
+          return _this.options.selectors.container;
+        }
+      } else {
+        return _this.options.selectors.scrollContainer;
       }
     }
 
@@ -477,15 +490,15 @@
 
       function checkAutoLoad() {
         var docsHeight = $(_this.options.selectors.dataTable).height();
-        var docsContainerHeight = $(c(_this.options.selectors.scrollContainer)).height();
-        var scrollTop = $(c(_this.options.selectors.scrollContainer)).scrollTop();
+        var docsContainerHeight = $(_this.scrollContainer()).height();
+        var scrollTop = $(_this.scrollContainer()).scrollTop();
         if (scrollTop + docsContainerHeight > docsHeight) {
           _this.dataGrid.loadMore();
         }
       }
 
       if (_this.options.autoLoad) {
-        $(c(_this.options.selectors.scrollContainer)).on('scroll', function() {
+        $(_this.scrollContainer()).on('scroll', function() {
           checkAutoLoad();
         });
       }
