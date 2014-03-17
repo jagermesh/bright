@@ -304,6 +304,8 @@
           if (editorRowid) {
             _this.dataSource.selectOne(editorRowid, function(result, data) {
               if (result) {
+                _this.events.triggerBefore('editor.show', data, isCopy);
+
                 for(var i in data) {
                   $editForm.find('div.data-field[data-toggle=buttons-radio][name=' + i + '],input.data-field[name=' + i + '],select.data-field[name=' + i + '],textarea.data-field[name=' + i + ']').each(function() {
                     if ($(this).attr('data-toggle') == 'buttons-radio') {
