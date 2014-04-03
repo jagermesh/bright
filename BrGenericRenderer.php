@@ -107,7 +107,7 @@ class BrGenericRenderer extends BrObject {
     }
     while (preg_match('/\[[.]([^]]+)\]/', $body, $matches)) {
       $translation = br()->config()->get('translation');
-      $body = str_replace($matches[0], br($translation, $matches[1], $matches[1]), $body);
+      $body = str_replace($matches[0], br()->trn($matches[1]), $body);
     }
     //
     // replace {login:var-name} with config variable value
