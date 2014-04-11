@@ -756,17 +756,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
       $this->triggerSticky('after:connect');
     } else {
       $this->disable();
-      if ($errorPage = br($this->config, 'errorPage')) {
-        if (br()->request()->isAt($errorPage)) {
-
-        } else {
-          br()->response()->redirect($errorPage);
-        }
-      } else {
-        throw new BrDataBaseException("Can't connect to database $dataBaseName");
-      }
     }
-
 
   }
 
