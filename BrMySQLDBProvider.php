@@ -753,6 +753,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
     if ($this->connection) {
       $this->version = mysql_get_server_info();
+      $this->triggerSticky('after:connect');
     } else {
       $this->disable();
       if ($errorPage = br($this->config, 'errorPage')) {
@@ -766,7 +767,6 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
       }
     }
 
-    $this->triggerSticky('after:connect');
 
   }
 
