@@ -772,7 +772,7 @@ class Br extends BrSingleton {
     if (is_array($emails)) {
 
     } else {
-      $emails = array($emails);
+      $emails = br($emails)->split();
     }
 
     foreach($emails as $email) {
