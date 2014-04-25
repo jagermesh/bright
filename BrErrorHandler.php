@@ -54,6 +54,12 @@ class BrErrorHandler extends BrObject {
 
         require_once(__DIR__.'/Br.php');
 
+        try {
+          br()->trigger('br.exception', $e);
+        } catch (Exception $tmp) {
+
+        }
+
         if ($e instanceof BrAppException) {
           if (br()->isConsoleMode()) {
             br()->log($e->getMessage());
@@ -110,13 +116,13 @@ class BrErrorHandler extends BrObject {
       if (in_array($errno, $this->notErrors) || ((error_reporting() & $errno) != $errno)) {
 
       } else
-      if (($errno != E_ERROR) && ($errno != E_USER_ERROR) && !br()->request()->isLocalHost()) {
+        if (($errno != E_ERROR) && ($errno != E_USER_ERROR) && !br()->request()->isLocalHost()) {
         br()->log()->logException(new BrErrorException($errmsg, 0, $errno, $errfile, $errline));
-      } else {
+        } else {
         throw new BrErrorException($errmsg, 0, $errno, $errfile, $errline);
-      }
+        }
 
-    }
+      }
 
   }
 
