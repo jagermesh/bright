@@ -17,7 +17,7 @@ class BrDateTime extends BrObject {
   var $month;
   var $year;
   var $hour;
-  var $mute;
+  var $minute;
   var $second;
 
   function __construct($date = null) {
@@ -457,5 +457,3 @@ class BrDateTime extends BrObject {
   }
 
 }
-
-?>
