@@ -5,7 +5,7 @@ require_once(dirname(dirname(__DIR__)).'/config.db.php');
 
 br()->importLib('NestedSet');
 
-$nestedSet = new BrNestedSet('br_nested_set', array('rangeField' => 'range_id'));
+$nestedSet = new BrNestedSet('br_nested_set', array('rangeField' => 'range_id', 'orderField' => 'name'));
 
 // create test table
 br()->db()->runQuery('DROP TABLE IF EXISTS br_nested_set');
