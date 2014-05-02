@@ -27,7 +27,7 @@ class BrNestedSet extends BrObject {
 
     $this->keyField    = br($params, 'keyField',    'id');
     $this->parentField = br($params, 'parentField', 'parent_id');
-    $this->orderField  = br($params, 'orderField',  'name');
+    $this->orderField  = br($params, 'orderField');
     $this->rangeField  = br($params, 'rangeField');
 
   }
@@ -73,9 +73,14 @@ class BrNestedSet extends BrObject {
 
     // get all children of this node
     if (strlen($key)) {
-      $sql = br()->placeholder('SELECT '.$this->keyField.' FROM '.$this->tableName.' WHERE '.$this->parentField.' = ? ORDER BY ' . $this->orderField, $key);
+      $sql = br()->placeholder('SELECT '.$this->keyField.' FROM '.$this->tableName.' WHERE '.$this->parentField.' = ?', $key);
     } else {
-      $sql = 'SELECT '.$this->keyField.' FROM '.$this->tableName.' WHERE '.$this->parentField.' IS NULL ORDER BY ' . $this->orderField;
+      $sql = 'SELECT '.$this->keyField.' FROM '.$this->tableName.' WHERE '.$this->parentField.' IS NULL';
+    }
+    if ($this->orderField) {
+      $sql .= ' ORDER BY ' . $this->orderField;
+    } else {
+      $sql .= ' ORDER BY ' . $this->keyField;
     }
     $query = br()->db()->select($sql);
     while ($row = br()->db()->selectNext($query)) {
