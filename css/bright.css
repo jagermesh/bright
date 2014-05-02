@@ -379,3 +379,12 @@ table.table th {
   padding-right:20px;
   cursor:pointer;
 }
+
+@media print {
+  .br-no-print {
+    display:none;
+  }
+  .br-print-only {
+    display: inline;
+  }
+}

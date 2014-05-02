@@ -772,7 +772,7 @@ class Br extends BrSingleton {
     if (is_array($emails)) {
 
     } else {
-      $emails = array($emails);
+      $emails = br($emails)->split();
     }
 
     foreach($emails as $email) {
@@ -873,10 +873,20 @@ class Br extends BrSingleton {
 
   }
 
-  function trn($phrase) {
-    $translation = br()->config()->get('translation');
-    return br($translation, $phrase, $phrase);
+  function trn($phrase = null) {
+
+    require_once(__DIR__.'/BrTrn.php');
+    $trn = BrTrn::getInstance();
+
+    if ($phrase) {
+      return $trn->getAttr($phrase, $phrase);
+    } else {
+      return $trn;
+    }
+
   }
+
+
 
 }
 

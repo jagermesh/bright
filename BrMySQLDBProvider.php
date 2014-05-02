@@ -710,8 +710,12 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   private $connection;
   private $ownConnection;
+  private $errorRedirect;
+  private $config;
 
   function __construct($cfg) {
+
+    $this->config = $cfg;
 
     $this->connect(br($cfg, 'hostname'), br($cfg, 'name'), br($cfg, 'username'), br($cfg, 'password'), $cfg);
 
@@ -733,32 +737,26 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
       $this->connection = $cfg['connection'];
       $this->ownConnection = false;
     } else {
-      $this->connection = mysql_connect($hostName, $userName, $password, true);
+      $this->connection = @mysql_connect($hostName, $userName, $password, true);
       $this->ownConnection = true;
 
-      if (!$this->connection) {
-        if (br()->config()->get('db.connection_error_page')) {
-          br()->config()->set('db.connection_in_error', true);
+      if ($this->connection) {
+        if (@mysql_select_db($dataBaseName, $this->connection)) {
+          if (br($cfg, 'charset')) {
+            $this->internalRunQuery("SET NAMES '".$cfg['charset']."'");
+          }
         } else {
-          throw new BrDataBaseException("Can't connect to database $dataBaseName");
+          $this->connection = null;
         }
-      }
-      if (!mysql_select_db($dataBaseName, $this->connection)) {
-        if (br()->config()->get('db.connection_error_page')) {
-          set_config('db.connection_in_error', true);
-        } else {
-          br()->panic("Can't select database $dataBaseName: ".$this->getLastError());
-        }
-      }
-
-      if (br($cfg, 'charset')) {
-        $this->internalRunQuery("SET NAMES '".$cfg['charset']."'");
       }
     }
 
-    $this->version = mysql_get_server_info();
-
-    $this->triggerSticky('after:connect');
+    if ($this->connection) {
+      $this->version = mysql_get_server_info();
+      $this->triggerSticky('after:connect');
+    } else {
+      $this->disable();
+    }
 
   }
 

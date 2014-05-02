@@ -613,6 +613,23 @@
     location.reload();
   };
 
+  function BrTrn() {
+    var trn = [];
+    this.get = function (phrase) { if (trn[phrase]) { return trn[phrase] } else { return phrase; } }
+    this.set = function (phrase, translation) { trn[phrase] = translation; return this; }
+    return this;
+  }
+
+  var brTrn = new BrTrn();
+
+  window.br.trn = function(phrase) {
+    if (phrase) {
+      return brTrn.get(phrase);
+    } else {
+      return brTrn;
+    }
+  };
+
   window.br.preloadImages = function(images) {
     try {
       var div = document.createElement("div");

@@ -12,8 +12,8 @@
   function showDropDownMenu(invoker, response, rowid, menuElement, dataSource, fieldName, options) {
     var menuItemTemplate = '<li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>';
     var dropDown = $('<div class="dropdown br-ajax-dropdown" style="position:absolute;"><a style="display:none;" href="javascript:;" role="button" data-toggle="dropdown" class="dropdown-toggle not-a br-ex-action-change-menu-menu"><span>{{value}}</span> <b class="caret"></b></a><ul class="dropdown-menu" role="menu" style="overflow:auto;"></ul></div>');
-    dropDownList = dropDown.find('ul');
-    dropDownMenu = dropDown.find('a.br-ex-action-change-menu-menu');
+    var dropDownList = dropDown.find('ul');
+    var dropDownMenu = dropDown.find('a.br-ex-action-change-menu-menu');
     dropDown.on('click', '.br-ex-action-change-menu', function() {
       var value = $(this).attr('data-value');
       var data = {};
@@ -34,8 +34,10 @@
     }
     dropDown.css('left', invoker.offset().left + 'px');
     var t = (invoker.offset().top + invoker.height());
+    var scr = $(window).scrollTop();
     dropDown.css('top', t + 'px');
-    var h = $(window).height() - t - 20;
+    t = t - scr;
+    var h = Math.max($(window).height() - t - 20, 100);
     dropDownList.css('max-height', h + 'px');
     $('body').append(dropDown);
     dropDownMenu.dropdown('toggle');
@@ -49,20 +51,29 @@
 
     $(selector).each(function() {
       var $this = $(this);
-      var value = $this.html();
-      if (value.length == 0) {
-        value = '<span style="color:#AAA;">(click to change)</span>';
-      }
-      $this.html(br.fetch(invokerTemplate, { value: value }));
-      $this.on('click', '.br-ex-action-change-menu-menu', function() {
-        rowid = $(this).closest('[data-rowid]').attr('data-rowid');
-        menuElement = $this.find('span.br-ex-current-value');
-        choicesDataSource.select(function(result, response) {
-          if (result && (response.length > 0)) {
-            showDropDownMenu($this, response, rowid, menuElement, dataSource, fieldName, options);
+      if ($this.data('BrExChangeMenu')) {
+
+      } else {
+        $this.data('BrExChangeMenu', true);
+        var value = $this.html();
+        if (value.length == 0) {
+          value = '<span style="color:#AAA;">(click to change)</span>';
+        }
+        $this.html(br.fetch(invokerTemplate, { value: value }));
+        $this.on('click', '.br-ex-action-change-menu-menu', function() {
+          var rowid = $(this).closest('[data-rowid]').attr('data-rowid');
+          var menuElement = $this.find('span.br-ex-current-value');
+          var filter = {}
+          if (options.onSelect) {
+            options.onSelect.call(choicesDataSource, filter, rowid);
           }
+          choicesDataSource.select(filter, function(result, response) {
+            if (result && (response.length > 0)) {
+              showDropDownMenu($this, response, rowid, menuElement, dataSource, fieldName, options);
+            }
+          });
         });
-      });
+      }
     });
 
   }

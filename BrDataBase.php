@@ -35,7 +35,7 @@ class BrDataBase extends BrObject {
           case "mysql":
             require_once(__DIR__.'/BrMySQLDBProvider.php');
             $instance = new BrMySQLDBProvider($dbConfig);
-            break;
+          break;
           case "mongodb":
             require_once(__DIR__.'/BrMongoDBProvider.php');
             $instance = new BrMongoDBProvider($dbConfig);
@@ -43,6 +43,21 @@ class BrDataBase extends BrObject {
         }
 
         $instances[$name] = $instance;
+
+        if ($instance->isEnabled()) {
+
+        } else {
+          if ($errorPage = br($dbConfig, 'errorPage')) {
+            if (br()->request()->isAt($errorPage)) {
+
+            } else {
+              br()->response()->redirect($errorPage);
+            }
+          } else {
+            br()->trigger('db.connectionError');
+            throw new BrDataBaseException("Can't connect to database");
+          }
+        }
 
       }
 
