@@ -1328,7 +1328,7 @@
         request = params;
       }
 
-      _this.events.triggerBefore('' + method, request);
+      _this.events.triggerBefore(method, request);
 
       if (this.options.crossdomain) {
         request.crossdomain = 'post';
@@ -1341,11 +1341,11 @@
              , success: function(response) {
                  if (_this.options.crossdomain && (typeof response == 'string')) {
                    _this.events.trigger('error', method, response);
-                   _this.events.triggerAfter('' + method, false, response, request);
+                   _this.events.triggerAfter(method, false, response, request);
                    if (typeof callback == 'function') { callback.call(_this, false, response, request); }
                  } else {
                    _this.events.trigger(method, response, params);
-                   _this.events.triggerAfter('' + method, true, response, request);
+                   _this.events.triggerAfter(method, true, response, request);
                    if (typeof callback == 'function') { callback.call(_this, true, response, request); }
                  }
                }
@@ -1355,7 +1355,7 @@
                  } else {
                    var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
                    _this.events.trigger('error', method, errorMessage);
-                   _this.events.triggerAfter('' + method, false, errorMessage, request);
+                   _this.events.triggerAfter(method, false, errorMessage, request);
                    if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
                  }
                }
