@@ -99,7 +99,7 @@
             } else {
               val = $(this).val();
             }
-            if ($(this).hasClass('required') && br.isEmpty(val)) {
+            if ($(this).hasClass('required') && br.isEmpty(val) && (!$(this).hasClass('required-edit-only') || _this.isEditMode())) {
               var title = $(this).attr('title');
               if (br.isEmpty(title)) {
                 title = $(this).prev('label').text();
