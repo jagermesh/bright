@@ -165,10 +165,17 @@ class BrMySQLProviderTable {
       if ($first) {
         if (!in_array($joinTableName, $joinsTables)) {
           $joinsTables[] = $joinTableName;
-          if (strpos($fieldName, '.') === false) {
-            $joins .= ' INNER JOIN '.$joinTableName.' ON '.$tableName.'.'.$fieldName.' = '.$joinTableName.'.'.$joinField;
+          $tmp = br($joinTableName)->split(' ');
+          if (count($tmp) > 1) {
+            $joinTableName = $tmp[0];
+            $joinTableAlias = $tmp[1];
           } else {
-            $joins .= ' INNER JOIN '.$joinTableName.' ON '.$fieldName.' = '.$joinTableName.'.'.$joinField;
+            $joinTableAlias = $joinTableName;
+          }
+          if (strpos($fieldName, '.') === false) {
+            $joins .= ' INNER JOIN '.$joinTableName.' '.$joinTableAlias.' ON '.$tableName.'.'.$fieldName.' = '.$joinTableAlias.'.'.$joinField;
+          } else {
+            $joins .= ' INNER JOIN '.$joinTableName.' '.$joinTableAlias.' ON '.$fieldName.' = '.$joinTableAlias.'.'.$joinField;
           }
         } else {
 
@@ -190,11 +197,23 @@ class BrMySQLProviderTable {
         $initialJoinTableName = $joinTableName;
         if (!in_array($joinTableName, $joinsTables)) {
           $joinsTables[] = $joinTableName;
-          if (strpos($fieldName, '.') === false) {
-            $joins .= ' LEFT JOIN '.$joinTableName.' ON '.$tableName.'.'.$fieldName.' = '.$joinTableName.'.'.$joinField;
+          $tmp = br($joinTableName)->split(' ');
+          if (count($tmp) > 1) {
+            $joinTableName = $tmp[0];
+            $joinTableAlias = $tmp[1];
           } else {
-            $joins .= ' LEFT JOIN '.$joinTableName.' ON '.$fieldName.' = '.$joinTableName.'.'.$joinField;
+            $joinTableAlias = $joinTableName;
           }
+          if (strpos($fieldName, '.') === false) {
+            $joins .= ' LEFT JOIN '.$joinTableName.' '.$joinTableAlias.' ON '.$tableName.'.'.$fieldName.' = '.$joinTableAlias.'.'.$joinField;
+          } else {
+            $joins .= ' LEFT JOIN '.$joinTableName.' '.$joinTableAlias.' ON '.$fieldName.' = '.$joinTableAlias.'.'.$joinField;
+          }
+          // if (strpos($fieldName, '.') === false) {
+          //   $joins .= ' LEFT JOIN '.$joinTableName.' ON '.$tableName.'.'.$fieldName.' = '.$joinTableName.'.'.$joinField;
+          // } else {
+          //   $joins .= ' LEFT JOIN '.$joinTableName.' ON '.$fieldName.' = '.$joinTableName.'.'.$joinField;
+          // }
         } else {
 
         }
