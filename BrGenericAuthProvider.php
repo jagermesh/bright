@@ -90,7 +90,10 @@ class BrGenericAuthProvider extends BrSingleton {
              , br()->request()->domain() == 'localhost' ? false : br()->request()->domain()
              );
 
-    $this->trigger('clearLogin', $login);
+    if ($login = br()->auth()->getLogin()) {
+      $this->trigger('clearLogin', $login);
+    }
+
     return br()->session()->clear('login');
 
   }
