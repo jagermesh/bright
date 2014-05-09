@@ -131,6 +131,8 @@
           _this.dataSource.update(editorRowid, data, function(result, response) {
             if (result) {
               br.resetCloseConfirmation();
+              _this.events.triggerAfter('editor.update', true, response);
+              _this.events.triggerAfter('editor.save', true, response);
               if (andClose) {
                 goodHide = true;
                 if (_this.container.hasClass('modal')) {
@@ -145,8 +147,6 @@
                 if (!_this.options.hideSaveNotification) {
                   br.growlMessage('Changes saved', 'Success');
                 }
-                _this.events.triggerAfter('editor.update', true, response);
-                _this.events.triggerAfter('editor.save', true, response);
               }
               if (callback) {
                 callback.call(this);
@@ -157,6 +157,8 @@
           _this.dataSource.insert(data, function(result, response) {
             if (result) {
               br.resetCloseConfirmation();
+              _this.events.triggerAfter('editor.insert', true, response);
+              _this.events.triggerAfter('editor.save', true, response);
               if (andClose) {
                 goodHide = true;
                 if (_this.container.hasClass('modal')) {
@@ -173,8 +175,6 @@
                 }
                 editorRowid = response.rowid;
                 _this.editorConfigure(false);
-                _this.events.triggerAfter('editor.insert', true, response);
-                _this.events.triggerAfter('editor.save', true, response);
               }
               if (callback) {
                 callback.call(this);
