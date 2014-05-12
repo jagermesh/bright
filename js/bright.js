@@ -1516,6 +1516,15 @@
       return $(_this.selector).append(row);
     }
 
+    this.insertDataRowAfter = function(row, selector) {
+      _this.events.triggerBefore('insert', row);
+      var tableRow = _this.renderRow(row);
+      _this.events.trigger('insert', row, tableRow);
+      $(tableRow).insertAfter(selector);
+      _this.events.triggerAfter('insert', row, tableRow);
+      return tableRow;
+    }
+
     this.addDataRow = function(row) {
       _this.events.triggerBefore('insert', row);
       var tableRow = _this.renderRow(row);
