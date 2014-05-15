@@ -128,7 +128,7 @@
 
       var request = item;
 
-      _this.events.triggerBefore('update', rowid, request);
+      _this.events.triggerBefore('update', request, rowid);
 
       if (_this.options.offlineMode) {
         _this.db({rowid: rowid}).update(request);

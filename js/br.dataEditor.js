@@ -157,6 +157,8 @@
           _this.dataSource.insert(data, function(result, response) {
             if (result) {
               br.resetCloseConfirmation();
+              editorRowid = response.rowid;
+              _this.editorConfigure(false);
               _this.events.triggerAfter('editor.insert', true, response);
               _this.events.triggerAfter('editor.save', true, response);
               if (andClose) {
@@ -173,8 +175,6 @@
                 if (!_this.options.hideSaveNotification) {
                   br.growlMessage('Changes saved', 'Success');
                 }
-                editorRowid = response.rowid;
-                _this.editorConfigure(false);
               }
               if (callback) {
                 callback.call(this);

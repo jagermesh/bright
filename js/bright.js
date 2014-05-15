@@ -390,19 +390,28 @@
     this.subscribers = {};
     this.obj = obj || this;
 
-    this.before = function(event, callback) {
-      _this.subscribers[event] = _this.subscribers[event] || { on: [], before: [], after: [] };
-      _this.subscribers[event].before.push(callback);
+    this.before = function(events, callback) {
+      var events = events.split(',');
+      for(var i=0;i<events.length;i++) {
+        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], before: [], after: [] };
+        _this.subscribers[events[i]].before.push(callback);
+      }
     }
 
-    this.on = function(event, callback) {
-      _this.subscribers[event] = _this.subscribers[event] || { on: [], before: [], after: [] };
-      _this.subscribers[event].on.push(callback);
+    this.on = function(events, callback) {
+      var events = events.split(',');
+      for(var i=0;i<events.length;i++) {
+        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], before: [], after: [] };
+        _this.subscribers[events[i]].on.push(callback);
+      }
     }
 
-    this.after = function(event, callback) {
-      _this.subscribers[event] = _this.subscribers[event] || { on: [], before: [], after: [] };
-      _this.subscribers[event].after.push(callback);
+    this.after = function(events, callback) {
+      var events = events.split(',');
+      for(var i=0;i<events.length;i++) {
+        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], before: [], after: [] };
+        _this.subscribers[events[i]].after.push(callback);
+      }
     }
 
     function trigger(event, pos, args) {
@@ -1099,7 +1108,7 @@
 
       var request = item;
 
-      _this.events.triggerBefore('update', rowid, request);
+      _this.events.triggerBefore('update', request, rowid);
 
       if (_this.options.offlineMode) {
         _this.db({rowid: rowid}).update(request);
