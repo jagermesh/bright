@@ -250,6 +250,17 @@ class BrRESTBinder extends BrObject {
                   if (is_array($fields)) {
                     $subFilter = array();
                     foreach($fields as $field) {
+                      $subFilter[] = array($field => array('$like' => $value));
+                    }
+                    $filter['$or'] = $subFilter;
+                  } else {
+                    $filter[$fields] = array('$like' => $value);
+                  }
+                  break;
+                case "contains":
+                  if (is_array($fields)) {
+                    $subFilter = array();
+                    foreach($fields as $field) {
                       $subFilter[] = array($field => array('$contains' => $value));
                     }
                     $filter['$or'] = $subFilter;
