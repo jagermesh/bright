@@ -162,47 +162,53 @@
         callback = filter;
         filter = {};
       }
-      _this.dataSource.select(filter, function(result, response) {
-        if (result) {
-          if (callback) {
-            callback.call(_this.selector, result, response);
+      if (_this.dataSource) {
+        _this.dataSource.select(filter, function(result, response) {
+          if (result) {
+            if (callback) {
+              callback.call(_this.selector, result, response);
+            }
+            uiSync();
           }
-          uiSync();
-        }
-      }, { fields: _this.fields });
+        }, { fields: _this.fields });
+      }
     }
 
-    _this.dataSource.on('select', function(data) {
-      render(data);
-    });
+    if (_this.dataSource) {
 
-    _this.dataSource.after('insert', function(result, data) {
-      if (result && _this.isValid()) {
-        _this.selector.append($(renderRow(data)));
-        uiSync();
-      }
-      _this.events.trigger('change');
-    });
+      _this.dataSource.on('select', function(data) {
+        render(data);
+      });
 
-    _this.dataSource.after('update', function(result, data) {
-      if (result && _this.isValid()) {
-        if (data[_this.options.valueField]) {
-          _this.selector.find('option[value=' + data[_this.options.valueField] +']').text(data[_this.options.nameField]);
+      _this.dataSource.after('insert', function(result, data) {
+        if (result && _this.isValid()) {
+          _this.selector.append($(renderRow(data)));
           uiSync();
         }
-      }
-      _this.events.trigger('change');
-    });
+        _this.events.trigger('change');
+      });
 
-    _this.dataSource.after('remove', function(result, data) {
-      if (result && _this.isValid()) {
-        if (data[_this.options.valueField]) {
-          _this.selector.find('option[value=' + data[_this.options.valueField] +']').remove();
-          uiSync();
+      _this.dataSource.after('update', function(result, data) {
+        if (result && _this.isValid()) {
+          if (data[_this.options.valueField]) {
+            _this.selector.find('option[value=' + data[_this.options.valueField] +']').text(data[_this.options.nameField]);
+            uiSync();
+          }
         }
-      }
-      _this.events.trigger('change');
-    });
+        _this.events.trigger('change');
+      });
+
+      _this.dataSource.after('remove', function(result, data) {
+        if (result && _this.isValid()) {
+          if (data[_this.options.valueField]) {
+            _this.selector.find('option[value=' + data[_this.options.valueField] +']').remove();
+            uiSync();
+          }
+        }
+        _this.events.trigger('change');
+      });
+
+    }
 
     _this.selector.change(function() {
       if (_this.saveSelection) {
