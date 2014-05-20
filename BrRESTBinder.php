@@ -329,6 +329,10 @@ class BrRESTBinder extends BrObject {
         }
       }
 
+      if ($page = br()->request()->get('__page')) {
+        $dataSourceOptions['page'] = $page;
+      }
+
       if ($order = br()->request()->get('__order')) {
         if (!is_array($order)) {
           $order = array($order => 1);

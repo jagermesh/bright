@@ -298,6 +298,10 @@
           request.__order = options.order;
         }
 
+        if (options && options.page) {
+          request.__page = options.page;
+        }
+
         if (this.options.crossdomain) {
           request.crossdomain = 'get';
         }
