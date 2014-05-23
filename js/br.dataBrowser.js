@@ -199,6 +199,7 @@
         if (editorRowid) {
           _this.dataSource.update(editorRowid, data, function(result) {
             if (result) {
+              br.resetCloseConfirmation();
               if (andClose) {
                 $editForm.modal('hide');
               }
@@ -210,6 +211,7 @@
         } else {
           _this.dataSource.insert(data, function(result, response) {
             if (result) {
+              br.resetCloseConfirmation();
               if (andClose) {
                 $editForm.modal('hide');
               } else {
