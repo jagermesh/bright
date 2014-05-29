@@ -96,7 +96,9 @@ class BrArray {
 
     foreach($this->value as $name => $value) {
       if (!array_key_exists($name, $arr2)) {
-        $result[$name] = $value;
+        if (is_array($value) || (strlen($value) > 0)) {
+          $result[$name] = $value;
+        }
       } else
       if ($value != $arr2[$name]) {
         $result[$name] = $value;
@@ -104,6 +106,18 @@ class BrArray {
     }
 
     return $result;
+
+  }
+
+  function hasOnlyNames($arr2) {
+
+    foreach($this->value as $name => $value) {
+      if (!in_array($name, $arr2)) {
+        return false;
+      }
+    }
+
+    return true;
 
   }
 
