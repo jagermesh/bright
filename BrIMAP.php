@@ -404,10 +404,12 @@ class BrIMAPMailMessage extends BrObject {
     }
 
     if ($structure->ifdisposition && ((strtolower(@$structure->disposition) == 'attachment') || ((strtolower(@$structure->disposition) == 'inline') && (strtolower($this->parentPart) == 'mixed')))) {
-      $this->attachments[] = new BrIMAPAttachment($this, $partNo, $structure);
-    // } else
-    // if ($structure->ifdisposition && (strtolower($structure->disposition) == 'inline')) {
-    //   $this->HTMLBody->addInline(new BrIMAPAttachment($this, $partNo, $structure));
+      if (strtolower(@$structure->disposition) == 'attachment') {
+        $this->attachments[] = new BrIMAPAttachment($this, $partNo, $structure);
+      }
+      if (strtolower(@$structure->disposition) == 'inline') {
+        $this->HTMLBody->addInline(new BrIMAPAttachment($this, $partNo, $structure));
+      }
     } else {
       switch (strtolower($structure->subtype)) {
         case 'plain':
