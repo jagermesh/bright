@@ -122,17 +122,22 @@ class BrGenericRenderer extends BrObject {
       $body = str_replace($matches[0], $value, $body);
     }
     // replace {at:path ... }
-    if (preg_match_all("/[{]:([^ }\n\r]+)[}](.+?)[{]:[}]/sm", $body, $matches, PREG_SET_ORDER)) {
+    if (preg_match_all("/[{](\^?):([^ }\n\r]+)[}](.+?)[{]:[}]/sm", $body, $matches, PREG_SET_ORDER)) {
       foreach($matches as $match) {
-        if ($match[1] == '/') {
+        if ($match[2] == '/') {
           $url = br()->request()->host().br()->request()->baseUrl().'($|[?])';
         } else {
-          $url = $match[1];
+          $url = $match[2];
         }
-        if (!br()->request()->isAt($url)) {
-          $body = str_replace($match[0], '', $body);
+        if ($match[1]) {
+          $ok = !br()->request()->isAt($url);
         } else {
-          $body = str_replace($match[0], $match[2], $body);
+          $ok = br()->request()->isAt($url);
+        }
+        if ($ok) {
+          $body = str_replace($match[0], $match[3], $body);
+        } else {
+          $body = str_replace($match[0], '', $body);
         }
       }
     }
