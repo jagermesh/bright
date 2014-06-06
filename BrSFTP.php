@@ -254,5 +254,11 @@ class BrSFTP extends BrObject {
 
   }
 
+  public function getLastError() {
+
+    return $this->connection->getLastSFTPError();
+
+  }
+
 }
 

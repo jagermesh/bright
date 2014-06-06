@@ -233,5 +233,11 @@ class BrFTP extends BrObject {
 
   }
 
+  public function getLastError() {
+
+    return '';
+
+  }
+
 }
 
