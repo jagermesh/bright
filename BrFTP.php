@@ -15,6 +15,7 @@ class BrFTPFileObject {
 
   private $name;
   private $size;
+  private $date;
   private $isDirectory;
 
   function __construct($line) {
@@ -23,11 +24,13 @@ class BrFTPFileObject {
       $this->isDirectory = ($matches[1] == 'd');
       $this->size = $matches[2];
       $this->name = $matches[8];
+      $this->date = trim($matches[3] . $matches[4] . ', ' . $matches[5]);
     } else
     if (preg_match('#[0-9]{2}[-][0-9]{2}[-][0-9]{2}  [0-9]{2}:[0-9]{2}[AP]M[ ]+([0-9]+) (.+)#', $line, $matches)) {
       $this->isDirectory = false;//($matches[1] == 'd');
       $this->size = $matches[1];
       $this->name = $matches[2];
+      $this->date = '';
     }
 
   }
@@ -53,6 +56,12 @@ class BrFTPFileObject {
   function size() {
 
     return $this->size;
+
+  }
+
+  function date() {
+
+    return $this->date;
 
   }
 

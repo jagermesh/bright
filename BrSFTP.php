@@ -25,6 +25,7 @@ class BrSFTPFileObject {
     $this->isDirectory = ($params['type'] == 2);
     $this->size = $params['size'];
     $this->name = $name;
+    $this->date = br($params, 'mtime') ? date('m/d/Y H:i', $params['mtime']) : '';
 
   }
 
@@ -49,6 +50,12 @@ class BrSFTPFileObject {
   function size() {
 
     return $this->size;
+
+  }
+
+  function date() {
+
+    return $this->date;
 
   }
 
