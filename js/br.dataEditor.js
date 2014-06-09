@@ -35,7 +35,7 @@
     this.on     = function(event, callback) { this.events.on(event, callback); }
     this.after  = function(event, callback) { this.events.after(event, callback); }
 
-    this.getEditorRowid = function() {
+    this.rowid = function() {
       return editorRowid;
     }
     this.isActive = function() {
@@ -47,10 +47,10 @@
     this.isInsertMode = function() {
       return br.isNull(editorRowid);
     }
-    this.lockEditor = function() {
+    this.lock = function() {
       $(this.options.selectors.save, _this.container).addClass('disabled');
     }
-    this.unLockEditor = function() {
+    this.unlock = function() {
       $(this.options.selectors.save, _this.container).removeClass('disabled');
     }
     this.hide = function() {
@@ -75,7 +75,7 @@
       }
       _this.container.find('.operation').text(s);
     }
-    this.save = this.editorSave = function(andClose, callback) {
+    this.save = function(andClose, callback) {
       if (br.isFunction(andClose)) {
         callback = andClose;
         andClose = false;
@@ -86,6 +86,7 @@
       _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio],input.data-field,select.data-field,textarea.data-field').each(function() {
         if (ok) {
           var val;
+          var skip = false;
           if (($(this).attr('readonly') != 'readonly') && ($(this).attr('disabled') != 'disabled')) {
             if ($(this).attr('data-toggle') == 'buttons-radio') {
               val = $(this).find('button.active').val();
@@ -96,22 +97,32 @@
               } else {
                 val = 0;
               }
+            } else
+            if ($(this).attr('type') == 'radio') {
+              if ($(this).is(':checked')) {
+                val = $(this).val();
+              } else {
+                skip = true;
+                // val = 0;
+              }
             } else {
               val = $(this).val();
             }
-            if ($(this).hasClass('required') && br.isEmpty(val) && (!$(this).hasClass('required-edit-only') || _this.isEditMode())) {
-              var title = $(this).attr('title');
-              if (br.isEmpty(title)) {
-                title = $(this).prev('label').text();
+            if (!skip) {
+              if ($(this).hasClass('required') && br.isEmpty(val) && (!$(this).hasClass('required-edit-only') || _this.isEditMode())) {
+                var title = $(this).attr('title');
+                if (br.isEmpty(title)) {
+                  title = $(this).prev('label').text();
+                }
+                br.growlError(title + ' must be filled');
+                this.focus();
+                ok = false;
+              } else
+              if (br.isEmpty(val)) {
+                data[$(this).attr('name')] = '';
+              } else {
+                data[$(this).attr('name')] = val;
               }
-              br.growlError(title + ' must be filled');
-              this.focus();
-              ok = false;
-            } else
-            if (br.isEmpty(val)) {
-              data[$(this).attr('name')] = '';
-            } else {
-              data[$(this).attr('name')] = val;
             }
           }
         }
@@ -138,7 +149,6 @@
                 if (_this.container.hasClass('modal')) {
                   _this.container.modal('hide');
                 }
-                _this.events.trigger('hideEditor', true, response);
                 _this.events.trigger('editor.hide', true, response);
                 if (!_this.container.hasClass('modal')) {
                   br.backToCaller(_this.options.returnUrl, true);
@@ -166,7 +176,6 @@
                 if (_this.container.hasClass('modal')) {
                   _this.container.modal('hide');
                 }
-                _this.events.trigger('hideEditor', true, response);
                 _this.events.trigger('editor.hide', true, response);
                 if (!_this.container.hasClass('modal')) {
                   br.backToCaller(_this.options.returnUrl, true);
@@ -185,7 +194,6 @@
       }
     }
     this.init = function() {
-
       if ($.datepicker) {
         $('.datepicker').each(function() {
           $(this).datepicker({ dateFormat: $(this).attr('data-format') });
@@ -193,6 +201,7 @@
       }
 
       if (_this.container.hasClass('modal')) {
+        _this.container.attr('data-backdrop', 'static');
         _this.container.on('shown', function() {
           var focusedInput = $('input.focus[type!=hidden]:visible,select.focus:visible,textarea.focus:visible', $(this));
           if (focusedInput.length > 0) {
@@ -242,18 +251,14 @@
       if (_this.container.hasClass('modal')) {
         _this.container.modal('hide');
       }
-      _this.events.trigger('hideEditor', false);
       _this.events.trigger('editor.hide', false, editorRowid);
       if (!_this.container.hasClass('modal')) {
         br.backToCaller(_this.options.returnUrl, false);
       }
     }
-    this.showEditor = function(rowid, isCopy) {
-      return this.show(rowid, isCopy);
-    }
     this.show = function(rowid, isCopy) {
       editorRowid = rowid;
-      _this.inputsContainer.find('input.data-field,select.data-field,textarea.data-field').val('');
+      _this.inputsContainer.find('input.data-field[type!=radio],select.data-field,textarea.data-field').val('');
       _this.inputsContainer.find('input.data-field[type=checkbox]').val('1');
       _this.inputsContainer.find('input.data-field[type=checkbox]').removeAttr('checked');
       _this.container.find('div.data-field[data-toggle=buttons-radio]').find('button').removeClass('active');
@@ -274,6 +279,11 @@
                   } else {
                     $(this).removeAttr('checked');
                   }
+                } else
+                if ($(this).attr('type') == 'radio') {
+                  if (br.toInt(data[i]) == br.toInt($(this).val())) {
+                    $(this).attr('checked', 'checked');
+                  }
                 } else {
                   $(this).val(data[i]);
                   if ($(this)[0].tagName == 'SELECT') {
@@ -287,7 +297,6 @@
             if (isCopy) {
               editorRowid = null;
             }
-            _this.events.trigger('showEditor', data, isCopy);
             _this.events.trigger('editor.show', data, isCopy);
             if (_this.container.hasClass('modal')) {
               _this.container.modal('show');
@@ -308,7 +317,6 @@
             $(this).select2();
           }
         });
-        _this.events.trigger('showEditor');
         _this.events.trigger('editor.show');
         if (_this.container.hasClass('modal')) {
           _this.container.modal('show');

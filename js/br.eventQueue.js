@@ -14,6 +14,7 @@
     var _this = this;
 
     this.subscribers = {};
+    this.connections = [];
     this.obj = obj || this;
 
     this.before = function(events, callback) {
@@ -40,6 +41,10 @@
       }
     }
 
+    this.connectTo = function(eventQueue) {
+      _this.connections.push(eventQueue);
+    }
+
     function trigger(event, pos, args) {
 
       var result = null;
@@ -47,7 +52,7 @@
       var i;
 
       if (eventSubscribers) {
-        switch(pos) {
+        switch (pos) {
           case 'before':
             for (var i = 0; i < eventSubscribers.before.length; i++) {
               eventSubscribers.before[i].apply(_this.obj, args);
@@ -70,7 +75,7 @@
 
     }
 
-    function triggerEx(event, pos, largs) {
+    this.triggerEx = function(event, pos, largs) {
 
       var args = [];
       for(var i = 0; i < largs.length; i++) {
@@ -83,18 +88,24 @@
 
       args.splice(0,1);
 
-      return trigger(event, pos, args);
+      var result = trigger(event, pos, args);
+
+      for (var i = 0; i < _this.connections.length; i++) {
+        _this.connections[i].triggerEx(event, pos, largs);
+      }
+
+      return result;
 
     }
 
     this.triggerBefore = function(event) {
-      return triggerEx(event, 'before', arguments);
+      return this.triggerEx(event, 'before', arguments);
     }
     this.trigger = function(event) {
-      return triggerEx(event, 'on',     arguments);
+      return this.triggerEx(event, 'on',     arguments);
     }
     this.triggerAfter = function(event) {
-      return triggerEx(event, 'after',  arguments);
+      return this.triggerEx(event, 'after',  arguments);
     }
 
   }

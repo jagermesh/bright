@@ -12,7 +12,6 @@
   function BrDataBrowser(entity, options) {
 
     var _this = this;
-    var editorRowid = null;
 
     var pagerSetuped = false;
 
@@ -54,8 +53,6 @@
     this.options.templates.noData = this.options.templates.noData || '.data-empty-template';
 
     var selActionCRUD = c('.action-edit') + ',' + c('.action-create') + ',' + c('.action-copy');
-
-    var $editForm = $(_this.options.selectors.editForm);
 
     if (typeof entity == 'string') {
       if (this.options.entity.indexOf('/') == -1) {
@@ -107,15 +104,6 @@
     this.on     = function(event, callback) { this.events.on(event, callback); }
     this.after  = function(event, callback) { this.events.after(event, callback); }
 
-    this.getEditorRowid = function() {
-      return editorRowid;
-    }
-    this.editorInEditMode = function() {
-      return !br.isNull(editorRowid);
-    }
-    this.editorInInsertMode = function() {
-      return br.isNull(editorRowid);
-    }
     this.before = function(operation, callback) {
       this.dataSource.before(operation, callback);
       this.countDataSource.before(operation, callback);
@@ -137,94 +125,8 @@
       filter = filter || { };
       return filter[name];
     }
-    this.lockEditor = function() {
-      $('.action-save', $editForm).addClass('disabled');
-    }
-    this.unLockEditor = function() {
-      $('.action-save', $editForm).removeClass('disabled');
-    }
     this.reloadRow = function(rowid) {
       _this.dataGrid.reloadRow(rowid);
-    }
-    this.editorConfigure = function(isCopy) {
-      if (editorRowid) {
-        if (isCopy) {
-          $editForm.find('.operation').text('Copy ' + _this.options.noun);
-        } else {
-          $editForm.find('.operation').text('Edit ' + _this.options.noun);
-        }
-      } else {
-        $editForm.find('.operation').text('Create ' + _this.options.noun);
-      }
-    }
-    this.editorSave = function(andClose, callback) {
-      if (br.isFunction(andClose)) {
-        callback = andClose;
-        andClose = false;
-      }
-      var data = { };
-      var ok = true;
-      $editForm.find('div.data-field[data-toggle=buttons-radio],input.data-field,select.data-field,textarea.data-field').each(function() {
-        if (ok) {
-          var val;
-          if ($(this).attr('data-toggle') == 'buttons-radio') {
-            val = $(this).find('button.active').val();
-          } else
-          if ($(this).attr('type') == 'checkbox') {
-            if ($(this).is(':checked')) {
-              val = 1;
-            } else {
-              val = 0;
-            }
-          } else {
-            val = $(this).val();
-          }
-          if ($(this).hasClass('required') && br.isEmpty(val)) {
-            var title = $(this).attr('title');
-            if (br.isEmpty(title)) {
-              title = $(this).prev('label').text();
-            }
-            br.growlError(title + ' must be filled');
-            this.focus();
-            ok = false;
-          } else
-          if (br.isEmpty(val)) {
-            data[$(this).attr('name')] = '';
-          } else {
-            data[$(this).attr('name')] = val;
-          }
-        }
-      });
-      if (ok) {
-        if (editorRowid) {
-          _this.dataSource.update(editorRowid, data, function(result) {
-            if (result) {
-              br.resetCloseConfirmation();
-              if (andClose) {
-                $editForm.modal('hide');
-              }
-              if (callback) {
-                callback.call(this);
-              }
-            }
-          });
-        } else {
-          _this.dataSource.insert(data, function(result, response) {
-            if (result) {
-              br.resetCloseConfirmation();
-              if (andClose) {
-                $editForm.modal('hide');
-              } else {
-                editorRowid = response.rowid;
-                _this.editorConfigure(false);
-              }
-              if (callback) {
-                callback.call(this);
-              }
-            }
-          });
-        }
-      }
     }
     this.init = function() {
       // nav
@@ -278,81 +180,16 @@
       }
 
       if (_this.options.features.editor) {
-
-        $editForm.on('shown', function() {
-          var firstInput = $('input,select,textarea', $(this));
-          if (firstInput.length > 0) {
-            firstInput[0].focus();
-          }
-          _this.events.trigger('editor.shown');
-        });
-
-        $editForm.on('hidden', function() {
-          _this.events.trigger('editor.hidden');
-        });
+        _this.editor = br.dataEditor(_this.options.selectors.editForm, _this.dataSource, { noun: _this.options.noun });
+        _this.editor.events.connectTo(_this.events);
 
         $(c('.action-create')).show();
 
         $(selActionCRUD).live('click', function() {
           var isCopy = $(this).hasClass('action-copy');
-          editorRowid = $(this).closest('[data-rowid]').attr('data-rowid');
-          _this.editorConfigure(isCopy);
-          $editForm.find('input.data-field,select.data-field,textarea.data-field').val('');
-          $editForm.find('input.data-field[type=checkbox]').val('1');
-          $editForm.find('input.data-field[type=checkbox]').removeAttr('checked');
-
-          $editForm.find('div.data-field[data-toggle=buttons-radio]').find('button').removeClass('active');
-
-          if (editorRowid) {
-            _this.dataSource.selectOne(editorRowid, function(result, data) {
-              if (result) {
-                _this.events.triggerBefore('editor.show', data, isCopy);
-
-                for(var i in data) {
-                  $editForm.find('div.data-field[data-toggle=buttons-radio][name=' + i + '],input.data-field[name=' + i + '],select.data-field[name=' + i + '],textarea.data-field[name=' + i + ']').each(function() {
-                    if ($(this).attr('data-toggle') == 'buttons-radio') {
-                      $(this).find('button[value=' + data[i] + ']').addClass('active');
-                    } else
-                    if ($(this).attr('type') == 'checkbox') {
-                      if (data[i] == '1') {
-                        $(this).attr('checked', 'checked');
-                      }
-                    } else {
-                      $(this).val(data[i]);
-                      if ($(this)[0].tagName == 'SELECT') {
-                        if (window.Select2) {
-                          $(this).select2();
-                        }
-                      }
-                    }
-                  });
-                }
-                if (isCopy) {
-                  editorRowid = null;
-                }
-                _this.events.trigger('showEditor', data, isCopy);
-                _this.events.trigger('editor.show', data, isCopy);
-                $editForm.modal('show');
-              }
-            }, { disableEvents: true });
-          } else {
-            $editForm.find('select.data-field').each(function() {
-              if (window.Select2) {
-                $(this).select2();
-              }
-            });
-            _this.events.trigger('showEditor');
-            _this.events.trigger('editor.show');
-            $editForm.modal('show');
-          }
+          var rowid = $(this).closest('[data-rowid]').attr('data-rowid');
+          _this.editor.show(rowid, isCopy);
         });
-
-        $('.action-save', $editForm).click(function() {
-          if (!$(this).hasClass('disabled')) {
-            _this.editorSave(true);
-          }
-        });
-
       }
 
       br.editable(c('.editable'), function(content) {
