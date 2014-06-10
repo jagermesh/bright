@@ -353,7 +353,7 @@ class BrDataSourceUsers extends BrDataSource {
 
   }
 
-  public function canUpdate($row) {
+  public function canUpdate($row, $new = array()) {
 
     if ($login = br()->auth()->getLogin()) {
       $security = br()->auth()->getAttr('usersAPI.update');

@@ -29,7 +29,7 @@ class BrDateTime extends BrObject {
   function set($date = null) {
 
     if (!$date) {
-      $date = mktime();
+      $date = time();
     }
 
     $date_parts = explode('-', date('d-m-Y-N-H-i-s-D', $date));
@@ -146,7 +146,7 @@ class BrDateTime extends BrObject {
   function daysBetween($date = null, $with_sign = false) {
 
     if (!$date) {
-      $date = mktime();
+      $date = time();
     }
     $date = new BrDateTime($date);
     $diff = ($this->asDate() - $date->asDate())/60/60/24;
@@ -160,7 +160,7 @@ class BrDateTime extends BrObject {
   function minutesBetween($date = null) {
 
     if (!$date) {
-      $date = mktime();
+      $date = time();
     }
     $date = new BrDateTime($date);
     $diff = abs($this->asDateTime() - $date->asDateTime())/60;
@@ -170,8 +170,9 @@ class BrDateTime extends BrObject {
 
   function secondsBetween($date = null) {
 
-    if (!$date)
-      $date = mktime();
+    if (!$date) {
+      $date = time();
+    }
     $date = new BrDateTime($date);
     $diff = abs($this->asDateTime() - $date->asDateTime());
     return $diff;
@@ -227,7 +228,7 @@ class BrDateTime extends BrObject {
   function hoursBetween($date = null) {
 
     if (!$date) {
-      $date = mktime();
+      $date = time();
     }
     $date = new BrDateTime($date);
     $diff = abs($this->asDateTime() - $date->asDateTime())/60/60;
@@ -238,7 +239,7 @@ class BrDateTime extends BrObject {
   function daysTill($date = null) {
 
     if (!$date) {
-      $date = mktime();
+      $date = time();
     }
     $date = new BrDateTime($date);
     $diff = ($this->asDate() - $date->asDate())/60/60/24;
@@ -266,7 +267,7 @@ class BrDateTime extends BrObject {
   function monthsBetween($date = null, $with_sign = false) {
 
     if (!$date) {
-      $date = mktime();
+      $date = time();
     }
     $date = new BrDateTime($date);
     $diff = (($this->year * 12 + $this->month) - ($date->year * 12 + $date->month));
