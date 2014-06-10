@@ -194,9 +194,14 @@
       }
     }
     this.init = function() {
+
       if ($.datepicker) {
-        $('.datepicker').each(function() {
-          $(this).datepicker({ dateFormat: $(this).attr('data-format') });
+        $('input.datepicker').each(function() {
+          if ($(this).attr('data-format')) {
+            $(this).datepicker({ dateFormat: $(this).attr('data-format') });
+          } else {
+            $(this).datepicker({ });
+          }
         });
       }
 
