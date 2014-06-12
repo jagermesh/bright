@@ -304,13 +304,16 @@ class BrGenericDataSource extends BrObject {
         if (!$this->invokeMethodExists($method)) {
           throw new Exception('Method [' . $method . '] not supported');
         } else {
-          $this->callEvent('before:' . $method, $params, $transientData);
           try {
+            br()->db()->startTransaction();
+            $this->callEvent('before:' . $method, $params, $transientData);
             $data = $this->callEvent($method, $params, $transientData);
             $result = true;
             $this->callEvent('after:' . $method, $result, $data, $params, $transientData);
+            br()->db()->commitTransaction();
             return $data;
           } catch (Exception $e) {
+            br()->db()->rollbackTransaction();
             $result = false;
             $data = null;
             $this->callEvent('after:' . $method, $result, $data, $params, $transientData);
