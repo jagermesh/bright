@@ -63,7 +63,7 @@ class BrImages extends BrSingleton {
 
     $path = $src;
 
-    if (!preg_match('~^/~', $path)) {
+    if ((!preg_match('~^/~', $path))&&(!preg_match('~[A-Z]:\\\~', $path))) {
       $path = br()->atBasePath($path);
     }
 
