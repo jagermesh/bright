@@ -761,11 +761,17 @@ class Br extends BrSingleton {
 
   }
 
-  function sendMail($emails, $subject, $body, $params = array()) {
+  function sendMail($emails, $subject, $body, $params = array(), $callback = null) {
 
     if (!class_exists('PHPMailer')) {
       require_once(__DIR__.'/3rdparty/phpmailer/class.phpmailer.php');
     }
+
+    if (is_callable($params)) {
+      $callback = $params;
+      $params = array();
+    }
+
     $mail = new PHPMailer(true);
     $mail->CharSet = 'UTF-8';
 
@@ -814,6 +820,11 @@ class Br extends BrSingleton {
     $mail->MsgHTML($body);
 
     br()->log()->writeLn('Sending mail to ' . br($emails)->join());
+
+    if (is_callable($callback)) {
+      $callback($mail);
+    }
+
     if ($mail->Send()) {
       br()->log()->writeLn('Sent');
     } else {
