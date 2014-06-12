@@ -234,6 +234,7 @@ class BrDataSource extends BrGenericDataSource {
 
         br()->db()->commitTransaction();
       } catch (Exception $e) {
+        br()->db()->rollbackTransaction();
         $operation = 'update';
         $error = $e->getMessage();
         $this->trigger('error', $error, $operation, $e);
@@ -277,6 +278,7 @@ class BrDataSource extends BrGenericDataSource {
 
         br()->db()->commitTransaction();
       } catch (Exception $e) {
+        br()->db()->rollbackTransaction();
         $operation = 'insert';
         $error = $e->getMessage();
         $this->trigger('error', $error, $operation, $e);
@@ -328,6 +330,7 @@ class BrDataSource extends BrGenericDataSource {
 
         br()->db()->commitTransaction();
       } catch (Exception $e) {
+        br()->db()->rollbackTransaction();
         $operation = 'remove';
         $error = $e->getMessage();
         $this->trigger('error', $error, $operation, $e);

@@ -13,6 +13,7 @@ require_once(__DIR__.'/BrGenericAuthProvider.php');
 class BrDBUsersAuthProvider extends BrGenericAuthProvider {
 
   private $isDbSynced = false;
+  private $syncTried = false;
 
   function __construct($config = array()) {
 
@@ -175,7 +176,8 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
     $usersTable = br()->auth()->getAttr('usersTable.name');
 
     if ($login = br()->session()->get('login')) {
-      if (!$this->isDbSynced && br()->db() && br()->db()->isEnabled()) {
+      if (!$this->isDbSynced && !$this->syncTried && br()->db() && br()->db()->isEnabled()) {
+        $this->syncTried = true;
         $users = br()->db()->table($usersTable);
         if ($login = $users->findOne(array(br()->db()->rowidField() => br()->db()->rowid($login)))) {
           $this->isDbSynced = true;
