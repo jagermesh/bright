@@ -85,6 +85,7 @@ class BrDataSourceUsers extends BrDataSource {
                          );
           $dataSource->callEvent('before:loginSelectUser', $params, $filter);
           if ($row = $dataSource->selectOne($filter)) {
+            br()->auth()->trigger('checkLoginPrivilege', $row);
             $denied = false;
             if ($dataSource->invokeMethodExists('isAccessDenied')) {
               $denied = $dataSource->invoke('isAccessDenied', $row);
