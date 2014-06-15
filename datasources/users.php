@@ -241,9 +241,11 @@ class BrDataSourceUsers extends BrDataSource {
 
       $loginField         = br()->auth()->getAttr('usersTable.loginField');
       $loginFieldLabel    = br()->auth()->getAttr('usersTable.loginFieldLabel');
+      $emailField         = br()->auth()->getAttr('usersTable.emailField');
       $passwordField      = br()->auth()->getAttr('usersTable.passwordField');
       $passwordFieldLabel = br()->auth()->getAttr('usersTable.passwordFieldLabel');
       $passwordRequired   = br()->auth()->getAttr('signup.passwordRequired');
+      $emailRequired      = br()->auth()->getAttr('signup.emailRequired');
 
       if ($security = br()->auth()->getAttr('usersAPI.insert')) {
 
@@ -270,6 +272,13 @@ class BrDataSourceUsers extends BrDataSource {
       } else
       if ($passwordRequired) {
         throw new BrAppException('Please enter ' . $passwordFieldLabel);
+      }
+
+      if ($email = trim(br($row, $emailField))) {
+
+      } else
+      if ($emailRequired) {
+        throw new BrAppException('Please enter e-mail');
       }
 
       // we are here so let's work
@@ -433,7 +442,7 @@ class BrRESTUsersBinder extends BrRESTBinder {
                 $data['loginUrl'] = br()->request()->host() . br()->request()->baseUrl() . 'login.html?login=' . $user['login'] . '&' . 'from=passwordRemind';
                 if ($message = br()->renderer()->fetch($mailTemplate, array('user' => $user, 'data' => $data))) {
                   if (br()->sendMail($email, br()->auth()->getAttr('passwordReminder.passwordMail.subject'), $message, array('sender' => br()->auth()->getAttr('passwordReminder.passwordMail.from')))) {
-                    br()->db()->runQuery('UPDATE ' . $usersTable . ' SET ' . $passwordField . ' = ?& WHERE id = ?', $finalPassword, $user['id']);
+                    br()->db()->runQuery('UPDATE ' . $usersTable . ' SET ' . $passwordResetField . ' = null, ' . $passwordField . ' = ?& WHERE id = ?', $finalPassword, $user['id']);
                     br()->log()->writeLn('New password sent to ' . $email);
                     br()->log()->writeLn($user);
                     br()->response()->redirect($data['loginUrl']);
@@ -451,7 +460,9 @@ class BrRESTUsersBinder extends BrRESTBinder {
               throw new Exception('We can not send you new password because ther is not e-mail for your account');
             }
           } else {
-            throw new Exception('Access denied');
+            br()->response()->redirect(br()->request()->host() . br()->request()->baseUrl() . 'login.html?login=' . $user['login'] . '&' . 'from=passwordRemindError');
+            return true;
+            // throw new Exception('Access denied');
           }
         });
 
