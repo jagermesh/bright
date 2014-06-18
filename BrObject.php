@@ -155,26 +155,26 @@ class BrObject {
 
   }
 
-  public function trigger($event, &$context1 = null, &$context2 = null, &$context3 = null, &$context4 = null, &$context5 = null) {
+  public function trigger($event, &$context1 = null, &$context2 = null, &$context3 = null, &$context4 = null, &$context5 = null, &$context6 = null) {
 
-    return $this->callEvent($event, $context1, $context2, $context3, $context4, $context5);
+    return $this->callEvent($event, $context1, $context2, $context3, $context4, $context5, $context6);
 
   }
 
-  public function triggerSticky($event, &$context1 = null, &$context2 = null, &$context3 = null, &$context4 = null, &$context5 = null) {
+  public function triggerSticky($event, &$context1 = null, &$context2 = null, &$context3 = null, &$context4 = null, &$context5 = null, &$context6 = null) {
 
     $this->stickyEvents[] = $event;
 
-    return $this->callEvent($event, $context1, $context2, $context3, $context4, $context5);
+    return $this->callEvent($event, $context1, $context2, $context3, $context4, $context5, $context6);
 
   }
 
-  public function callEvent($event, &$context1 = null, &$context2 = null, &$context3 = null, &$context4 = null, &$context5 = null) {
+  public function callEvent($event, &$context1 = null, &$context2 = null, &$context3 = null, &$context4 = null, &$context5 = null, &$context6 = null) {
 
     $result = null;
     if ($events = br($this->events, $event)) {
       foreach($events as $func) {
-        $result = $func($this, $context1, $context2, $context3, $context4, $context5);
+        $result = $func($this, $context1, $context2, $context3, $context4, $context5, $context6);
       }
     }
     return $result;
