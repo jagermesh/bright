@@ -43,6 +43,20 @@
     return (!br.isEmpty(value) && (typeof value === 'object'));
   }
 
+  window.br.isEmptyObject = function (value) {
+    if (br.isObject(value)) {
+      var result = true;
+      for(var i in value) {
+        result = false;
+        break;
+      }
+      return result;
+    } else {
+      return false;
+    }
+    return (!br.isEmpty(value) && (typeof value === 'object'));
+  }
+
   window.br.isBoolean = function (value) {
     return (typeof value === 'boolean');
   }
