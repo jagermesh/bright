@@ -6,11 +6,11 @@
 
     <script class="data-row-template" type="text/template">
       <tr data-rowid="{{rowid}}">
-        <td width="10"><a class="action-edit btn" title="Edit"><i class="icon-pencil"></i></a></td>
+        <td class="optimal-width">{{#permissions.canUpdate}}<a class="action-edit btn btn-mini" title="Edit"><i class="icon-pencil"></i></a>{{/permissions.canUpdate}}</td>
         [[#fields]]
-        <td>[[fieldName]]</td>
+        <td>{{[[fieldName]]}}</td>
         [[/fields]]
-        <td width="10"><a class="action-delete btn" title="Delete"><i class="icon-trash"></i></a></td>
+        <td class="optimal-width">{{#permissions.canRemove}}<a class="action-delete btn btn-mini" title="Delete"><i class="icon-trash"></i></a>{{/permissions.canRemove}}</td>
       </tr>
     </script>
 
@@ -22,79 +22,103 @@
       </tr>
     </script>
 
-    <div class="container shadow-paper-box">
+    <div class="container-fluid container-box">
 
-      <div class="row">
+      <div class="row-fluid">
         <div class="span12">
-          <h1>[[entityName]] <small class="filter-description"></small></h1>        
+          <h1>[[entityName]] <small class="filter-description"></small></h1>
         </div>
       </div>
 
-      <div class="row">
+      <div class="row-fluid">
         <div class="span12">
-          <div class="navbar navbar-inverse">
+          <div class="navbar navbar-edoctrina">
             <div class="navbar-inner">
               <div class="container">
                 <ul class="nav">
-                  <li><a class="action-create" title="Create"><i class="icon-plus icon-white"></i> Insert</a></li>
+                  <li>
+                    <div class="btn-toolbar">
+                      <a class="action-create btn btn-warning" title="Create"><i class="icon-plus icon-white"></i> Insert</a>
+                    </div>
+                  </li>
                   <li class="divider-vertical"></li>
                   <li><a class="action-show-hide-filters"><i class="icon-filter icon-white"></i> <span>Hide filters</span></a></li>
                   <li><a class="action-reset-filters"><i class="icon-remove icon-white"></i> <span>Reset filters</span></a></li>
-                </ul>
-                <ul class="nav pull-right">
-                  <li>
-                    {@pager.html}        
-                  </li>
+                  <li><a class="action-refresh"><i class="icon-refresh icon-white"></i> <span>Refresh</span></a></li>
                 </ul>
               </div>
             </div>
           </div>
         </div>
-      </div>           
-        
-      <div class="row filters-panel" style="display:none;">
+      </div>
+
+      <div class="row-fluid filters-panel" style="display:none;">
         <div class="span12">
           <div class="filter-panel">
             <div class="pull-left filter-block">
-              [[#foreignKeys]]
-              <label>XServer</label>
-              <select class="data-filter" title="fieldName" name="fieldName"></select>
-              [[/foreignKeys]]
+              <label>Search</label>
+              <div class="input-append">
+                <input type="text" class="input-medium data-filter" title="Search by" placeholder="search text" name="keyword" />
+                <button class="btn action-clear-one-filter" rel="keyword" type="button"><i class="icon-remove"></i></button>
+              </div>
             </div>
+            [[#fields]]
+            <div class="pull-left filter-block">
+              <label>District</label>
+              <select name="[[fieldName]]" class="input-medium data-filter" title="[[fieldName]]"></select>
+            </div>
+            [[/fields]]
           </div>
         </div>
-      </div>          
-            
-      <div class="row">
-        <div class="span12">            
-          <table class="table table-bordered table-condensed table-striped">
+      </div>
+
+      {@pager.html}
+
+      <div class="row-fluid">
+        <div class="span12">
+          <table class="browser-table table table-bordered table-condensed table-striped table-hover table-selected">
             <thead>
-              <th></th>
+              <th class="optimal-width"></th>
               [[#fields]]
-              <th>{{[[fieldName]]}}&nbsp;<i class="sortable icon-sort-by-alphabet order-asc" data-field='[[fieldName]]'></i> <i class="sortable icon-sort-by-alphabet-alt order-desc" data-field='[[fieldName]]'></i></th>
+              <th>{{[[fieldName]]}}&nbsp;<i class="sortable icon-sort-by-alphabet order-asc" data-field="[[fieldName]]"></i> <i class="sortable icon-sort-by-alphabet-alt order-desc" data-field="[[fieldName]]"></i></th>
               [[/fields]]
-              <th></th>
+              <th class="optimal-width"></th>
             </thead>
             <tbody class="data-table">
             </tbody>
           </table>
         </div>
       </div>
-        
+
     </div>
 
-    <div class="modal data-edit-form" style="display:none;max-height:600px;">
+    <div class="modal data-edit-form" style="display:none;top:300px;">
       <div class="modal-header">
         <a class="close" data-dismiss="modal">×</a>
         <h3 class="operation">Edit</h3>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" style="max-height:700px;">
         <form onsubmit="return false;">
-          <fieldset>              
+          <fieldset>
+
             [[#fields]]
-            <label class="control-label"><span class="required"></span>[[fieldName]]</label>
-            <input type="text" class="span4 required data-field" name="[[fieldName]]" placeholder="[[fieldName]]" data-click-on-enter=".action-save">
+            <div class="control-group">
+              <label class="control-label"><span class="required">*</span>[[fieldName]]</label>
+              <div class="controls">
+                <select name="[[fieldName]]" title="[[fieldName]]" class="justified required virtual-data-field" data-click-on-enter=".action-save"></select>
+              </div>
+            </div>
             [[/fields]]
+
+            [[#fields]]
+            <div class="control-group">
+              <label class="control-label"><span class="required">*</span>[[fieldName]]</label>
+              <div class="controls">
+                <input name="[[fieldName]]" title="[[fieldName]]" type="text" class="justified required data-field" data-click-on-enter=".action-save">
+              </div>
+            </div>
+            [[/fields]]
+
           </fieldset>
         </form>
       </div>
@@ -102,7 +126,6 @@
         <a href="javascript:;" class="btn action-save">Save</a>
         <a href="javascript:;" class="btn" data-dismiss="modal">Cancel</a>
       </div>
-    </div>    
+    </div>
 
-  </body>
-</html>
+{@footer.html}

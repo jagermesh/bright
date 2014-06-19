@@ -2558,19 +2558,32 @@
 
     $('.br-scrollable').each(function() {
       var $container = $(this).parent('.br-container');
+      var initialMarginTop = $container.offset().top;
 
       $('body').css('overflow', 'hidden');
 
       function resize() {
         var $navBar = $('nav.navbar');
-        var navBarHeight = $navBar.height();
-        var height = $(window).height() - navBarHeight;
-        if (navBarHeight) {
-          if ($navBar.css('position') == 'static') {
-            $container.css('margin-top', '0px');
+        if ($navBar.length == 0) {
+          var $navBar = $('div.navbar');
+        }
+        if ($navBar.length == 0) {
+          var navBarHeight = 0;
+        } else {
+          var navBarHeight = $navBar.height();
+        }
+        var height = $(window).height() - navBarHeight - initialMarginTop;
+        if (height > 0) {
+          if ($navBar.length > 0) {
+            if ($navBar.css('position') == 'static') {
+              var marginTop = initialMarginTop;
+            } else {
+              var marginTop = navBarHeight + initialMarginTop;
+            }
           } else {
-            $container.css('margin-top', navBarHeight + 'px');
+            var marginTop = initialMarginTop;
           }
+          $container.css('margin-top', marginTop + 'px');
           $container.css('height', height + 'px');
         }
       }
