@@ -22,8 +22,13 @@
     _this.savedWidth = '';
     _this.click = function(element, e) {
       if (!_this.activated()) {
-        var content = _this.ctrl.text();
-        _this.ctrl.data('original-width', _this.ctrl.css('width'));
+        if (typeof _this.ctrl.attr('data-editable') != 'undefined') {
+          var content = _this.ctrl.attr('data-editable');
+        } else {
+          var content = _this.ctrl.text();
+        }
+        _this.ctrl.data('brEditable-original-content', _this.ctrl.text());
+        _this.ctrl.data('brEditable-original-width', _this.ctrl.css('width'));
         var width = _this.ctrl.innerWidth();
         var height = _this.ctrl.innerHeight();
         _this.ctrl.text('');
@@ -50,7 +55,6 @@
         if (_this.options.onGetContent) {
           content = _this.options.onGetContent.call(_this.ctrl, _this.editor, content);
         }
-        _this.ctrl.data('original-content', content);
         _this.editor.val(content);
 
         _this.ctrl.css('width', width - 10);
@@ -82,13 +86,16 @@
       _this.editor.remove();
       _this.editor = null;
       _this.ctrl.text(content);
+      if (typeof _this.ctrl.attr('data-editable') != 'undefined') {
+        _this.ctrl.attr('data-editable', content);
+      }
       _this.ctrl.css('width', '');
     }
     _this.cancel = function() {
       _this.editor.tooltip('hide');
       _this.editor.remove();
       _this.editor = null;
-      _this.ctrl.text(_this.ctrl.data('original-content'));
+      _this.ctrl.text(_this.ctrl.data('brEditable-original-content'));
       _this.ctrl.css('width', '');
     }
 
@@ -98,16 +105,16 @@
 
   window.br.editable = function(selector, callback, value) {
     if (typeof callback == 'string') {
-      var data = $(selector).data('editable');
+      var data = $(selector).data('brEditable-editable');
       if (data) {
         data[callback](value);
       }
     } else {
       $(selector).live('click', function(e) {
         var $this = $(this)
-          , data = $this.data('editable');
+          , data = $this.data('brEditable-editable');
         if (!data) {
-          $this.data('editable', (data = new BrEditable(this, callback)));
+          $this.data('brEditable-editable', (data = new BrEditable(this, callback)));
         }
         data.click(e);
       });
