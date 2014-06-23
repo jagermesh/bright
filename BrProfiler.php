@@ -38,9 +38,6 @@ class BrProfiler extends BrSingleton {
 
     $time = (br()->getMicroTime()   - $this->profilingTargets[$name]['time']);
     $memory = (memory_get_usage(true) - $this->profilingTargets[$name]['memory']);
-    // if ($memory > 1024 * 1025 * 5) {
-      // throw new Exception('Too much memory has been used for ' . $name . ': ' . br()->formatTraffic($memory));
-    // }
     return array( 'time'   => $time
                 , 'memory' => $memory
                 );
