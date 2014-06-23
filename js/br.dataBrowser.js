@@ -189,7 +189,7 @@
 
         $(c('.action-create')).show();
 
-        $(selActionCRUD).live('click', function() {
+        $(document).on('click', selActionCRUD, function() {
           var isCopy = $(this).hasClass('action-copy');
           var rowid = $(this).closest('[data-rowid]').attr('data-rowid');
           _this.editor.show(rowid, isCopy);
@@ -348,7 +348,7 @@
         });
       }
 
-      $(c('.action-select-all')).live('click', function() {
+      $(document).on('click', c('.action-select-all'), function() {
         if ($(this).is(':checked')) {
           $(c('.action-select-row')).each(function() {
             $(this).attr('checked', 'checked');
@@ -365,7 +365,7 @@
         _this.events.trigger('selectionChanged');
       });
 
-      $(c('.action-select-row')).live('click', function() {
+      $(document).on('click', c('.action-select-row'), function() {
         if ($(this).is(':checked')) {
           $(this).closest('tr').addClass('row-selected');
           _this.selection.append($(this).val());
@@ -376,11 +376,11 @@
         _this.events.trigger('selectionChanged');
       });
 
-      $(c('.action-clear-selection')).live('click', function() {
+      $(document).on('click', c('.action-clear-selection'), function() {
         _this.clearSelection();
       });
 
-      $(c('.action-delete-selected')).live('click', function() {
+      $(document).on('click', c('.action-delete-selected'), function() {
         var selection = _this.selection.get();
         if (selection.length > 0) {
           br.confirm( 'Delete confirmation'

@@ -110,7 +110,7 @@
         data[callback](value);
       }
     } else {
-      $(selector).live('click', function(e) {
+      $(document).on('click', selector, function(e) {
         var $this = $(this)
           , data = $this.data('brEditable-editable');
         if (!data) {

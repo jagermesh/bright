@@ -280,15 +280,15 @@
 
     var notAuthorized = false;
 
-    $('body').ajaxStart(function() {
+    $(document).ajaxStart(function() {
       br.showAJAXProgress();
     });
 
-    $('body').ajaxStop(function() {
+    $(document).ajaxStop(function() {
       br.hideAJAXProgress();
     });
 
-    $('body').ajaxError(function(event, jqXHR, ajaxSettings, thrownError) {
+    $(document).ajaxError(function(event, jqXHR, ajaxSettings, thrownError) {
       if (jqXHR.status == 401) {
         if (!notAuthorized) {
           notAuthorized = true;

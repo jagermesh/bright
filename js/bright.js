@@ -2251,7 +2251,7 @@
         data[callback](value);
       }
     } else {
-      $(selector).live('click', function(e) {
+      $(document).on('click', selector, function(e) {
         var $this = $(this)
           , data = $this.data('brEditable-editable');
         if (!data) {
@@ -2545,15 +2545,15 @@
 
     var notAuthorized = false;
 
-    $('body').ajaxStart(function() {
+    $(document).ajaxStart(function() {
       br.showAJAXProgress();
     });
 
-    $('body').ajaxStop(function() {
+    $(document).ajaxStop(function() {
       br.hideAJAXProgress();
     });
 
-    $('body').ajaxError(function(event, jqXHR, ajaxSettings, thrownError) {
+    $(document).ajaxError(function(event, jqXHR, ajaxSettings, thrownError) {
       if (jqXHR.status == 401) {
         if (!notAuthorized) {
           notAuthorized = true;
