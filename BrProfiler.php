@@ -28,10 +28,7 @@ class BrProfiler extends BrSingleton {
   function logStart($name) {
 
     $s = $this->start($name);
-
-    br()->log()->writeLn('***************************************************************', '+++');
-    br()->log()->writeLn($name. ', ' . br()->formatTraffic($s['memory']) , 'PRF');
-    br()->log()->writeLn('***************************************************************', '+++');
+    br()->log()->writeLn($name. ', ' . br()->formatTraffic($s['memory']) , '+++');
 
   }
 
@@ -62,16 +59,14 @@ class BrProfiler extends BrSingleton {
     $f = $this->finish($name);
     $s = $name. ': ' . br()->durationToString($f['duration']);
     if ($f['count'] > 1) {
-      $s .= ' (cnt ' . $f['count'] .', avg ' . br()->durationToString($f['avgDuration']) . '),';
+      $s .= ' (cnt ' . $f['count'] .', avg ' . br()->durationToString($f['avgDuration']) . ')';
     }
-    $s .=  ' ' . br()->formatTraffic($f['memory']);
+    $s .=  ', ' . br()->formatTraffic($f['memory']);
 
-    br()->log()->writeLn('***************************************************************', '+++');
-    br()->log()->writeLn($s, 'PRF');
+    br()->log()->writeLn($s, '+++');
     if ($comment) {
-      br()->log()->writeLn($name . ': ' . $comment , 'PRF');
+      br()->log()->writeLn($name . ': ' . $comment , '+++');
     }
-    br()->log()->writeLn('***************************************************************', '+++');
     return $f;
 
   }
