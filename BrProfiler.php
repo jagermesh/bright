@@ -12,15 +12,16 @@ require_once(__DIR__.'/BrSingleton.php');
 
 class BrProfiler extends BrSingleton {
 
-  private $profilingTargets = array();
+  private $completedMetrics = array();
+  private $activeMetrics = array();
 
   function start($name) {
 
-    $this->profilingTargets[$name] = array( 'time'   => br()->getMicrotime()
-                                          , 'memory' => memory_get_usage(true)
-                                          );
+    $this->activeMetrics[$name] = array( 'time'   => br()->getMicrotime()
+                                       , 'memory' => memory_get_usage(true)
+                                       );
 
-    return $this->profilingTargets[$name];
+    return $this->activeMetrics[$name];
 
   }
 
@@ -28,28 +29,49 @@ class BrProfiler extends BrSingleton {
 
     $s = $this->start($name);
 
-    br()->log()->writeLn('***************************************************************', 'PRF');
+    br()->log()->writeLn('***************************************************************', '+++');
     br()->log()->writeLn($name. ', ' . br()->formatTraffic($s['memory']) , 'PRF');
-    br()->log()->writeLn('***************************************************************', 'PRF');
+    br()->log()->writeLn('***************************************************************', '+++');
 
   }
 
   function finish($name) {
 
-    $time = (br()->getMicroTime()   - $this->profilingTargets[$name]['time']);
-    $memory = (memory_get_usage(true) - $this->profilingTargets[$name]['memory']);
-    return array( 'time'   => $time
-                , 'memory' => $memory
+    $duration = (br()->getMicroTime()   - $this->activeMetrics[$name]['time']);
+    $memory   = (memory_get_usage(true) - $this->activeMetrics[$name]['memory']);
+
+    unset($this->activeMetrics[$name]);
+    if (!isset($this->completedMetrics[$name])) {
+      $this->completedMetrics[$name] = array();
+    }
+    $this->completedMetrics[$name][] = $duration;
+
+    $count = count($this->completedMetrics[$name]);
+    $avgDuration = array_sum($this->completedMetrics[$name]) / $count;
+
+    return array( 'duration'    => $duration
+                , 'memory'      => $memory
+                , 'avgDuration' => $avgDuration
+                , 'count'       => $count
                 );
 
   }
 
-  function logFinish($name) {
+  function logFinish($name, $comment = null) {
 
     $f = $this->finish($name);
-    br()->log()->writeLn('***************************************************************', 'PRF');
-    br()->log()->writeLn($name. ', ' . br()->durationToString($f['time']) . ', ' . br()->formatTraffic($f['memory']) , 'PRF');
-    br()->log()->writeLn('***************************************************************', 'PRF');
+    $s = $name. ': ' . br()->durationToString($f['duration']);
+    if ($f['count'] > 1) {
+      $s .= ' (cnt ' . $f['count'] .', avg ' . br()->durationToString($f['avgDuration']) . '),';
+    }
+    $s .=  ' ' . br()->formatTraffic($f['memory']);
+
+    br()->log()->writeLn('***************************************************************', '+++');
+    br()->log()->writeLn($s, 'PRF');
+    if ($comment) {
+      br()->log()->writeLn($name . ': ' . $comment , 'PRF');
+    }
+    br()->log()->writeLn('***************************************************************', '+++');
     return $f;
 
   }
