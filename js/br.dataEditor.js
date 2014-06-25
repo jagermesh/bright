@@ -249,6 +249,10 @@
         }
       });
 
+      $('div.data-field[data-toggle=buttons-radio],input.data-field,select.data-field,textarea.data-field', _this.inputsContainer).on('change', function() {
+        br.confirmClose();
+      });
+
       return this;
     }
     this.cancel = function() {
