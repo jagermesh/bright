@@ -249,9 +249,17 @@
         }
       });
 
-      // $('div.data-field[data-toggle=buttons-radio],input.data-field,select.data-field,textarea.data-field', _this.inputsContainer).on('change', function() {
-      //   br.confirmClose();
-      // });
+      $('div.data-field[data-toggle=buttons-radio],input.data-field[type=checkbox],input.data-field[type=radio]', _this.inputsContainer).on('click', function() {
+        br.confirmClose();
+      });
+
+      $('select.data-field', _this.inputsContainer).on('change', function() {
+        br.confirmClose();
+      });
+
+      $('input.data-field,textarea.data-field', _this.inputsContainer).on('keypress', function() {
+        br.confirmClose();
+      });
 
       return this;
     }
@@ -280,7 +288,8 @@
             for(var i in data) {
               _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio][name=' + i + '],input.data-field[name=' + i + '],select.data-field[name=' + i + '],textarea.data-field[name=' + i + ']').each(function() {
                 if ($(this).attr('data-toggle') == 'buttons-radio') {
-                  $(this).find('button[value=' + data[i] + ']').addClass('active');
+                  var val = br.isNull(data[i]) ? '' : data[i];
+                  $(this).find('button[value="' + val + '"]').addClass('active');
                 } else
                 if ($(this).attr('type') == 'checkbox') {
                   if (br.toInt(data[i]) == 1) {
