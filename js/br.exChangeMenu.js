@@ -9,6 +9,8 @@
 
 ;(function ($, window) {
 
+  var invokerTemplate = '<div class="dropdown br-ajax-dropdown"><a href="javascript:;" class="not-a br-ex-action-change-menu-menu"><span class="br-ex-current-value">{{&value}}</span><b class="caret"></b></a></div>';
+
   function showDropDownMenu(invoker, response, rowid, menuElement, dataSource, fieldName, options) {
     var menuItemTemplate = '<li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>';
     var dropDown = $('<div class="dropdown br-ajax-dropdown" style="position:absolute;"><a style="display:none;" href="javascript:;" role="button" data-toggle="dropdown" class="dropdown-toggle not-a br-ex-action-change-menu-menu"><span>{{value}}</span> <b class="caret"></b></a><ul class="dropdown-menu" role="menu" style="overflow:auto;"></ul></div>');
@@ -23,12 +25,14 @@
           options.onUpdate.call(invoker, response, menuElement);
         }
       });
-      // dropDown.remove();
     });
     $(document).on('click.dropdown.data-api', function() {
       dropDown.remove();
     });
     dropDownList.html('');
+    if (options.allowClear) {
+      dropDownList.append(br.fetch(menuItemTemplate, { id: '', name: (options.clearLabel ? options.clearLabel : '--Clear--') }));
+    }
     for(var i in response) {
       dropDownList.append(br.fetch(menuItemTemplate, { id: response[i].id, name: response[i].name }));
     }
@@ -43,37 +47,51 @@
     dropDownMenu.dropdown('toggle');
   }
 
+  function handleClick(el, invoker, choicesDataSource, dataSource, fieldName, options) {
+    var rowid = el.closest('[data-rowid]').attr('data-rowid');
+    var menuElement = invoker.find('span.br-ex-current-value');
+    var filter = {__targetRowid: rowid}
+    if (options.onSelect) {
+      options.onSelect.call(choicesDataSource, filter, rowid);
+    }
+    choicesDataSource.select(filter, function(result, response) {
+      if (result && (response.length > 0)) {
+        showDropDownMenu(invoker, response, rowid, menuElement, dataSource, fieldName, options);
+      }
+    });
+  }
+
+  function setupControl(el, doClick, choicesDataSource, dataSource, fieldName, options) {
+
+    var $this = el;
+    if ($this.data('BrExChangeMenu')) {
+
+    } else {
+      $this.data('BrExChangeMenu', true);
+      var value = $this.text().trim();
+      if ((value.length == 0) || (value == '(click to change)')) {
+        value = '<span style="color:#AAA;">(click to change)</span>';
+      }
+      $this.html(br.fetch(invokerTemplate, { value: value }));
+      $this.on('click', '.br-ex-action-change-menu-menu', function() {
+        handleClick($(this), $this, choicesDataSource, dataSource, fieldName, options);
+      });
+      if (doClick) {
+        handleClick($this.find('.br-ex-action-change-menu-menu'), $this, choicesDataSource, dataSource, fieldName, options);
+      }
+    }
+  }
+
   function BrExChangeMenu(selector, choicesDataSource, dataSource, fieldName, options) {
 
     options = options || {};
 
-    var invokerTemplate = '<div class="dropdown br-ajax-dropdown"><a href="javascript:;" class="not-a br-ex-action-change-menu-menu"><span class="br-ex-current-value">{{&value}}</span> <b class="caret"></b></a></div>';
-
     $(selector).each(function() {
-      var $this = $(this);
-      if ($this.data('BrExChangeMenu')) {
+      setupControl($(this), false, choicesDataSource, dataSource, fieldName, options);
+    });
 
-      } else {
-        $this.data('BrExChangeMenu', true);
-        var value = $this.html();
-        if (value.length == 0) {
-          value = '<span style="color:#AAA;">(click to change)</span>';
-        }
-        $this.html(br.fetch(invokerTemplate, { value: value }));
-        $this.on('click', '.br-ex-action-change-menu-menu', function() {
-          var rowid = $(this).closest('[data-rowid]').attr('data-rowid');
-          var menuElement = $this.find('span.br-ex-current-value');
-          var filter = {}
-          if (options.onSelect) {
-            options.onSelect.call(choicesDataSource, filter, rowid);
-          }
-          choicesDataSource.select(filter, function(result, response) {
-            if (result && (response.length > 0)) {
-              showDropDownMenu($this, response, rowid, menuElement, dataSource, fieldName, options);
-            }
-          });
-        });
-      }
+    $(document).on('click', selector, function() {
+      setupControl($(this), true, choicesDataSource, dataSource, fieldName, options);
     });
 
   }

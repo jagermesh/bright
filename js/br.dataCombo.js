@@ -50,7 +50,7 @@
     }
 
     function uiSync() {
-      if (_this.isValid() && window.Select2 && !_this.noDecoration) {
+      if (_this.isValid() && window.Select2 && !_this.noDecoration && !_this.selector.attr('size')) {
         _this.selector.select2();
       }
     }
