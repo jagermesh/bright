@@ -17,24 +17,23 @@
     $('body').on('paste', function(evt) {
 
       var result = { data: { }, dataType: '', dataSubType: '', dataValue: '' };
-      var evt = evt.originalEvent;
+      evt = evt.originalEvent;
 
       function loadFile(result, file) {
         var reader = new FileReader();
         reader.onload = function(evt) {
           var parts = /^data[:](.+?)\/(.+?);/.exec(evt.target.result);
+          var result_dataType    = 'other';
+          var result_dataSubType = 'binary';
           if (parts) {
-            var result_dataType    = parts[1];
-            var result_dataSubType = parts[2];
-          } else {
-            var result_dataType    = 'other';
-            var result_dataSubType = 'binary';
+            result_dataType    = parts[1];
+            result_dataSubType = parts[2];
           }
-          result['dataType']    = result_dataType;
-          result['dataSubType'] = result_dataSubType;
-          result['dataValue']   = evt.target.result;
-          result['data'][result_dataType] = result['data'][result_dataType] || { };
-          result['data'][result_dataType][result_dataSubType] = evt.target.result;
+          result.dataType    = result_dataType;
+          result.dataSubType = result_dataSubType;
+          result.dataValue   = evt.target.result;
+          result.data[result_dataType] = result.data[result_dataType] || { };
+          result.data[result_dataType][result_dataSubType] = evt.target.result;
           for(var i = 0; i < callbacks.length; i++) {
             callbacks[i].call(evt, result);
           }
@@ -49,16 +48,18 @@
             mediaType = 'image/url';
           }
           var parts = /^(.+?)\/(.+?)$/.exec(mediaType);
+          var result_dataType    = 'other';
+          var result_dataSubType = 'binary';
           if (parts) {
-            var result_dataType    = parts[1];
-            var result_dataSubType = parts[2];
-            result['dataType']    = result_dataType;
-            result['dataSubType'] = result_dataSubType;
-            result['dataValue']   = data;
+            result_dataType    = parts[1];
+            result_dataSubType = parts[2];
           }
+          result.dataType        = result_dataType;
+          result.dataSubType     = result_dataSubType;
+          result.dataValue       = data;
           if (isImage) {
-            result['data'][result_dataType] = result['data'][result_dataType] || { };
-            result['data'][result_dataType][result_dataSubType] = data;
+            result.data[result_dataType] = result.data[result_dataType] || { };
+            result.data[result_dataType][result_dataSubType] = data;
           }
           return true;
         }
@@ -66,19 +67,18 @@
       }
 
       if (evt.clipboardData) {
-
-        for(var i = 0; i < evt.clipboardData.types.length; i++) {
+        var i;
+        for(i = 0; i < evt.clipboardData.types.length; i++) {
           var dataType = evt.clipboardData.types[i];
           var parts = /^(.+?)\/(.+?)$/.exec(dataType);
+          var result_dataType    = 'other';
+          var result_dataSubType = dataType;
           if (parts) {
-            var result_dataType    = parts[1];
-            var result_dataSubType = parts[2];
-          } else {
-            var result_dataType    = 'other';
-            var result_dataSubType = dataType;
+            result_dataType    = parts[1];
+            result_dataSubType = parts[2];
           }
-          result['data'][result_dataType] = result['data'][result_dataType] || { };
-          result['data'][result_dataType][result_dataSubType] = evt.clipboardData.getData(dataType);
+          result.data[result_dataType] = result.data[result_dataType] || { };
+          result.data[result_dataType][result_dataSubType] = evt.clipboardData.getData(dataType);
         }
 
         var completed = true;
@@ -95,7 +95,7 @@
 
         } else {
           if (evt.clipboardData.items && (evt.clipboardData.items.length > 0)) {
-            for(var i = 0; i < evt.clipboardData.items.length; i++) {
+            for(i = 0; i < evt.clipboardData.items.length; i++) {
               if (evt.clipboardData.items[i].type.match('image.*')) {
                 completed = false;
                 loadFile(result, evt.clipboardData.items[i].getAsFile());
@@ -103,7 +103,7 @@
             }
           }
           if (evt.clipboardData.files && (evt.clipboardData.files.length > 0)) {
-            for(var i = 0; i < evt.clipboardData.files.length; i++) {
+            for(i = 0; i < evt.clipboardData.files.length; i++) {
               if (evt.clipboardData.files[i].type.match('image.*')) {
                 completed = false;
                 loadFile(result, evt.clipboardData.files[0]);
@@ -113,7 +113,7 @@
         }
 
         if (completed) {
-          for(var i in callbacks) {
+          for(i in callbacks) {
             callbacks[i].call(evt, result);
           }
         }
@@ -124,6 +124,6 @@
 
   window.br.onPaste = function(callback) {
     callbacks.push(callback);
-  }
+  };
 
 })(jQuery, window);

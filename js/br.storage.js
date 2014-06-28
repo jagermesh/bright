@@ -23,7 +23,7 @@
       }
     }
 
-  }
+  };
 
   function BrStorage(storage) {
 
@@ -41,7 +41,7 @@
         result = _helper.unpack(_storage.getItem(key));
       }
       return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
-    }
+    };
 
     this.set = function(key, value) {
       if (br.isObject(key)) {
@@ -52,7 +52,7 @@
         _storage.setItem(key, _helper.pack(value));
       }
       return this;
-    }
+    };
 
     this.inc = function(key, increment, glue) {
       var value = this.get(key);
@@ -77,14 +77,14 @@
         this.set(key, increment);
       }
       return this;
-    }
+    };
 
     this.dec = function(key, increment) {
       var value = this.get(key);
       increment = (br.isNumber(increment) ? increment : 1);
       this.set(key, br.isNumber(value) ? (value - increment) : increment);
       return this;
-    }
+    };
 
     this.append = function(key, newValue, limit) {
       if (!br.isEmpty(newValue)) {
@@ -107,7 +107,7 @@
         }
       }
       return this;
-    }
+    };
 
     this.appendUnique = function(key, newValue, limit) {
       if (!br.isEmpty(newValue)) {
@@ -115,7 +115,7 @@
         this.append(key, newValue, limit);
       }
       return this;
-    }
+    };
 
     this.prepend = function(key, newValue, limit) {
       if (!br.isEmpty(newValue)) {
@@ -138,7 +138,7 @@
         }
       }
       return this;
-    }
+    };
 
     this.prependUnique = function(key, newValue, limit) {
       if (!br.isEmpty(newValue)) {
@@ -146,7 +146,7 @@
         this.prepend(key, newValue, limit);
       }
       return this;
-    }
+    };
 
     this.each = function(key, fn) {
       var value = this.get(key);
@@ -157,7 +157,7 @@
         fn.call(this, value[i]);
       }
       return this;
-    }
+    };
 
     function _getLast(key, defaultValue, remove) {
       var result = null;
@@ -175,11 +175,11 @@
 
     this.getLast = function(key, defaultValue) {
       return _getLast(key, defaultValue, false);
-    }
+    };
 
     this.takeLast = function(key, defaultValue) {
       return _getLast(key, defaultValue, true);
-    }
+    };
 
     function _getFirst(key, defaultValue, remove) {
       var result = null;
@@ -197,11 +197,11 @@
 
     this.getFirst = function(key, defaultValue) {
       return _getFirst(key, defaultValue, false);
-    }
+    };
 
     this.takeFirst = function(key, defaultValue) {
       return _getFirst(key, defaultValue, true);
-    }
+    };
 
     this.extend = function(key, newValue) {
       if (!br.isEmpty(newValue)) {
@@ -217,7 +217,7 @@
         }
       }
       return this;
-    }
+    };
 
     this.not = function(key) {
       var value = this.get(key);
@@ -226,12 +226,12 @@
       }
       this.set(key, !value);
       return this;
-    }
+    };
 
     this.clear = function() {
       _storage.clear();
       return this;
-    }
+    };
 
     this.all = function() {
       var result = {};
@@ -239,12 +239,12 @@
         result[name] = this.get(name);
       }
       return result;
-    }
+    };
 
     this.remove = function(key, arrayValue) {
       var value = this.get(key);
       if (!br.isEmpty(arrayValue) && br.isArray(value)) {
-        var idx = value.indexOf(arrayValue)
+        var idx = value.indexOf(arrayValue);
         if (idx != -1) {
           value.splice(idx, 1);
         }
@@ -253,15 +253,15 @@
         _storage.removeItem(key);
       }
       return this;
-    }
+    };
 
     this.indexOf = function(key, arrayValue) {
       var value = this.get(key);
       if (br.isArray(value)) {
-        return value.indexOf(arrayValue)
+        return value.indexOf(arrayValue);
       }
       return -1;
-    }
+    };
 
   }
 

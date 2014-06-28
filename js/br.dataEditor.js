@@ -31,34 +31,41 @@
     this.dataSource = dataSource;
 
     this.events = br.eventQueue(this);
-    this.before = function(event, callback) { this.events.before(event, callback); }
-    this.on     = function(event, callback) { this.events.on(event, callback); }
-    this.after  = function(event, callback) { this.events.after(event, callback); }
+    this.before = function(event, callback) { this.events.before(event, callback); };
+    this.on     = function(event, callback) { this.events.on(event, callback); };
+    this.after  = function(event, callback) { this.events.after(event, callback); };
 
     this.rowid = function() {
       return editorRowid;
-    }
+    };
+
     this.isActive = function() {
       return _this.container.is(':visible');
-    }
+    };
+
     this.isEditMode = function() {
       return !br.isNull(editorRowid);
-    }
+    };
+
     this.isInsertMode = function() {
       return br.isNull(editorRowid);
-    }
+    };
+
     this.lock = function() {
       $(this.options.selectors.save, _this.container).addClass('disabled');
-    }
+    };
+
     this.unlock = function() {
       $(this.options.selectors.save, _this.container).removeClass('disabled');
-    }
+    };
+
     this.hide = function() {
       goodHide = true;
       if (_this.container.hasClass('modal')) {
         _this.container.modal('hide');
       }
-    }
+    };
+
     this.editorConfigure = function(isCopy) {
       var s = '';
       if (editorRowid) {
@@ -74,7 +81,8 @@
         s = 'Create ' + _this.options.noun;
       }
       _this.container.find('.operation').text(s);
-    }
+    };
+
     this.save = function(andClose, callback) {
       if (br.isFunction(andClose)) {
         callback = andClose;
@@ -192,7 +200,8 @@
           });
         }
       }
-    }
+    };
+
     this.init = function() {
 
       if ($.datepicker) {
@@ -262,7 +271,8 @@
       });
 
       return this;
-    }
+    };
+
     this.cancel = function() {
       goodHide = true;
       if (_this.container.hasClass('modal')) {
@@ -272,7 +282,8 @@
       if (!_this.container.hasClass('modal')) {
         br.backToCaller(_this.options.returnUrl, false);
       }
-    }
+    };
+
     this.show = function(rowid, isCopy) {
       editorRowid = rowid;
       _this.inputsContainer.find('input.data-field[type!=radio],select.data-field,textarea.data-field').val('');
@@ -341,7 +352,7 @@
         }
       }
       return _this.container;
-    }
+    };
 
     return this.init();
 
@@ -351,6 +362,6 @@
 
   window.br.dataEditor = function (selector, dataSource, options) {
     return new BrDataEditor(selector, dataSource, options);
-  }
+  };
 
 })(jQuery, window);

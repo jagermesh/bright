@@ -16,6 +16,7 @@
   function BrRequest() {
 
     this.continueRoute = true;
+
     this.get = function(name, defaultValue) {
       var vars = document.location.search.replace('?', '').split('&');
       var vals = {};
@@ -41,6 +42,7 @@
         return vals;
       }
     };
+
     this.anchor = function(defaultValue) {
       var value = document.location.hash.replace('#', '');
       if (value.length === 0) {
@@ -48,6 +50,7 @@
       }
       return value;
     };
+
     this.route = function(path, func) {
       if (this.continueRoute) {
         var l = document.location.toString();
@@ -58,7 +61,7 @@
         }
       }
       return this;
-    }
+    };
 
   }
 

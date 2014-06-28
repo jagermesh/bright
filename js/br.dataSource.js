@@ -28,9 +28,9 @@
     }
 
     this.events = br.eventQueue(this);
-    this.before = function(event, callback) { this.events.before(event, callback); }
-    this.on     = function(event, callback) { this.events.on(event, callback); }
-    this.after  = function(event, callback) { this.events.after(event, callback); }
+    this.before = function(event, callback) { this.events.before(event, callback); };
+    this.on     = function(event, callback) { this.events.on(event, callback); };
+    this.after  = function(event, callback) { this.events.after(event, callback); };
 
     this.insert = function(item, callback) {
 
@@ -106,7 +106,7 @@
         if (typeof callback == 'function') { callback.call(_this, false, error, request); }
       }
 
-    }
+    };
 
     this.update = function(rowid, item, callback) {
 
@@ -154,7 +154,7 @@
                });
       }
 
-    }
+    };
 
     this.remove = function(rowid, callback) {
 
@@ -194,7 +194,7 @@
                });
       }
 
-    }
+    };
 
     this.selectCount = function(filter, callback, options) {
 
@@ -214,13 +214,13 @@
 
       this.select(newFilter, callback, options);
 
-    }
+    };
 
     this.selectOne = function(rowid, callback, options) {
 
       return this.select({ rowid: rowid ? rowid : '-' }, callback, options);
 
-    }
+    };
 
     this.select = function(filter, callback, options) {
 
@@ -339,17 +339,17 @@
 
       }
 
-    }
+    };
 
     this.requestInProgress = function() {
       return (this.ajaxRequest !== null);
-    }
+    };
 
     this.abortRequest = function() {
       if (this.ajaxRequest !== null) {
         this.ajaxRequest.abort();
       }
-    }
+    };
 
     this.invoke = function(method, params, callback) {
 
@@ -394,7 +394,7 @@
                }
              });
 
-    }
+    };
 
     this.fillCombo = function(selector, data, options) {
 
@@ -435,14 +435,14 @@
         }
       });
 
-    }
+    };
 
     var refreshTimeout;
 
     this.deferredSelect = function(filter, callback, msec) {
 
       msec = msec || this.options.refreshDelay;
-      var savedFilter = {}
+      var savedFilter = {};
       for(var i in filter) {
         savedFilter[i] = filter[i];
       }
@@ -451,7 +451,7 @@
         _this.select(savedFilter, callback);
       }, msec);
 
-    }
+    };
 
   }
 
@@ -459,6 +459,6 @@
 
   window.br.dataSource = function (restServiceUrl, options) {
     return new BrDataSource(restServiceUrl, options);
-  }
+  };
 
 })(jQuery, window);

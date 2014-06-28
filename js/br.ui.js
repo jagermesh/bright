@@ -66,7 +66,7 @@
   window.br.panic = function(s) {
     $('.container').html('<div class="row"><div class="span12"><div class="alert alert-error"><h4>Error!</h4><p>' + s + '</p></div></div></div>');
     throw '';
-  }
+  };
 
   window.br.confirm = function(title, message, buttons, callback, params) {
     if (typeof buttons == 'function') {
@@ -125,7 +125,7 @@
     $(dialog).on('show.bs.modal', onShow);
     $(dialog).on('hide.bs.modal', onHide);
     $(dialog).modal();
-  }
+  };
 
   window.br.error = function(title, message, callback) {
     var s = '<div class="modal">' +
@@ -142,10 +142,10 @@
       if (callback) {
         callback.call(this);
       }
-    }
+    };
     $(dialog).on('hide.bs.modal', onHide);
     $(dialog).modal();
-  }
+  };
 
   window.br.inform = function(title, message, callback) {
     var s = '<div class="modal">' +
@@ -162,10 +162,10 @@
       if (callback) {
         callback.call(this);
       }
-    }
+    };
     $(dialog).on('hide.bs.modal', onHide);
     $(dialog).modal();
-  }
+  };
 
   window.br.prompt = function(title, fields, callback, options) {
 
@@ -176,7 +176,7 @@
             '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>' + title + '</h3></div>' +
             '<div class="modal-body">';
 
-    var inputs = {}
+    var inputs = {};
 
     if (br.isObject(fields)) {
       inputs = fields;
@@ -186,12 +186,12 @@
 
     for(var i in inputs) {
       if (br.isObject(inputs[i])) {
-        s = s + '<label>' + i + '</label>'
-              + '<input type="text" '
-              + (inputs[i].id ? 'id="'+inputs[i].id+'"' : '')
-              + ' class="span4 ' + (br.isEmpty(inputs[i]['class']) ? '' : inputs[i]['class']) + '"'
-              + ' value="' + inputs[i].value + '"'
-              + ' data-click-on-enter=".action-confirm-close" />';
+        s = s + '<label>' + i + '</label>' +
+              '<input type="text" ' +
+              (inputs[i].id ? 'id="'+inputs[i].id+'"' : '') +
+              ' class="span4 ' + (br.isEmpty(inputs[i]['class']) ? '' : inputs[i]['class']) + '"' +
+              ' value="' + inputs[i].value + '"' +
+              ' data-click-on-enter=".action-confirm-close" />';
       } else {
         s = s + '<label>' + i + '</label>' +
                 '<input type="text" class="span4" value="' + inputs[i] + '" data-click-on-enter=".action-confirm-close" />';
@@ -225,7 +225,7 @@
         }
       });
     $(dialog).modal();
-  }
+  };
 
   var noTemplateEngine = false;
 
@@ -255,7 +255,7 @@
   window.br.showAJAXProgress = function() {
     progressCounter++;
     $('.ajax-in-progress').css('visibility', 'visible');
-  }
+  };
 
   window.br.hideAJAXProgress = function() {
     progressCounter--;
@@ -263,18 +263,18 @@
       $('.ajax-in-progress').css('visibility', 'hidden');
       progressCounter = 0;
     }
-  }
+  };
 
   window.br.jsonEncode = function(data) {
     return JSON.stringify(data);
-  }
+  };
   window.br.jsonDecode = function(data) {
     try {
       return JSON.parse(data);
     } catch(ex) {
       return null;
     }
-  }
+  };
 
   $(document).ready(function() {
 
@@ -320,24 +320,24 @@
 
       function resize() {
         var $navBar = $('nav.navbar');
-        if ($navBar.length == 0) {
-          var $navBar = $('div.navbar');
+        if ($navBar.length === 0) {
+          $navBar = $('div.navbar');
         }
-        if ($navBar.length == 0) {
-          var navBarHeight = 0;
-        } else {
-          var navBarHeight = $navBar.height();
+        var navBarHeight = 0;
+        if ($navBar.length !== 0) {
+          navBarHeight = $navBar.height();
         }
         var height = $(window).height() - navBarHeight - initialMarginTop;
         if (height > 0) {
+          var marginTop = 0;
           if ($navBar.length > 0) {
             if ($navBar.css('position') == 'static') {
-              var marginTop = initialMarginTop;
+              marginTop = initialMarginTop;
             } else {
-              var marginTop = navBarHeight + initialMarginTop;
+              marginTop = navBarHeight + initialMarginTop;
             }
           } else {
-            var marginTop = initialMarginTop;
+            marginTop = initialMarginTop;
           }
           $container.css('margin-top', marginTop + 'px');
           $container.css('height', height + 'px');

@@ -21,7 +21,7 @@
       } else {
         flags.push(id);
       }
-    }
+    };
 
     this.isFlagged = function(id) {
       if (permanent) {
@@ -29,7 +29,7 @@
       } else {
         return (flags.indexOf(id) != -1);
       }
-    }
+    };
 
     this.remove = function(id) {
       if (permanent) {
@@ -40,11 +40,11 @@
           flags.splice(idx, 1);
         }
       }
-    }
+    };
 
     this.clear = function() {
       this.replace([]);
-    }
+    };
 
     this.replace = function(values) {
       if (permanent) {
@@ -53,7 +53,7 @@
         flags = values;
         return flags;
       }
-    }
+    };
 
     this.get = function() {
       if (permanent) {
@@ -61,7 +61,7 @@
       } else {
         return flags;
       }
-    }
+    };
 
   }
 
@@ -69,6 +69,6 @@
 
   window.br.flagsHolder = function (permanent, name) {
     return new BrFlagsHolder(permanent, name);
-  }
+  };
 
 })(window);

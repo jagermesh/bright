@@ -18,32 +18,32 @@
     this.obj = obj || this;
 
     this.before = function(events, callback) {
-      var events = events.split(',');
-      for(var i=0;i<events.length;i++) {
+      events = events.split(',');
+      for(var i = 0; i < events.length; i++) {
         _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], before: [], after: [] };
         _this.subscribers[events[i]].before.push(callback);
       }
-    }
+    };
 
     this.on = function(events, callback) {
-      var events = events.split(',');
-      for(var i=0;i<events.length;i++) {
+      events = events.split(',');
+      for(var i = 0; i < events.length; i++) {
         _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], before: [], after: [] };
         _this.subscribers[events[i]].on.push(callback);
       }
-    }
+    };
 
     this.after = function(events, callback) {
-      var events = events.split(',');
-      for(var i=0;i<events.length;i++) {
+      events = events.split(',');
+      for(var i = 0; i < events.length; i++) {
         _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], before: [], after: [] };
         _this.subscribers[events[i]].after.push(callback);
       }
-    }
+    };
 
     this.connectTo = function(eventQueue) {
       _this.connections.push(eventQueue);
-    }
+    };
 
     function trigger(event, pos, args) {
 
@@ -54,17 +54,17 @@
       if (eventSubscribers) {
         switch (pos) {
           case 'before':
-            for (var i = 0; i < eventSubscribers.before.length; i++) {
+            for (i = 0; i < eventSubscribers.before.length; i++) {
               eventSubscribers.before[i].apply(_this.obj, args);
             }
             break;
           case 'on':
-            for (var i = 0; i < eventSubscribers.on.length; i++) {
+            for (i = 0; i < eventSubscribers.on.length; i++) {
               result = eventSubscribers.on[i].apply(_this.obj, args);
             }
             break;
           case 'after':
-            for (var i = 0; i < eventSubscribers.after.length; i++) {
+            for (i = 0; i < eventSubscribers.after.length; i++) {
               eventSubscribers.after[i].apply(_this.obj, args);
             }
             break;
@@ -78,7 +78,9 @@
     this.triggerEx = function(event, pos, largs) {
 
       var args = [];
-      for(var i = 0; i < largs.length; i++) {
+      var i;
+
+      for(i = 0; i < largs.length; i++) {
         args.push(largs[i]);
       }
 
@@ -90,23 +92,25 @@
 
       var result = trigger(event, pos, args);
 
-      for (var i = 0; i < _this.connections.length; i++) {
+      for (i = 0; i < _this.connections.length; i++) {
         _this.connections[i].triggerEx(event, pos, largs);
       }
 
       return result;
 
-    }
+    };
 
     this.triggerBefore = function(event) {
       return this.triggerEx(event, 'before', arguments);
-    }
+    };
+
     this.trigger = function(event) {
       return this.triggerEx(event, 'on',     arguments);
-    }
+    };
+
     this.triggerAfter = function(event) {
       return this.triggerEx(event, 'after',  arguments);
-    }
+    };
 
   }
 
@@ -114,6 +118,6 @@
 
   window.br.eventQueue = function(obj) {
     return new BrEvents(obj);
-  }
+  };
 
 })(window);

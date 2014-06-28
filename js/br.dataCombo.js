@@ -33,13 +33,13 @@
     this.noDecoration = this.options.noDecoration || false;
 
     this.events = br.eventQueue(this);
-    this.before = function(event, callback) { this.events.before(event, callback); }
-    this.on     = function(event, callback) { this.events.on(event, callback); }
-    this.after  = function(event, callback) { this.events.after(event, callback); }
+    this.before = function(event, callback) { this.events.before(event, callback); };
+    this.on     = function(event, callback) { this.events.on(event, callback); };
+    this.after  = function(event, callback) { this.events.after(event, callback); };
 
     this.isValid = function() {
       return _this.selector.length > 0;
-    }
+    };
 
     function storageTag(c) {
       var storageKey = $(c).attr('data-storage-key');
@@ -70,12 +70,12 @@
       } else {
         return undefined;
       }
-    }
+    };
 
     this.valOrNull = function() {
       var val = this.val();
       return br.isEmpty(val) ? null : val;
-    }
+    };
 
     this.reset = function(triggerChange) {
       br.storage.remove(storageTag(this.selector));
@@ -87,7 +87,7 @@
           uiSync();
         }
       }
-    }
+    };
 
     this.selector.on('reset', function() {
       _this.reset();
@@ -172,7 +172,7 @@
           }
         }, { fields: _this.fields });
       }
-    }
+    };
 
     if (_this.dataSource) {
 
@@ -224,6 +224,6 @@
 
   window.br.dataCombo = function (selector, dataSource, options) {
     return new BrDataCombo(selector, dataSource, options);
-  }
+  };
 
 })(jQuery, window);

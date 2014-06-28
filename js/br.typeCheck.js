@@ -16,32 +16,32 @@
              !isNaN(parseFloat(value)) &&
              isFinite(value)
            );
-  }
+  };
 
   window.br.isNull = function(value) {
     return (
              (value === undefined) ||
              (value === null)
            );
-  }
+  };
 
   window.br.isEmpty = function(value) {
     return (
              br.isNull(value) ||
              ((typeof value.length != 'undefined') && (value.length === 0)) // Array, String
            );
-  }
+  };
 
   window.br.isArray = function (value) {
     return (
              !br.isNull(value) &&
              (Object.prototype.toString.call(value) === '[object Array]')
            );
-  }
+  };
 
   window.br.isObject = function (value) {
     return (!br.isEmpty(value) && (typeof value === 'object'));
-  }
+  };
 
   window.br.isEmptyObject = function (value) {
     if (br.isObject(value)) {
@@ -55,23 +55,23 @@
       return false;
     }
     return (!br.isEmpty(value) && (typeof value === 'object'));
-  }
+  };
 
   window.br.isBoolean = function (value) {
     return (typeof value === 'boolean');
-  }
+  };
 
   window.br.isString = function (value) {
     return (typeof value === 'string');
-  }
+  };
 
   window.br.isNumber = function (value) {
     return (typeof value === 'number');
-  }
+  };
 
   window.br.isFunction = function (value) {
     return (typeof value === 'function');
-  }
+  };
 
   window.br.toString = function (value) {
     if (br.isNull(value)) {
@@ -79,7 +79,7 @@
     } else {
       return value.toString();
     }
-  }
+  };
 
   window.br.split = function (value, delimiter) {
     if (br.isEmpty(value)) {
@@ -88,7 +88,7 @@
     if (br.isString(value)) {
       return value.split(delimiter);
     }
-  }
+  };
 
   window.br.toInt = function(value) {
     if (br.isString(value)) {

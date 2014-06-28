@@ -21,7 +21,7 @@
   }
 
   $('script').each(function() {
-    if (baseUrl == '') {
+    if (baseUrl === '') {
       var src = $(this).attr('src');
       if (!br.isEmpty(src)) {
         for(var i in lookFor) {
@@ -78,8 +78,8 @@
 
   function BrTrn() {
     var trn = [];
-    this.get = function (phrase) { if (trn[phrase]) { return trn[phrase] } else { return phrase; } }
-    this.set = function (phrase, translation) { trn[phrase] = translation; return this; }
+    this.get = function (phrase) { if (trn[phrase]) { return trn[phrase]; } else { return phrase; } };
+    this.set = function (phrase, translation) { trn[phrase] = translation; return this; };
     return this;
   }
 
@@ -166,13 +166,12 @@
   };
 
   function handleModified(element, deferred) {
+    var listName1 = 'BrModified_Callbacks2';
+    var listName2 = 'BrModified_LastCahange2';
     if (deferred) {
       window.clearTimeout(element.data('BrModified_Timeout'));
-      var listName1 = 'BrModified_Callbacks1';
-      var listName2 = 'BrModified_LastCahange1';
-    } else {
-      var listName1 = 'BrModified_Callbacks2';
-      var listName2 = 'BrModified_LastCahange2';
+      listName1 = 'BrModified_Callbacks1';
+      listName2 = 'BrModified_LastCahange1';
     }
     if (element.data(listName2) != element.val()) {
       element.data(listName2, element.val());
@@ -200,10 +199,9 @@
       if (!$(this).data('br-data-change-callbacks')) {
         $(this).data('br-data-change-callbacks', []);
       }
+      var listName = 'BrModified_Callbacks2';
       if (deferred) {
-        var listName = 'BrModified_Callbacks1';
-      } else {
-        var listName = 'BrModified_Callbacks2';
+        listName = 'BrModified_Callbacks1';
       }
       var callbacks = $(this).data(listName);
       if (callbacks) {
@@ -230,11 +228,11 @@
 
   window.br.modifiedDeferred = function(selector, callback) {
     setupModified(selector, callback, true);
-  }
+  };
 
   window.br.modified = function(selector, callback) {
     setupModified(selector, callback, false);
-  }
+  };
 
   window.br.closeConfirmationMessage = 'Some changes have been made. Are you sure you want to close current window?';
 
@@ -259,20 +257,20 @@
     } else {
       windowUnloading = value;
     }
-  }
+  };
 
   window.br.confirmClose = function(message) {
     if (message) {
       br.closeConfirmationMessage = message;
     }
     closeConfirmationRequired = true;
-    br.events.trigger('closeConfirmationRequested')
-  }
+    br.events.trigger('closeConfirmationRequested');
+  };
 
   window.br.resetCloseConfirmation = function(message) {
     closeConfirmationRequired = false;
-    br.events.trigger('closeConfirmationReset')
-  }
+    br.events.trigger('closeConfirmationReset');
+  };
 
   window.br.events = br.eventQueue();
 
@@ -305,7 +303,7 @@
       document.location = href;
     }
 
-  }
+  };
 
   window.br.disableBounce = function(container) {
 
@@ -323,9 +321,9 @@
 
     $(window).resize(function() {
       resize();
-    })
+    });
 
-  }
+  };
 
   window.br.getSelection = function() {
     var html = "";
@@ -344,7 +342,7 @@
       }
     }
     return html;
-  }
+  };
 
   var ctx;
 
@@ -352,8 +350,9 @@
 
     try {
       var duration = 100;
+      window.AudioContext = window.AudioContext||window.webkitAudioContext;
       if (!ctx) {
-        ctx = new(window.audioContext || window.webkitAudioContext);
+        ctx = new AudioContext();
       }
       var osc = ctx.createOscillator();
       osc.type = 0;
@@ -369,11 +368,13 @@
       br.log(error);
     }
 
-  }
+  };
 
+  /* jshint ignore:start */
   window.br.load = window.br.resourceLoader = function(j){function p(c,a){var g=j.createElement(c),b;for(b in a)a.hasOwnProperty(b)&&g.setAttribute(b,a[b]);return g}function m(c){var a=k[c],b,e;if(a)b=a.callback,e=a.urls,e.shift(),h=0,e.length||(b&&b.call(a.context,a.obj),k[c]=null,n[c].length&&i(c))}function u(){if(!b){var c=navigator.userAgent;b={async:j.createElement("script").async===!0};(b.webkit=/AppleWebKit\//.test(c))||(b.ie=/MSIE/.test(c))||(b.opera=/Opera/.test(c))||(b.gecko=/Gecko\//.test(c))||(b.unknown=!0)}}function i(c,
     a,g,e,h){var i=function(){m(c)},o=c==="css",f,l,d,q;u();if(a)if(a=typeof a==="string"?[a]:a.concat(),o||b.async||b.gecko||b.opera)n[c].push({urls:a,callback:g,obj:e,context:h});else{f=0;for(l=a.length;f<l;++f)n[c].push({urls:[a[f]],callback:f===l-1?g:null,obj:e,context:h})}if(!k[c]&&(q=k[c]=n[c].shift())){r||(r=j.head||j.getElementsByTagName("head")[0]);a=q.urls;f=0;for(l=a.length;f<l;++f)g=a[f],o?d=b.gecko?p("style"):p("link",{href:g,rel:"stylesheet"}):(d=p("script",{src:g}),d.async=!1),d.className=
     "lazyload",d.setAttribute("charset","utf-8"),b.ie&&!o?d.onreadystatechange=function(){if(/loaded|complete/.test(d.readyState))d.onreadystatechange=null,i()}:o&&(b.gecko||b.webkit)?b.webkit?(q.urls[f]=d.href,s()):(d.innerHTML='@import "'+g+'";',m("css")):d.onload=d.onerror=i,r.appendChild(d)}}function s(){var c=k.css,a;if(c){for(a=t.length;--a>=0;)if(t[a].href===c.urls[0]){m("css");break}h+=1;c&&(h<200?setTimeout(s,50):m("css"))}}var b,r,k={},h=0,n={css:[],js:[]},t=j.styleSheets;return{css:function(c,
     a,b,e){i("css",c,a,b,e)},js:function(c,a,b,e){i("js",c,a,b,e)}}}(document);
+  /* jshint ignore:end */
 
 })(jQuery, window);

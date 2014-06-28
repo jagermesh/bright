@@ -69,10 +69,12 @@
           }
         });
       }
-    }
+    };
+
     this.isWeatherVisible = function() {
       return (this.weatherLayer !== null);
-    }
+    };
+
     this.showWeather = function(show) {
       if (show && !this.weatherVisible()) {
         this.weatherLayer = new google.maps.weather.WeatherLayer({
@@ -84,13 +86,15 @@
         this.weatherLayer.setMap(null);
         this.weatherLayer = null;
       }
-    }
+    };
+
     this.clearMarkers = function() {
       for (var i = 0; i < this.markers.length; i++) {
         this.markers[i].setMap(null);
       }
       this.markers = [];
-    }
+    };
+
     this.addLocation = function(lat, lng, data, onClick) {
       var latLng = new google.maps.LatLng(lat, lng);
       var marker = new google.maps.Marker({ position: latLng
@@ -98,7 +102,8 @@
                                           , data: data
                                           });
       return this.addMarker(marker, onClick);
-    }
+    };
+
     this.addMarker = function(marker, onClick) {
       // marker.setMap(this.map);
       this.markers[this.markers.length] = marker;
@@ -108,7 +113,8 @@
         });
       }
       return marker;
-    }
+    };
+
     this.setMapType = function(value) {
       switch(value) {
         case 'r':
@@ -124,7 +130,8 @@
           this.map.setMapTypeId(google.maps.MapTypeId.SATELLITE);
           break;
       }
-    }
+    };
+
     this.setTravelMode = function(value) {
       switch(value) {
         case 'd':
@@ -137,10 +144,12 @@
           this.travelMode = google.maps.DirectionsTravelMode.WALKING;
           break;
       }
-    }
+    };
+
     this.setZoom = function(zoom) {
       _this.map.setZoom(zoom);
-    }
+    };
+
     this.pan = function() {
       var bounds = { };
       for (var i = 0; i < this.markers.length; i++) {
@@ -158,7 +167,7 @@
       if (this.markers.length > 0) {
         var point = { lat: bounds.latMin + (bounds.latMax - bounds.latMin)/2
                     , lng: bounds.lngMin + (bounds.lngMax - bounds.lngMin)/2
-                    }
+                    };
         if (this.markers.length > 1) {
           var mapBounds = new google.maps.LatLngBounds(new google.maps.LatLng(bounds.latMin, bounds.lngMin), new google.maps.LatLng(bounds.latMax, bounds.lngMax));
           this.map.panToBounds(mapBounds);
@@ -168,7 +177,8 @@
         }
         this.map.setCenter(new google.maps.LatLng(point.lat, point.lng));
       }
-    }
+    };
+
     this.gotoAddress = function(address, callback) {
       _this.findAddress(address, function(result, points) {
         if (result) {
@@ -180,7 +190,8 @@
           }
         }
       });
-    }
+    };
+
     this.findAddress = function(address, callback) {
       _this.geocoder.geocode({'address': address}, function(results, status) {
         if (status == google.maps.GeocoderStatus.OK) {
@@ -201,11 +212,12 @@
           }
         }
       });
-    }
+    };
+
     this.drawRoute = function(markers, callback) {
       var origin = null;
       var destination = null;
-      var waypoints = []
+      var waypoints = [];
       markers = markers || this.markers;
       for (var i = 0; i < markers.length; i++) {
         var latLng = new google.maps.LatLng(markers[i].position.lat(), markers[i].position.lng());
@@ -250,7 +262,7 @@
           }
         });
       }
-    }
+    };
 
     if (this.weather) {
       this.showWeather();
@@ -264,6 +276,6 @@
 
   window.br.googleMap = function (selector, options) {
     return new BrGoogleMap(selector, options);
-  }
+  };
 
 })(jQuery, window);

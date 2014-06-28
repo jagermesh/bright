@@ -22,10 +22,11 @@
     _this.savedWidth = '';
     _this.click = function(element, e) {
       if (!_this.activated()) {
+        var content = '';
         if (typeof _this.ctrl.attr('data-editable') != 'undefined') {
-          var content = _this.ctrl.attr('data-editable');
+          content = _this.ctrl.attr('data-editable');
         } else {
-          var content = _this.ctrl.text();
+          content = _this.ctrl.text();
         }
         _this.ctrl.data('brEditable-original-content', _this.ctrl.text());
         _this.ctrl.data('brEditable-original-width', _this.ctrl.css('width'));
@@ -51,12 +52,10 @@
         _this.editor.css('margin-top', '2px');
         _this.editor.css('margin-bottom', '2px');
         _this.ctrl.append(_this.editor);
-
         if (_this.options.onGetContent) {
           content = _this.options.onGetContent.call(_this.ctrl, _this.editor, content);
         }
         _this.editor.val(content);
-
         _this.ctrl.css('width', width - 10);
         _this.editor.focus();
         _this.editor.attr('data-original-title', 'Press [Enter] to save changes, [Esc] to cancel changes.');
@@ -77,10 +76,12 @@
           }
         });
       }
-    }
+    };
+
     _this.activated = function() {
       return _this.editor !== null;
-    }
+    };
+
     _this.apply = function(content) {
       _this.editor.tooltip('hide');
       _this.editor.remove();
@@ -90,14 +91,15 @@
         _this.ctrl.attr('data-editable', content);
       }
       _this.ctrl.css('width', '');
-    }
+    };
+
     _this.cancel = function() {
       _this.editor.tooltip('hide');
       _this.editor.remove();
       _this.editor = null;
       _this.ctrl.text(_this.ctrl.data('brEditable-original-content'));
       _this.ctrl.css('width', '');
-    }
+    };
 
   }
 
@@ -111,14 +113,13 @@
       }
     } else {
       $(document).on('click', selector, function(e) {
-        var $this = $(this)
-          , data = $this.data('brEditable-editable');
+        var $this = $(this), data = $this.data('brEditable-editable');
         if (!data) {
           $this.data('brEditable-editable', (data = new BrEditable(this, callback)));
         }
         data.click(e);
       });
     }
-  }
+  };
 
 })(jQuery, window);

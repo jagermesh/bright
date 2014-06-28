@@ -50,7 +50,7 @@
   function handleClick(el, invoker, choicesDataSource, dataSource, fieldName, options) {
     var rowid = el.closest('[data-rowid]').attr('data-rowid');
     var menuElement = invoker.find('span.br-ex-current-value');
-    var filter = {__targetRowid: rowid}
+    var filter = { __targetRowid: rowid };
     if (options.onSelect) {
       options.onSelect.call(choicesDataSource, filter, rowid);
     }
@@ -69,7 +69,7 @@
     } else {
       $this.data('BrExChangeMenu', true);
       var value = $this.text().trim();
-      if ((value.length == 0) || (value == '(click to change)')) {
+      if ((value.length === 0) || (value == '(click to change)')) {
         value = '<span style="color:#AAA;">(click to change)</span>';
       }
       $this.html(br.fetch(invokerTemplate, { value: value }));
@@ -100,6 +100,6 @@
 
   window.br.exChangeMenu = function (selector, choicesDataSource, dataSource, fieldName, options) {
     return new BrExChangeMenu(selector, choicesDataSource, dataSource, fieldName, options);
-  }
+  };
 
 })(jQuery, window);

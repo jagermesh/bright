@@ -31,9 +31,9 @@
     this.storageTag = document.location.pathname + this.dataSource.options.restServiceUrl;
 
     this.events = br.eventQueue(this);
-    this.before = function(event, callback) { this.events.before(event, callback); }
-    this.on     = function(event, callback) { this.events.on(event, callback); }
-    this.after  = function(event, callback) { this.events.after(event, callback); }
+    this.before = function(event, callback) { this.events.before(event, callback); };
+    this.on     = function(event, callback) { this.events.on(event, callback); };
+    this.after  = function(event, callback) { this.events.after(event, callback); };
 
     var loadingMoreData = false;
     var noMoreData = false;
@@ -56,34 +56,34 @@
     this.renderHeader = function(data) {
       data = _this.events.trigger('renderHeader', data) || data;
       return $(br.fetch(_this.options.templates.header, data));
-    }
+    };
 
     this.renderFooter = function(data) {
       data = _this.events.trigger('renderFooter', data) || data;
       return $(br.fetch(_this.options.templates.footer, data));
-    }
+    };
 
     this.renderRow = function(data) {
       data = _this.events.trigger('renderRow', data) || data;
       var result = $(br.fetch(_this.options.templates.row, data));
       result.data('data-row', data);
       return result;
-    }
+    };
 
     this.renderGroupRow = function(data) {
       data = _this.events.trigger('renderGroupRow', data) || data;
       var result = $(br.fetch(_this.options.templates.groupRow, data));
       result.data('data-row', data);
       return result;
-    }
+    };
 
     this.prepend = function(row) {
       return $(_this.selector).prepend(row);
-    }
+    };
 
     this.append = function(row) {
       return $(_this.selector).append(row);
-    }
+    };
 
     this.insertDataRowAfter = function(row, selector) {
       _this.events.triggerBefore('insert', row);
@@ -92,7 +92,7 @@
       $(tableRow).insertAfter(selector);
       _this.events.triggerAfter('insert', row, tableRow);
       return tableRow;
-    }
+    };
 
     this.addDataRow = function(row) {
       _this.events.triggerBefore('insert', row);
@@ -105,7 +105,7 @@
       }
       _this.events.triggerAfter('insert', row, tableRow);
       return tableRow;
-    }
+    };
 
     this.reloadRow = function(rowid) {
       _this.dataSource.selectOne(rowid, function(result, response) {
@@ -117,7 +117,7 @@
           }
         }
       }, {disableEvents: true});
-    }
+    };
 
     this.refreshRow = function(data) {
       var row = $(_this.selector).find('[data-rowid=' + data.rowid + ']');
@@ -139,7 +139,7 @@
       } else {
         return false;
       }
-    }
+    };
 
     this.getOrder = function() {
       var order = _this.getOrderAndGroup();
@@ -154,13 +154,15 @@
         }
       }
       return result;
-    }
+    };
+
     this.setOrderAndGroup = function(order) {
       br.storage.set(this.storageTag + 'orderAndGroup', order);
-    }
+    };
+
     this.getOrderAndGroup = function() {
       return br.storage.get(this.storageTag + 'orderAndGroup', []);
-    }
+    };
 
     this.loadMore = function() {
       if (noMoreData || loadingMoreData) {
@@ -171,7 +173,7 @@
           loadingMoreData = false;
         });
       }
-    }
+    };
 
     this.init = function() {
 
@@ -253,7 +255,7 @@
         _this.dataSource.after('select', function(result, response, request) {
           $(_this.selector).removeClass('progress-big');
           if (result) {
-            noMoreData = (response.length == 0);
+            noMoreData = (response.length === 0);
             _this.render(response, loadingMoreData);
           }
         });
@@ -317,26 +319,26 @@
 
       }
 
-    }
+    };
 
     this.render = function(data, loadingMoreData) {
       var $selector = $(_this.selector);
       _this.events.triggerBefore('change', data, 'render');
       if (data) {
-        var i;
+        var i, j, k;
         if (!loadingMoreData) {
           $selector.html('');
         }
         if (_this.options.freeGrid) {
           if (data.headers) {
-            for (var i in data.headers) {
+            for (i in data.headers) {
               if (data.headers[i]) {
                 $(_this.options.selectors.header).append(_this.renderHeader(data.headers[i]));
               }
             }
           }
           if (data.footers) {
-            for (var i in data.footers) {
+            for (i in data.footers) {
               if (data.footers[i]) {
                 $(_this.options.selectors.footer).append(_this.renderFooter(data.headers[i]));
               }
@@ -348,7 +350,7 @@
             if (data.rows.length === 0) {
               $selector.html(this.options.templates.noData);
             } else {
-              for (var i in data.rows) {
+              for (i in data.rows) {
                 if (data.rows[i]) {
                   if (data.rows[i].row) {
                     $selector.append(_this.renderRow(data.rows[i].row));
@@ -370,27 +372,27 @@
             var group = _this.getOrderAndGroup();
             var groupValues = {};
             var groupFieldName = '';
-            for (var i in data) {
+            for (i in data) {
               if (data[i]) {
                 if (br.isArray(group)) {
-                  for(var k = 0; k < group.length; k++) {
+                  for(k = 0; k < group.length; k++) {
                     groupFieldName = group[k].fieldName;
                     if (group[k].group && (groupValues[groupFieldName] != data[i][groupFieldName])) {
-                      for(var j = k; j < group.length; j++) {
+                      for(j = k; j < group.length; j++) {
                         groupFieldName = group[j].fieldName;
                         groupValues[groupFieldName] = undefined;
                       }
                       break;
                     }
                   }
-                  for(var k = 0; k < group.length; k++) {
+                  for(k = 0; k < group.length; k++) {
                     groupFieldName = group[k].fieldName;
                     if (group[k].group && (groupValues[groupFieldName] != data[i][groupFieldName])) {
                       groupValues[groupFieldName] = data[i][groupFieldName];
                       var tmp = data[i];
                       tmp.__groupBy = {};
-                      tmp.__groupBy['__field'] = groupFieldName;
-                      tmp.__groupBy['__value'] = data[i][groupFieldName];
+                      tmp.__groupBy.__field = groupFieldName;
+                      tmp.__groupBy.__value = data[i][groupFieldName];
                       tmp.__groupBy[groupFieldName] = true;
                       $selector.append(_this.renderGroupRow(tmp));
                     }
@@ -409,7 +411,7 @@
       }
       _this.events.trigger('change', data, 'render');
       _this.events.triggerAfter('change', data, 'render');
-    }
+    };
 
     return this.init();
 
@@ -419,6 +421,6 @@
 
   window.br.dataGrid = function (selector, rowTemplate, dataSource, options) {
     return new BrDataGrid(selector, rowTemplate, dataSource, options);
-  }
+  };
 
 })(jQuery, window);

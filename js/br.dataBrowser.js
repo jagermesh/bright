@@ -42,7 +42,7 @@
       } else {
         return _this.options.selectors.scrollContainer;
       }
-    }
+    };
 
     this.options.selectors.dataTable = c(this.options.selectors.dataTable || '.data-table');
     this.options.selectors.editForm = this.options.selectors.editForm || '.data-edit-form';
@@ -71,10 +71,11 @@
 
     this.setStored = function(name, value) {
       br.storage.set(this.storageTag + 'stored:' + name, value);
-    }
+    };
+
     this.getStored = function(name, defaultValue) {
       return br.storage.get(this.storageTag + 'stored:' + name, defaultValue);
-    }
+    };
 
     this.defaultLimit = this.options.limit || 20;
     this.limit = _this.getStored('pager_PageSize', this.defaultLimit);
@@ -85,10 +86,10 @@
 
     this.countDataSource = br.dataSource(this.dataSource.options.restServiceUrl);
 
+    var headerContainer = 'body';
+
     if (this.options.selectors.container !== '') {
-      var headerContainer = this.options.selectors.container;
-    } else {
-      var headerContainer = 'body';
+      headerContainer = this.options.selectors.container;
     }
 
     this.dataGrid = br.dataGrid( this.options.selectors.dataTable
@@ -100,34 +101,40 @@
                                );
 
     this.events = br.eventQueue(this);
-    this.before = function(event, callback) { this.events.before(event, callback); }
-    this.on     = function(event, callback) { this.events.on(event, callback); }
-    this.after  = function(event, callback) { this.events.after(event, callback); }
+    this.before = function(event, callback) { this.events.before(event, callback); };
+    this.on     = function(event, callback) { this.events.on(event, callback); };
+    this.after  = function(event, callback) { this.events.after(event, callback); };
 
     this.before = function(operation, callback) {
       this.dataSource.before(operation, callback);
       this.countDataSource.before(operation, callback);
-    }
+    };
+
     this.getOrder = function() {
       return _this.dataGrid.getOrder();
-    }
+    };
+
     this.setOrder = function(order) {
       _this.dataGrid.setOrder(order);
-    }
+    };
+
     this.setFilter = function(name, value) {
       var filter = br.storage.get(this.storageTag + 'filter');
       filter = filter || { };
       filter[name] = value;
       br.storage.set(this.storageTag + 'filter', filter);
-    }
+    };
+
     this.getFilter = function(name, defaultValue) {
       var filter = br.storage.get(this.storageTag + 'filter', defaultValue);
       filter = filter || { };
       return filter[name];
-    }
+    };
+
     this.reloadRow = function(rowid) {
       _this.dataGrid.reloadRow(rowid);
-    }
+    };
+
     this.init = function() {
       // nav
       $('.nav-item[rel=' + _this.options.nav + ']').addClass('active');
@@ -398,7 +405,6 @@
                         }
                       }
                     );
-
         } else {
           br.growlError('Please select at least one record');
         }
@@ -434,7 +440,7 @@
       });
 
       return this;
-    }
+    };
 
     var slider = false;
 
@@ -514,34 +520,21 @@
       $(c('tr.row-selected')).removeClass('row-selected');
       $(c('.action-select-all')).removeAttr('checked');
       _this.events.trigger('selectionChanged');
-    }
+    };
 
     this.getSelection = function() {
-      // var rowids = [];
-      // for(var id in _this.selection) {
-      //   rowids.push(id);
-      // }
-      // $(c('.action-select-row')).each(function() {
-      //   if ($(this).is(':checked')) {
-      //     rowids.push($(this).val());
-      //   }
-      // });
       return _this.selection.get();
-    }
+    };
 
     this.updatePager = function() {
 
       if (!pagerSetuped) {
 
-        // var filter = {};
-        // filter.__skip = _this.skip;
-        // filter.__limit = _this.limit;
-
         _this.countDataSource.selectCount(function(success, result) {
           if (success) {
             _this.recordsAmount = result;
             internalUpdatePager();
-            _this.events.triggerAfter('recordsCountRetrieved', result)
+            _this.events.triggerAfter('recordsCountRetrieved', result);
           } else {
             $(c('.pager-control')).hide();
           }
@@ -551,7 +544,7 @@
         internalUpdatePager();
       }
 
-    }
+    };
 
     function internalRefresh(deferred, filter, callback) {
 
@@ -563,7 +556,6 @@
         });
       } else {
         _this.dataSource.select(filter, function() {
-          // _this.updatePager();
           if (typeof callback == 'function') {
             callback.call(this);
           }
@@ -574,12 +566,12 @@
 
     this.isFiltersVisible = function() {
       return $(c('.filters-panel')).is(':visible');
-    }
+    };
 
     this.resetPager = function() {
       pagerSetuped = false;
       _this.skip = 0;
-    }
+    };
 
     this.resetFilters = function() {
       $(c('input.data-filter')).val('');
@@ -588,7 +580,8 @@
       br.storage.remove(this.storageTag + 'filter');
       _this.events.trigger('resetFilters');
       br.refresh();
-    }
+    };
+
     this.refreshDeferred = function(filter, callback, doNotResetPager) {
       if (typeof filter == 'function') {
         doNotResetPager = callback;
@@ -599,7 +592,7 @@
         _this.resetPager();
       }
       internalRefresh(true, filter, callback);
-    }
+    };
 
     this.refresh = function(filter, callback, doNotResetPager) {
       if (typeof filter == 'function') {
@@ -611,7 +604,7 @@
         _this.resetPager();
       }
       internalRefresh(false, filter, callback);
-    }
+    };
 
     return this.init();
 
@@ -621,6 +614,6 @@
 
   window.br.dataBrowser = function (entity, options) {
     return new BrDataBrowser(entity, options);
-  }
+  };
 
 })(jQuery, window);
