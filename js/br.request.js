@@ -19,7 +19,8 @@
     this.get = function(name, defaultValue) {
       var vars = document.location.search.replace('?', '').split('&');
       var vals = {};
-      for (var i = 0; i < vars.length; i++) {
+      var i;
+      for (i = 0; i < vars.length; i++) {
         var pair = vars[i].split("=");
         if (pair[0].indexOf('[') != -1) {
           var n = pair[0].substr(0, pair[0].indexOf('['));
@@ -30,7 +31,7 @@
         }
       }
       if (name) {
-        for (var i in vals) {
+        for (i in vals) {
           if (i == name) {
             return vals[i];
           }
