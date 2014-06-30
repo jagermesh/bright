@@ -113,7 +113,7 @@
   };
 
 })(window);
-;/*!
+/*!
  * Bright 0.0.5
  *
  * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
@@ -386,7 +386,7 @@
   window.br.session = new BrStorage(window.sessionStorage);
 
 })(window);
-;/*!
+/*!
  * Bright 0.0.5
  *
  * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
@@ -509,7 +509,7 @@
   };
 
 })(window);
-;/*!
+/*!
  * Bright 0.0.5
  *
  * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
@@ -577,7 +577,7 @@
   }
 
 })(window);
-;/*!
+/*!
  * Bright 0.0.5
  *
  * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
@@ -957,7 +957,7 @@
   /* jshint ignore:end */
 
 })(jQuery, window);
-;/*!
+/*!
  * Bright 0.0.5
  *
  * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
@@ -1031,7 +1031,7 @@
   };
 
 })(window);
-;/*!
+/*!
  * Bright 0.0.5
  *
  * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
@@ -1495,7 +1495,7 @@
   };
 
 })(jQuery, window);
-;/*!
+/*!
  * Bright 0.0.5
  *
  * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
@@ -1921,7 +1921,7 @@
   };
 
 })(jQuery, window);
-;/*!
+/*!
  * Bright 0.0.5
  *
  * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
@@ -2150,7 +2150,7 @@
   };
 
 })(jQuery, window);
-;/*!
+/*!
  * Bright 0.0.5
  *
  * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
@@ -2275,7 +2275,7 @@
   };
 
 })(jQuery, window);
-;/*!
+/*!
  * Bright 0.0.5
  *
  * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
@@ -2631,7 +2631,7 @@
   });
 
 })(jQuery, window);
-;/*!
+/*!
  * Bright 0.0.5
  *
  * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)

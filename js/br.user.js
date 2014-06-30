@@ -13,14 +13,6 @@
 
     var users = br.dataSource(br.baseUrl + 'api/users/');
 
-    // users.on('error', function(operation, error) {
-    //   if ($('.login-error').length > 0) {
-    //     $('.login-error').text(error).fadeIn();
-    //   } else {
-    //     br.growlError(error);
-    //   }
-    // });
-
     $('.action-signup').click(function() {
 
       var data = {};
@@ -45,8 +37,8 @@
         if (result) {
           br.redirect('?from=signup');
         } else {
-          if ($('.signup-error').length > 0) {
-            $('.signup-error').text(response).fadeIn();
+          if ($('.signup-error', form).length > 0) {
+            $('.signup-error', form).text(response).fadeIn();
           } else {
             br.growlError(response);
           }
@@ -93,8 +85,8 @@
                       if (result) {
                         br.redirect(br.request.get('caller', '?from=login'));
                       } else {
-                        if ($('.login-error').length > 0) {
-                          $('.login-error').text(response).fadeIn();
+                        if ($('.login-error', form).length > 0) {
+                          $('.login-error', form).text(response).show();
                         } else {
                           br.growlError(response);
                         }
@@ -130,8 +122,8 @@
                       if (result) {
                         br.redirect(br.request.get('caller', 'reset-password-final.html'));
                       } else {
-                        if ($('.reset-password-error').length > 0) {
-                          $('.reset-password-error').text(response).fadeIn();
+                        if ($('.reset-password-error', form).length > 0) {
+                          $('.reset-password-error', form).text(response).fadeIn();
                         } else {
                           br.growlError(response);
                         }

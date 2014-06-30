@@ -394,6 +394,7 @@
                     , 'Are you sure you want delete ' + selection.length + ' record(s)?'
                     , function() {
                         for(var i in selection) {
+                          /* jshint ignore:start */
                           (function(id) {
                             _this.dataSource.remove(id, function(result, response) {
                               if (result) {
@@ -402,6 +403,7 @@
                               }
                             });
                           })(selection[i]);
+                          /* jshint ignore:end */
                         }
                       }
                     );

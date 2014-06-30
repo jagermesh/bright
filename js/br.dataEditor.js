@@ -297,6 +297,7 @@
             _this.events.triggerBefore('editor.show', data, isCopy);
             _this.editorConfigure(isCopy);
             for(var i in data) {
+              /* jshint ignore:start */
               _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio][name=' + i + '],input.data-field[name=' + i + '],select.data-field[name=' + i + '],textarea.data-field[name=' + i + ']').each(function() {
                 if ($(this).attr('data-toggle') == 'buttons-radio') {
                   var val = br.isNull(data[i]) ? '' : data[i];
@@ -322,6 +323,7 @@
                   }
                 }
               });
+              /* jshint ignore:end */
             }
             if (isCopy) {
               editorRowid = null;
