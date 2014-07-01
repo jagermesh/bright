@@ -57,9 +57,15 @@ class BrObject {
 
   }
 
-  public function isAttrExists($name) {
+  public function hasAttr($name) {
 
     return array_key_exists($name, $this->attributes);
+
+  }
+
+  public function isAttrExists($name) {
+
+    return $this->hasAttr($name, $this->attributes);
 
   }
 

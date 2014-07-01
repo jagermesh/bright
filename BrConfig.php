@@ -29,5 +29,11 @@ class BrConfig extends BrSingleton {
 
   }
 
+  public function has($name) {
+
+    return $this->hasAttr($name);
+
+  }
+
 }
 

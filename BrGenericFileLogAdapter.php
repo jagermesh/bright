@@ -13,29 +13,55 @@ require_once(__DIR__.'/BrGenericLogAdapter.php');
 class BrGenericFileLogAdapter extends BrGenericLogAdapter {
 
   private $filePointer = null;
+  private $initialized = false;
+  private $initializationFailed = false;
+  private $filePath;
+  private $fileName;
 
   function __construct($filePath, $fileName) {
 
     parent::__construct();
 
-    $filePath = br()->fs()->normalizePath($filePath);
+    $this->filePath = $filePath;
+    $this->fileName = $fileName;
 
-    $this->disable();
+  }
 
-    if (br()->fs()->makeDir($filePath)) {
-      br()->errorHandler()->disable();
-      $fileExists = file_exists($filePath.$fileName);
-      if ($this->filePointer = @fopen($filePath.$fileName, 'a+')) {
-        $this->enable();
+  function init() {
+
+    if (!$this->initialized && !$this->initializationFailed) {
+
+      if ($this->isEnabled() && br()->log()->isEnabled()) {
+
+        $this->filePath = br()->fs()->normalizePath($this->filePath);
+
+        $this->disable();
+
+        if (br()->fs()->makeDir($this->filePath)) {
+          br()->errorHandler()->disable();
+          $fileExists = file_exists($this->filePath . $this->fileName);
+          if ($this->filePointer = @fopen($this->filePath . $this->fileName, 'a+')) {
+            $this->enable();
+            $this->initialized = true;
+          } else {
+            $this->initializationFailed = true;
+          }
+          br()->errorHandler()->enable();
+
+          $this->triggerSticky('log.initialized', $this);
+        }
+
       }
-      br()->errorHandler()->enable();
+
     }
 
   }
 
   function write($message, $group = 'MSG') {
 
-    if ($this->filePointer && $this->isEnabled()) {
+    $this->init();
+
+    if ($this->filePointer && $this->isEnabled() && br()->log()->isEnabled()) {
 
       $logMessage = '';
 
@@ -67,21 +93,21 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter {
   }
 
   function writeMessage($message, $group = 'MSG') {
-    
+
     $this->write($message, $group);
 
   }
-  
+
   function writeDebug($message) {
 
     $this->write($message, 'DBG');
-    
+
   }
-  
+
   function writeError($message) {
 
     $this->write($message, 'ERR');
-    
+
   }
 
 }

@@ -63,7 +63,9 @@ class BrFileLogAdapter extends BrGenericFileLogAdapter {
 
     parent::__construct($filePath, $fileName);
 
-    $this->writeAppInfo();
+    $this->on('log.initialized', function($logger) {
+      $logger->writeAppInfo();
+    });
 
     register_shutdown_function(array(&$this, "end"));
 

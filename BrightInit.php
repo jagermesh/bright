@@ -41,21 +41,21 @@ if (strtolower(basename($traces[0]['file'])) == 'bright.php') {
   br()->saveCallerScript($traces[0]['file']);
 }
 
+// Loading application settings
+br()->importAtBasePath('config.php');
+
 // Logging
-br()->importLib('FileLogAdapter');
 br()->importLib('ErrorFileLogAdapter');
 br()->importLib('ErrorMailLogAdapter');
-br()->log()->addAdapter(new BrFileLogAdapter(br()->atBasePath('_logs')));
+br()->importLib('FileLogAdapter');
 br()->log()->addAdapter(new BrErrorFileLogAdapter(br()->atBasePath('_logs')));
 br()->log()->addAdapter(new BrErrorMailLogAdapter());
+br()->log()->addAdapter(new BrFileLogAdapter(br()->atBasePath('_logs')));
 
 if (br()->isConsoleMode()) {
   br()->importLib('ConsoleLogAdapter');
   br()->log()->addAdapter(new BrConsoleLogAdapter());
 }
-
-// Loading application settings
-br()->importAtBasePath('config.php');
 
 // Core PHP settings - Secondary
 ini_set('session.gc_maxlifetime', br()->config()->get('php/session.gc_maxlifetime', 3600));

@@ -20,9 +20,15 @@ class BrLog extends BrSingleton {
 
   function __construct() {
 
+    parent::__construct();
+
     $this->initMicroTime = Br()->getMicrotime();
     $this->initTime = @strftime('%H:%M:%S');
-
+    if (br()->config()->has('br/log/enabled')) {
+      if (!br()->config()->get('br/log/enabled')) {
+        $this->disable();
+      }
+    }
   }
 
   function addAdapter($adapter) {
