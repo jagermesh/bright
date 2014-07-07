@@ -276,6 +276,7 @@
     this.cancel = function() {
       goodHide = true;
       if (_this.container.hasClass('modal')) {
+        br.resetCloseConfirmation();
         _this.container.modal('hide');
       }
       _this.events.trigger('editor.hide', false, editorRowid);
