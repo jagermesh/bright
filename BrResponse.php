@@ -156,6 +156,22 @@ class BrResponse extends BrSingleton {
 
   }
 
+  function sendInternalServerError() {
+
+    if (!headers_sent()) {
+      header('HTTP/1.0 501 Internal Server Error');
+    }
+
+  }
+
+  function sendServiceUnavailable() {
+
+    if (!headers_sent()) {
+      header('HTTP/1.0 503 Service unavailable');
+    }
+
+  }
+
   function sendConflict($error) {
 
     if (!headers_sent()) {

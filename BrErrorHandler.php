@@ -87,6 +87,10 @@ class BrErrorHandler extends BrObject {
             $errorMessage = str_replace('[INFO:'.$info_name.']'.$errorInfo.'[/INFO]', '', $errorMessage);
           }
 
+          if (!headers_sent()) {
+            header('HTTP/1.0 501 Internal Server Error');
+          }
+
           if (br()->request()->isLocalHost() && !($e instanceof BrAppException)) {
             include(__DIR__.'/templates/ErrorReportEx.html');
           } else {
