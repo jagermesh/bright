@@ -1949,6 +1949,7 @@
     this.options.hideEmptyValue = this.options.hideEmptyValue || (this.selector.attr('multiple') == 'multiple');
     this.options.emptyName = (typeof this.options.emptyName == 'undefined' ? '--any--' : this.options.emptyName);
     this.options.emptyValue = (typeof this.options.emptyValue == 'undefined' ? '' : this.options.emptyValue);
+    this.loaded = false;
 
     this.fields = this.options.fields || {};
     this.saveSelection = this.options.saveSelection || false;
@@ -1962,6 +1963,10 @@
 
     this.isValid = function() {
       return _this.selector.length > 0;
+    };
+
+    this.isLoaded = function() {
+      return _this.loaded;
     };
 
     function storageTag(c) {
@@ -2092,6 +2097,7 @@
               callback.call(_this.selector, result, response);
             }
             uiSync();
+            _this.loaded = true;
           }
         }, { fields: _this.fields });
       }
