@@ -22,13 +22,13 @@ class BrErrorMailLogAdapter extends BrGenericLogAdapter {
         try {
           $requestData = '';
           if (br()->request()->isGET()) {
-            $requestData = json_encode(br()->request()->get());
+            $requestData = @json_encode(br()->request()->get());
           }
           if (br()->request()->isPOST()) {
-            $requestData = json_encode(br()->request()->post());
+            $requestData = @json_encode(br()->request()->post());
           }
           if (br()->request()->isPUT()) {
-            $requestData = json_encode(br()->request()->put());
+            $requestData = @json_encode(br()->request()->put());
           }
           $subject = 'Error report';
           if ($tagline) {
