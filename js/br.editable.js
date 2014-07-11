@@ -108,6 +108,9 @@
   window.br.editable = function(selector, callback, value) {
     if (typeof callback == 'string') {
       var data = $(selector).data('brEditable-editable');
+      if (!data) {
+        $(selector).data('brEditable-editable', (data = new BrEditable($(selector), callback)));
+      }
       if (data) {
         data[callback](value);
       }
