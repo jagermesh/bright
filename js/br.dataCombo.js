@@ -132,12 +132,23 @@
             $(this).removeAttr('data-value');
           }
           $(this).html('');
+
           var s = '';
+          var cbObj = {};
+          cbObj.data = data;
           if (_this.options.hideEmptyValue) {
 
           } else {
+            cbObj.s = s;
+            _this.events.triggerBefore('generateEmptyOption', cbObj, $(this));
+            s = cbObj.s;
             s = s + '<option value="' + _this.options.emptyValue + '">' + _this.options.emptyName + '</option>';
           }
+
+          cbObj.s = s;
+          _this.events.triggerBefore('generateOptions', cbObj, $(this));
+          s = cbObj.s;
+
           for(var i in data) {
             s = s + renderRow(data[i]);
             if (br.isEmpty(_this.options.selectedValue) && !br.isEmpty(_this.options.selectedValueField)) {
