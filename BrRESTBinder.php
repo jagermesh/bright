@@ -182,6 +182,10 @@ class BrRESTBinder extends BrObject {
                 case "=":
                   if (is_array($value)) {
                     $valuesArray = true;
+                    if (br($value, '$nn')) {
+                      $filter[] = array($fields => array('$nn' => ''));
+                      $valuesArray = false;
+                    }
                     if (br($value, '$ne')) {
                       $filter[] = array($fields => array('$ne' => $value['$ne']));
                       $valuesArray = false;
