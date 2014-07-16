@@ -29,5 +29,5 @@ br()->fs()->saveToFile($resultScriptFile, $notMinified);
 
 br()->log('Saving to ' . $packedScriptFile);
 $minified = JShrink\Minifier::minify($result);
-$minified = '/* jshint ignore:start */' . $minified . '/* jshint ignore:start */';
+$minified = '/* jshint ignore:start */' . $minified . '/* jshint ignore:end */';
 br()->fs()->saveToFile($packedScriptFile, $minified);
