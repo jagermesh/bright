@@ -78,8 +78,12 @@
     };
 
     this.valOrNull = function() {
-      var val = this.val();
-      return br.isEmpty(val) ? null : val;
+      if (_this.isValid()) {
+        var val = this.val();
+        return br.isEmpty(val) ? null : val;
+      } else {
+        return undefined;
+      }
     };
 
     this.reset = function(triggerChange) {
