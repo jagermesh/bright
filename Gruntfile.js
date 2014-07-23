@@ -42,6 +42,7 @@ module.exports = function(grunt) {
       options: {
         // options here to override JSHint defaults
         laxcomma: true,
+        loopfunc: true,
         globals: {
           jQuery: true,
           console: true,
