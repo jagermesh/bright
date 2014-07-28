@@ -213,9 +213,9 @@
           _this.dataSource.update( rowid
                                  , data
                                  , function(result) {
-                                     if (result) {
-                                       br.editable($this, 'apply', content);
-                                     }
+                                     // if (result) {
+                                     //   br.editable($this, 'apply', content);
+                                     // }
                                    }
                                  );
         }
