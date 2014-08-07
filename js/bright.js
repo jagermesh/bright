@@ -2152,6 +2152,15 @@
         _this.events.trigger('change');
       });
 
+    } else {
+
+      if (_this.saveSelection) {
+        _this.options.selectedValue = br.storage.get(storageTag(_this.selector));
+        if (!br.isEmpty(_this.options.selectedValue)) {
+          _this.val(_this.options.selectedValue);
+        }
+      }
+
     }
 
     _this.selector.change(function() {

@@ -450,6 +450,7 @@ class BrRESTBinder extends BrObject {
         } catch (Exception $e) {
           $this->returnException($e);
         }
+
       } else
       if ($matches = br()->request()->isAt(rtrim($path, '/').'/([0-9a-z]+)')) {
 
