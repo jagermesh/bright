@@ -65,10 +65,6 @@
     return (typeof value === 'string');
   };
 
-  window.br.isNumber = function (value) {
-    return (typeof value === 'number');
-  };
-
   window.br.isFunction = function (value) {
     return (typeof value === 'function');
   };
