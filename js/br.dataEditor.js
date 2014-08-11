@@ -122,7 +122,7 @@
                 if (br.isEmpty(title)) {
                   title = $(this).prev('label').text();
                 }
-                br.growlError(title + ' must be filled');
+                br.growlError(br.trn('%s must be filled').replace('%s', title));
                 this.focus();
                 ok = false;
               } else
@@ -285,8 +285,45 @@
       }
     };
 
+    function fillControls(data) {
+      for(var i in data) {
+        _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio][name=' + i + '],input.data-field[name=' + i + '],select.data-field[name=' + i + '],textarea.data-field[name=' + i + ']').each(function() {
+          if ($(this).attr('data-toggle') == 'buttons-radio') {
+            var val = br.isNull(data[i]) ? '' : data[i];
+            $(this).find('button[value="' + val + '"]').addClass('active');
+          } else
+          if ($(this).attr('type') == 'checkbox') {
+            if (br.toInt(data[i]) == 1) {
+              $(this).attr('checked', 'checked');
+            } else {
+              $(this).removeAttr('checked');
+            }
+          } else
+          if ($(this).attr('type') == 'radio') {
+            if (br.toInt(data[i]) == br.toInt($(this).val())) {
+              $(this).attr('checked', 'checked');
+            }
+          } else {
+            $(this).val(data[i]);
+          }
+        });
+      }
+      if (window.Select2) {
+        _this.inputsContainer.find('select.data-field').each(function() {
+          $(this).select2();
+        });
+      }
+    }
+
     this.show = function(rowid, isCopy) {
-      editorRowid = rowid;
+      editorRowid = null;
+      var defaults = null;
+      if (br.isNumber(rowid)) {
+        editorRowid = rowid;
+      } else
+      if (br.isObject(rowid)) {
+        defaults = rowid;
+      }
       _this.inputsContainer.find('input.data-field[type!=radio],select.data-field,textarea.data-field').val('');
       _this.inputsContainer.find('input.data-field[type=checkbox]').val('1');
       _this.inputsContainer.find('input.data-field[type=checkbox]').removeAttr('checked');
@@ -297,33 +334,7 @@
           if (result) {
             _this.events.triggerBefore('editor.show', data, isCopy);
             _this.editorConfigure(isCopy);
-            for(var i in data) {
-              _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio][name=' + i + '],input.data-field[name=' + i + '],select.data-field[name=' + i + '],textarea.data-field[name=' + i + ']').each(function() {
-                if ($(this).attr('data-toggle') == 'buttons-radio') {
-                  var val = br.isNull(data[i]) ? '' : data[i];
-                  $(this).find('button[value="' + val + '"]').addClass('active');
-                } else
-                if ($(this).attr('type') == 'checkbox') {
-                  if (br.toInt(data[i]) == 1) {
-                    $(this).attr('checked', 'checked');
-                  } else {
-                    $(this).removeAttr('checked');
-                  }
-                } else
-                if ($(this).attr('type') == 'radio') {
-                  if (br.toInt(data[i]) == br.toInt($(this).val())) {
-                    $(this).attr('checked', 'checked');
-                  }
-                } else {
-                  $(this).val(data[i]);
-                  if ($(this)[0].tagName == 'SELECT') {
-                    if (window.Select2) {
-                      $(this).select2();
-                    }
-                  }
-                }
-              });
-            }
+            fillControls(data);
             if (isCopy) {
               editorRowid = null;
             }
@@ -342,11 +353,9 @@
       } else {
         _this.events.triggerBefore('editor.show');
         _this.editorConfigure(isCopy);
-        _this.inputsContainer.find('select.data-field').each(function() {
-          if (window.Select2) {
-            $(this).select2();
-          }
-        });
+        if (defaults) {
+          fillControls(defaults);
+        }
         _this.events.trigger('editor.show');
         if (_this.container.hasClass('modal')) {
           _this.container.modal('show');
