@@ -18,7 +18,7 @@ textarea.justified {
 
 input.justified, div.justified {
   width: 100%;
-  height: 2em;
+  /*height: 2em;*/
   box-sizing: border-box;
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;

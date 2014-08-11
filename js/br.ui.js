@@ -19,7 +19,7 @@
     if (!br.isEmpty(s)) {
       if (typeof $.gritter != 'undefined') {
         $.gritter.add({
-            title: 'Error'
+            title: br.trn('Error')
           , text: s
           , class_name: 'gritter-red'
           , image: image
@@ -64,7 +64,7 @@
   };
 
   window.br.panic = function(s) {
-    $('.container').html('<div class="row"><div class="span12"><div class="alert alert-error"><h4>Error!</h4><p>' + s + '</p></div></div></div>');
+    $('.container').html('<div class="row"><div class="span12"><div class="alert alert-error"><h4>' + br.trn('Error') + '!</h4><p>' + s + '</p></div></div></div>');
     throw '';
   };
 
@@ -75,7 +75,7 @@
       buttons  = null;
     }
     params = params || {};
-    params.cancelTitle = params.cancelTitle || 'Cancel';
+    params.cancelTitle = params.cancelTitle || br.trn('Cancel');
     var s = '<div class="modal';
     if (params.cssClass) {
       s = s + ' ' + params.cssClass;
@@ -88,13 +88,13 @@
             '<div class="modal-body">' + message + '</div>' +
             '<div class="modal-footer">';
     if (params.showDontAskMeAgain) {
-      var dontAskMeAgainTitle = (params.dontAskMeAgainTitle) ? params.dontAskMeAgainTitle : "Don't ask me again";
-      s = s + ' <label style="text-align: left; float: left;" class="checkbox">' +
-                '<input name="showDontAskMeAgain" type="checkbox" value="1"> ' + dontAskMeAgainTitle +
-                '</label>';
+      var dontAskMeAgainTitle = (params.dontAskMeAgainTitle) ? params.dontAskMeAgainTitle : br.trn("Don't ask me again");
+      s = s + '<label style="text-align: left; float: left;" class="checkbox">' +
+              '<input name="showDontAskMeAgain" type="checkbox" value="1"> ' + dontAskMeAgainTitle +
+              '</label>';
     }
     if (br.isEmpty(buttons)) {
-      s = s + '<a href="javascript:;" class="btn btn-primary action-confirm-close" rel="confirm">&nbsp;Yes&nbsp;</a>';
+      s = s + '<a href="javascript:;" class="btn btn-primary action-confirm-close" rel="confirm">&nbsp;' + br.trn('Yes') + '&nbsp;</a>';
     } else {
       for(var i in buttons) {
         s = s + '<a href="javascript:;" class="btn btn-default action-confirm-close" rel="' + i + '">&nbsp;' + buttons[i] + '&nbsp;</a>';
@@ -135,7 +135,7 @@
       s = s + '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>';
     }
     s = s + '<div class="modal-body">' + message + '</div>' +
-            '<div class="modal-footer" style="background-color:red;"><a href="javascript:;" class="btn btn-default" data-dismiss="modal">&nbsp;Dismiss&nbsp;</a></div></div></div></div>';
+            '<div class="modal-footer" style="background-color:red;"><a href="javascript:;" class="btn btn-default" data-dismiss="modal">&nbsp;' + br.trn('Dismiss') + '&nbsp;</a></div></div></div></div>';
     var dialog = $(s);
     var onHide = function(e) {
       dialog.remove();
@@ -155,7 +155,7 @@
       s = s + '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>';
     }
     s = s + '<div class="modal-body">' + message + '</div>' +
-            '<div class="modal-footer"><a href="javascript:;" class="btn btn-default" data-dismiss="modal">&nbsp;Dismiss&nbsp;</a></div></div></div></div>';
+            '<div class="modal-footer"><a href="javascript:;" class="btn btn-default" data-dismiss="modal">&nbsp;' + br.trn('Dismiss') + '&nbsp;</a></div></div></div></div>';
     var dialog = $(s);
     var onHide = function(e) {
       dialog.remove();
@@ -201,7 +201,7 @@
     s = s + '</div>' +
             '<div class="modal-footer">';
     s = s + '<a href="javascript:;" class="btn btn-primary action-confirm-close" rel="confirm" >Ok</a>';
-    s = s + '<a href="javascript:;" class="btn btn-default" data-dismiss="modal">&nbsp;Cancel&nbsp;</a>';
+    s = s + '<a href="javascript:;" class="btn btn-default" data-dismiss="modal">&nbsp;' + br.trn('Cancel') + '&nbsp;</a>';
     s = s + '</div></div></div></div>';
     var dialog = $(s);
     $(dialog)
@@ -292,7 +292,7 @@
       if (jqXHR.status == 401) {
         if (!notAuthorized) {
           notAuthorized = true;
-          br.growlError('You are trying to run operation which require authorization.');
+          br.growlError(br.trn('You are trying to run operation which require authorization.'));
         }
       }
     });
