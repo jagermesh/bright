@@ -705,6 +705,15 @@
     Child.superclass = Parent.prototype;
   };
 
+  window.br.openPage = function(href) {
+    var a = document.createElement('a');
+    a.href = href;
+    a.target = '_blank';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
   window.br.openPopup = function(url, w, h) {
 
     if (w === null) {
