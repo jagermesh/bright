@@ -2582,6 +2582,46 @@
     }
   };
 
+  var total = 0, progress = 0;
+  var progressBarTemplate = '<div id="br_progressBar" class="modal" style="display:none;" data-backdrop="static">' +
+                            '  <div class="modal-header">' +
+                            '    <h3 id="br_progressMessage">Working...</h3>' +
+                            '  </div>' +
+                            '  <div class="modal-body">' +
+                            '    <br />' +
+                            '    <div class="progress progress-striped active">' +
+                            '      <div id="br_progressBarBar" class="bar" style="width: 0%;"></div>' +
+                            '    </div>' +
+                            '  </div>' +
+                            '</div>';
+
+  window.br.startProgress = function(value, message) {
+    total = value;
+    progress = 0;
+    var pb = $('#progressBar');
+    if (pb.length === 0) {
+      $('body').append($(progressBarTemplate));
+    }
+    if (message) {
+      $('#br_progressMessage').text(message);
+    }
+    $('#br_progressBarBar').css('width', '0%');
+    $('#br_progressBar').modal('show');
+  };
+
+  window.br.hideProgress = function() {
+    $('#br_progressBar').modal('hide');
+  };
+
+  window.br.stepProgress = function(message) {
+    if (message) {
+      $('#br_progressMessage').text(message);
+    }
+    progress++;
+    var p = Math.round(progress * 100 / total);
+    $('#br_progressBarBar').css('width', p + '%');
+  };
+
   $(document).ready(function() {
 
     var notAuthorized = false;
