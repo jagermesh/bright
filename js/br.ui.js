@@ -278,13 +278,20 @@
 
   var total = 0, progress = 0;
   var progressBarTemplate = '<div id="br_progressBar" class="modal" style="display:none;" data-backdrop="static">' +
-                            '  <div class="modal-header">' +
-                            '    <h3 id="br_progressMessage">Working...</h3>' +
-                            '  </div>' +
-                            '  <div class="modal-body">' +
-                            '    <br />' +
-                            '    <div class="progress progress-striped active">' +
-                            '      <div id="br_progressBarBar" class="bar" style="width: 0%;"></div>' +
+                            '  <div class="modal-dialog">'+
+                            '    <div class="modal-content">'+
+                            '      <div class="modal-header">' +
+                            '        <h3 id="br_progressMessage">Working...</h3>' +
+                            '      </div>' +
+                            '      <div class="modal-body">' +
+                            '        <br />' +
+                            '        <div class="progress">' +
+                            '          <div class="progress-bar progress-bar-striped progress progress-striped active br-progress-bar" role="progressbar">' +
+                            '            <div class="bar br-progress-bar" style="width: 0%;"></div>' +
+                            '            <span class="sr-only">60% Complete</span>' +
+                            '          </div>' +
+                            '        </div>' +
+                            '      </div>' +
                             '    </div>' +
                             '  </div>' +
                             '</div>';
@@ -292,14 +299,13 @@
   window.br.startProgress = function(value, message) {
     total = value;
     progress = 0;
-    var pb = $('#progressBar');
-    if (pb.length === 0) {
+    if ($('#br_progressBar').length === 0) {
       $('body').append($(progressBarTemplate));
     }
     if (message) {
-      $('#br_progressMessage').text(message);
+      $('.br-progress-bar').text(message);
     }
-    $('#br_progressBarBar').css('width', '0%');
+    $('.br-progress-bar').css('width', '0%');
     $('#br_progressBar').modal('show');
   };
 
@@ -313,7 +319,7 @@
     }
     progress++;
     var p = Math.round(progress * 100 / total);
-    $('#br_progressBarBar').css('width', p + '%');
+    $('.br-progress-bar').css('width', p + '%');
   };
 
   $(document).ready(function() {

@@ -37,7 +37,7 @@
       dropDownList.append(br.fetch(menuItemTemplate, { id: response[i].id, name: response[i].name }));
     }
     dropDown.css('left', invoker.offset().left + 'px');
-    var t = (invoker.offset().top + invoker.height());
+    var t = (invoker.find("a").offset().top + invoker.find("a").height());
     var scr = $(window).scrollTop();
     dropDown.css('top', t + 'px');
     t = t - scr;
