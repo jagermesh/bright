@@ -31,7 +31,7 @@
     this.fields = this.options.fields || {};
     this.saveSelection = this.options.saveSelection || false;
     this.selectedValueField = this.options.selectedValueField || null;
-    this.noDecoration = this.options.noDecoration || (this.selector.attr('multiple') == 'multiple');
+    this.noDecoration = this.options.noDecoration;// || (this.selector.attr('multiple') == 'multiple');
 
     this.events = br.eventQueue(this);
     this.before = function(event, callback) { this.events.before(event, callback); };
