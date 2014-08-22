@@ -16,98 +16,204 @@
             <div class="span12">
               <h1>Global Bright object <small>core functions</small></h1>
 
-              <p>Accessibele via global variable <code>br</code></p>
+              <p>Accessible via global variable <code>br</code></p>
 
-              <table class="table table-stripped table-bordered">
-                <tr>
-                  <td>
-                    <h2>Progress bar</h2>
-                  </td>
-                  <td class="optimal-width">
-                    <span class="label label-warning">External library required</span> <a href="http://getbootstrap.com/" target="_blank">Twitter Bootstrap</a>
-                  </td>
-                </tr>
-              </table>
-
-              Bright has support for progress bars. To show progress
-              <h2>Other functions</h2>
-              <table class="table table-stripped table-bordered">
-                <thead>
-                  <tr>
-                    <th class="optimal-width">Method/property</th>
-                    <th>Description</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr><td class="optimal-width">baseUrl</td><td></td></tr>
-                  <tr><td class="optimal-width">log(vars)</td><td>Console log</td></tr>
-                  <tr><td class="optimal-width">isTouchScreen()</td><td></td></tr>
-                  <tr><td class="optimal-width">isiOS()</td><td></td></tr>
-                  <tr><td class="optimal-width">isAndroid()</td><td></td></tr>
-                  <tr><td class="optimal-width">redirect()</td><td></td></tr>
-                  <tr><td class="optimal-width">refresh()</td><td></td></tr>
-                  <tr><td class="optimal-width">preloadImages()</td><td></td></tr>
-                  <tr><td class="optimal-width">randomInt()</td><td></td></tr>
-                  <tr><td class="optimal-width">forHtml()</td><td></td></tr>
-                  <tr><td class="optimal-width">extend()</td><td></td></tr>
-                  <tr><td class="optimal-width">toInt()</td><td></td></tr>
-                  <tr><td class="optimal-width">toReal()</td><td></td></tr>
-                  <tr><td class="optimal-width">openPopup()</td><td></td></tr>
-                  <tr><td class="optimal-width">modifiedDeferred()</td><td></td></tr>
-                  <tr><td class="optimal-width">modified()</td><td></td></tr>
-                  <tr><td class="optimal-width">confirmClose()</td><td></td></tr>
-                  <tr><td class="optimal-width">resetCloseConfirmation()</td><td></td></tr>
-                  <tr><td class="optimal-width">load.js()</td><td></td></tr>
-                  <tr><td class="optimal-width">load.css()</td><td></td></tr>
-                  <tr class="info"><td colspan="2">Added by <a href="{/}javascript/br.typeCheck.html">br.typecheck.js</a></td></tr>
-                  <tr><td>isNumber(val)</td><td></td></tr>
-                  <tr class="info"><td colspan="2">Added by <a href="{/}javascript/br.ui.html">br.ui.js</a></td></tr>
-                  <tr><td class="optimal-width">showError(message)</td><td>Show error</td></tr>
-                  <tr><td class="optimal-width">growlError(message, image)</td><td>Growl error</td></tr>
-                  <tr><td class="optimal-width">showMessage(message)</td><td>Show message</td></tr>
-                  <tr><td class="optimal-width">growlMessage(message, image)</td><td>Growl message</td></tr>
-                  <tr><td class="optimal-width">panic(message)</td><td>Panic message</td></tr>
-                  <tr><td class="optimal-width">confirm(title, message, buttons, callback)</td><td></td></tr>
-                  <tr><td class="optimal-width">inform(title, message, buttons, callback)</td><td></td></tr>
-                  <tr><td class="optimal-width">prompt(title, fields, callback, options)</td><td></td></tr>
-                  <tr><td class="optimal-width">fetch(template, data, tags)</td><td></td></tr>
-                  <tr><td class="optimal-width">startProgress(total, message)</td>
-                  <td>Show progress bar<br />
-                    <code>total</code> total steps<br />
-                    <code>message</code> optional progress bar title<br />
-                    Example:<br />
-                    <img style="width:256px;" src="{/}images/br.startProgress.png" />
-                  </td>
-                  </tr>
-                  <tr><td class="optimal-width">stepProgress(message)</td><td></td></tr>
-                  <tr><td class="optimal-width">hideProgress()</td><td></td></tr>
-                </tbody>
-              </table>
-
-              <h3>br.startProgress(total, message)</h3>
-              <p>Show progress bar</p>
-              <table class="table table-stripped table-bordered">
-              <tr><td>total</td><td>total steps</td></tr>
-              <tr><td>message</td><td>optional progress bar title</td></tr>
-              </table>
+              <legend>br.startProgress(total, title) <span class="label label-info pull-right" style="margin-left:4px;">Twitter Bootstrap</span><span class="label label-warning pull-right">External dependency</span></legend>
+              <ul>
+              <li><strong>total</strong> - total progres bar steps</li>
+              <li><strong>title</strong> - optional progress bar title</li>
+              </ul>
+              <p>This function will show progress bar</p>
               <a class="btn btn-default" id="br_startProgress_example">Run example</a>
+              <a class="btn btn-default" id="br_startProgress_showScript">Script sources</a>
+              <br />
+              <br />
               <script>
+                $('#br_startProgress_showScript').on('click', function() {
+                  $('#br_startProgress_script').fadeToggle();
+                });
                 $('#br_startProgress_example').on('click', function() {
-                  var t = 0;
-                  br.startProgress(45, 'Working...');
-                  function(i) {
+                  br.startProgress(25, 'Working...');
+                  (function(i) {
+                    var func = arguments.callee;
                     if (i > 0) {
                       i--;
                       br.stepProgress();
                       setTimeout(function() {
-                        arguments.callee(i);
-                      });
+                        func(i);
+                      }, 100);
                     } else {
                       br.hideProgress();
                     }
-                  }(45);
+                  })(25);
                 });
               </script>
+              <pre id="br_startProgress_script" style="display:none;">
+br.startProgress(25, 'Working...');
+(function(i) {
+  var func = arguments.callee;
+  if (i > 0) {
+    i--;
+    br.stepProgress();
+    setTimeout(function() {
+      func(i);
+    }, 100);
+  } else {
+    br.hideProgress();
+  }
+})(25);
+              </pre>
+
+              <legend>br.stepProgress(title) <span class="label label-info pull-right" style="margin-left:4px;">Twitter Bootstrap</span><span class="label label-warning pull-right">External dependency</span></legend>
+              <ul>
+              <li><strong>title</strong> - optional progress bar title</li>
+              </ul>
+              <p>This function will step progress by 1</p>
+
+              <legend>br.hideProgress() <span class="label label-info pull-right" style="margin-left:4px;">Twitter Bootstrap</span><span class="label label-warning pull-right">External dependency</span></legend>
+              <p>This function will hide progress bar</p>
+
+              <legend>br.log(vars)</legend>
+              <p>Log varibles to the debug console</p>
+
+              <legend>br.inform(title, message, callback)</legend>
+              <ul>
+              <li><strong>title</strong> - information popup title</li>
+              <li><strong>message</strong> - information popup message</li>
+              <li><strong>callback</strong> - optional callback, will be invoked after user close the information popup</li>
+              </ul>
+              <p>This function will show information popup</p>
+              <a class="btn btn-default" id="br_inform_example">Run example</a>
+              <a class="btn btn-default" id="br_inform_showScript">Script sources</a>
+              <br />
+              <br />
+              <script>
+                $('#br_inform_showScript').on('click', function() {
+                  $('#br_inform_script').fadeToggle();
+                });
+                $('#br_inform_example').on('click', function() {
+                  br.inform('Some title', 'Some message', function() {
+                    alert('Callback');
+                  });
+                });
+              </script>
+              <pre id="br_inform_script" style="display:none;">
+br.inform('Some title', 'Some message', function() {
+  alert('Callback');
+});
+              </pre>
+
+              <legend>br.error(title, message, callback)</legend>
+              <ul>
+              <li><strong>title</strong> - information popup title</li>
+              <li><strong>message</strong> - information popup message</li>
+              <li><strong>callback</strong> - optional callback, will be invoked after user close the information popup</li>
+              </ul>
+              <p>This function will show information popup</p>
+              <a class="btn btn-default" id="br_error_example">Run example</a>
+              <a class="btn btn-default" id="br_error_showScript">Script sources</a>
+              <br />
+              <br />
+              <script>
+                $('#br_error_showScript').on('click', function() {
+                  $('#br_error_script').fadeToggle();
+                });
+                $('#br_error_example').on('click', function() {
+                  br.error('Some title', 'Some message', function() {
+                    alert('Callback');
+                  });
+                });
+              </script>
+              <pre id="br_error_script" style="display:none;">
+br.error('Some title', 'Some message', function() {
+  alert('Callback');
+});
+              </pre>
+
+              <legend>br.confirm(title, message, buttons, callback)</legend>
+              <ul>
+              <li><strong>title</strong> - information popup title</li>
+              <li><strong>message</strong> - information popup message</li>
+              <li><strong>callback</strong> - optional callback, will be invoked after user close the information popup</li>
+              </ul>
+              <p>This function will show information popup</p>
+              <a class="btn btn-default" id="br_inform_example">Run example</a>
+              <a class="btn btn-default" id="br_inform_showScript">Script sources</a>
+              <br />
+              <br />
+              <script>
+                $('#br_inform_showScript').on('click', function() {
+                  $('#br_inform_script').fadeToggle();
+                });
+                $('#br_inform_example').on('click', function() {
+                  br.inform('Some title', 'Some message', function() {
+                    alert('Callback');
+                  });
+                });
+              </script>
+              <pre id="br_inform_script" style="display:none;">
+br.inform('Some title', 'Some message', function() {
+  alert('Callback');
+});
+              </pre>
+
+              <legend>br.prompt(title, message, buttons, callback)</legend>
+              <ul>
+              <li><strong>title</strong> - information popup title</li>
+              <li><strong>message</strong> - information popup message</li>
+              <li><strong>callback</strong> - optional callback, will be invoked after user close the information popup</li>
+              </ul>
+              <p>This function will show information popup</p>
+              <a class="btn btn-default" id="br_inform_example">Run example</a>
+              <a class="btn btn-default" id="br_inform_showScript">Script sources</a>
+              <br />
+              <br />
+              <script>
+                $('#br_inform_showScript').on('click', function() {
+                  $('#br_inform_script').fadeToggle();
+                });
+                $('#br_inform_example').on('click', function() {
+                  br.inform('Some title', 'Some message', function() {
+                    alert('Callback');
+                  });
+                });
+              </script>
+              <pre id="br_inform_script" style="display:none;">
+br.inform('Some title', 'Some message', function() {
+  alert('Callback');
+});
+              </pre>
+
+              <legend>br.growlError(message, image)</legend>
+              <legend>br.showMessage(message)</legend>
+              <legend>br.growlMessage(message, image)</legend>
+              <legend>br.panic(message)</legend>
+              <legend>br.fetch(template, data, tags)</legend>
+
+              <legend>br.baseUrl</legend>
+              <legend>br.isTouchScreen()</legend>
+              <legend>br.isiOS()</legend>
+              <legend>br.isAndroid()</legend>
+
+              <legend>br.redirect(url)</legend>
+              <p>This will redirect user to the specified url</p>
+
+              <legend>br.refresh()</legend>
+              <p>This will refresh current page</p>
+
+              <legend>br.preloadImages()</legend>
+              <legend>br.randomInt()</legend>
+              <legend>br.forHtml()</legend>
+              <legend>br.extend()</legend>
+              <legend>br.toInt()</legend>
+              <legend>br.openPopup()</legend>
+              <legend>br.modifiedDeferred()</legend>
+              <legend>br.modified()</legend>
+              <legend>br.confirmClose()</legend>
+              <legend>br.resetCloseConfirmation()</legend>
+              <legend>br.load.js()</legend>
+              <legend>br.load.css()</legend>
+              <legend>br.isNumber(val)</legend>
 
               <br />
               <br />
