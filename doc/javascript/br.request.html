@@ -8,26 +8,48 @@
 
       <div class="row">
 
-{@sidebar.html}        
+{@sidebar.html}
 
         <div class="span9">
 
           <div class="row">
             <div class="span12">
-              <h1>BrRequest <small>...</small></h1>
+              <h1>br.request <small>core functions</small></h1>
 
-              <p>...</p>
-              <h3>Object members</h3>
-              <table class="table table-stripped table-bordered">
-                <thead>
-                  <tr><th>Method/property</th><th>Description</th></tr>
-                </thead>
-                <tbody>
-                  <tr><td>...</td><td>...</td></tr>
-                  </tr>
-                </tbody>
-              </table>
+              <p>Accessible via global variable <code>br.request</code></p>
 
+              <legend>br.request.get(name, defaultValue)</legend>
+              <ul>
+              <li><strong>name</strong> - name of GET parameter</li>
+              <li><strong>defaultValue</strong> - optional default value</li>
+              </ul>
+              <p>This function will return value of specified GET parameter or default value if specified</p>
+
+              <legend>br.request.anchor()</legend>
+              <p>This function will return value of anchor - portion of url after #</p>
+
+              <legend>br.request.route(path, callback)</legend>
+              <ul>
+              <li><strong>path</strong> - url string</li>
+              <li><strong>callback</strong> - route handler</li>
+              </ul>
+              <p>This function allow you to use basic routing in your scripts</p>
+              <p>Example:</p>
+              <pre>
+br
+  .request
+    .route('/login.html', function() {
+      // do handle login url
+    })
+    .route('/users.html', function() {
+      // do handle users page
+    })
+;
+              </pre>
+
+              <br />
+              <br />
+              <br />
             </div>
           </div>
 

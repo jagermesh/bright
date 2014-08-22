@@ -8,13 +8,13 @@
 
       <div class="row">
 
-{@sidebar.html}        
+{@sidebar.html}
 
         <div class="span9">
 
           <div class="row">
             <div class="span12">
-              <h1>BrStorage <small>storage helper</small></h1>
+              <h1>br.storage <small>storage helper</small></h1>
               <p>Wrapper for HTML5 local/session storage</p>
               <h2>Feautures</h2>
               <p>
@@ -53,10 +53,10 @@ console.log(br.storage.set('val', 10).dec('val', 5).dec('val').get('val'));
 // 4
 
 console.log(br.storage.set('colors', 'red').inc('colors', 'white').inc('colors', 'blue').get('colors'));
-// red, white, blue 
+// red, white, blue
 
 console.log(br.storage.set('tags', 'storage').inc('tags', 'html5', ' ').inc('tags', 'local', ' ').get('tags'));
-// storage html5 local 
+// storage html5 local
 
 console.log(br.storage.clear().set('one', 1).set('two', 2).set('three', 3).get(['one', 'two', 'three']));
 // { one: 1,  three: 3, two: 2 }
@@ -86,10 +86,10 @@ console.log(br.storage.not('delicious').get('delicious'));
 // false
 
 console.log(br.storage.set('array', [1, 2, 3]).append('array', 4).get('array'));
-// [1, 2, 3, 4] 
+// [1, 2, 3, 4]
 
 console.log(br.storage.set('array', [1, 2, 3]).prepend('array', 4).get('array'));
-// [4, 1, 2, 3] 
+// [4, 1, 2, 3]
 
 console.log(br.storage.set('array', [1, 2, 3]).takeLast('array'));
 // 3
@@ -127,10 +127,10 @@ br.storage.set('array', [1, 2, 3]).each('array', function(value) { console.log(v
 // 3
 
 console.log(br.storage.set('array', [1, 2, 3]).appendUnique('array', 1).appendUnique('array', 4).get('array'));
-// [2, 3, 1, 4] 
+// [2, 3, 1, 4]
 
 console.log(br.storage.set('array', [1, 2, 3]).prependUnique('array', 1).prependUnique('array', 4).get('array'));
-// [4, 1, 2, 3] 
+// [4, 1, 2, 3]
 
 console.log(br.storage.set('array', [1, 2, 3]).append('array', 4, 3).get('array'));
 // [2, 3, 4]

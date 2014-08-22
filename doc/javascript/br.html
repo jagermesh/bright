@@ -76,7 +76,7 @@ br.startProgress(25, 'Working...');
               <legend>br.log(vars)</legend>
               <p>Log varibles to the debug console</p>
 
-              <legend>br.inform(title, message, callback)</legend>
+              <legend>br.inform(title, message, callback) <span class="label label-info pull-right" style="margin-left:4px;">Twitter Bootstrap</span><span class="label label-warning pull-right">External dependency</span></legend>
               <ul>
               <li><strong>title</strong> - information popup title</li>
               <li><strong>message</strong> - information popup message</li>
@@ -103,13 +103,13 @@ br.inform('Some title', 'Some message', function() {
 });
               </pre>
 
-              <legend>br.error(title, message, callback)</legend>
+              <legend>br.error(title, message, callback) <span class="label label-info pull-right" style="margin-left:4px;">Twitter Bootstrap</span><span class="label label-warning pull-right">External dependency</span></legend>
               <ul>
               <li><strong>title</strong> - information popup title</li>
               <li><strong>message</strong> - information popup message</li>
               <li><strong>callback</strong> - optional callback, will be invoked after user close the information popup</li>
               </ul>
-              <p>This function will show information popup</p>
+              <p>This function will show error popup</p>
               <a class="btn btn-default" id="br_error_example">Run example</a>
               <a class="btn btn-default" id="br_error_showScript">Script sources</a>
               <br />
@@ -130,70 +130,141 @@ br.error('Some title', 'Some message', function() {
 });
               </pre>
 
-              <legend>br.confirm(title, message, buttons, callback)</legend>
+              <legend>br.confirm(title, message, buttons, callback, params) <span class="label label-info pull-right" style="margin-left:4px;">Twitter Bootstrap</span><span class="label label-warning pull-right">External dependency</span></legend>
               <ul>
-              <li><strong>title</strong> - information popup title</li>
-              <li><strong>message</strong> - information popup message</li>
-              <li><strong>callback</strong> - optional callback, will be invoked after user close the information popup</li>
+              <li><strong>title</strong> - confirmation popup title</li>
+              <li><strong>message</strong> - confirmation popup message</li>
+              <li><strong>buttons</strong> - optional buttons array</li>
+              <li><strong>callback</strong> - callback, will be invoked if user confirm the question</li>
+              <li><strong>params</strong> - additional parameters, the only one accepted at this point is <code>showDontAskMeAgain</code> - true/false. This option will add "Don't ask me again" checkbox.</li>
               </ul>
-              <p>This function will show information popup</p>
-              <a class="btn btn-default" id="br_inform_example">Run example</a>
-              <a class="btn btn-default" id="br_inform_showScript">Script sources</a>
+              <p>This function will show confirmation popup</p>
+              <a class="btn btn-default br-confirm-example1">Run example 1</a>
+              <a class="btn btn-default br-confirm-example2">Run example 2</a>
+              <a class="btn btn-default br-confirm-example3">Run example 3</a>
+              <a class="btn btn-default br-confirm-example-showScript">Script sources</a>
               <br />
               <br />
               <script>
-                $('#br_inform_showScript').on('click', function() {
-                  $('#br_inform_script').fadeToggle();
+                $('.br-confirm-example-showScript').on('click', function() {
+                  $('.br-confirm-example-script').fadeToggle();
                 });
-                $('#br_inform_example').on('click', function() {
-                  br.inform('Some title', 'Some message', function() {
-                    alert('Callback');
+                $('.br-confirm-example1').on('click', function() {
+                  br.confirm('Some title', 'Some message', function(result) {
+                    alert('Confirmed');
                   });
                 });
+                $('.br-confirm-example2').on('click', function() {
+                  br.confirm('Some title', 'Some message', ['Not sure', 'Maybe'], function(result) {
+                    alert('Result: ' + result);
+                  });
+                });
+                $('.br-confirm-example3').on('click', function() {
+                  br.confirm('Some title', 'Some message', ['Not sure', 'Maybe'], function(result, showDontAskMeAgain) {
+                    alert('Result: ' + result + ', showDontAskMeAgain: ' + showDontAskMeAgain);
+                  }, { showDontAskMeAgain: true });
+                });
               </script>
-              <pre id="br_inform_script" style="display:none;">
-br.inform('Some title', 'Some message', function() {
+              <pre class="br-confirm-example-script" style="display:none;">
+// Example 1
+br.confirm('Some title', 'Some message', function() {
   alert('Callback');
 });
+// Example 2
+br.confirm('Some title', 'Some message', ['Not sure', 'Maybe'], function(result) {
+  alert('Result: ' + result);
+});
+// Example 3
+br.confirm('Some title', 'Some message', ['Not sure', 'Maybe'], function(result, showDontAskMeAgain) {
+  alert('Result: ' + result + ', showDontAskMeAgain: ' + showDontAskMeAgain);
+}, { showDontAskMeAgain: true });
               </pre>
 
-              <legend>br.prompt(title, message, buttons, callback)</legend>
+              <legend>br.prompt(title, fields, callback, params) <span class="label label-info pull-right" style="margin-left:4px;">Twitter Bootstrap</span><span class="label label-warning pull-right">External dependency</span></legend>
               <ul>
               <li><strong>title</strong> - information popup title</li>
-              <li><strong>message</strong> - information popup message</li>
-              <li><strong>callback</strong> - optional callback, will be invoked after user close the information popup</li>
+              <li><strong>fields</strong> - fields with default values</li>
+              <li><strong>callback</strong> - callback, will be invoked after user close the prompt popup. Array of values will be passed as parameter.</li>
+              <!-- <li><strong>params</strong> - optional callback, will be invoked after user close the information popup</li> -->
               </ul>
-              <p>This function will show information popup</p>
-              <a class="btn btn-default" id="br_inform_example">Run example</a>
-              <a class="btn btn-default" id="br_inform_showScript">Script sources</a>
+              <p>This function will show prompt popup</p>
+              <a class="btn btn-default br-prompt-example">Run example</a>
+              <a class="btn btn-default br-prompt-example-showScript">Script sources</a>
               <br />
               <br />
               <script>
-                $('#br_inform_showScript').on('click', function() {
-                  $('#br_inform_script').fadeToggle();
+                $('.br-prompt-example-showScript').on('click', function() {
+                  $('.br-prompt-example-script').fadeToggle();
                 });
-                $('#br_inform_example').on('click', function() {
-                  br.inform('Some title', 'Some message', function() {
-                    alert('Callback');
+                $('.br-prompt-example').on('click', function() {
+                  br.prompt('Some title', {'Height': 184, 'Weight': 85}, function(result) {
+                    alert(result);
                   });
                 });
               </script>
-              <pre id="br_inform_script" style="display:none;">
-br.inform('Some title', 'Some message', function() {
-  alert('Callback');
+              <pre class="br-prompt-example-script" style="display:none;">
+$('.br-prompt-example').on('click', function() {
+  br.prompt('Some title', {'Height': 0, 'Weight': 0}, function(result) {
+    alert(result);
+  });
 });
               </pre>
 
-              <legend>br.growlError(message, image)</legend>
-              <legend>br.showMessage(message)</legend>
-              <legend>br.growlMessage(message, image)</legend>
-              <legend>br.panic(message)</legend>
+              <legend>br.growlError(message, image) <span class="label label-info pull-right" style="margin-left:4px;">gritter or humane</span><span class="label label-warning pull-right">External dependency</span></legend>
+              <ul>
+              <li><strong>message</strong> - Message</li>
+              <li><strong>image</strong> - Image :)</li>
+              </ul>
+              <p>This function will growl error message</p>
+              <a class="btn btn-default br-growlError-example">Run example</a>
+              <a class="btn btn-default br-growlError-example-showScript">Script sources</a>
+              <br />
+              <br />
+              <script>
+                $('.br-growlError-example-showScript').on('click', function() {
+                  $('.br-growlError-example-script').fadeToggle();
+                });
+                $('.br-growlError-example').on('click', function() {
+                  br.growlError('Some message');
+                });
+              </script>
+              <pre class="br-growlError-example-script" style="display:none;">
+br.growlError('Some message');
+              </pre>
+
+              <legend>br.growlMessage(message, image) <span class="label label-info pull-right" style="margin-left:4px;">gritter or humane</span><span class="label label-warning pull-right">External dependency</span></legend>
+              <ul>
+              <li><strong>message</strong> - Message</li>
+              <li><strong>image</strong> - Image :)</li>
+              </ul>
+              <p>This function will growl message</p>
+              <a class="btn btn-default br-growlMessage-example">Run example</a>
+              <a class="btn btn-default br-growlMessage-example-showScript">Script sources</a>
+              <br />
+              <br />
+              <script>
+                $('.br-growlMessage-example-showScript').on('click', function() {
+                  $('.br-growlMessage-example-script').fadeToggle();
+                });
+                $('.br-growlMessage-example').on('click', function() {
+                  br.growlMessage('Some message');
+                });
+              </script>
+              <pre class="br-growlMessage-example-script" style="display:none;">
+br.growlMessage('Some message');
+              </pre>
+
               <legend>br.fetch(template, data, tags)</legend>
 
               <legend>br.baseUrl</legend>
               <legend>br.isTouchScreen()</legend>
+              <p>Return true if current device has touch screen</p>
+
               <legend>br.isiOS()</legend>
+              <p>Return true if current device is iOS device</p>
+
               <legend>br.isAndroid()</legend>
+              <p>Return true if current device is Android device</p>
 
               <legend>br.redirect(url)</legend>
               <p>This will redirect user to the specified url</p>
