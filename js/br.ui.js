@@ -280,15 +280,14 @@
   var progressBarTemplate = '<div id="br_progressBar" class="modal" style="display:none;" data-backdrop="static">' +
                             '  <div class="modal-dialog">'+
                             '    <div class="modal-content">'+
-                            '      <div class="modal-header">' +
+                            '      <div class="modal-header" style="display:none;">' +
                             '        <h3 id="br_progressMessage">Working...</h3>' +
                             '      </div>' +
                             '      <div class="modal-body">' +
-                            '        <br />' +
-                            '        <div class="progress">' +
+                            '        <div class="progress" style="margin-bottom:0px;">' +
                             '          <div class="progress-bar progress-bar-striped progress progress-striped active br-progress-bar" role="progressbar">' +
                             '            <div class="bar br-progress-bar" style="width: 0%;"></div>' +
-                            '            <span class="sr-only">60% Complete</span>' +
+                            '            <span class="sr-only">&nbsp;</span>' +
                             '          </div>' +
                             '        </div>' +
                             '      </div>' +
@@ -303,7 +302,8 @@
       $('body').append($(progressBarTemplate));
     }
     if (message) {
-      $('.br-progress-bar').text(message);
+      $('#br_progressMessage').text(message);
+      $('#br_progressBar .modal-header').show();
     }
     $('.br-progress-bar').css('width', '0%');
     $('#br_progressBar').modal('show');
@@ -316,6 +316,7 @@
   window.br.stepProgress = function(message) {
     if (message) {
       $('#br_progressMessage').text(message);
+      $('#br_progressBar .modal-header').show();
     }
     progress++;
     var p = Math.round(progress * 100 / total);

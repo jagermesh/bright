@@ -61,7 +61,7 @@ class BrFileSystem extends BrSingleton {
 
   public function normalizePath($path) {
 
-     return rtrim($path, '/').'/';
+    return rtrim(str_replace('\\', '/', $path), '/').'/';
 
   }
 
