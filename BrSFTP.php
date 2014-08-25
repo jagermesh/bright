@@ -11,9 +11,6 @@
 require_once(__DIR__.'/BrObject.php');
 require_once(__DIR__.'/BrFileSystem.php');
 
-require_once(dirname(__DIR__).'/3rdparty/phpseclib0.3.0/Net/SFTP.php');
-require_once(dirname(__DIR__).'/3rdparty/phpseclib0.3.0/Crypt/RSA.php');
-
 class BrSFTPFileObject {
 
   private $name;
@@ -200,10 +197,19 @@ class BrSFTP extends BrObject {
     if ($this->connection->put($this->currentDirectory . $targetFileNamePartial, $sourceFilePath, NET_SFTP_LOCAL_FILE)) {
       if ($this->renameFile($this->currentDirectory . $targetFileNamePartial, $this->currentDirectory . $targetFileName)) {
         return true;
+      } else
+      if ($this->deleteFile($this->currentDirectory . $targetFileName)) {
+        if ($this->renameFile($this->currentDirectory . $targetFileNamePartial, $this->currentDirectory . $targetFileName)) {
+          return true;
+        } else {
+          throw new Exception('Can not rename uploaded file to real name ' . $sourceFilePath);
+        }
+      } else {
+        throw new Exception('Can not rename uploaded file to real name ' . $sourceFilePath);
       }
+    } else {
+      throw new Exception('Can not upload file ' . $sourceFilePath);
     }
-
-    throw new Exception('Can not upload file ' . $sourceFilePath);
 
   }
 

@@ -49,6 +49,12 @@ module.exports = function(grunt) {
           document: true
         }
       }
+    },
+    phplint: {
+        options: {
+          phpCmd: "/usr/local/Cellar/php53/5.3.28/bin/php"
+        },
+        all: ["**/*.php"]
     }
     // watch: {
     //   files: ['<%= jshint.files %>'],
@@ -61,10 +67,11 @@ module.exports = function(grunt) {
   // grunt.loadNpmTasks('grunt-contrib-qunit');
   // grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks("grunt-phplint");
 
   // grunt.registerTask('test', ['jshint', 'qunit']);
 
   // grunt.registerTask('default', ['jshint', 'qunit', 'concat', 'uglify']);
-  grunt.registerTask('default', ['jshint', 'concat', 'uglify']);
+  grunt.registerTask('default', ['jshint', 'concat', 'uglify', 'phplint:all']);
 
 };
