@@ -135,6 +135,41 @@
       _this.dataGrid.reloadRow(rowid);
     };
 
+    var deleteQueue = [];
+
+    function deleteQueued() {
+
+      if (deleteQueue.length > 0) {
+        var rowid = deleteQueue.pop();
+        _this.dataSource.remove(rowid, function(result, response) {
+          if (result) {
+            _this.selection.remove(rowid);
+            _this.events.trigger('selectionChanged');
+          }
+          br.stepProgress();
+          deleteQueued();
+        });
+      } else {
+        br.hideProgress();
+      }
+
+    }
+
+    this.deleteSelection = function() {
+      deleteQueue = _this.selection.get();
+      if (deleteQueue.length > 0) {
+        br.confirm( 'Delete confirmation'
+                  , 'Are you sure you want delete ' + deleteQueue.length + ' record(s)?'
+                  , function() {
+                      br.startProgress(deleteQueue.length, 'Deleting...');
+                      deleteQueued();
+                    }
+                  );
+      } else {
+        br.growlError('Please select at least one record');
+      }
+    };
+
     this.init = function() {
       // nav
       $('.nav-item[rel=' + _this.options.nav + ']').addClass('active');
@@ -388,26 +423,7 @@
       });
 
       $(document).on('click', c('.action-delete-selected'), function() {
-        var selection = _this.selection.get();
-        if (selection.length > 0) {
-          br.confirm( 'Delete confirmation'
-                    , 'Are you sure you want delete ' + selection.length + ' record(s)?'
-                    , function() {
-                        for(var i in selection) {
-                          (function(id) {
-                            _this.dataSource.remove(id, function(result, response) {
-                              if (result) {
-                                _this.selection.remove(id);
-                                _this.events.trigger('selectionChanged');
-                              }
-                            });
-                          })(selection[i]);
-                        }
-                      }
-                    );
-        } else {
-          br.growlError('Please select at least one record');
-        }
+        _this.deleteSelection();
       });
 
       _this.dataGrid.before('changeOrder', function() {

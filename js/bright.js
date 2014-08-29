@@ -2601,7 +2601,7 @@
                             '      <div class="modal-body">' +
                             '        <div class="progress" style="margin-bottom:0px;">' +
                             '          <div class="progress-bar progress-bar-striped progress progress-striped active br-progress-bar" role="progressbar">' +
-                            '            <div class="bar br-progress-bar" style="width: 0%;"></div>' +
+                            '            <div class="bar br-progress-bar" style="width: 0%;transition:none;-webkit-transition:none;"></div>' +
                             '            <span class="sr-only">&nbsp;</span>' +
                             '          </div>' +
                             '        </div>' +
