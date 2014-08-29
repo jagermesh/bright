@@ -286,28 +286,31 @@
     };
 
     function fillControls(data) {
-      for(var i in data) {
-        _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio][name=' + i + '],input.data-field[name=' + i + '],select.data-field[name=' + i + '],textarea.data-field[name=' + i + ']').each(function() {
-          if ($(this).attr('data-toggle') == 'buttons-radio') {
-            var val = br.isNull(data[i]) ? '' : data[i];
-            $(this).find('button[value="' + val + '"]').addClass('active');
-          } else
-          if ($(this).attr('type') == 'checkbox') {
-            if (br.toInt(data[i]) == 1) {
-              $(this).attr('checked', 'checked');
+      if (data) {
+        for(var i in data) {
+          _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio][name=' + i + '],input.data-field[name=' + i + '],select.data-field[name=' + i + '],textarea.data-field[name=' + i + ']').each(function() {
+            if ($(this).attr('data-toggle') == 'buttons-radio') {
+              var val = br.isNull(data[i]) ? '' : data[i];
+              $(this).find('button[value="' + val + '"]').addClass('active');
+            } else
+            if ($(this).attr('type') == 'checkbox') {
+              if (br.toInt(data[i]) == 1) {
+                $(this).attr('checked', 'checked');
+              } else {
+                $(this).removeAttr('checked');
+              }
+            } else
+            if ($(this).attr('type') == 'radio') {
+              if (br.toInt(data[i]) == br.toInt($(this).val())) {
+                $(this).attr('checked', 'checked');
+              }
             } else {
-              $(this).removeAttr('checked');
+              $(this).val(data[i]);
             }
-          } else
-          if ($(this).attr('type') == 'radio') {
-            if (br.toInt(data[i]) == br.toInt($(this).val())) {
-              $(this).attr('checked', 'checked');
-            }
-          } else {
-            $(this).val(data[i]);
-          }
-        });
+          });
+        }
       }
+
       if (window.Select2) {
         _this.inputsContainer.find('select.data-field').each(function() {
           $(this).select2();
@@ -353,9 +356,7 @@
       } else {
         _this.events.triggerBefore('editor.show');
         _this.editorConfigure(isCopy);
-        if (defaults) {
-          fillControls(defaults);
-        }
+        fillControls(defaults);
         _this.events.trigger('editor.show');
         if (_this.container.hasClass('modal')) {
           _this.container.modal('show');
