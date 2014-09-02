@@ -135,12 +135,12 @@
       _this.dataGrid.reloadRow(rowid);
     };
 
-    var deleteQueue = [];
+    var selectionQueue = [];
 
     function deleteQueued() {
 
-      if (deleteQueue.length > 0) {
-        var rowid = deleteQueue.pop();
+      if (selectionQueue.length > 0) {
+        var rowid = selectionQueue.pop();
         _this.dataSource.remove(rowid, function(result, response) {
           if (result) {
             _this.selection.remove(rowid);
@@ -156,15 +156,45 @@
     }
 
     this.deleteSelection = function() {
-      deleteQueue = _this.selection.get();
-      if (deleteQueue.length > 0) {
+      selectionQueue = _this.selection.get();
+      if (selectionQueue.length > 0) {
         br.confirm( 'Delete confirmation'
-                  , 'Are you sure you want delete ' + deleteQueue.length + ' record(s)?'
+                  , 'Are you sure you want delete ' + selectionQueue.length + ' record(s)?'
                   , function() {
-                      br.startProgress(deleteQueue.length, 'Deleting...');
+                      br.startProgress(selectionQueue.length, 'Deleting...');
                       deleteQueued();
                     }
                   );
+      } else {
+        br.growlError('Please select at least one record');
+      }
+    };
+
+    function updateQueued(func) {
+
+      if (selectionQueue.length > 0) {
+        var rowid = selectionQueue.pop();
+        var data = {};
+        func(data);
+        _this.dataSource.update(rowid, data, function(result, response) {
+          if (result) {
+            _this.selection.remove(rowid);
+            _this.events.trigger('selectionChanged');
+          }
+          br.stepProgress();
+          updateQueued(func);
+        });
+      } else {
+        br.hideProgress();
+      }
+
+    }
+
+    this.updateSelection = function(func) {
+      selectionQueue = _this.selection.get();
+      if (selectionQueue.length > 0) {
+        br.startProgress(selectionQueue.length, 'Updating...');
+        updateQueued(func);
       } else {
         br.growlError('Please select at least one record');
       }
