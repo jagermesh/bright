@@ -13,6 +13,7 @@
 
     var _this = this;
     var editorRowid = null;
+    var editorRowData = null;
     var active = false;
     var goodHide = false;
 
@@ -37,6 +38,10 @@
 
     this.rowid = function() {
       return editorRowid;
+    };
+
+    this.rowData = function() {
+      return editorRowData;
     };
 
     this.isActive = function() {
@@ -156,6 +161,8 @@
                 goodHide = true;
                 if (_this.container.hasClass('modal')) {
                   _this.container.modal('hide');
+                  editorRowid = null;
+                  editorRowData = null;
                 }
                 _this.events.trigger('editor.hide', true, response);
                 if (!_this.container.hasClass('modal')) {
@@ -176,6 +183,7 @@
             if (result) {
               br.resetCloseConfirmation();
               editorRowid = response.rowid;
+              editorRowData = response;
               _this.editorConfigure(false);
               _this.events.triggerAfter('editor.insert', true, response);
               _this.events.triggerAfter('editor.save', true, response);
@@ -183,6 +191,8 @@
                 goodHide = true;
                 if (_this.container.hasClass('modal')) {
                   _this.container.modal('hide');
+                  editorRowid = null;
+                  editorRowData = null;
                 }
                 _this.events.trigger('editor.hide', true, response);
                 if (!_this.container.hasClass('modal')) {
@@ -320,6 +330,7 @@
 
     this.show = function(rowid, isCopy) {
       editorRowid = null;
+      editorRowData = null;
       var defaults = null;
       if (br.isNumber(rowid)) {
         editorRowid = rowid;
@@ -335,6 +346,7 @@
       if (editorRowid) {
         _this.dataSource.selectOne(editorRowid, function(result, data) {
           if (result) {
+            editorRowData = data;
             _this.events.triggerBefore('editor.show', data, isCopy);
             _this.editorConfigure(isCopy);
             fillControls(data);
