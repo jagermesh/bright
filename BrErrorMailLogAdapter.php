@@ -41,9 +41,9 @@ class BrErrorMailLogAdapter extends BrGenericLogAdapter {
                    . '<strong>Request URL:</strong> <a href="' . br()->request()->url() . '">' . br()->request()->url(). '</a><br />'
                    . '<strong>Referer URL:</strong> <a href="' . br()->request()->referer() . '">' . br()->request()->referer() . '</a><br />'
                    . '<strong>Client IP:</strong> ' . br()->request()->clientIP() . '<br />'
-                   . '<strong>Request type:</strong> ' . br()->request()->method(). '<br />'
-                   . '<strong>Request data:</strong> ' . $requestData
-                   . '<strong>Command line:</strong>' . @json_encode($argv)
+                   . '<strong>Request type:</strong> ' . br()->request()->method() . '<br />'
+                   . '<strong>Request data:</strong> ' . $requestData . '<br />'
+                   . '<strong>Command line:</strong>' . @json_encode($argv) . '<br />'
                    . '<hr size="1" />'
                    . '<pre>'
                    . $message
@@ -87,9 +87,9 @@ class BrErrorMailLogAdapter extends BrGenericLogAdapter {
                    . '<strong>Request URL:</strong> <a href="' . br()->request()->url() . '">' . br()->request()->url(). '</a><br />'
                    . '<strong>Referer URL:</strong> <a href="' . br()->request()->referer() . '">' . br()->request()->referer() . '</a><br />'
                    . '<strong>Client IP:</strong> ' . br()->request()->clientIP() . '<br />'
-                   . '<strong>Request type:</strong> ' . br()->request()->method(). '<br />'
-                   . '<strong>Request data:</strong> ' . $requestData
-                   . '<strong>Command line:</strong>' . @json_encode($argv)
+                   . '<strong>Request type:</strong> ' . br()->request()->method() . '<br />'
+                   . '<strong>Request data:</strong> ' . $requestData . '<br />'
+                   . '<strong>Command line:</strong>' . @json_encode($argv) . '<br />'
                    . '<hr size="1" />'
                    . '<pre>'
                    . $message
