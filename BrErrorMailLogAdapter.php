@@ -42,10 +42,8 @@ class BrErrorMailLogAdapter extends BrGenericLogAdapter {
                    . '<strong>Referer URL:</strong> <a href="' . br()->request()->referer() . '">' . br()->request()->referer() . '</a><br />'
                    . '<strong>Client IP:</strong> ' . br()->request()->clientIP() . '<br />'
                    . '<strong>Request type:</strong> ' . br()->request()->method(). '<br />'
-                   . '<strong>Request data:</strong><br />'
-                   . '<pre>'
-                   . $requestData
-                   . '</pre>'
+                   . '<strong>Request data:</strong> ' . $requestData
+                   . '<strong>Command line:</strong>' . @json_encode($argv)
                    . '<hr size="1" />'
                    . '<pre>'
                    . $message
@@ -90,10 +88,8 @@ class BrErrorMailLogAdapter extends BrGenericLogAdapter {
                    . '<strong>Referer URL:</strong> <a href="' . br()->request()->referer() . '">' . br()->request()->referer() . '</a><br />'
                    . '<strong>Client IP:</strong> ' . br()->request()->clientIP() . '<br />'
                    . '<strong>Request type:</strong> ' . br()->request()->method(). '<br />'
-                   . '<strong>Request data:</strong><br />'
-                   . '<pre>'
-                   . $requestData
-                   . '</pre>'
+                   . '<strong>Request data:</strong> ' . $requestData
+                   . '<strong>Command line:</strong>' . @json_encode($argv)
                    . '<hr size="1" />'
                    . '<pre>'
                    . $message

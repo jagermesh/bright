@@ -46,16 +46,18 @@ class BrGenericLogAdapter extends BrObject {
         $this->writeMessage('Referer url:   ' . br()->request()->referer(),  $group);
         $this->writeMessage('Client IP:     ' . br()->request()->clientIP(), $group);
         $this->writeMessage('Request type:  ' . br()->request()->method(),   $group);
-        $this->writeMessage('Request data:  ',                               $group);
+        $requestData = '';
         if (br()->request()->isGET()) {
-          $this->writeMessage(@json_encode(br()->request()->get()), $group);
+          $requestData = @json_encode(br()->request()->get());
         }
         if (br()->request()->isPOST()) {
-          $this->writeMessage(@json_encode(br()->request()->post()), $group);
+          $requestData = @json_encode(br()->request()->post());
         }
         if (br()->request()->isPUT()) {
-          $this->writeMessage(@json_encode(br()->request()->put()), $group);
+          $requestData = @json_encode(br()->request()->put());
         }
+        $this->writeMessage('Request data:  ' . $requestData,                $group);
+        $this->writeMessage('Command line:  ' . @json_encode($argv),          $group);
       }
 
       $this->writeMessage('***************************************************************', $group);
