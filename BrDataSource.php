@@ -260,23 +260,23 @@ class BrDataSource extends BrGenericDataSource {
 
     $result = $this->callEvent('insert', $row, $transientData, $options);
     if (is_null($result)) {
-
       try {
         br()->db()->startTransaction();
-
-        $table = br()->db()->table($this->dbEntity());
-
-        if (br($options, 'dataTypes')) {
-          $table->insert($row, br($options, 'dataTypes'));
+        if ($row) {
+          $table = br()->db()->table($this->dbEntity());
+          if (br($options, 'dataTypes')) {
+            $table->insert($row, br($options, 'dataTypes'));
+          } else {
+            $table->insert($row);
+          }
+          $result = $row;
+          $this->callEvent('after:insert', $result, $transientData, $options);
+          $result['rowid'] = br()->db()->rowidValue($result);
+          $this->callEvent('calcFields', $result, $transientData, $options);
+          br()->db()->commitTransaction();
         } else {
-          $table->insert($row);
+          throw new BrDBException('Empty insert request');
         }
-        $result = $row;
-        $this->callEvent('after:insert', $result, $transientData, $options);
-        $result['rowid'] = br()->db()->rowidValue($result);
-        $this->callEvent('calcFields', $result, $transientData, $options);
-
-        br()->db()->commitTransaction();
       } catch (Exception $e) {
         br()->db()->rollbackTransaction();
         $operation = 'insert';
