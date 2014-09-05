@@ -43,7 +43,7 @@ class BrErrorMailLogAdapter extends BrGenericLogAdapter {
                    . '<strong>Client IP:</strong> ' . br()->request()->clientIP() . '<br />'
                    . '<strong>Request type:</strong> ' . br()->request()->method() . '<br />'
                    . '<strong>Request data:</strong> ' . $requestData . '<br />'
-                   . '<strong>Command line:</strong>' . @json_encode($argv) . '<br />'
+                   . '<strong>Command line:</strong> ' . @json_encode($argv) . '<br />'
                    . '<hr size="1" />'
                    . '<pre>'
                    . $message
@@ -89,7 +89,7 @@ class BrErrorMailLogAdapter extends BrGenericLogAdapter {
                    . '<strong>Client IP:</strong> ' . br()->request()->clientIP() . '<br />'
                    . '<strong>Request type:</strong> ' . br()->request()->method() . '<br />'
                    . '<strong>Request data:</strong> ' . $requestData . '<br />'
-                   . '<strong>Command line:</strong>' . @json_encode($argv) . '<br />'
+                   . '<strong>Command line:</strong> ' . @json_encode($argv) . '<br />'
                    . '<hr size="1" />'
                    . '<pre>'
                    . $message
