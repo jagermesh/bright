@@ -109,69 +109,78 @@ class BrDataSource extends BrGenericDataSource {
 
       if (!strlen($limit) || ($limit > 0)) {
 
-        if ($distinct) {
-          $cursor = $table->find($filter, $fields, true);
-        } else {
-          $cursor = $table->find($filter, $fields);
-        }
+        try {
 
-        if ($groupBy && is_array($groupBy)) {
-          $cursor = $cursor->group($groupBy);
-        }
-        if ($sortOrder && is_array($sortOrder)) {
-          foreach($sortOrder as $fieldName => $direction) {
-            $sortOrder[$fieldName] = (int)$direction;
-          }
-          $cursor = $cursor->sort($sortOrder);
-        }
-        if ($skip) {
-          if ($this->selectAdjancedRecords) {
-            $cursor = $cursor->skip($skip - 1);
+          if ($distinct) {
+            $cursor = $table->find($filter, $fields, true);
           } else {
-            $cursor = $cursor->skip($skip);
+            $cursor = $table->find($filter, $fields);
           }
-        }
-        if (strlen($limit)) {
-          if ($this->selectAdjancedRecords) {
-            if ($skip) {
-              $cursor = $cursor->limit($limit + 2);
-            } else {
-              $cursor = $cursor->limit($limit + 1);
+
+          if ($groupBy && is_array($groupBy)) {
+            $cursor = $cursor->group($groupBy);
+          }
+          if ($sortOrder && is_array($sortOrder)) {
+            foreach($sortOrder as $fieldName => $direction) {
+              $sortOrder[$fieldName] = (int)$direction;
             }
-          } else
-          if ($this->checkTraversing) {
-            $cursor = $cursor->limit($limit + 1);
-          } else {
-            $cursor = $cursor->limit($limit);
+            $cursor = $cursor->sort($sortOrder);
           }
-        }
-
-        if ($countOnly) {
-          $result = $cursor->count();
-        } else {
-          $idx = 1;
-          $this->lastSelectAmount = 0;
-          foreach($cursor as $row) {
-            $row['rowid'] = br()->db()->rowidValue($row, $this->rowidFieldName);
-            if ($this->selectAdjancedRecords && $skip && ($idx == 1)) {
-              $this->nextAdjancedRecord = $row;
-            } else
-            if ($this->selectAdjancedRecords && (count($result) == $limit)) {
-              $this->priorAdjancedRecord = $row;
-              $this->lastSelectAmount++;
-            } else
-            if (!$limit || (count($result) < $limit)) {
-              if (!br($options, 'noCalcFields')) {
-                $this->callEvent('calcFields', $row, $transientData, $options);
+          if ($skip) {
+            if ($this->selectAdjancedRecords) {
+              $cursor = $cursor->skip($skip - 1);
+            } else {
+              $cursor = $cursor->skip($skip);
+            }
+          }
+          if (strlen($limit)) {
+            if ($this->selectAdjancedRecords) {
+              if ($skip) {
+                $cursor = $cursor->limit($limit + 2);
+              } else {
+                $cursor = $cursor->limit($limit + 1);
               }
-              $result[] = $row;
-              $this->lastSelectAmount++;
+            } else
+            if ($this->checkTraversing) {
+              $cursor = $cursor->limit($limit + 1);
             } else {
-              $this->lastSelectAmount++;
+              $cursor = $cursor->limit($limit);
             }
-            $idx++;
           }
+
+          if ($countOnly) {
+            $result = $cursor->count();
+          } else {
+            $idx = 1;
+            $this->lastSelectAmount = 0;
+            foreach($cursor as $row) {
+              $row['rowid'] = br()->db()->rowidValue($row, $this->rowidFieldName);
+              if ($this->selectAdjancedRecords && $skip && ($idx == 1)) {
+                $this->nextAdjancedRecord = $row;
+              } else
+              if ($this->selectAdjancedRecords && (count($result) == $limit)) {
+                $this->priorAdjancedRecord = $row;
+                $this->lastSelectAmount++;
+              } else
+              if (!$limit || (count($result) < $limit)) {
+                if (!br($options, 'noCalcFields')) {
+                  $this->callEvent('calcFields', $row, $transientData, $options);
+                }
+                $result[] = $row;
+                $this->lastSelectAmount++;
+              } else {
+                $this->lastSelectAmount++;
+              }
+              $idx++;
+            }
+          }
+        } catch (Exception $e) {
+          $operation = 'select';
+          $error = $e->getMessage();
+          $this->trigger('error', $error, $operation, $e);
+          throw $e;
         }
+
       } else {
 
       }
