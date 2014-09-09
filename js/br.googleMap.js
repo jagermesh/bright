@@ -14,8 +14,8 @@
     var _this = this;
 
     options = options || { };
-    options.zoom = options.zoom || 6;
-    options.mapCenter = options.mapCenter || new google.maps.LatLng(64.590253,14.184436);
+    options.zoom = options.zoom || 3;
+    options.mapCenter = options.mapCenter || new google.maps.LatLng(37, 35);
     options.mapType = options.mapType || google.maps.MapTypeId.ROADMAP;
     options.streetViewControl = options.streetViewControl || true;
     options.panControl = options.panControl || true;
