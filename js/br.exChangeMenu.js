@@ -9,7 +9,7 @@
 
 ;(function ($, window) {
 
-  var invokerTemplate = '<div class="dropdown br-ajax-dropdown"><a href="javascript:;" class="not-a br-ex-action-change-menu-menu"><span class="br-ex-current-value">{{&value}}</span><b class="caret"></b></a></div>';
+  var invokerTemplate = '<div class="dropdown br-ajax-dropdown"><a href="javascript:;" class="not-a br-ex-action-change-menu-menu"><span class="br-ex-current-value">{{&value}}</span> <b class="caret"></b></a></div>';
 
   function showDropDownMenu(invoker, response, rowid, menuElement, dataSource, fieldName, options) {
     var menuItemTemplate = '<li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>';
@@ -20,11 +20,15 @@
       var value = $(this).attr('data-value');
       var data = {};
       data[fieldName] = value;
-      dataSource.update(rowid, data, function(result, response) {
-        if (options.onUpdate) {
-          options.onUpdate.call(invoker, response, menuElement);
-        }
-      });
+      if (options.onClick) {
+        options.onClick.call($(this), dataSource, rowid, data);
+      } else {
+        dataSource.update(rowid, data, function(result, response) {
+          if (options.onUpdate) {
+            options.onUpdate.call(invoker, response, menuElement);
+          }
+        });
+      }
     });
     $(document).on('click.dropdown.data-api', function() {
       dropDown.remove();
@@ -72,7 +76,11 @@
       if ((value.length === 0) || (value == '(click to change)')) {
         value = '<span style="color:#AAA;">(click to change)</span>';
       }
-      $this.html(br.fetch(invokerTemplate, { value: value }));
+      var invoker = $(br.fetch(invokerTemplate, { value: value }));
+      if (options.onSetupInvoker) {
+        options.onSetupInvoker.call(invoker);
+      }
+      $this.html(invoker);
       $this.on('click', '.br-ex-action-change-menu-menu', function() {
         handleClick($(this), $this, choicesDataSource, dataSource, fieldName, options);
       });
