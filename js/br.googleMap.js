@@ -13,6 +13,11 @@
 
     var _this = this;
 
+    this.events = br.eventQueue(this);
+    this.before = function(event, callback) { this.events.before(event, callback); };
+    this.on     = function(event, callback) { this.events.on(event, callback); };
+    this.after  = function(event, callback) { this.events.after(event, callback); };
+
     options = options || { };
     options.zoom = options.zoom || 3;
     options.mapCenter = options.mapCenter || new google.maps.LatLng(37, 35);
@@ -56,6 +61,16 @@
     this.weatherLayer = null;
     this.travelMode = google.maps.DirectionsTravelMode.DRIVING;
     this.markers = [];
+
+    google.maps.event.addListener(this.map, 'click', function(event) {
+      _this.events.trigger('click', event);
+    });
+    google.maps.event.addListener(this.map, 'bounds_changed', function(event) {
+      _this.events.trigger('bounds_changed', event);
+    });
+    google.maps.event.addListener(this.map, 'center_changed', function(event) {
+      _this.events.trigger('center_changed', event);
+    });
 
     var map = this;
 
