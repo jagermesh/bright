@@ -2628,12 +2628,20 @@
     $('#br_progressBar').modal('hide');
   };
 
-  window.br.stepProgress = function(message) {
-    if (message) {
+  window.br.showProgress = function() {
+    $('#br_progressBar').modal('show');
+  };
+
+  window.br.stepProgress = function(step, message) {
+    if (br.isNumber(step)) {
+      progress += step;
+    } else {
+      message = step;
+    }
+    if (!br.isEmpty(message)) {
       $('#br_progressMessage').text(message);
       $('#br_progressBar .modal-header').show();
     }
-    progress++;
     var p = Math.round(progress * 100 / total);
     $('.br-progress-bar').css('width', p + '%');
   };
