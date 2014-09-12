@@ -80,9 +80,17 @@
           var pos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
           map.map.setCenter(pos);
           if (typeof callback == 'function') {
-            callback.call(_this);
+            callback.call(_this, true);
+          }
+        }, function() {
+          if (typeof callback == 'function') {
+            callback.call(_this, false);
           }
         });
+      } else {
+        if (typeof callback == 'function') {
+          callback.call(_this, false);
+        }
       }
     };
 
@@ -103,28 +111,29 @@
       }
     };
 
-    this.clearMarkers = function() {
-      for (var i = 0; i < this.markers.length; i++) {
-        this.markers[i].setMap(null);
+    this.removeMarkers = function(tag) {
+      tag = tag || '';
+      for (var i = this.markers.length-1; i >= 0; i--) {
+        if (this.markers[i].custom.tag == tag) {
+          this.markers[i].setMap(null);
+          this.markers.splice(i, 1);
+        }
       }
-      this.markers = [];
     };
 
-    this.addLocation = function(lat, lng, data, onClick) {
+    this.addMarker = function(lat, lng, params) {
+      params = params || { };
+      params.custom = params.custom || { };
+      params.custom.tag = params.custom.tag || '';
       var latLng = new google.maps.LatLng(lat, lng);
-      var marker = new google.maps.Marker({ position: latLng
-                                          , map: this.map
-                                          , data: data
-                                          });
-      return this.addMarker(marker, onClick);
-    };
-
-    this.addMarker = function(marker, onClick) {
-      // marker.setMap(this.map);
-      this.markers[this.markers.length] = marker;
-      if (onClick) {
-        google.maps.event.addListener(marker, 'click', function() {
-          onClick.call(this);
+      var marker = new google.maps.Marker({ position: latLng, map: this.map, icon: params.icon, draggable: params.draggable, custom: params.custom });
+      this.markers.push(marker);
+      google.maps.event.addListener(marker, 'click', function() {
+        _this.events.trigger('marker.click', marker);
+      });
+      if (params.draggable) {
+        google.maps.event.addListener(marker, 'dragend', function() {
+          _this.events.trigger('marker.dragend', marker);
         });
       }
       return marker;

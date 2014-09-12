@@ -320,7 +320,6 @@
           });
         }
       }
-
       if (window.Select2) {
         _this.inputsContainer.find('select.data-field').each(function() {
           $(this).select2();
@@ -331,17 +330,17 @@
     this.show = function(rowid, isCopy) {
       editorRowid = null;
       editorRowData = null;
-      var defaults = null;
+      var defaultValues = null;
       if (br.isNumber(rowid)) {
         editorRowid = rowid;
       } else
       if (br.isObject(rowid)) {
-        defaults = rowid;
+        defaultValues = rowid;
       }
       _this.inputsContainer.find('input.data-field[type!=radio],select.data-field,textarea.data-field').val('');
       _this.inputsContainer.find('input.data-field[type=checkbox]').val('1');
       _this.inputsContainer.find('input.data-field[type=checkbox]').removeAttr('checked');
-      _this.container.find('div.data-field[data-toggle=buttons-radio]').find('button').removeClass('active');
+      _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio]').find('button').removeClass('active');
 
       if (editorRowid) {
         _this.dataSource.selectOne(editorRowid, function(result, data) {
@@ -368,7 +367,7 @@
       } else {
         _this.events.triggerBefore('editor.show');
         _this.editorConfigure(isCopy);
-        fillControls(defaults);
+        fillControls(defaultValues);
         _this.events.trigger('editor.show');
         if (_this.container.hasClass('modal')) {
           _this.container.modal('show');
