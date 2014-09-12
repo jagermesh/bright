@@ -28,7 +28,7 @@
         } else {
           content = _this.ctrl.text();
         }
-        _this.ctrl.data('brEditable-original-content', _this.ctrl.text());
+        _this.ctrl.data('brEditable-original-html', _this.ctrl.html());
         _this.ctrl.data('brEditable-original-width', _this.ctrl.css('width'));
         var width = _this.ctrl.innerWidth();
         var height = _this.ctrl.innerHeight();
@@ -86,7 +86,7 @@
       _this.editor.tooltip('hide');
       _this.editor.remove();
       _this.editor = null;
-      _this.ctrl.text(content);
+      _this.ctrl.html(content);
       if (typeof _this.ctrl.attr('data-editable') != 'undefined') {
         _this.ctrl.attr('data-editable', content);
       }
@@ -97,7 +97,7 @@
       _this.editor.tooltip('hide');
       _this.editor.remove();
       _this.editor = null;
-      _this.ctrl.text(_this.ctrl.data('brEditable-original-content'));
+      _this.ctrl.html(_this.ctrl.data('brEditable-original-html'));
       _this.ctrl.css('width', '');
     };
 
