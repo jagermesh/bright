@@ -267,18 +267,24 @@ class BrDataSourceUsers extends BrDataSource {
         throw new BrAppException('Access denied');
       }
 
-      if ($password = trim(br($row, $passwordField))) {
-
-      } else
-      if ($passwordRequired) {
-        throw new BrAppException('Please enter ' . $passwordFieldLabel);
-      }
-
       if ($email = trim(br($row, $emailField))) {
 
       } else
       if ($emailRequired) {
         throw new BrAppException('Please enter e-mail');
+      }
+
+      if ($login = trim(br()->html2text(br($row, $loginField)))) {
+
+      } else {
+        throw new BrAppException('Please enter ' . $loginFieldLabel);
+      }
+
+      if ($password = trim(br($row, $passwordField))) {
+
+      } else
+      if ($passwordRequired) {
+        throw new BrAppException('Please enter ' . $passwordFieldLabel);
       }
 
       // we are here so let's work

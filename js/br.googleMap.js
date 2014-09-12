@@ -126,7 +126,7 @@
       params.custom = params.custom || { };
       params.custom.tag = params.custom.tag || '';
       var latLng = new google.maps.LatLng(lat, lng);
-      var marker = new google.maps.Marker({ position: latLng, map: this.map, draggable: params.draggable, custom: params.custom });
+      var marker = new google.maps.Marker({ position: latLng, map: this.map, icon: params.icon, draggable: params.draggable, custom: params.custom });
       this.markers.push(marker);
       google.maps.event.addListener(marker, 'click', function() {
         _this.events.trigger('marker.click', marker);
