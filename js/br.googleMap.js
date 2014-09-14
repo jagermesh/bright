@@ -43,11 +43,15 @@
                         }
                       , scaleControl: true
                       , scaleControlOptions: {
-                          position: google.maps.ControlPosition.TOP_LEFT
+                          position: google.maps.ControlPosition.LEFT_CENTER
                         }
                       , streetViewControl: options.streetViewControl
                       , streetViewControlOptions: {
-                          position: google.maps.ControlPosition.LEFT_TOP
+                          position: google.maps.ControlPosition.LEFT_BOTTOM
+                        }
+                      , rotateControl: true
+                      , rotateControlOptions: {
+                          position: google.maps.ControlPosition.LEFT_CENTER
                         }
                       };
 
