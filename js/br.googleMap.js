@@ -30,11 +30,11 @@
                       , mapTypeControl: true
                       , mapTypeControlOptions: {
                             style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR
-                          , position: google.maps.ControlPosition.TOP_CENTER
+                          , position: google.maps.ControlPosition.TOP_RIGHT
                         }
                       , panControl: options.panControl
                       , panControlOptions: {
-                          position: google.maps.ControlPosition.TOP_RIGHT
+                          position: google.maps.ControlPosition.LEFT_CENTER
                         }
                       , zoomControl: true
                       , zoomControlOptions: {
@@ -70,6 +70,9 @@
     });
     google.maps.event.addListener(this.map, 'center_changed', function(event) {
       _this.events.trigger('center_changed', event);
+    });
+    google.maps.event.addListener(this.map, 'place_changed', function(event) {
+      _this.events.trigger('place_changed', event);
     });
 
     var map = this;
