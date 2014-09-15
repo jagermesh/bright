@@ -24,7 +24,11 @@ class BrCache extends BrObject {
         $reconsider = false;
         $cacheConfig = br($dbList, $name, $dbList);
         br()->assert($cacheConfig, 'Cache [' . $name . '] not configured');
-        $instance = BrCache::createInstance($cacheConfig['engine'], $cacheConfig);
+        try {
+          $instance = BrCache::createInstance($cacheConfig['engine'], $cacheConfig);
+        } catch (Exception $e) {
+          $instance = BrCache::createInstance('default', $cacheConfig);
+        }
       } else {
         if (isset($instances[$name])) {
           $instance = $instances[$name];

@@ -5,13 +5,14 @@ class BrJobsManager {
   private $shellScript = 'nohup /usr/bin/php -f';
   private $jobScript = 'job.php';
   private $maxProcessesAmount = 1;
+  private $callerScript = '';
 
   function __construct($params = array()) {
 
     $traces = debug_backtrace();
-    $callerScript = $traces[0]['file'];
+    $this->callerScript = $traces[0]['file'];
 
-    $this->baseFolder = br($params, 'jobsFolder', br()->fs()->filePath($callerScript));
+    $this->baseFolder = br($params, 'jobsFolder', br()->fs()->filePath($this->callerScript));
     $this->jobsFolder = $this->baseFolder . 'jobs/';
     $this->jobScript = $this->baseFolder . 'run-job.php';
 
@@ -22,7 +23,7 @@ class BrJobsManager {
     if (!br()->isConsoleMode()) { br()->panic('Console mode only'); }
 
     br()->log('Trying to acquire lock for this script to avoid conflict with running instance');
-    $handle = br()->OS()->lockIfRunning(__FILE__);
+    $handle = br()->OS()->lockIfRunning($this->callerScript);
 
     $coresAmount = br()->OS()->getCoresAmount();
 
