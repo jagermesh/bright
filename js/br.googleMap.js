@@ -34,7 +34,7 @@
                         }
                       , panControl: options.panControl
                       , panControlOptions: {
-                          position: google.maps.ControlPosition.LEFT_CENTER
+                          position: google.maps.ControlPosition.RIGHT_BOTTOM
                         }
                       , zoomControl: true
                       , zoomControlOptions: {
@@ -65,6 +65,7 @@
     this.weatherLayer = null;
     this.travelMode = google.maps.DirectionsTravelMode.DRIVING;
     this.markers = [];
+    this.polygons = [];
 
     google.maps.event.addListener(this.map, 'click', function(event) {
       _this.events.trigger('click', event);
@@ -133,17 +134,140 @@
       params.custom = params.custom || { };
       params.custom.tag = params.custom.tag || '';
       var latLng = new google.maps.LatLng(lat, lng);
-      var marker = new google.maps.Marker({ position: latLng, map: this.map, icon: params.icon, draggable: params.draggable, custom: params.custom });
+      var marker = new google.maps.Marker({ position: latLng
+                                          , map: this.map
+                                          , icon: params.icon
+                                          , draggable: params.draggable
+                                          , custom: params.custom
+                                          });
       this.markers.push(marker);
-      google.maps.event.addListener(marker, 'click', function() {
-        _this.events.trigger('marker.click', marker);
+      google.maps.event.addListener(marker, 'click', function(event) {
+        _this.events.trigger('marker.click', marker, event);
       });
       if (params.draggable) {
-        google.maps.event.addListener(marker, 'dragend', function() {
-          _this.events.trigger('marker.dragend', marker);
+        google.maps.event.addListener(marker, 'dragend', function(event) {
+          _this.events.trigger('marker.dragend', marker, event);
         });
       }
       return marker;
+    };
+
+    function array_map(array, callback) {
+      var original_callback_params = Array.prototype.slice.call(arguments, 2),
+          array_return = [],
+          array_length = array.length,
+          i;
+
+      if (Array.prototype.map && array.map === Array.prototype.map) {
+        array_return = Array.prototype.map.call(array, function(item) {
+          callback_params = original_callback_params;
+          callback_params.splice(0, 0, item);
+
+          return callback.apply(this, callback_params);
+        });
+      }
+      else {
+        for (i = 0; i < array_length; i++) {
+          callback_params = original_callback_params;
+          callback_params.splice(0, 0, array[i]);
+          array_return.push(callback.apply(this, callback_params));
+        }
+      }
+
+      return array_return;
+    };
+
+    function array_flat(array) {
+      var new_array = [],
+          i;
+
+      for (i = 0; i < array.length; i++) {
+        new_array = new_array.concat(array[i]);
+      }
+
+      return new_array;
+    };
+
+    function coordsToLatLngs(coords, useGeoJSON) {
+      var first_coord = coords[0],
+          second_coord = coords[1];
+
+      if (useGeoJSON) {
+        first_coord = coords[1];
+        second_coord = coords[0];
+      }
+
+      return new google.maps.LatLng(first_coord, second_coord);
+    };
+
+    function arrayToLatLng(coords, useGeoJSON) {
+      var i;
+
+      for (i = 0; i < coords.length; i++) {
+        if (coords[i].length > 0 && typeof(coords[i][0]) == "object") {
+          coords[i] = arrayToLatLng(coords[i], useGeoJSON);
+        }
+        else {
+          coords[i] = coordsToLatLngs(coords[i], useGeoJSON);
+        }
+      }
+
+      return coords;
+    };
+
+    this.removePolygons = function(tag) {
+      tag = tag || '';
+      for (var i = this.polygons.length-1; i >= 0; i--) {
+        if (this.polygons[i].custom.tag == tag) {
+          this.polygons[i].setMap(null);
+          this.polygons.splice(i, 1);
+        }
+      }
+    };
+
+    if (!google.maps.Polygon.prototype.getBounds) {
+      google.maps.Polygon.prototype.getBounds = function(latLng) {
+        var bounds = new google.maps.LatLngBounds();
+        var paths = this.getPaths();
+        var path;
+
+        for (var p = 0; p < paths.getLength(); p++) {
+          path = paths.getAt(p);
+          for (var i = 0; i < path.getLength(); i++) {
+            bounds.extend(path.getAt(i));
+          }
+        }
+
+        return bounds;
+      };
+    }
+
+    this.addGeoJSONPolygon = function(coordinates, params) {
+      params = params || { };
+      params.custom = params.custom || { };
+      params.custom.tag = params.custom.tag || '';
+      params.paths = array_flat(array_map(coordinates, arrayToLatLng, true));
+      params.map = _this.map;
+      params.strokeColor = params.strokeColor || '#999';
+      params.strokeOpacity = params.strokeOpacity || 1;
+      params.strokeWeight = params.strokeWeight || 0.5;
+      params.fillColor = params.fillColor || '';
+      params.fillOpacity = params.fillOpacity || 0.3;
+
+      br.log(params);
+      // br.log(paths);
+      var polygon = new google.maps.Polygon(params);
+      this.polygons.push(polygon);
+      google.maps.event.addListener(polygon, 'click', function(event) {
+        _this.events.trigger('polygon.click', polygon, event);
+      });
+      // if (params.draggable) {
+      //   google.maps.event.addListener(marker, 'dragend', function() {
+      //     _this.events.trigger('marker.dragend', marker);
+      //   });
+      // }
+      return polygon;
+
     };
 
     this.setMapType = function(value) {
