@@ -276,7 +276,7 @@
     }
   };
 
-  var total = 0, progress = 0;
+  var progressBar_Total = 0, progressBar_Progress = 0;
   var progressBarTemplate = '<div id="br_progressBar" class="modal" style="display:none;" data-backdrop="static">' +
                             '  <div class="modal-dialog">'+
                             '    <div class="modal-content">'+
@@ -286,7 +286,7 @@
                             '      <div class="modal-body">' +
                             '        <div class="progress" style="margin-bottom:0px;">' +
                             '          <div class="progress-bar progress-bar-striped progress progress-striped active br-progress-bar" role="progressbar">' +
-                            '            <div class="bar br-progress-bar" style="width: 0%;transition:none;-webkit-transition:none;"></div>' +
+                            '            <div id="br_progressBarBar" class="bar br-progress-bar" style="width: 0%;transition:none;-webkit-transition:none;"></div>' +
                             '            <span class="sr-only">&nbsp;</span>' +
                             '          </div>' +
                             '        </div>' +
@@ -296,8 +296,8 @@
                             '</div>';
 
   window.br.startProgress = function(value, message) {
-    total = value;
-    progress = 0;
+    progressBar_Total = value;
+    progressBar_Progress = 0;
     if ($('#br_progressBar').length === 0) {
       $('body').append($(progressBarTemplate));
     }
@@ -305,7 +305,7 @@
       $('#br_progressMessage').text(message);
       $('#br_progressBar .modal-header').show();
     }
-    $('.br-progress-bar').css('width', '0%');
+    $('#br_progressBarBar').css('width', '0%');
     $('#br_progressBar').modal('show');
   };
 
@@ -319,16 +319,17 @@
 
   window.br.stepProgress = function(step, message) {
     if (br.isNumber(step)) {
-      progress += step;
+      progressBar_Progress += step;
     } else {
+      progressBar_Progress++;
       message = step;
     }
     if (!br.isEmpty(message)) {
       $('#br_progressMessage').text(message);
       $('#br_progressBar .modal-header').show();
     }
-    var p = Math.round(progress * 100 / total);
-    $('.br-progress-bar').css('width', p + '%');
+    var p = Math.round(progressBar_Progress * 100 / progressBar_Total);
+    $('#br_progressBarBar').css('width', p + '%');
   };
 
   $(document).ready(function() {

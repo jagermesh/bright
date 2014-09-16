@@ -175,7 +175,7 @@
       }
 
       return array_return;
-    };
+    }
 
     function array_flat(array) {
       var new_array = [],
@@ -186,7 +186,7 @@
       }
 
       return new_array;
-    };
+    }
 
     function coordsToLatLngs(coords, useGeoJSON) {
       var first_coord = coords[0],
@@ -198,7 +198,7 @@
       }
 
       return new google.maps.LatLng(first_coord, second_coord);
-    };
+    }
 
     function arrayToLatLng(coords, useGeoJSON) {
       var i;
@@ -213,7 +213,7 @@
       }
 
       return coords;
-    };
+    }
 
     this.removePolygons = function(tag) {
       tag = tag || '';
