@@ -15,7 +15,7 @@
     var editorRowid = null;
     var editorRowData = null;
     var active = false;
-    var goodHide = false;
+    var cancelled = false;
 
     this.options = options || {};
     this.options.noun = this.options.noun || '';
@@ -62,13 +62,6 @@
 
     this.unlock = function() {
       $(this.options.selectors.save, _this.container).removeClass('disabled');
-    };
-
-    this.hide = function() {
-      goodHide = true;
-      if (_this.container.hasClass('modal')) {
-        _this.container.modal('hide');
-      }
     };
 
     this.editorConfigure = function(isCopy) {
@@ -158,14 +151,14 @@
               _this.events.triggerAfter('editor.update', true, response);
               _this.events.triggerAfter('editor.save', true, response);
               if (andClose) {
-                goodHide = true;
                 if (_this.container.hasClass('modal')) {
+                  // _this.events.trigger('editor.hidden', true, response);
                   _this.container.modal('hide');
                   editorRowid = null;
                   editorRowData = null;
-                }
-                _this.events.trigger('editor.hide', true, response);
-                if (!_this.container.hasClass('modal')) {
+                } else {
+                  _this.events.trigger('editor.hidden', true, response);
+                  _this.events.trigger('editor.hide', true, response);
                   br.backToCaller(_this.options.returnUrl, true);
                 }
               } else {
@@ -188,14 +181,14 @@
               _this.events.triggerAfter('editor.insert', true, response);
               _this.events.triggerAfter('editor.save', true, response);
               if (andClose) {
-                goodHide = true;
                 if (_this.container.hasClass('modal')) {
+                  // _this.events.trigger('editor.hidden', true, response);
                   _this.container.modal('hide');
                   editorRowid = null;
                   editorRowData = null;
-                }
-                _this.events.trigger('editor.hide', true, response);
-                if (!_this.container.hasClass('modal')) {
+                } else {
+                  _this.events.trigger('editor.hidden', true, response);
+                  _this.events.trigger('editor.hide', true, response);
                   br.backToCaller(_this.options.returnUrl, true);
                 }
               } else {
@@ -225,6 +218,19 @@
       _this.events.trigger('editor.shown');
     }
 
+    this.hide = this.cancel = function() {
+      cancelled = true;
+      br.resetCloseConfirmation();
+      _this.events.trigger('editor.cancel', false, editorRowid);
+      if (_this.container.hasClass('modal')) {
+        _this.container.modal('hide');
+      } else {
+        _this.events.trigger('editor.hidden', false, editorRowid);
+        _this.events.trigger('editor.hide', false, editorRowid);
+        br.backToCaller(_this.options.returnUrl, false);
+      }
+    };
+
     this.init = function() {
 
       if ($.datepicker) {
@@ -239,12 +245,17 @@
 
       if (_this.container.hasClass('modal')) {
         _this.container.attr('data-backdrop', 'static');
-        _this.container.on('shown', function() { modalShown($(this)); });
         _this.container.on('shown.bs.modal', function() { modalShown($(this)); });
-        _this.container.on('hide', function() { if (!goodHide) { _this.events.trigger('editor.hide', false, editorRowid); } });
-        _this.container.on('hide.bs.moda', function() { if (!goodHide) { _this.events.trigger('editor.hide', false, editorRowid); } });
-        _this.container.on('hidden', function() { if (!goodHide) { _this.events.trigger('editor.hidden', false, editorRowid); } });
-        _this.container.on('hidden.bs.modal', function() { if (!goodHide) { _this.events.trigger('editor.hidden', false, editorRowid); } });
+        _this.container.on('hide.bs.modal', function() {
+          if (cancelled) {
+            cancelled = false;
+          } else {
+            br.resetCloseConfirmation();
+            _this.events.trigger('editor.cancel', false, editorRowid);
+          }
+          _this.events.trigger('editor.hide', false, editorRowid);
+        });
+        _this.container.on('hidden.bs.modal', function() { _this.events.trigger('editor.hidden', false, editorRowid); });
       }
 
       $(this.options.selectors.cancel, _this.container).removeAttr('data-dismiss');
@@ -272,18 +283,6 @@
       });
 
       return this;
-    };
-
-    this.cancel = function() {
-      goodHide = true;
-      if (_this.container.hasClass('modal')) {
-        br.resetCloseConfirmation();
-        _this.container.modal('hide');
-      }
-      _this.events.trigger('editor.hide', false, editorRowid);
-      if (!_this.container.hasClass('modal')) {
-        br.backToCaller(_this.options.returnUrl, false);
-      }
     };
 
     function fillControls(data) {
@@ -348,10 +347,10 @@
               _this.container.modal('show');
             }
           } else {
-            if (!_this.container.hasClass('modal')) {
-              br.backToCaller(_this.options.returnUrl, true);
-            } else {
+            if (_this.container.hasClass('modal')) {
               br.growlError(data);
+            } else {
+              br.backToCaller(_this.options.returnUrl, true);
             }
           }
         }, { disableEvents: true });

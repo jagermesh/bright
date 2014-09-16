@@ -54,7 +54,7 @@ module.exports = function(grunt) {
         options: {
           phpCmd: "/usr/local/Cellar/php53/5.3.28/bin/php"
         },
-        all: ["**/*.php"]
+        all: ["*.php"]
     }
     // watch: {
     //   files: ['<%= jshint.files %>'],
