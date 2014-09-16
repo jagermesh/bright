@@ -273,6 +273,10 @@ a, .clickable, .sortable, label.checkbox {
   cursor: pointer;
 }
 
+.blured {
+  color: #999;
+}
+
 .google-map img {
   max-width: none !important;
 }
