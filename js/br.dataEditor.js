@@ -212,6 +212,19 @@
       }
     };
 
+    function modalShown(form) {
+      var focusedInput = $('input.focus[type!=hidden]:visible,select.focus:visible,textarea.focus:visible', form);
+      if (focusedInput.length > 0) {
+        try { focusedInput[0].focus(); } catch (e) { }
+      } else {
+        focusedInput = $('input[type!=hidden]:visible,select:visible,textarea:visible', form);
+        if (focusedInput.length > 0) {
+          try { focusedInput[0].focus(); } catch (e) { }
+        }
+      }
+      _this.events.trigger('editor.shown');
+    }
+
     this.init = function() {
 
       if ($.datepicker) {
@@ -226,34 +239,12 @@
 
       if (_this.container.hasClass('modal')) {
         _this.container.attr('data-backdrop', 'static');
-        _this.container.on('shown', function() {
-          var focusedInput = $('input.focus[type!=hidden]:visible,select.focus:visible,textarea.focus:visible', $(this));
-          if (focusedInput.length > 0) {
-            try { focusedInput[0].focus(); } catch (e) { }
-          } else {
-            focusedInput = $('input[type!=hidden]:visible,select:visible,textarea:visible', $(this));
-            if (focusedInput.length > 0) {
-              try { focusedInput[0].focus(); } catch (e) { }
-            }
-          }
-          _this.events.trigger('editor.shown');
-        });
-
-        _this.container.on('hide', function() {
-          if (goodHide) {
-
-          } else {
-            _this.events.trigger('editor.hide', false, editorRowid);
-          }
-        });
-
-        _this.container.on('hidden', function() {
-          if (goodHide) {
-
-          } else {
-           _this.events.trigger('editor.hidden', false, editorRowid);
-          }
-        });
+        _this.container.on('shown', function() { modalShown($(this)); });
+        _this.container.on('shown.bs.modal', function() { modalShown($(this)); });
+        _this.container.on('hide', function() { if (!goodHide) { _this.events.trigger('editor.hide', false, editorRowid); } });
+        _this.container.on('hide.bs.moda', function() { if (!goodHide) { _this.events.trigger('editor.hide', false, editorRowid); } });
+        _this.container.on('hidden', function() { if (!goodHide) { _this.events.trigger('editor.hidden', false, editorRowid); } });
+        _this.container.on('hidden.bs.modal', function() { if (!goodHide) { _this.events.trigger('editor.hidden', false, editorRowid); } });
       }
 
       $(this.options.selectors.cancel, _this.container).removeAttr('data-dismiss');
