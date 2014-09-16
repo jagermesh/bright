@@ -122,7 +122,7 @@
     this.removeMarkers = function(tag) {
       tag = tag || '';
       for (var i = this.markers.length-1; i >= 0; i--) {
-        if (this.markers[i].custom.tag == tag) {
+        if ((this.markers[i].custom.tag == tag) || br.isEmpty(tag)) {
           this.markers[i].setMap(null);
           this.markers.splice(i, 1);
         }
@@ -215,16 +215,6 @@
       return coords;
     }
 
-    this.removePolygons = function(tag) {
-      tag = tag || '';
-      for (var i = this.polygons.length-1; i >= 0; i--) {
-        if (this.polygons[i].custom.tag == tag) {
-          this.polygons[i].setMap(null);
-          this.polygons.splice(i, 1);
-        }
-      }
-    };
-
     if (!google.maps.Polygon.prototype.getBounds) {
       google.maps.Polygon.prototype.getBounds = function(latLng) {
         var bounds = new google.maps.LatLngBounds();
@@ -242,6 +232,16 @@
       };
     }
 
+    this.removePolygons = function(tag) {
+      tag = tag || '';
+      for (var i = this.polygons.length-1; i >= 0; i--) {
+        if ((this.polygons[i].custom.tag == tag) || br.isEmpty(tag)) {
+          this.polygons[i].setMap(null);
+          this.polygons.splice(i, 1);
+        }
+      }
+    };
+
     this.addGeoJSONPolygon = function(coordinates, params) {
       params = params || { };
       params.custom = params.custom || { };
@@ -254,18 +254,11 @@
       params.fillColor = params.fillColor || '';
       params.fillOpacity = params.fillOpacity || 0.3;
 
-      br.log(params);
-      // br.log(paths);
       var polygon = new google.maps.Polygon(params);
       this.polygons.push(polygon);
       google.maps.event.addListener(polygon, 'click', function(event) {
         _this.events.trigger('polygon.click', polygon, event);
       });
-      // if (params.draggable) {
-      //   google.maps.event.addListener(marker, 'dragend', function() {
-      //     _this.events.trigger('marker.dragend', marker);
-      //   });
-      // }
       return polygon;
 
     };
