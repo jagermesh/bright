@@ -18,7 +18,7 @@
     _this.lazy = lazy;
 
     this.push = function(func) {
-      _this.queue.push({ func: func });
+      _this.queue.unshift({ func: func });
       _this.wakeup();
     };
 
