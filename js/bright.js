@@ -2024,6 +2024,26 @@
       return _this.loaded;
     };
 
+    this.hasOptions = function() {
+      return (_this.selector.find('option').length > 0);
+    };
+
+    this.optionsAmount = function() {
+      return _this.selector.find('option').length;
+    };
+
+    this.getFirstAvailableValue = function() {
+      var result = null;
+      _this.selector.find('option').each(function() {
+        if (!br.isEmpty($(this).val())) {
+          if (br.isEmpty(result)) {
+            result = $(this).val();
+          }
+        }
+      });
+      return result;
+    };
+
     function storageTag(c) {
       var storageKey = $(c).attr('data-storage-key');
       if (br.isEmpty(storageKey)) {
