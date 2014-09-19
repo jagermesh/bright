@@ -22,12 +22,18 @@
     options.zoom = options.zoom || 3;
     options.mapCenter = options.mapCenter || new google.maps.LatLng(37, 35);
     options.mapType = options.mapType || google.maps.MapTypeId.ROADMAP;
-    options.streetViewControl = options.streetViewControl || true;
-    options.panControl = options.panControl || true;
+
+    if (typeof options.streetViewControl == 'undefined') { options.streetViewControl = true; }
+    if (typeof options.panControl == 'undefined') { options.panControl = true; }
+    if (typeof options.mapTypeControl == 'undefined') { options.mapTypeControl = true; }
+    if (typeof options.zoomControl == 'undefined') { options.zoomControl = true; }
+    if (typeof options.scaleControl == 'undefined') { options.scaleControl = true; }
+    if (typeof options.rotateControl == 'undefined') { options.rotateControl = true; }
+
     this.mapOptions = { zoom: options.zoom
                       , center: options.mapCenter
                       , mapTypeId: google.maps.MapTypeId.ROADMAP
-                      , mapTypeControl: true
+                      , mapTypeControl: options.mapTypeControl
                       , mapTypeControlOptions: {
                             style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR
                           , position: google.maps.ControlPosition.BOTTOM_CENTER
@@ -36,12 +42,12 @@
                       , panControlOptions: {
                           position: google.maps.ControlPosition.RIGHT_BOTTOM
                         }
-                      , zoomControl: true
+                      , zoomControl: options.zoomControl
                       , zoomControlOptions: {
                             style: google.maps.ZoomControlStyle.LARGE
                           , position: google.maps.ControlPosition.LEFT_CENTER
                         }
-                      , scaleControl: true
+                      , scaleControl: options.scaleControl
                       , scaleControlOptions: {
                           position: google.maps.ControlPosition.LEFT_CENTER
                         }
@@ -49,7 +55,7 @@
                       , streetViewControlOptions: {
                           position: google.maps.ControlPosition.LEFT_BOTTOM
                         }
-                      , rotateControl: true
+                      , rotateControl: options.rotateControl
                       , rotateControlOptions: {
                           position: google.maps.ControlPosition.LEFT_CENTER
                         }
@@ -299,30 +305,36 @@
     };
 
     this.pan = function() {
-      var bounds = { };
+      var bounds = { }, lat, lng, points = [];
       for (var i = 0; i < this.markers.length; i++) {
-        var lat = this.markers[i].position.lat();
-        var lng = this.markers[i].position.lng();
+        points.push( { lat: this.markers[i].position.lat(), lng: this.markers[i].position.lng() });
+      }
+      for (var i = 0; i < this.polygons.length; i++) {
+        points.push( { lat: this.polygons[i].getBounds().getNorthEast().lat(), lng: this.polygons[i].getBounds().getNorthEast().lng() });
+        points.push( { lat: this.polygons[i].getBounds().getSouthWest().lat(), lng: this.polygons[i].getBounds().getSouthWest().lng() });
+        // points.push( { lat: this.polygons[i].getBounds().getNorthEast().lat(), lng: this.polygons[i].getBounds().getSouthWest().lng() });
+        // points.push( { lat: this.polygons[i].getBounds().getSouthWest().lat(), lng: this.polygons[i].getBounds().getNorthEast().lng() });
+      }
+      br.log(points);
+      for (var i = 0; i < points.length; i++) {
+        lat = points[i].lat;
+        lng = points[i].lng;
         if (!bounds.latMin) {
           bounds = { latMin: lat, lngMin: lng, latMax: lat, lngMax: lng };
         } else {
-          bounds.latMin = Math.min(bounds.latMin, lat);
-          bounds.lngMin = Math.min(bounds.lngMin, lng);
-          bounds.latMax = Math.max(bounds.latMax, lat);
-          bounds.lngMax = Math.max(bounds.lngMax, lng);
+          bounds.latMin = Math.max(-54,  Math.min(bounds.latMin, lat));
+          bounds.lngMin = Math.max(-160, Math.min(bounds.lngMin, lng));
+          bounds.latMax = Math.min(83,   Math.max(bounds.latMax, lat));
+          bounds.lngMax = Math.min(160,  Math.max(bounds.lngMax, lng));
         }
       }
-      if (this.markers.length > 0) {
+      if (points.length > 0) {
         var point = { lat: bounds.latMin + (bounds.latMax - bounds.latMin)/2
                     , lng: bounds.lngMin + (bounds.lngMax - bounds.lngMin)/2
                     };
-        if (this.markers.length > 1) {
-          var mapBounds = new google.maps.LatLngBounds(new google.maps.LatLng(bounds.latMin, bounds.lngMin), new google.maps.LatLng(bounds.latMax, bounds.lngMax));
-          this.map.panToBounds(mapBounds);
-          this.map.fitBounds(mapBounds);
-        } else {
-          this.map.setZoom(15);
-        }
+        var mapBounds = new google.maps.LatLngBounds(new google.maps.LatLng(bounds.latMin, bounds.lngMin), new google.maps.LatLng(bounds.latMax, bounds.lngMax));
+        this.map.panToBounds(mapBounds);
+        this.map.fitBounds(mapBounds);
         this.map.setCenter(new google.maps.LatLng(point.lat, point.lng));
       }
     };
