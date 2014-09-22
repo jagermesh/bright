@@ -22,6 +22,7 @@
     this.options.selectors = this.options.selectors || {};
     this.options.selectors.save = this.options.selectors.save || '.action-save';
     this.options.selectors.cancel = this.options.selectors.cancel || '.action-cancel';
+    this.options.selectors.errorMessage = this.options.selectors.errorMessage || '.editor-error-message';
     this.container = $(selector);
     if (this.options.inputsContainer) {
       this.inputsContainer = $(this.options.inputsContainer);
@@ -64,6 +65,15 @@
       $(this.options.selectors.save, _this.container).removeClass('disabled');
     };
 
+    this.showError = function(message) {
+      var ctrl = $(this.options.selectors.errorMessage, _this.container);
+      if (ctrl.length > 0) {
+        ctrl.html(message).show();
+      } else {
+        br.growlError(message);
+      }
+    }
+
     this.editorConfigure = function(isCopy) {
       var s = '';
       if (editorRowid) {
@@ -88,6 +98,7 @@
       }
       var data = { };
       var ok = true;
+      $(this.options.selectors.errorMessage, _this.container).hide();
       _this.events.triggerBefore('editor.save');
       _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio],input.data-field,select.data-field,textarea.data-field').each(function() {
         if (ok) {
@@ -120,7 +131,7 @@
                 if (br.isEmpty(title)) {
                   title = $(this).prev('label').text();
                 }
-                br.growlError(br.trn('%s must be filled').replace('%s', title));
+                _this.showError(br.trn('%s must be filled').replace('%s', title));
                 this.focus();
                 ok = false;
               } else
@@ -139,7 +150,7 @@
           try {
             _this.events.trigger('editor.save', op, data);
           } catch (e) {
-            br.growlError(e.message);
+            _this.showError(e.message);
             ok = false;
           }
       }
@@ -348,7 +359,7 @@
             }
           } else {
             if (_this.container.hasClass('modal')) {
-              br.growlError(data);
+              _this.showError(data);
             } else {
               br.backToCaller(_this.options.returnUrl, true);
             }

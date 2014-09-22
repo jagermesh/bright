@@ -93,8 +93,9 @@
         navigator.geolocation.getCurrentPosition(function(position) {
           var pos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
           map.map.setCenter(pos);
+          map.map.setZoom(15);
           if (typeof callback == 'function') {
-            callback.call(_this, true);
+            callback.call(_this, true, pos);
           }
         }, function() {
           if (typeof callback == 'function') {
@@ -312,10 +313,9 @@
       for (var i = 0; i < this.polygons.length; i++) {
         points.push( { lat: this.polygons[i].getBounds().getNorthEast().lat(), lng: this.polygons[i].getBounds().getNorthEast().lng() });
         points.push( { lat: this.polygons[i].getBounds().getSouthWest().lat(), lng: this.polygons[i].getBounds().getSouthWest().lng() });
-        // points.push( { lat: this.polygons[i].getBounds().getNorthEast().lat(), lng: this.polygons[i].getBounds().getSouthWest().lng() });
-        // points.push( { lat: this.polygons[i].getBounds().getSouthWest().lat(), lng: this.polygons[i].getBounds().getNorthEast().lng() });
+        points.push( { lat: this.polygons[i].getBounds().getNorthEast().lat(), lng: this.polygons[i].getBounds().getSouthWest().lng() });
+        points.push( { lat: this.polygons[i].getBounds().getSouthWest().lat(), lng: this.polygons[i].getBounds().getNorthEast().lng() });
       }
-      br.log(points);
       for (var i = 0; i < points.length; i++) {
         lat = points[i].lat;
         lng = points[i].lng;
