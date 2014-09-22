@@ -14,14 +14,18 @@ require_once(__DIR__.'/BrFileSystem.php');
 class BrSFTPFileObject {
 
   private $name;
+  private $extension;
   private $size;
   private $isDirectory;
 
   function __construct($name, $params) {
 
+    $pathinfo = pathinfo($name);
+
     $this->isDirectory = ($params['type'] == 2);
     $this->size = $params['size'];
     $this->name = $name;
+    $this->extension = br($pathinfo, 'extension');
     $this->date = br($params, 'mtime') ? date('m/d/Y H:i', $params['mtime']) : '';
 
   }
@@ -41,6 +45,12 @@ class BrSFTPFileObject {
   function name() {
 
     return $this->name;
+
+  }
+
+  function extension() {
+
+    return $this->extension;
 
   }
 
