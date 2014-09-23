@@ -180,6 +180,9 @@ class BrSFTP extends BrObject {
               return br($a, 'mtime') == br($b, 'mtime') ? 0 : (br($a, 'mtime') > br($b, 'mtime') ? 1 : -1 );
             });
             break;
+          case 'name':
+            ksort($ftpRAWList);
+            break;
         }
         foreach($ftpRAWList as $name => $params) {
           $ftpFileObject = new BrSFTPFileObject($name, $params);
