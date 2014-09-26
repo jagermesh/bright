@@ -306,17 +306,17 @@
     };
 
     this.pan = function() {
-      var bounds = { }, lat, lng, points = [];
-      for (var i = 0; i < this.markers.length; i++) {
+      var bounds = { }, lat, lng, points = [], i;
+      for (i = 0; i < this.markers.length; i++) {
         points.push( { lat: this.markers[i].position.lat(), lng: this.markers[i].position.lng() });
       }
-      for (var i = 0; i < this.polygons.length; i++) {
+      for (i = 0; i < this.polygons.length; i++) {
         points.push( { lat: this.polygons[i].getBounds().getNorthEast().lat(), lng: this.polygons[i].getBounds().getNorthEast().lng() });
         points.push( { lat: this.polygons[i].getBounds().getSouthWest().lat(), lng: this.polygons[i].getBounds().getSouthWest().lng() });
         points.push( { lat: this.polygons[i].getBounds().getNorthEast().lat(), lng: this.polygons[i].getBounds().getSouthWest().lng() });
         points.push( { lat: this.polygons[i].getBounds().getSouthWest().lat(), lng: this.polygons[i].getBounds().getNorthEast().lng() });
       }
-      for (var i = 0; i < points.length; i++) {
+      for (i = 0; i < points.length; i++) {
         lat = points[i].lat;
         lng = points[i].lng;
         if (!bounds.latMin) {

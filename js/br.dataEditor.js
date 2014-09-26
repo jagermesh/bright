@@ -72,7 +72,7 @@
       } else {
         br.growlError(message);
       }
-    }
+    };
 
     this.editorConfigure = function(isCopy) {
       var s = '';
