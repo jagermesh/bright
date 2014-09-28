@@ -373,17 +373,18 @@
 
     $('.br-scrollable').each(function() {
       var $container = $(this).parent('.br-container');
-      var initialMarginTop = $container.offset().top;
+      var $navBar = $('nav.navbar');
+      if ($navBar.length === 0) { $navBar = $('div.navbar'); }
+      var initialMarginTop = 0;
+      if ($navBar.css('position') != 'static') {
+        initialMarginTop = $container.offset().top;
+      }
 
       $('body').css('overflow', 'hidden');
 
       function resize() {
-        var $navBar = $('nav.navbar');
-        if ($navBar.length === 0) {
-          $navBar = $('div.navbar');
-        }
         var navBarHeight = 0;
-        if (($navBar.length !== 0) && ($navBar.css('position') != 'static')) {
+        if ($navBar.length !== 0) {
           navBarHeight = $navBar.height();
         }
         var height = $(window).height() - navBarHeight - initialMarginTop;
