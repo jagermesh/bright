@@ -2669,10 +2669,9 @@
                             '        <h3 id="br_progressMessage">Working...</h3>' +
                             '      </div>' +
                             '      <div class="modal-body">' +
-                            '        <div class="progress" style="margin-bottom:0px;">' +
-                            '          <div class="progress-bar progress-bar-striped progress progress-striped active br-progress-bar" role="progressbar">' +
-                            '            <div id="br_progressBarBar" class="bar br-progress-bar" style="width: 0%;transition:none;-webkit-transition:none;"></div>' +
-                            '            <span class="sr-only">&nbsp;</span>' +
+                            '        <div class="progress" style="margin-bottom:0px;padding:0px;">' +
+                            '          <div id="br_progressBarBar1" class="progress-bar progress active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="min-width:0px;width:0%;background-color:#008cba;border:none;padding:0px;" >' +
+                            '            <div id="br_progressBarBar2" class="bar" style="width: 0%;transition:none;-webkit-transition:none;"></div>' +
                             '          </div>' +
                             '        </div>' +
                             '      </div>' +
@@ -2690,7 +2689,9 @@
       $('#br_progressMessage').text(message);
       $('#br_progressBar .modal-header').show();
     }
-    $('#br_progressBarBar').css('width', '0%');
+    $('#br_progressBarBar1').css('width', '0%');
+    $('#br_progressBarBar1').attr('aria-valuenow', '0');
+    $('#br_progressBarBar2').css('width', '0%');
     $('#br_progressBar').modal('show');
   };
 
@@ -2714,7 +2715,9 @@
       $('#br_progressBar .modal-header').show();
     }
     var p = Math.round(progressBar_Progress * 100 / progressBar_Total);
-    $('#br_progressBarBar').css('width', p + '%');
+    $('#br_progressBarBar1').css('width', p + '%');
+    $('#br_progressBarBar1').attr('aria-valuenow', p);
+    $('#br_progressBarBar2').css('width', p + '%');
   };
 
   $(document).ready(function() {
