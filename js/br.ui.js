@@ -380,7 +380,7 @@
           $navBar = $('div.navbar');
         }
         var navBarHeight = 0;
-        if ($navBar.length !== 0) {
+        if (($navBar.length !== 0) && ($navBar.css('position') != 'static')) {
           navBarHeight = $navBar.height();
         }
         var height = $(window).height() - navBarHeight - initialMarginTop;

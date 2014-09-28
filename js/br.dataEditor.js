@@ -343,6 +343,11 @@
       _this.inputsContainer.find('input.data-field[type=checkbox]').removeAttr('checked');
       _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio]').find('button').removeClass('active');
 
+      var ctrl = $(this.options.selectors.errorMessage, _this.container);
+      if (ctrl.length > 0) {
+        ctrl.html('').hide();
+      }
+
       if (editorRowid) {
         _this.dataSource.selectOne(editorRowid, function(result, data) {
           if (result) {
