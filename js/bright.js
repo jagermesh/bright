@@ -2637,6 +2637,10 @@
 
   var progressCounter = 0;
 
+  window.br.isAJAXInProgress = function() {
+    return (progressCounter > 0);
+  };
+
   window.br.showAJAXProgress = function() {
     progressCounter++;
     $('.ajax-in-progress').css('visibility', 'visible');
