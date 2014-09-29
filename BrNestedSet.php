@@ -50,7 +50,7 @@ class BrNestedSet extends BrObject {
     if (br()->db()->getValue('SELECT 1 FROM '.$this->tableName.' WHERE (right_key - left_key) % 2 = 0')) {
       throw new BrAppException('Nested set is broken: ' . 4);
     }
-    if (br()->db()->getValue('SELECT 1 FROM '.$this->tableName.' WHERE (left_key - level + 2) % 2  = 1 ')) {
+    if (br()->db()->getValue('SELECT 1 FROM '.$this->tableName.' WHERE (left_key - level + 2) % 2 = 1')) {
       throw new BrAppException('Nested set is broken: ' . 5);
     }
 
