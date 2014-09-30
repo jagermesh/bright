@@ -213,4 +213,21 @@ class BrString {
 
   }
 
+  function crc16() {
+
+    $crc = 0xFFFF;
+    for ($x = 0; $x < strlen($this->value); $x++) {
+      $crc = $crc ^ ord($this->value[$x]);
+      for ($y = 0; $y < 8; $y++) {
+        if (($crc & 0x0001) == 0x0001) {
+          $crc = (($crc >> 1) ^ 0xA001);
+        } else {
+          $crc = $crc >> 1;
+        }
+      }
+    }
+    return $crc;
+
+  }
+
 }
