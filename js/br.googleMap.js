@@ -12,6 +12,7 @@
   function BrGoogleMap(selector, options) {
 
     var _this = this;
+    var worldCenter = new google.maps.LatLng(42, 18);
 
     this.events = br.eventQueue(this);
     this.before = function(event, callback) { this.events.before(event, callback); };
@@ -20,7 +21,7 @@
 
     options = options || { };
     options.zoom = options.zoom || 3;
-    options.mapCenter = options.mapCenter || new google.maps.LatLng(37, 35);
+    options.mapCenter = options.mapCenter || worldCenter;
     options.mapType = options.mapType || google.maps.MapTypeId.ROADMAP;
 
     if (typeof options.streetViewControl == 'undefined') { options.streetViewControl = true; }
@@ -73,8 +74,24 @@
     this.markers = [];
     this.polygons = [];
 
+    var singleClickTimeout;
+
     google.maps.event.addListener(this.map, 'click', function(event) {
       _this.events.trigger('click', event);
+      (function(zoomLevel, event) {
+        singleClickTimeout = window.setTimeout(function() {
+          if (zoomLevel == map.map.getZoom()) {
+            _this.events.trigger('singleclick', event);
+          }
+        }, 300);
+      })(map.map.getZoom(), event);
+    });
+    google.maps.event.addListener(this.map, 'dblclick', function(event) {
+      window.clearTimeout(singleClickTimeout);
+      _this.events.trigger('dblclick', event);
+    });
+    google.maps.event.addListener(this.map, 'rightclick', function(event) {
+      _this.events.trigger('rightclick', event);
     });
     google.maps.event.addListener(this.map, 'bounds_changed', function(event) {
       _this.events.trigger('bounds_changed', event);
@@ -304,6 +321,11 @@
     this.setZoom = function(zoom) {
       _this.map.setZoom(zoom);
     };
+
+    this.world = function() {
+      _this.map.setCenter(worldCenter);
+      _this.map.setZoom(3);
+    }
 
     this.pan = function() {
       var bounds = { }, lat, lng, points = [], i;
