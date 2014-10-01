@@ -1,0 +1,6 @@
+{
+  "laxcomma": true,
+  "loopfunc": true,
+  "laxbreak": true,
+  "sub": true
+}
