@@ -254,7 +254,7 @@ class BrFileSystem extends BrSingleton {
     if ($dir = opendir($startingDir)) {
       while (($file = readdir($dir)) !== false) {
         $fullFileName = $startingDir.$file;
-        if (($file != '..') && ($file != '.')) {
+        if (($file != '..') && ($file != '.') && ($file != '.DS_Store')) {
           $proceed = true;
           if ($mask) {
             $proceed = preg_match('#' . $mask . '#', $file);
@@ -286,7 +286,7 @@ class BrFileSystem extends BrSingleton {
     if ($dir = opendir($startingDir)) {
       while (($file = readdir($dir)) !== false) {
         $fullFileName = $startingDir.$file;
-        if (($file != '..') && ($file != '.')) {
+        if (($file != '..') && ($file != '.') && ($file != '.DS_Store')) {
           $proceed = true;
           if ($mask) {
             $proceed = preg_match('#' . $mask . '#', $file);
