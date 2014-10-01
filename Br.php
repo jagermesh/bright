@@ -442,7 +442,7 @@ class Br extends BrSingleton {
       $result = number_format($secs, 3).' '.'secs';
     }
     if ($mins) {
-      $result = $mins.' '.'mins'.' '.$result;
+      $result = round($mins).' '.'mins'.' '.$result;
     }
     if ($hrs) {
       $result = $hrs.' '.'hrs'.' '.$result;

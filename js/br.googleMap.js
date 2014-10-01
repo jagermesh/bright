@@ -37,7 +37,7 @@
                       , mapTypeControl: options.mapTypeControl
                       , mapTypeControlOptions: {
                             style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR
-                          , position: google.maps.ControlPosition.BOTTOM_CENTER
+                          , position: google.maps.ControlPosition.BOTTOM_LEFT
                         }
                       , panControl: options.panControl
                       , panControlOptions: {
@@ -67,7 +67,6 @@
     this.map = new google.maps.Map(this.mapContainer, this.mapOptions);
     this.directionsService = new google.maps.DirectionsService();
     this.directionsDisplay = new google.maps.DirectionsRenderer();
-    this.directionsDisplay.setMap(this.map);
     this.geocoder = new google.maps.Geocoder();
     this.weatherLayer = null;
     this.travelMode = google.maps.DirectionsTravelMode.DRIVING;
@@ -85,6 +84,22 @@
           }
         }, 300);
       })(map.map.getZoom(), event);
+    });
+
+    function computeRouteParams(result) {
+      var distance = 0, duration = 0;
+      var myroute = result.routes[0];
+      for (i = 0; i < myroute.legs.length; i++) {
+        distance += myroute.legs[i].distance.value;
+        duration += myroute.legs[i].duration.value;
+      }
+      return { distance: distance, duration: duration };
+    }
+
+    google.maps.event.addListener(this.directionsDisplay, 'directions_changed', function() {
+      var routeParams = computeRouteParams(_this.directionsDisplay.directions);
+      routeParams.directions = _this.directionsDisplay.directions;
+      _this.events.trigger('directions_changed', routeParams);
     });
     google.maps.event.addListener(this.map, 'dblclick', function(event) {
       window.clearTimeout(singleClickTimeout);
@@ -396,13 +411,16 @@
       });
     };
 
-    this.drawRoute = function(markers, callback) {
+    this.clearRoute = function() {
+      map.directionsDisplay.setMap(null);
+    }
+
+    this.drawRoute = function(coord, callback) {
       var origin = null;
       var destination = null;
       var waypoints = [];
-      markers = markers || this.markers;
-      for (var i = 0; i < markers.length; i++) {
-        var latLng = new google.maps.LatLng(markers[i].position.lat(), markers[i].position.lng());
+      for (var i = 0; i < coord.length; i++) {
+        var latLng = coord[i];
         if (origin === null) {
           origin = latLng;
         } else
@@ -425,17 +443,12 @@
         };
         this.directionsService.route(request, function(response, status) {
           if (status == google.maps.DirectionsStatus.OK) {
-            var distance = 0;
-            var duration = 0;
-            for (var i = 0; i < Math.min(1, response.routes.length); i++) {
-              for (var k = 0; k < response.routes[i].legs.length; k++) {
-                distance += response.routes[i].legs[k].distance.value;
-                duration += response.routes[i].legs[k].duration.value;
-              }
-            }
-            map.directionsDisplay.setDirections(response);
+            _this.directionsDisplay.setMap(_this.map);
+            _this.directionsDisplay.setDirections(response);
+            var routeParams = computeRouteParams(_this.directionsDisplay.directions);
+            routeParams.directions = _this.directionsDisplay.directions;
             if (callback) {
-              callback.call(this, true, { distance: distance, duration: duration });
+              callback.call(this, true, routeParams);
             }
           } else {
             if (callback) {
@@ -443,7 +456,21 @@
             }
           }
         });
+      } else {
+        if (callback) {
+          callback.call(this, false);
+        }
       }
+    }
+
+    this.drawRouteByTag = function(tag, callback) {
+      var coord = [];
+      for (var i = 0; i < this.markers.length; i++) {
+        if ((this.markers[i].custom.tag == tag) || br.isEmpty(tag)) {
+          coord.push(new google.maps.LatLng(this.markers[i].position.lat(), this.markers[i].position.lng()));
+        }
+      }
+      this.drawRoute(coord, callback);
     };
 
     if (this.weather) {
