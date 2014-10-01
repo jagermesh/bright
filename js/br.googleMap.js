@@ -340,7 +340,7 @@
     this.world = function() {
       _this.map.setCenter(worldCenter);
       _this.map.setZoom(3);
-    }
+    };
 
     this.pan = function() {
       var bounds = { }, lat, lng, points = [], i;
