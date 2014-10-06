@@ -413,7 +413,7 @@
 
     this.clearRoute = function() {
       map.directionsDisplay.setMap(null);
-    }
+    };
 
     this.drawRoute = function(coord, callback) {
       var origin = null;
@@ -461,7 +461,7 @@
           callback.call(this, false);
         }
       }
-    }
+    };
 
     this.drawRouteByTag = function(tag, callback) {
       var coord = [];

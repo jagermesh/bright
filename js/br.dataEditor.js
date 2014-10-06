@@ -92,9 +92,11 @@
       _this.container.find('.operation').text(s);
     };
 
-    this.save = function(andClose, callback) {
+    this.save = function(andClose, callback, silent) {
+    // this.save = function(callback, silent) {
       if (br.isFunction(andClose)) {
         callback = andClose;
+        silent = callback;
         andClose = false;
       }
       var data = { };
@@ -174,7 +176,7 @@
                   br.backToCaller(_this.options.returnUrl, true);
                 }
               } else {
-                if (!_this.options.hideSaveNotification) {
+                if (!_this.options.hideSaveNotification && !silent) {
                   br.growlMessage('Changes saved', 'Success');
                 }
               }
@@ -208,7 +210,7 @@
                   br.backToCaller(_this.options.returnUrl, true);
                 }
               } else {
-                if (!_this.options.hideSaveNotification) {
+                if (!_this.options.hideSaveNotification && !silent) {
                   br.growlMessage('Changes saved', 'Success');
                 }
               }

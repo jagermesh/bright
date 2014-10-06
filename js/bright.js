@@ -393,7 +393,7 @@
 
 ;(function (window) {
 
-  function BrEvents(obj) {
+  function BrEventQueue(obj) {
 
     var _this = this;
 
@@ -423,6 +423,10 @@
         _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], before: [], after: [] };
         _this.subscribers[events[i]].after.push(callback);
       }
+    };
+
+    this.has = function(eventName) {
+      return (_this.subscribers.indexOf(eventName) != -1);
     };
 
     this.connectTo = function(eventQueue) {
@@ -501,7 +505,7 @@
   window.br = window.br || {};
 
   window.br.eventQueue = function(obj) {
-    return new BrEvents(obj);
+    return new BrEventQueue(obj);
   };
 
 })(window);

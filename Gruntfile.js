@@ -42,8 +42,7 @@ module.exports = function(grunt) {
       files: ['Gruntfile.js', 'js/*.js', '!js/<%= pkg.name %>.min.js'],
       options: {
         // options here to override JSHint defaults
-        laxcomma: true,
-        loopfunc: true,
+        jshintrc: true,
         globals: {
           jQuery: true,
           module: true,
