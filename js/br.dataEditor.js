@@ -66,7 +66,6 @@
     };
 
     this.showError = function(message) {
-      alert(message);
       var ctrl = $(this.options.selectors.errorMessage, _this.container);
       if (ctrl.length > 0) {
         ctrl.html(message).show();
@@ -360,7 +359,9 @@
       }
 
       if (editorRowid) {
-        _this.dataSource.selectOne(editorRowid, function(result, data) {
+        var request = {rowid: editorRowid};
+        _this.events.triggerBefore('editor.loadData', request);
+        _this.dataSource.select(request, function(result, data) {
           if (result) {
             editorRowData = data;
             _this.events.triggerBefore('editor.show', data, isCopy);

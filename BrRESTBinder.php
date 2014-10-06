@@ -415,6 +415,9 @@ class BrRESTBinder extends BrObject {
         $dataSource = new $dataSource();
       }
 
+      $dataSourceOptions = array();
+      $dataSourceOptions['source'] = 'RESTBinder';
+
       $method = $method = br()->request()->get('__method');
       if (!$method) {
         if ($matches = br()->request()->isAt(rtrim($path, '/').'/([a-zA-Z]+)/($|[?])')) {
@@ -441,7 +444,8 @@ class BrRESTBinder extends BrObject {
           $row[$name] = $value;
         }
         try {
-          $result = $dataSource->invoke($method, $row);
+          $t = array();
+          $result = $dataSource->invoke($method, $row, $t, $dataSourceOptions);
           if (br()->request()->get('crossdomain')) {
             br()->response()->sendJSONP($result);
           } else {
@@ -480,7 +484,8 @@ class BrRESTBinder extends BrObject {
           unset($row['id']);
         }
         try {
-          $result = $dataSource->update($matches[1], $row);
+          $t = array();
+          $result = $dataSource->update($matches[1], $row, $t, $dataSourceOptions);
           if (br()->request()->get('crossdomain')) {
             br()->response()->sendJSONP($result);
           } else {
@@ -579,6 +584,9 @@ class BrRESTBinder extends BrObject {
         $dataSource = new $dataSource();
       }
 
+      $dataSourceOptions = array();
+      $dataSourceOptions['source'] = 'RESTBinder';
+
       br()->request()->continueRoute(false);
 
       if ($matches = br()->request()->isAt(rtrim($path, '/').'/([0-9a-z]+)')) {
@@ -586,7 +594,8 @@ class BrRESTBinder extends BrObject {
         $this->checkPermissions($options, array('remove', 'delete'));
 
         try {
-          $result = $dataSource->remove($matches[1]);
+          $t = array();
+          $result = $dataSource->remove($matches[1], $t, $dataSourceOptions);
           if (br()->request()->get('crossdomain')) {
             br()->response()->sendJSONP($result);
           } else {

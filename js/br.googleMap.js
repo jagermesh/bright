@@ -70,8 +70,8 @@
     this.geocoder = new google.maps.Geocoder();
     this.weatherLayer = null;
     this.travelMode = google.maps.DirectionsTravelMode.DRIVING;
-    this.markers = [];
-    this.polygons = [];
+    this.markers = { };
+    this.polygons = { };
 
     var singleClickTimeout;
 
@@ -158,28 +158,37 @@
       }
     };
 
+    function internalRemoveMarkers(tag) {
+      if (_this.markers[tag]) {
+        for (var i = _this.markers[tag].length-1; i >= 0; i--) {
+          _this.markers[i].setMap(null);
+          _this.markers.splice(i, 1);
+        }
+      }
+    }
+
     this.removeMarkers = function(tag) {
-      tag = tag || '';
-      for (var i = this.markers.length-1; i >= 0; i--) {
-        if ((this.markers[i].custom.tag == tag) || br.isEmpty(tag)) {
-          this.markers[i].setMap(null);
-          this.markers.splice(i, 1);
+      if (tag) {
+        internalRemoveMarkers(tag);
+      } else {
+        for(tag in _this.markers) {
+          internalRemoveMarkers(tag);
         }
       }
     };
 
-    this.addMarker = function(lat, lng, params) {
+    this.addMarker = function(lat, lng, params, tag, custom) {
       params = params || { };
-      params.custom = params.custom || { };
-      params.custom.tag = params.custom.tag || '';
       var latLng = new google.maps.LatLng(lat, lng);
       var marker = new google.maps.Marker({ position: latLng
                                           , map: this.map
                                           , icon: params.icon
                                           , draggable: params.draggable
-                                          , custom: params.custom
                                           });
-      this.markers.push(marker);
+      marker.custom = custom || { };
+      tag = tag || '_';
+      this.markers[tag] = this.markers[tag] || [];
+      this.markers[tag].push(marker);
       google.maps.event.addListener(marker, 'click', function(event) {
         _this.events.trigger('marker.click', marker, event);
       });
@@ -189,6 +198,18 @@
         });
       }
       return marker;
+    };
+
+    this.getMarkersByTag = function(tag) {
+      return _this.markers[tag] || [];
+    };
+
+    this.getMarkersCount = function() {
+      var result = 0;
+      for(var tag in _this.markers) {
+        result += _this.markers[tag].length;
+      }
+      return result;
     };
 
     function array_map(array, callback) {
@@ -271,20 +292,27 @@
       };
     }
 
+    function internalRemovePlygons(tag) {
+      if (_this.polygons[tag]) {
+        for (var i = _this.polygons[tag].length-1; i >= 0; i--) {
+          _this.polygons[i].setMap(null);
+          _this.polygons.splice(i, 1);
+        }
+      }
+    }
+
     this.removePolygons = function(tag) {
-      tag = tag || '';
-      for (var i = this.polygons.length-1; i >= 0; i--) {
-        if ((this.polygons[i].custom.tag == tag) || br.isEmpty(tag)) {
-          this.polygons[i].setMap(null);
-          this.polygons.splice(i, 1);
+      if (tag) {
+        internalRemovePlygons(tag);
+      } else {
+        for(tag in _this.polygons) {
+          internalRemovePlygons(tag);
         }
       }
     };
 
-    this.addGeoJSONPolygon = function(coordinates, params) {
+    this.addGeoJSONPolygon = function(coordinates, params, tag, custom) {
       params = params || { };
-      params.custom = params.custom || { };
-      params.custom.tag = params.custom.tag || '';
       params.paths = array_flat(array_map(coordinates, arrayToLatLng, true));
       params.map = _this.map;
       params.strokeColor = params.strokeColor || '#999';
@@ -294,12 +322,27 @@
       params.fillOpacity = params.fillOpacity || 0.3;
 
       var polygon = new google.maps.Polygon(params);
-      this.polygons.push(polygon);
+      polygon.custom = custom;
+      tag = tag || '_';
+      this.polygons[tag] = this.polygons[tag] || [];
+      this.polygons[tag].push(polygon);
       google.maps.event.addListener(polygon, 'click', function(event) {
         _this.events.trigger('polygon.click', polygon, event);
       });
       return polygon;
 
+    };
+
+    this.getPolygonsByTag = function(tag) {
+      return _this.polygons[tag] || [];
+    };
+
+    this.getPolygonsCount = function() {
+      var result = 0;
+      for(var tag in _this.polygons) {
+        result += _this.polygons[tag].length;
+      }
+      return result;
     };
 
     this.setMapType = function(value) {
@@ -343,15 +386,19 @@
     };
 
     this.pan = function() {
-      var bounds = { }, lat, lng, points = [], i;
-      for (i = 0; i < this.markers.length; i++) {
-        points.push( { lat: this.markers[i].position.lat(), lng: this.markers[i].position.lng() });
+      var bounds = { }, lat, lng, tag, points = [], i;
+      for (tag in this.markers) {
+        for (i = 0; i < this.markers[tag].length; i++) {
+          points.push( { lat: this.markers[tag][i].position.lat(), lng: this.markers[tag][i].position.lng() });
+        }
       }
-      for (i = 0; i < this.polygons.length; i++) {
-        points.push( { lat: this.polygons[i].getBounds().getNorthEast().lat(), lng: this.polygons[i].getBounds().getNorthEast().lng() });
-        points.push( { lat: this.polygons[i].getBounds().getSouthWest().lat(), lng: this.polygons[i].getBounds().getSouthWest().lng() });
-        points.push( { lat: this.polygons[i].getBounds().getNorthEast().lat(), lng: this.polygons[i].getBounds().getSouthWest().lng() });
-        points.push( { lat: this.polygons[i].getBounds().getSouthWest().lat(), lng: this.polygons[i].getBounds().getNorthEast().lng() });
+      for (tag in this.polygons) {
+        for (i = 0; i < this.polygons[tag].length; i++) {
+          points.push( { lat: this.polygons[tag][i].getBounds().getNorthEast().lat(), lng: this.polygons[tag][i].getBounds().getNorthEast().lng() });
+          points.push( { lat: this.polygons[tag][i].getBounds().getSouthWest().lat(), lng: this.polygons[tag][i].getBounds().getSouthWest().lng() });
+          points.push( { lat: this.polygons[tag][i].getBounds().getNorthEast().lat(), lng: this.polygons[tag][i].getBounds().getSouthWest().lng() });
+          points.push( { lat: this.polygons[tag][i].getBounds().getSouthWest().lat(), lng: this.polygons[tag][i].getBounds().getNorthEast().lng() });
+        }
       }
       for (i = 0; i < points.length; i++) {
         lat = points[i].lat;
@@ -465,10 +512,9 @@
 
     this.drawRouteByTag = function(tag, callback) {
       var coord = [];
-      for (var i = 0; i < this.markers.length; i++) {
-        if ((this.markers[i].custom.tag == tag) || br.isEmpty(tag)) {
-          coord.push(new google.maps.LatLng(this.markers[i].position.lat(), this.markers[i].position.lng()));
-        }
+      var markers = this.getMarkersByTag(tag);
+      for (var i = 0; i < markers.length; i++) {
+        coord.push(new google.maps.LatLng(markers[i].position.lat(), markers[i].position.lng()));
       }
       this.drawRoute(coord, callback);
     };

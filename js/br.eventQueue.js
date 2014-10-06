@@ -42,7 +42,7 @@
     };
 
     this.has = function(eventName) {
-      return (_this.subscribers.indexOf(eventName) != -1);
+      return _this.subscribers.hasOwnProperty(eventName);
     };
 
     this.connectTo = function(eventQueue) {
