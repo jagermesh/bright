@@ -66,6 +66,7 @@
     };
 
     this.showError = function(message) {
+      alert(message);
       var ctrl = $(this.options.selectors.errorMessage, _this.container);
       if (ctrl.length > 0) {
         ctrl.html(message).show();
@@ -180,6 +181,10 @@
               if (callback) {
                 callback.call(this);
               }
+            } else {
+              if (!_this.dataSource.events.has('error')) {
+                _this.showError(response);
+              }
             }
           });
         } else {
@@ -209,6 +214,10 @@
               }
               if (callback) {
                 callback.call(this);
+              }
+            } else {
+              if (!_this.dataSource.events.has('error')) {
+                _this.showError(response);
               }
             }
           });
