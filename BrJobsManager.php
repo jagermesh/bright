@@ -56,12 +56,20 @@ class BrJobsManager {
               }
               foreach($list as $params) {
                 if (br()->OS()->getProcessesAmount($this->jobScript) < $this->maxProcessesAmount) {
-                  $runCommand = $this->jobScript . ' ' . $jobDesc['classFile'] . ' ' . $jobDesc['className'] . ' ' . $params;
+                  $runCommand = trim($this->jobScript . ' ' . $jobDesc['classFile'] . ' ' . $jobDesc['className'] . ' ' . $params);
                   br()->log('[TIME TO START] ' . $runCommand);
                   if (br()->OS()->getProcessesAmount($runCommand) > 0) {
                     br()->log('  Already in progress');
                   } else {
-                    $command = $this->shellScript . ' ' . $runCommand . ' > /dev/null 2>&1 & echo $!';
+                    $logFileName = $this->baseFolder . '_logs';
+                    if (is_writable($logFileName)) {
+                      $uniqueName = trim('run-job.php '. $jobDesc['className'] . ' ' . $params);
+                      $logFileName .= '/' . date('Y-m-d') . '/console-' . br()->fs()->normalizeFileName($uniqueName) . '/' . date('Y-m-d-H-i-s') . '.log';
+                    } else {
+                      $logFileName = '/dev/null';
+                    }
+                    $command = $this->shellScript . ' ' . $runCommand . ' > ' . $logFileName . ' 2>&1 & echo $!';
+                    br()->log('  Command: ' . $command);
                     $output = '';
                     exec($command, $output);
                     br()->log('  Started, PID = ' . @$output[0]);
