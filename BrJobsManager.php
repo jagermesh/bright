@@ -63,12 +63,16 @@ class BrJobsManager {
                   } else {
                     $logFileName = $this->baseFolder . '_logs';
                     if (is_writable($logFileName)) {
-                      $uniqueName = trim('run-job.php '. $jobDesc['className'] . ' ' . $params);
-                      $logFileName .= '/' . date('Y-m-d') . '/console-' . br()->fs()->normalizeFileName($uniqueName) . '/' . date('Y-m-d-H-i-s') . '.log';
+                      $logFileName .= '/' . date('Y-m-d') . '/' . br()->fs()->normalizeFileName(trim('run-job.php '. $jobDesc['className'] . ' ' . $params));
+                      if (br()->fs()->makeDir($logFileName)) {
+                        $logFileName .= '/' . date('Y-m-d-H') . '.console.log';
+                      } else {
+                        $logFileName = '/dev/null';
+                      }
                     } else {
                       $logFileName = '/dev/null';
                     }
-                    $command = $this->shellScript . ' ' . $runCommand . ' > ' . $logFileName . ' 2>&1 & echo $!';
+                    $command = $this->shellScript . ' ' . $runCommand . ' >> ' . $logFileName . ' 2>&1 & echo $!';
                     br()->log('  Command: ' . $command);
                     $output = '';
                     exec($command, $output);
