@@ -61,12 +61,23 @@
         _this.editor.attr('data-original-title', 'Press [Enter] to save changes, [Esc] to cancel changes.');
         _this.editor.tooltip({placement: 'bottom', trigger: 'focus'});
         _this.editor.tooltip('show');
+        if (_this.options.saveOnLoosingFocus) {
+          $(_this.editor).on('blur', function(e) {
+            var content = $(this).val();
+            if (_this.options.onSave) {
+              _this.editor.tooltip('hide');
+              _this.options.onSave.call(_this.ctrl, content, 'blur');
+            } else {
+              _this.apply(content);
+            }
+          });
+        }
         $(_this.editor).keyup(function(e) {
           if (e.keyCode == 13) {
             var content = $(this).val();
             if (_this.options.onSave) {
               _this.editor.tooltip('hide');
-              _this.options.onSave.call(_this.ctrl, content);
+              _this.options.onSave.call(_this.ctrl, content, 'keyup');
             } else {
               _this.apply(content);
             }
