@@ -180,7 +180,7 @@
                 }
               }
               if (callback) {
-                callback.call(this);
+                callback.call(this, response);
               }
             } else {
               if (!_this.dataSource.events.has('error')) {
@@ -214,7 +214,7 @@
                 }
               }
               if (callback) {
-                callback.call(this);
+                callback.call(this, response);
               }
             } else {
               if (!_this.dataSource.events.has('error')) {
