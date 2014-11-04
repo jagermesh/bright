@@ -2125,60 +2125,55 @@
 
     function render(data) {
 
-      if (_this.isValid()) {
-
-        if (_this.saveSelection) {
-          _this.options.selectedValue = br.storage.get(storageTag(_this.selector));
-        }
-
-        _this.selector.each(function() {
-          var val = $(this).val();
-          if (br.isEmpty(val)) {
-            val = $(this).attr('data-value');
-            $(this).removeAttr('data-value');
-          }
-          $(this).html('');
-
-          var s = '';
-          var cbObj = {};
-          cbObj.data = data;
-          if (_this.options.hideEmptyValue) {
-
-          } else {
-            cbObj.s = s;
-            _this.events.triggerBefore('generateEmptyOption', cbObj, $(this));
-            s = cbObj.s;
-            s = s + '<option value="' + _this.options.emptyValue + '">' + _this.options.emptyName + '</option>';
-          }
-
-          cbObj.s = s;
-          _this.events.triggerBefore('generateOptions', cbObj, $(this));
-          s = cbObj.s;
-
-          for(var i in data) {
-            s = s + renderRow(data[i]);
-            if (br.isEmpty(_this.options.selectedValue) && !br.isEmpty(_this.options.selectedValueField)) {
-              var selectedValue = data[i][_this.options.selectedValueField];
-              if ((br.isBoolean(selectedValue) && selectedValue) || (br.toInt(selectedValue) == 1)) {
-                _this.options.selectedValue = data[i][_this.options.valueField];
-              }
-            }
-          }
-          $(this).html(s);
-
-          if (!br.isEmpty(_this.options.selectedValue)) {
-            $(this).find('option[value=' + _this.options.selectedValue +']').attr('selected', 'selected');
-          } else
-          if (!br.isEmpty(val)) {
-            $(this).find('option[value=' + val +']').attr('selected', 'selected');
-          }
-
-        });
-
-        uiSync();
+      if (_this.saveSelection) {
+        _this.options.selectedValue = br.storage.get(storageTag(_this.selector));
       }
 
-      _this.events.trigger('load', data);
+      _this.selector.each(function() {
+        var val = $(this).val();
+        if (br.isEmpty(val)) {
+          val = $(this).attr('data-value');
+          $(this).removeAttr('data-value');
+        }
+        $(this).html('');
+
+        var s = '';
+        var cbObj = {};
+        cbObj.data = data;
+        if (_this.options.hideEmptyValue) {
+
+        } else {
+          cbObj.s = s;
+          _this.events.triggerBefore('generateEmptyOption', cbObj, $(this));
+          s = cbObj.s;
+          s = s + '<option value="' + _this.options.emptyValue + '">' + _this.options.emptyName + '</option>';
+        }
+
+        cbObj.s = s;
+        _this.events.triggerBefore('generateOptions', cbObj, $(this));
+        s = cbObj.s;
+
+        for(var i in data) {
+          s = s + renderRow(data[i]);
+          if (br.isEmpty(_this.options.selectedValue) && !br.isEmpty(_this.options.selectedValueField)) {
+            var selectedValue = data[i][_this.options.selectedValueField];
+            if ((br.isBoolean(selectedValue) && selectedValue) || (br.toInt(selectedValue) == 1)) {
+              _this.options.selectedValue = data[i][_this.options.valueField];
+            }
+          }
+        }
+        $(this).html(s);
+
+        if (!br.isEmpty(_this.options.selectedValue)) {
+          $(this).find('option[value=' + _this.options.selectedValue +']').attr('selected', 'selected');
+        } else
+        if (!br.isEmpty(val)) {
+          $(this).find('option[value=' + val +']').attr('selected', 'selected');
+        }
+
+      });
+
+      uiSync();
 
     }
 
@@ -2188,22 +2183,33 @@
         filter = {};
       }
       if (_this.dataSource) {
-        _this.dataSource.select(filter, function(result, response) {
-          if (result) {
-            if (callback) {
-              callback.call(_this.selector, result, response);
+        if (_this.isValid()) {
+          _this.dataSource.select(filter, function(result, response) {
+            if (result) {
+              if (callback) {
+                callback.call(_this.selector, result, response);
+              }
+              uiSync();
+              _this.loaded = true;
             }
-            uiSync();
-            _this.loaded = true;
+          }, { fields: _this.fields });
+        } else {
+          if (callback) {
+            callback.call(_this.selector, true, []);
           }
-        }, { fields: _this.fields });
+          _this.loaded = true;
+          _this.events.trigger('load', []);
+        }
       }
     };
 
     if (_this.dataSource) {
 
       _this.dataSource.on('select', function(data) {
-        render(data);
+        if (_this.isValid()) {
+          render(data);
+        }
+        _this.events.trigger('load', data);
       });
 
       _this.dataSource.after('insert', function(result, data) {
