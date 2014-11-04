@@ -306,6 +306,7 @@ class BrMySQLProviderTable {
             // $args[] = $filterValue;
           }
           break;
+        case '$nin':
         case '$ne':
           if (is_array($filterValue)) {
             $where .= $link . $fname2 . ' NOT IN (?@)';

@@ -186,6 +186,9 @@
 
           if (!br.isEmpty(_this.options.selectedValue)) {
             $(this).find('option[value=' + _this.options.selectedValue +']').attr('selected', 'selected');
+          } else
+          if (!br.isEmpty(val)) {
+            $(this).find('option[value=' + val +']').attr('selected', 'selected');
           }
 
         });
