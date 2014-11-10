@@ -2705,10 +2705,15 @@
                             '        <h3 id="br_progressMessage">Working...</h3>' +
                             '      </div>' +
                             '      <div class="modal-body">' +
-                            '        <div class="progress" style="margin-bottom:0px;padding:0px;">' +
-                            '          <div id="br_progressBarBar1" class="progress-bar progress active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="min-width:0px;width:0%;background-color:#008cba;border:none;padding:0px;" >' +
-                            '            <div id="br_progressBarBar2" class="bar" style="width: 0%;transition:none;-webkit-transition:none;"></div>' +
+                            '        <div id="br_progressBarBar" style="display:none;">' +
+                            '          <div class="progress" style="margin-bottom:0px;padding:0px;">' +
+                            '            <div id="br_progressBarBar1" class="progress-bar progress active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="min-width:0px;width:0%;background-color:#008cba;border:none;padding:0px;" >' +
+                            '              <div id="br_progressBarBar2" class="bar" style="width: 0%;transition:none;-webkit-transition:none;"></div>' +
+                            '            </div>' +
                             '          </div>' +
+                            '        </div>' +
+                            '        <div id="br_progressBarAnimation" style="display1:none;padding-top:10px;">' +
+                            '          <center><img src="' + br.baseUrl + 'images/progress-big.gif" /></center>' +
                             '        </div>' +
                             '      </div>' +
                             '    </div>' +
@@ -2720,6 +2725,13 @@
     progressBar_Progress = 0;
     if ($('#br_progressBar').length === 0) {
       $('body').append($(progressBarTemplate));
+    }
+    if (progressBar_Total > 1) {
+      $('#br_progressBarBar').show();
+      // $('#br_progressBarAnimation').hide();
+    } else {
+      $('#br_progressBarBar').hide();
+      // $('#br_progressBarAnimation').show();
     }
     if (message) {
       $('#br_progressMessage').text(message);
