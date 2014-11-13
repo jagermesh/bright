@@ -200,6 +200,30 @@
       }
     };
 
+
+    function processQueued(processRowCallback, processCompleteCallback) {
+
+      if (selectionQueue.length > 0) {
+        var rowid = selectionQueue.pop();
+        processRowCallback(rowid, function() {
+          processQueued(processRowCallback, processCompleteCallback);
+        });
+      } else
+      if (processCompleteCallback) {
+        processCompleteCallback();
+      }
+
+    }
+
+    this.processSelection = function(processRowCallback, processCompleteCallback) {
+      selectionQueue = _this.selection.get();
+      if (selectionQueue.length > 0) {
+        processQueued(processRowCallback, processCompleteCallback);
+      } else {
+        br.growlError('Please select at least one record');
+      }
+    };
+
     this.init = function() {
       // nav
       $('.nav-item[rel=' + _this.options.nav + ']').addClass('active');
