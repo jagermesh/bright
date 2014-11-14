@@ -2498,7 +2498,7 @@
       s = s + ' ' + params.cssClass;
     }
 
-    s = s + '">'+
+    s = s + '" id="br_modalConfirm">'+
             '<div class="modal-dialog">' +
             '<div class="modal-content">' +
             '<div class="modal-header"><h3 class="modal-title">' + title + '</h3></div>' +
@@ -2522,18 +2522,18 @@
     var dialog = $(s);
     var onShow = function(e) {
       $(this).find('.action-confirm-close').click(function() {
-        if (params.showDontAskMeAgain) {
-          callback.call(dialog, $(this).attr('rel'), $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked'));
-        } else {
-          callback.call(dialog, $(this).attr('rel'));
-        }
-        $(dialog).modal('hide');
+        var button = $(this).attr('rel');
+        var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');
+        dialog.modal('hide');
+        callback(button, dontAsk);
       });
       $(this).find('.action-confirm-cancel').click(function() {
+        var button = 'cancel';
+        var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');
+        dialog.modal('hide');
         if (params.onCancel) {
-          params.onCancel.call(dialog);
+          params.onCancel(button, dontAsk);
         }
-        $(dialog).modal('hide');
       });
     };
     var onHide = function(e) {
@@ -2541,11 +2541,11 @@
     };
     $(dialog).on('show.bs.modal', onShow);
     $(dialog).on('hide.bs.modal', onHide);
-    $(dialog).modal();
+    $(dialog).modal('show');
   };
 
   window.br.error = function(title, message, callback) {
-    var s = '<div class="modal">' +
+    var s = '<div class="modal" id="br_modalError">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">';
     if (title !== '') {
@@ -2561,11 +2561,11 @@
       }
     };
     $(dialog).on('hide.bs.modal', onHide);
-    $(dialog).modal();
+    $(dialog).modal('show');
   };
 
   window.br.inform = function(title, message, callback) {
-    var s = '<div class="modal">' +
+    var s = '<div class="modal" id="br_modalInform">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">';
     if (title !== '') {
@@ -2581,17 +2581,12 @@
       }
     };
     $(dialog).on('hide.bs.modal', onHide);
-    $(dialog).modal();
+    $(dialog).modal('show');
   };
 
   window.br.prompt = function(title, fields, callback, options) {
 
     options = options || {};
-    var s = '<div class="modal">'+
-            '<div class="modal-dialog">' +
-            '<div class="modal-content">' +
-            '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>' + title + '</h3></div>' +
-            '<div class="modal-body">';
 
     var inputs = {};
 
@@ -2601,6 +2596,11 @@
       inputs[fields] = '';
     }
 
+    var s = '<div class="modal" id="br_modalPrompt">'+
+            '<div class="modal-dialog">' +
+            '<div class="modal-content">' +
+            '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>' + title + '</h3></div>' +
+            '<div class="modal-body">';
     for(var i in inputs) {
       if (br.isObject(inputs[i])) {
         s = s + '<label>' + i + '</label>' +
@@ -2608,10 +2608,10 @@
               (inputs[i].id ? 'id="'+inputs[i].id+'"' : '') +
               ' class="span4 ' + (br.isEmpty(inputs[i]['class']) ? '' : inputs[i]['class']) + '"' +
               ' value="' + inputs[i].value + '"' +
-              ' data-click-on-enter=".action-confirm-close" />';
+              ' data-click-on-enter="#br_promptModal .action-confirm-close" />';
       } else {
         s = s + '<label>' + i + '</label>' +
-                '<input type="text" class="span4" value="' + inputs[i] + '" data-click-on-enter=".action-confirm-close" />';
+                '<input type="text" class=" ' + (options.valueType == 'int' ? ' input-small' : ' justified') + (options.valueRequired ? ' required' : '') + ' " value="' + inputs[i] + '" data-click-on-enter=".action-confirm-close" />';
       }
     }
 
@@ -2627,21 +2627,32 @@
       })
       .on('show', function(e) {
         $(this).find('.action-confirm-close').click(function() {
-          $(dialog).modal('hide');
           var results = [];
+          var ok = true, notOkField;
           $(this).closest('div.modal').find('input[type=text]').each(function() {
+            if ($(this).hasClass('required') && br.isEmpty($(this).val())) {
+              ok = false;
+              notOkField = $(this);
+            }
             results.push($(this).val());
           });
-          callback.call(this, results);
+          if (ok) {
+            $(dialog).modal('hide');
+            callback.call(this, results);
+          } else {
+            br.growlError('Please enter value');
+            notOkField[0].focus();
+          }
         });
-      })
-      .on('hide', function(e) {
-        dialog.remove();
-        if (options.onhide) {
-          options.onhide.call(this);
-        }
       });
-    $(dialog).modal();
+    var onHide = function(e) {
+      dialog.remove();
+      if (options.onhide) {
+        options.onhide.call(this);
+      }
+    };
+    $(dialog).on('hide.bs.modal', onHide);
+    $(dialog).modal('show');
   };
 
   var noTemplateEngine = false;

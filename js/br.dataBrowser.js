@@ -140,7 +140,7 @@
     function deleteQueued() {
 
       if (selectionQueue.length > 0) {
-        var rowid = selectionQueue.pop();
+        var rowid = selectionQueue.shift();
         _this.dataSource.remove(rowid, function(result, response) {
           if (result) {
             _this.selection.remove(rowid);
@@ -173,7 +173,7 @@
     function updateQueued(func) {
 
       if (selectionQueue.length > 0) {
-        var rowid = selectionQueue.pop();
+        var rowid = selectionQueue.shift();
         var data = {};
         func(data);
         _this.dataSource.update(rowid, data, function(result, response) {
@@ -204,7 +204,7 @@
     function processQueued(processRowCallback, processCompleteCallback) {
 
       if (selectionQueue.length > 0) {
-        var rowid = selectionQueue.pop();
+        var rowid = selectionQueue.shift();
         processRowCallback(rowid, function() {
           processQueued(processRowCallback, processCompleteCallback);
         });
