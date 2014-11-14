@@ -104,6 +104,9 @@
     s = s + '</div></div></div></div>';
     var dialog = $(s);
     var onShow = function(e) {
+      if (params.onShow) {
+        params.onShow.call(dialog);
+      }
       $(this).find('.action-confirm-close').click(function() {
         var button = $(this).attr('rel');
         var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');
