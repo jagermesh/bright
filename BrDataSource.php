@@ -311,7 +311,6 @@ class BrDataSource extends BrGenericDataSource {
     $filter[br()->db()->rowidField()] = br()->db()->rowid($rowid);
 
     if ($crow = $table->findOne($filter)) {
-
       try {
         br()->db()->startTransaction();
 
@@ -345,10 +344,20 @@ class BrDataSource extends BrGenericDataSource {
         $this->trigger('error', $error, $operation, $e);
         throw $e;
       }
-
       return $result;
     } else {
-      throw new BrDataSourceNotFound();
+      $e = new BrDataSourceNotFound();
+      $operation = 'remove';
+      $error = 'Record not found';
+      $result = $this->trigger('error', $error, $operation, $e);
+      if (is_null($result)) {
+        throw new $e;
+      } else
+      if (is_bool($result)) {
+        return array();
+      } else {
+        return $result;
+      }
     }
 
   }
