@@ -290,8 +290,12 @@ class BrDataSource extends BrGenericDataSource {
         br()->db()->rollbackTransaction();
         $operation = 'insert';
         $error = $e->getMessage();
-        $this->trigger('error', $error, $operation, $e);
-        throw $e;
+        $result = $this->trigger('error', $error, $operation, $e);
+        if (is_null($result)) {
+          throw new $e;
+        } else {
+          return $result;
+        }
       }
     }
 
