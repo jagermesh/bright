@@ -304,7 +304,7 @@
                             '      <div class="modal-body">' +
                             '        <div id="br_progressBarBar" style="display:none;">' +
                             '          <div class="progress" style="margin-bottom:0px;padding:0px;">' +
-                            '            <div id="br_progressBarBar1" class="progress-bar progress active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="min-width:0px;width:0%;background-color:#008cba;border:none;padding:0px;" >' +
+                            '            <div id="br_progressBarBar1" class="progress-bar progress active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="min-width:0px;background-color:#008cba;border:none;padding:0px;" >' +
                             '              <div id="br_progressBarBar2" class="bar" style="width: 0%;transition:none;-webkit-transition:none;"></div>' +
                             '            </div>' +
                             '          </div>' +
@@ -334,7 +334,7 @@
       $('#br_progressMessage').text(message);
       $('#br_progressBar .modal-header').show();
     }
-    $('#br_progressBarBar1').css('width', '0%');
+    // $('#br_progressBarBar1').css('width', '0%');
     $('#br_progressBarBar1').attr('aria-valuenow', '0');
     $('#br_progressBarBar2').css('width', '0%');
     $('#br_progressBar').modal('show');
