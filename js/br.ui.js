@@ -360,7 +360,7 @@
       $('#br_progressBar .modal-header').show();
     }
     var p = Math.round(progressBar_Progress * 100 / progressBar_Total);
-    $('#br_progressBarBar1').css('width', p + '%');
+    // $('#br_progressBarBar1').css('width', p + '%');
     $('#br_progressBarBar1').attr('aria-valuenow', p);
     $('#br_progressBarBar2').css('width', p + '%');
   };
