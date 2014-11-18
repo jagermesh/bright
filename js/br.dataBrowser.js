@@ -594,12 +594,13 @@
         $pc = $(c('.pager-page-navigation'));
         $pc.html('');
         s = '';
-        var f1 = false, f2 = false, r = 5;
+        var f1 = false, f2 = false, r = 5, el = false;
         for (i = 1; i <= totalPages; i++) {
           if ((i <= r) || ((i > currentPage - r) && (i < currentPage + r)) || (i > (totalPages - r))) {
             if (i == currentPage) {
               s = s + '<strong class="pager-nav-element">' + i+ '</strong>';
             } else {
+              el = true;
               s = s + '<a href="javascript:;" class="pager-action-navigate pager-nav-element" data-page="'+ i + '">' + i+ '</a>';
             }
           } else
@@ -612,7 +613,12 @@
             f2 = true;
           }
         }
-        $pc.html(s);
+        if (el) {
+          $pc.html(s);
+          $('.pager-nav-element').show();
+        } else {
+          $('.pager-nav-element').hide();
+        }
       }
 
       if (pageSizeIsSlider) {
@@ -627,7 +633,7 @@
           if (size == _this.limit) {
             s = s + '<strong class="pager-nav-element">' + size + '</strong>';
           } else {
-            s = s + '<a href="javascript:;" class="pager-action-page-size pager-nav-element" data-size="' + size + '">' + size + '</a>';
+            s = s + '<a href="javascript:;" class="pager-action-page-size pager-size-element" data-size="' + size + '">' + size + '</a>';
           }
         }
         $pc.html(s);

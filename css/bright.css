@@ -397,12 +397,12 @@ table.table th {
 .lowercase {text-transform:lowercase;}
 .capitalize {text-transform:capitalize;}
 
-.pager-nav-element {
+.pager-nav-element,.pager-size-element {
   padding:1px;
   padding-left:3px;
   padding-right:3px;
 }
-a.pager-nav-element:hover {
+a.pager-nav-element:hover,a.pager-size-element:hover {
   text-decoration: none;
   padding:0px;
   padding-left:2px;

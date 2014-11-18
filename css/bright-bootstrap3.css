@@ -394,16 +394,17 @@ table.table th {
 .lowercase {text-transform:lowercase;}
 .capitalize {text-transform:capitalize;}
 
-.pager-action-prior,.pager-action-next,.pager-action-navigate {
+.pager-nav-element,.pager-size-element {
   padding:1px;
   padding-left:3px;
   padding-right:3px;
 }
-a.pager-action-prior:hover,a.pager-action-next:hover,a.pager-action-navigate:hover {
+a.pager-nav-element:hover,a.pager-size-element:hover {
   text-decoration: none;
   padding:0px;
   padding-left:2px;
   padding-right:2px;
   border: 1px solid #AAA;
   border-radius: 3px;
+  color:none;
 }
