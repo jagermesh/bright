@@ -311,21 +311,36 @@
       });
 
       // pager
-      $(c('.action-next')).click(function() {
-
+      $(c('a.action-next,a.pager-action-next')).on('click', function() {
         _this.skip += _this.limit;
         _this.refresh({}, null, true);
-
       });
 
-      $(c('.action-prior')).click(function() {
-
+      $(c('a.action-prior,a.pager-action-prior')).on('click', function() {
         _this.skip -= _this.limit;
         if (_this.skip < 0) {
           _this.skip = 0;
         }
         _this.refresh({}, null, true);
+      });
 
+      $(c('.pager-page-navigation')).on('click', 'a.pager-action-navigate', function() {
+        var value = br.toInt($(this).attr('data-page'));
+        if (value > 0) {
+          var newSkip = _this.limit * (value - 1);
+          if (newSkip != _this.skip) {
+            _this.skip = _this.limit * (value - 1);
+            _this.setStored('pager_PageNo', _this.skip);
+            _this.refresh({}, null, true);
+          }
+        }
+      });
+
+      $(c('.pager-page-size-navigation')).on('click', 'a.pager-action-page-size', function() {
+        var value = br.toInt($(this).attr('data-size'));
+        _this.limit = value;
+        _this.setStored('pager_PageSize', _this.limit);
+        _this.refresh({}, null, true);
       });
 
       $(c('.action-refresh')).click(function() {
@@ -512,67 +527,129 @@
       return this;
     };
 
-    var slider = false;
+    var pageNavIsSlider = false, pageSizeIsSlider = false, pagerInitialized = false;
 
-    if ($.fn.slider) {
-      $(c('.pager-page-slider')).each(function() {
-        slider = true;
-        $(this).slider({
-            min: 1
-          , value: 1
-          , change: function(event, ui) {
-              var value = $(c('.pager-page-slider')).slider('option', 'value');
-              if (value > 0) {
-                var newSkip = _this.limit * (value - 1);
-                if (newSkip != _this.skip) {
-                  _this.skip = _this.limit * (value - 1);
-                  _this.setStored('pager_PageNo', _this.skip);
-                  _this.refresh({}, null, true);
+    function initPager() {
+
+      if (pagerInitialized) {
+        return;
+      }
+
+      if ($.fn.slider) {
+        $(c('.pager-page-slider')).each(function() {
+          pageNavIsSlider = true;
+          $(this).slider({
+              min: 1
+            , value: 1
+            , change: function(event, ui) {
+                var value = $(c('.pager-page-slider')).slider('option', 'value');
+                if (value > 0) {
+                  var newSkip = _this.limit * (value - 1);
+                  if (newSkip != _this.skip) {
+                    _this.skip = _this.limit * (value - 1);
+                    _this.setStored('pager_PageNo', _this.skip);
+                    _this.refresh({}, null, true);
+                  }
                 }
               }
-            }
+          });
         });
-      });
 
-      $(c('.pager-page-size-slider')).each(function() {
-
-        slider = true;
-        $(this).slider({
-            min: _this.defaultLimit
-          , value: _this.limit
-          , max: _this.defaultLimit * 20
-          , step: _this.defaultLimit
-          , change: function(event, ui) {
-              var value = $(c('.pager-page-size-slider')).slider('option', 'value');
-              _this.limit = value;
-              _this.setStored('pager_PageSize', _this.limit);
-              $(c('.pager-page-slider')).slider('option', 'value', 1);
-              $(c('.pager-page-slider')).slider('option', 'max', Math.ceil(_this.recordsAmount / _this.limit));
-              _this.refresh({}, null, true);
-            }
+        $(c('.pager-page-size-slider')).each(function() {
+          pageSizeIsSlider = true;
+          $(this).slider({
+              min: _this.defaultLimit
+            , value: _this.limit
+            , max: _this.defaultLimit * 20
+            , step: _this.defaultLimit
+            , change: function(event, ui) {
+                var value = $(c('.pager-page-size-slider')).slider('option', 'value');
+                _this.limit = value;
+                _this.setStored('pager_PageSize', _this.limit);
+                $(c('.pager-page-slider')).slider('option', 'value', 1);
+                $(c('.pager-page-slider')).slider('option', 'max', Math.ceil(_this.recordsAmount / _this.limit));
+                _this.refresh({}, null, true);
+              }
+          });
         });
-      });
+      }
+
+      pagerInitialized = true;
+
     }
+
 
     function internalUpdatePager() {
 
-      if (slider) {
-        $(c('.pager-page-slider')).slider('option', 'max', Math.ceil(_this.recordsAmount / _this.limit));
-        $(c('.pager-page-slider')).slider('option', 'value', Math.ceil(_this.skip / _this.limit) + 1);
+      initPager();
+
+      var totalPages = Math.ceil(_this.recordsAmount / _this.limit);
+      var currentPage = Math.ceil(_this.skip / _this.limit) + 1;
+      var $pc, s, i;
+
+      if (pageNavIsSlider) {
+        $(c('.pager-page-slider')).slider('option', 'max', totalPages);
+        $(c('.pager-page-slider')).slider('option', 'value', currentPage);
+      } else {
+        $pc = $(c('.pager-page-navigation'));
+        $pc.html('');
+        s = '';
+        var f1 = false, f2 = false, r = 5;
+        for (i = 1; i <= totalPages; i++) {
+          if ((i <= r) || ((i > currentPage - r) && (i < currentPage + r)) || (i > (totalPages - r))) {
+            if (i == currentPage) {
+              s = s + '<strong class="pager-nav-element">' + i+ '</strong>';
+            } else {
+              s = s + '<a href="javascript:;" class="pager-action-navigate pager-nav-element" data-page="'+ i + '">' + i+ '</a>';
+            }
+          } else
+          if (!f1 && i < currentPage) {
+            s = s + '...';
+            f1 = true;
+          } else
+          if (!f2 && i > currentPage) {
+            s = s + '...';
+            f2 = true;
+          }
+        }
+        $pc.html(s);
       }
+
+      if (pageSizeIsSlider) {
+
+      } else {
+        $pc = $(c('.pager-page-size-navigation'));
+        $pc.html('');
+        s = '';
+        var size = 0;
+        for (i = 1; i <= 5; i++) {
+          size = Math.pow(i, 2) * 20;
+          if (size == _this.limit) {
+            s = s + '<strong class="pager-nav-element">' + size + '</strong>';
+          } else {
+            s = s + '<a href="javascript:;" class="pager-action-page-size pager-nav-element" data-size="' + size + '">' + size + '</a>';
+          }
+        }
+        $pc.html(s);
+      }
+
       var min = (_this.skip + 1);
       var max = Math.min(_this.skip + _this.limit, _this.recordsAmount);
       if (_this.recordsAmount > 0) {
         $(c('.pager-control')).show();
         if (_this.recordsAmount > max) {
           $(c('.action-next')).show();
+          $(c('.pager-action-next')).show();
         } else {
           $(c('.action-next')).hide();
+          $(c('.pager-action-next')).hide();
         }
         if (_this.skip > 0) {
           $(c('.action-prior')).show();
+          $(c('.pager-action-prior')).show();
         } else {
           $(c('.action-prior')).hide();
+          $(c('.pager-action-prior')).hide();
         }
       } else {
         $(c('.pager-control')).hide();
@@ -581,7 +658,6 @@
       $(c('.pager-page-size')).text(_this.limit + ' records per page');
 
       pagerSetuped = true;
-
     }
 
     this.clearSelection = function() {

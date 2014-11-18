@@ -757,17 +757,16 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
       $this->connection = $cfg['connection'];
       $this->ownConnection = false;
     } else {
-      $this->connection = @mysql_connect($hostName, $userName, $password, true);
-      $this->ownConnection = true;
-
-      if ($this->connection) {
-        if (@mysql_select_db($dataBaseName, $this->connection)) {
-          if (br($cfg, 'charset')) {
-            $this->internalRunQuery("SET NAMES '".$cfg['charset']."'");
-          }
-        } else {
-          $this->connection = null;
+      try {
+        $this->connection = mysql_connect($hostName, $userName, $password, true);
+        $this->ownConnection = true;
+        mysql_select_db($dataBaseName, $this->connection);
+        if (br($cfg, 'charset')) {
+          $this->internalRunQuery("SET NAMES '".$cfg['charset']."'");
         }
+      } catch (Exception $e) {
+        $this->connection = null;
+        br()->log()->logException($e);
       }
     }
 
