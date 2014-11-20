@@ -292,7 +292,7 @@ class BrDataSource extends BrGenericDataSource {
         $error = $e->getMessage();
         $result = $this->trigger('error', $error, $operation, $e);
         if (is_null($result)) {
-          throw new $e;
+          throw $e;
         } else {
           return $result;
         }
@@ -355,7 +355,7 @@ class BrDataSource extends BrGenericDataSource {
       $error = 'Record not found';
       $result = $this->trigger('error', $error, $operation, $e);
       if (is_null($result)) {
-        throw new $e;
+        throw $e;
       } else
       if (is_bool($result)) {
         return array();
