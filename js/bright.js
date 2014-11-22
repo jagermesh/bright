@@ -2711,7 +2711,7 @@
     }
   };
 
-  var progressBar_Total = 0, progressBar_Progress = 0;
+  var progressBar_Total = 0, progressBar_Progress = 0, progressBar_Message = '';
   var progressBarTemplate = '<div id="br_progressBar" class="modal" style="display:none;" data-backdrop="static">' +
                             '  <div class="modal-dialog">'+
                             '    <div class="modal-content">'+
@@ -2719,10 +2719,9 @@
                             '        <h3 id="br_progressMessage">Working...</h3>' +
                             '      </div>' +
                             '      <div class="modal-body">' +
-                            '        <div id="br_progressBarBar" style="display:none;">' +
-                            '          <div class="progress" style="margin-bottom:0px;padding:0px;">' +
-                            '            <div id="br_progressBarBar1" class="progress-bar progress active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="min-width:0px;background-color:#008cba;border:none;padding:0px;" >' +
-                            '              <div id="br_progressBarBar2" class="bar" style="width: 0%;transition:none;-webkit-transition:none;"></div>' +
+                            '        <div id="br_progressBar_Section" style="display:none;">' +
+                            '          <div style="margin-bottom:0px;padding:0px;height:20px;overflow: hidden;background-color: #f5f5f5;border-radius: 4px;box-shadow: inset 0 1px 2px rgba(0,0,0,.1);">' +
+                            '            <div id="br_progressBar_Bar" style="background-color:#008cba;border:none;padding:0px;height:20px;">' +
                             '            </div>' +
                             '          </div>' +
                             '        </div>' +
@@ -2734,37 +2733,42 @@
                             '  </div>' +
                             '</div>';
 
+  function renderProgress() {
+    if (br.isEmpty(progressBar_Message)) {
+      $('#br_progressBar .modal-header').hide();
+    } else {
+      $('#br_progressMessage').text(progressBar_Message);
+      $('#br_progressBar .modal-header').show();
+    }
+    var p = Math.round(progressBar_Progress * 100 / progressBar_Total);
+    $('#br_progressBar_Bar').css('width', p + '%');
+  }
   window.br.startProgress = function(value, message) {
     progressBar_Total = value;
     progressBar_Progress = 0;
+    progressBar_Message = message;
     if ($('#br_progressBar').length === 0) {
       $('body').append($(progressBarTemplate));
     }
     if (progressBar_Total > 1) {
-      $('#br_progressBarBar').show();
-      // $('#br_progressBarAnimation').hide();
+      $('#br_progressBar_Section').show();
     } else {
-      $('#br_progressBarBar').hide();
-      // $('#br_progressBarAnimation').show();
+      $('#br_progressBar_Section').hide();
     }
-    if (message) {
-      $('#br_progressMessage').text(message);
-      $('#br_progressBar .modal-header').show();
-    }
-    // $('#br_progressBarBar1').css('width', '0%');
-    $('#br_progressBarBar1').attr('aria-valuenow', '0');
-    $('#br_progressBarBar2').css('width', '0%');
     $('#br_progressBar').modal('show');
+    renderProgress();
   };
-
-  window.br.hideProgress = function() {
-    $('#br_progressBar').modal('hide');
-  };
-
   window.br.showProgress = function() {
     $('#br_progressBar').modal('show');
   };
-
+  window.br.hideProgress = function() {
+    $('#br_progressBar').modal('hide');
+  };
+  window.br.incProgress = function(value) {
+    if (!value) { value = 1; }
+    progressBar_Total += value;
+    renderProgress();
+  };
   window.br.stepProgress = function(step, message) {
     if (br.isNumber(step)) {
       progressBar_Progress += step;
@@ -2773,13 +2777,9 @@
       message = step;
     }
     if (!br.isEmpty(message)) {
-      $('#br_progressMessage').text(message);
-      $('#br_progressBar .modal-header').show();
+      progressBar_Message = message;
     }
-    var p = Math.round(progressBar_Progress * 100 / progressBar_Total);
-    // $('#br_progressBarBar1').css('width', p + '%');
-    $('#br_progressBarBar1').attr('aria-valuenow', p);
-    $('#br_progressBarBar2').css('width', p + '%');
+    renderProgress();
   };
 
   $(document).ready(function() {

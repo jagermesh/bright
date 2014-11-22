@@ -52,7 +52,7 @@ module.exports = function(grunt) {
     },
     phplint: {
         options: {
-          phpCmd: "/usr/local/Cellar/php53/5.3.28/bin/php"
+          phpCmd: "php"
         },
         all: ["*.php"]
     }
