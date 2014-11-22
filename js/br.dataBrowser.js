@@ -239,8 +239,10 @@
       });
 
       _this.dataSource.after('remove', function(request, options) {
-        _this.resetPager();
-        _this.updatePager();
+        if (selectionQueue.length === 0) {
+          _this.resetPager();
+          _this.updatePager();
+        }
       });
 
       _this.dataSource.after('insert', function(request, options) {
