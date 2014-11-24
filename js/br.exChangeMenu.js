@@ -38,7 +38,7 @@
       dropDownList.append(br.fetch(menuItemTemplate, { id: '', name: (options.clearLabel ? options.clearLabel : '--Clear--') }));
     }
     for(var i in response) {
-      dropDownList.append(br.fetch(menuItemTemplate, { id: response[i].id, name: response[i].name }));
+      dropDownList.append(br.fetch(menuItemTemplate, { id: response[i][options.keyField], name: response[i][options.nameField] }));
     }
     dropDown.css('left', invoker.offset().left + 'px');
     var t = (invoker.find("a").offset().top + invoker.find("a").height());
@@ -93,6 +93,8 @@
   function BrExChangeMenu(selector, choicesDataSource, dataSource, fieldName, options) {
 
     options = options || {};
+    options.keyField = options.keyField || 'id';
+    options.nameField = options.nameField || 'name';
 
     $(selector).each(function() {
       setupControl($(this), false, choicesDataSource, dataSource, fieldName, options);

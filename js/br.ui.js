@@ -298,18 +298,20 @@
   var progressBarTemplate = '<div id="br_progressBar" class="modal" style="display:none;" data-backdrop="static">' +
                             '  <div class="modal-dialog">'+
                             '    <div class="modal-content">'+
-                            '      <div class="modal-header" style="display:none;">' +
-                            '        <h3 id="br_progressMessage">Working...</h3>' +
-                            '      </div>' +
                             '      <div class="modal-body">' +
-                            '        <div id="br_progressBar_Section" style="display:none;">' +
+                            '        <table style="width:100%;font-size:18px;font-weight:300;margin-bottom:10px;">'+
+                            '          <tr>'+
+                            '            <td id="br_progressMessage"></td>' +
+                            '            <td align="right" id="br_progressStage" style="font-size:14px;font-weight:300;"></td>' +
+                            '          </tr>' +
+                            '        </table>' +
+                            '        <div id="br_progressBar_Section" style="display:none;clear:both;">' +
                             '          <div style="margin-bottom:0px;padding:0px;height:20px;overflow: hidden;background-color: #f5f5f5;border-radius: 4px;box-shadow: inset 0 1px 2px rgba(0,0,0,.1);">' +
-                            '            <div id="br_progressBar_Bar" style="background-color:#008cba;border:none;padding:0px;height:20px;">' +
-                            '            </div>' +
+                            '            <div id="br_progressBar_Bar" style="background-color:#008cba;border:none;padding:0px;height:20px;"></div>' +
                             '          </div>' +
                             '        </div>' +
                             '        <div id="br_progressBarAnimation" style="display1:none;padding-top:10px;">' +
-                            '          <center><img src="' + br.baseUrl + 'bright/images/progress-big.gif" /></center>' +
+                            '          <center><img src="' + br.baseUrl + 'bright/images/progress-h.gif" /></center>' +
                             '        </div>' +
                             '      </div>' +
                             '    </div>' +
@@ -317,14 +319,10 @@
                             '</div>';
 
   function renderProgress() {
-    if (br.isEmpty(progressBar_Message)) {
-      $('#br_progressBar .modal-header').hide();
-    } else {
-      $('#br_progressMessage').text(progressBar_Message);
-      $('#br_progressBar .modal-header').show();
-    }
     var p = Math.round(progressBar_Progress * 100 / progressBar_Total);
     $('#br_progressBar_Bar').css('width', p + '%');
+    $('#br_progressMessage').text(progressBar_Message);
+    $('#br_progressStage').text(progressBar_Progress + ' of ' + progressBar_Total);
   }
   window.br.startProgress = function(value, message) {
     progressBar_Total = value;
