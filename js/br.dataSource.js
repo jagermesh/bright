@@ -278,15 +278,15 @@
       }
 
       if (proceed) {
-        if (this.options.limit) {
+        if (!br.isEmpty(this.options.limit)) {
           request.__limit = this.options.limit;
         }
 
-        if (options && options.skip) {
+        if (options && !br.isEmpty(options.skip)) {
           request.__skip = options.skip;
         }
 
-        if (options && options.limit) {
+        if (options && !br.isEmpty(options.limit)) {
           request.__limit = options.limit;
         }
 

@@ -321,13 +321,17 @@ class BrRESTBinder extends BrObject {
       $dataSourceOptions = array();
       $dataSourceOptions['source'] = 'RESTBinder';
 
-      if ($limit = br()->request()->get('__limit')) {
+      $limit = br()->request()->get('__limit');
+
+      if (strlen($limit)) {
         if (is_numeric($limit)) {
           $dataSourceOptions['limit'] = $limit;
         }
       }
 
-      if ($skip = br()->request()->get('__skip')) {
+      $skip = br()->request()->get('__skip');
+
+      if (strlen($skip)) {
         if (is_numeric($skip)) {
           $dataSourceOptions['skip'] = $skip;
         }
