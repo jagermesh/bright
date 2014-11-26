@@ -171,8 +171,9 @@
                   editorRowData = null;
                 } else {
                   _this.events.trigger('editor.hidden', true, response);
-                  _this.events.trigger('editor.hide', true, response);
-                  br.backToCaller(_this.options.returnUrl, true);
+                  var callResponse = { refresh: true };
+                  _this.events.trigger('editor.hide', true, response, callResponse);
+                  br.backToCaller(_this.options.returnUrl, callResponse.refresh);
                 }
               } else {
                 if (!_this.options.hideSaveNotification && !silent) {
@@ -205,8 +206,9 @@
                   editorRowData = null;
                 } else {
                   _this.events.trigger('editor.hidden', true, response);
-                  _this.events.trigger('editor.hide', true, response);
-                  br.backToCaller(_this.options.returnUrl, true);
+                  var callResponse = { refresh: true };
+                  _this.events.trigger('editor.hide', true, response, callResponse);
+                  br.backToCaller(_this.options.returnUrl, callResponse.refresh);
                 }
               } else {
                 if (!_this.options.hideSaveNotification && !silent) {
@@ -386,7 +388,7 @@
         _this.events.triggerBefore('editor.show');
         _this.editorConfigure(isCopy);
         fillControls(defaultValues);
-        _this.events.trigger('editor.show');
+        _this.events.trigger('editor.show', defaultValues);
         if (_this.container.hasClass('modal')) {
           _this.container.modal('show');
         }
