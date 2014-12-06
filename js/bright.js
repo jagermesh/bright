@@ -2568,13 +2568,13 @@
   };
 
   window.br.inform = function(title, message, callback) {
-    var s = '<div class="modal" id="br_modalInform">' +
+    var s = '<div class="modal" id="br_modalInform" style="top:290px;">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">';
     if (title !== '') {
       s = s + '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>';
     }
-    s = s + '<div class="modal-body">' + message + '</div>' +
+    s = s + '<div class="modal-body" style="max-height:500px;">' + message + '</div>' +
             '<div class="modal-footer"><a href="javascript:;" class="btn btn-default" data-dismiss="modal">&nbsp;' + br.trn('Dismiss') + '&nbsp;</a></div></div></div></div>';
     var dialog = $(s);
     var onHide = function(e) {
