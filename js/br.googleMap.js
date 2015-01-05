@@ -295,8 +295,8 @@
     function internalRemovePlygons(tag) {
       if (_this.polygons[tag]) {
         for (var i = _this.polygons[tag].length-1; i >= 0; i--) {
-          _this.polygons[i].setMap(null);
-          _this.polygons.splice(i, 1);
+          _this.polygons[tag][i].setMap(null);
+          _this.polygons[tag].splice(i, 1);
         }
       }
     }
