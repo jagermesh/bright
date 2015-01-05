@@ -161,8 +161,8 @@
     function internalRemoveMarkers(tag) {
       if (_this.markers[tag]) {
         for (var i = _this.markers[tag].length-1; i >= 0; i--) {
-          _this.markers[i].setMap(null);
-          _this.markers.splice(i, 1);
+          _this.markers[tag][i].setMap(null);
+          _this.markers[tag].splice(i, 1);
         }
       }
     }
