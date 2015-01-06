@@ -36,7 +36,7 @@ class qqUploadedFileXhr {
     }
     $srcFilePath = $path . 'tmpUploadFile.' . $ext;
     while(file_exists($srcFilePath)) {
-      $srcFilePath = $path . 'tmpUploadFile.' . $ext . rand(1, 10000);
+      $srcFilePath = $path . 'tmpUploadFile.' . rand(1, 10000) . '.' . $ext;
     }
     $target = fopen($srcFilePath, "w");
     fseek($temp, 0, SEEK_SET);

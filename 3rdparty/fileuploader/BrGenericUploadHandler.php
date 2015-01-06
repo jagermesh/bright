@@ -17,7 +17,7 @@ class BrGenericUploadHandler {
     switch($last) {
       case 'g': $val *= 1024;
       case 'm': $val *= 1024;
-      case 'k': $val *= 1024;        
+      case 'k': $val *= 1024;
     }
     return $val;
 
@@ -72,7 +72,7 @@ class BrGenericUploadHandler {
 
     br()->fs()->makeDir($path);
     $result = $uploader->handleUpload($path, $url);
-    
+
     // to pass data through iframe you will need to encode all html tags
     echo htmlspecialchars(json_encode($result), ENT_NOQUOTES);
 
