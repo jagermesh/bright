@@ -79,16 +79,17 @@ class BrBrowser extends BrObject {
     // $header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
     // curl_setopt($this->curl, CURLOPT_HTTPHEADER, $header);
 
-    //curl_setopt ($this->curl, CURLOPT_VERBOSE, 1);
-    //curl_setopt ($this->curl, CURLOPT_BINARYTRANSFER, 1);
+    // curl_setopt ($this->curl, CURLOPT_VERBOSE, 1);
+    // curl_setopt ($this->curl, CURLOPT_BINARYTRANSFER, 1);
 
-    // curl_setopt($this->curl, CURLOPT_TIMEOUT, 5);
-    //curl_setopt($this->curl, CURLOPT_FRESH_CONNECT, 1);
+    // curl_setopt($this->curl, CURLOPT_CONNECTTIMEOUT, 10);
+    // curl_setopt($this->curl, CURLOPT_TIMEOUT, 10);
+    // curl_setopt($this->curl, CURLOPT_FRESH_CONNECT, 1);
 
-    //if ($cookie) {
-      //curl_setopt($this->curl, CURLOPT_COOKIEFILE, TEMPORARY_PATH.'.cookie-'.$this->session_id.'.txt');
-      //curl_setopt($this->curl, CURLOPT_COOKIEJAR, TEMPORARY_PATH.'.cookie-'.$this->session_id.'.txt');
-    //}
+    // if ($cookie) {
+      // curl_setopt($this->curl, CURLOPT_COOKIEFILE, TEMPORARY_PATH.'.cookie-'.$this->session_id.'.txt');
+      // curl_setopt($this->curl, CURLOPT_COOKIEJAR, TEMPORARY_PATH.'.cookie-'.$this->session_id.'.txt');
+    // }
 
     foreach($params as $name => $value) {
       curl_setopt($this->curl, $name, $value);
