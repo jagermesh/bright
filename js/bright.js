@@ -1734,6 +1734,10 @@
       }
     };
 
+    this.isEmpty = function() {
+      return ($(_this.selector).find('[data-rowid]').length === 0);
+    };
+
     this.init = function() {
 
       function isGridEmpty() {
