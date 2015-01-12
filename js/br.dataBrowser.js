@@ -425,7 +425,6 @@
         });
 
         if (br.isNull(_this.getStored('filters-hidden'))) {
-          br.log(_this.options.defaults.filtersHidden);
           _this.setStored('filters-hidden', _this.options.defaults.filtersHidden);
         }
 
