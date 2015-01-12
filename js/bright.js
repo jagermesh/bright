@@ -872,6 +872,20 @@
     setupModified(selector, callback, false);
   };
 
+  window.br.onChange = function(selector, callback) {
+    $(selector).on('change', function() {
+      callback.call(this);
+    });
+    $(selector).on('keyup', function(e) {
+      if (e.keyCode == 13) {
+        callback.call(this);
+      } else
+      if ((e.keyCode == 8) || (e.keyCode == 32)  || (e.keyCode == 91) || (e.keyCode == 93) || ((e.keyCode >= 48) && (e.keyCode <= 90)) || ((e.keyCode >= 96) && (e.keyCode <= 111)) || ((e.keyCode >= 186) && (e.keyCode <= 222))) {
+        callback.call(this);
+      }
+    });
+  };
+
   window.br.closeConfirmationMessage = 'Some changes have been made. Are you sure you want to close current window?';
 
   var closeConfirmationRequired = false;
