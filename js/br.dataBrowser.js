@@ -17,6 +17,8 @@
 
     this.options = options || {};
     this.options.autoLoad = this.options.autoLoad || false;
+    this.options.defaults = this.options.defaults || {};
+    this.options.defaults.filtersHidden = this.options.defaults.filtersHidden || false;
     this.options.entity = entity;
     this.options.features = this.options.features || { editor: true };
     this.options.noun = this.options.noun || '';
@@ -392,22 +394,24 @@
               $(c('.filters-panel')).hide();
               showFiltersDesc();
               _this.events.trigger('hideFilters');
-            } else
-            $(c('.filters-panel')).slideUp(function() {
-              showFiltersDesc();
-              _this.events.trigger('hideFilters');
-            });
+            } else {
+              $(c('.filters-panel')).slideUp(function() {
+                showFiltersDesc();
+                _this.events.trigger('hideFilters');
+              });
+            }
           } else {
             _this.setStored('filters-hidden', false);
             if (initial) {
               $(c('.filters-panel')).show();
               showFiltersDesc();
               _this.events.trigger('showFilters');
-            } else
-            $(c('.filters-panel')).slideDown(function() {
-              showFiltersDesc();
-              _this.events.trigger('showFilters');
-            });
+            } else {
+              $(c('.filters-panel')).slideDown(function() {
+                showFiltersDesc();
+                _this.events.trigger('showFilters');
+              });
+            }
           }
 
         }
@@ -419,6 +423,11 @@
         $(c('.action-reset-filters')).on('click', function () {
           _this.resetFilters();
         });
+
+        if (br.isNull(_this.getStored('filters-hidden'))) {
+          br.log(_this.options.defaults.filtersHidden);
+          _this.setStored('filters-hidden', _this.options.defaults.filtersHidden);
+        }
 
         if (_this.getStored('filters-hidden')) {
           showFiltersDesc();
