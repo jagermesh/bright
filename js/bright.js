@@ -911,6 +911,10 @@
     }
   };
 
+  window.br.isCloseConfirmationRequired = function() {
+    return closeConfirmationRequired;
+  };
+
   window.br.confirmClose = function(message) {
     if (message) {
       br.closeConfirmationMessage = message;
