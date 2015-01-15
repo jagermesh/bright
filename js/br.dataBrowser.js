@@ -203,24 +203,36 @@
     };
 
 
-    function processQueued(processRowCallback, processCompleteCallback) {
+    function processQueued(processRowCallback, processCompleteCallback, params) {
 
       if (selectionQueue.length > 0) {
         var rowid = selectionQueue.shift();
         processRowCallback(rowid, function() {
-          processQueued(processRowCallback, processCompleteCallback);
+          if (params.showProgress) {
+            br.stepProgress();
+          }
+          processQueued(processRowCallback, processCompleteCallback, params);
         });
-      } else
-      if (processCompleteCallback) {
-        processCompleteCallback();
+      } else {
+        if (params.showProgress) {
+          br.hideProgress();
+        }
+        if (processCompleteCallback) {
+          processCompleteCallback();
+        }
       }
 
     }
 
-    this.processSelection = function(processRowCallback, processCompleteCallback) {
+    this.processSelection = function(processRowCallback, processCompleteCallback, params) {
+      params = params || {};
+      params.showProgress = params.showProgress || false;
       selectionQueue = _this.selection.get();
       if (selectionQueue.length > 0) {
-        processQueued(processRowCallback, processCompleteCallback);
+        if (params.showProgress) {
+          br.startProgress(selectionQueue.length, params.title || '');
+        }
+        processQueued(processRowCallback, processCompleteCallback, params);
       } else {
         br.growlError('Please select at least one record');
       }
