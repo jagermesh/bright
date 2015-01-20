@@ -168,6 +168,16 @@ class BrRequest extends BrSingleton {
 
   }
 
+  function isRefererAt($url) {
+
+    if (@preg_match('~'.$url.'~', $this->referer(), $matches)) {
+      return $matches;
+    } else {
+      return null;
+    }
+
+  }
+
   function isAtBaseUrl() {
 
     return $this->isAt($this->baseUrl.'$');
