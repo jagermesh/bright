@@ -1888,7 +1888,7 @@
               var rowid = $(row).attr('data-rowid');
               if (!br.isEmpty(rowid)) {
                 br.confirm( 'Delete confirmation'
-                          , 'Are you sure you want delete this record?'
+                          , 'Are you sure you want to delete this record?'
                           , function() {
                               _this.dataSource.remove(rowid);
                             }

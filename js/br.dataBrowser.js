@@ -161,7 +161,7 @@
       selectionQueue = _this.selection.get();
       if (selectionQueue.length > 0) {
         br.confirm( 'Delete confirmation'
-                  , 'Are you sure you want delete ' + selectionQueue.length + ' record(s)?'
+                  , 'Are you sure you want do delete ' + selectionQueue.length + ' record(s)?'
                   , function() {
                       br.startProgress(selectionQueue.length, 'Deleting...');
                       deleteQueued();
