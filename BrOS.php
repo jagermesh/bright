@@ -68,7 +68,7 @@ class BrOS extends BrObject {
       $output = $this->execute('ps ax | grep "' . $pid . '" 2>&1');
       foreach($output as $line) {
         $line = trim($line);
-        if (preg_match('#grep.*?' . $pid . '#', $line)) {
+        if (preg_match('#grep[ ]#', $line)) {
 
         } else {
           $result++;
