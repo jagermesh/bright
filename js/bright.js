@@ -2334,12 +2334,7 @@
         _this.editor = $('<input type="text" />');
         _this.editor.addClass('form-control');
         _this.editor.css('width', '100%');
-        if (_this.ctrl.attr('data-editable-style')) {
-          _this.editor.attr('style', _this.ctrl.attr('data-editable-style'));
-        }
-        if (br.isEmpty(_this.editor.css('height'))) {
-          _this.editor.css('height', '100%');
-        }
+        _this.editor.css('height', '100%');
         _this.editor.css('min-height', '30px');
         _this.editor.css('font-size', _this.ctrl.css('font-size'));
         _this.editor.css('font-weight', _this.ctrl.css('font-weight'));
@@ -2349,6 +2344,9 @@
         _this.editor.css('-ms-box-sizing', 'border-box');
         _this.editor.css('margin-top', '2px');
         _this.editor.css('margin-bottom', '2px');
+        if (_this.ctrl.attr('data-editable-style')) {
+          _this.editor.attr('style', _this.ctrl.attr('data-editable-style'));
+        }
         _this.ctrl.append(_this.editor);
         if (_this.options.onGetContent) {
           content = _this.options.onGetContent.call(_this.ctrl, _this.editor, content);
