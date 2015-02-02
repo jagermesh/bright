@@ -34,7 +34,7 @@ class BrJobsManager {
           try {
             require_once(__DIR__ . '/jobs/' . $className . '.php');
             $job = new $className;
-            if ($list = $job->timeTotStart()) {
+            if ($list = $job->timeToStart()) {
               foreach($list as $params) {
                 if (br()->OS()->getProcessesAmount($this->jobScript) < $this->maxProcessesAmount) {
                   $runCommand = $this->jobScript . ' ' . $className . ' ' . $params;

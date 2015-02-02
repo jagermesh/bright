@@ -12,7 +12,7 @@ class BrJobCustomJob {
 
   }
 
-  function timeTotStart($period = 5) {
+  function timeToStart($period = 5) {
 
     if (file_exists($this->lastRunFile)) {
       return time() - filemtime($this->lastRunFile) > $period * 60;

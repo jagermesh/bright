@@ -48,7 +48,7 @@ class BrJobsManager {
           try {
             require_once($jobDesc['classFile']);
             $job = new $jobDesc['className'];
-            if ($list = $job->timeTotStart()) {
+            if ($list = $job->timeToStart()) {
               if (is_array($list)) {
 
               } else {
