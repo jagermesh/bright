@@ -6,9 +6,6 @@ class BrJobStarter {
 
     if (!br()->isConsoleMode()) { br()->panic('Console mode only'); }
 
-    br()->log('Trying to acquire lock for this script to avoid conflict with running instance');
-    $handle = br()->OS()->lockIfRunning(__FILE__ . br()->getCommandLineArguments(true));
-
     $arguments = br()->getCommandLineArguments();
 
     if ($classFile = @$arguments[0]) {
@@ -20,7 +17,13 @@ class BrJobStarter {
         $className = br()->fs()->fileNameOnly($classFile);
       }
       if ($className) {
+
         array_splice($arguments, 0, 2);
+
+        br()->log('Trying to acquire lock for this script to avoid conflict with running instance');
+        $tag = $classFile . '-' . br($arguments)->join('-');
+        $handle = br()->OS()->lockIfRunning($tag);
+
         require_once($classFile);
         $job = new $className();
         $job->run($arguments);
