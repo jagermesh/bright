@@ -843,9 +843,12 @@ class Br extends BrSingleton {
       $var = $var . ($var ? $glue : '') . $secondVar;
     }
 
+    return $var;
+
   }
 
   function stripSlashes(&$element) {
+
     if (is_array($element)) {
       foreach($element as $key => $value) {
         $this->stripSlashes($element[$key]);
@@ -853,6 +856,9 @@ class Br extends BrSingleton {
     } else {
       $element = stripslashes($element);
     }
+
+    return $element;
+
   }
 
   // utils
