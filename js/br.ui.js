@@ -325,6 +325,10 @@
     $('#br_progressStage').text(progressBar_Progress + ' of ' + progressBar_Total);
   }
   window.br.startProgress = function(value, message) {
+    if (!br.isNumber(value)) {
+      message = value;
+      value = 0;
+    }
     progressBar_Total = value;
     progressBar_Progress = 0;
     progressBar_Message = message;
@@ -333,8 +337,10 @@
     }
     if (progressBar_Total > 1) {
       $('#br_progressBar_Section').show();
+      $('#br_progressStage').show();
     } else {
       $('#br_progressBar_Section').hide();
+      $('#br_progressStage').hide();
     }
     $('#br_progressBar').modal('show');
     renderProgress();
