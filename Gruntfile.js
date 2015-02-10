@@ -42,12 +42,8 @@ module.exports = function(grunt) {
       files: ['Gruntfile.js', 'js/*.js', '!js/<%= pkg.name %>.min.js'],
       options: {
         // options here to override JSHint defaults
-        jshintrc: true,
-        globals: {
-          jQuery: true,
-          module: true,
-          document: true
-        }
+        ignores: ['js/bright.js', 'js/bright.min.js'],
+        jshintrc: true
       }
     },
     phplint: {
@@ -72,6 +68,6 @@ module.exports = function(grunt) {
   // grunt.registerTask('test', ['jshint', 'qunit']);
 
   // grunt.registerTask('default', ['jshint', 'qunit', 'concat', 'uglify']);
-  grunt.registerTask('default', ['jshint', 'concat', 'uglify', 'phplint:all']);
+  grunt.registerTask('default', ['concat', 'jshint', 'uglify', 'phplint:all']);
 
 };

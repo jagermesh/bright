@@ -89,7 +89,7 @@
     function computeRouteParams(result) {
       var distance = 0, duration = 0;
       var myroute = result.routes[0];
-      for (i = 0; i < myroute.legs.length; i++) {
+      for (var i = 0; i < myroute.legs.length; i++) {
         distance += myroute.legs[i].distance.value;
         duration += myroute.legs[i].duration.value;
       }
@@ -220,7 +220,7 @@
 
       if (Array.prototype.map && array.map === Array.prototype.map) {
         array_return = Array.prototype.map.call(array, function(item) {
-          callback_params = original_callback_params;
+          var callback_params = original_callback_params;
           callback_params.splice(0, 0, item);
 
           return callback.apply(this, callback_params);
@@ -228,7 +228,7 @@
       }
       else {
         for (i = 0; i < array_length; i++) {
-          callback_params = original_callback_params;
+          var callback_params = original_callback_params;
           callback_params.splice(0, 0, array[i]);
           array_return.push(callback.apply(this, callback_params));
         }

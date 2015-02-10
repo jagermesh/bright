@@ -2,5 +2,26 @@
   "laxcomma": true,
   "loopfunc": true,
   "laxbreak": true,
-  "sub": true
+  "sub": true,
+  "undef": true,
+  "globals": {
+    "jQuery": true,
+    "module": true,
+    "document": true,
+    "screen": true,
+    "AudioContext": true,
+    "br": true,
+    "$": true,
+    "window": true,
+    "Handlebars": true,
+    "confirm": true,
+    "alert": true,
+    "humane": true,
+    "Mustache": true,
+    "FileReader": true,
+    "TAFFY": true,
+    "console": true,
+    "google": true,
+    "navigator": true
+  }
 }

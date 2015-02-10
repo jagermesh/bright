@@ -26,9 +26,9 @@
         if (pair[0].indexOf('[') != -1) {
           var n = pair[0].substr(0, pair[0].indexOf('['));
           vals[n] = vals[n] || [];
-          vals[n].push(unescape(pair[1]));
+          vals[n].push(window.unescape(pair[1]));
         } else {
-          vals[pair[0]] = unescape(pair[1]);
+          vals[pair[0]] = window.unescape(pair[1]);
         }
       }
       if (name) {

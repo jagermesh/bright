@@ -199,7 +199,7 @@
 
       var order = _this.getOrderAndGroup();
       if (br.isArray(order)) {
-        for(i = 0; i < order.length; i++) {
+        for(var i = 0; i < order.length; i++) {
           $('.sortable[data-field="' + order[i].fieldName + '"].' + (order[i].asc ? 'order-asc' : 'order-desc'), $(this.options.selectors.header)).addClass('icon-white').addClass('icon-border');
         }
       }

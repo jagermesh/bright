@@ -73,7 +73,7 @@
   };
 
   window.br.refresh = function() {
-    location.reload();
+    document.location.reload();
   };
 
   function BrTrn() {
@@ -303,18 +303,18 @@
 
   window.br.backToCaller = function(href, refresh) {
 
-    var inPopup = (self.opener !== null);
+    var inPopup = (window.opener !== null);
 
     // check opener
     if (inPopup) {
       // is opener still exists?
-      if (self.opener) {
-        if (!self.opener.closed) {
-          self.opener.focus();
+      if (window.opener) {
+        if (!window.opener.closed) {
+          window.opener.focus();
           try {
             if (refresh) {
-              if (self.opener.document) {
-                self.opener.document.location.reload();
+              if (window.opener.document) {
+                window.opener.document.location.reload();
               }
             }
           } catch (e) {
@@ -322,7 +322,7 @@
           }
         }
       }
-      self.close();
+      window.close();
     } else
     if (br.request.get('caller')) {
       document.location = br.request.get('caller');
@@ -385,7 +385,7 @@
       osc.type = 0;
       osc.connect(ctx.destination);
       osc.noteOn(0);
-      setTimeout(function () {
+      window.setTimeout(function () {
         osc.noteOff(0);
         if (callback) {
           callback();

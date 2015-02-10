@@ -537,9 +537,9 @@
         if (pair[0].indexOf('[') != -1) {
           var n = pair[0].substr(0, pair[0].indexOf('['));
           vals[n] = vals[n] || [];
-          vals[n].push(unescape(pair[1]));
+          vals[n].push(window.unescape(pair[1]));
         } else {
-          vals[pair[0]] = unescape(pair[1]);
+          vals[pair[0]] = window.unescape(pair[1]);
         }
       }
       if (name) {
@@ -702,7 +702,7 @@
   };
 
   window.br.refresh = function() {
-    location.reload();
+    document.location.reload();
   };
 
   function BrTrn() {
@@ -932,18 +932,18 @@
 
   window.br.backToCaller = function(href, refresh) {
 
-    var inPopup = (self.opener !== null);
+    var inPopup = (window.opener !== null);
 
     // check opener
     if (inPopup) {
       // is opener still exists?
-      if (self.opener) {
-        if (!self.opener.closed) {
-          self.opener.focus();
+      if (window.opener) {
+        if (!window.opener.closed) {
+          window.opener.focus();
           try {
             if (refresh) {
-              if (self.opener.document) {
-                self.opener.document.location.reload();
+              if (window.opener.document) {
+                window.opener.document.location.reload();
               }
             }
           } catch (e) {
@@ -951,7 +951,7 @@
           }
         }
       }
-      self.close();
+      window.close();
     } else
     if (br.request.get('caller')) {
       document.location = br.request.get('caller');
@@ -1014,7 +1014,7 @@
       osc.type = 0;
       osc.connect(ctx.destination);
       osc.noteOn(0);
-      setTimeout(function () {
+      window.setTimeout(function () {
         osc.noteOff(0);
         if (callback) {
           callback();
@@ -1134,7 +1134,7 @@
 
     if (this.options.offlineMode) {
       this.db = TAFFY();
-      this.db.store('taffy-db-' + name);
+      this.db.store('taffy-db-' + this.name);
     }
 
     this.events = br.eventQueue(this);
@@ -1773,7 +1773,7 @@
 
       var order = _this.getOrderAndGroup();
       if (br.isArray(order)) {
-        for(i = 0; i < order.length; i++) {
+        for(var i = 0; i < order.length; i++) {
           $('.sortable[data-field="' + order[i].fieldName + '"].' + (order[i].asc ? 'order-asc' : 'order-desc'), $(this.options.selectors.header)).addClass('icon-white').addClass('icon-border');
         }
       }

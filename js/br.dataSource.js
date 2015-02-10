@@ -24,7 +24,7 @@
 
     if (this.options.offlineMode) {
       this.db = TAFFY();
-      this.db.store('taffy-db-' + name);
+      this.db.store('taffy-db-' + this.name);
     }
 
     this.events = br.eventQueue(this);
