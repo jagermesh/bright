@@ -636,6 +636,8 @@
  *
  */
 
+/* global console */
+
 ;(function ($, window) {
 
   window.br = window.br || {};
@@ -1116,6 +1118,8 @@
   * http://brightfw.com
  *
  */
+
+/* global TAFFY */
 
 ;(function ($, window) {
 

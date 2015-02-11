@@ -19,9 +19,6 @@
     "humane": true,
     "Mustache": true,
     "FileReader": true,
-    "TAFFY": true,
-    "console": true,
-    "google": true,
     "navigator": true
   }
 }

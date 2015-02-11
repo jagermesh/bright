@@ -7,6 +7,8 @@
  *
  */
 
+/* global google */
+
 ;(function ($, window, undefined) {
 
   function BrGoogleMap(selector, options) {

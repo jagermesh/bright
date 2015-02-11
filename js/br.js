@@ -7,6 +7,8 @@
  *
  */
 
+/* global console */
+
 ;(function ($, window) {
 
   window.br = window.br || {};

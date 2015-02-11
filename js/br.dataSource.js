@@ -7,6 +7,8 @@
  *
  */
 
+/* global TAFFY */
+
 ;(function ($, window) {
 
   function BrDataSource(restServiceUrl, options) {
