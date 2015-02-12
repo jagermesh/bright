@@ -8,24 +8,28 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrObject.php');
+require_once(__DIR__ . '/BrObject.php');
+require_once(__DIR__ . '/3rdparty/phpQuery/phpQuery.php');
 
 class BrIMAPBody extends BrObject {
 
-  private $message, $partNo, $encoding, $inlines, $charset, $body = null;
+  private $message, $parts, $encoding, $inlines, $charset, $isHTML, $body = null;
 
-  function __construct($message) {
+  function __construct($message, $isHTML) {
 
     parent::__construct();
 
+    $this->isHTML = $isHTML;
     $this->message = $message;
     $this->inlines = array();
+    $this->parts   = array();
 
   }
 
   function configure($partNo, $structure) {
 
-    $this->partNo = $partNo;
+    $this->parts[] = $partNo;
+    // $this->partNo = $partNo;
     $this->structure = $structure;
     $this->encoding = $structure->encoding;
 
@@ -43,11 +47,32 @@ class BrIMAPBody extends BrObject {
 
     // echo($this->partNo);
 
-    if ($this->partNo && ($this->body === null)) {
-      $this->body = imap_fetchbody($this->message->getMailbox(), $this->message->getUID(), $this->partNo, FT_UID);
-      $this->body = BrIMAP::decode($this->body, $this->encoding);
-      if ($this->charset) {
-        $this->body = @iconv($this->charset, 'UTF-8', $this->body);
+    if ($this->parts && ($this->body === null)) {
+      foreach($this->parts as $partNo) {
+        $body = imap_fetchbody($this->message->getMailbox(), $this->message->getUID(), $partNo, FT_UID);
+        $body = BrIMAP::decode($body, $this->encoding);
+        if ($this->charset) {
+          $body = @iconv($this->charset, 'UTF-8', $body);
+        }
+
+        $doc = phpQuery::newDocument($body);
+
+        $doc->find('head')->remove();
+        $doc->find('base')->remove();
+        $doc->find('style')->remove();
+        $doc->find('meta')->remove();
+
+        $bodyTag = $doc->find('body');
+
+        if ($bodyTag->length() > 0) {
+          $body = trim(pq($bodyTag)->html());
+        } else {
+          $body = trim($doc->html());
+        }
+
+        phpQuery::unloadDocuments();
+
+        $this->body .= $body;
       }
     }
 
@@ -167,8 +192,8 @@ class BrIMAPMailMessage extends BrObject {
     $this->path = $path;
     $this->overview = $overview;
 
-    $this->HTMLBody = new BrIMAPBody($this);
-    $this->textBody = new BrIMAPBody($this);
+    $this->HTMLBody = new BrIMAPBody($this, true);
+    $this->textBody = new BrIMAPBody($this, false);
     $this->attachments = array();
 
   }
@@ -566,7 +591,7 @@ class BrIMAP extends BrObject {
 
   static function decode($body, $encoding) {
 
-    for ($i=0;$i<256;$i++) {
+    for ($i=0; $i < 256; $i++) {
       $c1 = dechex($i);
       if (strlen($c1)==1) {
         $c1 = "0".$c1;
@@ -582,8 +607,7 @@ class BrIMAP extends BrObject {
       // case 1:
       //   return imap_utf8($body);
       // case 2:
-        // return imap_binary($body);
-        // return $body;
+      //   return imap_binary($body);
       case 3:
         return imap_base64($body);
       case 4:
