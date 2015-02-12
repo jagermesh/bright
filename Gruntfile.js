@@ -35,13 +35,9 @@ module.exports = function(grunt) {
         }
       }
     },
-    // qunit: {
-    //   files: ['test/**/*.html']
-    // },
     jshint: {
       files: ['Gruntfile.js', 'js/*.js', '!js/<%= pkg.name %>.min.js'],
       options: {
-        // options here to override JSHint defaults
         ignores: ['js/bright.js', 'js/bright.min.js'],
         jshintrc: true
       }
@@ -52,22 +48,13 @@ module.exports = function(grunt) {
         },
         all: ["*.php"]
     }
-    // watch: {
-    //   files: ['<%= jshint.files %>'],
-    //   tasks: ['jshint', 'qunit']
-    // }
   });
 
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-jshint');
-  // grunt.loadNpmTasks('grunt-contrib-qunit');
-  // grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks("grunt-phplint");
 
-  // grunt.registerTask('test', ['jshint', 'qunit']);
-
-  // grunt.registerTask('default', ['jshint', 'qunit', 'concat', 'uglify']);
-  grunt.registerTask('default', ['concat', 'jshint', 'uglify', 'phplint:all']);
+  grunt.registerTask('default', ['jshint', 'concat', 'uglify', 'phplint:all']);
 
 };
