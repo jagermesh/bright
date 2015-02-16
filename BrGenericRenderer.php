@@ -10,6 +10,12 @@
 
 require_once(br()->atFrameworkPath('3rdparty/mustache/Mustache.php'));
 
+// require_once(br()->atFrameworkPath('3rdparty/mustache/php/bobthecow/src/Mustache/Autoloader.php'));
+// Mustache_Autoloader::register();
+
+// require_once(br()->atFrameworkPath('3rdparty/handlebars/php/xamin/src/Handlebars/Autoloader.php'));
+// Handlebars\Autoloader::register();
+
 class BrGenericRenderer extends BrObject {
 
   private $templates = array();
@@ -34,6 +40,12 @@ class BrGenericRenderer extends BrObject {
   public function assign($name, $values) {
 
     $this->vars[$name] = $values;
+
+  }
+
+  public function getVar($name) {
+
+    return br($this->vars, $name);
 
   }
 
@@ -83,6 +95,12 @@ class BrGenericRenderer extends BrObject {
 
     $m = new Mustache(null, null, null, array('delimiters' => br($this->params, 'delimiters', '[[ ]]')));
     $body = $m->render($body, $localVars);
+
+    // $m = new Mustache_Engine;
+    // $body = $m->render($body, $localVars);
+
+    // $m = new Handlebars\Handlebars;
+    // $body = $m->render($body, $localVars);
 
     // replace {br} with Bright url
     $body = str_replace('{br}', br()->request()->frameworkUrl(), $body);

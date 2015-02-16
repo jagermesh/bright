@@ -229,8 +229,8 @@ class Mustache_Tokenizer
         $this->tokens  = array();
         $this->seenTag = false;
         $this->line    = 0;
-        $this->otag    = '{{';
-        $this->ctag    = '}}';
+        $this->otag    = '[[';
+        $this->ctag    = ']]';
         $this->otagLen = 2;
         $this->ctagLen = 2;
     }
@@ -279,7 +279,7 @@ class Mustache_Tokenizer
      *
      * @param string $delimiters
      */
-    private function setDelimiters($delimiters)
+    public function setDelimiters($delimiters)
     {
         list($otag, $ctag) = explode(' ', $delimiters);
         $this->otag = $otag;

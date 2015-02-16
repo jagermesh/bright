@@ -281,8 +281,8 @@ class Tokenizer
         $this->tokens = array();
         $this->seenTag = false;
         $this->lineStart = 0;
-        $this->otag = '{{';
-        $this->ctag = '}}';
+        $this->otag = '[[';
+        $this->ctag = ']]';
         $this->trimLeft = false;
         $this->trimRight = false;
     }
