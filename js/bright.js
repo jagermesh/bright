@@ -2385,10 +2385,12 @@
             } else {
               _this.apply(content);
             }
+            e.stopPropagation();
           }
           if (e.keyCode == 27) {
             $('div.popover').remove();
             _this.cancel();
+            e.stopPropagation();
           }
         });
       }
