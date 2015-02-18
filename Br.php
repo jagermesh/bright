@@ -375,14 +375,14 @@ class Br extends BrSingleton {
 
   }
 
-  function import($FileName) {
+  function import($fileName) {
 
-    if (!preg_match('/[.]php$/', $FileName)) {
-      $FileName = $FileName . '.php';
+    if (!preg_match('/[.]php$/', $fileName)) {
+      $fileName = $fileName . '.php';
     }
 
-    if (file_exists($FileName)) {
-      require_once($FileName);
+    if (file_exists($fileName)) {
+      require_once($fileName);
       return true;
     } else {
       return false;

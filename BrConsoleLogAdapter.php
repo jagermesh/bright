@@ -25,7 +25,7 @@ class BrConsoleLogAdapter extends BrGenericLogAdapter {
     $logMessage .= "\n";
 
     echo($logMessage);
-    
+
   }
 
   function writeMessage($message, $group = 'MSG') {
@@ -33,19 +33,19 @@ class BrConsoleLogAdapter extends BrGenericLogAdapter {
     if (($group != 'QRY') && ($group != 'SEP')) {
       $this->write($message);
     }
-    
+
   }
 
   function writeDebug($message) {
 
     $this->write($message, 'DBG');
-    
+
   }
 
   function writeError($message) {
 
     $this->write($message, 'ERR');
-    
+
   }
 
 }

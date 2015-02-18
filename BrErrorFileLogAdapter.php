@@ -35,11 +35,11 @@ class BrErrorFileLogAdapter extends BrGenericFileLogAdapter {
     parent::writeAppInfo('ERR');
     parent::writeError($message);
     parent::writeError('');
-    
+
   }
 
   function writeMessage($message, $group = 'MSG') {
-    
+
     if ($group == 'ERR') {
 
       parent::writeMessage($message, $group);
@@ -47,10 +47,10 @@ class BrErrorFileLogAdapter extends BrGenericFileLogAdapter {
     }
 
   }
-  
+
   function writeDebug($message) {
 
   }
-  
+
 }
 

@@ -43,6 +43,30 @@ class BrLog extends BrSingleton {
 
   }
 
+  function getAdapters() {
+
+    return $this->adapter;
+
+  }
+
+  function adaptersCount() {
+
+    return count($this->adapters);
+
+  }
+
+  function isAdapterExists($name) {
+
+    foreach($this->adapters as $adapter) {
+      if (get_class($adapter) == $name) {
+        return true;
+      }
+    }
+
+    return false;
+
+  }
+
   function getInitTime() {
 
     return $this->initTime;

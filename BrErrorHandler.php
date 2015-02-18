@@ -60,6 +60,13 @@ class BrErrorHandler extends BrObject {
 
         }
 
+        if (br()->isConsoleMode()) {
+          if (!br()->log()->isAdapterExists('BrConsoleLogAdapter')) {
+            br()->importLib('ConsoleLogAdapter');
+            br()->log()->addAdapter(new BrConsoleLogAdapter());
+          }
+        }
+
         if ($e instanceof BrAppException) {
           if (br()->isConsoleMode()) {
             br()->log($e->getMessage());
