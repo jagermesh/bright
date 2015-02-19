@@ -88,6 +88,7 @@
     this.insertDataRowAfter = function(row, selector) {
       _this.events.triggerBefore('insert', row);
       var tableRow = _this.renderRow(row);
+      _this.events.triggerBefore('insert', row, tableRow);
       _this.events.trigger('insert', row, tableRow);
       $(tableRow).insertAfter(selector);
       _this.events.triggerAfter('renderRow', row, tableRow);
@@ -98,6 +99,7 @@
     this.addDataRow = function(row) {
       _this.events.triggerBefore('insert', row);
       var tableRow = _this.renderRow(row);
+      _this.events.triggerBefore('insert', row, tableRow);
       _this.events.trigger('insert', row, tableRow);
       if (_this.options.appendInInsert) {
         _this.append(tableRow);
