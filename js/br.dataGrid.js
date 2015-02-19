@@ -86,7 +86,6 @@
     };
 
     this.insertDataRowAfter = function(row, selector) {
-      _this.events.triggerBefore('insert', row);
       var tableRow = _this.renderRow(row);
       _this.events.triggerBefore('insert', row, tableRow);
       _this.events.trigger('insert', row, tableRow);
@@ -97,7 +96,6 @@
     };
 
     this.addDataRow = function(row) {
-      _this.events.triggerBefore('insert', row);
       var tableRow = _this.renderRow(row);
       _this.events.triggerBefore('insert', row, tableRow);
       _this.events.trigger('insert', row, tableRow);
