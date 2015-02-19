@@ -1665,11 +1665,7 @@
 
     this.insertDataRowAfter = function(row, selector) {
       var tableRow = _this.renderRow(row);
-      _this.events.triggerBefore('insert', row, tableRow);
-      _this.events.trigger('insert', row, tableRow);
       $(tableRow).insertAfter(selector);
-      _this.events.triggerAfter('renderRow', row, tableRow);
-      _this.events.triggerAfter('insert', row, tableRow);
       return tableRow;
     };
 
