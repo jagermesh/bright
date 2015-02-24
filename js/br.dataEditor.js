@@ -273,135 +273,145 @@
         andClose = false;
       }
       var data = { };
-      var ok = true;
+      var errors = [];
       $(this.options.selectors.errorMessage, _this.container).hide();
       _this.events.triggerBefore('editor.save');
       _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio],input.data-field,select.data-field,textarea.data-field').each(function() {
-        if (ok) {
-          var val;
-          var skip = false;
-          if (($(this).attr('readonly') != 'readonly') && ($(this).attr('disabled') != 'disabled')) {
-            if ($(this).attr('data-toggle') == 'buttons-radio') {
-              val = $(this).find('button.active').val();
-            } else
-            if ($(this).attr('type') == 'checkbox') {
-              if ($(this).is(':checked')) {
-                val = 1;
-              } else {
-                val = 0;
-              }
-            } else
-            if ($(this).attr('type') == 'radio') {
-              if ($(this).is(':checked')) {
-                val = $(this).val();
-              } else {
-                skip = true;
-                // val = 0;
-              }
+        var val;
+        var skip = false;
+        if (($(this).attr('readonly') != 'readonly') && ($(this).attr('disabled') != 'disabled')) {
+          if ($(this).attr('data-toggle') == 'buttons-radio') {
+            val = $(this).find('button.active').val();
+          } else
+          if ($(this).attr('type') == 'checkbox') {
+            if ($(this).is(':checked')) {
+              val = 1;
             } else {
-              val = $(this).val();
+              val = 0;
             }
-            if (!skip) {
-              if ($(this).hasClass('required') && br.isEmpty(val) && (!$(this).hasClass('required-edit-only') || _this.isEditMode())) {
-                var title = $(this).attr('title');
-                if (br.isEmpty(title)) {
-                  title = $(this).prev('label').text();
-                }
-                _this.showError(br.trn('%s must be filled').replace('%s', title));
-                this.focus();
-                ok = false;
-              } else
-              if (br.isEmpty(val)) {
-                data[$(this).attr('name')] = '';
-              } else {
-                data[$(this).attr('name')] = val;
+          } else
+          if ($(this).attr('type') == 'radio') {
+            if ($(this).is(':checked')) {
+              val = $(this).val();
+            } else {
+              skip = true;
+            }
+          } else {
+            val = $(this).val();
+          }
+          if (!skip) {
+            if ($(this).hasClass('required') && br.isEmpty(val) && (!$(this).hasClass('required-edit-only') || _this.isEditMode())) {
+              var title = $(this).attr('title');
+              if (br.isEmpty(title)) {
+                title = $(this).prev('label').text();
               }
+              if (errors.length === 0) {
+                this.focus();
+              }
+              errors.push(br.trn('%s must be filled').replace('%s', title));
+              ok = false;
+            } else
+            if (br.isEmpty(val)) {
+              data[$(this).attr('name')] = '';
+            } else {
+              data[$(this).attr('name')] = val;
             }
           }
         }
       });
-      if (ok) {
-        var op = '';
-        if (editorRowid) { op = 'update'; } else { op = 'insert'; }
-          try {
-            _this.events.trigger('editor.save', op, data);
-          } catch (e) {
-            _this.showError(e.message);
-            ok = false;
-          }
-      }
-      if (ok) {
-        if (editorRowid) {
-          _this.dataSource.update(editorRowid, data, function(result, response) {
-            if (result) {
-              if (!closeConfirmationTmp) {
-                br.resetCloseConfirmation();
-              }
-              _this.events.triggerAfter('editor.update', true, response);
-              _this.events.triggerAfter('editor.save', true, response);
-              if (andClose) {
-                if (_this.container.hasClass('modal')) {
-                  // _this.events.trigger('editor.hidden', true, response);
-                  _this.container.modal('hide');
-                  editorRowid = null;
-                  editorRowData = null;
-                } else {
-                  _this.events.trigger('editor.hidden', true, response);
-                  var callResponse = { refresh: true };
-                  _this.events.trigger('editor.hide', true, response, callResponse);
-                  br.backToCaller(_this.options.returnUrl, callResponse.refresh);
-                }
-              } else {
-                if (!_this.options.hideSaveNotification && !silent) {
-                  br.growlMessage('Changes saved', 'Success');
-                }
-              }
-              if (callback) {
-                callback.call(this, response);
-              }
-            } else {
-              if (!_this.dataSource.events.has('error')) {
-                _this.showError(response);
-              }
-            }
-          });
+      if (errors.length > 0) {
+        var tmpl;
+        if (errors.length == 1) {
+          tmpl = '{{#errors}}{{.}}{{/errors}}';
         } else {
-          _this.dataSource.insert(data, function(result, response) {
-            if (result) {
-              if (!closeConfirmationTmp) {
-                br.resetCloseConfirmation();
-              }
-              editorRowid = response.rowid;
-              editorRowData = response;
-              _this.editorConfigure(false);
-              _this.events.triggerAfter('editor.insert', true, response);
-              _this.events.triggerAfter('editor.save', true, response);
-              if (andClose) {
-                if (_this.container.hasClass('modal')) {
-                  // _this.events.trigger('editor.hidden', true, response);
-                  _this.container.modal('hide');
-                  editorRowid = null;
-                  editorRowData = null;
+          tmpl = 'Please check the following:<br /><ul>{{#errors}}<li>{{.}}</li>{{/errors}}</ul>';
+        }
+        var error = br.fetch(tmpl, { errors: errors });
+        br.growlError(error);
+      } else {
+        var op = '';
+        var ok = true;
+        if (editorRowid) {
+          op = 'update';
+        } else {
+          op = 'insert';
+        }
+        try {
+          _this.events.trigger('editor.save', op, data);
+          if (editorRowid) {
+            _this.dataSource.update(editorRowid, data, function(result, response) {
+              if (result) {
+                if (!closeConfirmationTmp) {
+                  br.resetCloseConfirmation();
+                }
+                _this.events.triggerAfter('editor.update', true, response);
+                _this.events.triggerAfter('editor.save', true, response);
+                if (andClose) {
+                  if (_this.container.hasClass('modal')) {
+                    // _this.events.trigger('editor.hidden', true, response);
+                    _this.container.modal('hide');
+                    editorRowid = null;
+                    editorRowData = null;
+                  } else {
+                    _this.events.trigger('editor.hidden', true, response);
+                    var callResponse = { refresh: true };
+                    _this.events.trigger('editor.hide', true, response, callResponse);
+                    br.backToCaller(_this.options.returnUrl, callResponse.refresh);
+                  }
                 } else {
-                  _this.events.trigger('editor.hidden', true, response);
-                  var callResponse = { refresh: true };
-                  _this.events.trigger('editor.hide', true, response, callResponse);
-                  br.backToCaller(_this.options.returnUrl, callResponse.refresh);
+                  if (!_this.options.hideSaveNotification && !silent) {
+                    br.growlMessage('Changes saved', 'Success');
+                  }
+                }
+                if (callback) {
+                  callback.call(this, response);
                 }
               } else {
-                if (!_this.options.hideSaveNotification && !silent) {
-                  br.growlMessage('Changes saved', 'Success');
+                if (!_this.dataSource.events.has('error')) {
+                  _this.showError(response);
                 }
               }
-              if (callback) {
-                callback.call(this, response);
+            });
+          } else {
+            _this.dataSource.insert(data, function(result, response) {
+              if (result) {
+                if (!closeConfirmationTmp) {
+                  br.resetCloseConfirmation();
+                }
+                editorRowid = response.rowid;
+                editorRowData = response;
+                _this.editorConfigure(false);
+                _this.events.triggerAfter('editor.insert', true, response);
+                _this.events.triggerAfter('editor.save', true, response);
+                if (andClose) {
+                  if (_this.container.hasClass('modal')) {
+                    // _this.events.trigger('editor.hidden', true, response);
+                    _this.container.modal('hide');
+                    editorRowid = null;
+                    editorRowData = null;
+                  } else {
+                    _this.events.trigger('editor.hidden', true, response);
+                    var callResponse = { refresh: true };
+                    _this.events.trigger('editor.hide', true, response, callResponse);
+                    br.backToCaller(_this.options.returnUrl, callResponse.refresh);
+                  }
+                } else {
+                  if (!_this.options.hideSaveNotification && !silent) {
+                    br.growlMessage('Changes saved', 'Success');
+                  }
+                }
+                if (callback) {
+                  callback.call(this, response);
+                }
+              } else {
+                if (!_this.dataSource.events.has('error')) {
+                  _this.showError(response);
+                }
               }
-            } else {
-              if (!_this.dataSource.events.has('error')) {
-                _this.showError(response);
-              }
-            }
-          });
+            });
+          }
+        } catch (e) {
+          _this.showError(e.message);
         }
       }
     };
