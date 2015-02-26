@@ -76,6 +76,9 @@
 
     this.editorConfigure = function(isCopy) {
       var s = '';
+      if (_this.options.title) {
+        s = _this.options.title;
+      } else
       if (editorRowid) {
         if (isCopy) {
           s = 'Copy ' + _this.options.noun;
