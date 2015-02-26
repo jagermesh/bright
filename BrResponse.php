@@ -42,7 +42,7 @@ class BrResponse extends BrSingleton {
 
   }
 
-  private function internalRedirect($url, $permanent, $saveCaller = false) {
+  private function internalRedirect($url, $permanent, $saveCaller = false, $timedOut = false) {
 
     if (!preg_match('~^/~', $url) && !preg_match('~^http[s]?://~', $url)) {
       $url = br()->request()->baseUrl().$url;
@@ -54,7 +54,11 @@ class BrResponse extends BrSingleton {
     br()->log()->writeLn('Redirecting to ' . $url);
 
     if (headers_sent()) {
-      echo('<script> document.location="' . $url . '"; </script>');
+      if ($timedOut) {
+        echo('<script> window.setTimeout(function() { document.location="' . $url . '"; }, 500); </script>');
+      } else {
+        echo('<script> document.location="' . $url . '"; </script>');
+      }
     } else {
       if ($permanent) {
         header("HTTP/1.1 301 Moved Permanently");
@@ -65,9 +69,9 @@ class BrResponse extends BrSingleton {
 
   }
 
-  function redirect($url, $saveCaller = false) {
+  function redirect($url, $saveCaller = false, $timedOut = false) {
 
-    $this->internalRedirect($url, false, $saveCaller);
+    $this->internalRedirect($url, false, $saveCaller, $timedOut);
 
   }
 
