@@ -247,6 +247,9 @@ class BrDataSource extends BrGenericDataSource {
         $operation = 'update';
         $error = $e->getMessage();
         $this->trigger('error', $error, $operation, $e);
+        if (preg_match("/1265: Data truncated for column '([a-z_]+)'/i", $error, $matches)) {
+          throw new BrAppException('Wrong value for field ' . br()->config()->get('dbSchema.' . $this->dbEntity() . '.' . $matches[1] . '.displayName', $matches[1]));
+        }
         throw $e;
       }
 

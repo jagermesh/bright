@@ -266,7 +266,7 @@ class BrSFTP extends BrObject {
       }
     }
 
-    throw new Exception('Can not download file ' . $targetFileName);
+    throw new Exception('Can not download file ' . $sourceFileName);
 
   }
 
