@@ -67,11 +67,17 @@
     };
 
     function storageTag(c) {
-      var storageKey = $(c).attr('data-storage-key');
-      if (br.isEmpty(storageKey)) {
-        storageKey = ':';
+      var storageKey = document.location.pathname;
+      if (!br.isEmpty($(c).attr('id'))) {
+        storageKey = storageKey + ':' + $(c).attr('id');
+      } else
+      if (!br.isEmpty($(c).attr('name'))) {
+        storageKey = storageKey + ':' + $(c).attr('name');
       }
-      return document.location.pathname + ':filter-value:' + $(c).attr('name') + storageKey;
+      if (!br.isEmpty($(c).attr('data-storage-key'))) {
+        storageKey = storageKey + ':' + $(c).attr('data-storage-key');
+      }
+      return document.location.pathname + ':filter-value' + storageKey;
     }
 
     function uiSync() {

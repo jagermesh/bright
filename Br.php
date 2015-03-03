@@ -291,7 +291,8 @@ class Br extends BrSingleton {
     } else {
       $prior = -1;
       foreach($array as $idx => $value) {
-        if (!is_numeric($idx) || (abs($idx - $prior) != 1)) {
+        // if (!is_numeric($idx) || (abs($idx - $prior) != 1)) {
+        if (!is_numeric($idx)) {
           return false;
         }
         $prior = $idx;
