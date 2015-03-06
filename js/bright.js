@@ -1222,7 +1222,9 @@
 
     };
 
-    this.update = function(rowid, item, callback) {
+    this.update = function(rowid, item, callback, options) {
+
+      var disableEvents = options && options.disableEvents;
 
       function returnUpdate(data) {
         var operation = 'update';
@@ -1230,19 +1232,27 @@
           var res = _this.events.trigger('removeAfterUpdate', item, data);
           if ((res !== null) && res) {
             operation = 'remove';
-            _this.events.trigger('remove', rowid);
+            if (!disableEvents) {
+              _this.events.trigger('remove', rowid);
+            }
           } else {
-            _this.events.trigger('update', data, rowid);
+            if (!disableEvents) {
+              _this.events.trigger('update', data, rowid);
+            }
           }
         }
-        _this.events.triggerAfter(operation, true, data, request);
-        _this.events.trigger('change', operation, data);
+        if (!disableEvents) {
+          _this.events.triggerAfter(operation, true, data, request);
+          _this.events.trigger('change', operation, data);
+        }
         if (typeof callback == 'function') { callback.call(_this, true, data, request); }
       }
 
       var request = item;
 
-      _this.events.triggerBefore('update', request, rowid);
+      if (!disableEvents) {
+        _this.events.triggerBefore('update', request, rowid);
+      }
 
       if (_this.options.offlineMode) {
         _this.db({rowid: rowid}).update(request);
@@ -1260,8 +1270,10 @@
 
                    } else {
                      var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                     _this.events.trigger('error', 'update', errorMessage);
-                     _this.events.triggerAfter('update', false, errorMessage, request);
+                     if (!disableEvents) {
+                        _this.events.trigger('error', 'update', errorMessage);
+                         _this.events.triggerAfter('update', false, errorMessage, request);
+                     }
                      if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
                    }
                  }
