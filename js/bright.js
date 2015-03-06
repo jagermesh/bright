@@ -2032,11 +2032,16 @@
     this.options.nameField = this.options.nameField || 'name';
     this.options.levelField = this.options.levelField || null;
     this.options.selectedValue = this.options.selectedValue || null;
+    this.options.skipTranslate = this.options.skipTranslate || null;
     this.options.selectedValueField = this.options.selectedValueField || null;
     this.options.hideEmptyValue = this.options.hideEmptyValue || (this.selector.attr('multiple') == 'multiple');
     this.options.emptyName = (typeof this.options.emptyName == 'undefined' ? '--any--' : this.options.emptyName);
     this.options.emptyValue = (typeof this.options.emptyValue == 'undefined' ? '' : this.options.emptyValue);
     this.loaded = false;
+
+    if (this.options.skipTranslate) {
+      this.selector.addClass('skiptranslate');
+    }
 
     this.fields = this.options.fields || {};
     this.saveSelection = this.options.saveSelection || false;
@@ -2092,7 +2097,11 @@
 
     function uiSync() {
       if (_this.isValid() && window.Select2 && !_this.noDecoration && !_this.selector.attr('size')) {
-        _this.selector.select2();
+        var params = {};
+        if (_this.options.skipTranslate) {
+          params.dropdownCssClass = 'skiptranslate';
+        }
+        _this.selector.select2(params);
       }
     }
 
