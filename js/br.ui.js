@@ -295,7 +295,7 @@
   };
 
   var progressBar_Total = 0, progressBar_Progress = 0, progressBar_Message = '';
-  var progressBarTemplate = '<div id="br_progressBar" class="modal" style="display:none;" data-backdrop="static">' +
+  var progressBarTemplate = '<div id="br_progressBar" class="modal" style="display:none;z-index:10000;" data-backdrop="static">' +
                             '  <div class="modal-dialog">'+
                             '    <div class="modal-content">'+
                             '      <div class="modal-body">' +
