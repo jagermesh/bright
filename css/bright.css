@@ -5,6 +5,12 @@
 .centered {
   text-align: center !important;
 }
+.left-aligned {
+  text-align: left !important;
+}
+.right-aligned {
+  text-align: right !important;
+}
 
 textarea.justified {
   width: 100%;
@@ -50,10 +56,6 @@ a.justified {
 td.optimal-width, th.optimal-width {
   width:10px;
   white-space:nowrap;
-}
-
-.right-aligned {
-  text-align: right !important;
 }
 
 .full-height {
