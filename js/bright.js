@@ -1720,7 +1720,7 @@
           $row0.html(s);
           $row0.data('data-row', data);
           _this.events.triggerAfter('update', data, $row0);
-          _this.events.triggerAfter('renderRow', row, $row0);
+          _this.events.triggerAfter('renderRow', data, $row0);
           return true;
         } else {
           return false;
@@ -1994,7 +1994,7 @@
                 }
                 $row = _this.renderRow(data[i]);
                 $selector.append($row);
-                _this.events.triggerAfter('renderRow', data, $row);
+                _this.events.triggerAfter('renderRow', data[i], $row);
               }
             }
           } else
