@@ -45,6 +45,31 @@ class BrGenericLogAdapter extends BrObject {
         $this->writeMessage('Request url:   ' . br()->request()->url(),      $group);
         $this->writeMessage('Referer url:   ' . br()->request()->referer(),  $group);
         $this->writeMessage('Client IP:     ' . br()->request()->clientIP(), $group);
+
+        try {
+          br()->log()->disable();
+          $login = br()->auth()->getLogin();
+          br()->log()->enable();
+          if ($login) {
+            $this->writeMessage('User ID:       ' . br($login, 'id'), $group);
+            if (br($login, 'name')) {
+              $this->writeMessage('User name:     ' . br($login, 'name'), $group);
+            }
+            if ($loginField = br()->auth()->getAttr('usersTable.loginField')) {
+              if (br($login, $loginField)) {
+                $this->writeMessage('User login:    ' . br($login, $loginField), $group);
+              }
+            }
+            if ($emailField = br()->auth()->getAttr('usersTable.emailField')) {
+              if (br($login, $loginField)) {
+                $this->writeMessage('User e-mail:   ' . br($login, $emailField), $group);
+              }
+            }
+          }
+        } catch (Excetpion $e) {
+          br()->log()->enable();
+        }
+
         $this->writeMessage('Request type:  ' . br()->request()->method(),   $group);
         $requestData = '';
         if (br()->request()->isGET()) {
@@ -56,8 +81,9 @@ class BrGenericLogAdapter extends BrObject {
         if (br()->request()->isPUT()) {
           $requestData = @json_encode(br()->request()->put());
         }
-        $this->writeMessage('Request data:  ' . $requestData,                $group);
-        $this->writeMessage('Command line:  ' . @json_encode($argv),          $group);
+        if ($requestData) {
+          $this->writeMessage('Request data:  ' . $requestData,                $group);
+        }
       }
 
       $this->writeMessage('***************************************************************', $group);
