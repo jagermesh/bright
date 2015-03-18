@@ -112,7 +112,7 @@
     this.init = function() {
 
       if ($.datepicker) {
-        $('input.datepicker').each(function() {
+        $('input.datepicker', _this.container).each(function() {
           if ($(this).attr('data-format')) {
             $(this).datepicker({ dateFormat: $(this).attr('data-format') });
           } else {
