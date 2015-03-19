@@ -34,22 +34,43 @@ class BrErrorMailLogAdapter extends BrGenericLogAdapter {
           if ($tagline) {
             $subject .= ': ' . $tagline;
           }
-          $body  = '<html>'
-                   . '<body>'
-                   . '<strong>Timestamp:</strong> ' . date('r') . '<br />'
-                   . '<strong>Script name:</strong> ' . br()->scriptName() . '<br />'
-                   . '<strong>Request URL:</strong> <a href="' . br()->request()->url() . '">' . br()->request()->url(). '</a><br />'
-                   . '<strong>Referer URL:</strong> <a href="' . br()->request()->referer() . '">' . br()->request()->referer() . '</a><br />'
-                   . '<strong>Client IP:</strong> ' . br()->request()->clientIP() . '<br />'
-                   . '<strong>Request type:</strong> ' . br()->request()->method() . '<br />'
-                   . '<strong>Request data:</strong> ' . $requestData . '<br />'
-                   . '<strong>Command line:</strong> ' . @json_encode($argv) . '<br />'
-                   . '<hr size="1" />'
-                   . '<pre>'
-                   . $message
-                   . '</pre>'
-                   . '</body>'.
-                   ' </html>';
+
+          $userInfo = '';
+          $login = br()->auth()->getLogin();
+          if ($login) {
+            $userInfo = '<strong>User ID:</strong> ' . br($login, 'id') . '<br />';
+            if (br($login, 'name')) {
+              $userInfo .= '<strong>User name:</strong> ' . br($login, 'name') . '<br />';
+            }
+            if ($loginField = br()->auth()->getAttr('usersTable.loginField')) {
+              if (br($login, $loginField)) {
+                $userInfo .= '<strong>User login:</strong> ' . br($login, $loginField) . '<br />';
+              }
+            }
+            if ($emailField = br()->auth()->getAttr('usersTable.emailField')) {
+              if (br($login, $loginField)) {
+                $userInfo .= '<strong>User e-mail:</strong> ' . br($login, $emailField) . '<br />';
+              }
+            }
+          }
+
+          $body = '<html>'
+                . '<body>'
+                . '<strong>Timestamp:</strong> ' . date('r') . '<br />'
+                . '<strong>Script name:</strong> ' . br()->scriptName() . '<br />'
+                . '<strong>Request URL:</strong> <a href="' . br()->request()->url() . '">' . br()->request()->url(). '</a><br />'
+                . '<strong>Referer URL:</strong> <a href="' . br()->request()->referer() . '">' . br()->request()->referer() . '</a><br />'
+                . '<strong>Client IP:</strong> ' . br()->request()->clientIP() . '<br />'
+                . $userInfo
+                . '<strong>Request type:</strong> ' . br()->request()->method() . '<br />'
+                . '<strong>Request data:</strong> ' . $requestData . '<br />'
+                . '<strong>Command line:</strong> ' . @json_encode($argv) . '<br />'
+                . '<hr size="1" />'
+                . '<pre>'
+                . $message
+                . '</pre>'
+                . '</body>'
+                . '</html>';
           br()->sendMail($email, $subject, $body);
         } catch (Exception $e) {
         }
