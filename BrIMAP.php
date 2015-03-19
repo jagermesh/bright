@@ -13,7 +13,7 @@ require_once(__DIR__ . '/3rdparty/phpQuery/phpQuery.php');
 
 class BrIMAPBody extends BrObject {
 
-  private $message, $parts, $encoding, $inlines, $charset, $isHTML, $body = null;
+  private $message, $parts, $inlines, $charset, $isHTML, $body = null;
 
   function __construct($message, $isHTML) {
 
@@ -28,31 +28,36 @@ class BrIMAPBody extends BrObject {
 
   function configure($partNo, $structure) {
 
-    $this->parts[] = $partNo;
-    // $this->partNo = $partNo;
-    $this->structure = $structure;
-    $this->encoding = $structure->encoding;
+    $encoding = $structure->encoding;
+    $charset = '';
 
     if ($structure->ifparameters) {
       foreach($structure->parameters as $object) {
         if (strtolower($object->attribute) == 'charset') {
-          $this->charset = $object->value;
+          $charset = $object->value;
         }
       }
     }
+
+    $this->parts[] = array( 'partNo'    => $partNo
+                          , 'charset'   => $charset
+                          , 'encoding'  => $encoding
+                          );
 
   }
 
   function getBody() {
 
-    // echo($this->partNo);
-
     if ($this->parts && ($this->body === null)) {
-      foreach($this->parts as $partNo) {
+      foreach($this->parts as $part) {
+        $partNo = $part['partNo'];
+        $encoding = $part['encoding'];
+        $charset = $part['charset'];
+
         $body = imap_fetchbody($this->message->getMailbox(), $this->message->getUID(), $partNo, FT_UID);
-        $body = BrIMAP::decode($body, $this->encoding);
-        if ($this->charset) {
-          $body = @iconv($this->charset, 'UTF-8', $body);
+        $body = BrIMAP::decode($body, $encoding);
+        if ($charset) {
+          $body = @iconv($charset, 'UTF-8', $body);
         }
 
         if ($this->isHTML) {
@@ -443,7 +448,7 @@ class BrIMAPMailMessage extends BrObject {
     //        )
     //      )
     //    ));
-    //   debug($structure);
+      // debug($structure);
     // }
 
     // exit();
@@ -552,10 +557,6 @@ class BrIMAP extends BrObject {
                          , 'delimiter'  => $element->delimiter
                          , 'attributes' => $element->attributes
                          );
-          // echo "($key) ";
-          // echo  . ",";
-          // echo "'" . $val->delimiter . "',";
-          // echo $val->attributes . "<br />\n";
       }
     }
 
