@@ -2223,7 +2223,13 @@
           $(this).find('option[value=' + _this.options.selectedValue +']').attr('selected', 'selected');
         } else
         if (!br.isEmpty(val)) {
-          $(this).find('option[value=' + val +']').attr('selected', 'selected');
+          if (br.isArray(val)) {
+            for (var k = 0; k < val.length; k++) {
+              $(this).find('option[value=' + val[k] +']').attr('selected', 'selected');
+            }
+          } else {
+            $(this).find('option[value=' + val +']').attr('selected', 'selected');
+          }
         }
 
       });
