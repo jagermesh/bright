@@ -55,22 +55,24 @@ class BrIMAPBody extends BrObject {
           $body = @iconv($this->charset, 'UTF-8', $body);
         }
 
-        $doc = phpQuery::newDocument($body);
+        if ($this->isHTML) {
+          $doc = phpQuery::newDocument($body);
 
-        $doc->find('head')->remove();
-        $doc->find('base')->remove();
-        $doc->find('style')->remove();
-        $doc->find('meta')->remove();
+          $doc->find('head')->remove();
+          $doc->find('base')->remove();
+          $doc->find('style')->remove();
+          $doc->find('meta')->remove();
 
-        $bodyTag = $doc->find('body');
+          $bodyTag = $doc->find('body');
 
-        if ($bodyTag->length() > 0) {
-          $body = trim(pq($bodyTag)->html());
-        } else {
-          $body = trim($doc->html());
+          if ($bodyTag->length() > 0) {
+            $body = trim(pq($bodyTag)->html());
+          } else {
+            $body = trim($doc->html());
+          }
+
+          phpQuery::unloadDocuments();
         }
-
-        phpQuery::unloadDocuments();
 
         $this->body .= $body;
       }
