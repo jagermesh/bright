@@ -413,3 +413,17 @@ a.pager-nav-element:hover,a.pager-size-element:hover {
   border-radius: 3px;
   color:none;
 }
+
+.br-editable {
+  border: 1px solid transparent;
+  /*padding: 2px;*/
+}
+
+.br-editable:hover {
+  border: 1px dashed orange;
+  /*padding: 2px;*/
+  cursor: text;
+}
+div.br-editable, span.br-editable {
+  padding: 2px;
+}
