@@ -253,7 +253,7 @@ class BrRequest extends BrSingleton {
           } else {
             $s .= '&';
           }
-          $s .= $name . '[]=' . urlencode($one);
+          $s .= $name . '[]=' . htmlentities($one);
         }
         $result .= $s;
       } else {
@@ -263,7 +263,7 @@ class BrRequest extends BrSingleton {
         } else {
           $result .= '&';
         }
-        $result .= $name . '=' . urlencode($value);
+        $result .= $name . '=' . htmlentities($value);
       }
     }
 
