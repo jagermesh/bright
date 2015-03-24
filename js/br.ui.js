@@ -324,6 +324,7 @@
     $('#br_progressMessage').text(progressBar_Message);
     $('#br_progressStage').text(progressBar_Progress + ' of ' + progressBar_Total);
   }
+
   window.br.startProgress = function(value, message) {
     if (!br.isNumber(value)) {
       message = value;
@@ -345,17 +346,21 @@
     $('#br_progressBar').modal('show');
     renderProgress();
   };
+
   window.br.showProgress = function() {
     $('#br_progressBar').modal('show');
   };
+
   window.br.hideProgress = function() {
     $('#br_progressBar').modal('hide');
   };
+
   window.br.incProgress = function(value) {
     if (!value) { value = 1; }
     progressBar_Total += value;
     renderProgress();
   };
+
   window.br.stepProgress = function(step, message) {
     if (br.isNumber(step)) {
       progressBar_Progress += step;
@@ -367,6 +372,56 @@
       progressBar_Message = message;
     }
     renderProgress();
+  };
+
+  window.br.initScrollableAreas = function(deferred) {
+
+    $('.br-scrollable').each(function() {
+      var $container = $(this).parent('.br-container');
+      var $navBar = $('nav.navbar');
+      if ($navBar.length === 0) { $navBar = $('div.navbar'); }
+      var initialMarginTop = 0;
+      if ($navBar.css('position') != 'static') {
+        initialMarginTop = $container.offset().top;
+      }
+      if (deferred) {
+        initialMarginTop = 0;
+      }
+
+      $('body').css('overflow', 'hidden');
+
+      function resize() {
+        var navBarHeight = 0;
+        if ($navBar.length !== 0) {
+          navBarHeight = $navBar.height();
+        }
+        if (deferred) {
+          navBarHeight = 0;
+        }
+        var height = $(window).height() - navBarHeight - initialMarginTop;
+        if (height > 0) {
+          var marginTop = 0;
+          if ($navBar.length > 0) {
+            if ($navBar.css('position') == 'static') {
+              marginTop = initialMarginTop;
+            } else {
+              marginTop = navBarHeight + initialMarginTop;
+            }
+          } else {
+            marginTop = initialMarginTop;
+          }
+          $container.css('margin-top', marginTop + 'px');
+          $container.css('height', height + 'px');
+        }
+      }
+
+      $(window).on('resize', function() {
+        resize();
+      });
+
+      resize();
+    });
+
   };
 
   $(document).ready(function() {
@@ -405,45 +460,7 @@
       }
     }
 
-    $('.br-scrollable').each(function() {
-      var $container = $(this).parent('.br-container');
-      var $navBar = $('nav.navbar');
-      if ($navBar.length === 0) { $navBar = $('div.navbar'); }
-      var initialMarginTop = 0;
-      if ($navBar.css('position') != 'static') {
-        initialMarginTop = $container.offset().top;
-      }
-
-      $('body').css('overflow', 'hidden');
-
-      function resize() {
-        var navBarHeight = 0;
-        if ($navBar.length !== 0) {
-          navBarHeight = $navBar.height();
-        }
-        var height = $(window).height() - navBarHeight - initialMarginTop;
-        if (height > 0) {
-          var marginTop = 0;
-          if ($navBar.length > 0) {
-            if ($navBar.css('position') == 'static') {
-              marginTop = initialMarginTop;
-            } else {
-              marginTop = navBarHeight + initialMarginTop;
-            }
-          } else {
-            marginTop = initialMarginTop;
-          }
-          $container.css('margin-top', marginTop + 'px');
-          $container.css('height', height + 'px');
-        }
-      }
-
-      $(window).on('resize', function() {
-        resize();
-      });
-
-      resize();
-    });
+    br.initScrollableAreas();
 
   });
 
