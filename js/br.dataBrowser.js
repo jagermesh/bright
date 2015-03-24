@@ -537,7 +537,7 @@
       _this.events.on('selectionChanged', function() {
         var selection = _this.selection.get();
         if (selection.length > 0) {
-          $(c('.selection-stat')).text(selection.length + ' record(s) currently selected');
+          $(c('.selection-stat')).text(selection.length + ' record(s) selected');
           $(c('.selection-stat')).show();
           $(c('.action-clear-selection')).show();
         } else {
