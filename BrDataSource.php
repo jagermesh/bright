@@ -22,6 +22,16 @@ class BrDataSourceNotFound extends BrDBException {
 
 }
 
+class BrDataSourceReferencesExists extends BrAppException {
+
+  function __construct() {
+
+    parent::__construct('Cannot delete this record - there are references to it in the system');
+
+  }
+
+}
+
 class BrDataSource extends BrGenericDataSource {
 
   private $dbEntity;
@@ -332,7 +342,7 @@ class BrDataSource extends BrGenericDataSource {
           } catch (Exception $e) {
             // TODO: Move to the DB layer
             if (preg_match('/1451: Cannot delete or update a parent row/', $e->getMessage())) {
-              throw new BrAppException('Cannot delete this record - there are references to it in the system');
+              throw new BrDataSourceReferencesExists();//BrAppException('Cannot delete this record - there are references to it in the system');
             } else {
               throw new BrAppException($e->getMessage());
             }
