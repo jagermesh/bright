@@ -2925,6 +2925,11 @@
       }
     });
 
+    if ($.ui !== undefined) {
+      $('.modal^.ui-draggable').draggable({ handle: '.modal-header', cursor: 'pointer' });
+      $('.modal^.ui-draggable .modal-header').css('cursor', 'move');
+    }
+
     $(document).on('keypress', 'input[data-click-on-enter]', function(e) {
       if (e.keyCode == 13) { $($(this).attr('data-click-on-enter')).trigger('click'); }
     });
