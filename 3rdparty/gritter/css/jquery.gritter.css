@@ -45,7 +45,7 @@
 	color:#eee;
 	padding:11px 11px 11px 11px;
 	font-size: 10pt;
-  word-break: break-all;
+  /*word-break: break-all;*/
 }
 .gritter-item-wrapper.hover {
   /*opacity: 1;*/
