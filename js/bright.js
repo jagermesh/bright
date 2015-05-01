@@ -2911,9 +2911,17 @@
   window.br.enchanceBootstrap = function(el) {
     if ($.ui !== undefined) {
       if (el) {
-        $(el).not('.ui-draggable').draggable({ handle: '.modal-header', cursor: 'pointer' }).find('.modal-header').css('cursor', 'move');
+        $(el).not('.ui-draggable').each(function() {
+          if ($(this).find('.modal-header').length > 0) {
+            $(this).draggable({ handle: '.modal-header', cursor: 'pointer' }).find('.modal-header').css('cursor', 'move');
+          }
+        });
       } else {
-        $('.modal').not('.ui-draggable').draggable({ handle: '.modal-header', cursor: 'pointer' }).find('.modal-header').css('cursor', 'move');
+        $('.modal').not('.ui-draggable').each(function() {
+          if ($(this).find('.modal-header').length > 0) {
+            $(this).draggable({ handle: '.modal-header', cursor: 'pointer' }).find('.modal-header').css('cursor', 'move');
+          }
+        });
       }
     }
   };
