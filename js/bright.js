@@ -2608,6 +2608,7 @@
     $(dialog).on('show.bs.modal', onShow);
     $(dialog).on('hide.bs.modal', onHide);
     $(dialog).modal('show');
+    br.enchanceBootstrap(dialog);
   };
 
   window.br.error = function(title, message, callback) {
@@ -2628,6 +2629,7 @@
     };
     $(dialog).on('hide.bs.modal', onHide);
     $(dialog).modal('show');
+    br.enchanceBootstrap(dialog);
   };
 
   window.br.inform = function(title, message, callback) {
@@ -2648,6 +2650,7 @@
     };
     $(dialog).on('hide.bs.modal', onHide);
     $(dialog).modal('show');
+    br.enchanceBootstrap(dialog);
   };
 
   window.br.prompt = function(title, fields, callback, options) {
@@ -2719,6 +2722,7 @@
     };
     $(dialog).on('hide.bs.modal', onHide);
     $(dialog).modal('show');
+    br.enchanceBootstrap(dialog);
   };
 
   var noTemplateEngine = false;
@@ -2904,9 +2908,13 @@
 
   };
 
-  window.br.enchanceBootstrap = function() {
+  window.br.enchanceBootstrap = function(el) {
     if ($.ui !== undefined) {
-      $('.modal').not('.ui-draggable').draggable({ handle: '.modal-header', cursor: 'pointer' }).find('.modal-header').css('cursor', 'move');
+      if (el) {
+        $(el).not('.ui-draggable').draggable({ handle: '.modal-header', cursor: 'pointer' }).find('.modal-header').css('cursor', 'move');
+      } else {
+        $('.modal').not('.ui-draggable').draggable({ handle: '.modal-header', cursor: 'pointer' }).find('.modal-header').css('cursor', 'move');
+      }
     }
   };
 
