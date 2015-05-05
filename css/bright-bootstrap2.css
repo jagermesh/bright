@@ -409,3 +409,7 @@ a.pager-nav-element:hover,a.pager-size-element:hover {
   border-radius: 3px;
   color:none;
 }
+
+.tooltip {
+  z-index: 1060;
+}

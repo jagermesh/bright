@@ -427,3 +427,7 @@ a.pager-nav-element:hover,a.pager-size-element:hover {
 div.br-editable, span.br-editable {
   padding: 2px;
 }
+
+.tooltip {
+  z-index: 1060;
+}
