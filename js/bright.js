@@ -1344,7 +1344,11 @@
 
     this.selectOne = function(rowid, callback, options) {
 
-      return this.select({ rowid: rowid ? rowid : '-' }, callback, options);
+      if (br.isNumber(rowid)) {
+        return this.select({ rowid: rowid ? rowid : '-' }, callback, options);
+      } else {
+        return this.select(rowid, callback, options);
+      }
 
     };
 
