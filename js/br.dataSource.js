@@ -108,6 +108,8 @@
         if (typeof callback == 'function') { callback.call(_this, false, error, request); }
       }
 
+      return this;
+
     };
 
     this.update = function(rowid, item, callback, options) {
@@ -168,6 +170,8 @@
                });
       }
 
+      return this;
+
     };
 
     this.remove = function(rowid, callback) {
@@ -208,6 +212,8 @@
                });
       }
 
+      return this;
+
     };
 
     this.selectCount = function(filter, callback, options) {
@@ -228,21 +234,80 @@
 
       this.select(newFilter, callback, options);
 
+      return this;
+
     };
 
-    this.selectOne = function(rowid, callback, options) {
+    function handleSelectError(error, request, callback, options) {
 
-      if (br.isNumber(rowid)) {
-        return this.select({ rowid: rowid ? rowid : '-' }, callback, options);
+      var disableEvents = options && options.disableEvents;
+      var selectOne = options && options.selectOne;
+
+      if (!disableEvents) {
+        _this.events.trigger('error', 'select', error);
+        _this.events.triggerAfter('select', false, error, request);
+      }
+      if (typeof callback == 'function') { callback.call(_this, false, error, request); }
+    }
+
+    function handleSelectSuccess(response, request, callback, options) {
+
+      var disableEvents = options && options.disableEvents;
+      var selectOne = options && options.selectOne;
+
+      if (selectOne && br.isArray(response)) {
+        if (response.length > 0) {
+          response = response[0];
+        } else {
+          handleSelectError('Record not found', request, callback, options);
+          return;
+        }
+      } else
+      if (!selectOne && !br.isArray(response)) {
+        response = [response];
+      }
+      if (!disableEvents) {
+        _this.events.trigger('select', response);
+        _this.events.triggerAfter('select', true, response, request);
+      }
+      if (typeof callback == 'function') { callback.call(_this, true, response, request); }
+    }
+
+    this.selectOne = function(filter, callback, options) {
+
+      options = options || { };
+      options.selectOne = true;
+
+      if (br.isEmpty(filter) || (!br.isNumber(filter) && !br.isObject(filter)) || (br.isObject(filter) && br.isEmptyObject(filter))) {
+        var request = { };
+        handleSelectError('Record not found', filter, callback, options);
+        return this;
+      } else
+      if (br.isNumber(filter)) {
+        return this.select({ rowid: filter }, callback, options);
       } else {
-        return this.select(rowid, callback, options);
+        return this.select(filter, callback, options);
       }
 
     };
 
     this.select = function(filter, callback, options) {
 
+      var disableEvents = options && options.disableEvents;
+      var selectOne = options && options.selectOne;
+
       function handleSuccess(data) {
+        if (selectOne && br.isArray(data)) {
+          if (data.length > 0) {
+            data = data[0];
+          } else {
+            handleError('Record not found');
+            return;
+          }
+        } else
+        if (!selectOne && !br.isArray(data)) {
+          data = [data];
+        }
         if (!disableEvents) {
           _this.events.trigger('select', data);
           _this.events.triggerAfter('select', true, data, request);
@@ -250,7 +315,7 @@
         if (typeof callback == 'function') { callback.call(_this, true, data, request); }
       }
 
-      function handleError(error, response) {
+      function handleError(error) {
         if (!disableEvents) {
           _this.events.trigger('error', 'select', error);
           _this.events.triggerAfter('select', false, error, request);
@@ -258,21 +323,30 @@
         if (typeof callback == 'function') { callback.call(_this, false, error, request); }
       }
 
-      var disableEvents = options && options.disableEvents;
 
       var request = { };
       var requestRowid;
 
-      if (typeof filter == 'function') {
+      if (br.isFunction(filter)) {
         options = callback;
         callback = filter;
       } else
-      if (filter) {
-        for(var i in filter) {
-          if (i != 'rowid') {
-            request[i] = filter[i];
-          } else {
-            requestRowid = filter[i];
+      if (!br.isEmpty(filter)) {
+        if (br.isNumber(filter)) {
+          filter = { rowid: filter };
+        }
+        if (!br.isObject(filter)) {
+          handleSelectError('Unacceptable filter parameters', filter, callback, options);
+          return this;
+        } else {
+          for(var name in filter) {
+            request[name] = filter[name];
+            if (name == 'rowid') {
+              requestRowid = filter[name];
+              request['id'] = filter[name];
+            } else {
+              request[name] = filter[name];
+            }
           }
         }
       }
@@ -280,7 +354,7 @@
       options = options || { };
 
       var url = this.options.restServiceUrl;
-      if (requestRowid) {
+      if (selectOne && requestRowid) {
         url = url + requestRowid;
       }
 
@@ -334,12 +408,12 @@
                                     , success: function(response) {
                                         _this.ajaxRequest = null;
                                         if (_this.options.crossdomain && (typeof response == 'string')) {
-                                          handleError('', response);
+                                          handleSelectError('Unknown error', request, callback, options);
                                         } else
                                         if (response) {
-                                          handleSuccess(response);
+                                          handleSelectSuccess(response, request, callback, options);
                                         } else {
-                                          handleError('', response);
+                                          handleSelectError('Unknown error', request, callback, options);
                                         }
                                       }
                                     , error: function(jqXHR, textStatus, errorThrown) {
@@ -348,7 +422,7 @@
                                         } else {
                                           _this.ajaxRequest = null;
                                           var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                                          handleError(errorMessage, jqXHR);
+                                          handleSelectError(errorMessage, request, callback, options);
                                         }
                                       }
                                     });
@@ -357,16 +431,23 @@
 
       }
 
+      return this;
+
     };
 
     this.requestInProgress = function() {
+
       return (this.ajaxRequest !== null);
+
     };
 
     this.abortRequest = function() {
+
       if (this.ajaxRequest !== null) {
         this.ajaxRequest.abort();
       }
+      return this;
+
     };
 
     this.invoke = function(method, params, callback) {
@@ -411,6 +492,8 @@
                  }
                }
              });
+
+      return this;
 
     };
 
