@@ -176,9 +176,8 @@ class BrRESTBinder extends BrObject {
       $filter = array();
 
       if ($rowid = br()->request()->get('rowid')) {
-        $filter[] = array('id' => $rowid);
+        $filter[br()->db()->rowidField()] = br()->db()->rowid($rowid);
         $dataSourceOptions['limit'] = 1;
-        // $event = 'selectOne';
       }
 
       $selectOne = false;
