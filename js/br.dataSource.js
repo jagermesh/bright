@@ -279,8 +279,7 @@
       options.selectOne = true;
 
       if (br.isEmpty(filter) || (!br.isNumber(filter) && !br.isObject(filter)) || (br.isObject(filter) && br.isEmptyObject(filter))) {
-        var request = { };
-        handleSelectError('Record not found', filter, callback, options);
+        handleSelectError('Unacceptable filter parameters', filter, callback, options);
         return this;
       } else
       if (br.isNumber(filter)) {
