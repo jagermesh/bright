@@ -170,7 +170,27 @@ class BrRESTBinder extends BrObject {
 
       $this->checkPermissions($options, array($event, 'select'));
 
+      $dataSourceOptions = array();
+      $dataSourceOptions['source'] = 'RESTBinder';
+
       $filter = array();
+
+      if ($rowid = br()->request()->get('rowid')) {
+        $filter[] = array('id' => $rowid);
+        $dataSourceOptions['limit'] = 1;
+        // $event = 'selectOne';
+      }
+
+      $selectOne = false;
+      if ($matches = br()->request()->isAt(rtrim($path, '/').'/([-0-9a-z]+)')) {
+        $keyValue = $matches[1];
+        if ($keyValue === '-') {
+          $keyValue = null;
+        }
+        $filter[br()->db()->rowidField()] = br()->db()->rowid($keyValue);
+        $selectOne = true;
+      }
+
       if ($filterMappings = br($options, 'filterMappings')) {
         foreach($filterMappings as $mapping) {
           $get = is_array($mapping['get'])?$mapping['get']:array($mapping['get']);
@@ -307,19 +327,6 @@ class BrRESTBinder extends BrObject {
           }
         }
       }
-
-      $selectOne = false;
-      if ($matches = br()->request()->isAt(rtrim($path, '/').'/([-0-9a-z]+)')) {
-        $keyValue = $matches[1];
-        if ($keyValue === '-') {
-          $keyValue = null;
-        }
-        $filter[br()->db()->rowidField()] = br()->db()->rowid($keyValue);
-        $selectOne = true;
-      }
-
-      $dataSourceOptions = array();
-      $dataSourceOptions['source'] = 'RESTBinder';
 
       $limit = br()->request()->get('__limit');
 

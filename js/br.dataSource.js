@@ -240,6 +240,8 @@
 
     function handleSelectError(error, request, callback, options) {
 
+      options = options || { };
+
       var disableEvents = options && options.disableEvents;
       var selectOne = options && options.selectOne;
 
@@ -251,6 +253,8 @@
     }
 
     function handleSelectSuccess(response, request, callback, options) {
+
+      options = options || { };
 
       var disableEvents = options && options.disableEvents;
       var selectOne = options && options.selectOne;
@@ -275,6 +279,11 @@
 
     this.selectOne = function(filter, callback, options) {
 
+      if (br.isFunction(filter)) {
+        options = callback;
+        callback = filter;
+      }
+
       options = options || { };
       options.selectOne = true;
 
@@ -292,44 +301,19 @@
 
     this.select = function(filter, callback, options) {
 
-      var disableEvents = options && options.disableEvents;
-      var selectOne = options && options.selectOne;
-
-      function handleSuccess(data) {
-        if (selectOne && br.isArray(data)) {
-          if (data.length > 0) {
-            data = data[0];
-          } else {
-            handleError('Record not found');
-            return;
-          }
-        } else
-        if (!selectOne && !br.isArray(data)) {
-          data = [data];
-        }
-        if (!disableEvents) {
-          _this.events.trigger('select', data);
-          _this.events.triggerAfter('select', true, data, request);
-        }
-        if (typeof callback == 'function') { callback.call(_this, true, data, request); }
-      }
-
-      function handleError(error) {
-        if (!disableEvents) {
-          _this.events.trigger('error', 'select', error);
-          _this.events.triggerAfter('select', false, error, request);
-        }
-        if (typeof callback == 'function') { callback.call(_this, false, error, request); }
-      }
-
-
-      var request = { };
+      var request = {};
       var requestRowid;
 
       if (br.isFunction(filter)) {
         options = callback;
         callback = filter;
-      } else
+      }
+
+      options = options || { };
+
+      var disableEvents = options && options.disableEvents;
+      var selectOne = options && options.selectOne;
+
       if (!br.isEmpty(filter)) {
         if (br.isNumber(filter)) {
           filter = { rowid: filter };
@@ -339,18 +323,14 @@
           return this;
         } else {
           for(var name in filter) {
-            request[name] = filter[name];
-            if (name == 'rowid') {
+            if ((name == 'rowid') && selectOne) {
               requestRowid = filter[name];
-              request['id'] = filter[name];
             } else {
               request[name] = filter[name];
             }
           }
         }
       }
-
-      options = options || { };
 
       var url = this.options.restServiceUrl;
       if (selectOne && requestRowid) {
@@ -398,7 +378,7 @@
         }
 
         if (_this.options.offlineMode) {
-          handleSuccess(_this.db(request).get());
+          handleSelectSuccess(_this.db(request).get(), request, callback, options);
         } else {
           this.ajaxRequest = $.ajax({ type: 'GET'
                                     , data: request

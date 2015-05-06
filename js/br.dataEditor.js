@@ -219,9 +219,9 @@
       }
 
       if (editorRowid) {
-        var request = {rowid: editorRowid};
+        var request = { rowid: editorRowid };
         _this.events.triggerBefore('editor.loadData', request);
-        _this.dataSource.select(request, function(result, data) {
+        _this.dataSource.selectOne(request, function(result, data) {
           if (result) {
             editorRowData = data;
             _this.events.triggerBefore('editor.show', data, isCopy);
