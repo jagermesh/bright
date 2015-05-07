@@ -122,6 +122,8 @@ class BrRequest extends BrSingleton {
         $this->clientIP = '127.0.0.1';
       }
 
+      $this->clientIP = br(array_unique(br($this->clientIP)->split()))->join();
+
     } else {
 
       $this->serverAddr = br()->config()->get('br/request/consoleModeServerAddr', '127.0.0.1');
