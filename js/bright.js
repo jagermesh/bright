@@ -1394,17 +1394,24 @@
       if (br.isFunction(filter)) {
         options = callback;
         callback = filter;
+        filter = { };
       }
 
       options = options || { };
       options.selectOne = true;
+      options.limit = 1;
 
-      if (br.isEmpty(filter) || (!br.isNumber(filter) && !br.isObject(filter)) || (br.isObject(filter) && br.isEmptyObject(filter))) {
-        handleSelectError('Unacceptable filter parameters', filter, callback, options);
-        return this;
-      } else
-      if (br.isNumber(filter)) {
-        return this.select({ rowid: filter }, callback, options);
+      if (!br.isEmpty(filter)) {
+        if (!br.isNumber(filter) && !br.isObject(filter)) {
+          handleSelectError('Unacceptable filter parameters', filter, callback, options);
+          return this;
+        } else {
+          if (br.isNumber(filter)) {
+            return this.select({ rowid: filter }, callback, options);
+          } else {
+            return this.select(filter, callback, options);
+          }
+        }
       } else {
         return this.select(filter, callback, options);
       }
@@ -1419,6 +1426,7 @@
       if (br.isFunction(filter)) {
         options = callback;
         callback = filter;
+        filter = { };
       }
 
       options = options || { };
@@ -1426,14 +1434,18 @@
       var disableEvents = options && options.disableEvents;
       var selectOne = options && options.selectOne;
 
+      if (selectOne) {
+        options.limit = 1;
+      }
+
       if (!br.isEmpty(filter)) {
-        if (br.isNumber(filter)) {
-          filter = { rowid: filter };
-        }
-        if (!br.isObject(filter)) {
+        if (!br.isNumber(filter) && !br.isObject(filter)) {
           handleSelectError('Unacceptable filter parameters', filter, callback, options);
           return this;
         } else {
+          if (br.isNumber(filter)) {
+            filter = { rowid: filter };
+          }
           for(var name in filter) {
             if ((name == 'rowid') && selectOne) {
               requestRowid = filter[name];
