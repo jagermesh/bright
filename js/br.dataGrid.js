@@ -105,7 +105,7 @@
       return tableRow;
     };
 
-    this.reloadRow = function(rowid) {
+    this.reloadRow = function(rowid, callback) {
       _this.dataSource.selectOne(rowid, function(result, response) {
         if (result) {
           if (_this.refreshRow(response)) {
@@ -113,8 +113,9 @@
           } else {
             _this.addDataRow(response);
           }
+          if (typeof callback == 'function') { callback.call(_this, response); }
         }
-      }, {disableEvents: true});
+      }, { disableEvents: true });
     };
 
     this.refreshRow = function(data) {
