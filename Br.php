@@ -818,7 +818,14 @@ class Br extends BrSingleton {
 
     $mail->Subject = $subject;
 
-    $mail->MsgHTML($body);
+    $mail->Body = $body;
+
+    if (preg_match('/<a|<html|<span|<a|<br|<p/ism', $mail->Body)) {
+      $mail->ContentType = 'text/html';
+      $mail->AltBody = br($mail->Body)->htmlToText();
+    } else {
+      $mail->ContentType = 'text/plain';
+    }
 
     br()->log()->writeLn('Sending mail to ' . br($emails)->join());
 
