@@ -103,11 +103,11 @@ class BrRequest extends BrSingleton {
       $this->clientIP = br($_SERVER, 'HTTP_CLIENT_IP');
 
       if (!$this->clientIP || ($this->clientIP == 'unknown') || ($this->clientIP == '::1')) {
-        $this->clientIP = br($_SERVER, 'HTTP_X_FORWARDED_FOR');
+        $this->clientIP = br($_SERVER, 'REMOTE_ADDR');
       }
 
       if (!$this->clientIP || ($this->clientIP == 'unknown') || ($this->clientIP == '::1')) {
-        $this->clientIP = br($_SERVER, 'REMOTE_ADDR');
+        $this->clientIP = br($_SERVER, 'HTTP_X_FORWARDED_FOR');
       }
 
       if ($this->clientIP == '::1') {
