@@ -1015,12 +1015,13 @@
       var osc = ctx.createOscillator();
       osc.type = 0;
       osc.connect(ctx.destination);
+      var now = ctx.currentTime;
       if(osc.start) {
-        osc.start(0);
-        osc.stop(duration);
+        osc.start(now);
+        osc.stop(now + duration);
       } else {
-        osc.noteOn(0);
-        osc.noteOff(duration);
+        osc.noteOn(now);
+        osc.noteOff(now + duration);
       }
 
       osc.onended = function() {
