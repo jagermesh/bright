@@ -378,7 +378,7 @@
   window.br.beep = function(callback) {
 
     try {
-      var duration = 100;
+      var duration = 0.1;
       window.AudioContext = window.AudioContext||window.webkitAudioContext;
       if (!ctx) {
         ctx = new AudioContext();
@@ -386,13 +386,19 @@
       var osc = ctx.createOscillator();
       osc.type = 0;
       osc.connect(ctx.destination);
-      osc.noteOn(0);
-      window.setTimeout(function () {
-        osc.noteOff(0);
-        if (callback) {
+      if(osc.start) {
+        osc.start(0);
+        osc.stop(duration);
+      } else {
+        osc.noteOn(0);
+        osc.noteOff(duration);
+      }
+
+      osc.onended = function() {
+        if(callback){
           callback();
         }
-      }, duration);
+      };
     } catch (error) {
       br.log(error);
     }
