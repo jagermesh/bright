@@ -91,7 +91,7 @@ class BrJobsManager {
         }
       }
 
-      sleep(60);
+      sleep(30);
 
     }
 
