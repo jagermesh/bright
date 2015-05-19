@@ -42,8 +42,8 @@ class BrGenericLogAdapter extends BrObject {
       if (br()->isConsoleMode()) {
         $this->writeMessage('Comand line:   ' . br(br()->getCommandLineArguments())->join(' '),      $group);
       } else {
-        $this->writeMessage('Request url:   ' . br()->request()->url(),      $group);
-        $this->writeMessage('Referer url:   ' . br()->request()->referer(),  $group);
+        $this->writeMessage('Request URL:   ' . br()->request()->url(),      $group);
+        $this->writeMessage('Referer URL:   ' . br()->request()->referer(),  $group);
         $this->writeMessage('Client IP:     ' . br()->request()->clientIP(), $group);
 
         try {
