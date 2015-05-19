@@ -334,6 +334,7 @@
           $selector.html('');
         }
         if (_this.options.freeGrid) {
+          data = data[0];
           if (data.headers) {
             for (i in data.headers) {
               if (data.headers[i]) {
