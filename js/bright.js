@@ -830,7 +830,7 @@
       window.clearTimeout(element.data('BrModified_Timeout'));
       element.data('BrModified_Timeout', window.setTimeout(function() {
         handleModified(element, true);
-      }, 1000));
+      }, 1500));
     }
   }
 
@@ -1138,7 +1138,7 @@
     this.name = '-';
     this.options = options || {};
     this.options.restServiceUrl = restServiceUrl;
-    this.options.refreshDelay = this.options.refreshDelay || 500;
+    this.options.refreshDelay = this.options.refreshDelay || 1500;
     if (this.options.restServiceUrl.charAt(this.options.restServiceUrl.length-1) != '/') {
       this.options.restServiceUrl = this.options.restServiceUrl + '/';
     }

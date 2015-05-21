@@ -19,7 +19,7 @@
     this.name = '-';
     this.options = options || {};
     this.options.restServiceUrl = restServiceUrl;
-    this.options.refreshDelay = this.options.refreshDelay || 500;
+    this.options.refreshDelay = this.options.refreshDelay || 1500;
     if (this.options.restServiceUrl.charAt(this.options.restServiceUrl.length-1) != '/') {
       this.options.restServiceUrl = this.options.restServiceUrl + '/';
     }

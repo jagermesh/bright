@@ -201,7 +201,7 @@
       window.clearTimeout(element.data('BrModified_Timeout'));
       element.data('BrModified_Timeout', window.setTimeout(function() {
         handleModified(element, true);
-      }, 1000));
+      }, 1500));
     }
   }
 
