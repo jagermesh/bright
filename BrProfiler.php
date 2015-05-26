@@ -12,7 +12,8 @@ require_once(__DIR__.'/BrSingleton.php');
 
 class BrProfiler extends BrSingleton {
 
-  private $completedMetrics = array();
+  private $completedMetricsDuration = array();
+  private $completedMetricsMemory = array();
   private $activeMetrics = array();
 
   function start($name) {
@@ -38,18 +39,28 @@ class BrProfiler extends BrSingleton {
     $memory   = (memory_get_usage(true) - $this->activeMetrics[$name]['memory']);
 
     unset($this->activeMetrics[$name]);
-    if (!isset($this->completedMetrics[$name])) {
-      $this->completedMetrics[$name] = array();
+    if (!isset($this->completedMetricsDuration[$name])) {
+      $this->completedMetricsDuration[$name] = array();
     }
-    $this->completedMetrics[$name][] = $duration;
+    if (!isset($this->completedMetricsMemory[$name])) {
+      $this->completedMetricsMemory[$name] = array();
+    }
+    $this->completedMetricsDuration[$name][] = $duration;
+    $this->completedMetricsMemory[$name][] = $memory;
 
-    $count = count($this->completedMetrics[$name]);
-    $avgDuration = array_sum($this->completedMetrics[$name]) / $count;
+    $count         = count($this->completedMetricsDuration[$name]);
+    $totalDuration = array_sum($this->completedMetricsDuration[$name]);
+    $totalMemory   = array_sum($this->completedMetricsMemory[$name]);
+    $avgDuration   = $totalDuration / $count;
+    $avgMemory     = $totalMemory / $count;
 
-    return array( 'duration'    => $duration
-                , 'memory'      => $memory
-                , 'avgDuration' => $avgDuration
-                , 'count'       => $count
+    return array( 'count'         => $count
+                , 'duration'      => $duration
+                , 'memory'        => $memory
+                , 'totalDuration' => $totalDuration
+                , 'totalMemory'   => $totalMemory
+                , 'avgDuration'   => $avgDuration
+                , 'avgMemory'     => $avgMemory
                 );
 
   }
@@ -59,7 +70,12 @@ class BrProfiler extends BrSingleton {
     $f = $this->finish($name);
     $s = $name. ': ' . br()->durationToString($f['duration']);
     if ($f['count'] > 1) {
-      $s .= ' (cnt ' . $f['count'] .', avg ' . br()->durationToString($f['avgDuration']) . ')';
+      $s .= ' (cnt '            . $f['count'] .', '
+            . 'total duration ' . br()->durationToString($f['totalDuration']) . ', '
+            . 'total memory '   . br()->formatTraffic($f['totalMemory'])      . ', '
+            . 'avg duration '   . br()->durationToString($f['avgDuration'])   . ', '
+            . 'avg memory '     . br()->formatTraffic($f['avgMemory'])        .
+             ')';
     }
     $s .=  ', ' . br()->formatTraffic($f['memory']);
 
