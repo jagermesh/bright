@@ -9,14 +9,46 @@
  */
 
 require_once(__DIR__.'/BrGenericLogAdapter.php');
+require_once(__DIR__.'/BrMemCacheCacheProvider.php');
+require_once(__DIR__.'/BrFileCacheProvider.php');
 
 class BrErrorMailLogAdapter extends BrGenericLogAdapter {
 
-  function buildBody($message) {
+  private $cache;
+
+  function __construct() {
+
+    try {
+      $this->cache = new BrMemCacheCacheProvider();
+      $this->cache->setCacheLifeTime(60);
+    } catch (Exception $e) {
+      try {
+        $this->cache = new BrFileCacheProvider();
+        $this->cache->setCacheLifeTime(60);
+      } catch (Exception $e) {
+
+      }
+    }
+
+    parent::__construct();
+
+  }
+
+  function packBody($message) {
 
     $body  = '<html>';
     $body .= '<body>';
-    $body .= '<strong>Timestamp:</strong> ' . date('r') . '<br />';
+    $body .= $message;
+    $body .= '</body>';
+    $body .= '</html>';
+
+    return $body;
+
+  }
+
+  function buildBody($message) {
+
+    $body  = '<strong>Timestamp:</strong> ' . date('r') . '<br />';
     $body .= '<strong>Script name:</strong> ' . br()->scriptName() . '<br />';
     $body .= '<strong>PHP Version:</strong> ' . phpversion() . '<br />';
     if (br()->isConsoleMode()) {
@@ -65,8 +97,6 @@ class BrErrorMailLogAdapter extends BrGenericLogAdapter {
     $body .= '<pre>';
     $body .= $message;
     $body .= '</pre>';
-    $body .= '</body>';
-    $body .= '</html>';
 
     return $body;
 
@@ -74,23 +104,37 @@ class BrErrorMailLogAdapter extends BrGenericLogAdapter {
 
   function writeError($message, $tagline = '') {
 
-    if (br()->request()->isLocalHost() && !br()->isConsoleMode()) {
+    // if (br()->request()->isLocalHost() && !br()->isConsoleMode()) {
 
-    } else {
+    // } else {
       $email = br()->config()->get('br/mail/support', br()->config()->get('br/BrErrorHandler/exceptionHandler/sendErrorsTo', br()->config()->get('br/report-errors-email')));
       if ($email) {
         try {
+          $isCached = false;
+          $cacheTag = '';
+          $body = $this->buildBody($message);
           $subject = 'Error report';
           if ($tagline) {
             $subject .= ': ' . $tagline;
+            $cacheTag = md5($subject);
+            if ($this->cache) {
+              $isCached = $this->cache->get($cacheTag);
+            }
           }
-          $body = $this->buildBody($message);
-          br()->sendMail($email, $subject, $body);
+          if ($isCached) {
+
+          } else {
+            if ($this->cache) {
+              $this->cache->set($cacheTag, $body);
+            }
+            $body = $this->packBody($body);
+            br()->sendMail($email, $subject, $body);
+          }
         } catch (Exception $e) {
 
         }
       }
-    }
+    // }
 
   }
 
@@ -107,6 +151,7 @@ class BrErrorMailLogAdapter extends BrGenericLogAdapter {
             $subject .= ': ' . $tagline;
           }
           $body = $this->buildBody($message);
+          $body = $this->packBody($body);
           br()->sendMail($email, $subject, $body);
         } catch (Exception $e) {
 

@@ -13,7 +13,6 @@ require_once(__DIR__.'/BrGenericCacheProvider.php');
 class BrFileCacheProvider extends BrGenericCacheProvider {
 
   private $cachePath;
-  private $cacheLifeTime = 300;
 
   function __construct($cfg = array()) {
 
@@ -22,12 +21,79 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
     if (br($cfg, 'cachePath')) {
       $this->setCachePath($cfg['cachePath']);
     } else {
-      $this->setCachePath(dirname(__DIR__) . '/_cache/');
+      $this->setCachePath(dirname(__DIR__) . '/_tmp/_cache/');
     }
     if (br($cfg, 'lifeTime')) {
-      $this->cacheLifeTime = $cfg['lifeTime'];
+      $this->setCacheLifeTime($cfg['lifeTime']);
+    }
+
+  }
+
+  public static function isSupported() {
+
+    return true;
+
+  }
+
+  public function reset() {
+
+    throw new BrAppException('Reset cache is not implemented for this provider');
+
+  }
+
+  public function exists($name) {
+
+    return $this->checkCacheFile($this->getCacheFilePath($name));
+
+  }
+
+  public function get($name, $default = null, $saveDefault = false) {
+
+    $filePath = $this->getCacheFilePath($name);
+
+    if ($this->checkCacheFile($filePath)) {
+      $value = @json_decode(br()->fs()->loadFromFile($filePath), true);
     } else {
-      $this->cacheLifeTime = 300;
+      $value = $default;
+      if ($saveDefault) {
+        $this->set($name, $value);
+      }
+    }
+
+    return $value;
+
+  }
+
+  public function set($name, $value, $cacheLifeTime = null) {
+
+    if (!$cacheLifeTime) { $cacheLifeTime = $this->getCacheLifeTime(); }
+
+    $filePath = $this->getCacheFilePath($name);
+    br()->fs()->makeDir(br()->fs()->filePath($filePath));
+    br()->fs()->saveToFile($filePath, json_encode($value));
+
+    return $value;
+
+  }
+
+  public function remove($name) {
+
+    $filePath = $this->getCacheFilePath($name);
+    if (file_exists($filePath)) {
+      unlink($filePath);
+    }
+    $this->clearAttr($name);
+
+  }
+
+  // functions
+
+  private function checkCacheFile($filePath) {
+
+    if (file_exists($filePath)) {
+      return ((mktime() - filemtime($filePath)) < $this->cacheLifeTime);
+    } else {
+      return false;
     }
 
   }
@@ -46,75 +112,5 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
 
   }
 
-  public function setCacheLifeTime($seconds) {
-
-    $this->cacheLifeTime = $seconds;
-
-  }
-
-  public function reset() {
-
-    throw new BrAppException('Reset cache is not implemented for this provider');
-
-  }
-
-  private function checkCacheFile($filePath) {
-
-    if (file_exists($filePath)) {
-      return ((mktime() - filemtime($filePath)) < $this->cacheLifeTime);
-    } else {
-      return false;
-    }
-
-  }
-
-  public function exists($name) {
-
-    if ($this->isAttrExists($name)) {
-      return true;
-    } else {
-      return $this->checkCacheFile($this->getCacheFilePath($name));
-    }
-
-  }
-
-  public function get($name, $default = null, $saveDefault = false) {
-
-    if ($this->isAttrExists($name)) {
-      return $this->getAttr($name, $default, $saveDefault);
-    } else {
-      $filePath = $this->getCacheFilePath($name);
-      if ($this->checkCacheFile($filePath)) {
-        $value = @json_decode(br()->fs()->loadFromFile($filePath), true);
-        return $this->setAttr($name, $value);
-      } else
-      if ($saveDefault) {
-        return $this->set($name, $value);
-      } else {
-        return $default;
-      }
-    }
-
-  }
-
-  public function set($name, $value, $expirationSeconds = null) {
-
-    $filePath = $this->getCacheFilePath($name);
-    br()->fs()->makeDir(br()->fs()->filePath($filePath));
-    br()->fs()->saveToFile($filePath, json_encode($value));
-    return $this->setAttr($name, $value);
-
-  }
-
-  public function remove($name) {
-
-    $filePath = $this->getCacheFilePath($name);
-    if (file_exists($filePath)) {
-      unlink($filePath);
-    }
-    $this->clearAttr($name);
-
-  }
 
 }
-

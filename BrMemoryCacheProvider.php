@@ -12,6 +12,18 @@ require_once(__DIR__.'/BrGenericCacheProvider.php');
 
 class BrMemoryCacheProvider extends BrGenericCacheProvider {
 
+  function __construct($cfg = array()) {
+
+    parent::__construct($cfg);
+
+  }
+
+  public static function isSupported() {
+
+    return true;
+
+  }
+
   public function reset() {
 
     $this->clearAttributes();
@@ -30,7 +42,7 @@ class BrMemoryCacheProvider extends BrGenericCacheProvider {
 
   }
 
-  public function set($name, $value, $expirationSeconds = null) {
+  public function set($name, $value, $cacheLifeTime = null) {
 
     return $this->setAttr($name, $value);
 

@@ -12,48 +12,65 @@ require_once(__DIR__.'/BrGenericCacheProvider.php');
 
 class BrXCacheCacheProvider extends BrGenericCacheProvider {
 
+  function __construct($cfg = array()) {
+
+    parent::__construct($cfg);
+
+    if (br($cfg, 'lifeTime')) {
+      $this->setCacheLifeTime($cfg['lifeTime']);
+    }
+
+  }
+
   public static function isSupported() {
 
     return extension_loaded('apc');
-    
+
   }
-  
+
   public function reset() {
-  
-    xcache_clear_cache(XC_TYPE_VAR, 0);
-  
+
+    return xcache_clear_cache(XC_TYPE_VAR, 0);
+
   }
-  
-  public function get($name, $default, $saveDefault = false) {
-             
-    $value = xcache_get($this->safeName($name));
+
+  public function get($name, $default = null, $saveDefault = false) {
+
+    $name = $this->safeName($name);
+
+    $value = xcache_get($name);
     if ($value === false) {
+      $value = $default;
       if ($saveDefault) {
-        $this->set($name, $default);
+        $this->set($name, $value);
       }
-      return $default; 
-    }    
+    }
+
     return $value;
 
   }
-  
-  public function set($name, $value, $expirationPeriod = null) {
 
-    if (!$expirationPeriod) {
-      $expirationPeriod = self::DefaultExpirationPeriod;
+  public function set($name, $value, $cacheLifeTime = null) {
+
+    if (!$cacheLifeTime) { $cacheLifeTime = $this->getCacheLifeTime(); }
+
+    $name = $this->safeName($name);
+
+    if (!xcache_isset($name)) {
+      xcache_set($name, $value, $cacheLifeTime);
     }
-    
-    if (!xcache_isset($this->safeName($name))) {
-      xcache_set($this->safeName($name), $value, $expirationPeriod);
-    }
+
+    return $value;
 
   }
 
   function remove($name) {
 
-    return xcache_unset($this->safeName($name));
+    $name = $this->safeName($name);
+
+    return xcache_unset($name);
 
   }
-    
+
 }
 
