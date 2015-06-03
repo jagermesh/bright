@@ -158,7 +158,7 @@
     }
 
     this.deleteSelection = function() {
-      selectionQueue = _this.selection.get();
+      selectionQueue = _this.selection.get().slice(0);
       if (selectionQueue.length > 0) {
         br.confirm( 'Delete confirmation'
                   , 'Are you sure you want do delete ' + selectionQueue.length + ' record(s)?'
@@ -193,7 +193,7 @@
     }
 
     this.updateSelection = function(func) {
-      selectionQueue = _this.selection.get();
+      selectionQueue = _this.selection.get().slice(0);
       if (selectionQueue.length > 0) {
         br.startProgress(selectionQueue.length, 'Updating...');
         updateQueued(func);
