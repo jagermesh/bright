@@ -3007,17 +3007,21 @@
     if (el) {
 
     } else {
-      $(window).resize(function(){
-        $('div.modal.modal-autosize').each(function() {
-          resizeModalPopup($(this));
-        });
-      });
-
       $('div.modal.modal-autosize').each(function() {
-        $(this).css('top', '280px');
-        $(this).on('shown.bs.modal', function() {
-          resizeModalPopup($(this));
-        });
+        if ($(this).data('brAutoSizeConfigured')) {
+
+        } else {
+          (function(control) {
+            control.css('top', '280px');
+            control.on('shown.bs.modal', function() {
+              resizeModalPopup(control);
+            });
+            $(window).resize(function(){
+              resizeModalPopup(control);
+            });
+            control.data('brAutoSizeConfigured', 1);
+          })($(this));
+        }
       });
     }
 
@@ -3035,6 +3039,49 @@
           }
         });
       }
+    }
+
+  };
+
+  function attachjQueryUIDatePickers(selector) {
+
+    if ($.ui !== undefined) {
+      $(selector).each(function() {
+        if ($(this).attr('data-format')) {
+          $(this).datepicker({ dateFormat: $(this).attr('data-format') });
+        } else {
+          $(this).datepicker({ });
+        }
+      });
+    }
+
+  }
+
+  function attachBootstrapDatePickers(selector) {
+
+    try {
+      $(selector).each(function() {
+        $(this).bootstrapDatepicker({
+          todayBtn: "linked",
+          clearBtn: true,
+          multidate: false,
+          autoclose: true,
+          todayHighlight: true
+        });
+      });
+    } catch (e) {
+      br.log('[ERROR] bootstrapDatepicker expected but script was not loaded');
+    }
+
+  }
+  window.br.attachDatePickers = function (container) {
+
+    if (container) {
+      attachjQueryUIDatePickers($('input.datepicker', container));
+      attachBootstrapDatePickers($('input.bootstrap-datepicker', container));
+    } else {
+      attachjQueryUIDatePickers($('input.datepicker'));
+      attachBootstrapDatePickers($('input.bootstrap-datepicker'));
     }
 
   };
@@ -3065,6 +3112,7 @@
     });
 
     br.enchanceBootstrap();
+    br.attachDatePickers();
 
     if ($('.focused').length > 0) {
       try { $('.focused')[0].focus(); } catch (ex) { }

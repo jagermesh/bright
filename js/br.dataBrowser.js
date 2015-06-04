@@ -285,15 +285,7 @@
         _this.resetPager();
       });
 
-      if ($.datepicker) {
-        $('input.datepicker').each(function() {
-          if ($(this).attr('data-format')) {
-            $(this).datepicker({ dateFormat: $(this).attr('data-format') });
-          } else {
-            $(this).datepicker({ });
-          }
-        });
-      }
+      br.attachDatePickers();
 
       if (_this.options.features.editor) {
         _this.editor = br.dataEditor(_this.options.selectors.editForm, _this.dataSource, { noun: _this.options.noun });

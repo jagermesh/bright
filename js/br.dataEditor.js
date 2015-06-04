@@ -111,16 +111,6 @@
 
     this.init = function() {
 
-      if ($.datepicker) {
-        $('input.datepicker', _this.container).each(function() {
-          if ($(this).attr('data-format')) {
-            $(this).datepicker({ dateFormat: $(this).attr('data-format') });
-          } else {
-            $(this).datepicker({ });
-          }
-        });
-      }
-
       if (_this.container.hasClass('modal')) {
         _this.container.attr('data-backdrop', 'static');
         _this.container.on('shown.bs.modal', function() { modalShown($(this)); });
@@ -163,6 +153,7 @@
       });
 
       return this;
+
     };
 
     function fillControls(data) {
@@ -231,6 +222,7 @@
               editorRowid = null;
             }
             _this.events.trigger('editor.show', data, isCopy);
+            br.attachDatePickers(_this.inputsContainer);
             if (_this.container.hasClass('modal')) {
               _this.container.modal('show');
             }
@@ -247,6 +239,7 @@
         _this.editorConfigure(isCopy);
         fillControls(defaultValues);
         _this.events.trigger('editor.show', defaultValues);
+        br.attachDatePickers(_this.inputsContainer);
         if (_this.container.hasClass('modal')) {
           _this.container.modal('show');
         }
