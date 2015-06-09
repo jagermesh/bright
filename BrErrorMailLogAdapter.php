@@ -15,22 +15,26 @@ require_once(__DIR__.'/BrFileCacheProvider.php');
 class BrErrorMailLogAdapter extends BrGenericLogAdapter {
 
   private $cache;
+  private $cacheInitialized = false;
 
   function __construct() {
 
-    try {
-      $this->cache = new BrMemCacheCacheProvider();
-      $this->cache->setCacheLifeTime(60);
-    } catch (Exception $e) {
+
+    parent::__construct();
+
+  }
+
+  function initCache() {
+
+    if (!$this->cacheInitialized) {
       try {
         $this->cache = new BrFileCacheProvider();
         $this->cache->setCacheLifeTime(60);
       } catch (Exception $e) {
 
       }
+      $this->cacheInitialized = true;
     }
-
-    parent::__construct();
 
   }
 
@@ -104,12 +108,14 @@ class BrErrorMailLogAdapter extends BrGenericLogAdapter {
 
   function writeError($message, $tagline = '') {
 
-    // if (br()->request()->isLocalHost() && !br()->isConsoleMode()) {
+    if (br()->request()->isLocalHost() && !br()->isConsoleMode()) {
 
-    // } else {
+    } else {
       $email = br()->config()->get('br/mail/support', br()->config()->get('br/BrErrorHandler/exceptionHandler/sendErrorsTo', br()->config()->get('br/report-errors-email')));
       if ($email) {
         try {
+          $this->initCache();
+
           $isCached = false;
           $cacheTag = '';
           $body = $this->buildBody($message);
@@ -134,7 +140,7 @@ class BrErrorMailLogAdapter extends BrGenericLogAdapter {
 
         }
       }
-    // }
+    }
 
   }
 
