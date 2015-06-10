@@ -435,6 +435,16 @@ class BrIMAPMailMessage extends BrObject {
 
   }
 
+  public function remove($folderName) {
+
+    if (imap_delete($this->getMailbox(), $this->getUID(), FT_UID)) {
+      return true;
+    } else {
+      throw new Exception(implode(', ', imap_errors()));
+    }
+
+  }
+
   private function parseStructure($structure = null, $partNo = null) {
 
     if (!$structure) {
