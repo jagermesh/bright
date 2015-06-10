@@ -320,7 +320,7 @@
         if (errors.length == 1) {
           tmpl = '{{#errors}}{{.}}{{/errors}}';
         } else {
-          tmpl = 'Please check the following:<br /><ul>{{#errors}}<li>{{.}}</li>{{/errors}}</ul>';
+          tmpl = br.trn('Please check the following:') + '<br /><ul>{{#errors}}<li>{{.}}</li>{{/errors}}</ul>';
         }
         var error = br.fetch(tmpl, { errors: errors });
         br.growlError(error);
