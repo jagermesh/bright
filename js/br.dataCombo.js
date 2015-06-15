@@ -139,7 +139,7 @@
 
     function getName(data) {
 
-      if (_this.options.onGetName) {
+      if (br.isFunction(_this.options.onGetName)) {
         return _this.options.onGetName.call(this, data);
       } else {
         return data[_this.options.nameField];
