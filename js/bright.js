@@ -2246,6 +2246,16 @@
       _this.reset();
     });
 
+    function getName(data) {
+
+      if (_this.options.onGetName) {
+        return _this.options.onGetName.call(this, data);
+      } else {
+        return data[_this.options.nameField];
+      }
+
+    }
+
     function renderRow(data) {
 
       var s = '';
@@ -2258,7 +2268,7 @@
           s = s + '&nbsp;';
         }
       }
-      s = s + data[_this.options.nameField];
+      s = s + getName(data);
       s = s + '</option>';
 
       return s;
@@ -2371,7 +2381,7 @@
       _this.dataSource.after('update', function(result, data) {
         if (result && _this.isValid()) {
           if (data[_this.options.valueField]) {
-            _this.selector.find('option[value=' + data[_this.options.valueField] +']').text(data[_this.options.nameField]);
+            _this.selector.find('option[value=' + data[_this.options.valueField] +']').text(getName(data));
             uiSync();
           }
         }
@@ -2661,13 +2671,13 @@
               '</label>';
     }
     if (br.isEmpty(buttons)) {
-      s = s + '<a href="javascript:;" class="btn btn-primary action-confirm-close" rel="confirm">&nbsp;' + br.trn('Yes') + '&nbsp;</a>';
+      s = s + '<a href="javascript:;" class="btn btn-sm btn-primary action-confirm-close" rel="confirm">&nbsp;' + br.trn('Yes') + '&nbsp;</a>';
     } else {
       for(var i in buttons) {
-        s = s + '<a href="javascript:;" class="btn btn-default action-confirm-close" rel="' + i + '">&nbsp;' + buttons[i] + '&nbsp;</a>';
+        s = s + '<a href="javascript:;" class="btn btn-sm btn-default action-confirm-close" rel="' + i + '">&nbsp;' + buttons[i] + '&nbsp;</a>';
       }
     }
-    s = s + '<a href="javascript:;" class="btn btn-default action-confirm-cancel">&nbsp;' + params.cancelTitle + '&nbsp;</a>';
+    s = s + '<a href="javascript:;" class="btn btn-sm btn-default action-confirm-cancel">&nbsp;' + params.cancelTitle + '&nbsp;</a>';
     s = s + '</div></div></div></div>';
     var dialog = $(s);
     var onShow = function(e) {
@@ -2706,7 +2716,7 @@
       s = s + '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>';
     }
     s = s + '<div class="modal-body">' + message + '</div>' +
-            '<div class="modal-footer" style="background-color:red;"><a href="javascript:;" class="btn btn-default" data-dismiss="modal">&nbsp;' + br.trn('Dismiss') + '&nbsp;</a></div></div></div></div>';
+            '<div class="modal-footer" style="background-color:red;"><a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn('Dismiss') + '&nbsp;</a></div></div></div></div>';
     var dialog = $(s);
     var onHide = function(e) {
       dialog.remove();
@@ -2727,7 +2737,7 @@
       s = s + '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>';
     }
     s = s + '<div class="modal-body" style="max-height:500px;">' + message + '</div>' +
-            '<div class="modal-footer"><a href="javascript:;" class="btn btn-default" data-dismiss="modal">&nbsp;' + br.trn('Dismiss') + '&nbsp;</a></div></div></div></div>';
+            '<div class="modal-footer"><a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn('Dismiss') + '&nbsp;</a></div></div></div></div>';
     var dialog = $(s);
     var onHide = function(e) {
       dialog.remove();
@@ -2773,8 +2783,8 @@
 
     s = s + '</div>' +
             '<div class="modal-footer">';
-    s = s + '<a href="javascript:;" class="btn btn-primary action-confirm-close" rel="confirm" >Ok</a>';
-    s = s + '<a href="javascript:;" class="btn btn-default" data-dismiss="modal">&nbsp;' + br.trn('Cancel') + '&nbsp;</a>';
+    s = s + '<a href="javascript:;" class="btn btn-sm btn-primary action-confirm-close" rel="confirm" >Ok</a>';
+    s = s + '<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn('Cancel') + '&nbsp;</a>';
     s = s + '</div></div></div></div>';
     var dialog = $(s);
     $(dialog)

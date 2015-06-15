@@ -137,6 +137,16 @@
       _this.reset();
     });
 
+    function getName(data) {
+
+      if (_this.options.onGetName) {
+        return _this.options.onGetName.call(this, data);
+      } else {
+        return data[_this.options.nameField];
+      }
+
+    }
+
     function renderRow(data) {
 
       var s = '';
@@ -149,7 +159,7 @@
           s = s + '&nbsp;';
         }
       }
-      s = s + data[_this.options.nameField];
+      s = s + getName(data);
       s = s + '</option>';
 
       return s;
@@ -262,7 +272,7 @@
       _this.dataSource.after('update', function(result, data) {
         if (result && _this.isValid()) {
           if (data[_this.options.valueField]) {
-            _this.selector.find('option[value=' + data[_this.options.valueField] +']').text(data[_this.options.nameField]);
+            _this.selector.find('option[value=' + data[_this.options.valueField] +']').text(getName(data));
             uiSync();
           }
         }

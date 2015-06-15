@@ -86,6 +86,9 @@ class BrDataSourceUsers extends BrDataSource {
           $dataSource->callEvent('before:loginSelectUser', $params, $filter);
           if ($row = $dataSource->selectOne($filter)) {
             br()->auth()->trigger('checkLoginPrivilege', $row);
+            if ($dataSource->invokeMethodExists('checkLoginPrivilege')) {
+              $dataSource->invoke('checkLoginPrivilege', $row);
+            }
             $denied = false;
             if ($dataSource->invokeMethodExists('isAccessDenied')) {
               $denied = $dataSource->invoke('isAccessDenied', $row);
@@ -472,7 +475,7 @@ class BrRESTUsersBinder extends BrRESTBinder {
           }
         });
 
-    parent::route( '/api/users'
+    parent::route( '/api/users/'
                  , $this->usersDataSource
                  , array( 'security' => array( 'invoke' => ''
                                              , '.*'     => 'login'

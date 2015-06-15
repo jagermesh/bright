@@ -296,7 +296,7 @@
             val = $(this).val();
           }
           if (!skip) {
-            if ($(this).hasClass('required') && br.isEmpty(val) && (!$(this).hasClass('required-edit-only') || _this.isEditMode())) {
+            if ($(this).hasClass('required') && br.isEmpty(val) && (!$(this).hasClass('required-edit-only') || _this.isEditMode()) && (!$(this).hasClass('required-insert-only') || _this.isInsertMode())) {
               var title = $(this).attr('title');
               if (br.isEmpty(title)) {
                 title = $(this).prev('label').text();
