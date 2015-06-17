@@ -166,7 +166,7 @@ class BrSFTP extends BrObject {
 
     $order = br($options, 'order');
 
-    if ($ftpRAWList = $this->connection->rawlist($this->currentDirectory)) {
+    if ($ftpRAWList = $this->connection->rawlist($this->currentDirectory, false, br($options, 'listingLimit', 0))) {
       if (is_array($ftpRAWList)) {
         switch ($order) {
           case 'datetime':

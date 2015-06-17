@@ -27,7 +27,7 @@ class BrJobsManager {
 
     $coresAmount = br()->OS()->getCoresAmount();
 
-    $this->maxProcessesAmount = $coresAmount * 10;
+    $this->maxProcessesAmount = $coresAmount * 5;
 
     br()->log($coresAmount . ' processor(s) found');
     br()->log('Jobs folder: ' . $this->jobsFolder);
