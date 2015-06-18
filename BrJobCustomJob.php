@@ -3,6 +3,7 @@
 class BrJobCustomJob {
 
   protected $temporaryDir;
+  protected $lastRunFile;
 
   function __construct() {
 
