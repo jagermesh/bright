@@ -22,8 +22,8 @@ class BrSFTPFileObject {
 
     $pathinfo = pathinfo($name);
 
-    $this->isDirectory = ($params['type'] == 2);
-    $this->size = $params['size'];
+    $this->isDirectory = (br($params, 'type') == 2);
+    $this->size = br($params, 'size');
     $this->name = $name;
     $this->extension = br($pathinfo, 'extension');
     $this->date = br($params, 'mtime') ? date('m/d/Y H:i', $params['mtime']) : '';
@@ -166,32 +166,50 @@ class BrSFTP extends BrObject {
 
     $order = br($options, 'order');
 
-    if ($ftpRAWList = $this->connection->rawlist($this->currentDirectory, false, br($options, 'listingLimit', 0))) {
+    if (br($options, 'onlyNames')) {
+      $ftpRAWList = $this->connection->nlist($this->currentDirectory, false, br($options, 'listingLimit', 0));
+    } else {
+      $ftpRAWList = $this->connection->rawlist($this->currentDirectory, false, br($options, 'listingLimit', 0));
+    }
+    if ($ftpRAWList) {
       if (is_array($ftpRAWList)) {
-        switch ($order) {
-          case 'datetime':
-          case 'datetimeAsc':
-            uasort($ftpRAWList, function($a, $b) {
-              return br($a, 'mtime') == br($b, 'mtime') ? 0 : (br($a, 'mtime') > br($b, 'mtime') ? -1 : 1 );
-            });
-            break;
-          case 'datetimeDesc':
-            uasort($ftpRAWList, function($a, $b) {
-              return br($a, 'mtime') == br($b, 'mtime') ? 0 : (br($a, 'mtime') > br($b, 'mtime') ? 1 : -1 );
-            });
-            break;
-          case 'name':
-            ksort($ftpRAWList);
-            break;
-        }
-        foreach($ftpRAWList as $name => $params) {
-          $ftpFileObject = new BrSFTPFileObject($name, $params);
-          $proceed = true;
-          if ($mask) {
-            $proceed = preg_match('#' . $mask . '#', $ftpFileObject->name());
+        if (!br($options, 'onlyNames')) {
+          switch ($order) {
+            case 'datetime':
+            case 'datetimeAsc':
+              uasort($ftpRAWList, function($a, $b) {
+                return br($a, 'mtime') == br($b, 'mtime') ? 0 : (br($a, 'mtime') > br($b, 'mtime') ? -1 : 1 );
+              });
+              break;
+            case 'datetimeDesc':
+              uasort($ftpRAWList, function($a, $b) {
+                return br($a, 'mtime') == br($b, 'mtime') ? 0 : (br($a, 'mtime') > br($b, 'mtime') ? 1 : -1 );
+              });
+              break;
+            case 'name':
+              ksort($ftpRAWList);
+              break;
           }
-          if ($proceed) {
-            $callback($this, $ftpFileObject);
+          foreach($ftpRAWList as $name => $params) {
+            $ftpFileObject = new BrSFTPFileObject($name, $params);
+            $proceed = true;
+            if ($mask) {
+              $proceed = preg_match('#' . $mask . '#', $ftpFileObject->name());
+            }
+            if ($proceed) {
+              $callback($this, $ftpFileObject);
+            }
+          }
+        } else {
+          foreach($ftpRAWList as $name) {
+            $ftpFileObject = new BrSFTPFileObject($name, array());
+            $proceed = true;
+            if ($mask) {
+              $proceed = preg_match('#' . $mask . '#', $ftpFileObject->name());
+            }
+            if ($proceed) {
+              $callback($this, $ftpFileObject);
+            }
           }
         }
       }
