@@ -171,6 +171,7 @@ class BrSFTP extends BrObject {
     } else {
       $ftpRAWList = $this->connection->rawlist($this->currentDirectory, false, br($options, 'listingLimit', 0));
     }
+    // br()->log($ftpRAWList);
     if ($ftpRAWList) {
       if (is_array($ftpRAWList)) {
         if (!br($options, 'onlyNames')) {
