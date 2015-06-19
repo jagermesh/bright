@@ -46,6 +46,7 @@ class BrJobStarter {
             $job->run($arguments);
           }
           @fclose($handle);
+          @unlink(br()->OS()->lockFileName());
           return true;
         }
       } else {

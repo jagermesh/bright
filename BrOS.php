@@ -162,13 +162,19 @@ class BrOS extends BrObject {
 
   }
 
-  function lockIfRunning($scriptCommand = null) {
+  function lockFileName($scriptCommand = null) {
 
     if ($scriptCommand) {
-      $lockFile = sys_get_temp_dir() . '/' . md5($scriptCommand) . '.lock';
+      return sys_get_temp_dir() . '/' . md5($scriptCommand) . '.lock';
     } else {
-      $lockFile = sys_get_temp_dir() . '/' . md5(__DIR__) . '.lock';
+      return sys_get_temp_dir() . '/' . md5(br()->callerScript()) . '.lock';
     }
+
+  }
+
+  function lockIfRunning($scriptCommand = null) {
+
+    $lockFile = $this->lockFileName($scriptCommand);
 
     if (file_exists($lockFile)) {
       @chmod($lockFile, 0777);

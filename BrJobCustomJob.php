@@ -10,7 +10,7 @@ class BrJobCustomJob {
   private $checkJobCommand;
 
   private $coresAmount;
-  private $maxProcessesAmountMultiplier = 5;
+  private $maxProcessesAmountMultiplier = 8;
   private $maxProcessesAmount;
 
   protected $temporaryDir;
@@ -33,7 +33,7 @@ class BrJobCustomJob {
   function waitForProcessor() {
 
     while (br()->OS()->getProcessesAmount(array($this->runJobScript, $this->runJobScript)) > $this->maxProcessesAmount) {
-      br()->log('[...] Too many processes started, waiting to continue');
+      br()->log('[...] Too many processes started, maximum is ' . $this->maxProcessesAmount . '. Waiting to continue');
       sleep(10);
     }
 
