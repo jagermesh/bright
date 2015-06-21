@@ -184,6 +184,7 @@ class BrOS extends BrObject {
 
     if ($handle = @fopen($lockFile, 'w+')) {
       if (@flock($handle, LOCK_EX | LOCK_NB)) {
+        @fwrite($handle, $scriptCommand);
         @chmod($lockFile, 0777);
         return $handle;
       } else {
