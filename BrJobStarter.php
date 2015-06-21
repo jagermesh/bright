@@ -2,31 +2,55 @@
 
 class BrJobStarter {
 
-  function run($dirName = null) {
+  function __construct() {
+
+    $this->jobsFolder = br()->basePath() . 'jobs/';
+
+  }
+
+  function check() {
+
+    $this->doit(true);
+
+  }
+
+  function run() {
+
+    $this->doit(false);
+
+  }
+
+  function doit($check) {
 
     if (!br()->isConsoleMode()) { br()->panic('Console mode only'); }
 
     $arguments = br()->getCommandLineArguments();
-
-    if ($classFile = @$arguments[0]) {
-      if ($classFile[0] != '/') {
-        $classFile = $dirName . '/' . $classFile;
-      }
-      $className = @$arguments[1];
-      if (!$className) {
-        $className = br()->fs()->fileNameOnly($classFile);
-      }
-      if ($className) {
-
-        array_splice($arguments, 0, 2);
-
-        br()->log('Trying to acquire lock for this script to avoid conflict with running instance');
-        $tag = $classFile . '-' . br($arguments)->join('-');
-        $handle = br()->OS()->lockIfRunning($tag);
-
-        require_once($classFile);
-        $job = new $className();
-        $job->run($arguments);
+    if ($className = @$arguments[0]) {
+      $classFile = $this->jobsFolder . $className . '.php';
+      if (file_exists($classFile)) {
+        if ($className) {
+          array_splice($arguments, 0, 1);
+          $tag = $classFile . '-' . br($arguments)->join('-');
+          if ($check) {
+            $tag = 'check-' . $tag;
+          } else {
+            $tag = 'run-' . $tag;
+          }
+          br()->log('Trying to acquire lock for this script to avoid conflict with running instance');
+          $handle = br()->OS()->lockIfRunning($tag);
+          require_once($classFile);
+          $job = new $className();
+          if ($check) {
+            $job->check();
+          } else {
+            $job->run($arguments);
+          }
+          @fclose($handle);
+          @unlink(br()->OS()->lockFileName($tag));
+          return true;
+        }
+      } else {
+        br()->log('[ERROR] Job file ' . $classFile . ' not found');
       }
     }
 

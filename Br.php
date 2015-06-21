@@ -184,6 +184,7 @@ class Br extends BrSingleton {
 
   function saveCallerScript($scriptPath) {
 
+    $this->callerScript = $scriptPath;
     $this->basePath = $this->fs()->filePath($scriptPath);
     $this->scriptName = $this->fs()->fileName($scriptPath);
     $this->appPath = $this->basePath.'app/';
@@ -195,6 +196,12 @@ class Br extends BrSingleton {
     } else {
       $this->relativePath = 'bright/';
     }
+
+  }
+
+  function callerScript() {
+
+    return $this->callerScript;
 
   }
 

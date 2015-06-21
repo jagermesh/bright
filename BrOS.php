@@ -64,14 +64,19 @@ class BrOS extends BrObject {
         $result++;
       }
     } else {
-      $pid = trim($pid);
-      $output = $this->execute('ps ax | grep "' . $pid . '" 2>&1');
-      foreach($output as $line) {
-        $line = trim($line);
-        if (preg_match('#grep[ ]#', $line)) {
+      if (!is_array($pid)) {
+        $pid = array($pid);
+      }
+      $output = $this->execute('ps ax 2>&1');
+      foreach($pid as $search) {
+        $search = trim($search);
+        foreach($output as $line) {
+          $line = trim($line);
+          if (strpos($line, $search) === false) {
 
-        } else {
-          $result++;
+          } else {
+            $result++;
+          }
         }
       }
     }
@@ -88,16 +93,21 @@ class BrOS extends BrObject {
         return $pid;
       }
     } else {
-      $pid = trim($pid);
-      $output = $this->execute('ps ax | grep "' . $pid . '" 2>&1');
-      foreach ($output as $line) {
-        $line = trim($line);
-        if (preg_match('#grep.*?' . $pid . '#', $line)) {
+      if (!is_array($pid)) {
+        $pid = array($pid);
+      }
+      $output = $this->execute('ps ax 2>&1');
+      foreach($pid as $search) {
+        $search = trim($search);
+        foreach ($output as $line) {
+          $line = trim($line);
+          if (strpos($line, $search) === false) {
 
-        } else {
-          if (preg_match('#^([0-9]+).*?[0-9]+:[0-9]+ (.+)$#', $line, $matches)) {
-            if (strtolower(trim($matches[2])) == strtolower(trim($pid))) {
-              return $matches[1];
+          } else {
+            if (preg_match('#^([0-9]+).*?[0-9]+:[0-9]+ (.+)$#', $line, $matches)) {
+              if (strtolower(trim($matches[2])) == strtolower(trim($search))) {
+                return $matches[1];
+              }
             }
           }
         }
@@ -108,16 +118,17 @@ class BrOS extends BrObject {
 
   }
 
-  function findProcessLike($command) {
+  function findProcessLike($pid) {
 
-    $command = trim($command);
-    $output = $this->execute("ps ax | grep '" . $command . "' 2>&1");
-    foreach ($output as $line) {
-      $line = trim($line);
-      if (preg_match('#grep.*?' . $command . '#', $line)) {
-
-      } else {
-        if (preg_match('#^([0-9]+) .+?[0-9]+:[0-9.]+ ' . $command . '#', $line, $matches)) {
+    if (!is_array($pid)) {
+      $pid = array($pid);
+    }
+    $output = $this->execute('ps ax 2>&1');
+    foreach($pid as $search) {
+      $search = trim($search);
+      foreach ($output as $line) {
+        $line = trim($line);
+        if (preg_match('#^([0-9]+) .+?[0-9]+:[0-9.]+ ' . $search . '#', $line, $matches)) {
           return $matches[1];
         }
       }
@@ -137,16 +148,12 @@ class BrOS extends BrObject {
   function isPHPScriptRunning($scriptCommand) {
 
     $scriptCommand = trim($scriptCommand);
-    exec("ps ax | grep '".$scriptCommand."' 2>&1", $output);
+    exec("ps ax 2>&1", $output);
     foreach ($output as $line) {
       $line = trim($line);
-      if (preg_match('#grep.*?' . $scriptCommand . '#', $line)) {
-
-      } else {
-        if (preg_match('#^([0-9]+).*?[0-9]+:[0-9.]+ .*?php .*?' . $scriptCommand . '$#', $line, $matches)) {
-          if (getmypid() != $matches[1]) {
-            return $matches[1];
-          }
+      if (preg_match('#^([0-9]+).*?[0-9]+:[0-9.]+ .*?php .*?' . $scriptCommand . '$#', $line, $matches)) {
+        if (getmypid() != $matches[1]) {
+          return $matches[1];
         }
       }
     }
@@ -155,13 +162,19 @@ class BrOS extends BrObject {
 
   }
 
-  function lockIfRunning($scriptCommand = null) {
+  function lockFileName($scriptCommand = null) {
 
     if ($scriptCommand) {
-      $lockFile = sys_get_temp_dir() . '/' . md5($scriptCommand) . '.lock';
+      return sys_get_temp_dir() . '/' . md5($scriptCommand) . '.lock';
     } else {
-      $lockFile = sys_get_temp_dir() . '/' . md5(__DIR__) . '.lock';
+      return sys_get_temp_dir() . '/' . md5(br()->callerScript()) . '.lock';
     }
+
+  }
+
+  function lockIfRunning($scriptCommand = null) {
+
+    $lockFile = $this->lockFileName($scriptCommand);
 
     if (file_exists($lockFile)) {
       @chmod($lockFile, 0777);
@@ -171,6 +184,7 @@ class BrOS extends BrObject {
 
     if ($handle = @fopen($lockFile, 'w+')) {
       if (@flock($handle, LOCK_EX | LOCK_NB)) {
+        @fwrite($handle, $scriptCommand);
         @chmod($lockFile, 0777);
         return $handle;
       } else {

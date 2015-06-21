@@ -1506,6 +1506,7 @@
         if (options && !br.isEmpty(options.limit)) {
           request.__limit = options.limit;
         }
+
         if (options && options.fields) {
           request.__fields = options.fields;
         }
@@ -2262,7 +2263,7 @@
 
     function getName(data) {
 
-      if (_this.options.onGetName) {
+      if (br.isFunction(_this.options.onGetName)) {
         return _this.options.onGetName.call(this, data);
       } else {
         return data[_this.options.nameField];
