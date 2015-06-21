@@ -57,9 +57,24 @@
     return ((/iPad/i.test(ua)) || (/iPhone/i.test(ua)) || (/Android/i.test(ua)));
   };
 
+  window.br.isMobileDevice = function() {
+    var ua = navigator.userAgent;
+    return ((/iPad/i.test(ua)) || (/iPhone/i.test(ua)) || (/Android/i.test(ua)));
+  };
+
   window.br.isiOS = function() {
     var ua = navigator.userAgent;
     return ((/iPad/i.test(ua)) || (/iPhone/i.test(ua)));
+  };
+
+  window.br.isiPad = function() {
+    var ua = navigator.userAgent;
+    return (/iPad/i.test(ua));
+  };
+
+  window.br.isiPhone = function() {
+    var ua = navigator.userAgent;
+    return (/iPhone/i.test(ua));
   };
 
   window.br.isAndroid = function() {
