@@ -10,6 +10,7 @@
 
 require_once(__DIR__.'/BrObject.php');
 require_once(__DIR__.'/BrFileSystem.php');
+require_once(__DIR__.'/BrException.php');
 
 class BrSFTPFileObject {
 
@@ -285,7 +286,7 @@ class BrSFTP extends BrObject {
       }
     }
 
-    throw new Exception('Can not download file ' . $sourceFileName);
+    throw new BrFileNotFoundException('Can not download file ' . $sourceFileName);
 
   }
 

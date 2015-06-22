@@ -88,3 +88,7 @@ class BrAppException extends BrException {
 class BrDBException extends BrException {
 
 }
+
+class BrFileNotFoundException extends BrException {
+
+}
