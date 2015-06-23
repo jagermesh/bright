@@ -103,6 +103,7 @@
     s = s + '<a href="javascript:;" class="btn btn-sm btn-default action-confirm-cancel">&nbsp;' + params.cancelTitle + '&nbsp;</a>';
     s = s + '</div></div></div></div>';
     var dialog = $(s);
+    var remove = true;
     var onShow = function(e) {
       if (params.onShow) {
         params.onShow.call(dialog);
@@ -110,20 +111,29 @@
       $(this).find('.action-confirm-close').click(function() {
         var button = $(this).attr('rel');
         var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');
-        callback(button, dontAsk);
+        remove = false;
         dialog.modal('hide');
+        callback(button, dontAsk);
+        dialog.remove();
       });
       $(this).find('.action-confirm-cancel').click(function() {
         var button = 'cancel';
         var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');
+        remove = false;
+        dialog.modal('hide');
         if (params.onCancel) {
           params.onCancel(button, dontAsk);
         }
-        dialog.modal('hide');
+        dialog.remove();
       });
     };
     var onHide = function(e) {
-      dialog.remove();
+      if (params.onHide) {
+        params.onHide.call(this);
+      }
+      if (remove) {
+        dialog.remove();
+      }
     };
     $(dialog).on('show.bs.modal', onShow);
     $(dialog).on('hide.bs.modal', onHide);
@@ -210,6 +220,7 @@
     s = s + '<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn('Cancel') + '&nbsp;</a>';
     s = s + '</div></div></div></div>';
     var dialog = $(s);
+    var remove = true;
     $(dialog)
       .on('shown', function(e) {
         $(this).find('input[type=text]')[0].focus();
@@ -226,8 +237,10 @@
             results.push($(this).val());
           });
           if (ok) {
+            remove = false;
             $(dialog).modal('hide');
             callback.call(this, results);
+            dialog.remove();
           } else {
             br.growlError('Please enter value');
             notOkField[0].focus();
@@ -235,9 +248,14 @@
         });
       });
     var onHide = function(e) {
-      dialog.remove();
+      if (options.onHide) {
+        options.onHide.call(this);
+      }
       if (options.onhide) {
         options.onhide.call(this);
+      }
+      if (remove) {
+        dialog.remove();
       }
     };
     $(dialog).on('hide.bs.modal', onHide);
