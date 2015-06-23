@@ -638,6 +638,10 @@ class BrIMAP extends BrObject {
 
   }
 
+  public function expunge($path) {
+    imap_expunge($this->openMailbox($path));
+  }
+
   static function decode($body, $encoding) {
 
     for ($i=0; $i < 256; $i++) {
