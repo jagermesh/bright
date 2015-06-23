@@ -2702,16 +2702,16 @@
       $(this).find('.action-confirm-close').click(function() {
         var button = $(this).attr('rel');
         var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');
-        dialog.modal('hide');
         callback(button, dontAsk);
+        dialog.modal('hide');
       });
       $(this).find('.action-confirm-cancel').click(function() {
         var button = 'cancel';
         var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');
-        dialog.modal('hide');
         if (params.onCancel) {
           params.onCancel(button, dontAsk);
         }
+        dialog.modal('hide');
       });
     };
     var onHide = function(e) {
