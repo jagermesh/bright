@@ -323,7 +323,7 @@
           tmpl = br.trn('Please check the following:') + '<br /><ul>{{#errors}}<li>{{.}}</li>{{/errors}}</ul>';
         }
         var error = br.fetch(tmpl, { errors: errors });
-        br.growlError(error);
+        _this.showError(error);
       } else {
         var op = '';
         var ok = true;
