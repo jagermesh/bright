@@ -9,19 +9,19 @@
 
 ;(function ($, window) {
 
-  var invokerTemplate = '<div class="dropdown br-ajax-dropdown"><a href="javascript:;" class="not-a br-ex-action-change-menu-menu"><span class="br-ex-current-value">{{&value}}</span> <b class="caret"></b></a></div>';
+  var invokerTemplate = '<div class="dropdown br-ajax-dropdown"><span href="javascript:;" class="not-a br-ex-action-change-menu-menu"><span class="br-ex-current-value">{{&value}}</span> <b class="caret"></b></a></div>';
 
   function showDropDownMenu(invoker, response, rowid, menuElement, dataSource, fieldName, options) {
     var menuItemTemplate = '<li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>';
     var dropDown = $('<div class="dropdown br-ajax-dropdown" style="position:absolute;z-index:1050;"><a style="display:none;" href="javascript:;" role="button" data-toggle="dropdown" class="dropdown-toggle not-a br-ex-action-change-menu-menu"><span>{{value}}</span> <b class="caret"></b></a><ul class="dropdown-menu" role="menu" style="overflow:auto;"></ul></div>');
     var dropDownList = dropDown.find('ul');
-    var dropDownMenu = dropDown.find('a.br-ex-action-change-menu-menu');
+    var dropDownMenu = dropDown.find('.br-ex-action-change-menu-menu');
     dropDown.on('click', '.br-ex-action-change-menu', function() {
       var value = $(this).attr('data-value');
       var data = {};
       data[fieldName] = value;
       if (options.onClick) {
-        options.onClick.call($(this), dataSource, rowid, data);
+        options.onClick.call($(this), dataSource, rowid, data, menuElement);
       } else {
         dataSource.update(rowid, data, function(result, response) {
           if (options.onUpdate) {
@@ -41,7 +41,8 @@
       dropDownList.append(br.fetch(menuItemTemplate, { id: response[i][options.keyField], name: response[i][options.nameField] }));
     }
     dropDown.css('left', invoker.offset().left + 'px');
-    var t = (invoker.find("a").offset().top + invoker.find("a").height());
+    var invokerItem = invoker.find('.br-ex-action-change-menu-menu');
+    var t = (invokerItem.offset().top + invokerItem.height());
     var scr = $(window).scrollTop();
     dropDown.css('top', t + 'px');
     t = t - scr;
