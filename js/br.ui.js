@@ -394,6 +394,14 @@
     renderProgress();
   };
 
+  window.br.setProgress = function(value, message) {
+    progressBar_Progress = value;
+    if (!br.isEmpty(message)) {
+      progressBar_Message = message;
+    }
+    renderProgress();
+  };
+
   window.br.stepProgress = function(step, message) {
     if (br.isNumber(step)) {
       progressBar_Progress += step;
