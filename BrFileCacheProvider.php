@@ -91,7 +91,7 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
   private function checkCacheFile($filePath) {
 
     if (file_exists($filePath)) {
-      return ((mktime() - filemtime($filePath)) < $this->getCacheLifeTime());
+      return ((time() - filemtime($filePath)) < $this->getCacheLifeTime());
     } else {
       return false;
     }
