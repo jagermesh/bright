@@ -368,7 +368,7 @@ class BrGenericDataSource extends BrObject {
 
   }
 
-  public function canSelect($filter) {
+  public function canSelect($filter = array()) {
 
     return true;
 

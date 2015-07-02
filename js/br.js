@@ -1,9 +1,9 @@
-/*!
+/*
  * Bright 0.0.5
  *
  * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 

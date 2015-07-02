@@ -48,12 +48,29 @@ module.exports = function(grunt) {
           phpCmd: "php"
         },
         all: ["*.php"]
+    },
+    watch: {
+      scripts: {
+        files: ['Gruntfile.js', 'js/*.js', '!js/<%= pkg.name %>.min.js'],
+        tasks: ['jshint', 'concat', 'uglify'],
+        options: {
+          spawn: false,
+        },
+      },
+      phpfiles: {
+        files: ['*.php'],
+        tasks: ['phplint:all'],
+        options: {
+          spawn: false,
+        },
+      },
     }
   });
 
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks("grunt-phplint");
 
   grunt.registerTask('default', ['jshint', 'concat', 'uglify', 'phplint:all']);

@@ -70,7 +70,7 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
 
     $filePath = $this->getCacheFilePath($name);
     br()->fs()->makeDir(br()->fs()->filePath($filePath));
-    br()->fs()->saveToFile($filePath, json_encode($value));
+    br()->fs()->saveToFile($filePath, @json_encode($value));
 
     return $value;
 
