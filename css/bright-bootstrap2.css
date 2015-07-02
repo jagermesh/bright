@@ -215,7 +215,7 @@ td.optimal-width, th.optimal-width {
 }
 
 .navbar .btn {
-  margin: 5px 0px 0px 0px;
+  margin: 5px 0px 5px 0px;
 }
 
 .navbar-internal {
@@ -273,6 +273,10 @@ h1 small {
 
 a, .clickable, .sortable, label.checkbox {
   cursor: pointer;
+}
+
+.blured {
+  color: #999;
 }
 
 .google-map img {
@@ -337,7 +341,22 @@ a i:hover, .brand:hover {
 
 a.not-a {
   text-decoration: none;
-  color: black;
+  color: inherit;
+}
+a.btn-url {
+  text-decoration: none;
+  color: inherit;
+  display: inline-block;
+  padding: 4px 14px 4px;
+  margin-bottom: 0;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+}
+.navbar .btn-url {
+  margin: 5px 0px 5px 0px;
 }
 .label {
   font-weight: normal !important;
@@ -408,6 +427,20 @@ a.pager-nav-element:hover,a.pager-size-element:hover {
   border: 1px solid #AAA;
   border-radius: 3px;
   color:none;
+}
+
+.br-editable {
+  border: 1px solid transparent;
+  /*padding: 2px;*/
+}
+
+.br-editable:hover {
+  border: 1px dashed orange;
+  /*padding: 2px;*/
+  cursor: text;
+}
+div.br-editable, span.br-editable {
+  padding: 2px;
 }
 
 .tooltip {

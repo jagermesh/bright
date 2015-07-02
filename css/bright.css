@@ -215,7 +215,7 @@ td.optimal-width, th.optimal-width {
 }
 
 .navbar .btn {
-  margin: 5px 0px 0px 0px;
+  margin: 5px 0px 5px 0px;
 }
 
 .navbar-internal {
@@ -300,7 +300,6 @@ span.required {
   min-height: 20px;
   padding: 19px;
   margin-bottom: 10px;
-  /*background-color: #Fc3;*/
   border: 1px solid #eee;
   border: 1px solid rgba(0, 0, 0, 0.05);
   -webkit-border-radius: 4px;
@@ -341,8 +340,24 @@ a i:hover, .brand:hover {
 
 a.not-a {
   text-decoration: none;
-  color: black;
+  color: inherit;
 }
+a.btn-url {
+  text-decoration: none;
+  color: inherit;
+  display: inline-block;
+  padding: 4px 10px 4px 10px;
+  margin-bottom: 0;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+}
+.navbar .btn-url {
+  margin: 5px 0px 5px 0px;
+}
+
 .label {
   font-weight: normal !important;
   padding:3px;
