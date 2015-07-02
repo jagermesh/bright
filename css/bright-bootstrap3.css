@@ -297,9 +297,10 @@ span.required {
 
 .filter-panel {
   min-height: 20px;
-  padding: 19px;
+  padding: 10px;
+  padding-top: 6px;
+  padding-bottom: 6px;
   margin-bottom: 10px;
-  background-color: #EFEFEF;
   border: 1px solid #eee;
   border: 1px solid rgba(0, 0, 0, 0.05);
   -webkit-border-radius: 4px;
@@ -308,9 +309,13 @@ span.required {
   -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
      -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
           box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
-  /*overflow: hidden;*/
-  display: inline-block;
-  width: 100%;
+  background-color: #EFEFEF;
+}
+
+.filter-panel:after {
+  content:"";
+  clear:both;
+  display:block;
 }
 
 .filter-block {
