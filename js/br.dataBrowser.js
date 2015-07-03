@@ -474,29 +474,32 @@
       }
 
       $(document).on('click', c('.action-select-all'), function() {
-        if ($(this).is(':checked')) {
-          $(c('.action-select-row')).each(function() {
+        var checked = $(this).is(':checked');
+        $(c('.action-select-row')).each(function() {
+          var row = $(this).closest('[data-rowid]');
+          var rowid = row.attr('data-rowid');
+          if (checked) {
             $(this).attr('checked', 'checked');
-            $(this).closest('tr').addClass('row-selected');
-            _this.selection.append($(this).val());
-          });
-        } else {
-          $(c('.action-select-row')).each(function() {
+            row.addClass('row-selected');
+            _this.selection.append(rowid);
+          } else {
             $(this).removeAttr('checked');
-            $(this).closest('tr').removeClass('row-selected');
-            _this.selection.remove($(this).val());
-          });
-        }
+            row.removeClass('row-selected');
+            _this.selection.remove(rowid);
+          }
+        });
         _this.events.trigger('selectionChanged');
       });
 
       $(document).on('click', c('.action-select-row'), function() {
+        var row = $(this).closest('[data-rowid]');
+        var rowid = row.attr('data-rowid');
         if ($(this).is(':checked')) {
-          $(this).closest('tr').addClass('row-selected');
-          _this.selection.append($(this).val());
+          row.addClass('row-selected');
+          _this.selection.append(rowid);
         } else {
-          $(this).closest('tr').removeClass('row-selected');
-          _this.selection.remove($(this).val());
+          row.removeClass('row-selected');
+          _this.selection.remove(rowid);
         }
         _this.events.trigger('selectionChanged');
       });
@@ -592,7 +595,6 @@
 
     }
 
-
     function internalUpdatePager() {
 
       initPager();
@@ -629,9 +631,9 @@
         }
         if (el) {
           $pc.html(s);
-          $('.pager-nav-element').show();
+          $(c('.pager-nav-element')).show();
         } else {
-          $('.pager-nav-element').hide();
+          $(c('.pager-nav-element')).hide();
         }
       }
 
