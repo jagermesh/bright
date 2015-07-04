@@ -181,12 +181,8 @@
 
     this.init = function() {
 
-      function isGridEmpty() {
-        return ($(_this.selector).find('[data-rowid]').length === 0);
-      }
-
       function checkForEmptyGrid() {
-        if (isGridEmpty()) {
+        if (_this.isEmpty()) {
           _this.events.triggerBefore('nodata');
           $(_this.selector).html(_this.options.templates.noData);
           _this.events.trigger('nodata');
@@ -245,7 +241,6 @@
         _this.dataSource.select();
       });
 
-
       if (_this.dataSource) {
 
         _this.dataSource.before('select', function(request, options) {
@@ -266,7 +261,7 @@
 
         _this.dataSource.after('insert', function(success, response) {
           if (success) {
-            if (isGridEmpty()) {
+            if (_this.isEmpty()) {
               $(_this.selector).html(''); // to remove No-Data box
             }
             _this.addDataRow(response);
@@ -284,21 +279,11 @@
         _this.dataSource.on('remove', function(rowid) {
           var row = $(_this.selector).find('[data-rowid=' + rowid + ']');
           if (row.length > 0) {
-            if (br.isTouchScreen()) {
-              _this.events.triggerBefore('remove', rowid);
-              _this.events.trigger('remove', rowid, row);
-              row.remove();
-              checkForEmptyGrid();
-              _this.events.triggerAfter('remove', rowid, row);
-            } else {
-              _this.events.triggerBefore('remove', rowid);
-              row.fadeOut(function() {
-                _this.events.trigger('remove', rowid, $(this));
-                $(this).remove();
-                _this.events.triggerAfter('remove', rowid, $(this));
-                checkForEmptyGrid();
-              });
-            }
+            _this.events.triggerBefore('remove', rowid);
+            _this.events.trigger('remove', rowid, row);
+            row.remove();
+            checkForEmptyGrid();
+            _this.events.triggerAfter('remove', rowid, row);
           } else {
             _this.dataSource.select();
           }

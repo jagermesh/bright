@@ -152,6 +152,9 @@
           deleteQueued();
         });
       } else {
+        if (_this.dataGrid.isEmpty()) {
+          _this.refresh();
+        }
         br.hideProgress();
       }
 
@@ -201,7 +204,6 @@
         br.growlError('Please select at least one record');
       }
     };
-
 
     function processQueued(processRowCallback, processCompleteCallback, params) {
 
@@ -281,14 +283,15 @@
         _this.refreshDeferred();
       });
 
-      br.modified(c('input.data-filter,select.data-filter'), function() {
+      br.modified(c('input.data-filter') + ',' + c('select.data-filter'), function() {
         _this.resetPager();
       });
 
       br.attachDatePickers();
 
       if (_this.options.features.editor) {
-        _this.editor = br.dataEditor(_this.options.selectors.editForm, _this.dataSource, { noun: _this.options.noun });
+        var editorOptions = _this.options.editor || { noun: _this.options.noun };
+        _this.editor = br.dataEditor(_this.options.selectors.editForm, _this.dataSource, editorOptions);
         _this.editor.events.connectTo(_this.events);
 
         $(c('.action-create')).show();
@@ -319,12 +322,12 @@
       });
 
       // pager
-      $(c('a.action-next,a.pager-action-next')).on('click', function() {
+      $(c('a.action-next') + ',' + c('a.pager-action-next')).on('click', function() {
         _this.skip += _this.limit;
         _this.refresh({}, null, true);
       });
 
-      $(c('a.action-prior,a.pager-action-prior')).on('click', function() {
+      $(c('a.action-prior') + ',' + c('a.pager-action-prior')).on('click', function() {
         _this.skip -= _this.limit;
         if (_this.skip < 0) {
           _this.skip = 0;
@@ -658,7 +661,6 @@
       var min = (_this.skip + 1);
       var max = Math.min(_this.skip + _this.limit, _this.recordsAmount);
       if (_this.recordsAmount > 0) {
-        $(c('.pager-control')).show();
         if (_this.recordsAmount > max) {
           $(c('.action-next')).show();
           $(c('.pager-action-next')).show();
@@ -673,8 +675,11 @@
           $(c('.action-prior')).hide();
           $(c('.pager-action-prior')).hide();
         }
+        $(c('.pager-control')).show();
+        _this.events.triggerAfter('pager.show');
       } else {
         $(c('.pager-control')).hide();
+        _this.events.triggerAfter('pager.hide');
       }
       $(c('.pager-stat')).text('Records ' + min + '-' + max + ' of ' + _this.recordsAmount);
       $(c('.pager-page-size')).text(_this.limit + ' records per page');
@@ -705,6 +710,7 @@
             _this.events.triggerAfter('recordsCountRetrieved', result);
           } else {
             $(c('.pager-control')).hide();
+            _this.events.triggerAfter('pager.hide');
           }
         });
 
