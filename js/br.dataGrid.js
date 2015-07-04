@@ -120,7 +120,7 @@
 
     this.refreshRow = function(data) {
       var row = $(_this.selector).find('[data-rowid=' + data.rowid + ']');
-      if (row.length == 1) {
+      if (row.length > 1) {
         var ctrl = _this.renderRow(data);
         var s = ctrl.html();
         ctrl.remove();

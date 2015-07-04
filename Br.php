@@ -149,6 +149,14 @@ class Br extends BrSingleton {
 
   }
 
+  function rabbitMQ() {
+
+    require_once(__DIR__.'/BrRabbitMQ.php');
+    $rmq = BrRabbitMQ::getInstance();
+    return $rmq;
+
+  }
+
   function config($name = null, $defaultValue = null) {
 
     require_once(__DIR__.'/BrConfig.php');

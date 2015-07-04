@@ -21,6 +21,7 @@ module.exports = function(grunt) {
              , 'js/br.editable.js'
              , 'js/br.ui.js'
              , 'js/br.clipboard.js'
+             , 'js/br.rabbitMQ.js'
              ,
              ],
         dest: 'js/<%= pkg.name %>.js'
