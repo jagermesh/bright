@@ -137,6 +137,10 @@
       _this.dataGrid.reloadRow(rowid);
     };
 
+    this.hasRow = function(rowid) {
+      return _this.dataGrid.hasRow(rowid);
+    };
+
     var selectionQueue = [];
 
     function deleteQueued() {

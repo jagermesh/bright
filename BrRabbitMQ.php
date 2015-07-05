@@ -11,8 +11,6 @@
 require_once(__DIR__.'/Br.php');
 require_once(__DIR__.'/BrSingleton.php');
 
-require_once(dirname(__DIR__) . '/vendor/autoload.php');
-
 use PhpAmqpLib\Connection\AMQPConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
@@ -66,8 +64,7 @@ class BrRabbitMQ extends BrSingleton {
   function sendMessage($exchangeName, $message, $routingKey = null) {
 
     $this->connect();
-    $message = json_encode($message);
-    $msg = new AMQPMessage( $message
+    $msg = new AMQPMessage( json_encode($message)
                           , array( 'content_type' => 'application/json'
                                  , 'delivery_mode' => 2
                                  ));

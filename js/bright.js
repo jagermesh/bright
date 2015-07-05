@@ -1795,6 +1795,11 @@
       return tableRow;
     };
 
+    this.hasRow = function(rowid) {
+      var row = $(_this.selector).find('[data-rowid=' + rowid + ']');
+      return (row.length > 0);
+    };
+
     this.reloadRow = function(rowid, callback) {
       _this.dataSource.selectOne(rowid, function(result, response) {
         if (result) {
@@ -1810,7 +1815,7 @@
 
     this.refreshRow = function(data) {
       var row = $(_this.selector).find('[data-rowid=' + data.rowid + ']');
-      if (row.length > 1) {
+      if (row.length > 0) {
         var ctrl = _this.renderRow(data);
         var s = ctrl.html();
         ctrl.remove();
@@ -3390,6 +3395,10 @@
       var sub = { uid: uid++, exchange: exchange, topic: topic, callback: callback, status: 'added' };
       subs[sub.uid] = sub;
       subscribe();
+    };
+
+    this.sendMessage = function(exchange, data, topic) {
+      socket.emit('RMQ/SendMessage', { exchange: exchange, data: data, topic: topic });
     };
 
     return this;
