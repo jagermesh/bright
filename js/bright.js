@@ -1511,6 +1511,10 @@
           request.__fields = options.fields;
         }
 
+        if (options && options.dataSets) {
+          request.__dataSets = options.dataSets;
+        }
+
         if (options && options.order) {
           request.__order = options.order;
         }
