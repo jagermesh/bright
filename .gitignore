@@ -8,3 +8,4 @@ tools/_logs
 tests/_logs
 
 node_modules
+composer.lock
