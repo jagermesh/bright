@@ -41,6 +41,7 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter {
           br()->errorHandler()->disable();
           $fileExists = file_exists($this->filePath . $this->fileName);
           if ($this->filePointer = @fopen($this->filePath . $this->fileName, 'a+')) {
+            @chmod($this->filePath . $this->fileName, 0666);
             $this->enable();
             $this->initialized = true;
           } else {

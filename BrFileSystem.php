@@ -155,9 +155,12 @@ class BrFileSystem extends BrSingleton {
 
   }
 
-  public function saveToFile($fileName, $content) {
+  public function saveToFile($fileName, $content, $access = 0666) {
 
-    return file_put_contents($fileName, $content);
+    if ($result = file_put_contents($fileName, $content)) {
+      @chmod($fileName, $access);
+    }
+    return $result;
 
   }
 

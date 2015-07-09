@@ -130,11 +130,12 @@ class BrErrorMailLogAdapter extends BrGenericLogAdapter {
           if ($isCached) {
 
           } else {
-            if ($this->cache) {
-              $this->cache->set($cacheTag, $body);
-            }
             $body = $this->packBody($body);
-            br()->sendMail($email, $subject, $body);
+            if (br()->sendMail($email, $subject, $body)) {
+              if ($this->cache) {
+                $this->cache->set($cacheTag, $body);
+              }
+            }
           }
         } catch (Exception $e) {
 
