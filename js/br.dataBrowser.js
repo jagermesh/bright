@@ -285,7 +285,9 @@
             $(this).val(_val);
           }
         });
-        _this.refreshDeferred();
+        if ($(this).hasClass('instant-search')) {
+          _this.refreshDeferred();
+        }
       });
 
       br.modified(c('input.data-filter') + ',' + c('select.data-filter'), function() {
