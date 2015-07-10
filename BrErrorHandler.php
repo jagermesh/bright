@@ -28,6 +28,13 @@ class BrErrorHandler extends BrObject {
   function handleError($errno, $errmsg, $errfile, $errline, $shutdown = false) {
 
     if ($this->isEnabled()) {
+        // echo('errfile: '.$errfile.'<br />');
+        // echo('errmsg: '.$errmsg.'<br />');
+        // echo('errline: '.$errline.'<br />');
+        // echo('errno: '.$errno.'<br />');
+        // echo('errno: '.E_ALL.'<br />');
+        // echo('E_NOTICE: '.E_NOTICE.'<br />');
+        // echo('error_reporting(): '.error_reporting().'<br />');
 
       if ((error_reporting() & $errno) == $errno) {
 
@@ -38,22 +45,27 @@ class BrErrorHandler extends BrObject {
         // echo('E_NOTICE: '.E_NOTICE.'<br />');
         // echo('error_reporting(): '.error_reporting().'<br />');
 
-        if ($shutdown) {
-            br()->log()->logException(new BrErrorException($errmsg, 0, $errno, $errfile, $errline));
-        } else {
-          switch ($errno) {
-            case E_ERROR:
-            case E_USER_ERROR:
+        switch ($errno) {
+          case E_ERROR:
+          case E_USER_ERROR:
+            if ($shutdown) {
+              br()->log()->logException(new BrErrorException($errmsg, 0, $errno, $errfile, $errline));
+            } else {
               throw new BrErrorException($errmsg, 0, $errno, $errfile, $errline);
-              break;
-            default:
-              if (br()->request()->isLocalHost()) {
-                throw new BrErrorException($errmsg, 0, $errno, $errfile, $errline);
-              } else {
-                br()->log()->logException(new BrErrorException($errmsg, 0, $errno, $errfile, $errline));
-              }
-              break;
-          }
+            }
+            break;
+          case E_DEPRECATED:
+            if (br()->request()->isLocalHost() && !br()->isConsoleMode()) {
+              br()->log()->logException(new BrErrorException($errmsg, 0, $errno, $errfile, $errline));
+            }
+            break;
+          default:
+            if (br()->request()->isLocalHost() && !$shutdown) {
+              throw new BrErrorException($errmsg, 0, $errno, $errfile, $errline);
+            } else {
+              br()->log()->logException(new BrErrorException($errmsg, 0, $errno, $errfile, $errline));
+            }
+            break;
         }
       }
 

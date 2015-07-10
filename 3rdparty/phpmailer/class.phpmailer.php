@@ -681,7 +681,7 @@ class PHPMailer
     public function isSendmail()
     {
         $ini_sendmail_path = ini_get('sendmail_path');
-        
+
         if (!stristr($ini_sendmail_path, 'sendmail')) {
             $this->Sendmail = '/usr/sbin/sendmail';
         } else {
@@ -697,7 +697,7 @@ class PHPMailer
     public function isQmail()
     {
         $ini_sendmail_path = ini_get('sendmail_path');
-        
+
         if (!stristr($ini_sendmail_path, 'qmail')) {
             $this->Sendmail = '/var/qmail/bin/qmail-inject';
         } else {
@@ -1043,7 +1043,7 @@ class PHPMailer
                     if (method_exists($this, $sendMethod)) {
                         return $this->$sendMethod($this->MIMEHeader, $this->MIMEBody);
                     }
-                    
+
                     return $this->mailSend($this->MIMEHeader, $this->MIMEBody);
             }
         } catch (phpmailerException $exc) {
@@ -2219,7 +2219,7 @@ class PHPMailer
             $magic_quotes = get_magic_quotes_runtime();
             if ($magic_quotes) {
                 if (version_compare(PHP_VERSION, '5.3.0', '<')) {
-                    set_magic_quotes_runtime(0);
+                    @set_magic_quotes_runtime(0);
                 } else {
                     ini_set('magic_quotes_runtime', 0);
                 }
@@ -2228,7 +2228,7 @@ class PHPMailer
             $file_buffer = $this->encodeString($file_buffer, $encoding);
             if ($magic_quotes) {
                 if (version_compare(PHP_VERSION, '5.3.0', '<')) {
-                    set_magic_quotes_runtime($magic_quotes);
+                    @set_magic_quotes_runtime($magic_quotes);
                 } else {
                     ini_set('magic_quotes_runtime', $magic_quotes);
                 }
