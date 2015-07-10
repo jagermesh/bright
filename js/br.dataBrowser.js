@@ -99,6 +99,7 @@
                                , this.dataSource
                                , { templates: { noData: this.options.templates.noData, groupRow: this.options.templates.groupRow }
                                  , selectors: { header: headerContainer, remove: '.action-delete' }
+                                 , appendInInsert: this.options.appendInInsert
                                  }
                                );
 

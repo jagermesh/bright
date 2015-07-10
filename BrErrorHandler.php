@@ -13,7 +13,7 @@ require_once(__DIR__.'/BrException.php');
 
 class BrErrorHandler extends BrObject {
 
-  private $notErrors = array(E_DEPRECATED);
+  // private $notErrors = array(E_DEPRECATED);
 
   function __construct() {
 
@@ -22,6 +22,42 @@ class BrErrorHandler extends BrObject {
     set_error_handler(array(&$this, "errorHandler"));
     set_exception_handler(array(&$this, "exceptionHandler"));
     register_shutdown_function(array(&$this, "captureShutdown"));
+
+  }
+
+  function handleError($errno, $errmsg, $errfile, $errline, $shutdown = false) {
+
+    if ($this->isEnabled()) {
+
+      if ((error_reporting() & $errno) == $errno) {
+
+        // echo('errfile: '.$errfile.'<br />');
+        // echo('errmsg: '.$errmsg.'<br />');
+        // echo('errline: '.$errline.'<br />');
+        // echo('errno: '.$errno.'<br />');
+        // echo('E_NOTICE: '.E_NOTICE.'<br />');
+        // echo('error_reporting(): '.error_reporting().'<br />');
+
+        if ($shutdown) {
+            br()->log()->logException(new BrErrorException($errmsg, 0, $errno, $errfile, $errline));
+        } else {
+          switch ($errno) {
+            case E_ERROR:
+            case E_USER_ERROR:
+              throw new BrErrorException($errmsg, 0, $errno, $errfile, $errline);
+              break;
+            default:
+              if (br()->request()->isLocalHost()) {
+                throw new BrErrorException($errmsg, 0, $errno, $errfile, $errline);
+              } else {
+                br()->log()->logException(new BrErrorException($errmsg, 0, $errno, $errfile, $errline));
+              }
+              break;
+          }
+        }
+      }
+
+    }
 
   }
 
@@ -35,16 +71,7 @@ class BrErrorHandler extends BrObject {
         $errfile = $error['file'];
         $errline = $error['line'];
 
-        if (in_array($errno, $this->notErrors) || ((error_reporting() & $errno) != $errno) || ($errfile == 'Unknown')) {
-
-        } else {
-          br()->log()->logException(new BrErrorException($errmsg, 0, $errno, $errfile, $errline));
-          // if (($errno != E_ERROR) && ($errno != E_USER_ERROR) && !br()->request()->isLocalHost()) {
-          //   br()->log()->logException(new BrErrorException($errmsg, 0, $errno, $errfile, $errline));
-          // } else {
-          //   $this->exceptionHandler(new BrErrorException($errmsg, 0, $errno, $errfile, $errline));
-          // }
-        }
+        $this->handleError($errno, $errmsg, $errfile, $errline, true);
       }
     }
 
@@ -120,28 +147,7 @@ class BrErrorHandler extends BrObject {
 
   function errorHandler($errno, $errmsg, $errfile, $errline, $vars) {
 
-    if ($this->isEnabled()) {
-
-      if (in_array($errno, $this->notErrors) || ((error_reporting() & $errno) != $errno) || ($errfile == 'Unknown')) {
-
-      } else {
-
-        // echo('errfile: '.$errfile.'<br />');
-        // echo('errmsg: '.$errmsg.'<br />');
-        // echo('errline: '.$errline.'<br />');
-        // echo('errno: '.$errno.'<br />');
-        // echo('E_NOTICE: '.E_NOTICE.'<br />');
-        // echo('error_reporting(): '.error_reporting().'<br />');
-
-        if (($errno != E_ERROR) && ($errno != E_USER_ERROR) && !br()->request()->isLocalHost()) {
-          br()->log()->logException(new BrErrorException($errmsg, 0, $errno, $errfile, $errline));
-        } else {
-          throw new BrErrorException($errmsg, 0, $errno, $errfile, $errline);
-        }
-
-      }
-
-    }
+    $this->handleError($errno, $errmsg, $errfile, $errline, false);
 
   }
 

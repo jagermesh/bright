@@ -268,6 +268,8 @@ class BrLog extends BrSingleton {
 
     $this->writeLn($errorLog, 'ERR', $errorMessage);
 
+    return $errorLog;
+
   }
 
   public function error($message, $object = null) {
