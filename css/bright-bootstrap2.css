@@ -165,7 +165,7 @@ td.optimal-width, th.optimal-width {
 }
 
 .container-box {
-  margin-top: 60px;
+  margin-top: 45px;
 }
 
 .fluid-box {
@@ -215,6 +215,18 @@ td.optimal-width, th.optimal-width {
 }
 
 .navbar .btn {
+  margin: 5px 0px 5px 0px;
+}
+
+.navbar .input-append .btn {
+  margin: 0px 0px 0px 0px;
+}
+
+.navbar .btn-url {
+  margin: 5px 0px 5px 0px;
+}
+
+.navbar .input-append {
   margin: 5px 0px 5px 0px;
 }
 
@@ -352,16 +364,13 @@ a.btn-url {
   text-decoration: none;
   color: inherit;
   display: inline-block;
-  padding: 4px 14px 4px;
+  padding: 4px 10px 4px 10px;
   margin-bottom: 0;
   font-size: 14px;
   line-height: 20px;
   text-align: center;
   vertical-align: middle;
   cursor: pointer;
-}
-.navbar .btn-url {
-  margin: 5px 0px 5px 0px;
 }
 .label {
   font-weight: normal !important;
@@ -376,7 +385,7 @@ table.table th {
 }
 
 /* bootstrap3 */
-.form-control.select2-container {
+/*.form-control.select2-container {
   padding:0px;
   border:0px;
 }
@@ -390,7 +399,7 @@ table.table th {
   height:33px;
   padding-top: 3px;
 }
-
+*/
 .br-ajax-dropdown li {
   white-space:nowrap;
 }
@@ -450,4 +459,9 @@ div.br-editable, span.br-editable {
 
 .tooltip {
   z-index: 1060;
+}
+
+/* compatible with bootstrap3 */
+.input-group-btn {
+  float:right;
 }
