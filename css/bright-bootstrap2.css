@@ -461,7 +461,12 @@ div.br-editable, span.br-editable {
   z-index: 1060;
 }
 
+.input-append {
+  white-space: normal;
+}
+
 /* compatible with bootstrap3 */
 .input-group-btn {
   float:right;
 }
+
