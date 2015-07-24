@@ -77,28 +77,38 @@ class BrRequest extends BrSingleton {
       $this->frameworkUrl = $this->baseUrl() . br()->relativePath();
       $this->scriptName = $scriptName;
 
-      if ($this->isPUT()) {
-        $phpinput = file_get_contents("php://input");
-        if ($json = @json_decode($phpinput, true)) {
-          $this->putVars = $json;
-        } else {
-          parse_str($phpinput, $this->putVars);
-        }
-        if ($this->putVars) {
-          if (get_magic_quotes_gpc()) {
-            br()->stripSlashes($this->putVars);
-          }
+      // if ($this->isPUT()) {
+      $phpinput = file_get_contents("php://input");
+      if ($json = @json_decode($phpinput, true)) {
+        $this->putVars = $json;
+      } else {
+        parse_str($phpinput, $this->putVars);
+      }
+      if ($this->putVars) {
+        if (get_magic_quotes_gpc()) {
+          br()->stripSlashes($this->putVars);
         }
       }
 
-      if ($this->isPOST() && !count($_POST)) {
-        if ($json = @json_decode(file_get_contents("php://input"), true)) {
-          $_POST = $json;
-          if (get_magic_quotes_gpc()) {
-            br()->stripSlashes($_POST);
-          }
-        }
+      if (!$_POST) {
+        $_POST = $this->putVars;
       }
+      // }
+
+      // if ($this->isPOST() && !count($_POST)) {
+      //   $phpinput = file_get_contents("php://input");
+      //   if ($json = @json_decode($phpinput, true)) {
+      //     $_POST = $json;
+      //     if (get_magic_quotes_gpc()) {
+      //       br()->stripSlashes($_POST);
+      //     }
+      //   } else {
+      //     parse_str($phpinput, $_POST);
+      //     if (get_magic_quotes_gpc()) {
+      //       br()->stripSlashes($_POST);
+      //     }
+      //   }
+      // }
 
       $this->clientIP = br($_SERVER, 'HTTP_CLIENT_IP');
 
