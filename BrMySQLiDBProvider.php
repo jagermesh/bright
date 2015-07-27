@@ -10,7 +10,7 @@
 
 require_once(__DIR__.'/BrGenericSQLDBProvider.php');
 
-class BrMySQLRegExp {
+class BrMySQLiRegExp {
 
   private $value;
 
@@ -28,7 +28,7 @@ class BrMySQLRegExp {
 
 }
 
-class BrMySQLProviderCursor implements Iterator {
+class BrMySQLiProviderCursor implements Iterator {
 
   private $sql, $args, $provider, $position = -1, $query, $row, $limit, $skip;
 
@@ -145,7 +145,7 @@ class BrMySQLProviderCursor implements Iterator {
 
 }
 
-class BrMySQLProviderTable {
+class BrMySQLiProviderTable {
 
   private $tableName;
   private $provider;
@@ -482,7 +482,7 @@ class BrMySQLProviderTable {
 
     $sql .= ' FROM '.$this->tableName.$joins.' WHERE 1=1 '.$where;
 
-    return new BrMySQLProviderCursor($sql, $args, $this->provider);
+    return new BrMySQLiProviderCursor($sql, $args, $this->provider);
 
   }
 
@@ -726,10 +726,9 @@ class BrMySQLProviderTable {
 
 }
 
-class BrMySQLDBProvider extends BrGenericSQLDBProvider {
+class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
   private $connection;
-  private $ownConnection;
   private $errorRedirect;
   private $config;
 
@@ -737,7 +736,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
     $this->config = $cfg;
 
-    $this->connect(br($cfg, 'hostname'), br($cfg, 'name'), br($cfg, 'username'), br($cfg, 'password'), $cfg);
+    $this->connect(br($cfg, 'hostname'), br($cfg, 'name'), br($cfg, 'username'), br($cfg, 'password'), br($cfg, 'port'), $cfg);
 
     register_shutdown_function(array(&$this, "captureShutdown"));
 
@@ -745,34 +744,25 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   function captureShutdown() {
 
-    if ($this->ownConnection) {
-      @mysql_close($this->connection);
-    }
+    @mysqli_close($this->connection);
 
   }
 
-  function connect($hostName, $dataBaseName, $userName, $password, $cfg) {
+  function connect($hostName, $dataBaseName, $userName, $password, $port, $cfg) {
 
-    if (br($cfg, 'connection')) {
-      $this->connection = $cfg['connection'];
-      $this->ownConnection = false;
-    } else {
-      try {
-        if ($this->connection = mysql_connect($hostName, $userName, $password, true)) {
-          $this->ownConnection = true;
-          mysql_select_db($dataBaseName, $this->connection);
-          if (br($cfg, 'charset')) {
-            $this->internalRunQuery('SET NAMES ?', array($cfg['charset']));
-          }
+    try {
+      if ($this->connection = mysqli_connect($hostName, $userName, $password, $dataBaseName, $port)) {
+        if (br($cfg, 'charset')) {
+          $this->internalRunQuery('SET NAMES ?', array($cfg['charset']));
         }
-      } catch (Exception $e) {
-        $this->connection = null;
-        br()->log()->logException($e);
       }
+    } catch (Exception $e) {
+      $this->connection = null;
+      br()->log()->logException($e);
     }
 
     if ($this->connection) {
-      $this->version = mysql_get_server_info();
+      $this->version = mysqli_get_server_info($this->connection);
       $this->triggerSticky('after:connect');
     } else {
       $this->disable();
@@ -782,13 +772,13 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   function table($name) {
 
-    return new BrMySQLProviderTable($this, $name);
+    return new BrMySQLiProviderTable($this, $name);
 
   }
 
   function command($command) {
 
-    mysql_query($command, $this->connection);
+    mysqli_query($this->connection, $command);
 
   }
 
@@ -845,8 +835,8 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   function getLastError() {
 
-    if (mysql_errno($this->connection)) {
-      return mysql_errno($this->connection).": ".mysql_error($this->connection);
+    if (mysqli_errno($this->connection)) {
+      return mysqli_errno($this->connection).": ".mysqli_error($this->connection);
     }
 
   }
@@ -856,7 +846,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     $args = func_get_args();
     $sql = array_shift($args);
 
-    return new BrMySQLProviderCursor($sql, $args, $this, true);
+    return new BrMySQLiProviderCursor($sql, $args, $this, true);
 
   }
 
@@ -871,7 +861,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   function selectNext($query) {
 
-    $result = mysql_fetch_assoc($query);
+    $result = mysqli_fetch_assoc($query);
     if (is_array($result)) {
       $result = array_change_key_case($result, CASE_LOWER);
     }
@@ -908,11 +898,8 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     }
     br()->log()->writeln($sql, "QRY");
 
-    if ($unbuffered) {
-      $query = mysql_unbuffered_query($sql, $this->connection);
-    } else {
-      $query = mysql_query($sql, $this->connection);
-    }
+    $query = mysqli_query($this->connection, $sql);
+
     br()->log()->writeln('Query complete', 'SEP');
 
     if (!$query) {
@@ -1118,16 +1105,16 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
           if ($row = $this->selectNext($query)) {
             return array_shift($row);
           } else  {
-            return mysql_num_rows($this->internalRunQuery($sql, $args));
+            return mysqli_num_rows($this->internalRunQuery($sql, $args));
           }
         } catch (Exception $e) {
-          return mysql_num_rows($this->internalRunQuery($sql, $args));
+          return mysqli_num_rows($this->internalRunQuery($sql, $args));
         }
       } else {
-        return mysql_num_rows($this->internalRunQuery($sql, $args));
+        return mysqli_num_rows($this->internalRunQuery($sql, $args));
       }
     }
-    return mysql_num_rows($this->internalRunQuery($sql, $args));
+    return mysqli_num_rows($this->internalRunQuery($sql, $args));
 
   }
 
@@ -1172,13 +1159,14 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
   function getTableStructure($tableName) {
 
     $field_defs = array();
-    $query = $this->runQuery('SELECT * FROM '.$tableName.' WHERE 1=1');
-    $field_count = mysql_num_fields($query);
-    for ($i=0; $i < $field_count; $i++) {
-      $field_defs[strtolower(mysql_field_name($query, $i))] = array( "length" => mysql_field_len($query, $i)
-                                                                   , "type"   => mysql_field_type($query, $i)
-                                                                   , "flags"  => mysql_field_flags($query, $i)
-                                                                   );
+    if ($query = mysqli_query($this->connection, 'SELECT * FROM '.$tableName.' WHERE 1=1')) {
+      while ($finfo = mysqli_fetch_field($query)) {
+        $field_defs[strtolower($finfo->name)] = array( "length" => $finfo->max_length 
+                                                     , "type"   => $finfo->type
+                                                     , "flags"  => $finfo->flags
+                                                     );
+      }
+      mysqli_free_result($query);
     }
 
     $field_defs = array_change_key_case($field_defs, CASE_LOWER);
@@ -1192,7 +1180,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   function getLastId() {
 
-    return mysql_insert_id($this->connection);
+    return mysqli_insert_id($this->connection);
 
   }
 
@@ -1216,7 +1204,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   function getAffectedRowsAmount() {
 
-    return mysql_affected_rows($this->connection);
+    return mysqli_affected_rows($this->connection);
 
   }
 
@@ -1238,7 +1226,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   function getMajorVersion() {
 
-    if ($version = mysql_get_server_info()) {
+    if ($version = mysqli_get_server_info($this->connection)) {
       if (preg_match('~^([0-9]+)[.]([0-9]+)[.]([0-9]+)~', $version, $matches)) {
         return (int)$matches[1];
       }
@@ -1250,7 +1238,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   function getMinorVersion() {
 
-    if ($version = mysql_get_server_info()) {
+    if ($version = mysqli_get_server_info($this->connection)) {
       if (preg_match('~^([0-9]+)[.]([0-9])[.]([0-9]+)~', $version, $matches)) {
         return (int)$matches[2];
       }
@@ -1262,7 +1250,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   function getBuildNumber() {
 
-    if ($version = mysql_get_server_info()) {
+    if ($version = mysqli_get_server_info($this->connection)) {
       if (preg_match('~^([0-9]+)[.]([0-9]+)[.]([0-9]+)~', $version, $matches)) {
         return (int)$matches[3];
       }

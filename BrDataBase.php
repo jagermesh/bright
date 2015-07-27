@@ -32,11 +32,15 @@ class BrDataBase extends BrObject {
         br()->assert($dbConfig, 'Database [' . $name . '] not configured');
 
         switch($dbConfig['engine']) {
-          case "mysql":
+          case 'mysql':
             require_once(__DIR__.'/BrMySQLDBProvider.php');
             $instance = new BrMySQLDBProvider($dbConfig);
-          break;
-          case "mongodb":
+            break;
+          case 'mysqli':
+            require_once(__DIR__.'/BrMySQLiDBProvider.php');
+            $instance = new BrMySQLiDBProvider($dbConfig);
+            break;
+          case 'mongodb':
             require_once(__DIR__.'/BrMongoDBProvider.php');
             $instance = new BrMongoDBProvider($dbConfig);
             break;
