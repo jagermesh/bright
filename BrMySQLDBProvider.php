@@ -477,7 +477,7 @@ class BrMySQLProviderTable {
       }
       $sql = rtrim($sql, ',').' ';
     } else {
-      $sql = 'SELECT '.$this->tableName.'.* ';
+      $sql .= $this->tableName.'.* ';
     }
 
     $sql .= ' FROM '.$this->tableName.$joins.' WHERE 1=1 '.$where;
