@@ -1369,7 +1369,7 @@
       newFilter.__result = 'count';
 
       options = options || {};
-      options.result = 'count';
+      options.selectCount = true;
 
       this.select(newFilter, callback, options);
 
@@ -1396,7 +1396,8 @@
       options = options || { };
 
       var disableEvents = options && options.disableEvents;
-      var selectOne = options && options.selectOne;
+      var selectCount = options && options.selectCount;
+      var selectOne = options && (options.selectOne || options.selectCount);
 
       if (selectOne && br.isArray(response)) {
         if (response.length > 0) {
@@ -1408,6 +1409,9 @@
       } else
       if (!selectOne && !br.isArray(response)) {
         response = [response];
+      }
+      if (selectCount) {
+        response = parseInt(response);
       }
       if (!disableEvents) {
         _this.events.trigger('select', response);
@@ -1544,10 +1548,10 @@
                                         if (_this.options.crossdomain && (typeof response == 'string')) {
                                           handleSelectError('Unknown error', request, callback, options);
                                         } else
-                                        if (response) {
-                                          handleSelectSuccess(response, request, callback, options);
-                                        } else {
+                                        if (br.isNull(response)) {
                                           handleSelectError('Unknown error', request, callback, options);
+                                        } else {
+                                          handleSelectSuccess(response, request, callback, options);
                                         }
                                       }
                                     , error: function(jqXHR, textStatus, errorThrown) {

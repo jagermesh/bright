@@ -1116,7 +1116,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
         try {
           $query = $this->internalRunQuery($count_sql, $args);
           if ($row = $this->selectNext($query)) {
-            return array_shift($row);
+            return (int)array_shift($row);
           } else  {
             return mysql_num_rows($this->internalRunQuery($sql, $args));
           }
