@@ -28,11 +28,12 @@ class BrRabbitMQ extends BrSingleton {
   function connect($params = array()) {
 
     if (!$this->connection) {
-      $this->connection = new AMQPConnection( br($params, 'host', 'localhost')
-                                            , br($params, 'port', 5672)
-                                            , br($params, 'login', 'guest')
-                                            , br($params, 'password', 'guest')
-                                            , br($params, 'vhost', '/')
+      $this->connection = new AMQPConnection( array( 'host'     => br($params, 'host', 'localhost')
+                                                   , 'port'     => br($params, 'port', 5672)
+                                                   , 'login'    => br($params, 'login', 'guest')
+                                                   , 'password' => br($params, 'password', 'guest')
+                                                   , 'vhost'    => br($params, 'vhost', '/')
+                                                   )
                                             );
     }
     if (!$this->channel) {
