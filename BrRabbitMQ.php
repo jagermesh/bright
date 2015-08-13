@@ -75,7 +75,7 @@ class BrRabbitMQ extends BrSingleton {
 
 
     if (!in_array($exchangeName, $this->exchanges)) {
-      $rmq->createExchange($exchangeName, 'topic');
+      $this->createExchange($exchangeName, 'topic');
     }
     $this->channel->basic_publish($msg, $exchangeName, $routingKey);
 
