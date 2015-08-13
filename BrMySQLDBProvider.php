@@ -122,6 +122,17 @@ class BrMySQLProviderCursor implements Iterator {
 
   }
 
+  function having($having) {
+
+    if ($having) {
+      $sql = ' HAVING ' . br($having)->join(' AND ');
+      $this->sql .= $sql;
+    }
+
+    return $this;
+
+  }
+
   function count() {
 
     return $this->provider->internalGetRowsAmount($this->sql, $this->args);

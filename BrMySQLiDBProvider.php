@@ -122,6 +122,17 @@ class BrMySQLiProviderCursor implements Iterator {
 
   }
 
+  function having($having) {
+
+    if ($having) {
+      $sql = ' HAVING ' . br($having)->join(' AND ');
+      $this->sql .= $sql;
+    }
+
+    return $this;
+
+  }
+
   function count() {
 
     return $this->provider->internalGetRowsAmount($this->sql, $this->args);
@@ -1161,7 +1172,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
     $field_defs = array();
     if ($query = mysqli_query($this->connection, 'SELECT * FROM '.$tableName.' WHERE 1=1')) {
       while ($finfo = mysqli_fetch_field($query)) {
-        $field_defs[strtolower($finfo->name)] = array( "length" => $finfo->max_length 
+        $field_defs[strtolower($finfo->name)] = array( "length" => $finfo->max_length
                                                      , "type"   => $finfo->type
                                                      , "flags"  => $finfo->flags
                                                      );

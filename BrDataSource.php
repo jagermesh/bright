@@ -107,6 +107,12 @@ class BrDataSource extends BrGenericDataSource {
       }
     }
 
+    if ($having = br($options, 'having', array())) {
+      if (!is_array($having)) {
+        $having = array($having);
+      }
+    }
+
     $this->validateSelect($filter);
 
     $result = $this->callEvent('select', $filter, $transientData, $options);
@@ -131,12 +137,18 @@ class BrDataSource extends BrGenericDataSource {
           if ($groupBy && is_array($groupBy)) {
             $cursor = $cursor->group($groupBy);
           }
+
+          if ($having && is_array($having)) {
+            $cursor = $cursor->having($having);
+          }
+
           if ($sortOrder && is_array($sortOrder)) {
             foreach($sortOrder as $fieldName => $direction) {
               $sortOrder[$fieldName] = (int)$direction;
             }
             $cursor = $cursor->sort($sortOrder);
           }
+
           if ($skip) {
             if ($this->selectAdjancedRecords) {
               $cursor = $cursor->skip($skip - 1);
@@ -144,6 +156,7 @@ class BrDataSource extends BrGenericDataSource {
               $cursor = $cursor->skip($skip);
             }
           }
+
           if (strlen($limit)) {
             if ($this->selectAdjancedRecords) {
               if ($skip) {
