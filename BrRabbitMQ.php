@@ -18,6 +18,7 @@ class BrRabbitMQ extends BrSingleton {
 
   private $connection;
   private $channel;
+  private $exchanges = array();
 
   function __construct() {
 
@@ -48,6 +49,8 @@ class BrRabbitMQ extends BrSingleton {
     $this->connect();
     $this->channel->exchange_declare($exchangeName, $type, $passive, $durable, $auto_delete);
 
+    $this->exchanges[] = $exchangeName;
+
     return $this;
 
   }
@@ -64,10 +67,16 @@ class BrRabbitMQ extends BrSingleton {
   function sendMessage($exchangeName, $message, $routingKey = null) {
 
     $this->connect();
+
     $msg = new AMQPMessage( json_encode($message)
                           , array( 'content_type' => 'application/json'
                                  , 'delivery_mode' => 2
                                  ));
+
+
+    if (!in_array($exchangeName, $this->exchanges)) {
+      $rmq->createExchange($exchangeName, 'topic');
+    }
     $this->channel->basic_publish($msg, $exchangeName, $routingKey);
 
     return $this;
