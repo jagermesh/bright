@@ -192,8 +192,8 @@ class BrString {
     $html = html_entity_decode($html, $flags, 'UTF-8');
     $html = preg_replace("/(\n\n|\r\n\r\n|\r\r)/ism", '', $html);
     $html = preg_replace('/<br[^>]*>/ism', "\n", $html);
-    $html = preg_replace('/<[^>]+>/ism', '', $html);
-    $html = preg_replace('/<\/[^>]+>/ism', '', $html);
+    $html = preg_replace('/<[A-Z]+>/ism', '', $html);
+    $html = preg_replace('/<\/[A-Z]+>/ism', '', $html);
     return $html;
 
   }
