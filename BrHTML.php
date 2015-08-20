@@ -94,8 +94,8 @@ class BrHTML extends BrSingleton {
     $html = preg_replace("/&nbsp;/ism", ' ', $html);
     $html = preg_replace("/(\n\n|\r\n\r\n|\r\r)/ism", '', $html);
     $html = preg_replace('/<br[^>]*>/ism', "\n", $html);
-    $html = preg_replace('/<[^>]+>/ism', '', $html);
-    $html = preg_replace('/<\/[^>]+>/ism', '', $html);
+    $html = preg_replace('/<[A-Z]+>/ism', '', $html);
+    $html = preg_replace('/<\/[A-Z]+>/ism', '', $html);
 
     $flags = ENT_COMPAT;
     if (defined('ENT_HTML401')) {
@@ -116,6 +116,14 @@ class BrHTML extends BrSingleton {
     $html = htmlspecialchars($html, $flags, 'UTF-8');
     $html = preg_replace("/\n/ism", '<br />', $html);
     $html = preg_replace("/\r/ism", '', $html);
+    return $html;
+
+  }
+
+  function decodeNumEntities($html) {
+
+    $html = preg_replace_callback("/(&#[0-9]+;)/", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $html);
+    $html = preg_replace_callback("/(&#x[0-9A-Z]+;)/i", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $html);
     return $html;
 
   }

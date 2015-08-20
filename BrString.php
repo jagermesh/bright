@@ -162,59 +162,26 @@ class BrString {
   }
 
   function fromJSON() {
-
     return json_decode($this->value, true);
-
   }
 
   function textToHtml() {
-
-    $html = $this->value;
-    $flags = ENT_COMPAT;
-    if (defined('ENT_HTML401')) {
-      $flags = $flags | ENT_HTML401;
-    }
-    $html = htmlspecialchars($html, $flags, 'UTF-8');
-    $html = preg_replace("/\n/ism", '<br />', $html);
-    $html = preg_replace("/\r/ism", '', $html);
-    return $html;
-
+    return br()->HTML()->fromText($this->value);
   }
 
   function htmlToText() {
-
-    $html = $this->value;
-    $html = preg_replace("/&nbsp;/ism", ' ', $html);
-    $flags = ENT_COMPAT;
-    if (defined('ENT_HTML401')) {
-      $flags = $flags | ENT_HTML401;
-    }
-    $html = html_entity_decode($html, $flags, 'UTF-8');
-    $html = preg_replace("/(\n\n|\r\n\r\n|\r\r)/ism", '', $html);
-    $html = preg_replace('/<br[^>]*>/ism', "\n", $html);
-    $html = preg_replace('/<[A-Z]+>/ism', '', $html);
-    $html = preg_replace('/<\/[A-Z]+>/ism', '', $html);
-    return $html;
-
+    return br()->HTML()->toText($this->value);
   }
 
   function decodeNumHtmlEntities() {
-
-    $html = $this->value;
-    $html = preg_replace_callback("/(&#[0-9]+;)/", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $html);
-    $html = preg_replace_callback("/(&#x[0-9A-Z]+;)/i", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $html);
-    return $html;
-
+    return br()->HTML()->decodeNumEntities($this->value);
   }
 
   function toSingleLine() {
-
     return preg_replace('#[\n\r]#', ' ', $this->value);
-
   }
 
   function crc16() {
-
     $crc = 0xFFFF;
     for ($x = 0; $x < strlen($this->value); $x++) {
       $crc = $crc ^ ord($this->value[$x]);
@@ -227,7 +194,6 @@ class BrString {
       }
     }
     return $crc;
-
   }
 
 }
