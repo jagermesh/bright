@@ -395,7 +395,7 @@ class BrMySQLiProviderTable {
             } else {
               $where .= $link . 'MATCH (' . $fname2 . ') AGAINST (? IN BOOLEAN MODE)';
             }
-            $filterValue = preg_replace('~[@()]~', '', $filterValue);
+            $filterValue = preg_replace('~[@()]~', ' ', $filterValue);
             $args[] = $filterValue;
           } else {
             if (is_array($filterValue)) {
