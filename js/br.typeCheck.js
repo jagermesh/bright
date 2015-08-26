@@ -101,10 +101,14 @@
     if (br.isString(value)) {
       if (value.length > 0) {
         return parseFloat(value);
+      } else {
+        return 0;
       }
     } else
     if (br.isNumber(value)) {
       return value;
+    } else {
+      return 0;
     }
   };
 
