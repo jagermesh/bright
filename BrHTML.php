@@ -94,8 +94,8 @@ class BrHTML extends BrSingleton {
     $html = preg_replace("/&nbsp;/ism", ' ', $html);
     $html = preg_replace("/(\n\n|\r\n\r\n|\r\r)/ism", '', $html);
     $html = preg_replace('/<br[^>]*>/ism', "\n", $html);
-    $html = preg_replace('/<[A-Z]+>/ism', '', $html);
-    $html = preg_replace('/<\/[A-Z]+>/ism', '', $html);
+    $html = preg_replace('/<[A-Z][^>]+>/ism', '', $html);
+    $html = preg_replace('/<\/[A-Z][^>]+>/ism', '', $html);
 
     $flags = ENT_COMPAT;
     if (defined('ENT_HTML401')) {
