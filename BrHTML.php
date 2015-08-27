@@ -103,7 +103,7 @@ class BrHTML extends BrSingleton {
     }
     $html = html_entity_decode($html, $flags, 'UTF-8');
 
-    return $html;
+    return trim($html);
 
   }
 
@@ -116,7 +116,8 @@ class BrHTML extends BrSingleton {
     $html = htmlspecialchars($html, $flags, 'UTF-8');
     $html = preg_replace("/\n/ism", '<br />', $html);
     $html = preg_replace("/\r/ism", '', $html);
-    return $html;
+
+    return trim($html);
 
   }
 
