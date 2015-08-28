@@ -81,7 +81,7 @@ class BrErrorHandler extends BrObject {
         $errno   = $error['type'];
         $errfile = $error['file'];
         $errline = $error['line'];
-        if ($errmsg != 'Cannot destroy the zip context') {
+        if ($errmsg != 'Unknown: Cannot destroy the zip context') {
           $this->handleError($errno, $errmsg, $errfile, $errline, true);
         }
       }

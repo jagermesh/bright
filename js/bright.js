@@ -2680,7 +2680,7 @@
       s = s + ' ' + options.cssClass;
     }
 
-    s = s + '" id="br_modalConfirm">'+
+    s = s + '" id="br_modalConfirm" style="top:290px;">'+
             '<div class="modal-dialog">' +
             '<div class="modal-content">' +
             '<div class="modal-header"><h3 class="modal-title">' + title + '</h3></div>' +
@@ -2741,7 +2741,7 @@
   };
 
   window.br.error = function(title, message, callback) {
-    var s = '<div class="modal" id="br_modalError">' +
+    var s = '<div class="modal" id="br_modalError" style="top:290px;">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">';
     if (title !== '') {
@@ -2805,7 +2805,7 @@
       inputs[fields] = '';
     }
 
-    var s = '<div class="modal" id="br_modalPrompt">'+
+    var s = '<div class="modal" id="br_modalPrompt" style="top:290px;">'+
             '<div class="modal-dialog">' +
             '<div class="modal-content">' +
             '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>' + title + '</h3></div>' +
