@@ -319,6 +319,11 @@ class BrDataSource extends BrGenericDataSource {
         $error = $e->getMessage();
         $result = $this->trigger('error', $error, $operation, $e);
         if (is_null($result)) {
+          if (!br()->request()->isLocalHost()) {
+            if (preg_match('/1062: Duplicate entry/', $error, $matches)) {
+              throw new BrAppException('Unique constraint violated');
+            }
+          }
           throw $e;
         } else {
           return $result;
