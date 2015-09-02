@@ -513,14 +513,14 @@ class BrMySQLProviderTable {
         $args[] = $filter;
       }
     } else {
-      throw Exception('It is not allowed to invoke remove method without passing filter condition');
+      throw new Exception('It is not allowed to invoke remove method without passing filter condition');
     }
 
     if ($where) {
       $sql = 'DELETE ';
       $sql .= ' FROM '.$this->tableName.$joins.' WHERE 1=1 '.$where;
     } else {
-      throw Exception('It is not allowed to invoke remove method without passing filter condition');
+      throw new Exception('It is not allowed to invoke remove method without passing filter condition');
     }
 
     return $this->provider->internalRunQuery($sql, $args);
@@ -607,7 +607,7 @@ class BrMySQLProviderTable {
         $where .= $this->provider->rowidField() . ' = ?';
       }
     } else {
-      throw Exception('It is not allowed to invoke update method without passing filter condition');
+      throw new Exception('It is not allowed to invoke update method without passing filter condition');
     }
 
     if ($where) {
