@@ -83,8 +83,23 @@
   };
 
   window.br.isIE = function() {
-    var ua = navigator.userAgent;
-    return (/MSIE/i.test(ua)) || (/Trident/i.test(ua));
+    return /*@cc_on!@*/false || !!document.documentMode; // At least IE6
+  };
+
+  window.br.isOpera = function() {
+    return !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+  };
+
+  window.br.isFirefox = function() {
+    return typeof InstallTrigger !== 'undefined';   // Firefox 1.0+
+  };
+
+  window.br.isSafari = function() {
+    return Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+  };
+
+  window.br.isChrome = function() {
+    return !!window.chrome && !br.isOpera();              // Chrome 1+
   };
 
   window.br.redirect = function(url) {

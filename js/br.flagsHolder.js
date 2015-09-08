@@ -1,4 +1,4 @@
-/*!
+/*
  * Bright 0.0.5
  *
  * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
