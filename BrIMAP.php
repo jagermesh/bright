@@ -452,18 +452,18 @@ class BrIMAPMailMessage extends BrObject {
     }
 
     // if ($partNo == 2) {
-    //   debug($partNo . ': ************************************************************************');
-    //   debug('[PARENT PART] ' . $this->parentPart);
-    //   debug('[$structure->ifdisposition] ' . $structure->ifdisposition);
-    //   debug('[(strtolower(@$structure->disposition)] ' . (strtolower(@$structure->disposition)));
-    //   debug('[strtolower($this->parentPart)] ' . strtolower($this->parentPart));
-    //   debug('[===] ' . ( $structure->ifdisposition &&
-    //      ( (strtolower(@$structure->disposition) == 'attachment') ||
-    //        ( (strtolower(@$structure->disposition) == 'inline') &&
-    //          (strtolower($this->parentPart) == 'mixed')
-    //        )
-    //      )
-    //    ));
+      // debug($partNo . ': ************************************************************************');
+      // debug('[PARENT PART] ' . $this->parentPart);
+      // debug('[$structure->ifdisposition] ' . $structure->ifdisposition);
+      // debug('[(strtolower(@$structure->disposition)] ' . (strtolower(@$structure->disposition)));
+      // debug('[strtolower($this->parentPart)] ' . strtolower($this->parentPart));
+      // debug('[===] ' . ( $structure->ifdisposition &&
+      //    ( (strtolower(@$structure->disposition) == 'attachment') ||
+      //      ( (strtolower(@$structure->disposition) == 'inline') &&
+      //        (strtolower($this->parentPart) == 'mixed')
+      //      )
+      //    )
+      //  ));
       // debug($structure);
     // }
 
@@ -512,6 +512,7 @@ class BrIMAPMailMessage extends BrObject {
           break;
         case 'alternative':
         case 'mixed':
+        case 'signed':
         case 'related':
         case 'rfc822':
           $currentParentPart = $this->parentPart;
