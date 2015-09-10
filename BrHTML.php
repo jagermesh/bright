@@ -94,8 +94,9 @@ class BrHTML extends BrSingleton {
     $html = preg_replace("/&nbsp;/ism", ' ', $html);
     $html = preg_replace("/(\n\n|\r\n\r\n|\r\r)/ism", '', $html);
     $html = preg_replace('/<br[^>]*>/ism', "\n", $html);
-    $html = preg_replace('/<[A-Z][^>]+>/ism', '', $html);
-    $html = preg_replace('/<\/[A-Z][^>]+>/ism', '', $html);
+    $html = preg_replace('/<[A-Z][^>]*?>/ism', '', $html);
+    $html = preg_replace('/<!DOCTYPE[^>]*?>/ism', '', $html);
+    $html = preg_replace('/<\/[A-Z][^>]*?>/ism', '', $html);
 
     $flags = ENT_COMPAT;
     if (defined('ENT_HTML401')) {
@@ -127,6 +128,29 @@ class BrHTML extends BrSingleton {
     $html = preg_replace_callback("/(&#x[0-9A-Z]+;)/i", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $html);
     return $html;
 
+  }
+
+  function unicodeToNamedEntities($html) {
+    $html = json_encode($html);
+    $html = preg_replace('/\\\u([0-9a-z]{4})/', '&#x$1;', $html );
+    $html = json_decode($html);
+    $doc = new DOMDocument();
+    $doc->loadHTML($html);
+    $search = new DOMXPath($doc);
+    $results = $search->evaluate('//*[@style]');
+    foreach ($results as $result) {
+      $result->removeAttribute(‘style’);
+    }
+    $html = $doc->saveHTML();
+
+    $html = preg_replace("/&nbsp;/ism", ' ', $html);
+    $html = preg_replace("/(\n\n|\r\n\r\n|\r\r)/ism", '', $html);
+    $html = preg_replace('/<br[^>]*>/ism', "\n", $html);
+    $html = preg_replace('/<[A-Z][^>]*?>/ism', '', $html);
+    $html = preg_replace('/<!DOCTYPE[^>]*?>/ism', '', $html);
+    $html = preg_replace('/<\/[A-Z][^>]*?>/ism', '', $html);
+
+    return trim($html);
   }
 
 
