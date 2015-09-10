@@ -666,4 +666,17 @@ class BrRESTBinder extends BrObject {
 
   }
 
+  function route404($path) {
+
+    if (!br()->request()->routeComplete()) {
+      if (br()->request()->isAt($path)) {
+        br()->request()->continueRoute(false);
+        br()->response()->send404();
+      }
+    }
+
+    return $this;
+
+  }
+
 }
