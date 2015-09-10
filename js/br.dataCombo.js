@@ -106,7 +106,12 @@
         }
       }
       if (_this.isValid()) {
-        return _this.selector.val();
+        var val =_this.selector.val();
+        if (val !== null) {
+          return val;
+        } else {
+          return undefined;
+        }
       } else {
         return undefined;
       }
