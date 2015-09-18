@@ -1908,6 +1908,13 @@
 
     this.init = function() {
 
+      var savedOrder = _this.getOrderAndGroup();
+      if (!br.isArray(savedOrder) || (savedOrder.length === 0)) {
+        if (_this.options.defaultOrderAndGroup) {
+          _this.setOrderAndGroup(_this.options.defaultOrderAndGroup);
+        }
+      }
+
       function checkForEmptyGrid() {
         if (_this.isEmpty()) {
           _this.events.triggerBefore('nodata');

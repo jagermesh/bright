@@ -100,6 +100,7 @@
                                , { templates: { noData: this.options.templates.noData, groupRow: this.options.templates.groupRow }
                                  , selectors: { header: headerContainer, remove: '.action-delete' }
                                  , appendInInsert: this.options.appendInInsert
+                                 , defaultOrderAndGroup: this.options.defaultOrderAndGroup
                                  }
                                );
 
@@ -485,20 +486,7 @@
 
       $(document).on('click', c('.action-select-all'), function() {
         var checked = $(this).is(':checked');
-        $(c('.action-select-row')).each(function() {
-          var row = $(this).closest('[data-rowid]');
-          var rowid = row.attr('data-rowid');
-          if (checked) {
-            $(this).attr('checked', 'checked');
-            row.addClass('row-selected');
-            _this.selection.append(rowid);
-          } else {
-            $(this).removeAttr('checked');
-            row.removeClass('row-selected');
-            _this.selection.remove(rowid);
-          }
-        });
-        _this.events.trigger('selectionChanged');
+        _this.selectAll(checked);
       });
 
       $(document).on('click', c('.action-select-row'), function() {
@@ -730,20 +718,51 @@
     function internalRefresh(deferred, filter, callback) {
 
       if (deferred) {
-        _this.dataSource.deferredSelect(filter, function() {
+        _this.dataSource.deferredSelect(filter, function(result, response) {
           if (typeof callback == 'function') {
-            callback.call(this);
+            callback.call(this, result, response);
           }
         });
       } else {
-        _this.dataSource.select(filter, function() {
+        _this.dataSource.select(filter, function(result, response) {
           if (typeof callback == 'function') {
-            callback.call(this);
+            callback.call(this, result, response);
           }
         });
       }
 
     }
+
+    this.selectRow = function(rowid) {
+      var row = $('tr[data-rowid=' + rowid + ']', $(_this.options.selectors.dataTable));
+      if (row.length > 0) {
+        row.find('.action-select-row').attr('checked', 'checked');
+        row.addClass('row-selected');
+        _this.selection.add(rowid);
+      }
+    };
+
+    this.selectAll = function(checked) {
+      if (checked) {
+        $(c('.action-select-all')).attr('checked', 'checked');
+      } else {
+        $(c('.action-select-all')).removeAttr('checked');
+      }
+      $(c('.action-select-row')).each(function() {
+        var row = $(this).closest('[data-rowid]');
+        var rowid = row.attr('data-rowid');
+        if (checked) {
+          $(this).attr('checked', 'checked');
+          row.addClass('row-selected');
+          _this.selection.append(rowid);
+        } else {
+          $(this).removeAttr('checked');
+          row.removeClass('row-selected');
+          _this.selection.remove(rowid);
+        }
+      });
+      _this.events.trigger('selectionChanged');
+    };
 
     this.isFiltersVisible = function() {
       return $(c('.filters-panel')).is(':visible');
