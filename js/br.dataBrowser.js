@@ -738,7 +738,7 @@
       if (row.length > 0) {
         row.find('.action-select-row').attr('checked', 'checked');
         row.addClass('row-selected');
-        _this.selection.add(rowid);
+        _this.selection.append(rowid);
       }
     };
 
