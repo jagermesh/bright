@@ -37,6 +37,9 @@
     if (options.allowClear) {
       dropDownList.append(br.fetch(menuItemTemplate, { id: '', name: (options.clearLabel ? options.clearLabel : '--Clear--') }));
     }
+    if (options.onBeforeRenderMenu) {
+      options.onBeforeRenderMenu.call(dropDownList, menuItemTemplate);
+    }
     for(var i in response) {
       dropDownList.append(br.fetch(menuItemTemplate, { id: response[i][options.keyField], name: response[i][options.nameField] }));
     }
