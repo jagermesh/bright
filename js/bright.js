@@ -2702,16 +2702,33 @@
     }
     options = options || {};
     options.cancelTitle = options.cancelTitle || br.trn('Cancel');
+    var i;
     var s = '<div class="modal';
     if (options.cssClass) {
       s = s + ' ' + options.cssClass;
+    }
+    var checkBoxes = '';
+    if (options.checkBoxes) {
+      for (i in options.checkBoxes) {
+        var check = options.checkBoxes[i];
+        var checked = '';
+        if (check.default) {
+          checked = 'checked';
+        }
+        checkBoxes = checkBoxes + '<div class="checkbox">' +
+                                    '<label class="checkbox">' +
+                                    '<input type="checkbox" class="confirm-checkbox" name="' + check.name + '" value="1" ' + checked + '> ' +
+                                    check.title +
+                                    '</label>' +
+                                  '</div>';
+      }
     }
 
     s = s + '" id="br_modalConfirm" style="top:290px;">'+
             '<div class="modal-dialog">' +
             '<div class="modal-content">' +
             '<div class="modal-header"><h3 class="modal-title">' + title + '</h3></div>' +
-            '<div class="modal-body">' + message + '</div>' +
+            '<div class="modal-body">' + message + checkBoxes + '</div>' +
             '<div class="modal-footer">';
     if (options.showDontAskMeAgain) {
       var dontAskMeAgainTitle = (options.dontAskMeAgainTitle) ? options.dontAskMeAgainTitle : br.trn("Don't ask me again");
@@ -2720,9 +2737,10 @@
               '</label>';
     }
     if (br.isEmpty(buttons)) {
-      s = s + '<a href="javascript:;" class="btn btn-sm btn-primary action-confirm-close" rel="confirm">&nbsp;' + br.trn('Yes') + '&nbsp;</a>';
+      var yesTitle = options.yesTitle || br.trn('Yes');
+      s = s + '<a href="javascript:;" class="btn btn-sm btn-primary action-confirm-close" rel="confirm">&nbsp;' + yesTitle + '&nbsp;</a>';
     } else {
-      for(var i in buttons) {
+      for(i in buttons) {
         s = s + '<a href="javascript:;" class="btn btn-sm btn-default action-confirm-close" rel="' + i + '">&nbsp;' + buttons[i] + '&nbsp;</a>';
       }
     }
@@ -2737,9 +2755,13 @@
       $(this).find('.action-confirm-close').click(function() {
         var button = $(this).attr('rel');
         var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');
+        var checks = {};
+        $('input.confirm-checkbox').each(function(){
+          checks[$(this).attr('name')] = $(this).is(':checked');
+        });
         remove = false;
         dialog.modal('hide');
-        callback(button, dontAsk);
+        callback(button, dontAsk, checks);
         dialog.remove();
       });
       $(this).find('.action-confirm-cancel').click(function() {
