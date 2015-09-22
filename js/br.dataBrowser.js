@@ -463,12 +463,6 @@
         showFiltersDesc();
       });
 
-      function selectRow(id) {
-        var row = $('tr[data-rowid=' + id + ']', $(_this.options.selectors.dataTable));
-        row.find('.action-select-row').attr('checked', 'checked');
-        row.addClass('row-selected');
-      }
-
       function checkAutoLoad() {
         var docsHeight = $(_this.options.selectors.dataTable).height();
         var docsContainerHeight = $(_this.scrollContainer()).height();
@@ -517,14 +511,10 @@
       _this.dataGrid.on('change', function() {
         $(c('.action-select-all')).removeAttr('checked');
         if ($(c('.action-clear-selection')).length > 0) {
-          var selection = _this.selection.get();
-          for(var i in selection) {
-            selectRow(selection[i]);
-          }
+          _this.restoreSelection();
         } else {
-          _this.selection.clear();
+          _this.clearSelection();
         }
-        _this.events.trigger('selectionChanged');
       });
 
       _this.events.on('selectionChanged', function() {
@@ -682,6 +672,16 @@
       pagerSetuped = true;
     }
 
+    this.restoreSelection = function(selection) {
+      if (!selection) {
+        selection = _this.selection.get();
+      }
+      for(var i = 0; i < selection.length; i++) {
+        _this.selectRow(selection[i], true);
+      }
+      _this.events.trigger('selectionChanged');
+    };
+
     this.clearSelection = function() {
       _this.selection.clear();
       $(c('.action-select-row')).removeAttr('checked');
@@ -733,12 +733,15 @@
 
     }
 
-    this.selectRow = function(rowid) {
+    this.selectRow = function(rowid, multiple) {
       var row = $('tr[data-rowid=' + rowid + ']', $(_this.options.selectors.dataTable));
       if (row.length > 0) {
         row.find('.action-select-row').attr('checked', 'checked');
         row.addClass('row-selected');
         _this.selection.append(rowid);
+        if (!multiple) {
+          _this.events.trigger('selectionChanged');
+        }
       }
     };
 

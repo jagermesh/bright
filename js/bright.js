@@ -1757,8 +1757,9 @@
     this.on     = function(event, callback) { this.events.on(event, callback); };
     this.after  = function(event, callback) { this.events.after(event, callback); };
 
-    var loadingMoreData = false;
     var noMoreData = false;
+
+    _this.loadingMoreData = false;
 
     this.after('insert', function(data) {
       _this.events.trigger('change', data, 'insert');
@@ -1891,13 +1892,14 @@
       return br.storage.get(this.storageTag + 'orderAndGroup', []);
     };
 
-    this.loadMore = function() {
-      if (noMoreData || loadingMoreData) {
+    this.loadMore = function(callback) {
+      if (noMoreData || _this.loadingMoreData) {
 
       } else {
-        loadingMoreData = true;
+        _this.loadingMoreData = true;
         _this.dataSource.select({}, function(result, response) {
-          loadingMoreData = false;
+          if (typeof callback == 'function') { callback.call(_this, result, response); }
+          _this.loadingMoreData = false;
         }, { loadingMore: true });
       }
     };
@@ -1979,7 +1981,7 @@
 
         _this.dataSource.before('select', function(request, options) {
           options.order = _this.getOrder();
-          if (!loadingMoreData) {
+          if (!_this.loadingMoreData) {
             // $(_this.selector).html('');
             // $(_this.selector).addClass('progress-big');
           }
@@ -1989,7 +1991,7 @@
           $(_this.selector).removeClass('progress-big');
           if (result) {
             noMoreData = (response.length === 0);
-            _this.render(response, loadingMoreData);
+            _this.render(response, _this.loadingMoreData);
           }
         });
 
