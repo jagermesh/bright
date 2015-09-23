@@ -154,13 +154,13 @@ class BrIMAPAttachment extends BrObject {
 
   function getFileName() {
 
-    return $this->fileName;
+    return $this->message->mimeDecode($this->fileName);
 
   }
 
   function getFileExt() {
 
-    return br()->fs()->fileExt($this->getFileName());
+    return $this->message->mimeDecode(br()->fs()->fileExt($this->getFileName()));
 
   }
 
