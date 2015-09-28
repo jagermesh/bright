@@ -2834,7 +2834,15 @@
 
   window.br.inform = function(title, message, callback, options) {
 
+    if (callback) {
+      if (typeof callback != 'function') {
+        options  = callback;
+        callback = null;
+      }
+    }
+
     options = options || {};
+    var buttonTitle = options.buttonTitle || 'Dismiss';
 
     var s = '<div class="modal" id="br_modalInform" style="top:290px;">' +
             '<div class="modal-dialog">' +
@@ -2850,7 +2858,7 @@
               '<input name="showDontAskMeAgain" type="checkbox" value="1"> ' + dontAskMeAgainTitle +
               '</label>';
     }
-    s = s +'<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn('Dismiss') + '&nbsp;</a></div></div></div></div>';
+    s = s +'<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn(buttonTitle) + '&nbsp;</a></div></div></div></div>';
     var dialog = $(s);
     var onHide = function(e) {
       var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');

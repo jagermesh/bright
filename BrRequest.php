@@ -25,6 +25,7 @@ class BrRequest extends BrSingleton {
   private $domain = null;
   private $putVars = array();
   private $serverAddr = null;
+  private $rawInput = null;
 
   function __construct() {
 
@@ -77,11 +78,11 @@ class BrRequest extends BrSingleton {
       $this->frameworkUrl = $this->baseUrl() . br()->relativePath();
       $this->scriptName = $scriptName;
 
-      $phpinput = file_get_contents("php://input");
-      if ($json = @json_decode($phpinput, true)) {
+      $this->rawInput = file_get_contents("php://input");
+      if ($json = @json_decode($this->rawInput, true)) {
         $this->putVars = $json;
       } else {
-        parse_str($phpinput, $this->putVars);
+        parse_str($this->rawInput, $this->putVars);
       }
       if ($this->putVars) {
         if (get_magic_quotes_gpc()) {
@@ -397,6 +398,12 @@ class BrRequest extends BrSingleton {
     } else {
       return $_GET;
     }
+
+  }
+
+  function rawInput() {
+
+    return $this->rawInput;
 
   }
 
