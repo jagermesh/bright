@@ -1846,6 +1846,30 @@
       }, { disableEvents: true });
     };
 
+    function checkForEmptyGrid() {
+      if (_this.isEmpty()) {
+        _this.events.triggerBefore('nodata');
+        $(_this.selector).html(_this.options.templates.noData);
+        _this.events.trigger('nodata');
+        _this.events.triggerAfter('nodata');
+      }
+    }
+
+    this.removeRow = function(rowid) {
+
+      var row = $(_this.selector).find('[data-rowid=' + rowid + ']');
+      if (row.length > 0) {
+        _this.events.triggerBefore('remove', rowid);
+        _this.events.trigger('remove', rowid, row);
+        row.remove();
+        checkForEmptyGrid();
+        _this.events.triggerAfter('remove', rowid, row);
+      } else {
+        _this.dataSource.select();
+      }
+
+    };
+
     this.refreshRow = function(data) {
       var row = $(_this.selector).find('[data-rowid=' + data.rowid + ']');
       if (row.length > 0) {
@@ -1884,12 +1908,26 @@
       return result;
     };
 
+    this.setOrder = function(order) {
+      var orderAndGroup = [];
+      for(var name in order) {
+        orderAndGroup.push({ fieldName: name, asc: order[name] > 0, group: false, index: orderAndGroup.length });
+      }
+      return order;
+    };
+
     this.setOrderAndGroup = function(order) {
       br.storage.set(this.storageTag + 'orderAndGroup', order);
+      return order;
     };
 
     this.getOrderAndGroup = function() {
       return br.storage.get(this.storageTag + 'orderAndGroup', []);
+    };
+
+    this.isOrderConfigured = function() {
+      var orderAndGroup = _this.getOrderAndGroup();
+      return br.isArray(orderAndGroup) && (orderAndGroup.length > 0);
     };
 
     this.loadMore = function(callback) {
@@ -1914,15 +1952,6 @@
       if (!br.isArray(savedOrder) || (savedOrder.length === 0)) {
         if (_this.options.defaultOrderAndGroup) {
           _this.setOrderAndGroup(_this.options.defaultOrderAndGroup);
-        }
-      }
-
-      function checkForEmptyGrid() {
-        if (_this.isEmpty()) {
-          _this.events.triggerBefore('nodata');
-          $(_this.selector).html(_this.options.templates.noData);
-          _this.events.trigger('nodata');
-          _this.events.triggerAfter('nodata');
         }
       }
 
@@ -2013,16 +2042,7 @@
         });
 
         _this.dataSource.on('remove', function(rowid) {
-          var row = $(_this.selector).find('[data-rowid=' + rowid + ']');
-          if (row.length > 0) {
-            _this.events.triggerBefore('remove', rowid);
-            _this.events.trigger('remove', rowid, row);
-            row.remove();
-            checkForEmptyGrid();
-            _this.events.triggerAfter('remove', rowid, row);
-          } else {
-            _this.dataSource.select();
-          }
+          _this.removeRow(rowid);
         });
 
         if (this.options.selectors.remove) {

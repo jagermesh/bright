@@ -118,6 +118,10 @@
       return _this.dataGrid.getOrder();
     };
 
+    this.isOrderConfigured = function() {
+      return _this.dataGrid.isOrderConfigured();
+    };
+
     this.setOrder = function(order) {
       _this.dataGrid.setOrder(order);
     };
