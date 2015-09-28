@@ -1,11 +1,11 @@
 Usage:
 
 > cd /tools
-> php setupAuditSupport.php table_name
+> php setupNestedSet.php table_name
 
 Requirements:
 
-1. /tools/config.php must be created with the following content (at least)
+1. /tools/config.php must be created with the following content
 
 ================================================================
 <?php

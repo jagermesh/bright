@@ -186,12 +186,26 @@
       return result;
     };
 
+    this.setOrder = function(order) {
+      var orderAndGroup = [];
+      for(var name in order) {
+        orderAndGroup.push({ fieldName: name, asc: order[name] > 0, group: false, index: orderAndGroup.length });
+      }
+      return order;
+    };
+
     this.setOrderAndGroup = function(order) {
       br.storage.set(this.storageTag + 'orderAndGroup', order);
+      return order;
     };
 
     this.getOrderAndGroup = function() {
       return br.storage.get(this.storageTag + 'orderAndGroup', []);
+    };
+
+    this.isOrderConfigured = function() {
+      var orderAndGroup = _this.getOrderAndGroup();
+      return br.isArray(orderAndGroup) && (orderAndGroup.length > 0);
     };
 
     this.loadMore = function(callback) {

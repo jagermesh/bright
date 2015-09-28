@@ -1908,12 +1908,26 @@
       return result;
     };
 
+    this.setOrder = function(order) {
+      var orderAndGroup = [];
+      for(var name in order) {
+        orderAndGroup.push({ fieldName: name, asc: order[name] > 0, group: false, index: orderAndGroup.length });
+      }
+      return order;
+    };
+
     this.setOrderAndGroup = function(order) {
       br.storage.set(this.storageTag + 'orderAndGroup', order);
+      return order;
     };
 
     this.getOrderAndGroup = function() {
       return br.storage.get(this.storageTag + 'orderAndGroup', []);
+    };
+
+    this.isOrderConfigured = function() {
+      var orderAndGroup = _this.getOrderAndGroup();
+      return br.isArray(orderAndGroup) && (orderAndGroup.length > 0);
     };
 
     this.loadMore = function(callback) {
@@ -2820,15 +2834,7 @@
 
   window.br.inform = function(title, message, callback, options) {
 
-    if (callback) {
-      if (typeof callback != 'function') {
-        options  = callback;
-        callback = null;
-      }
-    }
-
     options = options || {};
-    var buttonTitle = options.buttonTitle || 'Dismiss';
 
     var s = '<div class="modal" id="br_modalInform" style="top:290px;">' +
             '<div class="modal-dialog">' +
@@ -2844,7 +2850,7 @@
               '<input name="showDontAskMeAgain" type="checkbox" value="1"> ' + dontAskMeAgainTitle +
               '</label>';
     }
-    s = s +'<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn(buttonTitle) + '&nbsp;</a></div></div></div></div>';
+    s = s +'<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn('Dismiss') + '&nbsp;</a></div></div></div></div>';
     var dialog = $(s);
     var onHide = function(e) {
       var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');
