@@ -1776,6 +1776,16 @@
       _this.events.triggerAfter('change', data, 'remove');
     });
 
+    var disconnected = false;
+
+    this.disconnectFromDataSource = function() {
+      disconnected = true;
+    };
+
+    this.reconnectWithDataSource = function() {
+      disconnected = false;
+    };
+
     this.renderHeader = function(data) {
       data = _this.events.trigger('renderHeader', data) || data;
       return $(br.fetch(_this.options.templates.header, data));
@@ -2020,7 +2030,9 @@
           $(_this.selector).removeClass('progress-big');
           if (result) {
             noMoreData = (response.length === 0);
-            _this.render(response, _this.loadingMoreData);
+            if (!disconnected) {
+              _this.render(response, _this.loadingMoreData);
+            }
           }
         });
 
