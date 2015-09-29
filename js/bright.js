@@ -1776,6 +1776,16 @@
       _this.events.triggerAfter('change', data, 'remove');
     });
 
+    var disconnected = false;
+
+    this.disconnectFromDataSource = function() {
+      disconnected = true;
+    };
+
+    this.reconnectWithDataSource = function() {
+      disconnected = false;
+    };
+
     this.renderHeader = function(data) {
       data = _this.events.trigger('renderHeader', data) || data;
       return $(br.fetch(_this.options.templates.header, data));
@@ -2020,7 +2030,9 @@
           $(_this.selector).removeClass('progress-big');
           if (result) {
             noMoreData = (response.length === 0);
-            _this.render(response, _this.loadingMoreData);
+            if (!disconnected) {
+              _this.render(response, _this.loadingMoreData);
+            }
           }
         });
 
@@ -2834,7 +2846,15 @@
 
   window.br.inform = function(title, message, callback, options) {
 
+    if (callback) {
+      if (typeof callback != 'function') {
+        options  = callback;
+        callback = null;
+      }
+    }
+
     options = options || {};
+    var buttonTitle = options.buttonTitle || 'Dismiss';
 
     var s = '<div class="modal" id="br_modalInform" style="top:290px;">' +
             '<div class="modal-dialog">' +
@@ -2850,7 +2870,7 @@
               '<input name="showDontAskMeAgain" type="checkbox" value="1"> ' + dontAskMeAgainTitle +
               '</label>';
     }
-    s = s +'<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn('Dismiss') + '&nbsp;</a></div></div></div></div>';
+    s = s +'<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn(buttonTitle) + '&nbsp;</a></div></div></div></div>';
     var dialog = $(s);
     var onHide = function(e) {
       var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');

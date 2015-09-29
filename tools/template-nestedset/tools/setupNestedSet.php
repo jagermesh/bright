@@ -11,12 +11,24 @@ if ($tableName = @$argv[1]) {
 
   $params = array();
 
-  if ($orderField = @$argv[2]) {
-    $params['orderField'] = $orderField;
+  foreach($argv as $value) {
+    if (preg_match('/--([A-Z]+)=(.+)/ism', $value, $matches)) {
+      $params[$matches[1]] = $matches[2];
+    }
+    if (preg_match('/--([A-Z]+)$/ism', $value, $matches)) {
+      $params[$matches[1]] = true;
+    }
   }
 
-  if ($parentField = @$argv[3]) {
-    $params['parentField'] = $parentField;
+  if (br($params, 'createStructure')) {
+    try {
+      br()->db()->runQuery('ALTER TABLE ' . $tableName . ' ADD left_key  INTEGER');
+      br()->db()->runQuery('ALTER TABLE ' . $tableName . ' ADD right_key INTEGER');
+      br()->db()->runQuery('ALTER TABLE ' . $tableName . ' ADD level     INTEGER DEFAULT 1');
+    } catch (Exception $e) {
+      br()->log('Can not create structure for ' . $tableName . ': ' . $e->getMessage());
+      die();
+    }
   }
 
   $nestedSet = new BrNestedSet($tableName, $params);
@@ -24,8 +36,6 @@ if ($tableName = @$argv[1]) {
 
 } else {
 
-  br()->log('Usage: php setupNestedSet.php tableName');
+  br()->log('Usage: php setupNestedSet.php tableName [--createStructure] [--nameField=name] [--rangeField=range_id] [--orderField=name] [--parentField=parent_id]');
 
 }
-
-logme('done');
