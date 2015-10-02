@@ -12,12 +12,12 @@ class SomeDataSource extends BrDataSource {
 
     });
 
-    $this->on('calcFields', function($dataSource, &$row){ 
+    $this->on('calcFields', function($dataSource, &$row){
 
     });
 
     // DML
-    $this->before('insert', function($dataSource, &$row, $transientData) { 
+    $this->before('insert', function($dataSource, &$row, $transientData) {
 
     });
 
@@ -28,8 +28,8 @@ class SomeDataSource extends BrDataSource {
     $this->before('remove', function($dataSource, &$row, $transientData) {
 
     });
-    
-    $this->after('insert', function($dataSource, &$row, $transientData) { 
+
+    $this->after('insert', function($dataSource, &$row, $transientData) {
 
     });
 

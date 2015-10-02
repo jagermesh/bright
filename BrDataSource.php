@@ -290,11 +290,13 @@ class BrDataSource extends BrGenericDataSource {
 
     $options['operation'] = 'insert';
 
-    $this->callEvent('before:insert', $row, $transientData, $options);
+    $old = array();
+
+    $this->callEvent('before:insert', $row, $transientData, $old, $options);
 
     $this->validateInsert($row);
 
-    $result = $this->callEvent('insert', $row, $transientData, $options);
+    $result = $this->callEvent('insert', $row, $transientData, $old, $options);
     if (is_null($result)) {
       try {
         br()->db()->startTransaction();
@@ -306,7 +308,7 @@ class BrDataSource extends BrGenericDataSource {
             $table->insert($row);
           }
           $result = $row;
-          $this->callEvent('after:insert', $result, $transientData, $options);
+          $this->callEvent('after:insert', $result, $transientData, $old, $options);
           $result['rowid'] = br()->db()->rowidValue($result);
           $this->callEvent('calcFields', $result, $transientData, $options);
           br()->db()->commitTransaction();

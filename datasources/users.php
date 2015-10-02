@@ -240,7 +240,7 @@ class BrDataSourceUsers extends BrDataSource {
 
     });
 
-    $this->before('insert', function($dataSource, &$row, &$data, $options) {
+    $this->before('insert', function($dataSource, &$row, &$data) {
 
       $loginField         = br()->auth()->getAttr('usersTable.loginField');
       $loginFieldLabel    = br()->auth()->getAttr('usersTable.loginFieldLabel');
