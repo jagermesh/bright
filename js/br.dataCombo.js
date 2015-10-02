@@ -160,7 +160,6 @@
       } else {
         s = s + '<option';
       }
-      s = s + '<option';
       s = s + ' value="' + data[_this.options.valueField] + '"';
       if (!br.isEmpty(_this.options.disabledField) && br.toInt(data[_this.options.disabledField]) > 0) {
         s = s + ' disabled="disabled"';
