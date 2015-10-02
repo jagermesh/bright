@@ -155,17 +155,29 @@
     function renderRow(data) {
 
       var s = '';
-      s = s + '<option value="' + data[_this.options.valueField] + '">';
-      if (br.isEmpty(_this.options.levelField)) {
-
+      if (!br.isEmpty(_this.options.groupField) && br.toInt(data[_this.options.groupField]) > 0) {
+        s = s + '<optgroup';
       } else {
+        s = s + '<option';
+      }
+      s = s + '<option';
+      s = s + ' value="' + data[_this.options.valueField] + '"';
+      if (!br.isEmpty(_this.options.disabledField) && br.toInt(data[_this.options.disabledField]) > 0) {
+        s = s + ' disabled="disabled"';
+      }
+      s = s + '>';
+      if (!br.isEmpty(_this.options.levelField)) {
         var margin = (br.toInt(data[_this.options.levelField]) - 1) * 4;
         for (var k = 0; k < margin; k++) {
           s = s + '&nbsp;';
         }
       }
       s = s + getName(data);
-      s = s + '</option>';
+      if (!br.isEmpty(_this.options.groupField) && br.toInt(data[_this.options.groupField]) > 0) {
+        s = s + '</optgroup>';
+      } else {
+        s = s + '</option>';
+      }
 
       return s;
 
