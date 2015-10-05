@@ -203,6 +203,11 @@ td.optimal-width, th.optimal-width {
   margin-bottom: 9px !important;
 }
 
+.form-horizontal .control-label-two-rows {
+  padding-top: 4px !important;
+  line-height: 14px;
+}
+
 .nav .btn-toolbar {
   margin-top: 6px;
   margin-bottom: 4px;
