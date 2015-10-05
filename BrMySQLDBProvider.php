@@ -159,11 +159,13 @@ class BrMySQLProviderCursor implements Iterator {
 class BrMySQLProviderTable {
 
   private $tableName;
+  private $tableAlias;
   private $provider;
 
-  function __construct(&$provider, $tableName) {
+  function __construct(&$provider, $tableName, $tableAlias = null) {
 
     $this->tableName = $tableName;
+    $this->tableAlias = $tableAlias;
     $this->provider = $provider;
 
   }
@@ -472,7 +474,12 @@ class BrMySQLProviderTable {
 
     $filter = array('$and' => $filter);
 
-    $this->compileFilter($filter, $this->tableName, '', ' AND ', $joins, $joinsTables, $where, $args);
+    if ($this->tableAlias) {
+      $tableName = $this->tableAlias;
+    } else {
+      $tableName = $this->tableName;
+    }
+    $this->compileFilter($filter, $tableName, '', ' AND ', $joins, $joinsTables, $where, $args);
 
     $sql = 'SELECT ';
     if ($distinct) {
@@ -481,17 +488,21 @@ class BrMySQLProviderTable {
     if ($fields) {
       foreach($fields as $name => $rule) {
         if (is_numeric($name)) {
-          $sql .= $this->tableName.'.'.$rule.',';
+          $sql .= $tableName.'.'.$rule.',';
         } else {
-          $sql .= str_replace('$', $this->tableName, $rule).' '.$name.',';
+          $sql .= str_replace('$', $tableName, $rule).' '.$name.',';
         }
       }
       $sql = rtrim($sql, ',').' ';
     } else {
-      $sql .= $this->tableName.'.* ';
+      $sql = 'SELECT '.$tableName.'.* ';
     }
 
-    $sql .= ' FROM '.$this->tableName.$joins.' WHERE 1=1 '.$where;
+    $sql .= ' FROM '.$this->tableName;
+    if ($this->tableAlias) {
+      $sql .= ' ' . $this->tableAlias;
+    }
+    $sql .= $joins.' WHERE 1=1 '.$where;
 
     return new BrMySQLProviderCursor($sql, $args, $this->provider);
 
@@ -791,9 +802,9 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   }
 
-  function table($name) {
+  function table($name, $alias = null) {
 
-    return new BrMySQLProviderTable($this, $name);
+    return new BrMySQLProviderTable($this, $name, $alias);
 
   }
 
