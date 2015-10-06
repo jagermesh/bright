@@ -106,7 +106,7 @@
             '<div class="modal-footer">';
     if (options.showDontAskMeAgain) {
       var dontAskMeAgainTitle = (options.dontAskMeAgainTitle) ? options.dontAskMeAgainTitle : br.trn("Don't ask me again");
-      s = s + '<label style="text-align: left; float: left;" class="checkbox">' +
+      s = s + '<label style="text-align:left;float:left;padding-top:5px;" class="checkbox">' +
               '<input name="showDontAskMeAgain" type="checkbox" value="1"> ' + dontAskMeAgainTitle +
               '</label>';
     }
@@ -206,7 +206,7 @@
             '<div class="modal-footer">';
     if (options.showDontAskMeAgain) {
       var dontAskMeAgainTitle = (options.dontAskMeAgainTitle) ? options.dontAskMeAgainTitle : br.trn("Don't ask me again");
-      s = s + '<label style="text-align: left; float: left;" class="checkbox">' +
+      s = s + '<label style="text-align:left;float:left;padding-top:5px;" class="checkbox">' +
               '<input name="showDontAskMeAgain" type="checkbox" value="1"> ' + dontAskMeAgainTitle +
               '</label>';
     }
