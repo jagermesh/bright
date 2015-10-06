@@ -35,19 +35,34 @@ class BrDataSourceReferencesExists extends BrAppException {
 class BrDataSource extends BrGenericDataSource {
 
   private $dbEntity;
+  private $dbEntityAlias;
   private $DMLType;
 
   function __construct($dbEntity, $options = array()) {
 
-    $this->dbEntity              = $dbEntity;
+    $this->dbEntity = $dbEntity;
 
     parent::__construct($options);
 
   }
 
-  function dbEntity() {
+  function dbEntity($newValue = null) {
+
+    if ($newValue) {
+      $this->dbEntity = $newValue;
+    }
 
     return $this->dbEntity;
+
+  }
+
+  function dbEntityAlias($newValue = null) {
+
+    if ($newValue) {
+      $this->dbEntityAlias = $newValue;
+    }
+
+    return $this->dbEntityAlias;
 
   }
 
@@ -122,7 +137,7 @@ class BrDataSource extends BrGenericDataSource {
 
       $this->lastSelectAmount = 0;
 
-      $table = br()->db()->table($this->dbEntity());
+      $table = br()->db()->table($this->dbEntity(), $this->dbEntityAlias());
 
       if (!strlen($limit) || ($limit > 0)) {
 
