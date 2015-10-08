@@ -64,30 +64,32 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter {
 
     if ($this->filePointer && $this->isEnabled() && br()->log()->isEnabled()) {
 
-      $logMessage = '';
+      if (!is_resource($message)) {
+        $logMessage = '';
 
-      if (strlen($message)) {
-        if ($group) {
-          $logMessage .= $group . ' ';
-        }
-
-        $logMessage .= br()->getProcessId() . ' ';
-
-        if ($initTime = br()->log()->getInitTime()) {
-          $logMessage .= $initTime;
-          if ($time = br()->log()->getFormattedTimeOffset()) {
-            $logMessage .= '+' . $time;
+        if (strlen($message)) {
+          if ($group) {
+            $logMessage .= $group . ' ';
           }
-          $logMessage .= ' ';
-        }
-        if ($logLevel = br()->log()->getLevel()) {
-          $logMessage .= str_repeat(' ', $logLevel*2);
-        }
-        $logMessage .= $message;
-      }
-      $logMessage .= "\n";
 
-      @fwrite($this->filePointer, $logMessage);
+          $logMessage .= br()->getProcessId() . ' ';
+
+          if ($initTime = br()->log()->getInitTime()) {
+            $logMessage .= $initTime;
+            if ($time = br()->log()->getFormattedTimeOffset()) {
+              $logMessage .= '+' . $time;
+            }
+            $logMessage .= ' ';
+          }
+          if ($logLevel = br()->log()->getLevel()) {
+            $logMessage .= str_repeat(' ', $logLevel*2);
+          }
+          $logMessage .= $message;
+        }
+        $logMessage .= "\n";
+
+        @fwrite($this->filePointer, $logMessage);
+      }
 
     }
 

@@ -70,10 +70,10 @@ class BrBrowser extends BrObject {
     curl_setopt($this->curl, CURLOPT_FOLLOWLOCATION, 1);
     curl_setopt($this->curl, CURLOPT_HEADER, 0);
     curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt ($this->curl, CURLOPT_USERAGENT, br($_SERVER, 'HTTP_USER_AGENT', 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-GB; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3'));
+    curl_setopt($this->curl, CURLOPT_USERAGENT, br($_SERVER, 'HTTP_USER_AGENT', 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-GB; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3'));
 
-    curl_setopt ($this->curl, CURLOPT_SSL_VERIFYPEER, 0);
-    curl_setopt ($this->curl, CURLOPT_SSL_VERIFYHOST, 0);
+    curl_setopt($this->curl, CURLOPT_SSL_VERIFYPEER, 0);
+    curl_setopt($this->curl, CURLOPT_SSL_VERIFYHOST, 0);
 
     // $header = array();
     // $header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
@@ -120,6 +120,13 @@ class BrBrowser extends BrObject {
     }
 
     return $response;
+
+  }
+
+  public function check($url) {
+
+    $headers = @get_headers($url);
+    return !preg_match('~HTTP/[0-9]+[.][0-9]+ 4.*?$~', @$headers[0]);
 
   }
 
