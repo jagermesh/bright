@@ -147,7 +147,6 @@ class BrHTML extends BrSingleton {
     } catch (Exception $e) {
 
     }
-
     $html = preg_replace("/&nbsp;/ism", ' ', $html);
     $html = preg_replace("/(\n\n|\r\n\r\n|\r\r)/ism", '', $html);
     $html = preg_replace('/<br[^>]*>/ism', "\n", $html);

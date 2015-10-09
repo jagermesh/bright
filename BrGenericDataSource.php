@@ -110,6 +110,12 @@ class BrGenericDataSource extends BrObject {
 
   }
 
+  function rowidFieldName() {
+
+    return $this->rowidFieldName;
+
+  }
+
   function setDefaultOrder($value = array()) {
 
     $this->defaultOrder = $value;

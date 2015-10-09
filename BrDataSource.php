@@ -32,6 +32,35 @@ class BrDataSourceReferencesExists extends BrAppException {
 
 }
 
+class BrDataSourceCursor {
+
+  private $cursor;
+  private $dataSource;
+  private $transientData;
+  private $options;
+
+  public function __construct($cursor, $dataSource, $transientData, $options) {
+
+    $this->cursor = $cursor;
+    $this->dataSource = $dataSource;
+    $this->transientData = $transientData;
+    $this->options = $options;
+
+  }
+
+  function selectNext() {
+
+    if ($row = $this->cursor->next()) {
+      $row['rowid'] = br()->db()->rowidValue($row, $this->dataSource->rowidFieldName());
+      $this->dataSource->callEvent('calcFields', $row, $this->transientData, $this->options);
+    }
+    return $row;
+
+  }
+
+}
+
+
 class BrDataSource extends BrGenericDataSource {
 
   private $dbEntity;
@@ -77,6 +106,9 @@ class BrDataSource extends BrGenericDataSource {
     $this->DMLType = '';
 
     $countOnly = (br($options, 'result') == 'count');
+    $returnCursor = (br($options, 'result') == 'cursor');
+    $returnStatement = (br($options, 'result') == 'statement');
+    $returnSQL = (br($options, 'result') == 'sql');
     $limit = $this->limit = br($options, 'limit');
     $skip = br($options, 'skip');
     if (!$skip || ($skip < 0)) { $skip = 0; }
@@ -189,6 +221,15 @@ class BrDataSource extends BrGenericDataSource {
 
           if ($countOnly) {
             $result = $cursor->count();
+          } else
+          if ($returnCursor) {
+            return new BrDataSourceCursor($cursor->rewind(), $this, $transientData, $options);
+          } else
+          if ($returnSQL) {
+            return $cursor->getSQL();
+          } else
+          if ($returnStatement) {
+            return $cursor->getStatement();
           } else {
             $idx = 1;
             $this->lastSelectAmount = 0;
@@ -239,6 +280,30 @@ class BrDataSource extends BrGenericDataSource {
     }
 
     return $result;
+
+  }
+
+  function getCursor($filter = array(), $fields = array(), $order = array(), $options = array()) {
+
+    $options['result'] = 'cursor';
+
+    return $this->internalSelect($filter, $fields, $order, $options);
+
+  }
+
+  function getStatement($filter = array(), $fields = array(), $order = array(), $options = array()) {
+
+    $options['result'] = 'statement';
+
+    return $this->internalSelect($filter, $fields, $order, $options);
+
+  }
+
+  function getSQL($filter = array(), $fields = array(), $order = array(), $options = array()) {
+
+    $options['result'] = 'sql';
+
+    return $this->internalSelect($filter, $fields, $order, $options);
 
   }
 
