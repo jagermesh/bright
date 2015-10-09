@@ -135,14 +135,18 @@ class BrHTML extends BrSingleton {
     $html = json_encode($html);
     $html = preg_replace('/\\\u([0-9a-z]{4})/', '&#x$1;', $html );
     $html = json_decode($html);
-    $doc = new DOMDocument();
-    $doc->loadHTML($html);
-    $search = new DOMXPath($doc);
-    $results = $search->evaluate('//*[@style]');
-    foreach ($results as $result) {
-      $result->removeAttribute(‘style’);
+    try {
+      $doc = new DOMDocument();
+      $doc->loadHTML($html);
+      $search = new DOMXPath($doc);
+      $results = $search->evaluate('//*[@style]');
+      foreach ($results as $result) {
+        $result->removeAttribute(‘style’);
+      }
+      $html = $doc->saveHTML();
+    } catch (Exception $e) {
+
     }
-    $html = $doc->saveHTML();
 
     $html = preg_replace("/&nbsp;/ism", ' ', $html);
     $html = preg_replace("/(\n\n|\r\n\r\n|\r\r)/ism", '', $html);
