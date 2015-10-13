@@ -75,9 +75,7 @@ class BrDataSourceUsers extends BrDataSource {
 
       try {
         if (br($params, $loginField) && br($params, $passwordField)) {
-          if ($plainPasswords) {
-
-          } else {
+          if (!$plainPasswords) {
             $params[$passwordField] = md5($params[$passwordField]);
           }
           $filter = array( $loginField    => $params[$loginField]
@@ -85,29 +83,9 @@ class BrDataSourceUsers extends BrDataSource {
                          );
           $dataSource->callEvent('before:loginSelectUser', $params, $filter);
           if ($row = $dataSource->selectOne($filter)) {
-            br()->auth()->trigger('checkLoginPrivilege', $row);
-            if ($dataSource->invokeMethodExists('checkLoginPrivilege')) {
-              $dataSource->invoke('checkLoginPrivilege', $row);
-            }
-            $denied = false;
-            if ($dataSource->invokeMethodExists('isAccessDenied')) {
-              $denied = $dataSource->invoke('isAccessDenied', $row);
-            }
-            if (!$denied) {
-              $row[$passwordField] = $params[$passwordField];
-
-              br()->auth()->setLogin($row, br($params, 'remember'));
-
-              $row = $dataSource->selectOne(br()->db()->rowidValue($row));
-
-              unset($row[$passwordField]);
-
-              br()->auth()->trigger('after:login', $row);
-
-              return $row;
-            } else {
-              throw new BrAppException('Access denied');
-            }
+            $row[$passwordField] = $params[$passwordField];
+            $row = $dataSource->loginUser($row, $params);
+            return $row;
           } else {
             throw new BrAppException('Invalid login/password or user not found');
           }
@@ -403,6 +381,34 @@ class BrDataSourceUsers extends BrDataSource {
     }
 
     return true;
+
+  }
+
+  public function loginUser($row, $params = array()) {
+
+    if ($this->invokeMethodExists('checkLoginPrivilege')) {
+      $this->invoke('checkLoginPrivilege', $row);
+    }
+    $denied = false;
+    if ($this->invokeMethodExists('isAccessDenied')) {
+      $denied = $this->invoke('isAccessDenied', $row);
+    }
+    if (!$denied) {
+      $passwordField = br()->auth()->getAttr('usersTable.passwordField');
+      if ($row = $this->selectOne(br()->db()->rowidValue($row))) {
+        if ($row = br()->auth()->setLogin($row, br($params, 'remember'))) {
+          unset($row[$passwordField]);
+          br()->auth()->trigger('after:login', $row);
+          return $row;
+        } else {
+          throw new BrAppException('Access denied');
+        }
+      } else {
+        throw new BrAppException('Access denied');
+      }
+    } else {
+      throw new BrAppException('Access denied');
+    }
 
   }
 

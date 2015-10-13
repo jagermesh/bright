@@ -38,6 +38,8 @@ class BrGenericAuthProvider extends BrSingleton {
 
   function setLogin($login, $remember = false) {
 
+    $this->trigger('checkLoginPrivilege', $login);
+
     if (is_array($login)) {
       if ($remember) {
         $password = $login['password'];

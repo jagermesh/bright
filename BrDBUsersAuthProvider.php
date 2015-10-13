@@ -137,8 +137,10 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
 
   function setLogin($login, $remember = false) {
 
-    $loginField      = br()->auth()->getAttr('usersTable.loginField');
-    $passwordField   = br()->auth()->getAttr('usersTable.passwordField');
+    $this->trigger('checkLoginPrivilege', $login);
+
+    $loginField    = br()->auth()->getAttr('usersTable.loginField');
+    $passwordField = br()->auth()->getAttr('usersTable.passwordField');
 
     if (is_array($login)) {
       if ($remember) {
