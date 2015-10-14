@@ -279,6 +279,8 @@ class BrDataSource extends BrGenericDataSource {
       }
     }
 
+    $this->callEvent('after:select', $result, $transientData, $options);
+
     return $result;
 
   }
