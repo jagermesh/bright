@@ -77,7 +77,7 @@
     options = options || {};
     options.cancelTitle = options.cancelTitle || br.trn('Cancel');
     var i;
-    var s = '<div class="modal';
+    var s = '<div class="modal modal-autosize';
     if (options.cssClass) {
       s = s + ' ' + options.cssClass;
     }
@@ -161,10 +161,11 @@
     $(dialog).on('hide.bs.modal', onHide);
     $(dialog).modal('show');
     br.enchanceBootstrap(dialog);
+    br.resizeModalPopup(dialog);
   };
 
   window.br.error = function(title, message, callback) {
-    var s = '<div class="modal" id="br_modalError" style="top:290px;">' +
+    var s = '<div class="modal modal-autosize" id="br_modalError" style="top:290px;">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">';
     if (title !== '') {
@@ -182,6 +183,7 @@
     $(dialog).on('hide.bs.modal', onHide);
     $(dialog).modal('show');
     br.enchanceBootstrap(dialog);
+    br.resizeModalPopup(dialog);
   };
 
   window.br.inform = function(title, message, callback, options) {
@@ -196,7 +198,7 @@
     options = options || {};
     var buttonTitle = options.buttonTitle || 'Dismiss';
 
-    var s = '<div class="modal" id="br_modalInform" style="top:290px;">' +
+    var s = '<div class="modal modal-autosize" id="br_modalInform" style="top:290px;">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">';
     if (title !== '') {
@@ -222,6 +224,7 @@
     $(dialog).on('hide.bs.modal', onHide);
     $(dialog).modal('show');
     br.enchanceBootstrap(dialog);
+    br.resizeModalPopup(dialog);
   };
 
   window.br.prompt = function(title, fields, callback, options) {
@@ -236,7 +239,7 @@
       inputs[fields] = '';
     }
 
-    var s = '<div class="modal" id="br_modalPrompt" style="top:290px;">'+
+    var s = '<div class="modal modal-autosize" id="br_modalPrompt" style="top:290px;">'+
             '<div class="modal-dialog">' +
             '<div class="modal-content">' +
             '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>' + title + '</h3></div>' +
@@ -302,6 +305,7 @@
     $(dialog).on('hide.bs.modal', onHide);
     $(dialog).modal('show');
     br.enchanceBootstrap(dialog);
+    br.resizeModalPopup(dialog);
   };
 
   var noTemplateEngine = false;
@@ -502,26 +506,32 @@
 
   };
 
+  function configureAutosize(control) {
+    if ($(control).data('brAutoSizeConfigured')) {
+
+    } else {
+      (function(control) {
+        control.css('top', '280px');
+        control.on('shown.bs.modal', function() {
+          br.resizeModalPopup(control);
+        });
+        $(window).resize(function(){
+          br.resizeModalPopup(control);
+        });
+        control.data('brAutoSizeConfigured', 1);
+      })($(control));
+    }
+  }
+
   window.br.enchanceBootstrap = function(el) {
 
     if (el) {
-
+      if ($(el).hasClass('modal-autosize')) {
+        configureAutosize($(el));
+      }
     } else {
       $('div.modal.modal-autosize').each(function() {
-        if ($(this).data('brAutoSizeConfigured')) {
-
-        } else {
-          (function(control) {
-            control.css('top', '280px');
-            control.on('shown.bs.modal', function() {
-              br.resizeModalPopup(control);
-            });
-            $(window).resize(function(){
-              br.resizeModalPopup(control);
-            });
-            control.data('brAutoSizeConfigured', 1);
-          })($(this));
-        }
+        configureAutosize($(this));
       });
     }
 
