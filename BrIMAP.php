@@ -59,17 +59,15 @@ class BrIMAPBody extends BrObject {
         if ($charset) {
           $body = @iconv($charset, 'UTF-8', $body);
         }
-
         $body = trim($body);
+        $body = preg_replace('~<head[^>]*?>.*?</head>~ism', '', $body);
+        $body = preg_replace('~<meta[^>]*?>~ism', '', $body);
+        $body = preg_replace('~<base[^>]*?>~ism', '', $body);
+        $body = preg_replace('~<style[^>]*?>.*?</style>~ism', '', $body);
 
         if ($this->isHTML && $body) {
           try {
             $doc = phpQuery::newDocument($body);
-
-            $doc->find('head')->remove();
-            $doc->find('base')->remove();
-            $doc->find('style')->remove();
-            $doc->find('meta')->remove();
 
             $bodyTag = $doc->find('body');
 

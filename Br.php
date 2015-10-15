@@ -787,11 +787,7 @@ class Br extends BrSingleton {
     $mail = new PHPMailer(true);
     $mail->CharSet = 'UTF-8';
 
-    if (is_array($emails)) {
-
-    } else {
-      $emails = br($emails)->split();
-    }
+    $emails = br($emails)->split();
 
     foreach($emails as $email) {
       $mail->AddAddress($email);
@@ -819,6 +815,20 @@ class Br extends BrSingleton {
     } else {
       $mail->Mailer     = 'mail';
       $mail->SMTPSecure = '';
+    }
+
+    if (br($params, 'cc')) {
+      $cc = br($params['cc'])->split();
+      foreach($cc as $email) {
+        $mail->AddCC($email);
+      }
+    }
+
+    if (br($params, 'bcc')) {
+      $bcc = br($params['bcc'])->split();
+      foreach($bcc as $email) {
+        $mail->AddBCC($email);
+      }
     }
 
     if (br($params, 'customHeaders')) {
