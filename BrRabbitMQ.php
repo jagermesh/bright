@@ -67,13 +67,10 @@ class BrRabbitMQ extends BrSingleton {
   function sendMessage($exchangeName, $message, $routingKey = null) {
 
     $this->connect();
-
     $msg = new AMQPMessage( json_encode($message)
                           , array( 'content_type' => 'application/json'
                                  , 'delivery_mode' => 2
                                  ));
-
-
     if (!in_array($exchangeName, $this->exchanges)) {
       $this->createExchange($exchangeName, 'topic');
     }
@@ -116,7 +113,7 @@ class BrRabbitMQ extends BrSingleton {
 
   }
 
-  function receiveMessages($exchangeName, $bindingKey, $callback, $params = array()) {
+  function receiveMessages($exchangeName, $bindingKey, $callback = null, $params = array()) {
 
     if (is_callable($bindingKey)) {
       $params = $callback;

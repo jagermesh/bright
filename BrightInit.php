@@ -49,18 +49,31 @@ if (!br()->log()->isAdapterExists('BrErrorFileLogAdapter')) {
   br()->importLib('ErrorFileLogAdapter');
   br()->log()->addAdapter(new BrErrorFileLogAdapter(br()->atBasePath('_logs')));
 }
+
 if (!br()->log()->isAdapterExists('BrErrorMailLogAdapter')) {
   br()->importLib('ErrorMailLogAdapter');
   br()->log()->addAdapter(new BrErrorMailLogAdapter());
 }
-if (!br()->log()->isAdapterExists('BrFileLogAdapter')) {
-  br()->importLib('FileLogAdapter');
-  br()->log()->addAdapter(new BrFileLogAdapter(br()->atBasePath('_logs')));
+
+if (br()->config()->get('Logger/File/Active')) {
+  if (!br()->log()->isAdapterExists('BrFileLogAdapter')) {
+    br()->importLib('FileLogAdapter');
+    br()->log()->addAdapter(new BrFileLogAdapter(br()->atBasePath('_logs')));
+  }
 }
 
-if (br()->isConsoleMode() && !br()->log()->isAdapterExists('BrConsoleLogAdapter')) {
-  br()->importLib('ConsoleLogAdapter');
-  br()->log()->addAdapter(new BrConsoleLogAdapter());
+if (br()->config()->get('Logger/RMQ/Active')) {
+  if (!br()->log()->isAdapterExists('BrRMQLogAdapter')) {
+    br()->importLib('RMQLogAdapter');
+    br()->log()->addAdapter(new BrRMQLogAdapter(br()->config()->get('Logger/RMQ/ExchangeName')));
+  }
+}
+
+if (br()->isConsoleMode()) {
+  if (!br()->log()->isAdapterExists('BrConsoleLogAdapter')) {
+    br()->importLib('ConsoleLogAdapter');
+    br()->log()->addAdapter(new BrConsoleLogAdapter());
+  }
 }
 
 // Core PHP settings - Secondary
