@@ -21,28 +21,33 @@ class BrArray {
   }
 
   function exists($value, $ignoreCase = false) {
+
     if (is_array($value)) {
       foreach($value as $val) {
         if ($this->exists($val)) {
           return true;
         }
       }
-      return false;
-    } else
-    foreach ($this->value as $val) {
-      if ($ignoreCase) {
-        if (strtolower($val) === strtolower($value)) {
+    } else {
+      foreach ($this->value as $val) {
+        if ($ignoreCase) {
+          if (strtolower($val) === strtolower($value)) {
+            return true;
+          }
+        } else
+        if ((string)$val === (string)$value) {
           return true;
         }
-      } else
-      if ((string)$val === (string)$value) {
-        return true;
       }
     }
+    return false;
+
   }
 
   function indexOf($value) {
+
     return array_search($value, $this->value);
+
   }
 
   function copy() {
