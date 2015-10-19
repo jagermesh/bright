@@ -16,6 +16,22 @@ class BrResponse extends BrSingleton {
 
     if (!$alreadyPacked) {
       $response = @json_encode($response);
+      if ($response === FALSE) {
+        switch (json_last_error()) {
+          case JSON_ERROR_DEPTH:
+            throw new Exception('Maximum stack depth exceeded');
+          case JSON_ERROR_STATE_MISMATCH:
+            throw new Exception('Underflow or the modes mismatch');
+          case JSON_ERROR_CTRL_CHAR:
+            throw new Exception('Unexpected control character found');
+          case JSON_ERROR_SYNTAX:
+            throw new Exception('Syntax error, malformed JSON');
+          case JSON_ERROR_UTF8:
+            throw new Exception('Malformed UTF-8 characters, possibly incorrectly encoded');
+          default:
+            throw new Exception('Unknown error');
+        }
+      }
     }
 
     header('Cache-Control: no-cache, must-revalidate');
@@ -31,6 +47,22 @@ class BrResponse extends BrSingleton {
 
     $callback = $callback?$callback:br()->request()->get('callback');
     $response = @json_encode($response);
+    if ($response === FALSE) {
+      switch (json_last_error()) {
+        case JSON_ERROR_DEPTH:
+          throw new Exception('Maximum stack depth exceeded');
+        case JSON_ERROR_STATE_MISMATCH:
+          throw new Exception('Underflow or the modes mismatch');
+        case JSON_ERROR_CTRL_CHAR:
+          throw new Exception('Unexpected control character found');
+        case JSON_ERROR_SYNTAX:
+          throw new Exception('Syntax error, malformed JSON');
+        case JSON_ERROR_UTF8:
+          throw new Exception('Malformed UTF-8 characters, possibly incorrectly encoded');
+        default:
+          throw new Exception('Unknown error');
+      }
+    }
     $response = $callback . '(' . $response . ')';
 
     header('Cache-Control: no-cache, must-revalidate');
