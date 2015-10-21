@@ -158,6 +158,10 @@
 
     };
 
+    this.refresh = function(data) {
+      _this.dataSource.select();
+    };
+
     this.refreshRow = function(data) {
       var row = $(_this.selector).find('[data-rowid=' + data.rowid + ']');
       if (row.length > 0) {

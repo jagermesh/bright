@@ -519,6 +519,8 @@
         } else {
           _this.clearSelection();
         }
+        _this.events.trigger('change');
+        _this.events.triggerAfter('change');
       });
 
       _this.events.on('selectionChanged', function() {
