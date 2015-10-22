@@ -28,7 +28,7 @@
     this.options.selectors.remove = this.options.selectors.remove || this.options.deleteSelector  || '.action-delete';
 
     this.dataSource = this.options.dataSource;
-    this.storageTag = document.location.pathname + this.dataSource.options.restServiceUrl;
+    this.storageTag = this.options.storageTag ? this.options.storageTag : document.location.pathname + ':' + this.dataSource.options.restServiceUrl;
 
     this.events = br.eventQueue(this);
     this.before = function(event, callback) { this.events.before(event, callback); };

@@ -43,6 +43,12 @@
     this.on     = function(event, callback) { this.events.on(event, callback); };
     this.after  = function(event, callback) { this.events.after(event, callback); };
 
+    this.storageTag = this.options.storageTag ? this.options.storageTag : document.location.pathname;
+
+    if (this.dataSource) {
+      this.storageTag = this.storageTag + ':' + this.dataSource.options.restServiceUrl;
+    }
+
     this.isValid = function() {
       return _this.selector.length > 0;
     };
@@ -72,17 +78,18 @@
     };
 
     function storageTag(c) {
-      var storageKey = document.location.pathname;
+      var result = _this.storageTag;
+      result = result + ':filter-value';
       if (!br.isEmpty($(c).attr('id'))) {
-        storageKey = storageKey + ':' + $(c).attr('id');
+        result = result + ':' + $(c).attr('id');
       } else
       if (!br.isEmpty($(c).attr('name'))) {
-        storageKey = storageKey + ':' + $(c).attr('name');
+        result = result + ':' + $(c).attr('name');
       }
       if (!br.isEmpty($(c).attr('data-storage-key'))) {
-        storageKey = storageKey + ':' + $(c).attr('data-storage-key');
+        result = result + ':' + $(c).attr('data-storage-key');
       }
-      return document.location.pathname + ':filter-value' + storageKey;
+      return result;
     }
 
     function uiSync() {
