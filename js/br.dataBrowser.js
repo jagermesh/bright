@@ -69,7 +69,7 @@
       this.dataSource = entity;
     }
 
-    this.storageTag = document.location.pathname + this.dataSource.options.restServiceUrl;
+    this.storageTag = this.options.storageTag ? this.options.storageTag : document.location.pathname + this.dataSource.options.restServiceUrl;
 
     this.setStored = function(name, value) {
       br.storage.set(this.storageTag + 'stored:' + name, value);

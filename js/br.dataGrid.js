@@ -166,20 +166,14 @@
       var row = $(_this.selector).find('[data-rowid=' + data.rowid + ']');
       if (row.length > 0) {
         var ctrl = _this.renderRow(data);
-        var s = ctrl.html();
-        ctrl.remove();
-        if (s.length > 0) {
-          _this.events.triggerBefore('update', data);
-          var $row0 = $(row[0]);
-          _this.events.trigger('update', data, $row0);
-          $row0.html(s);
-          $row0.data('data-row', data);
-          _this.events.triggerAfter('update', data, $row0);
-          _this.events.triggerAfter('renderRow', data, $row0);
-          return true;
-        } else {
-          return false;
-        }
+        _this.events.triggerBefore('update', data);
+        var $row0 = $(row[0]);
+        _this.events.trigger('update', data, $row0);
+        $row0.replaceWith(ctrl);
+        $row0.data('data-row', data);
+        _this.events.triggerAfter('update', data, $row0);
+        _this.events.triggerAfter('renderRow', data, $row0);
+        return true;
       } else {
         return false;
       }
