@@ -268,6 +268,7 @@ class qqFileUploader {
     if ($fileName = $this->file->save($uploadDirectory)){
       return array( 'success'          => true
                   , 'url'              => $url . $fileName
+                  , 'href'             => br()->request()->host() . $url . $fileName
                   , 'originalFileName' => $this->file->getName()
                   , 'fileName'         => $fileName
                   , 'fileSize'         => filesize($uploadDirectory . $fileName)

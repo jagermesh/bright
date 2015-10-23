@@ -272,7 +272,7 @@ class qqFileUploader {
         }
         return array( 'success'          => true
                     , 'url'              => $url . $fileName
-                    , 'href'             => br()->request()->baseUrl(-1) . $url . $fileName
+                    , 'href'             => br()->request()->host() . $url . $fileName
                     , 'originalFileName' => $this->file->getName()
                     , 'fileName'         => $fileName
                     , 'fileSize'         => filesize($uploadDirectory . $fileName)
