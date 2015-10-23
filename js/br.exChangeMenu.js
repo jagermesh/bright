@@ -9,11 +9,11 @@
 
 ;(function ($, window) {
 
-  var invokerTemplate = '<div class="dropdown br-ajax-dropdown"><span href="javascript:;" class="not-a br-ex-action-change-menu-menu"><span class="br-ex-current-value">{{&value}}</span> <b class="caret"></b></a></div>';
+  var invokerTemplate = '<div class="dropdown br-ajax-dropdown"><span href="javascript:;" class="br-ex-action-change-menu-menu" style="cursor:pointer;"><span class="br-ex-current-value">{{&value}}</span> <b class="caret"></b></a></div>';
 
   function showDropDownMenu(invoker, response, rowid, menuElement, dataSource, fieldName, options) {
     var menuItemTemplate = '<li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>';
-    var dropDown = $('<div class="dropdown br-ajax-dropdown" style="position:absolute;z-index:1050;"><a style="display:none;" href="javascript:;" role="button" data-toggle="dropdown" class="dropdown-toggle not-a br-ex-action-change-menu-menu"><span>{{value}}</span> <b class="caret"></b></a><ul class="dropdown-menu" role="menu" style="overflow:auto;"></ul></div>');
+    var dropDown = $('<div class="dropdown br-ajax-dropdown" style="position:absolute;z-index:1050;"><a style="display:none;" href="javascript:;" role="button" data-toggle="dropdown" class="dropdown-toggle br-ex-action-change-menu-menu" style="cursor:pointer;"><span>{{value}}</span> <b class="caret"></b></a><ul class="dropdown-menu" role="menu" style="overflow:auto;"></ul></div>');
     var dropDownList = dropDown.find('ul');
     var dropDownMenu = dropDown.find('.br-ex-action-change-menu-menu');
     dropDown.on('click', '.br-ex-action-change-menu', function() {

@@ -28,7 +28,7 @@
     this.options.selectors.remove = this.options.selectors.remove || this.options.deleteSelector  || '.action-delete';
 
     this.dataSource = this.options.dataSource;
-    this.storageTag = document.location.pathname + this.dataSource.options.restServiceUrl;
+    this.storageTag = this.options.storageTag ? this.options.storageTag : document.location.pathname + ':' + this.dataSource.options.restServiceUrl;
 
     this.events = br.eventQueue(this);
     this.before = function(event, callback) { this.events.before(event, callback); };
@@ -166,20 +166,14 @@
       var row = $(_this.selector).find('[data-rowid=' + data.rowid + ']');
       if (row.length > 0) {
         var ctrl = _this.renderRow(data);
-        var s = ctrl.html();
-        ctrl.remove();
-        if (s.length > 0) {
-          _this.events.triggerBefore('update', data);
-          var $row0 = $(row[0]);
-          _this.events.trigger('update', data, $row0);
-          $row0.html(s);
-          $row0.data('data-row', data);
-          _this.events.triggerAfter('update', data, $row0);
-          _this.events.triggerAfter('renderRow', data, $row0);
-          return true;
-        } else {
-          return false;
-        }
+        _this.events.triggerBefore('update', data);
+        var $row0 = $(row[0]);
+        _this.events.trigger('update', data, $row0);
+        $row0.replaceWith(ctrl);
+        $row0.data('data-row', data);
+        _this.events.triggerAfter('update', data, $row0);
+        _this.events.triggerAfter('renderRow', data, $row0);
+        return true;
       } else {
         return false;
       }
