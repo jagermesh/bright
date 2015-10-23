@@ -47,12 +47,14 @@ class BrGenericAuthProvider extends BrSingleton {
         $cookie   = array( 'login'    => $login['login']
                          , 'token'    => $token
                          );
-        setcookie( $this->getAuthTag()
-                 , json_encode($cookie)
-                 , time() + 60*60*24*30
-                 , br()->request()->baseUrl()
-                 , br()->request()->domain() == 'localhost' ? false : br()->request()->domain()
-                 );
+        if (!br()->isConsoleMode()) {
+          setcookie( $this->getAuthTag()
+                   , json_encode($cookie)
+                   , time() + 60*60*24*30
+                   , br()->request()->baseUrl()
+                   , br()->request()->domain() == 'localhost' ? false : br()->request()->domain()
+                   );
+        }
       }
       $this->trigger('setLogin', $login);
       return br()->session()->set('login', $login);
@@ -85,12 +87,14 @@ class BrGenericAuthProvider extends BrSingleton {
 
   function clearLogin() {
 
-    setcookie( $this->getAuthTag()
-             , ''
-             , time() - 60*60*24*30
-             , br()->request()->baseUrl()
-             , br()->request()->domain() == 'localhost' ? false : br()->request()->domain()
-             );
+    if (!br()->isConsoleMode()) {
+      setcookie( $this->getAuthTag()
+               , ''
+               , time() - 60*60*24*30
+               , br()->request()->baseUrl()
+               , br()->request()->domain() == 'localhost' ? false : br()->request()->domain()
+               );
+    }
 
     if ($login = br()->auth()->getLogin()) {
       $this->trigger('clearLogin', $login);
