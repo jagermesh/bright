@@ -1778,6 +1778,14 @@
 
     var disconnected = false;
 
+    this.setStored = function(name, value) {
+      br.storage.set(this.storageTag + 'stored:' + name, value);
+    };
+
+    this.getStored = function(name, defaultValue) {
+      return br.storage.get(this.storageTag + 'stored:' + name, defaultValue);
+    };
+
     this.disconnectFromDataSource = function() {
       disconnected = true;
     };
