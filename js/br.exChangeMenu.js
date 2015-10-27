@@ -24,8 +24,10 @@
         options.onClick.call($(this), dataSource, rowid, data, menuElement);
       } else {
         dataSource.update(rowid, data, function(result, response) {
-          if (options.onUpdate) {
-            options.onUpdate.call(invoker, response, menuElement);
+          if (result) {
+            if (options.onUpdate) {
+              options.onUpdate.call(invoker, response, menuElement);
+            }
           }
         });
       }
