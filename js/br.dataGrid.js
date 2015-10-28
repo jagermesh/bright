@@ -179,8 +179,8 @@
         _this.events.trigger('update', data, $row0);
         $row0.replaceWith(ctrl);
         $row0.data('data-row', data);
-        _this.events.triggerAfter('update', data, $row0);
-        _this.events.triggerAfter('renderRow', data, $row0);
+        _this.events.triggerAfter('renderRow', data, ctrl);
+        _this.events.triggerAfter('update', data, ctrl);
         return true;
       } else {
         return false;
