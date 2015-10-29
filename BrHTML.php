@@ -141,7 +141,7 @@ class BrHTML extends BrSingleton {
       $search = new DOMXPath($doc);
       $results = $search->evaluate('//*[@style]');
       foreach ($results as $result) {
-        $result->removeAttribute(‘style’);
+        $result->removeAttribute('style');
       }
       $html = $doc->saveHTML();
     } catch (Exception $e) {
