@@ -147,6 +147,10 @@
       return _this.dataGrid.hasRow(rowid);
     };
 
+    this.removeRow = function(rowid) {
+      return _this.dataGrid.removeRow(rowid);
+    };
+
     var selectionQueue = [];
 
     function deleteQueued() {
