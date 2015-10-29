@@ -254,7 +254,7 @@
               ' data-click-on-enter="#br_promptModal .action-confirm-close" />';
       } else {
         s = s + '<label>' + i + '</label>' +
-                '<input type="text" class=" ' + (options.valueType == 'int' ? ' input-small' : ' justified') + (options.valueRequired ? ' required' : '') + ' " value="' + inputs[i] + '" data-click-on-enter=".action-confirm-close" />';
+                '<input type="text" class="form-control ' + (options.valueType == 'int' ? ' input-small' : ' justified') + (options.valueRequired ? ' required' : '') + ' " value="' + inputs[i] + '" data-click-on-enter=".action-confirm-close" />';
       }
     }
 
@@ -266,10 +266,10 @@
     var dialog = $(s);
     var remove = true;
     $(dialog)
-      .on('shown', function(e) {
+      .on('shown.bs.modal', function(e) {
         $(this).find('input[type=text]')[0].focus();
       })
-      .on('show', function(e) {
+      .on('show.bs.modal', function(e) {
         $(this).find('.action-confirm-close').click(function() {
           var results = [];
           var ok = true, notOkField;
