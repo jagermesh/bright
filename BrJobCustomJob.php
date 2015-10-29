@@ -32,7 +32,7 @@ class BrJobCustomJob {
 
   function waitForProcessor() {
 
-    while (br()->OS()->getProcessesAmount(array($this->runJobScript, $this->runJobScript)) > $this->maxProcessesAmount) {
+    while (br()->OS()->getProcessesAmount(array($this->runJobScript, $this->checkJobScript)) > $this->maxProcessesAmount) {
       br()->log('[...] Too many processes started, maximum is ' . $this->maxProcessesAmount . '. Waiting to continue');
       sleep(10);
     }
