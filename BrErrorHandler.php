@@ -142,7 +142,7 @@ class BrErrorHandler extends BrObject {
           }
 
           if (!headers_sent()) {
-            header('HTTP/1.0 501 Internal Server Error');
+            header('HTTP/1.0 500 Internal Server Error');
           }
 
           if (br()->request()->isLocalHost() && !($e instanceof BrAppException)) {

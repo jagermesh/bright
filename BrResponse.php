@@ -195,7 +195,7 @@ class BrResponse extends BrSingleton {
   function sendInternalServerError() {
 
     if (!headers_sent()) {
-      header('HTTP/1.0 501 Internal Server Error');
+      header('HTTP/1.0 500 Internal Server Error');
     }
 
   }
