@@ -118,9 +118,9 @@ class BrDataSource extends BrGenericDataSource {
 
     $transientData = array();
 
-    $options['fields'] = $fields;
-    $options['order']  = $order;
-    $options['dataSets']  = br(br($options, 'dataSets'))->split();
+    $options['fields']   = $fields;
+    $options['order']    = $order;
+    $options['dataSets'] = br(br($options, 'dataSets'))->split();
 
     $this->callEvent('before:select', $filter, $transientData, $options);
 
@@ -314,6 +314,7 @@ class BrDataSource extends BrGenericDataSource {
     $this->DMLType = 'update';
 
     $options['operation'] = 'update';
+    $options['dataSets']  = br(br($options, 'dataSets'))->split();
 
     $table = br()->db()->table($this->dbEntity());
 
@@ -371,6 +372,7 @@ class BrDataSource extends BrGenericDataSource {
     $this->DMLType = 'insert';
 
     $options['operation'] = 'insert';
+    $options['dataSets']  = br(br($options, 'dataSets'))->split();
 
     $old = array();
 
@@ -424,6 +426,7 @@ class BrDataSource extends BrGenericDataSource {
     $this->DMLType = 'remove';
 
     $options['operation'] = 'remove';
+    $options['dataSets']  = br(br($options, 'dataSets'))->split();
 
     $table = br()->db()->table($this->dbEntity());
 
