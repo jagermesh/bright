@@ -286,20 +286,18 @@ class BrFileSystem extends BrSingleton {
     }
 
     $startingDir = $this->normalizePath($startingDir);
-    if ($dir = opendir($startingDir)) {
-      while (($file = readdir($dir)) !== false) {
-        $fullFileName = $startingDir.$file;
-        if (($file != '..') && ($file != '.') && ($file != '.DS_Store')) {
-          $proceed = true;
-          if ($mask) {
-            $proceed = preg_match('#' . $mask . '#', $file);
-          }
-          if ($proceed) {
-            $callback(new BrFileSystemObject($fullFileName));
-          }
+    $files = scandir($startingDir);
+    foreach($files as $file) {
+      $fullFileName = $startingDir . $file;
+      if (($file != '..') && ($file != '.') && ($file != '.DS_Store')) {
+        $proceed = true;
+        if ($mask) {
+          $proceed = preg_match('#' . $mask . '#', $file);
+        }
+        if ($proceed) {
+          $callback(new BrFileSystemObject($fullFileName));
         }
       }
-      closedir($dir);
     }
 
   }
