@@ -619,13 +619,13 @@ class BrIMAP extends BrObject {
 
   public function openMailbox($mailbox = '') {
 
-    return imap_open($this->connectString.$mailbox, $this->userName, $this->password);
+    return imap_open($this->connectString.$mailbox, $this->userName, $this->password, 0, 5);
 
   }
 
   public function createMailBox($folderName) {
 
-    if ($mailbox = imap_open($this->connectString, $this->userName, $this->password)) {
+    if ($mailbox = imap_open($this->connectString, $this->userName, $this->password, 0, 5)) {
       if (imap_createmailbox($mailbox, imap_utf7_encode($this->connectString.$folderName))) {
 
       } else {
