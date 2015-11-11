@@ -3,7 +3,6 @@
 require_once(dirname(__DIR__).'/bright/Bright.php');
 
 if (!br()->isConsoleMode()) { br()->panic('Console mode only'); }
-
 if ($pid = br()->OS()->isPHPScriptRunning(__FILE__)) { br()->panic('This script already running, PID ' . $pid); }
 
 function createAuditTriggers($tableName, $excludeFields, $isAudited, $command = null) {
@@ -134,6 +133,7 @@ function syncTables() {
                             AND table_name NOT LIKE "backup%"
                             AND table_name NOT LIKE "rc_%"
                             AND table_name NOT LIKE "v_%"
+                            AND table_name NOT LIKE "shared_%"
                             AND table_name NOT LIKE "audit_%"'
                       , br()->config()->get('db.name')
                       );
@@ -163,34 +163,40 @@ function removeAuditTriggers($tableName) {
 
 syncTables();
 
-if ($tableName = @$argv[1]) {
+$commandName = '';
+$modifierName = '';
+$tableName = '%';
 
-  if (preg_match('|del.*|', @$argv[2])) {
-    removeAuditTriggers($tableName);
-  } else {
-    if ($table = br()->db()->getRow('SELECT * FROM audit_tables WHERE name = ?', $tableName)) {
-      if ($table['is_audited'] != 9) {
-        removeAuditTriggers($table['name']);
-        if ($table['is_audited']) {
-          createAuditTriggers($table['name'], $table['exclude_fields'], $table['is_audited'], @$argv[2]);
-        }
-      }
+switch(@$argv[1]) {
+  case 'setup':
+  case 'delete':
+    $commandName = $argv[1];
+    break;
+  default:
+    br()->log('Usage: php ' . basename(__FILE__) . ' setup|delete [--table tableName] [--print]');
+    exit();
+    break;
+}
+
+for($i = 2; $i < count($argv); $i++) {
+  if (preg_match('/^[-][-](.+)$/', $argv[$i], $matches)) {
+    if ($matches[1] == 'table') {
+      $tableName = $argv[$i+1];
+    }
+    if ($matches[1] == 'print') {
+      $modifierName = 'print';
     }
   }
+}
 
-
-} else {
-
-  $tables = br()->db()->getRows('SELECT * FROM audit_tables');
-  foreach($tables as $table) {
-    if ($table['is_audited'] != 9) {
-      removeAuditTriggers($table['name']);
-      if ($table['is_audited']) {
-        createAuditTriggers($table['name'], $table['exclude_fields'], $table['is_audited'], @$argv[2]);
-      }
+$tables = br()->db()->getRows('SELECT * FROM audit_tables WHERE name LIKE ?', $tableName);
+foreach($tables as $table) {
+  if ($table['is_audited'] != 9) {
+    removeAuditTriggers($table['name']);
+    if ($table['is_audited'] && ($commandName == 'setup')) {
+      createAuditTriggers($table['name'], $table['exclude_fields'], $table['is_audited'], $modifierName);
     }
   }
-
 }
 
 logme('done');
