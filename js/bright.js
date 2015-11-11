@@ -1855,17 +1855,25 @@
       return (row.length > 0);
     };
 
-    this.reloadRow = function(rowid, callback) {
+    this.reloadRow = function(rowid, callback, options) {
+      if (!br.isEmpty(callback)) {
+        if (!br.isFunction(callback)) {
+          options = callback;
+          callback = null;
+        }
+      }
+      options = options || { };
+      options.disableEvents = true;
       _this.dataSource.selectOne(rowid, function(result, response) {
         if (result) {
-          if (_this.refreshRow(response)) {
+          if (_this.refreshRow(response, options)) {
 
           } else {
             _this.addDataRow(response);
           }
           if (typeof callback == 'function') { callback.call(_this, response); }
         }
-      }, { disableEvents: true });
+      }, options);
     };
 
     function checkForEmptyGrid() {
@@ -1896,8 +1904,12 @@
       _this.dataSource.select();
     };
 
-    this.refreshRow = function(data) {
-      var row = $(_this.selector).find('[data-rowid=' + data.rowid + ']');
+    this.refreshRow = function(data, options) {
+      var filter = '[data-rowid=' + data.rowid + ']';
+      if (options && options.refreshSelector) {
+        filter = options.refreshSelector + filter;
+      }
+      var row = $(_this.selector).find(filter);
       if (row.length > 0) {
         var ctrl = _this.renderRow(data);
         _this.events.triggerBefore('update', data);

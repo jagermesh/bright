@@ -139,8 +139,8 @@
       return filter[name];
     };
 
-    this.reloadRow = function(rowid) {
-      _this.dataGrid.reloadRow(rowid);
+    this.reloadRow = function(rowid, callback, options) {
+      _this.dataGrid.reloadRow(rowid, callback, options);
     };
 
     this.hasRow = function(rowid) {
