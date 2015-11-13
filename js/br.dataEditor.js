@@ -156,7 +156,7 @@
 
     };
 
-    function fillControls(data) {
+    _this.fillControls = function(data) {
       if (data) {
         for(var i in data) {
           _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio][name=' + i + '],input.data-field[name=' + i + '],select.data-field[name=' + i + '],textarea.data-field[name=' + i + ']').each(function() {
@@ -186,7 +186,7 @@
           $(this).select2();
         });
       }
-    }
+    };
 
     this.show = function(rowid, isCopy) {
       closeConfirmationTmp = br.isCloseConfirmationRequired();
@@ -217,7 +217,7 @@
             editorRowData = data;
             _this.events.triggerBefore('editor.show', data, isCopy);
             _this.editorConfigure(isCopy);
-            fillControls(data);
+            _this.fillControls(data);
             if (isCopy) {
               editorRowid = null;
             }
@@ -237,7 +237,7 @@
       } else {
         _this.events.triggerBefore('editor.show');
         _this.editorConfigure(isCopy);
-        fillControls(defaultValues);
+        _this.fillControls(defaultValues);
         _this.events.trigger('editor.show', defaultValues);
         br.attachDatePickers(_this.inputsContainer);
         if (_this.container.hasClass('modal')) {
