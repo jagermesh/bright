@@ -2415,7 +2415,7 @@
         var s = '';
         var cbObj = {};
         cbObj.data = data;
-        if (_this.options.hideEmptyValue) {
+        if (_this.options.hideEmptyValue || (_this.options.autoSelectSingle && (data.length == 1))) {
 
         } else {
           cbObj.s = s;
@@ -2428,7 +2428,7 @@
         _this.events.triggerBefore('generateOptions', cbObj, $(this));
         s = cbObj.s;
 
-        for(var i in data) {
+        for(var i = 0; i < data.length; i++) {
           s = s + renderRow(data[i]);
           if (br.isEmpty(_this.options.selectedValue) && !br.isEmpty(_this.options.selectedValueField)) {
             var selectedValue = data[i][_this.options.selectedValueField];
