@@ -2710,6 +2710,7 @@
 ;(function ($, window) {
 
   window.br = window.br || {};
+  window.br.bootstrapVersion = 0;
 
   window.br.showError = function(s) {
     alert(s);
@@ -2777,10 +2778,17 @@
     options = options || {};
     options.cancelTitle = options.cancelTitle || br.trn('Cancel');
     var i;
+
     var s = '<div class="modal modal-autosize';
     if (options.cssClass) {
       s = s + ' ' + options.cssClass;
     }
+    s = s + '" id="br_modalConfirm"';
+    if (br.bootstrapVersion == 2) {
+      s = s + ' style="top:280px;"';
+    }
+    s = s + '>';
+
     var checkBoxes = '';
     if (options.checkBoxes) {
       for (i in options.checkBoxes) {
@@ -2798,11 +2806,10 @@
       }
     }
 
-    s = s + '" id="br_modalConfirm" style="top:290px;">'+
-            '<div class="modal-dialog">' +
+    s = s + '<div class="modal-dialog">' +
             '<div class="modal-content">' +
             '<div class="modal-header"><h3 class="modal-title">' + title + '</h3></div>' +
-            '<div class="modal-body">' + message + checkBoxes + '</div>' +
+            '<div class="modal-body" style="overflow-y:auto;">' + message + checkBoxes + '</div>' +
             '<div class="modal-footer">';
     if (options.showDontAskMeAgain) {
       var dontAskMeAgainTitle = (options.dontAskMeAgainTitle) ? options.dontAskMeAgainTitle : br.trn("Don't ask me again");
@@ -2865,13 +2872,17 @@
   };
 
   window.br.error = function(title, message, callback) {
-    var s = '<div class="modal modal-autosize" id="br_modalError" style="top:290px;">' +
+    var s = '<div class="modal modal-autosize" id="br_modalError"';
+    if (br.bootstrapVersion == 2) {
+      s = s + ' style="top:280px;"';
+    }
+    s = s + '>' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">';
     if (title !== '') {
       s = s + '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>';
     }
-    s = s + '<div class="modal-body">' + message + '</div>' +
+    s = s + '<div class="modal-body" style="overflow-y:auto;">' + message + '</div>' +
             '<div class="modal-footer" style="background-color:red;"><a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn('Dismiss') + '&nbsp;</a></div></div></div></div>';
     var dialog = $(s);
     var onHide = function(e) {
@@ -2898,13 +2909,17 @@
     options = options || {};
     var buttonTitle = options.buttonTitle || 'Dismiss';
 
-    var s = '<div class="modal modal-autosize" id="br_modalInform" style="top:290px;">' +
+    var s = '<div class="modal modal-autosize" id="br_modalInform"';
+    if (br.bootstrapVersion == 2) {
+      s = s + ' style="top:280px;"';
+    }
+    s = s + '>' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">';
     if (title !== '') {
       s = s + '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>';
     }
-    s = s + '<div class="modal-body" style="max-height:500px;">' + message + '</div>' +
+    s = s + '<div class="modal-body" style="overflow-y:auto;">' + message + '</div>' +
             '<div class="modal-footer">';
     if (options.showDontAskMeAgain) {
       var dontAskMeAgainTitle = (options.dontAskMeAgainTitle) ? options.dontAskMeAgainTitle : br.trn("Don't ask me again");
@@ -2939,11 +2954,15 @@
       inputs[fields] = '';
     }
 
-    var s = '<div class="modal modal-autosize" id="br_modalPrompt" style="top:290px;">'+
+    var s = '<div class="modal modal-autosize" id="br_modalPrompt"';
+    if (br.bootstrapVersion == 2) {
+      s = s + ' style="top:280px;"';
+    }
+    s = s + '>' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">' +
             '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>' + title + '</h3></div>' +
-            '<div class="modal-body">';
+            '<div class="modal-body" style="overflow-y:auto;">';
     for(var i in inputs) {
       if (br.isObject(inputs[i])) {
         s = s + '<label>' + i + '</label>' +
@@ -3062,7 +3081,7 @@
   };
 
   var progressBar_Total = 0, progressBar_Progress = 0, progressBar_Message = '';
-  var progressBarTemplate = '<div id="br_progressBar" class="modal" style="display:none;z-index:10000;top:290px;" data-backdrop="static">' +
+  var progressBarTemplate = '<div id="br_progressBar" class="modal" style="display:none;z-index:10000;top:280px;" data-backdrop="static">' +
                             '  <div class="modal-dialog">'+
                             '    <div class="modal-content">'+
                             '      <div class="modal-body">' +
@@ -3211,7 +3230,9 @@
 
     } else {
       (function(control) {
-        control.css('top', '280px');
+        if (br.bootstrapVersion == 2) {
+          control.css('top', '280px');
+        }
         control.on('shown.bs.modal', function() {
           br.resizeModalPopup(control);
         });
@@ -3299,6 +3320,12 @@
   $(document).ready(function() {
 
     var notAuthorized = false;
+
+    if ($.fn['modal'].toString().indexOf('bs.modal') == -1) {
+      br.bootstrapVersion = 2;
+    } else {
+      br.bootstrapVersion = 3;
+    }
 
     $(document).ajaxStart(function() {
       br.showAJAXProgress();
