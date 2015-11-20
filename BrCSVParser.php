@@ -14,7 +14,7 @@ class BrCSVParser extends BrObject {
 
   private $delimiter = ',';
   private $enclosure = '"';
-  private $enclosureArr = array('"',"'");  
+  private $enclosureArr = array('"',"'");
 
   function setDelimiter($delimiter) {
 
@@ -123,7 +123,7 @@ class BrCSVParser extends BrObject {
               $tcount = substr_count($line, $enclosure);
               $ind = $key;
             }
-          }          
+          }
           //------------------
 
           // $line = str_getcsv($line, $this->delimiter, $this->enclosure);
