@@ -143,6 +143,9 @@
           if (_this.refreshRow(response, options)) {
 
           } else {
+            if (_this.isEmpty()) {
+              $(_this.selector).html('');
+            }
             _this.addDataRow(response);
           }
           if (typeof callback == 'function') { callback.call(_this, response); }
@@ -160,7 +163,6 @@
     }
 
     this.removeRow = function(rowid) {
-
       var row = $(_this.selector).find('[data-rowid=' + rowid + ']');
       if (row.length > 0) {
         _this.events.triggerBefore('remove', rowid);
@@ -171,7 +173,6 @@
       } else {
         _this.dataSource.select();
       }
-
     };
 
     this.refresh = function(data) {
