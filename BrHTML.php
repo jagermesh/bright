@@ -89,8 +89,11 @@ class BrHTML extends BrSingleton {
 
   }
 
-  function toText($html) {
+  function toText($html, $smart = false) {
 
+    if ($smart) {
+      $html = preg_replace("/<div[^>]*?>/ism", "\n", $html);
+    }
     $html = preg_replace("/&nbsp;/ism", ' ', $html);
     $html = preg_replace("/(\n\n|\r\n\r\n|\r\r)/ism", '', $html);
     $html = preg_replace('/<br[^>]*>/ism', "\n", $html);

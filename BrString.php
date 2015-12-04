@@ -169,8 +169,8 @@ class BrString {
     return br()->HTML()->fromText($this->value);
   }
 
-  function htmlToText() {
-    return br()->HTML()->toText($this->value);
+  function htmlToText($smart = false) {
+    return br()->HTML()->toText($this->value, $smart);
   }
 
   function decodeNumHtmlEntities() {
