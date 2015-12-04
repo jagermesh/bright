@@ -68,7 +68,7 @@ class BrArray {
 
   }
 
-  function removeEmptyValues() {
+  function removeEmptyValues($assoc = true) {
 
     $result = array();
 
@@ -81,7 +81,11 @@ class BrArray {
         $go = strlen($value);
       }
       if ($go) {
-        $result[$key] = $value;
+        if ($assoc) {
+          $result[$key] = $value;
+        } else {
+          $result[] = $value;
+        }
       }
     }
 
