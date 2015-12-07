@@ -124,6 +124,8 @@ class BrErrorHandler extends BrObject {
 
         if (br()->isConsoleMode()) {
 
+          die(1);
+
         } else {
 
           if ($e instanceof BrErrorException) {
