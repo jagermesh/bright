@@ -121,8 +121,12 @@ class BrString {
 
   }
 
-  function split($delimiters = ',;') {
-    return br(preg_split('/[' . $delimiters . ']/', $this->value))->removeEmptyValues(false);
+  function split($delimiters = ',;', $removEmpty = true) {
+    $result = preg_split('/[' . $delimiters . ']/', $this->value);
+    if ($removEmpty) {
+      $result = br($result)->removeEmptyValues(false);
+    }
+    return $result;
   }
 
   function toCharPath() {
