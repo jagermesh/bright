@@ -109,6 +109,8 @@ class BrRabbitMQ extends BrSingleton {
       $this->channel->wait();
     }
 
+    $this->channel->basic_cancel($consumerTag);
+
     return $this;
 
   }
@@ -140,6 +142,8 @@ class BrRabbitMQ extends BrSingleton {
     while (!$aborted) {
       $this->channel->wait();
     }
+
+    $this->channel->basic_cancel($consumerTag);
 
     return $this;
 
