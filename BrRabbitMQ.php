@@ -89,7 +89,6 @@ class BrRabbitMQ extends BrSingleton {
     }
 
     $this->connect();
-    $this->channel->queue_bind($queueName, $exchange);
     if ($queueName = br($params, 'queueName')) {
 
     } else {
@@ -101,6 +100,7 @@ class BrRabbitMQ extends BrSingleton {
     $received = false;
 
     $this->channel->basic_consume($queueName, $consumerTag, false, false, false, false, function($msg) use ($callback, &$received) {
+      $received = true;
       $callback($msg->body);
       $msg->delivery_info['channel']->basic_ack($msg->delivery_info['delivery_tag']);
     });
