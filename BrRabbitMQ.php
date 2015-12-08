@@ -80,7 +80,7 @@ class BrRabbitMQ extends BrSingleton {
 
   }
 
-  function receiveOneMessage($exchangeName, $bindingKey, $callback, $params = array()) {
+  function receiveOneMessage($exchangeName, $bindingKey, $callback = null, $params = array()) {
 
     if (is_callable($bindingKey)) {
       $params = $callback;
@@ -97,15 +97,15 @@ class BrRabbitMQ extends BrSingleton {
     $consumerTag = br($params, 'consumerTag', 'unknown');
     $this->channel->queue_bind($queueName, $exchangeName, $bindingKey);
 
-    $received = false;
+    $aborted = false;
 
-    $this->channel->basic_consume($queueName, $consumerTag, false, false, false, false, function($msg) use ($callback, &$received) {
-      $received = true;
+    $this->channel->basic_consume($queueName, $consumerTag, false, false, false, false, function($msg) use ($callback, &$aborted) {
       $callback($msg->body);
       $msg->delivery_info['channel']->basic_ack($msg->delivery_info['delivery_tag']);
+      $aborted = true;
     });
 
-    while (!$received) {
+    while (!$aborted) {
       $this->channel->wait();
     }
 
