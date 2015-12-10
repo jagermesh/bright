@@ -165,7 +165,6 @@ class BrNestedSet extends BrObject {
 
     $node = $this->getNodePosition($values);
 
-
     $sql = br()->placeholder( 'UPDATE ' . $this->tableName . '
                                   SET right_key = right_key + 2
                                     , left_key = IF(left_key >= ?, left_key + 2, left_key)
