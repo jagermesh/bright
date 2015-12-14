@@ -336,7 +336,7 @@ class Br extends BrSingleton {
 
   function isConsoleMode() {
 
-    return (!array_key_exists('REQUEST_METHOD', $_SERVER));
+    return !isset($_SERVER) || (!array_key_exists('REQUEST_METHOD', $_SERVER));
 
   }
 
