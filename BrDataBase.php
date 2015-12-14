@@ -17,13 +17,13 @@ class BrDataBaseException extends BrException {
 
 class BrDataBase extends BrObject {
 
-  public static function getInstance($name = 'default') {
+  static $instances = array();
 
-    static $instances = array();
+  public static function getInstance($name = 'default') {
 
     $instance = null;
 
-    if (!isset($instances[$name])) {
+    if (!isset(self::$instances[$name])) {
 
       if ($dbList = br()->config()->get('db')) {
 
@@ -46,7 +46,7 @@ class BrDataBase extends BrObject {
             break;
         }
 
-        $instances[$name] = $instance;
+        self::$instances[$name] = $instance;
 
         if ($instance->isEnabled()) {
 
@@ -67,7 +67,7 @@ class BrDataBase extends BrObject {
 
     } else {
 
-      $instance = $instances[$name];
+      $instance = self::$instances[$name];
 
     }
 

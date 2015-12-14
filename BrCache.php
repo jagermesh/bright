@@ -12,16 +12,16 @@ require_once(__DIR__.'/BrObject.php');
 
 class BrCache extends BrObject {
 
-  public static function getInstance($name = 'default') {
+  static $instances = array();
+  static $reconsider = true;
 
-    static $instances = array();
-    static $reconsider = true;
+  public static function getInstance($name = 'default') {
 
     $instance = null;
 
-    if ($reconsider || !isset($instances[$name])) {
+    if (self::$reconsider || !isset(self::$instances[$name])) {
       if ($dbList = br()->config()->get('cache')) {
-        $reconsider = false;
+        self::$reconsider = false;
         $cacheConfig = br($dbList, $name, $dbList);
         br()->assert($cacheConfig, 'Cache [' . $name . '] not configured');
         try {
@@ -30,15 +30,15 @@ class BrCache extends BrObject {
           $instance = BrCache::createInstance('default', $cacheConfig);
         }
       } else {
-        if (isset($instances[$name])) {
-          $instance = $instances[$name];
+        if (isset(self::$instances[$name])) {
+          $instance = self::$instances[$name];
         } else {
           $instance = BrCache::createInstance($name);
         }
       }
-      $instances[$name] = $instance;
+      self::$instances[$name] = $instance;
     } else {
-      $instance = $instances[$name];
+      $instance = self::$instances[$name];
     }
 
     return $instance;

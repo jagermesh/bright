@@ -16,7 +16,21 @@ class BrObject {
   private $attributes = array();
   private $enabled = 0;
 
+  static $instances = array();
+
   function __construct() {
+
+  }
+
+  public static function getInstance() {
+
+    $className = get_called_class();
+
+    if (!isset(self::$instances[$className])) {
+      self::$instances[$className] = new $className();
+    }
+
+    return self::$instances[$className];
 
   }
 
@@ -106,20 +120,6 @@ class BrObject {
   public function isEnabled() {
 
     return ($this->enabled == 0);
-
-  }
-
-  public static function getInstance() {
-
-    static $instances;
-
-    $className = get_called_class();
-
-    if (!isset($instances[$className])) {
-      $instances[$className] = new $className();
-    }
-
-    return $instances[$className];
 
   }
 

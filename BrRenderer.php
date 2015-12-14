@@ -17,22 +17,22 @@ class BrRendererException extends BrException {
 
 class BrRenderer extends BrObject {
 
-  public static function getInstance($name = 'default') {
+  static $instances = array();
 
-    static $instances = array();
+  public static function getInstance($name = 'default') {
 
     $instance = null;
 
-    if (!isset($instances[$name])) {
+    if (!isset(self::$instances[$name])) {
 
       require_once(__DIR__.'/BrFileRenderer.php');
   		$instance = new BrFileRenderer();
 
-	    $instances[$name] = $instance;
+	    self::$instances[$name] = $instance;
 
     } else {
 
-      $instance = $instances[$name];
+      $instance = self::$instances[$name];
 
     }
 

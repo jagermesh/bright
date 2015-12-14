@@ -12,18 +12,18 @@ require_once(__DIR__.'/BrObject.php');
 
 class BrAuth extends BrObject {
 
-  public static function getInstance($name = 'default') {
+  static $instances = array();
+  static $reconsider = true;
 
-    static $instances = array();
-    static $reconsider = true;
+  public static function getInstance($name = 'default') {
 
     $instance = null;
 
-    if ($reconsider || !isset($instances[$name])) {
+    if (self::$reconsider || !isset(self::$instances[$name])) {
 
       if ($authList = br()->config()->get('auth')) {
 
-        $reconsider = false;
+        self::$reconsider = false;
 
         $authConfig = br($authList, $name, $authList);
 
@@ -41,9 +41,9 @@ class BrAuth extends BrObject {
 
       } else {
 
-        if (isset($instances[$name])) {
+        if (isset(self::$instances[$name])) {
 
-          $instance  = $instances[$name];
+          $instance  = self::$instances[$name];
 
         } else {
 
@@ -56,11 +56,11 @@ class BrAuth extends BrObject {
 
       }
 
-      $instances[$name] = $instance;
+      self::$instances[$name] = $instance;
 
     } else {
 
-      $instance = $instances[$name];
+      $instance = self::$instances[$name];
 
     }
 
