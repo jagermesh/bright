@@ -66,7 +66,7 @@ class BrGenericLogAdapter extends BrObject {
               }
             }
           }
-        } catch (Excetpion $e) {
+        } catch (Exception $e) {
           br()->log()->enable();
         }
 

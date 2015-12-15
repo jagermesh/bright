@@ -73,7 +73,7 @@ class BrRMQLogAdapter extends BrGenericLogAdapter {
                 }
               }
             }
-          } catch (Excetpion $e) {
+          } catch (Exception $e) {
             br()->log()->enable();
           }
 
