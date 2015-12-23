@@ -3232,7 +3232,11 @@
     } else {
       (function(control) {
         if (br.bootstrapVersion == 2) {
-          control.css('top', '280px');
+          if(br.isMobileDevice()){
+            control.css('top', '20px');
+          }else{
+            control.css('top', '280px');
+          }
         }
         control.on('shown.bs.modal', function() {
           br.resizeModalPopup(control);
