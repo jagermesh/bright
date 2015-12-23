@@ -85,7 +85,11 @@
     }
     s = s + '" id="br_modalConfirm"';
     if (br.bootstrapVersion == 2) {
-      s = s + ' style="top:280px;"';
+      if (br.isMobileDevice()) {
+        s = s + ' style="top:20px;"';
+      } else {
+        s = s + ' style="top:280px;"';
+      }
     }
     s = s + '>';
 
@@ -174,7 +178,11 @@
   window.br.error = function(title, message, callback) {
     var s = '<div class="modal modal-autosize" id="br_modalError"';
     if (br.bootstrapVersion == 2) {
-      s = s + ' style="top:280px;"';
+      if (br.isMobileDevice()) {
+        s = s + ' style="top:20px;"';
+      } else {
+        s = s + ' style="top:280px;"';
+      }
     }
     s = s + '>' +
             '<div class="modal-dialog">' +
@@ -211,7 +219,11 @@
 
     var s = '<div class="modal modal-autosize" id="br_modalInform"';
     if (br.bootstrapVersion == 2) {
-      s = s + ' style="top:280px;"';
+      if (br.isMobileDevice()) {
+        s = s + ' style="top:20px;"';
+      } else {
+        s = s + ' style="top:280px;"';
+      }
     }
     s = s + '>' +
             '<div class="modal-dialog">' +
@@ -256,7 +268,11 @@
 
     var s = '<div class="modal modal-autosize" id="br_modalPrompt"';
     if (br.bootstrapVersion == 2) {
-      s = s + ' style="top:280px;"';
+      if (br.isMobileDevice()) {
+        s = s + ' style="top:20px;"';
+      } else {
+        s = s + ' style="top:280px;"';
+      }
     }
     s = s + '>' +
             '<div class="modal-dialog">' +
@@ -420,7 +436,15 @@
     progressBar_Progress = 0;
     progressBar_Message = message;
     if ($('#br_progressBar').length === 0) {
-      $('body').append($(progressBarTemplate));
+      var pbr = $(progressBarTemplate);
+      if (br.bootstrapVersion == 2) {
+        if (br.isMobileDevice()) {
+          pbr.css('top', '20px');
+        } else {
+          pbr.css('top', '280px');
+        }
+      }
+      $('body').append(pbr);
     }
     if (progressBar_Total > 1) {
       $('#br_progressBar_Section').show();
@@ -531,7 +555,11 @@
     } else {
       (function(control) {
         if (br.bootstrapVersion == 2) {
-          control.css('top', '280px');
+          if (br.isMobileDevice()) {
+            control.css('top', '20px');
+          } else {
+            control.css('top', '280px');
+          }
         }
         control.on('shown.bs.modal', function() {
           br.resizeModalPopup(control);
