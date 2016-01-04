@@ -18,7 +18,7 @@ class BrHTML extends BrSingleton {
 
     $html = preg_replace('|<!--.+?-->|ism', '', $html);
     $html = preg_replace('|<title></title>|i', '', $html);
-    // $html = preg_replace('|(style="[^"]*)(text-indent:[^;"]+[;"])|i', '$1', $html);
+    // $html = preg_replace('|(style="[^"]*)(text-indent:[^;"]+)|i', '$1', $html);
     $html = preg_replace('|<script[^>]*>.*?</script>|ism', '', $html);
     $html = preg_replace('|<style[^>]*>.*?</style>|ism', '', $html);
     $html = preg_replace('|<head[^>]*>.*?</head>|ism', '', $html);
