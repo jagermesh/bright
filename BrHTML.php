@@ -16,8 +16,9 @@ class BrHTML extends BrSingleton {
 
     $html = str_replace('{cke_protected}{C}', '', $html);
 
+    $html = preg_replace('|<!--.+?-->|ism', '', $html);
     $html = preg_replace('|<title></title>|i', '', $html);
-    $html = preg_replace('|(style="[^"]*)(text-indent:[^;]+;)|i', '$1', $html);
+    $html = preg_replace('|(style="[^"]*)(text-indent:[^;"]+[;"])|i', '$1', $html);
     $html = preg_replace('|<script[^>]*>.*?</script>|ism', '', $html);
     $html = preg_replace('|<style[^>]*>.*?</style>|ism', '', $html);
     $html = preg_replace('|<head[^>]*>.*?</head>|ism', '', $html);
@@ -26,7 +27,6 @@ class BrHTML extends BrSingleton {
     $html = preg_replace('|<base[^>]*>|ism', '', $html);
     $html = preg_replace('|<body[^>]*>|ism', '', $html);
     $html = preg_replace('|</body>|ism', '', $html);
-    $html = preg_replace('|<!--.+?-->|ism', '', $html);
     $html = preg_replace('|onload="[^"]+"|ism', '', $html);
     $html = preg_replace('|<p>[\s\r\t\n ]*&nbsp;</p>|i', '', $html);
 
@@ -35,7 +35,7 @@ class BrHTML extends BrSingleton {
     $html = trim($html);
     if ($html == '&nbsp;') {
       $html = '';
-    };
+    }
 
     return $html;
 
