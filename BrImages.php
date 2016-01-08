@@ -37,6 +37,8 @@ class BrImages extends BrSingleton {
 
   function generateThumbnails($src, $thumbnails = null) {
 
+    $result = array();
+
     if ($thumbnails) {
 
       if (!is_array($thumbnails)) {
@@ -53,9 +55,11 @@ class BrImages extends BrSingleton {
       }
 
       foreach($thumbnails as $thumbnail_code => $thumbnail_desc) {
-        $this->generateThumbnail($src, $thumbnail_desc['width'], $thumbnail_desc['height']);
+        $result[] = $this->generateThumbnail($src, $thumbnail_desc['width'], $thumbnail_desc['height']);
       }
     }
+
+    return $result;
 
   }
 

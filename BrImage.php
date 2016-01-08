@@ -35,20 +35,20 @@ class BrImage extends BrObject {
     if ($this->imageLibSupported()) {
       switch(br()->fs()->fileExt($path)) {
         case 'png':
-          br()->log('Trying open ' . $path . ' as PNG');
+          // br()->log('Trying open ' . $path . ' as PNG');
           if ($this->image = @ImageCreateFromPNG($path)) {
             $this->format = "png";
           }
           break;
         case 'jpg':
         case 'jpeg':
-          br()->log('Trying open ' . $path . ' as JPG');
+          // br()->log('Trying open ' . $path . ' as JPG');
           if ($this->image = @ImageCreateFromJPEG($path)) {
             $this->format = "jpg";
           }
           break;
         case 'gif':
-          br()->log('Trying open ' . $path . ' as GIF');
+          // br()->log('Trying open ' . $path . ' as GIF');
           if ($this->image = @ImageCreateFromGIF($path)) {
             $this->format = "gif";
           }
@@ -57,17 +57,17 @@ class BrImage extends BrObject {
       if ($this->image) {
 
       } else {
-        br()->log('Trying open ' . $path . ' as PNG');
+        // br()->log('Trying open ' . $path . ' as PNG');
         $this->image = ImageCreateFromPNG($path);
         if ($this->image) {
           $this->format = "png";
         } else {
-          br()->log('Trying open ' . $path . ' as JPEG');
+          // br()->log('Trying open ' . $path . ' as JPEG');
           $this->image = ImageCreateFromJPEG($path);
           if ($this->image) {
             $this->format = "jpg";
           } else {
-            br()->log('Trying open ' . $path . ' as GIF');
+            // br()->log('Trying open ' . $path . ' as GIF');
             $this->image = ImageCreateFromGIF($path);
             if ($this->image) {
               $this->format = "gif";
