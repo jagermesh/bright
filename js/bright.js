@@ -2786,11 +2786,11 @@
     }
     s = s + '" id="br_modalConfirm"';
     if (br.bootstrapVersion == 2) {
-      if (br.isMobileDevice()) {
-        s = s + ' style="top:20px;"';
-      } else {
-        s = s + ' style="top:280px;"';
-      }
+      // if (br.isMobileDevice()) {
+        // s = s + ' style="top:20px;"';
+      // } else {
+        s = s + ' style="top:20px;margin-top:0px;"';
+      // }
     }
     s = s + '>';
 
@@ -2879,11 +2879,11 @@
   window.br.error = function(title, message, callback) {
     var s = '<div class="modal modal-autosize" id="br_modalError"';
     if (br.bootstrapVersion == 2) {
-      if (br.isMobileDevice()) {
-        s = s + ' style="top:20px;"';
-      } else {
-        s = s + ' style="top:280px;"';
-      }
+      // if (br.isMobileDevice()) {
+        // s = s + ' style="top:20px;"';
+      // } else {
+        s = s + ' style="top:20px;margin-top:0px;"';
+      // }
     }
     s = s + '>' +
             '<div class="modal-dialog">' +
@@ -2920,11 +2920,11 @@
 
     var s = '<div class="modal modal-autosize" id="br_modalInform"';
     if (br.bootstrapVersion == 2) {
-      if (br.isMobileDevice()) {
-        s = s + ' style="top:20px;"';
-      } else {
-        s = s + ' style="top:280px;"';
-      }
+      // if (br.isMobileDevice()) {
+        // s = s + ' style="top:20px;"';
+      // } else {
+        s = s + ' style="top:20px;margin-top:0px;"';
+      // }
     }
     s = s + '>' +
             '<div class="modal-dialog">' +
@@ -2969,11 +2969,11 @@
 
     var s = '<div class="modal modal-autosize" id="br_modalPrompt"';
     if (br.bootstrapVersion == 2) {
-      if (br.isMobileDevice()) {
-        s = s + ' style="top:20px;"';
-      } else {
-        s = s + ' style="top:280px;"';
-      }
+      // if (br.isMobileDevice()) {
+        // s = s + ' style="top:20px;"';
+      // } else {
+        s = s + ' style="top:20px;margin-top:0px;"';
+      // }
     }
     s = s + '>' +
             '<div class="modal-dialog">' +
@@ -3098,7 +3098,7 @@
   };
 
   var progressBar_Total = 0, progressBar_Progress = 0, progressBar_Message = '';
-  var progressBarTemplate = '<div id="br_progressBar" class="modal" style="display:none;z-index:10000;top:280px;" data-backdrop="static">' +
+  var progressBarTemplate = '<div id="br_progressBar" class="modal" style="display:none;z-index:10000;top:20px;margin-top:0px;" data-backdrop="static">' +
                             '  <div class="modal-dialog">'+
                             '    <div class="modal-content">'+
                             '      <div class="modal-body">' +
@@ -3139,11 +3139,12 @@
     if ($('#br_progressBar').length === 0) {
       var pbr = $(progressBarTemplate);
       if (br.bootstrapVersion == 2) {
-        if (br.isMobileDevice()) {
+        // if (br.isMobileDevice()) {
+          // pbr.css('top', '20px');
+        // } else {
           pbr.css('top', '20px');
-        } else {
-          pbr.css('top', '280px');
-        }
+          pbr.css('margin-top', '0px');
+        // }
       }
       $('body').append(pbr);
     }
@@ -3256,11 +3257,12 @@
     } else {
       (function(control) {
         if (br.bootstrapVersion == 2) {
-          if (br.isMobileDevice()) {
+          // if (br.isMobileDevice()) {
+            // control.css('top', '20px');
+          // } else {
             control.css('top', '20px');
-          } else {
-            control.css('top', '280px');
-          }
+            control.css('margin-top', '0px');
+          // }
         }
         control.on('shown.bs.modal', function() {
           br.resizeModalPopup(control);
