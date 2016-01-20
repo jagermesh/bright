@@ -85,9 +85,7 @@
     }
     s = s + '" id="br_modalConfirm"';
     if (br.bootstrapVersion == 2) {
-      if (br.isMobileDevice()) {
-        s = s + ' style="top:20px;"';
-      } else {
+      if (!br.isMobileDevice()) {
         s = s + ' style="top:280px;"';
       }
     }
@@ -178,9 +176,7 @@
   window.br.error = function(title, message, callback) {
     var s = '<div class="modal modal-autosize" id="br_modalError"';
     if (br.bootstrapVersion == 2) {
-      if (br.isMobileDevice()) {
-        s = s + ' style="top:20px;"';
-      } else {
+      if (!br.isMobileDevice()) {
         s = s + ' style="top:280px;"';
       }
     }
@@ -219,9 +215,7 @@
 
     var s = '<div class="modal modal-autosize" id="br_modalInform"';
     if (br.bootstrapVersion == 2) {
-      if (br.isMobileDevice()) {
-        s = s + ' style="top:20px;"';
-      } else {
+      if (!br.isMobileDevice()) {
         s = s + ' style="top:280px;"';
       }
     }
@@ -268,9 +262,7 @@
 
     var s = '<div class="modal modal-autosize" id="br_modalPrompt"';
     if (br.bootstrapVersion == 2) {
-      if (br.isMobileDevice()) {
-        s = s + ' style="top:20px;"';
-      } else {
+      if (!br.isMobileDevice()) {
         s = s + ' style="top:280px;"';
       }
     }
@@ -438,9 +430,7 @@
     if ($('#br_progressBar').length === 0) {
       var pbr = $(progressBarTemplate);
       if (br.bootstrapVersion == 2) {
-        if (br.isMobileDevice()) {
-          pbr.css('top', '20px');
-        } else {
+        if (!br.isMobileDevice()) {
           pbr.css('top', '280px');
         }
       }
@@ -555,9 +545,7 @@
     } else {
       (function(control) {
         if (br.bootstrapVersion == 2) {
-          if (br.isMobileDevice()) {
-            control.css('top', '20px');
-          } else {
+          if (!br.isMobileDevice()) {
             control.css('top', '280px');
           }
         }
