@@ -140,15 +140,15 @@
         }
       });
 
-      $('div.data-field[data-toggle=buttons-radio],input.data-field[type=checkbox],input.data-field[type=radio]', _this.inputsContainer).on('click', function() {
+      $(_this.inputsContainer).on('click', 'div.data-field[data-toggle=buttons-radio],input.data-field[type=checkbox],input.data-field[type=radio]', function() {
         br.confirmClose();
       });
 
-      $('select.data-field', _this.inputsContainer).on('change', function() {
+      $(_this.inputsContainer).on('change', 'select.data-field', function() {
         br.confirmClose();
       });
 
-      $('input.data-field,textarea.data-field', _this.inputsContainer).on('keypress', function() {
+      $(_this.inputsContainer).on('keypress', 'input.data-field,textarea.data-field', function() {
         br.confirmClose();
       });
 
