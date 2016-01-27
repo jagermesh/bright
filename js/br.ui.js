@@ -651,10 +651,14 @@
 
     var notAuthorized = false;
 
-    if ($.fn['modal'].toString().indexOf('bs.modal') == -1) {
-      br.bootstrapVersion = 2;
+    if ($.fn['modal']) {
+      if ($.fn['modal'].toString().indexOf('bs.modal') == -1) {
+        br.bootstrapVersion = 2;
+      } else {
+        br.bootstrapVersion = 3;
+      }
     } else {
-      br.bootstrapVersion = 3;
+      br.bootstrapVersion = 0;
     }
 
     $(document).ajaxStart(function() {
