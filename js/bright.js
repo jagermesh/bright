@@ -2245,6 +2245,7 @@
 
     this.fields = this.options.fields || {};
     this.saveSelection = this.options.saveSelection || false;
+    this.saveToSessionStorage = this.options.saveToSessionStorage || false;
     this.selectedValueField = this.options.selectedValueField || null;
     this.noDecoration = this.options.noDecoration;// || (this.selector.attr('multiple') == 'multiple');
 
@@ -2315,7 +2316,11 @@
     this.val = function(value) {
       if (value !== undefined) {
         if (_this.saveSelection) {
-          br.storage.set(storageTag(_this.selector), value);
+          if (_this.saveToSessionStorage) {
+            br.session.set(storageTag(_this.selector), value);
+          } else {
+            br.storage.set(storageTag(_this.selector), value);
+          }
         }
         if (_this.isValid()) {
           _this.selector.val(value);
@@ -2345,6 +2350,7 @@
 
     this.reset = function(triggerChange) {
       br.storage.remove(storageTag(this.selector));
+      br.session.remove(storageTag(this.selector));
       if (_this.isValid()) {
         this.selector.val('');
         if (triggerChange) {
@@ -2402,7 +2408,11 @@
     function render(data) {
 
       if (_this.saveSelection) {
-        _this.options.selectedValue = br.storage.get(storageTag(_this.selector));
+        if (_this.saveToSessionStorage) {
+          _this.options.selectedValue = br.session.get(storageTag(_this.selector));
+        } else {
+          _this.options.selectedValue = br.storage.get(storageTag(_this.selector));
+        }
       }
 
       _this.selector.each(function() {
@@ -2525,7 +2535,11 @@
     } else {
 
       if (_this.saveSelection) {
-        _this.options.selectedValue = br.storage.get(storageTag(_this.selector));
+        if (_this.saveToSessionStorage) {
+          _this.options.selectedValue = br.session.get(storageTag(_this.selector));
+        } else {
+          _this.options.selectedValue = br.storage.get(storageTag(_this.selector));
+        }
         if (!br.isEmpty(_this.options.selectedValue)) {
           _this.val(_this.options.selectedValue);
         }
@@ -2535,7 +2549,11 @@
 
     _this.selector.change(function() {
       if (_this.saveSelection) {
-        br.storage.set(storageTag(this), $(this).val());
+        if (_this.saveToSessionStorage) {
+          br.session.set(storageTag(this), $(this).val());
+        } else {
+          br.storage.set(storageTag(this), $(this).val());
+        }
       }
       _this.events.trigger('change');
       uiSync();
