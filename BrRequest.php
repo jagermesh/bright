@@ -26,6 +26,7 @@ class BrRequest extends BrSingleton {
   private $putVars = array();
   private $serverAddr = null;
   private $rawInput = null;
+  private $urlRestrictions = array();
 
   function __construct() {
 
@@ -524,6 +525,27 @@ class BrRequest extends BrSingleton {
   function routeComplete() {
 
     return !$this->continueRoute;
+
+  }
+
+  function setUrlRestrictions($restriction) {
+
+    $this->urlRestrictions[] = $restriction;
+
+    foreach($this->urlRestrictions as $restriction) {
+      if ($restriction['type'] == 'allowOnly') {
+        if ($restriction['rule']) {
+          if (!$this->isAt($restriction['rule'])) {
+            if ($restriction['redirect']) {
+              br()->auth()->clearLogin();
+              br()->response()->redirect($restriction['redirect']);
+            } else {
+              br()->response()->sendNotAuthorized();
+            }
+          }
+        }
+      }
+    }
 
   }
 
