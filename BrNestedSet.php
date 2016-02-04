@@ -27,7 +27,7 @@ class BrNestedSet extends BrObject {
 
     $this->keyField    = br($params, 'keyField',    'id');
     $this->parentField = br($params, 'parentField', 'parent_id');
-    $this->orderField  = br($params, 'orderField');
+    $this->orderField  = br($params, 'orderField',  'name');
     $this->rangeField  = br($params, 'rangeField');
 
   }

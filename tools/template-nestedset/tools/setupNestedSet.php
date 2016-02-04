@@ -36,6 +36,6 @@ if ($tableName = @$argv[1]) {
 
 } else {
 
-  br()->log('Usage: php setupNestedSet.php tableName [--createStructure] [--nameField=name] [--rangeField=range_id] [--orderField=name] [--parentField=parent_id]');
+  br()->log('Usage: php setupNestedSet.php tableName [--createStructure] [--nameField=name] [--rangeField=] [--orderField=name] [--parentField=parent_id]');
 
 }
