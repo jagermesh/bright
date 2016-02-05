@@ -188,9 +188,10 @@
       if (row.length > 0) {
         var ctrl = _this.renderRow(data);
         _this.events.triggerBefore('update', data);
-        _this.events.trigger('update', data, row);
-        row.replaceWith(ctrl);
-        row.data('data-row', data);
+        var $row0 = $(row[0]);
+        _this.events.trigger('update', data, $row0);
+        $row0.replaceWith(ctrl);
+        $row0.data('data-row', data);
         _this.events.triggerAfter('renderRow', data, ctrl);
         _this.events.triggerAfter('update', data, ctrl);
         return true;

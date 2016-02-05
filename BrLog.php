@@ -161,30 +161,41 @@ class BrLog extends BrSingleton {
   }
 
   function formatCallParams($params, $level = 0) {
-
     $result = '';
-    foreach($params as $arg) {
-      if (is_numeric($arg)) {
-        $result .= $arg . ', ';
-      } else
+    foreach($params as $idx => $arg) {
+      if ($level > 0) {
+        $result .= '\'' . $idx . '\' => ';
+      }
       if (is_array($arg)) {
-        if ($level) {
-          $result .= '[array], ';
-        } else {
-          $result .= '['.$this->formatCallParams($arg, $level + 1).'], ';
+        $result .= 'array(';
+        if (count($arg) > 0) {
+          if ($level > 3) {
+            $result .= '...';
+          } else {
+            $result .= $this->formatCallParams($arg, $level + 1);
+          }
         }
+        $result .= ')';
+      } else
+      if (is_numeric($arg)) {
+        $result .= $arg;
       } else
       if (is_object($arg)) {
-        $result .= '[' . get_class($arg) . '], ';
+        $result .= '[' . get_class($arg) . ']';
       } else
       if (is_resource($arg)) {
-        $result .= '#' . (string)$arg . ', ';
+        $result .= '[' . get_resource_type($arg) . ']';
       } else
       if (!$arg) {
-        $result .= 'null, ';
+        $result .= 'null';
       } else {
-        $result .= '"' . substr((string)$arg, 0, 255) . '", ';
+        $s = (string)$arg;
+        if (strlen($s) > 255) {
+          $s = substr($s, 0, 255) . '...';
+        }
+        $result .= '\'' . $s . '\'';
       }
+      $result .= ', ';
     }
     return rtrim($result, ', ');
 

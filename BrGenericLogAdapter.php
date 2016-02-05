@@ -82,6 +82,9 @@ class BrGenericLogAdapter extends BrObject {
           $requestData = @json_encode(br()->request()->put());
         }
         if ($requestData) {
+          if (strlen($requestData) > 1023*16) {
+            $requestData = substr($requestData, 0, 1023*16) . '...';
+          }
           $this->writeMessage('Request data:  ' . $requestData,                $group);
         }
       }
