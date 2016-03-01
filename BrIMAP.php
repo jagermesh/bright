@@ -622,7 +622,6 @@ class BrIMAP extends BrObject {
     if ($mailbox = @imap_open($this->connectString.$mailbox, $this->userName, $this->password, 0, 5)) {
       return $mailbox;
     } else {
-      debug($this->connectString.$mailbox, $this->userName, $this->password);
       throw new Exception(implode(', ', imap_errors()));
     }
 
