@@ -619,13 +619,18 @@ class BrIMAP extends BrObject {
 
   public function openMailbox($mailbox = '') {
 
-    return imap_open($this->connectString.$mailbox, $this->userName, $this->password, 0, 5);
+    if ($mailbox = @imap_open($this->connectString.$mailbox, $this->userName, $this->password, 0, 5)) {
+      return $mailbox;
+    } else {
+      debug($this->connectString.$mailbox, $this->userName, $this->password);
+      throw new Exception(implode(', ', imap_errors()));
+    }
 
   }
 
   public function createMailBox($folderName) {
 
-    if ($mailbox = imap_open($this->connectString, $this->userName, $this->password, 0, 5)) {
+    if ($mailbox = @imap_open($this->connectString, $this->userName, $this->password, 0, 5)) {
       if (imap_createmailbox($mailbox, imap_utf7_encode($this->connectString.$folderName))) {
 
       } else {
@@ -638,7 +643,11 @@ class BrIMAP extends BrObject {
   }
 
   public function expunge($path) {
-    imap_expunge($this->openMailbox($path));
+
+    if ($mailbox = $this->openMailbox($path)) {
+      imap_expunge($mailbox);
+    }
+
   }
 
   static function decode($body, $encoding) {
