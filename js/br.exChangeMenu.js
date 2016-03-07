@@ -62,7 +62,7 @@
     var menuElement = invoker.find('span.br-ex-current-value');
     var filter = { __targetRowid: rowid };
     if (options.onSelect) {
-      options.onSelect.call(choicesDataSource, filter, rowid);
+      options.onSelect.call(choicesDataSource, filter, rowid, $(el));
     }
     choicesDataSource.select(filter, function(result, response) {
       if (result && (response.length > 0)) {
