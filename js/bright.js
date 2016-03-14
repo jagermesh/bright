@@ -610,6 +610,11 @@
       _this.wakeup();
     };
 
+    this.clear = function(func) {
+      _this.queue = [];
+      _this.workingQueue = [];
+    };
+
     this.wakeup = function() {
       if ((_this.queue.length > 0) && (_this.workingQueue.length === 0)) {
         var obj = _this.queue.pop();
