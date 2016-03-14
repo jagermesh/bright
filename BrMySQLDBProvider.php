@@ -362,7 +362,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     $args = func_get_args();
     $sql = array_shift($args);
 
-    $cacheTag = 'MySQLDBProvder:getCachedValues:' . $sql . serialize($args);
+    $cacheTag = 'MySQLDBProvder:getCachedValues:' . md5($sql) . md5(serialize($args));
 
     $result = br()->cache()->get($cacheTag);
 
