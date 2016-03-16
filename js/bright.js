@@ -3422,6 +3422,15 @@
 
     br.initScrollableAreas();
 
+    if (br.bootstrapVersion == 2) {
+      $('ul.dropdown-menu [data-toggle=dropdown]').on('touchstart', function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        $(this).closest('.dropdown-menu').find('.dropdown-submenu').removeClass('open');
+        $(this).parent().addClass('open');
+      });
+    }
+
   });
 
 })(jQuery, window);
