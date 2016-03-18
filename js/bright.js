@@ -2242,6 +2242,7 @@
     this.options.hideEmptyValue = this.options.hideEmptyValue || (this.selector.attr('multiple') == 'multiple');
     this.options.emptyName = (typeof this.options.emptyName == 'undefined' ? '--any--' : this.options.emptyName);
     this.options.emptyValue = (typeof this.options.emptyValue == 'undefined' ? '' : this.options.emptyValue);
+    this.options.allowClear = (typeof this.options.allowClear == 'undefined' ? false : this.options.allowClear);
     this.loaded = false;
 
     if (this.options.skipTranslate) {
@@ -2313,6 +2314,9 @@
         var params = {};
         if (_this.options.skipTranslate) {
           params.dropdownCssClass = 'skiptranslate';
+        }
+        if (_this.options.allowClear) {
+          params.allowClear = _this.options.allowClear;
         }
         _this.selector.select2(params);
       }
@@ -2437,7 +2441,11 @@
           cbObj.s = s;
           _this.events.triggerBefore('generateEmptyOption', cbObj, $(this));
           s = cbObj.s;
-          s = s + '<option value="' + _this.options.emptyValue + '">' + _this.options.emptyName + '</option>';
+          if (_this.options.allowClear) {
+            s = s + '<option></option>';
+          } else {
+            s = s + '<option value="' + _this.options.emptyValue + '">' + _this.options.emptyName + '</option>';
+          }
         }
 
         cbObj.s = s;
