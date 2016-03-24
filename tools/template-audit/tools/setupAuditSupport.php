@@ -52,7 +52,8 @@ function createAuditTriggers($tableName, $excludeFields, $isAudited, $commandNam
       $sql .= 'END' . "\n";
 
       if ($commandName == 'print') {
-        br()->log($sql);
+        br()->log('DROP TRIGGER IF EXISTS aud_tai_' . $tableName . '$');
+        br()->log($sql . '$');
       } else {
         br()->db()->runQuery($sql);
         br()->log('Inserts into ' . $tableName . ' audited now');
@@ -95,7 +96,8 @@ function createAuditTriggers($tableName, $excludeFields, $isAudited, $commandNam
       $sql .= 'END' . "\n";
 
       if ($commandName == 'print') {
-        br()->log($sql);
+        br()->log('DROP TRIGGER IF EXISTS aud_tau_' . $tableName . '$');
+        br()->log($sql . '$');
       } else {
         br()->db()->runQuery($sql);
         br()->log('Updates of ' . $tableName . ' audited now');
@@ -119,7 +121,8 @@ function createAuditTriggers($tableName, $excludeFields, $isAudited, $commandNam
       $sql .= 'END' . "\n";
 
       if ($commandName == 'print') {
-        br()->log($sql);
+        br()->log('DROP TRIGGER IF EXISTS aud_tad_' . $tableName . '$');
+        br()->log($sql . '$');
       } else {
         br()->db()->runQuery($sql);
         br()->log('Deletes from ' . $tableName . ' audited now');
