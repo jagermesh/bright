@@ -2317,6 +2317,7 @@
         }
         if (_this.options.allowClear) {
           params.allowClear = _this.options.allowClear;
+          params.placeholder = _this.options.emptyName;
         }
         _this.selector.select2(params);
       }
