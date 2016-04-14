@@ -191,7 +191,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
         break;
       } else {
         $error = $this->getLastError();
-        if (preg_match('/1213: Deadlock found when trying to get lock/', $error)) {
+        if (preg_match('/1213: Deadlock found when trying to get lock/', $error) || preg_match('/2006: MySQL server has gone away/', $error)) {
           if ($tries == 3) {
             throw new BrDBException($error . '[INFO:SQL]' . $sql . '[/INFO]');
           } else {
