@@ -180,43 +180,33 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
         throw new BrDBException($error);
       }
     }
+
     br()->log()->writeln($sql, "QRY");
 
-    $query = mysqli_query($this->connection, $sql);
+    $tries = 0;
+    while ($tries < 3) {
+      $tries++;
+      $query = mysqli_query($this->connection, $sql);
+      if ($query) {
+        break;
+      } else {
+        $error = $this->getLastError();
+        if (preg_match('/1213: Deadlock found when trying to get lock/', $error)) {
+          if ($tries == 3) {
+            throw new BrDBException($error . '[INFO:SQL]' . $sql . '[/INFO]');
+          } else {
+            br()->log()->writeln('Query failed, repeating', 'SEP');
+          }
+        } else
+        if (preg_match('/1329: No data/', $error)) {
+          break;
+        } else {
+          throw new BrDBException($error . '[INFO:SQL]' . $sql . '[/INFO]');
+        }
+      }
+    }
 
     br()->log()->writeln('Query complete', 'SEP');
-
-    if (!$query) {
-      $error = $this->getLastError();
-      if (!preg_match('/1329: No data/', $error)) {
-        $error .= '[INFO:SQL]'.$sql.'[/INFO]';
-        throw new BrDBException($error);
-      }
-    } else {
-        // if ($duration > 1)
-        //   $log->writeln("Query duration: ".number_format($duration, 3)." secs (SLOW!)", "LDR");
-        // elseif ($duration > 0.01)
-        //   $log->writeln("Query duration: ".number_format($duration, 3)." secs", "LDR");
-        // else
-        //   $log->writeln("Query duration: ".number_format($duration, 3)." secs", "DRN");
-      // if ($this->log_mode && $this->debug_mode && $this->extended_debug && $this->support("explain_plan")) {
-      //   if ($plan = $this->internal_query("EXPLAIN ".$sql, $args)) {
-      //     $log->writeln("Query plan: ");
-      //     while ($plan_row = $this->next_row($plan)) {
-      //       if (safe($plan_row, "table"))
-      //         $log->writeln("table:".$plan_row["table"].
-      //                       "; type:".$plan_row["type"].
-      //                       "; keys:".$plan_row["possible_keys"].
-      //                       "; key:".$plan_row["key"].
-      //                       "; key_len:".$plan_row["key_len"].
-      //                       "; ref:".$plan_row["ref"].
-      //                       "; rows:".$plan_row["rows"].
-      //                       "; extra:".$plan_row["extra"]
-      //                     , "QPL");
-      //     }
-      //   }
-      // }
-    }
 
     return $query;
 
