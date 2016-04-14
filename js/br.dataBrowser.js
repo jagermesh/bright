@@ -159,8 +159,7 @@
         var rowid = selectionQueue.shift();
         _this.dataSource.remove(rowid, function(result, response) {
           if (result) {
-            _this.selection.remove(rowid);
-            _this.events.trigger('selectionChanged');
+            _this.unSelectRow(rowid);
           }
           br.stepProgress();
           deleteQueued();
@@ -197,8 +196,7 @@
         func(data);
         _this.dataSource.update(rowid, data, function(result, response) {
           if (result) {
-            _this.selection.remove(rowid);
-            _this.events.trigger('selectionChanged');
+            _this.unSelectRow(rowid);
           }
           br.stepProgress();
           updateQueued(func);
@@ -494,14 +492,12 @@
       $(document).on('click', c('.action-select-row'), function() {
         var row = $(this).closest('[data-rowid]');
         var rowid = row.attr('data-rowid');
-        if ($(this).is(':checked')) {
-          row.addClass('row-selected');
-          _this.selection.append(rowid);
+        var checked = $(this).is(':checked');
+        if (checked) {
+          _this.selectRow(rowid);
         } else {
-          row.removeClass('row-selected');
-          _this.selection.remove(rowid);
+          _this.unSelectRow(rowid);
         }
-        _this.events.trigger('selectionChanged');
       });
 
       $(document).on('click', c('.action-clear-selection'), function() {
@@ -518,7 +514,8 @@
 
       _this.dataGrid.on('change', function() {
         $(c('.action-select-all')).removeAttr('checked');
-        if ($(c('.action-clear-selection')).length > 0) {
+        var selection = _this.selection.get();
+        if (selection.length > 0) {
           _this.restoreSelection();
         } else {
           _this.clearSelection();
@@ -686,7 +683,7 @@
       if (!selection) {
         selection = _this.selection.get();
       }
-      for(var i = 0; i < selection.length; i++) {
+      for (var i = 0; i < selection.length; i++) {
         _this.selectRow(selection[i], true);
       }
       _this.events.trigger('selectionChanged');
@@ -743,6 +740,18 @@
 
     }
 
+    this.unSelectRow = function(rowid, multiple) {
+      var row = $('tr[data-rowid=' + rowid + ']', $(_this.options.selectors.dataTable));
+      if (row.length > 0) {
+        row.find('.action-select-row').removeAttr('checked');
+        row.removeClass('row-selected');
+        _this.selection.append(rowid);
+        if (!multiple) {
+          _this.events.trigger('selectionChanged');
+        }
+      }
+    };
+
     this.selectRow = function(rowid, multiple) {
       var row = $('tr[data-rowid=' + rowid + ']', $(_this.options.selectors.dataTable));
       if (row.length > 0) {
@@ -765,13 +774,9 @@
         var row = $(this).closest('[data-rowid]');
         var rowid = row.attr('data-rowid');
         if (checked) {
-          $(this).attr('checked', 'checked');
-          row.addClass('row-selected');
-          _this.selection.append(rowid);
+          _this.selectRow(rowid, true);
         } else {
-          $(this).removeAttr('checked');
-          row.removeClass('row-selected');
-          _this.selection.remove(rowid);
+          _this.unSelectRow(rowid, true);
         }
       });
       _this.events.trigger('selectionChanged');
