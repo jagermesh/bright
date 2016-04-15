@@ -472,7 +472,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
   function getLastId() {
 
-    return mysqlii_insert_id($this->connection);
+    return mysqli_insert_id($this->connection);
 
   }
 
