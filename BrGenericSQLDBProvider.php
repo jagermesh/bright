@@ -754,8 +754,12 @@ class BrGenericSQLProviderTable {
 
     $this->provider->internalRunQuery($sql, $args);
     if ($newId = $this->provider->getLastId()) {
-      $values = $this->findOne(array($this->provider->rowidField() => $newId));
-      return $newId;
+      if ($newValues = $this->findOne(array($this->provider->rowidField() => $newId))) {
+        $values = $newValues;
+        return $newId;
+      } else {
+        throw new Exception('Can not find inserted record');
+      }
     }
 
   }
@@ -786,8 +790,12 @@ class BrGenericSQLProviderTable {
 
     $this->provider->internalRunQuery($sql, $args);
     if ($newId = $this->provider->getLastId()) {
-      $values = $this->findOne(array($this->provider->rowidField() => $newId));
-      return $newId;
+      if ($newValues = $this->findOne(array($this->provider->rowidField() => $newId))) {
+        $values = $newValues;
+        return $newId;
+      } else {
+        throw new Exception('Can not find inserted record');
+      }
     }
 
   }
@@ -818,8 +826,12 @@ class BrGenericSQLProviderTable {
 
     $this->provider->internalRunQuery($sql, $args);
     if ($newId = $this->provider->getLastId()) {
-      $values = $this->findOne(array($this->provider->rowidField() => $newId));
-      return $newId;
+      if ($newValues = $this->findOne(array($this->provider->rowidField() => $newId))) {
+        $values = $newValues;
+        return $newId;
+      } else {
+        throw new Exception('Can not find inserted record');
+      }
     }
 
   }
