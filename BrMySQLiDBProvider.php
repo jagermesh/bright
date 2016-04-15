@@ -181,12 +181,11 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
       }
     }
 
-    br()->log()->writeln($sql, "QRY");
-
     $tries = 0;
     $maxTries = 3;
     while ($tries < $maxTries) {
       $tries++;
+      br()->log()->writeln($sql, "QRY");
       $query = mysqli_query($this->connection, $sql);
       if ($query) {
         if ($this->inTransaction()) {
