@@ -12,6 +12,9 @@ require_once(__DIR__.'/BrGenericDBProvider.php');
 
 class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
+  private $__inTransaction = false;
+  private $__transactionBuffer = 0;
+
   function getCountSQL($sql) {
 
     $offset = 0;
@@ -49,6 +52,56 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
       return $sql;
     } else
       return null;
+
+  }
+
+  function startTransaction() {
+
+    $this->resetTransaction();
+    $this->__inTransaction = true;;
+
+  }
+
+  function incTransactionBuffer($sql) {
+
+    $this->__transactionBuffer++;
+
+  }
+
+  function commitTransaction() {
+
+    $this->resetTransaction();
+
+  }
+
+  function rollbackTransaction() {
+
+    $this->resetTransaction();
+
+  }
+
+  function resetTransaction() {
+
+    $this->__inTransaction = false;
+    $this->__transactionBuffer = 0;
+
+  }
+
+  function inTransaction() {
+
+    return $this->__inTransaction;
+
+  }
+
+  function isTransactionBufferEmpty() {
+
+    return ($this->__transactionBuffer == 0);
+
+  }
+
+  function transactionBufferLength() {
+
+    return $this->__transactionBuffer;
 
   }
 
@@ -728,10 +781,17 @@ class BrGenericSQLProviderTable {
 
   }
 
-  function insertIgnore(&$values, $dataTypes = null) {
+  function insertIgnore(&$values, $dataTypes = null, $fallbackSql = null) {
 
     $fields_str = '';
     $values_str = '';
+
+    if ($dataTypes) {
+      if (!is_array($dataTypes)) {
+        $fallbackSql = $dataTypes;
+        $dataTypes = null;
+      }
+    }
 
     foreach($values as $field => $value) {
       if (is_array($value)) {
@@ -758,6 +818,11 @@ class BrGenericSQLProviderTable {
         $values = $newValues;
       }
       return $newId;
+    } else
+    if ($fallbackSql) {
+      return $this->provider->getValue($fallbackSql);
+    } else {
+      return null;
     }
 
   }
@@ -830,6 +895,8 @@ class BrGenericSQLProviderTable {
       } else {
         throw new Exception('Can not find inserted record');
       }
+    } else {
+      throw new Exception('Can not get ID of inserted record');
     }
 
   }

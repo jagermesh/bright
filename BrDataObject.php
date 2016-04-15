@@ -83,7 +83,8 @@ class BrDataObject extends BrObject {
     if ($doInsert) {
       $this->doBeforeSave();
       $this->doBeforeInsert();
-      $this->set($this->primaryKey, br()->db()->insert($this->TableName, $this->getData()));
+      $data = $this->getData();
+      $this->set($this->primaryKey, br()->db($this->TableName)->insert($data));
       $this->setData(br()->db()->row($this->TableName, $this->keyValue()));
       $this->doAfterInsert();
       $this->doAfterSave();

@@ -60,12 +60,6 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
   }
 
-  function command($command) {
-
-    mysqli_query($this->connection, $command);
-
-  }
-
   function rowidValue($row, $fieldName = null) {
 
     if (is_array($row)) {
@@ -102,17 +96,23 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
     $this->internalRunQuery('START TRANSACTION');
 
+    parent::startTransaction();
+
   }
 
   function commitTransaction() {
 
     $this->internalRunQuery('COMMIT');
 
+    parent::commitTransaction();
+
   }
 
   function rollbackTransaction() {
 
     $this->internalRunQuery('ROLLBACK');
+
+    parent::rollbackTransaction();
 
   }
 
@@ -184,24 +184,42 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
     br()->log()->writeln($sql, "QRY");
 
     $tries = 0;
-    while ($tries < 3) {
+    $maxTries = 3;
+    while ($tries < $maxTries) {
       $tries++;
       $query = mysqli_query($this->connection, $sql);
       if ($query) {
+        if ($this->inTransaction()) {
+          $this->incTransactionBuffer($sql);
+        }
         break;
       } else {
         $error = $this->getLastError();
-        if (preg_match('/1213: Deadlock found when trying to get lock/', $error) && preg_match('/^SELECT/', $sql)) {
-          if ($tries == 3) {
-            throw new BrDBException($error . '[INFO:SQL]' . $sql . '[/INFO]');
+        if (preg_match('/1213: Deadlock found when trying to get lock/', $error) || preg_match('/1146: Table/', $error)) {
+          if ($tries == $maxTries) {
+            $error .= '. Automatic retrying failed after ' . $tries . ' tries';
+            $error .= '. [INFO:SQL]' . $sql . '[/INFO]';
+            throw new BrDBException($error);
+          } else
+          if ($this->inTransaction()) {
+            if ($this->isTransactionBufferEmpty()) {
+              br()->log()->writeln('Deadlock occured, but this is first query. Trying restart transaction, try #' . $tries, 'SEP');
+              $this->startTransaction();
+            } else {
+              $error .= '. Automatic retrying was not possible - ' . $this->transactionBufferLength() . ' statement(s) in transaction buffer';
+              $error .= '. [INFO:SQL]' . $sql . '[/INFO]';
+              $this->resetTransaction();
+              throw new BrDBException($error);
+            }
           } else {
-            br()->log()->writeln('Query failed, repeating', 'SEP');
+            br()->log()->writeln('Deadlock occured, but we are not in transaction. Trying repeat query, try #' . $tries, 'SEP');
           }
         } else
         if (preg_match('/1329: No data/', $error)) {
           break;
         } else {
-          throw new BrDBException($error . '[INFO:SQL]' . $sql . '[/INFO]');
+          $error .= '. [INFO:SQL]' . $sql . '[/INFO]';
+          throw new BrDBException($error);
         }
       }
     }
@@ -433,7 +451,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
   function getTableStructure($tableName) {
 
     $field_defs = array();
-    if ($query = mysqli_query($this->connection, 'SELECT * FROM '.$tableName.' WHERE 1=1')) {
+    if ($query = $this->internalRunQuery('SELECT * FROM '.$tableName.' WHERE 1=1')) {
       while ($finfo = mysqli_fetch_field($query)) {
         $field_defs[strtolower($finfo->name)] = array( "length" => $finfo->max_length
                                                      , "type"   => $finfo->type
@@ -454,8 +472,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
   function getLastId() {
 
-    return mysqli_insert_id($this->connection);
-    // return $this->getValue('SELECT LAST_INSERT_ID()');
+    return mysqlii_insert_id($this->connection);
 
   }
 
