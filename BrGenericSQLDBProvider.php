@@ -842,4 +842,40 @@ class BrGenericSQLProviderTable {
 
   }
 
+  function insertOld(&$values, $dataTypes = null) {
+
+    $fields_str = '';
+    $values_str = '';
+
+    foreach($values as $field => $value) {
+      if (is_array($value)) {
+
+      }
+      $fields_str .= ($fields_str?',':'').$field;
+      $values_str .= ($values_str?',':'').'?';
+      if (is_array($dataTypes)) {
+        if (br($dataTypes, $field) == 's') {
+          $values_str .= '&';
+        }
+      }
+    }
+    $sql = 'INSERT INTO '.$this->tableName.' ('.$fields_str.') VALUES ('.$values_str.')';
+
+    $args = array();
+    foreach($values as $field => $value) {
+      array_push($args, $value);
+    }
+
+    $this->provider->internalRunQuery($sql, $args);
+    if ($newId = $this->provider->getLastId()) {
+      if ($newValues = $this->findOne(array($this->provider->rowidField() => $newId))) {
+        $values = $newValues;
+        return $newId;
+      } else {
+        throw new Exception('Can not find inserted record');
+      }
+    }
+
+  }
+
 }
