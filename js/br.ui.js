@@ -263,6 +263,7 @@
     if (br.isObject(fields)) {
       inputs = fields;
     } else {
+      options.valueRequired = true;
       inputs[fields] = '';
     }
 
@@ -282,11 +283,7 @@
     for(var i in inputs) {
       if (br.isObject(inputs[i])) {
         s = s + '<label>' + i + '</label>' +
-              '<input type="text" ' +
-              (inputs[i].id ? 'id="'+inputs[i].id+'"' : '') +
-              ' class="span4 ' + (br.isEmpty(inputs[i]['class']) ? '' : inputs[i]['class']) + '"' +
-              ' value="' + inputs[i].value + '"' +
-              ' data-click-on-enter="#br_promptModal .action-confirm-close" />';
+              '<input type="text" ' + (inputs[i].id ? 'id="'+inputs[i].id+'"' : '') + ' class="span4 ' + (br.isEmpty(inputs[i]['class']) ? '' : inputs[i]['class']) + '" value="' + inputs[i].value + '" data-click-on-enter="#br_promptModal .action-confirm-close" />';
       } else {
         s = s + '<label>' + i + '</label>' +
                 '<input type="text" class="form-control ' + (options.valueType == 'int' ? ' input-small' : ' justified') + (options.valueRequired ? ' required' : '') + ' " value="' + inputs[i] + '" data-click-on-enter=".action-confirm-close" />';
@@ -313,13 +310,24 @@
               ok = false;
               notOkField = $(this);
             }
-            results.push($(this).val());
+            results.push($(this).val().trim());
           });
           if (ok) {
-            remove = false;
-            $(dialog).modal('hide');
-            callback.call(this, results);
-            dialog.remove();
+            if (options.onValidate) {
+              try {
+                options.onValidate.call(this, results);
+              } catch (e) {
+                ok = false;
+                br.growlError(e);
+                notOkField[0].focus();
+              }
+            }
+            if (ok) {
+              remove = false;
+              $(dialog).modal('hide');
+              callback.call(this, results);
+              dialog.remove();
+            }
           } else {
             br.growlError('Please enter value');
             notOkField[0].focus();
