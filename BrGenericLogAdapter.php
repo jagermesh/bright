@@ -73,13 +73,19 @@ class BrGenericLogAdapter extends BrObject {
         $this->writeMessage('Request type:  ' . br()->request()->method(),   $group);
         $requestData = '';
         if (br()->request()->isGET()) {
-          $requestData = @json_encode(br()->request()->get());
+          $data = br()->request()->get();
+          unset($data['password']);
+          $requestData = @json_encode($data);
         }
         if (br()->request()->isPOST()) {
-          $requestData = @json_encode(br()->request()->post());
+          $data = br()->request()->post();
+          unset($data['password']);
+          $requestData = @json_encode($data);
         }
         if (br()->request()->isPUT()) {
-          $requestData = @json_encode(br()->request()->put());
+          $data = br()->request()->put();
+          unset($data['password']);
+          $requestData = @json_encode($data);
         }
         if ($requestData) {
           if (strlen($requestData) > 1023*16) {

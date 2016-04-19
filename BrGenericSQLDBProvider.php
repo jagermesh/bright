@@ -14,6 +14,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   private $__inTransaction = false;
   private $__transactionBuffer = 0;
+  private $__deadlocksHandlerEnabled = true;
 
   function getCountSQL($sql) {
 
@@ -102,6 +103,26 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
   function transactionBufferLength() {
 
     return $this->__transactionBuffer;
+
+  }
+
+  function disableDeadLocksHandler() {
+
+    $this->__deadlocksHandlerEnabled = false;
+    return $this->__deadlocksHandlerEnabled;
+
+  }
+
+  function enableDeadLocksHandler() {
+
+    $this->__deadlocksHandlerEnabled = true;
+    return $this->__deadlocksHandlerEnabled;
+
+  }
+
+  function isDeadLocksHandlerEnabled() {
+
+    return $this->__deadlocksHandlerEnabled;
 
   }
 

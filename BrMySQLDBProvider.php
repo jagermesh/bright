@@ -557,4 +557,3 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
   }
 
 }
-

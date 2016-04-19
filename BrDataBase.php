@@ -15,6 +15,10 @@ class BrDataBaseException extends BrException {
 
 }
 
+class BrDataBaseDeadLockException extends BrException {
+
+}
+
 class BrDataBase extends BrObject {
 
   static $instances = array();
