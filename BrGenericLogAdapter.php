@@ -72,26 +72,35 @@ class BrGenericLogAdapter extends BrObject {
 
         $this->writeMessage('Request type:  ' . br()->request()->method(),   $group);
         $requestData = '';
-        if (br()->request()->isGET()) {
-          $data = br()->request()->get();
+        if ($data = br()->request()->get()) {
           unset($data['password']);
           $requestData = @json_encode($data);
-        }
-        if (br()->request()->isPOST()) {
-          $data = br()->request()->post();
-          unset($data['password']);
-          $requestData = @json_encode($data);
-        }
-        if (br()->request()->isPUT()) {
-          $data = br()->request()->put();
-          unset($data['password']);
-          $requestData = @json_encode($data);
-        }
-        if ($requestData) {
-          if (strlen($requestData) > 1023*16) {
-            $requestData = substr($requestData, 0, 1023*16) . '...';
+          if ($requestData) {
+            if (strlen($requestData) > 1023*16) {
+              $requestData = substr($requestData, 0, 1023*16) . '...';
+            }
+            $this->writeMessage('Request GET:   ' . $requestData,                $group);
           }
-          $this->writeMessage('Request data:  ' . $requestData,                $group);
+        }
+        if ($data = br()->request()->post()) {
+          unset($data['password']);
+          $requestData = @json_encode($data);
+          if ($requestData) {
+            if (strlen($requestData) > 1023*16) {
+              $requestData = substr($requestData, 0, 1023*16) . '...';
+            }
+            $this->writeMessage('Request POST:  ' . $requestData,                $group);
+          }
+        } else
+        if ($data = br()->request()->put()) {
+          unset($data['password']);
+          $requestData = @json_encode($data);
+          if ($requestData) {
+            if (strlen($requestData) > 1023*16) {
+              $requestData = substr($requestData, 0, 1023*16) . '...';
+            }
+            $this->writeMessage('Request PUT:   ' . $requestData,                $group);
+          }
         }
       }
 
