@@ -43,7 +43,8 @@ class BrBrowser extends BrObject {
       } else {
         curl_setopt($this->curl, CURLOPT_POST, 1);
         if (is_array($data)) {
-          curl_setopt($this->curl, CURLOPT_POSTFIELDS, $envelope);
+          $requestString = http_build_query($data);
+          curl_setopt($this->curl, CURLOPT_POSTFIELDS, $requestString);
         } else {
           curl_setopt($this->curl, CURLOPT_POSTFIELDS, $data);
         }

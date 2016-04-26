@@ -741,7 +741,13 @@
     }
 
     this.unSelectRow = function(rowid, multiple) {
-      var row = $('tr[data-rowid=' + rowid + ']', $(_this.options.selectors.dataTable));
+      var chk = $(_this.options.selectors.dataTable).find('input.action-select-row[value=' + rowid + ']');
+      var row;
+      if (chk.length > 0) {
+        row = $(chk).closest('[data-rowid]');
+      } else {
+        row = $(_this.options.selectors.dataTable).find('tr[data-rowid=' + rowid + ']');
+      }
       if (row.length > 0) {
         row.find('.action-select-row').removeAttr('checked');
         row.removeClass('row-selected');
@@ -753,7 +759,13 @@
     };
 
     this.selectRow = function(rowid, multiple) {
-      var row = $('tr[data-rowid=' + rowid + ']', $(_this.options.selectors.dataTable));
+      var chk = $(_this.options.selectors.dataTable).find('input.action-select-row[value=' + rowid + ']');
+      var row;
+      if (chk.length > 0) {
+        row = $(chk).closest('[data-rowid]');
+      } else {
+        row = $(_this.options.selectors.dataTable).find('tr[data-rowid=' + rowid + ']');
+      }
       if (row.length > 0) {
         row.find('.action-select-row').attr('checked', 'checked');
         row.addClass('row-selected');

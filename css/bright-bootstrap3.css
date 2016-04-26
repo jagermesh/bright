@@ -325,8 +325,8 @@ span.required {
 
 .filter-block {
   height: 65px;
-  margin-right: 0px;
   padding-left: 0px;
+  margin-right:6px;
 }
 
 .filter-block label {
