@@ -2008,9 +2008,6 @@
             } else {
               ctrl.parent().append($('<div class="br-sort-index">' + (i + 1) + '</div>'));
             }
-          } else
-          if (idx.length > 0) {
-            idx.remove();
           }
         }
       }
@@ -2021,6 +2018,7 @@
         var sorted = ($(this).hasClass('icon-white') || $(this).hasClass('icon-border'));
         if (!event.metaKey) {
           $('.sortable', $(_this.options.selectors.header)).removeClass('icon-white').removeClass('icon-border');
+          $('.br-sort-index', $(_this.options.selectors.header)).remove();
         }
         if (sorted) {
           $(this).removeClass('icon-white').removeClass('icon-border');
@@ -2039,14 +2037,14 @@
               newOrderAndGroup.push(orderAndGroup[i]);
             }
           }
-          newOrderAndGroup.push(newOrder);
           orderAndGroup = newOrderAndGroup;
         } else {
-          orderAndGroup = [newOrder];
+          orderAndGroup = [];
         }
-
+        if (!sorted) {
+          orderAndGroup.push(newOrder);
+        }
         showOrder(orderAndGroup);
-
         _this.setOrderAndGroup(orderAndGroup);
         _this.events.triggerBefore('changeOrder', orderAndGroup);
         _this.dataSource.select();
