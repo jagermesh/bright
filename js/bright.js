@@ -2029,7 +2029,7 @@
         var orderAndGroup;
         var fieldName = $(this).attr('data-field');
         var newOrder = { fieldName: fieldName, asc: $(this).hasClass('order-asc'), group: $(this).hasClass('group-by') };
-        if (event.metaKey) {
+        if (event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) {
           orderAndGroup = _this.getOrderAndGroup();
           var newOrderAndGroup = [];
           for(var i = 0; i < orderAndGroup.length; i++) {
