@@ -229,7 +229,11 @@
     };
 
     this.getOrderAndGroup = function() {
-      return br.storage.get(this.storageTag + 'orderAndGroup', []);
+      var result = br.storage.get(this.storageTag + 'orderAndGroup', []);
+      if (br.isEmpty(result) || !br.isArray(result)) {
+        result = [];
+      }
+      return result;
     };
 
     this.isOrderConfigured = function() {
@@ -262,26 +266,30 @@
         }
       }
 
-      var order = _this.getOrderAndGroup();
-      if (br.isArray(order)) {
-        for(var i = 0; i < order.length; i++) {
-          $('.sortable[data-field="' + order[i].fieldName + '"].' + (order[i].asc ? 'order-asc' : 'order-desc'), $(this.options.selectors.header)).addClass('icon-white').addClass('icon-border');
+      function showOrder(orderAndGroup) {
+        for(var i = 0; i < orderAndGroup.length; i++) {
+          var ctrl = $('.sortable[data-field="' + orderAndGroup[i].fieldName + '"].' + (orderAndGroup[i].asc ? 'order-asc' : 'order-desc'), $(_this.options.selectors.header));
+          ctrl.addClass('icon-white').addClass('icon-border');
+          var idx = ctrl.parent().find('div.br-sort-index');
+          if (orderAndGroup.length > 1) {
+            if (idx.length > 0) {
+              idx.text(i + 1);
+            } else {
+              ctrl.parent().append($('<div class="br-sort-index">' + (i + 1) + '</div>'));
+            }
+          } else
+          if (idx.length > 0) {
+            idx.remove();
+          }
         }
       }
 
-      $('.sortable', $(_this.options.selectors.header)).each(function() {
-        if ($(this).attr('data-sort-order')) {
-        } else {
-          $(this).attr('data-no-sort-order', true);
-        }
-      });
+      showOrder(_this.getOrderAndGroup());
 
-      $(this.options.selectors.header).on('click', '.sortable', function() {
+      $(this.options.selectors.header).on('click', '.sortable', function(event) {
         var sorted = ($(this).hasClass('icon-white') || $(this).hasClass('icon-border'));
-        if (br.isEmpty($(this).attr('data-sort-order'))) {
+        if (!event.metaKey) {
           $('.sortable', $(_this.options.selectors.header)).removeClass('icon-white').removeClass('icon-border');
-        } else {
-          $('.sortable[data-no-sort-order]', $(_this.options.selectors.header)).removeClass('icon-white').removeClass('icon-border');
         }
         if (sorted) {
           $(this).removeClass('icon-white').removeClass('icon-border');
@@ -289,27 +297,25 @@
           $(this).siblings('i').removeClass('icon-white').removeClass('icon-border');
           $(this).addClass('icon-white').addClass('icon-border');
         }
-        var tmp = [];
-        var maxIndex = 0;
-        $('.sortable', $(_this.options.selectors.header)).each(function() {
-          if ($(this).hasClass('icon-white') || $(this).hasClass('icon-border')) {
-            var index = br.isEmpty($(this).attr('data-order-index')) ? maxIndex : br.toInt($(this).attr('data-order-index'));
-            maxIndex = index + 1;
-            tmp.push({ fieldName: $(this).attr('data-field'), asc: $(this).hasClass('order-asc'), group: $(this).hasClass('group-by'), index: index });
+        var orderAndGroup;
+        var fieldName = $(this).attr('data-field');
+        var newOrder = { fieldName: fieldName, asc: $(this).hasClass('order-asc'), group: $(this).hasClass('group-by') };
+        if (event.metaKey) {
+          orderAndGroup = _this.getOrderAndGroup();
+          var newOrderAndGroup = [];
+          for(var i = 0; i < orderAndGroup.length; i++) {
+            if (orderAndGroup[i].fieldName != fieldName) {
+              newOrderAndGroup.push(orderAndGroup[i]);
+            }
           }
-        });
-        tmp.sort(function(a, b) {
-          if (a.index < b.index) {
-            return -1;
-          } else
-          if (a.index < b.index) {
-            return 1;
-          } else {
-            return 0;
-          }
-        });
-        _this.setOrderAndGroup(tmp);
-        _this.events.triggerBefore('changeOrder', tmp);
+          newOrderAndGroup.push(newOrder);
+          orderAndGroup = newOrderAndGroup;
+        } else {
+          orderAndGroup = [newOrder];
+        }
+        showOrder(orderAndGroup);
+        _this.setOrderAndGroup(orderAndGroup);
+        _this.events.triggerBefore('changeOrder', orderAndGroup);
         _this.dataSource.select();
       });
 

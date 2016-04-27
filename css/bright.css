@@ -275,6 +275,18 @@ a, .clickable, .sortable, label.checkbox {
   cursor: pointer;
 }
 
+div.br-sort-index {
+  border: 1px solid #AAA;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-top: 1px;
+  padding-bottom: 1px;
+  display: inline;
+  border-radius: 3px;
+  margin-left: 4px;
+  font-weight: normal;
+}
+
 .blured {
   color: #999;
 }
