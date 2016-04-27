@@ -751,10 +751,10 @@
       if (row.length > 0) {
         row.find('.action-select-row').removeAttr('checked');
         row.removeClass('row-selected');
-        _this.selection.remove(rowid);
-        if (!multiple) {
-          _this.events.trigger('selectionChanged');
-        }
+      }
+      _this.selection.remove(rowid);
+      if (!multiple) {
+        _this.events.trigger('selectionChanged');
       }
     };
 
