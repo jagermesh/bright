@@ -34,6 +34,7 @@
     if (typeof options.rotateControl == 'undefined') { options.rotateControl = true; }
 
     this.mapOptions = { zoom: options.zoom
+                      , maxZoom: options.maxZoom
                       , center: options.mapCenter
                       , mapTypeId: google.maps.MapTypeId.ROADMAP
                       , mapTypeControl: options.mapTypeControl
@@ -63,6 +64,10 @@
                           position: google.maps.ControlPosition.LEFT_CENTER
                         }
                       };
+
+    if (options.maxZoom) {
+      this.mapOptions.maxZoom = options.maxZoom;
+    }
 
     this.mapSelector = selector;
     this.mapContainer = $(this.mapSelector)[0];
