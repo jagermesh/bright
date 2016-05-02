@@ -175,8 +175,12 @@
       }
     };
 
-    this.refresh = function(data) {
-      _this.dataSource.select();
+    this.refresh = function(callback) {
+      _this.dataSource.select(function() {
+        if (callback) {
+          callback();
+        }
+      });
     };
 
     this.refreshRow = function(data, options) {

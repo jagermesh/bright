@@ -1201,7 +1201,9 @@
     this.on     = function(event, callback) { this.events.on(event, callback); };
     this.after  = function(event, callback) { this.events.after(event, callback); };
 
-    this.insert = function(item, callback) {
+    this.insert = function(item, callback, options) {
+
+      var disableEvents = options && options.disableEvents;
 
       function returnInsert(data) {
 
@@ -1213,20 +1215,26 @@
             _this.events.trigger('error', 'insert', data.length > 0 ? data : 'Empty response. Was expecting new created records with ROWID.');
           } else {
             result = true;
-            _this.events.trigger('insert', data);
+            if (!disableEvents) {
+              _this.events.trigger('insert', data);
+            }
           }
         } else {
           if (data) {
             result = true;
-            _this.events.trigger('insert', data);
+            if (!disableEvents) {
+              _this.events.trigger('insert', data);
+            }
           } else {
             result = false;
             _this.events.trigger('error', 'insert', 'Empty response. Was expecting new created records with ROWID.');
           }
         }
-        _this.events.triggerAfter('insert', result, data, request);
-        if (result) {
-          _this.events.trigger('change', 'insert', data);
+        if (!disableEvents) {
+          _this.events.triggerAfter('insert', result, data, request);
+          if (result) {
+            _this.events.trigger('change', 'insert', data);
+          }
         }
         if (typeof callback == 'function') { callback.call(_this, result, data, request); }
 
@@ -1260,8 +1268,10 @@
 
                      } else {
                        var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                       _this.events.trigger('error', 'insert', errorMessage);
-                       _this.events.triggerAfter('insert', false, errorMessage, request);
+                       if (!disableEvents) {
+                         _this.events.trigger('error', 'insert', errorMessage);
+                         _this.events.triggerAfter('insert', false, errorMessage, request);
+                       }
                        if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
                      }
                    }
@@ -1270,8 +1280,10 @@
 
       } catch (error) {
         br.log(error);
-        _this.events.trigger('error', 'insert', error);
-        _this.events.triggerAfter('insert', false, error, request);
+        if (!disableEvents) {
+          _this.events.trigger('error', 'insert', error);
+          _this.events.triggerAfter('insert', false, error, request);
+        }
         if (typeof callback == 'function') { callback.call(_this, false, error, request); }
       }
 
@@ -1328,8 +1340,8 @@
                    } else {
                      var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
                      if (!disableEvents) {
-                        _this.events.trigger('error', 'update', errorMessage);
-                         _this.events.triggerAfter('update', false, errorMessage, request);
+                       _this.events.trigger('error', 'update', errorMessage);
+                       _this.events.triggerAfter('update', false, errorMessage, request);
                      }
                      if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
                    }
@@ -1906,8 +1918,12 @@
       }
     };
 
-    this.refresh = function(data) {
-      _this.dataSource.select();
+    this.refresh = function(callback) {
+      _this.dataSource.select(function() {
+        if (callback) {
+          callback();
+        }
+      });
     };
 
     this.refreshRow = function(data, options) {
