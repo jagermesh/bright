@@ -237,6 +237,13 @@
       } else {
         _this.events.triggerBefore('editor.show');
         _this.editorConfigure(isCopy);
+
+        _this.inputsContainer.find('input.data-field[type=checkbox]').each(function() {
+          if ($(this).attr('data-default-checked')) {
+            $(this).attr('checked', 'checked');
+          }
+        });
+
         _this.fillControls(defaultValues);
         _this.events.trigger('editor.show', defaultValues);
         br.attachDatePickers(_this.inputsContainer);
