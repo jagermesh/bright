@@ -162,7 +162,12 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
       if (!$loginObj['rowid']) {
         throw new BrException('setLogin: login object must contain ID field');
       }
-      $this->trigger('setLogin', $login);
+      try {
+        $this->trigger('setLogin', $login);
+      } catch (Exception $e) {
+        br()->auth()->clearLogin();
+        throw $e;
+      }
       return br()->session()->set('login', $login);
     } else
     if ($login && $remember) {
