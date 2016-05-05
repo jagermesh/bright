@@ -205,7 +205,8 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
               br()->log()->writeln('Deadlock occured, but this is first query. Trying restart transaction, try #' . $tries, 'SEP');
               $this->startTransaction();
             } else {
-              $error .= '. Automatic retrying was not possible - ' . $this->transactionBufferLength() . ' statement(s) in transaction buffer';
+              $error .= '. Automatic retrying was not possible - ' . $this->transactionBufferLength() . ' statement(s) in transaction buffer: ';
+              $error .= json_encode($this->transactionBuffer());
               $error .= '. [INFO:SQL]' . $sql . '[/INFO]';
               $this->resetTransaction();
               throw new BrDBException($error);

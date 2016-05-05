@@ -13,7 +13,7 @@ require_once(__DIR__.'/BrGenericDBProvider.php');
 class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   private $__inTransaction = false;
-  private $__transactionBuffer = 0;
+  private $__transactionBuffer = array();
   private $__deadlocksHandlerEnabled = true;
 
   function getCountSQL($sql) {
@@ -65,7 +65,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   function incTransactionBuffer($sql) {
 
-    $this->__transactionBuffer++;
+    $this->__transactionBuffer[] = $sql;
 
   }
 
@@ -84,7 +84,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
   function resetTransaction() {
 
     $this->__inTransaction = false;
-    $this->__transactionBuffer = 0;
+    $this->__transactionBuffer = array();
 
   }
 
@@ -96,11 +96,17 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   function isTransactionBufferEmpty() {
 
-    return ($this->__transactionBuffer == 0);
+    return (count($this->__transactionBuffer) == 0);
 
   }
 
   function transactionBufferLength() {
+
+    return count($this->__transactionBuffer);
+
+  }
+
+  function transactionBuffer() {
 
     return $this->__transactionBuffer;
 
