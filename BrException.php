@@ -8,10 +8,6 @@
  * @package Bright Core
  */
 
-class BrException extends Exception {
-
-}
-
 if (!DEFINED("E_STRICT")) {
 	DEFINE("E_STRICT", 2048);
 }
@@ -51,6 +47,10 @@ class BrErrorException extends ErrorException {
 
 }
 
+class BrException extends Exception {
+
+}
+
 class BrCallStackException extends BrException {
 
 	function __construct() {
@@ -85,10 +85,14 @@ class BrAppException extends BrException {
 
 }
 
+class BrFileNotFoundException extends BrException {
+
+}
+
 class BrDBException extends BrException {
 
 }
 
-class BrFileNotFoundException extends BrException {
+class BrDBDeadLockException extends BrDBException {
 
 }

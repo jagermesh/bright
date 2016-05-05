@@ -198,7 +198,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
           if ($tries == $maxTries) {
             $error .= '. Automatic retrying failed after ' . $tries . ' tries';
             $error .= '. [INFO:SQL]' . $sql . '[/INFO]';
-            throw new BrDBException($error);
+            throw new BrDBDeadLockException($error);
           } else
           if ($this->inTransaction()) {
             if ($this->isTransactionBufferEmpty()) {
@@ -209,7 +209,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
               $error .= json_encode($this->transactionBuffer());
               $error .= '. [INFO:SQL]' . $sql . '[/INFO]';
               $this->resetTransaction();
-              throw new BrDBException($error);
+              throw new BrDBDeadLockException($error);
             }
           } else {
             br()->log()->writeln('Deadlock occured, but we are not in transaction. Trying repeat query, try #' . $tries, 'SEP');

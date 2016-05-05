@@ -11,14 +11,6 @@
 require_once(__DIR__.'/BrObject.php');
 require_once(__DIR__.'/BrException.php');
 
-class BrDataBaseException extends BrException {
-
-}
-
-class BrDataBaseDeadLockException extends BrException {
-
-}
-
 class BrDataBase extends BrObject {
 
   static $instances = array();
@@ -63,7 +55,7 @@ class BrDataBase extends BrObject {
             }
           } else {
             br()->trigger('db.connectionError');
-            throw new BrDataBaseException("Can't connect to database");
+            throw new BrDBException("Can't connect to database");
           }
         }
 
