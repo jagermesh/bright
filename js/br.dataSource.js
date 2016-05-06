@@ -397,6 +397,10 @@
           request.__dataSets = options.dataSets;
         }
 
+        if (options && options.renderMode) {
+          request.__renderMode = options.renderMode;
+        }
+
         if (options && options.order) {
           request.__order = options.order;
         }

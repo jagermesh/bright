@@ -351,6 +351,10 @@ class BrRESTBinder extends BrObject {
         $dataSourceOptions['dataSets'] = $dataSets;
       }
 
+      if ($renderMode = br()->request()->get('__renderMode')) {
+        $dataSourceOptions['renderMode'] = $renderMode;
+      }
+
       if ($order = br()->request()->get('__order')) {
         if (!is_array($order)) {
           $order = array($order => 1);
