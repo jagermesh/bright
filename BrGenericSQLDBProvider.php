@@ -350,7 +350,11 @@ class BrGenericSQLProviderTable {
         }
         $first = false;
       } else {
-        $joins .= ' AND '.$initialJoinTableName.'.'.$joinTableName.' = '.$joinField;
+        if (strpos($joinTableName, '.') === false) {
+          $joins .= ' AND '.$initialJoinTableName.'.'.$joinTableName.' = '.$joinField;
+        } else {
+          $joins .= ' AND '.$joinTableName.' = '.$joinField;
+        }
       }
     }
 
@@ -377,17 +381,16 @@ class BrGenericSQLProviderTable {
           } else {
             $joins .= ' LEFT JOIN '.$joinTableName.' '.$joinTableAlias.' ON '.$fieldName.' = '.$joinTableAlias.'.'.$joinField;
           }
-          // if (strpos($fieldName, '.') === false) {
-          //   $joins .= ' LEFT JOIN '.$joinTableName.' ON '.$tableName.'.'.$fieldName.' = '.$joinTableName.'.'.$joinField;
-          // } else {
-          //   $joins .= ' LEFT JOIN '.$joinTableName.' ON '.$fieldName.' = '.$joinTableName.'.'.$joinField;
-          // }
         } else {
 
         }
         $first = false;
       } else {
-        $joins .= ' AND '.$initialJoinTableName.'.'.$joinTableName.' = '.$joinField;
+        if (strpos($joinTableName, '.') === false) {
+          $joins .= ' AND '.$initialJoinTableName.'.'.$joinTableName.' = '.$joinField;
+        } else {
+          $joins .= ' AND '.$joinTableName.' = '.$joinField;
+        }
       }
     }
 
