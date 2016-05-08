@@ -3042,10 +3042,10 @@
     for(var i in inputs) {
       if (br.isObject(inputs[i])) {
         s = s + '<label>' + i + '</label>' +
-              '<input type="text" ' + (inputs[i].id ? 'id="'+inputs[i].id+'"' : '') + ' class="span4 ' + (br.isEmpty(inputs[i]['class']) ? '' : inputs[i]['class']) + '" value="' + inputs[i].value + '" data-click-on-enter="#br_promptModal .action-confirm-close" />';
+              '<input type="text" ' + (inputs[i].id ? 'id="'+inputs[i].id+'"' : '') + ' class="span4 ' + (br.isEmpty(inputs[i]['class']) ? '' : inputs[i]['class']) + '" value="' + inputs[i].value + '" data-click-on-enter="#br_modalPrompt .action-confirm-close" />';
       } else {
         s = s + '<label>' + i + '</label>' +
-                '<input type="text" class="form-control ' + (options.valueType == 'int' ? ' input-small' : ' justified') + (options.valueRequired ? ' required' : '') + ' " value="' + inputs[i] + '" data-click-on-enter=".action-confirm-close" />';
+                '<input type="text" class="form-control ' + (options.valueType == 'int' ? ' input-small' : ' justified') + (options.valueRequired ? ' required' : '') + ' " value="' + inputs[i] + '" data-click-on-enter="#br_modalPrompt .action-confirm-close" />';
       }
     }
 
@@ -3064,12 +3064,14 @@
         $(this).find('.action-confirm-close').click(function() {
           var results = [];
           var ok = true, notOkField;
+          var inputs = [];
           $(this).closest('div.modal').find('input[type=text]').each(function() {
             if ($(this).hasClass('required') && br.isEmpty($(this).val())) {
               ok = false;
               notOkField = $(this);
             }
             results.push($(this).val().trim());
+            inputs.push($(this));
           });
           if (ok) {
             if (options.onValidate) {
@@ -3078,7 +3080,9 @@
               } catch (e) {
                 ok = false;
                 br.growlError(e);
-                notOkField[0].focus();
+                if (inputs.length == 1) {
+                  inputs[0].focus();
+                }
               }
             }
             if (ok) {
