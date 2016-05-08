@@ -790,7 +790,11 @@ class Br extends BrSingleton {
     $emails = br($emails)->split();
 
     foreach($emails as $email) {
-      $mail->AddAddress($email);
+      try {
+        $mail->AddAddress($email);
+      } catch (Exception $e) {
+        br()->log('Error in br()->sendMail() line 794: ' . $e->getMessage());
+      }
     }
 
     if ($from = br($params, 'sender', br()->config()->get('br/mail/sender', br()->config()->get('br/mail/from', br()->config()->get('br/Br/sendMail/from'))))) {
