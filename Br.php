@@ -798,8 +798,10 @@ class Br extends BrSingleton {
     }
 
     if ($from = br($params, 'sender', br()->config()->get('br/mail/sender', br()->config()->get('br/mail/from', br()->config()->get('br/Br/sendMail/from'))))) {
-      $mail->AddReplyTo($from);
-      $mail->SetFrom($from);
+      if ($from = br($from)->split()) {
+        $mail->AddReplyTo($from[0]);
+        $mail->SetFrom($from[0]);
+      }
     }
 
     if (($mailer = br($params, 'mailer', br()->config()->get('br/mail/mailer'))) == 'smtp') {
