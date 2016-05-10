@@ -211,7 +211,8 @@
 
       if (editorRowid) {
         var request = { rowid: editorRowid };
-        _this.events.triggerBefore('editor.loadData', request);
+        var options = { disableEvents: true };
+        _this.events.triggerBefore('editor.loadData', request, options);
         _this.dataSource.selectOne(request, function(result, data) {
           if (result) {
             editorRowData = data;
@@ -233,7 +234,7 @@
               br.backToCaller(_this.options.returnUrl, true);
             }
           }
-        }, { disableEvents: true });
+        }, options);
       } else {
         _this.events.triggerBefore('editor.show');
         _this.editorConfigure(isCopy);
