@@ -2585,6 +2585,8 @@
         }
       }
 
+      uiSync();
+
     }
 
     _this.selector.change(function() {
