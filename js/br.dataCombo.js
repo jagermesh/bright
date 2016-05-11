@@ -108,6 +108,27 @@
       }
     }
 
+    var currentData = [];
+
+    this.selected = function(fieldName) {
+      if (br.isArray(currentData)) {
+        if (currentData.length > 0) {
+          var val = this.val();
+          if (!br.isEmpty(val)) {
+            for(var i = 0; i < currentData.length; i++) {
+              if (br.toInt(currentData[i][_this.options.valueField]) == br.toInt(val)) {
+                if (br.isEmpty(fieldName)) {
+                  return currentData[i];
+                } else {
+                  return currentData[i][fieldName];
+                }
+              }
+            }
+          }
+        }
+      }
+    };
+
     this.val = function(value) {
       if (value !== undefined) {
         if (_this.saveSelection) {
@@ -201,6 +222,8 @@
     }
 
     function render(data) {
+
+      currentData = data;
 
       if (_this.saveSelection) {
         if (_this.saveToSessionStorage) {
