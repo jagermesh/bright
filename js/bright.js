@@ -3343,6 +3343,7 @@
 
     var mh = $(window).height() - $(modal).find('.modal-header').outerHeight() - $(modal).find('.modal-footer').outerHeight() - 90;
     $(modal).find('.modal-body').css('max-height', mh + 'px');
+    $(modal).find('.modal-body').css('overflow-y', 'auto');
 
   };
 
