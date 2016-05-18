@@ -66,6 +66,19 @@
         }
         _this.editor.popover('show');
         if (_this.options.saveOnLoosingFocus) {
+          $(_this.editor).on('keydown', function(e) {
+            if (e.keyCode == 9) {
+              var content = $(this).val();
+              $('div.popover').remove();
+              if (_this.options.onSave) {
+                _this.options.onSave.call(_this.ctrl, content, 'keyup');
+              } else {
+                _this.apply(content);
+              }
+              e.stopPropagation();
+              e.preventDefault();
+            }
+          });
           $(_this.editor).on('blur', function(e) {
             $('div.popover').remove();
             var content = $(this).val();
@@ -76,21 +89,23 @@
             }
           });
         }
-        $(_this.editor).keyup(function(e) {
-          if (e.keyCode == 13) {
-            $('div.popover').remove();
-            var content = $(this).val();
-            if (_this.options.onSave) {
-              _this.options.onSave.call(_this.ctrl, content, 'keyup');
-            } else {
-              _this.apply(content);
-            }
-            e.stopPropagation();
-          }
-          if (e.keyCode == 27) {
-            $('div.popover').remove();
-            _this.cancel();
-            e.stopPropagation();
+        $(_this.editor).on('keyup', function(e) {
+          var content = $(this).val();
+          switch (e.keyCode) {
+            case 13:
+              $('div.popover').remove();
+              if (_this.options.onSave) {
+                _this.options.onSave.call(_this.ctrl, content, 'keyup');
+              } else {
+                _this.apply(content);
+              }
+              e.stopPropagation();
+              break;
+            case 27:
+              $('div.popover').remove();
+              _this.cancel();
+              e.stopPropagation();
+              break;
           }
         });
       }
