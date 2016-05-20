@@ -310,10 +310,13 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
-  function update($rowid, $row, &$transientData = array(), $options = array()) {
+  function update($rowid, $rowParam, &$transientData = array(), $optionsParam = array()) {
 
     $this->DMLType = 'update';
 
+    $row = $rowParam;
+
+    $options               = $optionsParam;
     $options['operation']  = 'update';
     $options['dataSets']   = br(br($options, 'dataSets'))->split();
     $options['renderMode'] = br($options, 'renderMode');
@@ -324,7 +327,6 @@ class BrDataSource extends BrGenericDataSource {
     $filter[br()->db()->rowidField()] = br()->db()->rowid($rowid);
 
     if ($crow = $table->findOne($filter)) {
-
       try {
         br()->db()->startTransaction();
 
@@ -351,6 +353,9 @@ class BrDataSource extends BrGenericDataSource {
         }
 
         br()->db()->commitTransaction();
+      } catch (BrDBRecoverableException $e) {
+        // sleep(1);
+        return $this->update($rowid, $rowParam, $transientData, $optionsParam);
       } catch (Exception $e) {
         br()->db()->rollbackTransaction();
         $operation = 'update';
@@ -361,7 +366,6 @@ class BrDataSource extends BrGenericDataSource {
         }
         throw $e;
       }
-
       return $result;
     } else {
       throw new BrDataSourceNotFound();
@@ -375,7 +379,7 @@ class BrDataSource extends BrGenericDataSource {
 
     $row = $rowParam;
 
-    $options = $optionsParam;
+    $options               = $optionsParam;
     $options['operation']  = 'insert';
     $options['dataSets']   = br(br($options, 'dataSets'))->split();
     $options['renderMode'] = br($options, 'renderMode');
@@ -434,7 +438,7 @@ class BrDataSource extends BrGenericDataSource {
 
     $this->DMLType = 'remove';
 
-    $options = $optionsParam;
+    $options               = $optionsParam;
     $options['operation']  = 'remove';
     $options['dataSets']   = br(br($options, 'dataSets'))->split();
     $options['renderMode'] = br($options, 'renderMode');
