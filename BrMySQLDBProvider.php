@@ -21,7 +21,18 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
     $this->config = $cfg;
 
-    $this->connect(br($cfg, 'hostname'), br($cfg, 'name'), br($cfg, 'username'), br($cfg, 'password'), $cfg);
+    $tries = 30;
+    while($tries > 0) {
+      if ($tries != 3) {
+        br()->log('Reconnecting...');
+      }
+      $tries--;
+      if ($this->reconnect()) {
+        break;
+      } else {
+        sleep(1);
+      }
+    }
 
     register_shutdown_function(array(&$this, "captureShutdown"));
 
@@ -32,6 +43,12 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     if ($this->ownConnection) {
       @mysql_close($this->connection);
     }
+
+  }
+
+  function reconnect() {
+
+    return $this->connect(br($this->config, 'hostname'), br($this->config, 'name'), br($this->config, 'username'), br($this->config, 'password'), $this->config);
 
   }
 
@@ -56,6 +73,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     }
 
     if ($this->connection) {
+      $this->enable();
       $this->version = mysql_get_server_info();
       $this->triggerSticky('after:connect');
     } else {
@@ -108,7 +126,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   }
 
-  function startTransaction() {
+  function startTransaction($rerunnable = false) {
 
     $this->internalRunQuery('START TRANSACTION');
 
@@ -181,7 +199,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   }
 
-  function internalRunQuery($sql, $args = array(), $unbuffered = false) {
+  function internalRunQuery($sql, $args = array()) {
 
     if (count($args) > 0) {
       $sql = br()->placeholderEx($sql, $args, $error);
@@ -192,11 +210,8 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     }
     br()->log()->writeln($sql, "QRY");
 
-    if ($unbuffered) {
-      $query = mysql_unbuffered_query($sql, $this->connection);
-    } else {
-      $query = mysql_query($sql, $this->connection);
-    }
+    $query = mysql_query($sql, $this->connection);
+
     br()->log()->writeln('Query complete', 'SEP');
 
     if (!$query) {

@@ -13,6 +13,7 @@ require_once(__DIR__.'/BrGenericDBProvider.php');
 class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   private $__inTransaction = false;
+  private $__inRerunnableTransaction = false;
   private $__transactionBuffer = array();
   private $__deadlocksHandlerEnabled = true;
 
@@ -56,16 +57,19 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   }
 
-  function startTransaction() {
+  function startTransaction($rerunnable = false) {
 
     $this->resetTransaction();
+    $this->__inRerunnableTransaction = $rerunnable;;
     $this->__inTransaction = true;;
 
   }
 
   function incTransactionBuffer($sql) {
 
-    $this->__transactionBuffer[] = $sql;
+    if (!preg_match('/^SET /', $sql)) {
+      $this->__transactionBuffer[] = $sql;
+    }
 
   }
 
@@ -84,6 +88,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
   function resetTransaction() {
 
     $this->__inTransaction = false;
+    $this->__inRerunnableTransaction = false;
     $this->__transactionBuffer = array();
 
   }
@@ -91,6 +96,12 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
   function inTransaction() {
 
     return $this->__inTransaction;
+
+  }
+
+  function inRerunnableTransaction() {
+
+    return $this->__inRerunnableTransaction;
 
   }
 
@@ -156,13 +167,12 @@ class BrGenericSQLProviderCursor implements Iterator {
 
   private $sql, $args, $provider, $position = -1, $query, $row, $limit, $skip;
 
-  public function __construct($sql, $args, &$provider, $unbuffered = false) {
+  public function __construct($sql, $args, &$provider) {
 
     $this->sql = $sql;
     $this->args = $args;
     $this->provider = $provider;
     $this->position = -1;
-    $this->unbuffered = $unbuffered;
 
   }
 
@@ -302,7 +312,7 @@ class BrGenericSQLProviderCursor implements Iterator {
       if (strlen($this->limit)) {
         $this->sql = $this->provider->getLimitSQL($this->sql, $this->skip, $this->limit);
       }
-      $this->query = $this->provider->internalRunQuery($this->sql, $this->args, $this->unbuffered);
+      $this->query = $this->provider->internalRunQuery($this->sql, $this->args);
       $this->row = $this->provider->selectNext($this->query);
       $this->position = 0;
     }

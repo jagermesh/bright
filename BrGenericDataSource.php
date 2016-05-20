@@ -318,8 +318,15 @@ class BrGenericDataSource extends BrObject {
             $this->callEvent('after:' . $method, $result, $data, $params, $transientData);
             br()->db()->commitTransaction();
             return $data;
+          } catch (BrDBRecoverableException $e) {
+            // sleep(1);
+            return $this->invoke($method, $params, $transientData);
           } catch (Exception $e) {
-            br()->db()->rollbackTransaction();
+            try {
+              br()->db()->rollbackTransaction();
+            } catch (Exception $e2) {
+
+            }
             $result = false;
             $data = null;
             $this->callEvent('after:' . $method, $result, $data, $params, $transientData);

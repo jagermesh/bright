@@ -93,6 +93,18 @@ class BrDBException extends BrException {
 
 }
 
-class BrDBDeadLockException extends BrDBException {
+class BrDBRecoverableException extends BrDBException {
+
+}
+
+class BrDBDeadLockException extends BrDBRecoverableException {
+
+}
+
+class BrDBLockException extends BrDBRecoverableException {
+
+}
+
+class BrDBServerGoneAwayException extends BrDBRecoverableException {
 
 }

@@ -15,13 +15,13 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
   private $connection;
   private $errorRedirect;
   private $config;
+  private $reconnectIterations = 10;
+  private $rerunIterations = 10;
 
   function __construct($cfg) {
 
     $this->config = $cfg;
-
-    $this->connect(br($cfg, 'hostname'), br($cfg, 'name'), br($cfg, 'username'), br($cfg, 'password'), br($cfg, 'port'), $cfg);
-
+    $this->reconnect();
     register_shutdown_function(array(&$this, "captureShutdown"));
 
   }
@@ -32,25 +32,46 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
   }
 
+  function reconnect() {
+
+    return $this->connect(br($this->config, 'hostname'), br($this->config, 'name'), br($this->config, 'username'), br($this->config, 'password'), br($this->config, 'port'), $this->config);
+
+  }
+
   function connect($hostName, $dataBaseName, $userName, $password, $port, $cfg) {
 
-    try {
-      if ($this->connection = mysqli_connect($hostName, $userName, $password, $dataBaseName, $port)) {
-        if (br($cfg, 'charset')) {
-          $this->internalRunQuery('SET NAMES ?', array($cfg['charset']));
+    $tries = $this->reconnectIterations;
+
+    while($tries > 0) {
+      $tries--;
+      try {
+        if ($this->connection = mysqli_connect($hostName, $userName, $password, $dataBaseName, $port)) {
+          if (br($cfg, 'charset')) {
+            $this->internalRunQuery('SET NAMES ?', array($cfg['charset']));
+          }
+          break;
+        }
+      } catch (Exception $e) {
+        $this->connection = null;
+        if ($tries == 0) {
+          br()->log()->logException($e);
+          break;
+        } else {
+          sleep(1);
+          br()->log('Reconnecting...');
         }
       }
-    } catch (Exception $e) {
-      $this->connection = null;
-      br()->log()->logException($e);
     }
 
     if ($this->connection) {
       $this->version = mysqli_get_server_info($this->connection);
       $this->triggerSticky('after:connect');
+      $this->enable(true);
     } else {
       $this->disable();
     }
+
+    return $this->connection;
 
   }
 
@@ -92,11 +113,11 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
   }
 
-  function startTransaction() {
+  function startTransaction($rerunnable = false) {
 
     $this->internalRunQuery('START TRANSACTION');
 
-    parent::startTransaction();
+    parent::startTransaction($rerunnable);
 
   }
 
@@ -158,7 +179,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
     $args = func_get_args();
     $sql = array_shift($args);
 
-    return $this->internalRunQuery($sql, $args, false);
+    return $this->internalRunQuery($sql, $args);
 
   }
 
@@ -167,60 +188,88 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
     $args = func_get_args();
     $sql = array_shift($args);
 
-    return $this->internalRunQuery($sql, $args, true);
+    return $this->internalRunQuery($sql, $args);
 
   }
 
-  function internalRunQuery($sql, $args = array(), $unbuffered = false) {
+  function internalRunQuery($sql, $args = array(), $iteration = 0, $error = null) {
 
     if (count($args) > 0) {
-      $sql = br()->placeholderEx($sql, $args, $error);
-      if (!$sql) {
-        $error .= '[INFO:SQL]'.$sql.'[/INFO]';
+      $queryText = br()->placeholderEx($sql, $args, $error);
+      if (!$queryText) {
+        $error = $error . '. [INFO:SQL]' . $sql . '[/INFO]';
         throw new BrDBException($error);
       }
+    } else {
+      $queryText = $sql;
     }
 
-    $tries = 0;
-    $maxTries = 3;
-    while ($tries < $maxTries) {
-      $tries++;
-      br()->log()->writeln($sql, "QRY");
-      $query = mysqli_query($this->connection, $sql);
+    br()->log()->writeln($queryText, "QRY");
+
+    if ($iteration > $this->rerunIterations) {
+      $error = $error . '. [INFO:SQL]' . $queryText . '[/INFO]';
+      throw new BrDBException($error);
+    }
+
+    try {
+      $query = mysqli_query($this->connection, $queryText);
       if ($query) {
         if ($this->inTransaction()) {
-          $this->incTransactionBuffer($sql);
+          $this->incTransactionBuffer($queryText);
         }
-        break;
       } else {
         $error = $this->getLastError();
-        if (preg_match('/1213: Deadlock found when trying to get lock/', $error)) {
-          if ($tries == $maxTries) {
-            $error .= '. Automatic retrying failed after ' . $tries . ' tries';
-            $error .= '. [INFO:SQL]' . $sql . '[/INFO]';
-            throw new BrDBDeadLockException($error);
-          } else
-          if ($this->inTransaction()) {
-            if ($this->isTransactionBufferEmpty()) {
-              br()->log()->writeln('Deadlock occured, but this is first query. Trying restart transaction, try #' . $tries, 'SEP');
-              $this->startTransaction();
-            } else {
-              $error .= '. Automatic retrying was not possible - ' . $this->transactionBufferLength() . ' statement(s) in transaction buffer: ';
-              $error .= json_encode($this->transactionBuffer());
-              $error .= '. [INFO:SQL]' . $sql . '[/INFO]';
-              $this->resetTransaction();
-              throw new BrDBDeadLockException($error);
-            }
-          } else {
-            br()->log()->writeln('Deadlock occured, but we are not in transaction. Trying repeat query, try #' . $tries, 'SEP');
-          }
-        } else
-        if (preg_match('/1329: No data/', $error)) {
-          break;
-        } else {
-          $error .= '. [INFO:SQL]' . $sql . '[/INFO]';
-          throw new BrDBException($error);
+        throw new BrDBException($error);
+      }
+    } catch (Exception $e) {
+      // if connection lost - we'll try to restore it first
+      if (preg_match('/Error while sending QUERY packet/', $e->getMessage()) ||
+          preg_match('/MySQL server has gone away/', $e->getMessage())) {
+        $this->reconnect();
+        if (!$this->connection) {
+          throw new BrDBServerGoneAwayException($e->getMessage());
         }
+      }
+      // then we will try re-run queries
+      if (preg_match('/Error while sending QUERY packet/', $e->getMessage()) ||
+          preg_match('/MySQL server has gone away/', $e->getMessage()) ||
+          preg_match('/Lock wait timeout exceeded/', $e->getMessage()) ||
+          preg_match('/Deadlock found when trying to get lock/', $e->getMessage())) {
+        if ($this->inTransaction()) {
+          if ($this->isTransactionBufferEmpty()) {
+            br()->log()->writeln('Deadlock occured, but this is first query. Trying restart transaction', 'SEP');
+            $this->startTransaction();
+            // sleep(1);
+            $query = $this->internalRunQuery($sql, $args, $iteration + 1, $e->getMessage());
+          } else {
+            $error  = $e->getMessage();
+            $error .= '. Automatic retrying was not possible - ' . $this->transactionBufferLength() . ' statement(s) in transaction buffer: ';
+            $error .= json_encode($this->transactionBuffer());
+            $error .= '. [INFO:SQL]' . $sql . '[/INFO]';
+            $this->resetTransaction();
+            if (preg_match('/Lock wait timeout exceeded/', $error)) {
+              throw new BrDBLockException($error);
+            } else
+            if (preg_match('/Deadlock found when trying to get lock/', $error)) {
+              throw new BrDBDeadLockException($error);
+            } else
+            if (preg_match('/Error while sending QUERY packet/', $e->getMessage()) ||
+                preg_match('/MySQL server has gone away/', $e->getMessage())) {
+              throw new BrDBServerGoneAwayException($error);
+            }
+          }
+        } else {
+          br()->log()->writeln('Deadlock occured, but we are not in transaction. Trying repeat query', 'SEP');
+          // sleep(1);
+          $query = $this->internalRunQuery($sql, $args, $iteration + 1, $e->getMessage());
+        }
+      } else
+      if (preg_match('/1329: No data/', $e->getMessage())) {
+
+      } else {
+        $error  = $e->getMessage();
+        $error .= '. [INFO:SQL]' . $sql . '[/INFO]';
+        throw new BrDBException($error);
       }
     }
 
