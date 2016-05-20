@@ -235,6 +235,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
       if (preg_match('/Error while sending QUERY packet/', $e->getMessage()) ||
           preg_match('/Error reading result set/', $e->getMessage()) ||
           preg_match('/MySQL server has gone away/', $e->getMessage()) ||
+          preg_match('/Packets out of order/', $e->getMessage()) ||
           preg_match('/Lock wait timeout exceeded/', $e->getMessage()) ||
           preg_match('/Deadlock found when trying to get lock/', $e->getMessage())) {
         if ($this->inTransaction()) {
@@ -254,6 +255,9 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
             } else
             if (preg_match('/Deadlock found when trying to get lock/', $error)) {
               throw new BrDBDeadLockException($error);
+            } else
+            if (preg_match('/Packets out of order/', $error)) {
+              throw new BrDBEngineException($error);
             } else
             if (preg_match('/Error while sending QUERY packet/', $e->getMessage()) ||
                 preg_match('/Error reading result set/', $e->getMessage()) ||

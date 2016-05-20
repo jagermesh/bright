@@ -369,10 +369,13 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
-  function insert($row = array(), &$transientData = array(), $options = array()) {
+  function insert($rowParam = array(), &$transientData = array(), $optionsParam = array()) {
 
     $this->DMLType = 'insert';
 
+    $row = $rowParam;
+
+    $options = $optionsParam;
     $options['operation']  = 'insert';
     $options['dataSets']   = br(br($options, 'dataSets'))->split();
     $options['renderMode'] = br($options, 'renderMode');
@@ -402,6 +405,9 @@ class BrDataSource extends BrGenericDataSource {
         } else {
           throw new BrDBException('Empty insert request');
         }
+      } catch (BrDBRecoverableException $e) {
+        // sleep(1);
+        return $this->insert($rowParam, $transientData, $optionsParam);
       } catch (Exception $e) {
         br()->db()->rollbackTransaction();
         $operation = 'insert';
