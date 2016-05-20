@@ -424,10 +424,11 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
-  function remove($rowid, &$transientData = array(), $options = array()) {
+  function remove($rowid, &$transientData = array(), $optionsParam = array()) {
 
     $this->DMLType = 'remove';
 
+    $options = $optionsParam;
     $options['operation']  = 'remove';
     $options['dataSets']   = br(br($options, 'dataSets'))->split();
     $options['renderMode'] = br($options, 'renderMode');
@@ -449,6 +450,9 @@ class BrDataSource extends BrGenericDataSource {
         if (is_null($result)) {
           try {
             $table->remove($filter);
+          } catch (BrDBRecoverableException $e) {
+            // sleep(1);
+            return $this->remove($rowid, $transientData, $optionsParam);
           } catch (Exception $e) {
             // TODO: Move to the DB layer
             if (preg_match('/1451: Cannot delete or update a parent row/', $e->getMessage())) {
