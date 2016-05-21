@@ -16,24 +16,13 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
   private $ownConnection;
   private $errorRedirect;
   private $config;
+  private $reconnectIterations = 10;
+  private $rerunIterations = 10;
 
   function __construct($cfg) {
 
     $this->config = $cfg;
-
-    $tries = 30;
-    while($tries > 0) {
-      if ($tries != 3) {
-        br()->log('Reconnecting...');
-      }
-      $tries--;
-      if ($this->reconnect()) {
-        break;
-      } else {
-        sleep(1);
-      }
-    }
-
+    $this->reconnect();
     register_shutdown_function(array(&$this, "captureShutdown"));
 
   }
@@ -58,22 +47,33 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
       $this->connection = $cfg['connection'];
       $this->ownConnection = false;
     } else {
-      try {
-        if ($this->connection = mysql_connect($hostName, $userName, $password, true)) {
-          $this->ownConnection = true;
-          mysql_select_db($dataBaseName, $this->connection);
-          if (br($cfg, 'charset')) {
-            $this->internalRunQuery('SET NAMES ?', array($cfg['charset']));
+      $tries = $this->reconnectIterations;
+      while($tries > 0) {
+        $tries--;
+        try {
+          if ($this->connection = mysql_connect($hostName, $userName, $password, true)) {
+            $this->ownConnection = true;
+            mysql_select_db($dataBaseName, $this->connection);
+            if (br($cfg, 'charset')) {
+              $this->internalRunQuery('SET NAMES ?', array($cfg['charset']));
+            }
+            break;
+          }
+        } catch (Exception $e) {
+          $this->connection = null;
+          if ($tries == 0) {
+            br()->log()->logException($e);
+            break;
+          } else {
+            sleep(1);
+            br()->log('Reconnecting...');
           }
         }
-      } catch (Exception $e) {
-        $this->connection = null;
-        br()->log()->logException($e);
       }
     }
 
     if ($this->connection) {
-      $this->enable();
+      $this->enable(true);
       $this->version = mysql_get_server_info();
       $this->triggerSticky('after:connect');
     } else {
@@ -186,7 +186,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     $args = func_get_args();
     $sql = array_shift($args);
 
-    return $this->internalRunQuery($sql, $args, false);
+    return $this->internalRunQuery($sql, $args);
 
   }
 
@@ -195,7 +195,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     $args = func_get_args();
     $sql = array_shift($args);
 
-    return $this->internalRunQuery($sql, $args, true);
+    return $this->internalRunQuery($sql, $args);
 
   }
 

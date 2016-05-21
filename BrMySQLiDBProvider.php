@@ -64,9 +64,9 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
     }
 
     if ($this->connection) {
+      $this->enable(true);
       $this->version = mysqli_get_server_info($this->connection);
       $this->triggerSticky('after:connect');
-      $this->enable(true);
     } else {
       $this->disable();
     }
