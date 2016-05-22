@@ -225,6 +225,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
       // if connection lost - we'll try to restore it first
       if (preg_match('/Error while sending QUERY packet/', $e->getMessage()) ||
           preg_match('/Error reading result set/', $e->getMessage()) ||
+          preg_match('/Lost connection to backend server/', $e->getMessage()) ||
           preg_match('/MySQL server has gone away/', $e->getMessage())) {
         $this->reconnect();
         if (!$this->connection) {
@@ -234,6 +235,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
       // then we will try re-run queries
       if (preg_match('/Error while sending QUERY packet/', $e->getMessage()) ||
           preg_match('/Error reading result set/', $e->getMessage()) ||
+          preg_match('/Lost connection to backend server/', $e->getMessage()) ||
           preg_match('/MySQL server has gone away/', $e->getMessage()) ||
           preg_match('/Packets out of order/', $e->getMessage()) ||
           preg_match('/Lock wait timeout exceeded/', $e->getMessage()) ||
@@ -261,6 +263,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
             } else
             if (preg_match('/Error while sending QUERY packet/', $e->getMessage()) ||
                 preg_match('/Error reading result set/', $e->getMessage()) ||
+                preg_match('/Lost connection to backend server/', $e->getMessage()) ||
                 preg_match('/MySQL server has gone away/', $e->getMessage())) {
               throw new BrDBServerGoneAwayException($error);
             }
