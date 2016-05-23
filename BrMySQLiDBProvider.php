@@ -244,7 +244,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
           if ($this->isTransactionBufferEmpty()) {
             br()->log()->writeln('Deadlock occured, but this is first query. Trying restart transaction', 'SEP');
             $this->startTransaction();
-            // sleep(1);
+            usleep(250000);
             $query = $this->internalRunQuery($sql, $args, $iteration + 1, $e->getMessage());
           } else {
             $error  = $e->getMessage();
@@ -270,7 +270,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
           }
         } else {
           br()->log()->writeln('Deadlock occured, but we are not in transaction. Trying repeat query', 'SEP');
-          // sleep(1);
+          usleep(250000);
           $query = $this->internalRunQuery($sql, $args, $iteration + 1, $e->getMessage());
         }
       } else
