@@ -47,7 +47,14 @@
     };
 
     this.options.selectors.dataTable = c(this.options.selectors.dataTable || '.data-table');
-    this.options.selectors.editForm = this.options.selectors.editForm || '.data-edit-form';
+    this.options.selectors.editForm = this.options.selectors.editForm || '';
+    if (this.options.selectors.editForm === '') {
+      if (this.options.selectors.container === '') {
+        this.options.selectors.editForm = '.data-edit-form';
+      } else {
+        this.options.selectors.editForm = _this.options.selectors.container + ' .data-edit-form';
+      }
+    }
 
     this.options.templates = this.options.templates || {};
     this.options.templates.row = this.options.templates.row || this.options.templates.rowTemplate || '.data-row-template';
