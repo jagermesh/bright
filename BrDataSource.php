@@ -310,6 +310,67 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
+  function insert($rowParam = array(), &$transientData = array(), $optionsParam = array()) {
+
+    $this->DMLType = 'insert';
+
+    $row = $rowParam;
+
+    $options               = $optionsParam;
+    $options['operation']  = 'insert';
+    $options['dataSets']   = br(br($options, 'dataSets'))->split();
+    $options['renderMode'] = br($options, 'renderMode');
+
+    $old = array();
+
+    $this->callEvent('before:insert', $row, $transientData, $old, $options);
+
+    $this->validateInsert($row);
+
+    $result = $this->callEvent('insert', $row, $transientData, $old, $options);
+    if (is_null($result)) {
+      try {
+        br()->db()->startTransaction();
+        if ($row) {
+          $table = br()->db()->table($this->dbEntity());
+          if (br($options, 'dataTypes')) {
+            $table->insert($row, br($options, 'dataTypes'));
+          } else {
+            $table->insert($row);
+          }
+          $result = $row;
+          $this->callEvent('after:insert', $result, $transientData, $old, $options);
+          $result['rowid'] = br()->db()->rowidValue($result);
+          $this->callEvent('calcFields', $result, $transientData, $options);
+          br()->db()->commitTransaction();
+        } else {
+          throw new BrDBException('Empty insert request');
+        }
+      } catch (BrDBRecoverableException $e) {
+        // sleep(1);
+        return $this->insert($rowParam, $transientData, $optionsParam);
+      } catch (Exception $e) {
+        br()->db()->rollbackTransaction();
+        $operation = 'insert';
+        $error = $e->getMessage();
+        $result = $this->trigger('error', $error, $operation, $e);
+        if (is_null($result)) {
+          if (!br()->request()->isLocalHost()) {
+            if (preg_match('/1062: Duplicate entry/', $error, $matches)) {
+              throw new BrAppException('Unique constraint violated');
+            }
+          }
+          throw $e;
+        } else {
+          return $result;
+        }
+      }
+    }
+
+    return $result;
+
+  }
+
   function update($rowid, $rowParam, &$transientData = array(), $optionsParam = array()) {
 
     $this->DMLType = 'update';
@@ -373,67 +434,6 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
-  function insert($rowParam = array(), &$transientData = array(), $optionsParam = array()) {
-
-    $this->DMLType = 'insert';
-
-    $row = $rowParam;
-
-    $options               = $optionsParam;
-    $options['operation']  = 'insert';
-    $options['dataSets']   = br(br($options, 'dataSets'))->split();
-    $options['renderMode'] = br($options, 'renderMode');
-
-    $old = array();
-
-    $this->callEvent('before:insert', $row, $transientData, $old, $options);
-
-    $this->validateInsert($row);
-
-    $result = $this->callEvent('insert', $row, $transientData, $old, $options);
-    if (is_null($result)) {
-      try {
-        br()->db()->startTransaction();
-        if ($row) {
-          $table = br()->db()->table($this->dbEntity());
-          if (br($options, 'dataTypes')) {
-            $table->insert($row, br($options, 'dataTypes'));
-          } else {
-            $table->insert($row);
-          }
-          $result = $row;
-          $this->callEvent('after:insert', $result, $transientData, $old, $options);
-          $result['rowid'] = br()->db()->rowidValue($result);
-          $this->callEvent('calcFields', $result, $transientData, $options);
-          br()->db()->commitTransaction();
-        } else {
-          throw new BrDBException('Empty insert request');
-        }
-      } catch (BrDBRecoverableException $e) {
-        // sleep(1);
-        return $this->insert($rowParam, $transientData, $optionsParam);
-      } catch (Exception $e) {
-        br()->db()->rollbackTransaction();
-        $operation = 'insert';
-        $error = $e->getMessage();
-        $result = $this->trigger('error', $error, $operation, $e);
-        if (is_null($result)) {
-          if (!br()->request()->isLocalHost()) {
-            if (preg_match('/1062: Duplicate entry/', $error, $matches)) {
-              throw new BrAppException('Unique constraint violated');
-            }
-          }
-          throw $e;
-        } else {
-          return $result;
-        }
-      }
-    }
-
-    return $result;
-
-  }
-
   function remove($rowid, &$transientData = array(), $optionsParam = array()) {
 
     $this->DMLType = 'remove';
@@ -450,34 +450,33 @@ class BrDataSource extends BrGenericDataSource {
 
     if ($crow = $table->findOne($filter)) {
       try {
-        br()->db()->startTransaction();
+        try {
+          br()->db()->startTransaction();
 
-        $this->callEvent('before:remove', $crow, $transientData, $options);
+          $this->callEvent('before:remove', $crow, $transientData, $options);
 
-        $this->validateRemove($crow);
+          $this->validateRemove($crow);
 
-        $result = $this->callEvent('remove', $crow, $transientData, $options);
-        if (is_null($result)) {
-          try {
+          $result = $this->callEvent('remove', $crow, $transientData, $options);
+          if (is_null($result)) {
             $table->remove($filter);
-          } catch (BrDBRecoverableException $e) {
-            // sleep(1);
-            return $this->remove($rowid, $transientData, $optionsParam);
-          } catch (Exception $e) {
-            // TODO: Move to the DB layer
-            if (preg_match('/1451: Cannot delete or update a parent row/', $e->getMessage())) {
-              throw new BrDataSourceReferencesExists();//BrAppException('Cannot delete this record - there are references to it in the system');
-            } else {
-              throw new BrAppException($e->getMessage());
-            }
+            $result = $crow;
+            $this->callEvent('after:remove', $result, $transientData, $options);
+            $result['rowid'] = br()->db()->rowidValue($result);
+            $this->callEvent('calcFields', $result, $transientData, $options);
           }
-          $result = $crow;
-          $this->callEvent('after:remove', $result, $transientData, $options);
-          $result['rowid'] = br()->db()->rowidValue($result);
-          $this->callEvent('calcFields', $result, $transientData, $options);
+          br()->db()->commitTransaction();
+        } catch (BrDBRecoverableException $e) {
+          // sleep(1);
+          return $this->remove($rowid, $transientData, $optionsParam);
+        } catch (Exception $e) {
+          // TODO: Move to the DB layer
+          if (preg_match('/1451: Cannot delete or update a parent row/', $e->getMessage())) {
+            throw new BrDataSourceReferencesExists();//BrAppException('Cannot delete this record - there are references to it in the system');
+          } else {
+            throw new BrAppException($e->getMessage());
+          }
         }
-
-        br()->db()->commitTransaction();
       } catch (Exception $e) {
         br()->db()->rollbackTransaction();
         $operation = 'remove';
