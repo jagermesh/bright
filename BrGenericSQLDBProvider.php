@@ -250,7 +250,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
     $query = $this->internalRunQuery($sql, $args);
     $result = array();
-    if (is_object($query)) {
+    if (is_object($query) || is_resource($query)) {
       while($row = $this->selectNext($query)) {
         $result[] = $row;
       }
@@ -272,7 +272,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
     if (!$result && !br()->cache()->exists($cacheTag)) {
       $query = $this->internalRunQuery($sql, $args);
       $result = array();
-      if (is_object($query)) {
+      if (is_object($query) || is_resource($query)) {
         while($row = $this->selectNext($query)) {
           $result[] = $row;
         }
@@ -329,7 +329,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
     $query = $this->internalRunQuery($sql, $args);
     $result = array();
-    if (is_object($query)) {
+    if (is_object($query) || is_resource($query)) {
       while($row = $this->selectNext($query)) {
         array_push($result, array_shift($row));
       }
@@ -350,7 +350,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
     if (!$result && !br()->cache()->exists($cacheTag)) {
       $query = $this->internalRunQuery($sql, $args);
       $result = array();
-      if (is_object($query)) {
+      if (is_object($query) || is_resource($query)) {
         while($row = $this->selectNext($query)) {
           array_push($result, array_shift($row));
         }
