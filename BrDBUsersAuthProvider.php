@@ -183,7 +183,7 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
     $usersTable = br()->auth()->getAttr('usersTable.name');
 
     if ($login = br()->session()->get('login')) {
-      if (!$this->isDbSynced && !$this->syncTried && br()->db() && br()->db()->isEnabled()) {
+      if (!$this->isDbSynced && !$this->syncTried && br()->db()) {
         $this->syncTried = true;
         $users = br()->db()->table($usersTable);
         if ($login = $users->findOne(array(br()->db()->rowidField() => br()->db()->rowid($login)))) {

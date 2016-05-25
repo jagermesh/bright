@@ -18,10 +18,10 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
   private $reconnectIterations = 10;
   private $rerunIterations = 10;
 
-  function __construct($cfg) {
+  function __construct($config) {
 
-    $this->config = $cfg;
-    $this->reconnect();
+    $this->config = $config;
+    $this->connect();
     register_shutdown_function(array(&$this, "captureShutdown"));
 
   }
@@ -32,135 +32,67 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
   }
 
-  function reconnect() {
+  function connect($iteration = 0, $rerunError = null) {
 
-    return $this->connect(br($this->config, 'hostname'), br($this->config, 'name'), br($this->config, 'username'), br($this->config, 'password'), br($this->config, 'port'), $this->config);
-
-  }
-
-  function connect($hostName, $dataBaseName, $userName, $password, $port, $cfg) {
-
-    $tries = $this->reconnectIterations;
-
-    while($tries > 0) {
-      $tries--;
-      try {
-        if ($this->connection = mysqli_connect($hostName, $userName, $password, $dataBaseName, $port)) {
-          if (br($cfg, 'charset')) {
-            $this->internalRunQuery('SET NAMES ?', array($cfg['charset']));
-          }
-          break;
-        }
-      } catch (Exception $e) {
-        $this->connection = null;
-        if ($tries == 0) {
-          br()->log()->logException($e);
-          break;
-        } else {
-          sleep(1);
-          br()->log('Reconnecting...');
-        }
-      }
+    if ($iteration > $this->reconnectIterations) {
+      throw new BrDBConnectionError($rerunError);
     }
 
-    if ($this->connection) {
-      $this->enable(true);
-      $this->version = mysqli_get_server_info($this->connection);
-      $this->triggerSticky('after:connect');
-    } else {
-      $this->disable();
+    $hostName     = br($this->config, 'hostname');
+    $dataBaseName = br($this->config, 'name');
+    $userName     = br($this->config, 'username');
+    $password     = br($this->config, 'password');
+    $port         = br($this->config, 'port');
+
+    try {
+      if ($this->connection = mysqli_connect($hostName, $userName, $password, $dataBaseName, $port)) {
+        if (br($this->config, 'charset')) {
+          $this->runQuery('SET NAMES ?', $this->config['charset']);
+        }
+        $this->version = mysqli_get_server_info($this->connection);
+        $this->triggerSticky('after:connect');
+        br()->triggerSticky('after:db.connect');
+      }
+    } catch (Exception $e) {
+      $this->connection = null;
+      br()->log('Reconnecting... (' . $iteration . ')');
+      usleep(500000);
+      $this->connect($iteration + 1, $e->getMessage());
     }
 
     return $this->connection;
 
   }
 
-  function table($name, $alias = null) {
+  function startTransaction($force = false) {
 
-    return new BrGenericSQLProviderTable($this, $name, $alias);
+    $this->runQuery('START TRANSACTION');
 
-  }
-
-  function rowidValue($row, $fieldName = null) {
-
-    if (is_array($row)) {
-      return br($row, $fieldName ? $fieldName : $this->rowidField());
-    } else {
-      return $row;
-    }
+    parent::startTransaction($force);
 
   }
 
-  function rowid($row, $fieldName = null) {
+  function commitTransaction($force = false) {
 
-    if (is_array($row)) {
-      return br($row, $fieldName?$fieldName:$this->rowidField());
-    } else {
-      return $row;
-    }
+    $this->runQuery('COMMIT');
+
+    parent::commitTransaction($force);
 
   }
 
-  function rowidField() {
+  function rollbackTransaction($force = false) {
 
-    return 'id';
+    $this->runQuery('ROLLBACK');
 
-  }
-
-  function regexpCondition($value) {
-
-    return new BrGenericSQLRegExp($value);
+    parent::rollbackTransaction($force);
 
   }
-
-  function startTransaction($rerunnable = false) {
-
-    $this->internalRunQuery('START TRANSACTION');
-
-    parent::startTransaction($rerunnable);
-
-  }
-
-  function commitTransaction() {
-
-    $this->internalRunQuery('COMMIT');
-
-    parent::commitTransaction();
-
-  }
-
-  function rollbackTransaction() {
-
-    $this->internalRunQuery('ROLLBACK');
-
-    parent::rollbackTransaction();
-
-  }
-
 
   function getLastError() {
 
     if (mysqli_errno($this->connection)) {
       return mysqli_errno($this->connection).": ".mysqli_error($this->connection);
     }
-
-  }
-
-  function getCursor() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    return new BrGenericSQLProviderCursor($sql, $args, $this, true);
-
-  }
-
-  function select() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    return $this->internalRunQuery($sql, $args);
 
   }
 
@@ -174,25 +106,12 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
   }
 
-  function runQuery() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    return $this->internalRunQuery($sql, $args);
-
-  }
-
-  function openCursor() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    return $this->internalRunQuery($sql, $args);
-
-  }
-
   function internalRunQuery($sql, $args = array(), $iteration = 0, $rerunError = null) {
+
+    if ($iteration > $this->rerunIterations) {
+      $error = $rerunError . '. [INFO:SQL]' . $queryText . '[/INFO]';
+      throw new BrDBException($error);
+    }
 
     if (count($args) > 0) {
       $queryText = br()->placeholderEx($sql, $args, $error);
@@ -206,12 +125,8 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
     br()->log()->writeln($queryText, "QRY");
 
-    if ($iteration > $this->rerunIterations) {
-      $error = $rerunError . '. [INFO:SQL]' . $queryText . '[/INFO]';
-      throw new BrDBException($error);
-    }
-
     try {
+      // moved to check problem line
       $query = mysqli_query($this->connection, $queryText);
       if ($query) {
         if ($this->inTransaction()) {
@@ -226,32 +141,31 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
       if (preg_match('/Error while sending QUERY packet/', $e->getMessage()) ||
           preg_match('/Error reading result set/', $e->getMessage()) ||
           preg_match('/Lost connection to backend server/', $e->getMessage()) ||
+          preg_match('/Packets out of order/', $e->getMessage()) ||
           preg_match('/MySQL server has gone away/', $e->getMessage())) {
-        $this->reconnect();
-        if (!$this->connection) {
-          throw new BrDBServerGoneAwayException($e->getMessage());
-        }
+        $this->connect();
       }
       // then we will try re-run queries
       if (preg_match('/Error while sending QUERY packet/', $e->getMessage()) ||
           preg_match('/Error reading result set/', $e->getMessage()) ||
           preg_match('/Lost connection to backend server/', $e->getMessage()) ||
-          preg_match('/MySQL server has gone away/', $e->getMessage()) ||
           preg_match('/Packets out of order/', $e->getMessage()) ||
+          preg_match('/MySQL server has gone away/', $e->getMessage()) ||
           preg_match('/Lock wait timeout exceeded/', $e->getMessage()) ||
           preg_match('/Deadlock found when trying to get lock/', $e->getMessage())) {
         if ($this->inTransaction()) {
           if ($this->isTransactionBufferEmpty()) {
-            br()->log()->writeln('Deadlock occured, but this is first query. Trying restart transaction', 'SEP');
+            br()->log()->writeln('Some error occured, but this is first query. Trying restart transaction and repeat query', 'SEP');
+            usleep(50000);
+            $this->rollbackTransaction();
             $this->startTransaction();
-            usleep(250000);
             $query = $this->internalRunQuery($sql, $args, $iteration + 1, $e->getMessage());
           } else {
             $error  = $e->getMessage();
             $error .= '. Automatic retrying was not possible - ' . $this->transactionBufferLength() . ' statement(s) in transaction buffer: ';
             $error .= json_encode($this->transactionBuffer());
             $error .= '. [INFO:SQL]' . $sql . '[/INFO]';
-            $this->resetTransaction();
+            $this->rollbackTransaction();
             if (preg_match('/Lock wait timeout exceeded/', $error)) {
               throw new BrDBLockException($error);
             } else
@@ -264,13 +178,14 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
             if (preg_match('/Error while sending QUERY packet/', $e->getMessage()) ||
                 preg_match('/Error reading result set/', $e->getMessage()) ||
                 preg_match('/Lost connection to backend server/', $e->getMessage()) ||
+                preg_match('/Packets out of order/', $e->getMessage()) ||
                 preg_match('/MySQL server has gone away/', $e->getMessage())) {
               throw new BrDBServerGoneAwayException($error);
             }
           }
         } else {
-          br()->log()->writeln('Deadlock occured, but we are not in transaction. Trying repeat query', 'SEP');
-          usleep(250000);
+          br()->log()->writeln('Some error occured, but we are not in transaction. Trying repeat query', 'SEP');
+          usleep(50000);
           $query = $this->internalRunQuery($sql, $args, $iteration + 1, $e->getMessage());
         }
       } else
@@ -286,160 +201,6 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
     br()->log()->writeln('Query complete', 'SEP');
 
     return $query;
-
-  }
-
-  function getRow() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    return $this->selectNext($this->internalRunQuery($sql, $args));
-
-  }
-
-  function getCachedRow() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    $cacheTag = 'MySQLDBProvder:getCachedRow:' . md5($sql) . md5(serialize($args));
-
-    $result = br()->cache()->get($cacheTag);
-
-    if (!$result && !br()->cache()->exists($cacheTag)) {
-      $result = $this->selectNext($this->internalRunQuery($sql, $args));
-      br()->cache()->set($cacheTag, $result);
-    }
-
-    return $result;
-
-  }
-
-  function getRows() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    $query = $this->internalRunQuery($sql, $args);
-    $result = array();
-    if (is_object($query)) {
-      while($row = $this->selectNext($query)) {
-        $result[] = $row;
-      }
-    }
-
-    return $result;
-
-  }
-
-  function getCachedRows() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    $cacheTag = 'MySQLDBProvder:getCachedRows:' . md5($sql) . md5(serialize($args));
-
-    $result = br()->cache()->get($cacheTag);
-
-    if (!$result && !br()->cache()->exists($cacheTag)) {
-      $query = $this->internalRunQuery($sql, $args);
-      $result = array();
-      if (is_object($query)) {
-        while($row = $this->selectNext($query)) {
-          $result[] = $row;
-        }
-      }
-      br()->cache()->set($cacheTag, $result);
-    }
-
-    return $result;
-
-  }
-
-  function getValue() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    $result = $this->selectNext($this->internalRunQuery($sql, $args));
-    if (is_array($result)) {
-      return array_shift($result);
-    } else {
-      return null;
-    }
-
-  }
-
-  public function getCachedValue() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    $cacheTag = 'MySQLDBProvder:getCachedValue:' . md5($sql) . md5(serialize($args));
-
-    $result = br()->cache()->get($cacheTag);
-
-    if (!$result && !br()->cache()->exists($cacheTag)) {
-      if ($value = $this->selectNext($this->internalRunQuery($sql, $args))) {
-        if (is_array($value)) {
-          $result = array_shift($value);
-        } else {
-          $result = $value;
-        }
-      }
-      br()->cache()->set($cacheTag, $result);
-    }
-
-    return $result;
-
-  }
-
-  function getValues() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    $query = $this->internalRunQuery($sql, $args);
-    $result = array();
-    if (is_object($query)) {
-      while($row = $this->selectNext($query)) {
-        array_push($result, array_shift($row));
-      }
-    }
-    return $result;
-
-  }
-
-  function getCachedValues() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    $cacheTag = 'MySQLDBProvder:getCachedValues:' . md5($sql) . md5(serialize($args));
-
-    $result = br()->cache()->get($cacheTag);
-
-    if (!$result && !br()->cache()->exists($cacheTag)) {
-      $query = $this->internalRunQuery($sql, $args);
-      $result = array();
-      if (is_object($query)) {
-        while($row = $this->selectNext($query)) {
-          array_push($result, array_shift($row));
-        }
-      }
-      br()->cache()->set($cacheTag, $result);
-    }
-    return $result;
-
-  }
-
-  function getRowsAmount() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    return $this->internalGetRowsAmount($sql, $args);
 
   }
 
@@ -466,66 +227,6 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
       }
     }
     return mysqli_num_rows($this->internalRunQuery($sql, $args));
-
-  }
-
-  function toGenericDataType($type) {
-
-    switch (strtolower($type)) {
-      case "date";
-        return "date";
-      case "datetime":
-      case "timestamp":
-        return "date_time";
-      case "time";
-        return "time";
-      case "int":
-      case "smallint":
-      case "integer":
-      case "int64":
-      case "long":
-      case "long binary":
-      case "tinyint":
-        return "int";
-      case "real":
-      case "numeric":
-      case "double":
-      case "float":
-        return "real";
-      case "string":
-      case "text":
-      case "blob":
-      case "varchar":
-      case "char":
-      case "long varchar":
-      case "varying":
-        return "text";
-      default:
-        return 'unknown';
-        break;
-    }
-
-  }
-
-  function getTableStructure($tableName) {
-
-    $field_defs = array();
-    if ($query = $this->internalRunQuery('SELECT * FROM '.$tableName.' WHERE 1=1')) {
-      while ($finfo = mysqli_fetch_field($query)) {
-        $field_defs[strtolower($finfo->name)] = array( "length" => $finfo->max_length
-                                                     , "type"   => $finfo->type
-                                                     , "flags"  => $finfo->flags
-                                                     );
-      }
-      mysqli_free_result($query);
-    }
-
-    $field_defs = array_change_key_case($field_defs, CASE_LOWER);
-    foreach($field_defs as $field => $defs) {
-      $field_defs[$field]['genericType'] = $this->toGenericDataType($field_defs[$field]['type']);
-    }
-
-    return $field_defs;
 
   }
 
@@ -559,57 +260,26 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
   }
 
-  function getLimitSQL($sql, $from, $count) {
+  function getTableStructure($tableName) {
 
-    if (!is_numeric($from)) {
-      $from = 0;
-    } else {
-      $from = number_format($from, 0, '', '');
-    }
-    if (!is_numeric($count)) {
-      $count = 0;
-    } else {
-      $count = number_format($count, 0, '', '');
-    }
-    return $sql.br()->placeholder(' LIMIT ?, ?', $from, $count);
-
-  }
-
-  function getMajorVersion() {
-
-    if ($version = mysqli_get_server_info($this->connection)) {
-      if (preg_match('~^([0-9]+)[.]([0-9]+)[.]([0-9]+)~', $version, $matches)) {
-        return (int)$matches[1];
+    $field_defs = array();
+    if ($query = $this->internalRunQuery('SELECT * FROM '.$tableName.' WHERE 1=1')) {
+      while ($finfo = mysqli_fetch_field($query)) {
+        $field_defs[strtolower($finfo->name)] = array( "length" => $finfo->max_length
+                                                     , "type"   => $finfo->type
+                                                     , "flags"  => $finfo->flags
+                                                     );
       }
+      mysqli_free_result($query);
     }
 
-    return 0;
-
-  }
-
-  function getMinorVersion() {
-
-    if ($version = mysqli_get_server_info($this->connection)) {
-      if (preg_match('~^([0-9]+)[.]([0-9])[.]([0-9]+)~', $version, $matches)) {
-        return (int)$matches[2];
-      }
+    $field_defs = array_change_key_case($field_defs, CASE_LOWER);
+    foreach($field_defs as $field => $defs) {
+      $field_defs[$field]['genericType'] = $this->toGenericDataType($field_defs[$field]['type']);
     }
 
-    return 0;
-
-  }
-
-  function getBuildNumber() {
-
-    if ($version = mysqli_get_server_info($this->connection)) {
-      if (preg_match('~^([0-9]+)[.]([0-9]+)[.]([0-9]+)~', $version, $matches)) {
-        return (int)$matches[3];
-      }
-    }
-
-    return 0;
+    return $field_defs;
 
   }
 
 }
-

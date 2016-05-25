@@ -12,10 +12,10 @@ require_once(__DIR__.'/BrGenericDBProvider.php');
 
 class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
-  private $__inTransaction = false;
-  private $__inRerunnableTransaction = false;
+  private $__inTransaction = 0;
   private $__transactionBuffer = array();
   private $__deadlocksHandlerEnabled = true;
+  private $version;
 
   function getCountSQL($sql) {
 
@@ -57,51 +57,49 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   }
 
-  function startTransaction($rerunnable = false) {
+  function startTransaction($force = false) {
 
     $this->resetTransaction();
-    $this->__inRerunnableTransaction = $rerunnable;;
-    $this->__inTransaction = true;;
+    $this->__inTransaction++;
+
+  }
+
+  function commitTransaction($force = false) {
+
+    $this->resetTransaction();
+
+  }
+
+  function rollbackTransaction($force = false) {
+
+    $this->resetTransaction();
 
   }
 
   function incTransactionBuffer($sql) {
 
-    if (!preg_match('/^SET /', $sql)) {
-      $this->__transactionBuffer[] = $sql;
+    if (!preg_match('/^SET( |$)/', $sql)) {
+      if (!preg_match('/^SELECT( |$)/', $sql)) {
+        $this->__transactionBuffer[] = $sql;
+      }
     }
 
   }
 
-  function commitTransaction() {
-
-    $this->resetTransaction();
-
-  }
-
-  function rollbackTransaction() {
-
-    $this->resetTransaction();
+  function internalRunQuery($sql, $args = array(), $iteration = 0, $rerunError = null) {
 
   }
 
   function resetTransaction() {
 
-    $this->__inTransaction = false;
-    $this->__inRerunnableTransaction = false;
+    $this->__inTransaction = 0;
     $this->__transactionBuffer = array();
 
   }
 
   function inTransaction() {
 
-    return $this->__inTransaction;
-
-  }
-
-  function inRerunnableTransaction() {
-
-    return $this->__inRerunnableTransaction;
+    return ($this->__inTransaction > 0);
 
   }
 
@@ -140,6 +138,329 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
   function isDeadLocksHandlerEnabled() {
 
     return $this->__deadlocksHandlerEnabled;
+
+  }
+
+  function regexpCondition($value) {
+
+    return new BrGenericSQLRegExp($value);
+
+  }
+
+  function rowid($row, $fieldName = null) {
+
+    if (is_array($row)) {
+      return br($row, $fieldName?$fieldName:$this->rowidField());
+    } else {
+      return $row;
+    }
+
+  }
+
+  function rowidField() {
+
+    return 'id';
+
+  }
+
+  function rowidValue($row, $fieldName = null) {
+
+    if (is_array($row)) {
+      return br($row, $fieldName ? $fieldName : $this->rowidField());
+    } else {
+      return $row;
+    }
+
+  }
+
+  function table($name, $alias = null) {
+
+    return new BrGenericSQLProviderTable($this, $name, $alias);
+
+  }
+
+
+  function runQuery() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    return $this->internalRunQuery($sql, $args);
+
+  }
+
+  function openCursor() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    return $this->internalRunQuery($sql, $args);
+
+  }
+
+  function getCursor() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    return new BrGenericSQLProviderCursor($sql, $args, $this, true);
+
+  }
+
+  function select() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    return $this->internalRunQuery($sql, $args);
+
+  }
+
+  function getRow() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    return $this->selectNext($this->internalRunQuery($sql, $args));
+
+  }
+
+  function getCachedRow() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    $cacheTag = get_class($this) . ':getCachedRow:' . md5($sql) . md5(serialize($args));
+
+    $result = br()->cache()->get($cacheTag);
+
+    if (!$result && !br()->cache()->exists($cacheTag)) {
+      $result = $this->selectNext($this->internalRunQuery($sql, $args));
+      br()->cache()->set($cacheTag, $result);
+    }
+
+    return $result;
+
+  }
+
+  function getRows() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    $query = $this->internalRunQuery($sql, $args);
+    $result = array();
+    if (is_object($query)) {
+      while($row = $this->selectNext($query)) {
+        $result[] = $row;
+      }
+    }
+
+    return $result;
+
+  }
+
+  function getCachedRows() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    $cacheTag = get_class($this) . ':getCachedRows:' . md5($sql) . md5(serialize($args));
+
+    $result = br()->cache()->get($cacheTag);
+
+    if (!$result && !br()->cache()->exists($cacheTag)) {
+      $query = $this->internalRunQuery($sql, $args);
+      $result = array();
+      if (is_object($query)) {
+        while($row = $this->selectNext($query)) {
+          $result[] = $row;
+        }
+      }
+      br()->cache()->set($cacheTag, $result);
+    }
+
+    return $result;
+
+  }
+
+  function getValue() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    $result = $this->selectNext($this->internalRunQuery($sql, $args));
+    if (is_array($result)) {
+      return array_shift($result);
+    } else {
+      return null;
+    }
+
+  }
+
+  public function getCachedValue() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    $cacheTag = get_class($this) . ':getCachedValue:' . md5($sql) . md5(serialize($args));
+
+    $result = br()->cache()->get($cacheTag);
+
+    if (!$result && !br()->cache()->exists($cacheTag)) {
+      if ($value = $this->selectNext($this->internalRunQuery($sql, $args))) {
+        if (is_array($value)) {
+          $result = array_shift($value);
+        } else {
+          $result = $value;
+        }
+      }
+      br()->cache()->set($cacheTag, $result);
+    }
+
+    return $result;
+
+  }
+
+  function getValues() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    $query = $this->internalRunQuery($sql, $args);
+    $result = array();
+    if (is_object($query)) {
+      while($row = $this->selectNext($query)) {
+        array_push($result, array_shift($row));
+      }
+    }
+    return $result;
+
+  }
+
+  function getCachedValues() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    $cacheTag = get_class($this) . ':getCachedValues:' . md5($sql) . md5(serialize($args));
+
+    $result = br()->cache()->get($cacheTag);
+
+    if (!$result && !br()->cache()->exists($cacheTag)) {
+      $query = $this->internalRunQuery($sql, $args);
+      $result = array();
+      if (is_object($query)) {
+        while($row = $this->selectNext($query)) {
+          array_push($result, array_shift($row));
+        }
+      }
+      br()->cache()->set($cacheTag, $result);
+    }
+    return $result;
+
+  }
+
+  function internalGetRowsAmount($sql, $args) {
+
+  }
+
+  function getRowsAmount() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    return $this->internalGetRowsAmount($sql, $args);
+
+  }
+
+  function toGenericDataType($type) {
+
+    switch (strtolower($type)) {
+      case "date";
+        return "date";
+      case "datetime":
+      case "timestamp":
+        return "date_time";
+      case "time";
+        return "time";
+      case "int":
+      case "smallint":
+      case "integer":
+      case "int64":
+      case "long":
+      case "long binary":
+      case "tinyint":
+        return "int";
+      case "real":
+      case "numeric":
+      case "double":
+      case "float":
+        return "real";
+      case "string":
+      case "text":
+      case "blob":
+      case "varchar":
+      case "char":
+      case "long varchar":
+      case "varying":
+        return "text";
+      default:
+        return 'unknown';
+        break;
+    }
+
+  }
+
+  function command($command) {
+
+    $this->runQuery($command);
+
+  }
+
+  function getLimitSQL($sql, $from, $count) {
+
+    if (!is_numeric($from)) {
+      $from = 0;
+    } else {
+      $from = number_format($from, 0, '', '');
+    }
+    if (!is_numeric($count)) {
+      $count = 0;
+    } else {
+      $count = number_format($count, 0, '', '');
+    }
+    return $sql.br()->placeholder(' LIMIT ?, ?', $from, $count);
+
+  }
+
+  function getMajorVersion() {
+
+    if (preg_match('~^([0-9]+)[.]([0-9]+)[.]([0-9]+)~', $this->version, $matches)) {
+      return (int)$matches[1];
+    }
+
+    return 0;
+
+  }
+
+  function getMinorVersion() {
+
+    if (preg_match('~^([0-9]+)[.]([0-9])[.]([0-9]+)~', $this->version, $matches)) {
+      return (int)$matches[2];
+    }
+
+    return 0;
+
+  }
+
+  function getBuildNumber() {
+
+    if (preg_match('~^([0-9]+)[.]([0-9]+)[.]([0-9]+)~', $this->version, $matches)) {
+      return (int)$matches[3];
+    }
+
+    return 0;
 
   }
 

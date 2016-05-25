@@ -13,61 +13,46 @@ require_once(__DIR__.'/BrException.php');
 
 class BrDataBase extends BrObject {
 
-  static $instances = array();
+  static $instanceInitialized = false;
+  static $instance = null;
 
-  public static function getInstance($name = 'default') {
+  public static function getInstance() {
 
-    $instance = null;
-
-    if (!isset(self::$instances[$name])) {
-
-      if ($dbList = br()->config()->get('db')) {
-
-        $dbConfig = br($dbList, $name, $dbList);
-
-        br()->assert($dbConfig, 'Database [' . $name . '] not configured');
-
-        switch($dbConfig['engine']) {
-          case 'mysql':
-            require_once(__DIR__.'/BrMySQLDBProvider.php');
-            $instance = new BrMySQLDBProvider($dbConfig);
-            break;
-          case 'mysqli':
-            require_once(__DIR__.'/BrMySQLiDBProvider.php');
-            $instance = new BrMySQLiDBProvider($dbConfig);
-            break;
-          case 'mongodb':
-            require_once(__DIR__.'/BrMongoDBProvider.php');
-            $instance = new BrMongoDBProvider($dbConfig);
-            break;
-        }
-
-        self::$instances[$name] = $instance;
-
-        if ($instance->isEnabled()) {
-
-        } else {
-          if ($errorPage = br($dbConfig, 'errorPage')) {
+    if (!self::$instanceInitialized) {
+      self::$instanceInitialized = true;
+      if ($config = br()->config()->get('db')) {
+        try {
+          switch($config['engine']) {
+            case 'mysql':
+              require_once(__DIR__.'/BrMySQLDBProvider.php');
+              self::$instance = new BrMySQLDBProvider($config);
+              break;
+            case 'mysqli':
+              require_once(__DIR__.'/BrMySQLiDBProvider.php');
+              self::$instance = new BrMySQLiDBProvider($config);
+              break;
+            case 'mongodb':
+              require_once(__DIR__.'/BrMongoDBProvider.php');
+              self::$instance = new BrMongoDBProvider($config);
+              break;
+          }
+        } catch (Exception $e) {
+          if ($errorPage = br($config, 'errorPage')) {
             if (br()->request()->isAt($errorPage)) {
 
             } else {
               br()->response()->redirect($errorPage);
             }
           } else {
-            br()->trigger('db.connectionError');
-            throw new BrDBException("Can't connect to database");
+            $error = $e->getMessage();
+            br()->trigger('db.connectionError', $error);
+            throw new BrDBConnectionError($e->getMessage());
           }
         }
-
       }
-
-    } else {
-
-      $instance = self::$instances[$name];
-
     }
 
-    return $instance;
+    return self::$instance;
 
   }
 

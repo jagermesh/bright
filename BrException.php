@@ -112,3 +112,7 @@ class BrDBServerGoneAwayException extends BrDBRecoverableException {
 class BrDBEngineException extends BrDBRecoverableException {
 
 }
+
+class BrDBConnectionError extends BrDBException {
+
+}
