@@ -52,50 +52,66 @@ class BrErrorMailLogAdapter extends BrGenericLogAdapter {
 
   function buildBody($message) {
 
-    $body  = '<strong>Timestamp:</strong> ' . date('r') . '<br />';
-    $body .= '<strong>Script name:</strong> ' . br()->scriptName() . '<br />';
-    $body .= '<strong>PHP Version:</strong> ' . phpversion() . '<br />';
+    $body  = '<strong>Timestamp:</strong>     ' . date('r') . '<br />';
+    $body .= '<strong>Script name:</strong>   ' . br()->scriptName() . '<br />';
+    $body .= '<strong>PHP Version:</strong>   ' . phpversion() . '<br />';
     if (br()->isConsoleMode()) {
-      $body .= '<strong>Comand line:</strong> ' . br(br()->getCommandLineArguments())->join(' ') . '<br />';
+      $body .= '<strong>Comand line:</strong>   ' . br(br()->getCommandLineArguments())->join(' ') . '<br />';
     } else {
-      $body .= '<strong>Request URL:</strong> <a href="' . br()->request()->url() . '">' . br()->request()->url(). '</a><br />';
-      $body .= '<strong>Referer URL:</strong> <a href="' . br()->request()->referer() . '">' . br()->request()->referer() . '</a><br />';
-      $body .= '<strong>Client IP:</strong> ' . br()->request()->clientIP() . '<br />';
-
+      $body .= '<strong>Request URL:</strong>   <a href="' . br()->request()->url() . '">' . br()->request()->url(). '</a><br />';
+      $body .= '<strong>Referer URL:</strong>   <a href="' . br()->request()->referer() . '">' . br()->request()->referer() . '</a><br />';
+      $body .= '<strong>Client IP:</strong>     ' . br()->request()->clientIP() . '<br />';
       $userInfo = '';
       $login = br()->auth()->getLogin();
       if ($login) {
-        $userInfo = '<strong>User ID:</strong> ' . br($login, 'id') . '<br />';
+        $userInfo = '<strong>User ID:</strong>       ' . br($login, 'id') . '<br />';
         if (br($login, 'name')) {
-          $userInfo .= '<strong>User name:</strong> ' . br($login, 'name') . '<br />';
+          $userInfo .= '<strong>User name:</strong>    ' . br($login, 'name') . '<br />';
         }
         if ($loginField = br()->auth()->getAttr('usersTable.loginField')) {
           if (br($login, $loginField)) {
-            $userInfo .= '<strong>User login:</strong> ' . br($login, $loginField) . '<br />';
+            $userInfo .= '<strong>User login:</strong>   ' . br($login, $loginField) . '<br />';
           }
         }
         if ($emailField = br()->auth()->getAttr('usersTable.emailField')) {
-          if (br($login, $loginField)) {
-            $userInfo .= '<strong>User e-mail:</strong> ' . br($login, $emailField) . '<br />';
+          if (br($login, $emailField)) {
+            $userInfo .= '<strong>User e-mail:</strong>  <a href="mailto:' . br($login, $emailField) . '">' . br($login, $emailField) . '</a><br />';
           }
         }
       }
-
       $body .= $userInfo;
       $body .= '<strong>Request type:</strong> ' . br()->request()->method() . '<br />';
-
       $requestData = '';
-      if (br()->request()->isGET()) {
-        $requestData = @json_encode(br()->request()->get());
+      if ($data = br()->request()->get()) {
+        unset($data['password']);
+        $requestData = @json_encode($data);
+        if ($requestData) {
+          if (strlen($requestData) > 1023*16) {
+            $requestData = substr($requestData, 0, 1023*16) . '...';
+          }
+          $body .= '<strong>Request data (GET):</strong><pre>' . $requestData . '</pre>';
+        }
       }
-      if (br()->request()->isPOST()) {
-        $requestData = @json_encode(br()->request()->post());
+      if ($data = br()->request()->post()) {
+        unset($data['password']);
+        $requestData = @json_encode($data);
+        if ($requestData) {
+          if (strlen($requestData) > 1023*16) {
+            $requestData = substr($requestData, 0, 1023*16) . '...';
+          }
+          $body .= '<strong>Request data (POST):</strong><pre>' . $requestData . '</pre>';
+        }
+      } else
+      if ($data = br()->request()->put()) {
+        unset($data['password']);
+        $requestData = @json_encode($data);
+        if ($requestData) {
+          if (strlen($requestData) > 1023*16) {
+            $requestData = substr($requestData, 0, 1023*16) . '...';
+          }
+          $body .= '<strong>Request data (PUT):</strong><pre>' . $requestData . '</pre>';
+        }
       }
-      if (br()->request()->isPUT()) {
-        $requestData = @json_encode(br()->request()->put());
-      }
-
-      $body .= '<strong>Request data:</strong> ' . $requestData . '<br />';
     }
     $body .= '<hr size="1" />';
     $body .= '<pre>';

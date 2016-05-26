@@ -69,6 +69,13 @@ if (br()->config()->get('Logger/RMQ/Active')) {
   }
 }
 
+if (br()->config()->get('Logger/Slack/Active')) {
+  if (!br()->log()->isAdapterExists('BrErrorSlackLogAdapter')) {
+    br()->importLib('ErrorSlackLogAdapter');
+    br()->log()->addAdapter(new BrErrorSlackLogAdapter(br()->config()->get('Logger/Slack/WebHookUrl')));
+  }
+}
+
 if (br()->isConsoleMode()) {
   if (!br()->log()->isAdapterExists('BrConsoleLogAdapter')) {
     br()->importLib('ConsoleLogAdapter');
