@@ -294,11 +294,11 @@ class BrGenericDataSource extends BrObject {
 
   }
 
-  function invoke($method, $params, &$transientData = array(), $iteration = 0, $rerunError = null) {
+  function invoke($method, $params, &$transientData = array(), $optionsParam = array(), $iteration = 0, $rerunError = null) {
 
-    // if ($iteration > $this->rerunIterations) {
-      // throw new BrDBException($rerunError);
-    // }
+    if ($iteration > $this->rerunIterations) {
+      throw new BrDBException($rerunError);
+    }
 
     $method = trim($method);
 
@@ -326,7 +326,7 @@ class BrGenericDataSource extends BrObject {
           } catch (BrDBRecoverableException $e) {
             br()->log('Repeating invoke of ' . $method . '... (' . $iteration . ') because of ' . $e->getMessage());
             usleep(50000);
-            return $this->invoke($method, $params, $transientData);
+            return $this->invoke($method, $params, $transientData, $optionsParam);
           } catch (Exception $e) {
             try {
               br()->db()->rollbackTransaction();
