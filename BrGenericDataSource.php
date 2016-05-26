@@ -97,6 +97,7 @@ class BrGenericDataSource extends BrObject {
   protected $priorAdjancedRecord = null;
   protected $nextAdjancedRecord = null;
   protected $rowidFieldName = null;
+  protected $rerunIterations = 10;
 
   function __construct($options = array()) {
 
@@ -293,7 +294,11 @@ class BrGenericDataSource extends BrObject {
 
   }
 
-  function invoke($method, $params, &$transientData = array()) {
+  function invoke($method, $params, &$transientData = array(), $iteration = 0, $rerunError = null) {
+
+    if ($iteration > $this->rerunIterations) {
+      throw new BrDBException($rerunError);
+    }
 
     $method = trim($method);
 
@@ -319,7 +324,8 @@ class BrGenericDataSource extends BrObject {
             br()->db()->commitTransaction();
             return $data;
           } catch (BrDBRecoverableException $e) {
-            // sleep(1);
+            br()->log('Repeating invoke of ' . $method . '... (' . $iteration . ') because of ' . $e->getMessage());
+            usleep(50000);
             return $this->invoke($method, $params, $transientData);
           } catch (Exception $e) {
             try {

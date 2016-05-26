@@ -310,7 +310,11 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
-  function insert($rowParam = array(), &$transientData = array(), $optionsParam = array()) {
+  function insert($rowParam = array(), &$transientData = array(), $optionsParam = array(), $iteration = 0, $rerunError = null) {
+
+    if ($iteration > $this->rerunIterations) {
+      throw new BrDBException($rerunError);
+    }
 
     $this->DMLType = 'insert';
 
@@ -347,8 +351,9 @@ class BrDataSource extends BrGenericDataSource {
           throw new BrDBException('Empty insert request');
         }
       } catch (BrDBRecoverableException $e) {
-        // sleep(1);
-        return $this->insert($rowParam, $transientData, $optionsParam);
+        br()->log('Repeating insert... (' . $iteration . ') because of ' . $e->getMessage());
+        usleep(50000);
+        return $this->insert($rowParam, $transientData, $optionsParam, $iteration + 1, $e->getMessage());
       } catch (Exception $e) {
         br()->db()->rollbackTransaction();
         $operation = 'insert';
@@ -371,7 +376,11 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
-  function update($rowid, $rowParam, &$transientData = array(), $optionsParam = array()) {
+  function update($rowid, $rowParam, &$transientData = array(), $optionsParam = array(), $iteration = 0, $rerunError = null) {
+
+    if ($iteration > $this->rerunIterations) {
+      throw new BrDBException($rerunError);
+    }
 
     $this->DMLType = 'update';
 
@@ -415,8 +424,9 @@ class BrDataSource extends BrGenericDataSource {
 
         br()->db()->commitTransaction();
       } catch (BrDBRecoverableException $e) {
-        // sleep(1);
-        return $this->update($rowid, $rowParam, $transientData, $optionsParam);
+        br()->log('Repeating update... (' . $iteration . ') because of ' . $e->getMessage());
+        usleep(50000);
+        return $this->update($rowid, $rowParam, $transientData, $optionsParam, $iteration + 1, $e->getMessage());
       } catch (Exception $e) {
         br()->db()->rollbackTransaction();
         $operation = 'update';
@@ -434,7 +444,11 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
-  function remove($rowid, &$transientData = array(), $optionsParam = array()) {
+  function remove($rowid, &$transientData = array(), $optionsParam = array(), $iteration = 0, $rerunError = null) {
+
+    if ($iteration > $this->rerunIterations) {
+      throw new BrDBException($rerunError);
+    }
 
     $this->DMLType = 'remove';
 
@@ -467,12 +481,13 @@ class BrDataSource extends BrGenericDataSource {
           }
           br()->db()->commitTransaction();
         } catch (BrDBRecoverableException $e) {
-          // sleep(1);
-          return $this->remove($rowid, $transientData, $optionsParam);
+          br()->log('Repeating remove... (' . $iteration . ') because of ' . $e->getMessage());
+          usleep(50000);
+          return $this->remove($rowid, $transientData, $optionsParam, $iteration + 1, $e->getMessage());
         } catch (Exception $e) {
           // TODO: Move to the DB layer
           if (preg_match('/1451: Cannot delete or update a parent row/', $e->getMessage())) {
-            throw new BrDataSourceReferencesExists();//BrAppException('Cannot delete this record - there are references to it in the system');
+            throw new BrDataSourceReferencesExists();
           } else {
             throw new BrAppException($e->getMessage());
           }
