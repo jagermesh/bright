@@ -296,9 +296,9 @@ class BrGenericDataSource extends BrObject {
 
   function invoke($method, $params, &$transientData = array(), $iteration = 0, $rerunError = null) {
 
-    if ($iteration > $this->rerunIterations) {
-      throw new BrDBException($rerunError);
-    }
+    // if ($iteration > $this->rerunIterations) {
+      // throw new BrDBException($rerunError);
+    // }
 
     $method = trim($method);
 
