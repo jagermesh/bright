@@ -49,22 +49,6 @@ module.exports = function(grunt) {
           phpCmd: "php"
         },
         all: ["*.php"]
-    },
-    watch: {
-      scripts: {
-        files: ['Gruntfile.js', 'js/*.js', '!js/<%= pkg.name %>.min.js'],
-        tasks: ['jshint', 'concat', 'uglify'],
-        options: {
-          spawn: false,
-        },
-      },
-      phpfiles: {
-        files: ['*.php'],
-        tasks: ['phplint:all'],
-        options: {
-          spawn: false,
-        },
-      },
     }
   });
 

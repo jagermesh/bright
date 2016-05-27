@@ -45,7 +45,12 @@
 
     this.anchor = function(defaultValue) {
       var value = document.location.hash.replace('#', '');
-      if (value.length === 0) {
+      if (value) {
+        if (value.length === 0) {
+          value = defaultValue;
+        }
+        value = window.unescape(value);
+      } else {
         value = defaultValue;
       }
       return value;
