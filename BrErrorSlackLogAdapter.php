@@ -64,8 +64,7 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
       $body .= '_Referer URL:_ <' . br()->request()->referer() . '>' . "\n";
       $body .= '_Client IP:_ ' . br()->request()->clientIP() . "\n";
       $userInfo = '';
-      $login = br()->auth()->getLogin();
-      if ($login) {
+      if ($login = br()->auth()->getSessionLogin()) {
         $userInfo = '_User ID:_ ' . br($login, 'id') . "\n";
         if (br($login, 'name')) {
           $userInfo .= '_User name:_ ' . br($login, 'name') . "\n";
@@ -145,7 +144,9 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
 
         } else {
           $body = '*' . $subject . '*' . "\n\n" . $body;
-          $message = array('text' => $body);
+          $message = array( 'text'     => $body
+                          , 'username' => br()->request()->domain()
+                          );
           br()->browser()->postJSON($this->webHookUrl, $message);
           if ($this->cache) {
             $this->cache->set($cacheTag, $body);
@@ -170,7 +171,9 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
         }
         $body .= "\n\n";
         $body .= $this->buildBody($message);
-        $message = array('text' => $body);
+        $message = array( 'text'     => $body
+                        , 'username' => br()->request()->domain()
+                        );
         br()->browser()->postJSON($this->webHookUrl, $message);
       } catch (Exception $e) {
 

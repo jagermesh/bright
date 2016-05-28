@@ -46,28 +46,21 @@ class BrGenericLogAdapter extends BrObject {
         $this->writeMessage('Referer URL:   ' . br()->request()->referer(),  $group);
         $this->writeMessage('Client IP:     ' . br()->request()->clientIP(), $group);
 
-        try {
-          br()->log()->disable();
-          $login = br()->auth()->getLogin();
-          br()->log()->enable();
-          if ($login) {
-            $this->writeMessage('User ID:       ' . br($login, 'id'), $group);
-            if (br($login, 'name')) {
-              $this->writeMessage('User name:     ' . br($login, 'name'), $group);
-            }
-            if ($loginField = br()->auth()->getAttr('usersTable.loginField')) {
-              if (br($login, $loginField)) {
-                $this->writeMessage('User login:    ' . br($login, $loginField), $group);
-              }
-            }
-            if ($emailField = br()->auth()->getAttr('usersTable.emailField')) {
-              if (br($login, $loginField)) {
-                $this->writeMessage('User e-mail:   ' . br($login, $emailField), $group);
-              }
+        if ($login = br()->auth()->getSessionLogin()) {
+          $this->writeMessage('User ID:       ' . br($login, 'id'), $group);
+          if (br($login, 'name')) {
+            $this->writeMessage('User name:     ' . br($login, 'name'), $group);
+          }
+          if ($loginField = br()->auth()->getAttr('usersTable.loginField')) {
+            if (br($login, $loginField)) {
+              $this->writeMessage('User login:    ' . br($login, $loginField), $group);
             }
           }
-        } catch (Exception $e) {
-          br()->log()->enable();
+          if ($emailField = br()->auth()->getAttr('usersTable.emailField')) {
+            if (br($login, $loginField)) {
+              $this->writeMessage('User e-mail:   ' . br($login, $emailField), $group);
+            }
+          }
         }
 
         $this->writeMessage('Request type:  ' . br()->request()->method(),   $group);

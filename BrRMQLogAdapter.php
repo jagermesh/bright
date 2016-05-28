@@ -55,41 +55,50 @@ class BrRMQLogAdapter extends BrGenericLogAdapter {
           $envelope['URL'] = br()->request()->url();
           $envelope['Referer'] = br()->request()->referer();
 
-          try {
-            br()->log()->disable();
-            $login = br()->auth()->getLogin();
-            br()->log()->enable();
-            if ($login) {
-              $envelope['UserID'] = br($login, 'id');
-              $envelope['UserName'] = br($login, 'name');
-              if ($loginField = br()->auth()->getAttr('usersTable.loginField')) {
-                if (br($login, $loginField)) {
-                  $envelope['UserLogin'] = br($login, $loginField);
-                }
-              }
-              if ($emailField = br()->auth()->getAttr('usersTable.emailField')) {
-                if (br($login, $loginField)) {
-                  $envelope['UserEMail'] = br($login, $emailField);
-                }
+          if ($login = br()->auth()->getSessionLogin()) {
+            $envelope['UserID'] = br($login, 'id');
+            $envelope['UserName'] = br($login, 'name');
+            if ($loginField = br()->auth()->getAttr('usersTable.loginField')) {
+              if (br($login, $loginField)) {
+                $envelope['UserLogin'] = br($login, $loginField);
               }
             }
-          } catch (Exception $e) {
-            br()->log()->enable();
+            if ($emailField = br()->auth()->getAttr('usersTable.emailField')) {
+              if (br($login, $loginField)) {
+                $envelope['UserEMail'] = br($login, $emailField);
+              }
+            }
           }
-
           $envelope['RequestType'] = br()->request()->method();
-          $requestData = '';
-          if (br()->request()->isGET()) {
-            $requestData = @json_encode(br()->request()->get());
+          if ($data = br()->request()->get()) {
+            unset($data['password']);
+            $requestData = @json_encode($data);
+            if ($requestData) {
+              if (strlen($requestData) > 1023*16) {
+                $requestData = substr($requestData, 0, 1023*16) . '...';
+              }
+              $envelope['RequestDataGET'] = $requestData;
+            }
           }
-          if (br()->request()->isPOST()) {
-            $requestData = @json_encode(br()->request()->post());
-          }
-          if (br()->request()->isPUT()) {
-            $requestData = @json_encode(br()->request()->put());
-          }
-          if ($requestData) {
-            $envelope['RequestData'] = $requestData;
+          if ($data = br()->request()->post()) {
+            unset($data['password']);
+            $requestData = @json_encode($data);
+            if ($requestData) {
+              if (strlen($requestData) > 1023*16) {
+                $requestData = substr($requestData, 0, 1023*16) . '...';
+              }
+              $envelope['RequestDataPOST'] = $requestData;
+            }
+          } else
+          if ($data = br()->request()->put()) {
+            unset($data['password']);
+            $requestData = @json_encode($data);
+            if ($requestData) {
+              if (strlen($requestData) > 1023*16) {
+                $requestData = substr($requestData, 0, 1023*16) . '...';
+              }
+              $envelope['RequestDataPUT'] = $requestData;
+            }
           }
         }
 

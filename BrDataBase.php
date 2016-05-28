@@ -44,8 +44,7 @@ class BrDataBase extends BrObject {
               br()->response()->redirect($errorPage);
             }
           } else {
-            $error = $e->getMessage();
-            br()->trigger('db.connectionError', $error);
+            br()->trigger('db.connectionError', $e);
             throw new BrDBConnectionError($e->getMessage());
           }
         }
