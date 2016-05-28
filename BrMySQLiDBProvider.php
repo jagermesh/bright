@@ -108,11 +108,6 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
   function internalRunQuery($sql, $args = array(), $iteration = 0, $rerunError = null) {
 
-    if ($iteration > $this->rerunIterations) {
-      $error = $rerunError . '. [INFO:SQL]' . $queryText . '[/INFO]';
-      throw new BrDBException($error);
-    }
-
     if (count($args) > 0) {
       $queryText = br()->placeholderEx($sql, $args, $error);
       if (!$queryText) {
@@ -121,6 +116,11 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
       }
     } else {
       $queryText = $sql;
+    }
+
+    if ($iteration > $this->rerunIterations) {
+      $error = $rerunError . '. [INFO:SQL]' . $queryText . '[/INFO]';
+      throw new BrDBException($error);
     }
 
     br()->log()->writeln($queryText, "QRY");
