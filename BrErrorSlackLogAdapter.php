@@ -136,7 +136,7 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
         $subject = 'Error report';
         if ($tagline) {
           $subject .= ': ' . $tagline;
-          $cacheTag = md5($subject);
+          $cacheTag = get_class($this) . '|' . md5($subject);
           if ($this->cache) {
             $isCached = $this->cache->get($cacheTag);
           }
