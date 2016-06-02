@@ -45,13 +45,15 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
     $port         = br($this->config, 'port');
 
     try {
-      if ($this->connection = mysqli_connect($hostName, $userName, $password, $dataBaseName, $port)) {
+      if ($this->connection = @mysqli_connect($hostName, $userName, $password, $dataBaseName, $port)) {
         if (br($this->config, 'charset')) {
           $this->runQuery('SET NAMES ?', $this->config['charset']);
         }
         $this->version = mysqli_get_server_info($this->connection);
         $this->triggerSticky('after:connect');
         br()->triggerSticky('after:db.connect');
+      } else {
+        throw new Exception(mysqli_connect_errno() . ': ' . mysqli_connect_error());
       }
     } catch (Exception $e) {
       if (preg_match('/Unknown database/', $e->getMessage()) ||
@@ -132,7 +134,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
     try {
       // moved to check problem line
-      $query = mysqli_query($this->connection, $queryText);
+      $query = @mysqli_query($this->connection, $queryText);
       if ($query) {
         if ($this->inTransaction()) {
           $this->incTransactionBuffer($queryText);

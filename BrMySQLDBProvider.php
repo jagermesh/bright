@@ -131,7 +131,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
     try {
       // moved to check problem line
-      $query = mysql_query($queryText, $this->connection);
+      $query = @mysql_query($queryText, $this->connection);
       if ($query) {
         if ($this->inTransaction()) {
           $this->incTransactionBuffer($queryText);
