@@ -147,7 +147,7 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
                           );
           br()->browser()->postJSON($this->webHookUrl, $message);
           if ($this->cache) {
-            $this->cache->set($cacheTag, $body);
+            $this->cache->set($cacheTag, true);
           }
         }
       } catch (Exception $e) {
