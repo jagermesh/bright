@@ -12,7 +12,7 @@ require_once(__DIR__.'/BrGenericSQLDBProvider.php');
 
 class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
-  private $connection;
+  private $__connection;
   private $errorRedirect;
   private $config;
   private $reconnectIterations = 10;
@@ -26,9 +26,21 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
   }
 
+  function connection() {
+
+    if ($this->__connection) {
+      return $this->__connection;
+    } else {
+      return $this->connect();
+    }
+
+  }
+
   function captureShutdown() {
 
-    @mysqli_close($this->connection);
+    if ($this->__connection) {
+      @mysqli_close($this->__connection);
+    }
 
   }
 
@@ -45,11 +57,11 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
     $port         = br($this->config, 'port');
 
     try {
-      if ($this->connection = @mysqli_connect($hostName, $userName, $password, $dataBaseName, $port)) {
+      if ($this->__connection = @mysqli_connect($hostName, $userName, $password, $dataBaseName, $port)) {
         if (br($this->config, 'charset')) {
           $this->runQuery('SET NAMES ?', $this->config['charset']);
         }
-        $this->version = mysqli_get_server_info($this->connection);
+        $this->version = mysqli_get_server_info($this->__connection);
         $this->triggerSticky('after:connect');
         br()->triggerSticky('after:db.connect');
       } else {
@@ -60,14 +72,14 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
           preg_match('/Access denied/', $e->getMessage())) {
         throw new BrDBConnectionError($e->getMessage());
       } else {
-        $this->connection = null;
+        $this->__connection = null;
         br()->log('Reconnecting... (' . $iteration . ')');
         usleep(500000);
         $this->connect($iteration + 1, $e->getMessage());
       }
     }
 
-    return $this->connection;
+    return $this->__connection;
 
   }
 
@@ -92,14 +104,6 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
     $this->runQuery('ROLLBACK');
 
     parent::rollbackTransaction($force);
-
-  }
-
-  function getLastError() {
-
-    if (mysqli_errno($this->connection)) {
-      return mysqli_errno($this->connection).": ".mysqli_error($this->connection);
-    }
 
   }
 
@@ -134,7 +138,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
     try {
       // moved to check problem line
-      $query = @mysqli_query($this->connection, $queryText);
+      $query = @mysqli_query($this->connection(), $queryText);
       if ($query) {
         if ($this->inTransaction()) {
           $this->incTransactionBuffer($queryText);
@@ -237,12 +241,6 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
   }
 
-  function getLastId() {
-
-    return mysqli_insert_id($this->connection);
-
-  }
-
   function isEmptyDate($date) {
 
     return (($date == "0000-00-00") or ($date == "0000-00-00 00:00:00") or !$date);
@@ -261,9 +259,35 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
   }
 
+  function getLastError() {
+
+    if ($this->__connection) {
+      if (mysqli_errno($this->__connection)) {
+        return mysqli_errno($this->__connection) . ': ' . mysqli_error($this->__connection);
+      }
+    } else {
+      return 'MySQL server has gone away';
+    }
+
+  }
+
+  function getLastId() {
+
+    if ($this->__connection) {
+      return mysqli_insert_id($this->__connection);
+    } else {
+      throw new BrDBConnectionError('MySQL server has gone away');      
+    }
+
+  }
+
   function getAffectedRowsAmount() {
 
-    return mysqli_affected_rows($this->connection);
+    if ($this->__connection) {
+      return mysqli_affected_rows($this->__connection);
+    } else {
+      throw new BrDBConnectionError('MySQL server has gone away');
+    }
 
   }
 
