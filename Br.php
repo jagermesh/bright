@@ -57,28 +57,15 @@ if (!function_exists('debug')) {
     $args = func_get_args();
     foreach($args as $var) {
       br()->log()->writeLn($var, 'DBG');
-
-      $message = print_r($var, true);
-      if (br()->isConsoleMode()) {
-        // echo($message);
-        // echo("\n");
-      } else
-      if (br()->request()->isLocalHost()) {
-        include(__DIR__.'/templates/DebugMessage.html');
-      }
     }
 
   }
 
 }
 
-if (!function_exists('callStack')) {
+function logStackTrace() {
 
-  function callStack() {
-
-    br()->log()->callStack();
-
-  }
+  br()->log()->logStackTrace();
 
 }
 
@@ -142,7 +129,7 @@ class Br extends BrSingleton {
 
     $args = func_get_args();
     foreach($args as $var) {
-      $log->writeLn($var);
+      $log->write($var);
     }
 
     return $log;

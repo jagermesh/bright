@@ -3,24 +3,37 @@
 div.bright-debug-panel {
   font-family: Helvetica,Arial,sans-serif;
   font-weight: 300;
-  font-size: 12pt;
+  font-size: 10pt;
   margin: 5px;
-  padding: 10px;
-  background-color: #efefef;
-  -webkit-box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.5);
-  -moz-box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.5);
-  box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.5);
+  background: #FFC;
+  border:1px solid #EFEFEF;
   z-index: 1000;
-  clear:both;
+  color: black;
+}
+div.bright-debug-panel div.wrapper {
+  padding: 10px;
+}
+div.bright-debug-panel div.bright-debug-section {
+  padding: 5px;
 }
 div.bright-debug-panel div.title {
   font-size: 12pt;
-  border-bottom: 1px solid #aaa;
-  margin-bottom: 10px;
+  margin-bottom: 4px;
+}
+div.bright-debug-panel div.info-box {
+  padding: 10px;
+  background-color: #FEFEFE;
+  border: 1px solid #EFEFEF;
+  white-space: pre;
 }
 
 </style>
 
 <div class="bright-debug-panel">
-  <pre><div class="title">Debug output</div><?php print_r($var); ?></pre>
+  <div class="wrapper">
+    <div class="bright-debug-section">
+      <div class="title">Debug message:</div>
+      <div class="info-box"><?php print_r($message); ?></div> 
+    </div>
+  </div>
 </div>

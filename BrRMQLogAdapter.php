@@ -112,7 +112,7 @@ class BrRMQLogAdapter extends BrGenericLogAdapter {
 
   }
 
-  function writeMessage($message, $group = 'MSG') {
+  function writeMessage($message, $group = 'MSG', $tagline = '') {
 
     $this->write($message, $group);
 
@@ -124,7 +124,7 @@ class BrRMQLogAdapter extends BrGenericLogAdapter {
 
   }
 
-  function writeError($message) {
+  function writeError($message, $tagline = '') {
 
     $this->write($message, 'ERR');
 

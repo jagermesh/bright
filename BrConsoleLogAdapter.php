@@ -18,17 +18,40 @@ class BrConsoleLogAdapter extends BrGenericLogAdapter {
 
   }
 
-  function write($message) {
+  function colorize($text, $group = 'MSG') {
+
+    $out = '';
+    switch($group) {
+      case 'ERR':
+        $out = '[31m'; //Red background
+        break;
+      case 'SUCCESS':
+        $out = '[32m'; //Green background
+        break;
+      case 'DBG':
+        $out = '[33m'; //Blue background
+        break;
+    }
+
+    if ($out) {
+      return chr(27) . $out . $text . chr(27) . '[0m';
+    } else {
+      return $text;
+    }
+
+  }
+
+  function write($message, $group = 'MSG') {
 
     $logMessage  = str_repeat(' ', br()->log()->getLevel() * 2);
     $logMessage .= $message;
     $logMessage .= "\n";
 
-    echo($logMessage);
+    echo($this->colorize($logMessage, $group));
 
   }
 
-  function writeMessage($message, $group = 'MSG') {
+  function writeMessage($message, $group = 'MSG', $tagline = '') {
 
     if (($group != 'QRY') && ($group != 'SEP')) {
       $this->write($message);
@@ -42,7 +65,7 @@ class BrConsoleLogAdapter extends BrGenericLogAdapter {
 
   }
 
-  function writeError($message) {
+  function writeError($message, $tagline = '') {
 
     $this->write($message, 'ERR');
 

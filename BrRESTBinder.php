@@ -648,24 +648,23 @@ class BrRESTBinder extends BrObject {
 
   function returnException($e) {
 
-    $extMsg = $msg = $e->getMessage();
+    $msg = $e->getMessage();
     if ($e instanceof BrAppException) {
 
     } else {
-      $extMsg = br()->log()->logException($e);
+      br()->log()->logException($e, br()->request()->isLocalHost());
     }
-    if (br()->request()->isLocalHost()) {
-      $message = $extMsg;
-    } else
-    if ($e instanceof BrDBException) {
-      $message = 'Database error';
-    } else {
-      $message = $msg;
-    }
-    if (br()->request()->get('crossdomain')) {
-      br()->response()->sendJSONP($message);
-    } else {
-      br()->response()->sendForbidden($message);
+    if (!br()->request()->isLocalHost()) {
+      if ($e instanceof BrDBException) {
+        $message = 'Database error';
+      } else {
+        $message = $msg;
+      }
+      if (br()->request()->get('crossdomain')) {
+        br()->response()->sendJSONP($message);
+      } else {
+        br()->response()->sendForbidden($message);
+      }
     }
 
   }

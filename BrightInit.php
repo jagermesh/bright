@@ -81,6 +81,11 @@ if (br()->isConsoleMode()) {
     br()->importLib('ConsoleLogAdapter');
     br()->log()->addAdapter(new BrConsoleLogAdapter());
   }
+} else {
+  if (!br()->log()->isAdapterExists('BrWebLogAdapter')) {
+    br()->importLib('WebLogAdapter');
+    br()->log()->addAdapter(new BrWebLogAdapter());
+  }
 }
 
 // Core PHP settings - Secondary

@@ -22,7 +22,7 @@ class BrLog extends BrSingleton {
 
     parent::__construct();
 
-    $this->initMicroTime = Br()->getMicrotime();
+    $this->initMicroTime = br()->getMicrotime();
     $this->initTime = @strftime('%H:%M:%S');
     if (br()->config()->has('br/log/enabled')) {
       if (!br()->config()->get('br/log/enabled')) {
@@ -75,49 +75,13 @@ class BrLog extends BrSingleton {
 
   function getTimeOffset() {
 
-    return Br()->GetMicrotime() - $this->initMicroTime;
+    return br()->getMicrotime() - $this->initMicroTime;
 
   }
 
   function getFormattedTimeOffset() {
 
-    return Br()->FormatDuration($this->getTimeOffset());
-
-  }
-
-  private function writeToAdapters($message, $group = 'MSG', $tagline = '') {
-
-    if ($this->isEnabled()) {
-
-      if (is_array($message)) {
-        if (count($message)) {
-          $logText = var_export($message, true);
-        } else {
-          $logText = '[Empty Array]';
-        }
-      } else
-      if (is_object($message)) {
-        $logText = var_export($message, true);
-      } else {
-        $logText = $message;
-      }
-
-      $time = Br()->FormatDuration(Br()->GetMicrotime() - $this->initMicroTime);
-      foreach($this->adapters as $adapter) {
-        switch($group) {
-          case 'DBG':
-            $adapter->writeDebug($logText, $tagline);
-            break;
-          case 'ERR':
-            $adapter->writeError($logText, $tagline);
-            break;
-          default:
-            $adapter->writeMessage($logText, $group ? $group : 'MSG', $tagline);
-            break;
-        }
-      }
-
-    }
+    return br()->formatDuration($this->getTimeOffset());
 
   }
 
@@ -148,19 +112,8 @@ class BrLog extends BrSingleton {
 
   }
 
-  function write($message, $group = 'MSG') {
-
-    $this->writeToAdapters($message, $group);
-
-  }
-
-  function writeLn($message = '', $group = 'MSG', $tagline = '') {
-
-    $this->writeToAdapters($message, $group, $tagline);
-
-  }
-
   function formatCallParams($params, $level = 0) {
+
     $result = '';
     foreach($params as $idx => $arg) {
       if ($level > 0) {
@@ -239,51 +192,93 @@ class BrLog extends BrSingleton {
 
   //
 
-  public function logException($e, $fatal = false) {
+  private function writeToAdapters($message, $group = 'MSG', $tagline = null, $sendOutput = false) {
 
-    if ($e instanceof BrErrorException) {
-      $isFatal = $e->IsFatal();
-    } else {
-      $isFatal = true;
+    if ($this->isEnabled()) {
+
+      if (is_array($message)) {
+        if (count($message)) {
+          $logText = var_export($message, true);
+        } else {
+          $logText = '[Empty Array]';
+        }
+      } else
+      if (is_object($message)) {
+        $logText = var_export($message, true);
+      } else {
+        $logText = $message;
+      }
+
+      foreach ($this->adapters as $adapter) {
+        switch ($group) {
+          case 'DBG':
+            $adapter->writeDebug($logText, $tagline);
+            break;
+          case 'ERR':
+            $adapter->writeError($logText, $tagline);
+            break;
+          case 'EXC':
+            $adapter->writeException($message, $sendOutput);
+            break;
+          default:
+            $adapter->writeMessage($logText, $group, $tagline);
+            break;
+        }
+      }
+
     }
-    $type = (($e instanceof BrErrorException) ? $e->getType() : 'Error');
-    $errorMessage  = '';
-    if ($isFatal) {
-      $errorMessage .= '[FATAL] ';
+
+  }
+
+  public function getStackTraceFromException($e) {
+
+    $stackTraceInfo = '';
+    foreach($e->getTrace() as $index => $statement) {
+      $stackTraceInfo .= "\n" . $this->formatStackTraceCall($statement);
+      $stackTraceInfo .= "\n" . '    in ' . $this->formatStackTraceSource($statement);
     }
-    $errorMessage .= $e->getMessage();
+    return ltrim($stackTraceInfo, "\n");
+
+  }
+
+  public function logStackTrace() {
+
+    try {
+      throw new BrStackTraceException();
+    } catch (Exception $e) {
+      $stackTraceInfo = $this->getStackTraceFromException($e);
+      $this->writeToAdapters($stackTraceInfo, 'DBG');
+    }
+
+  }
+
+  public function formatExceptionInfo($e) {
+
+    $shortErrorMessage  = (($e instanceof BrErrorException) ? $e->isFatal() : true) ? '[FATAL] ' : '';
+    $shortErrorMessage .= (($e instanceof BrErrorException) ? $e->getType() : 'Error');
+    $shortErrorMessage .= ': ';
+    $shortErrorMessage .= $e->getMessage();
     $errorInfo = '';
-    if (preg_match('/\[INFO:([^]]+)\](.+)\[\/INFO\]/ism', $errorMessage, $matches)) {
+    if (preg_match('/\[INFO:([^]]+)\](.+)\[\/INFO\]/ism', $shortErrorMessage, $matches)) {
       $info_name = $matches[1];
       $errorInfo = $matches[2];
-      $errorMessage = str_replace('[INFO:'.$info_name.']'.$errorInfo.'[/INFO]', '', $errorMessage);
+      $shortErrorMessage = str_replace('[INFO:' . $info_name.']' . $errorInfo . '[/INFO]', '', $shortErrorMessage);
     }
-    $errorLog  = '';
-    if ($isFatal) {
-      $errorLog .= '[FATAL] ';
-    }
-    $errorLog .= $type . ': ' . $errorMessage;
-    $errorLog .= "\n" . '  ' . $e->getFile() . ', line ' . $e->getLine();
+    $errorLog  = $shortErrorMessage;
+    $errorLog .= "\n" . '    in ' . $e->getFile() . ', line ' . $e->getLine();
     if ($errorInfo) {
       $errorLog .= "\n" . '  ' . $errorInfo;
     }
 
-    if ($e instanceof BrErrorException) {
-      $idx = 0;
-    } else {
-      $idx = 1;
-    }
-    foreach($e->getTrace() as $index => $statement) {
-      if ($idx) {
-        $errorLog .= "\n" . '    ' . $this->formatStackTraceCall($statement);
-        $errorLog .= "\n" . '    ' . $this->formatStackTraceSource($statement);
-      }
-      $idx++;
-    }
+    $errorLog .= "\n" . br()->log()->getStackTraceFromException($e);
 
-    $this->writeLn($errorLog, 'ERR', $errorMessage);
+    return array('shortErrorMessage' => $shortErrorMessage, 'errorLog' => $errorLog);
 
-    return $errorLog;
+  }
+
+  public function logException($e, $sendOutput = false) {
+
+    $this->writeToAdapters($e, 'EXC', '', $sendOutput);
 
   }
 
@@ -292,33 +287,8 @@ class BrLog extends BrSingleton {
     if ($object) {
       $message = get_class($object) . ' :: ' . $message;
     }
+
     $this->writeToAdapters($message, 'ERR');
-
-  }
-
-
-  public function callStack() {
-
-    try {
-      throw new BrCallStackException();
-    } catch (Exception $e) {
-      $callStackInfo = 'CALLSTACK';
-      $idx = 0;
-      foreach($e->getTrace() as $index => $statement) {
-        if ($idx) {
-          $callStackInfo .= "\n" . '  ' . $this->formatStackTraceCall($statement);
-          $callStackInfo .= "\n" . '  ' . $this->formatStackTraceSource($statement);
-        }
-        $idx++;
-      }
-      $this->writeLn($callStackInfo, 'DBG');
-
-      if (br()->isConsoleMode()) {
-
-      } else {
-        include(__DIR__.'/templates/CallStack.html');
-      }
-    }
 
   }
 
@@ -327,17 +297,22 @@ class BrLog extends BrSingleton {
     $args = func_get_args();
     foreach($args as $var) {
       $this->writeToAdapters($var, 'DBG');
-
-      $message = print_r($var, true);
-      if (br()->isConsoleMode()) {
-
-      } else
-      if (br()->request()->isLocalHost()) {
-        include(__DIR__.'/templates/DebugMessage.html');
-      }
     }
 
   }
 
-}
+  public function write($message = '', $group = 'MSG', $tagline = '') {
 
+    $this->writeToAdapters($message, $group, $tagline);
+
+  }
+
+  // same, do not use
+  
+  public function writeLn($message = '', $group = 'MSG', $tagline = '') {
+
+    $this->writeToAdapters($message, $group, $tagline);
+
+  }
+
+}
