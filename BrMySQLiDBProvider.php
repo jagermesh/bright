@@ -15,7 +15,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
   private $__connection;
   private $errorRedirect;
   private $config;
-  private $reconnectIterations = 20;
+  private $reconnectIterations = 40;
   private $rerunIterations = 20;
 
   function __construct($config) {
