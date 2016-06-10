@@ -15,8 +15,8 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
   private $__connection;
   private $errorRedirect;
   private $config;
-  private $reconnectIterations = 10;
-  private $rerunIterations = 10;
+  private $reconnectIterations = 20;
+  private $rerunIterations = 20;
 
   function __construct($config) {
 
@@ -153,6 +153,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
           preg_match('/Error reading result set/', $e->getMessage()) ||
           preg_match('/Lost connection to backend server/', $e->getMessage()) ||
           preg_match('/Packets out of order/', $e->getMessage()) ||
+          preg_match('/failed to create new session/', $e->getMessage()) ||
           preg_match('/MySQL server has gone away/', $e->getMessage())) {
         $this->connect();
       }
@@ -161,6 +162,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
           preg_match('/Error reading result set/', $e->getMessage()) ||
           preg_match('/Lost connection to backend server/', $e->getMessage()) ||
           preg_match('/Packets out of order/', $e->getMessage()) ||
+          preg_match('/failed to create new session/', $e->getMessage()) ||
           preg_match('/MySQL server has gone away/', $e->getMessage()) ||
           preg_match('/Lock wait timeout exceeded/', $e->getMessage()) ||
           preg_match('/Deadlock found when trying to get lock/', $e->getMessage())) {
@@ -190,6 +192,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
                 preg_match('/Error reading result set/', $e->getMessage()) ||
                 preg_match('/Lost connection to backend server/', $e->getMessage()) ||
                 preg_match('/Packets out of order/', $e->getMessage()) ||
+                preg_match('/failed to create new session/', $e->getMessage()) ||
                 preg_match('/MySQL server has gone away/', $e->getMessage())) {
               throw new BrDBServerGoneAwayException($error);
             }
@@ -276,7 +279,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
     if ($this->__connection) {
       return mysqli_insert_id($this->__connection);
     } else {
-      throw new BrDBConnectionError('MySQL server has gone away');      
+      throw new BrDBConnectionError('MySQL server has gone away');
     }
 
   }
