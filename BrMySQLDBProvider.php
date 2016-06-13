@@ -54,9 +54,14 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
         br()->triggerSticky('after:db.connect');
       }
     } catch (Exception $e) {
-      br()->log('Reconnecting... (' . $iteration . ')');
-      usleep(500000);
-      $this->connect($iteration + 1, $e->getMessage());
+      if (preg_match('/Unknown database/', $e->getMessage()) ||
+          preg_match('/Access denied/', $e->getMessage())) {
+        throw new BrDBConnectionError($e->getMessage());
+      } else {
+        br()->log('Reconnecting... (' . $iteration . ')');
+        usleep(500000);
+        $this->connect($iteration + 1, $e->getMessage());
+      }
     }
 
     return $this->connection;
@@ -126,7 +131,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
     try {
       // moved to check problem line
-      $query = mysql_query($queryText, $this->connection);
+      $query = @mysql_query($queryText, $this->connection);
       if ($query) {
         if ($this->inTransaction()) {
           $this->incTransactionBuffer($queryText);

@@ -62,8 +62,7 @@ class BrErrorMailLogAdapter extends BrGenericLogAdapter {
       $body .= '<strong>Referer URL:</strong>   <a href="' . br()->request()->referer() . '">' . br()->request()->referer() . '</a><br />';
       $body .= '<strong>Client IP:</strong>     ' . br()->request()->clientIP() . '<br />';
       $userInfo = '';
-      $login = br()->auth()->getLogin();
-      if ($login) {
+      if ($login = br()->auth()->getSessionLogin()) {
         $userInfo = '<strong>User ID:</strong>       ' . br($login, 'id') . '<br />';
         if (br($login, 'name')) {
           $userInfo .= '<strong>User name:</strong>    ' . br($login, 'name') . '<br />';
@@ -81,7 +80,6 @@ class BrErrorMailLogAdapter extends BrGenericLogAdapter {
       }
       $body .= $userInfo;
       $body .= '<strong>Request type:</strong> ' . br()->request()->method() . '<br />';
-      $requestData = '';
       if ($data = br()->request()->get()) {
         unset($data['password']);
         $requestData = @json_encode($data);

@@ -88,6 +88,10 @@
       socket.emit('RMQ/SendMessage', { exchange: exchange, data: data, topic: topic });
     };
 
+    this.getSocket = function() {
+      return socket;
+    };
+
     return this;
 
   }

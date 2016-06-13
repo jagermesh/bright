@@ -52,7 +52,9 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
 
   }
 
-  function buildBody($message) {
+  function getHeader() {
+
+    $result = array();
 
     $body  = '_Timestamp:_ ' . date('r') . "\n";
     $body .= '_Script name:_ ' . br()->scriptName() . "\n";
@@ -64,8 +66,7 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
       $body .= '_Referer URL:_ <' . br()->request()->referer() . '>' . "\n";
       $body .= '_Client IP:_ ' . br()->request()->clientIP() . "\n";
       $userInfo = '';
-      $login = br()->auth()->getLogin();
-      if ($login) {
+      if ($login = br()->auth()->getSessionLogin()) {
         $userInfo = '_User ID:_ ' . br($login, 'id') . "\n";
         if (br($login, 'name')) {
           $userInfo .= '_User name:_ ' . br($login, 'name') . "\n";
@@ -114,9 +115,6 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
         }
       }
     }
-    $body .= '```';
-    $body .= $message;
-    $body .= '```';
 
     return $body;
 
@@ -132,7 +130,6 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
 
         $isCached = false;
         $cacheTag = '';
-        $body = $this->buildBody($message);
         $subject = 'Error report';
         if ($tagline) {
           $subject .= ': ' . $tagline;
@@ -144,11 +141,13 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
         if ($isCached) {
 
         } else {
-          $body = '*' . $subject . '*' . "\n\n" . $body;
-          $message = array('text' => $body);
+          $message = array( 'text'        => '*' . $subject . '*' . "\n\n" . $this->getHeader()
+                          , 'username'    => br()->request()->domain()
+                          , 'attachments' => array(array( 'text' => $message ))
+                          );
           br()->browser()->postJSON($this->webHookUrl, $message);
           if ($this->cache) {
-            $this->cache->set($cacheTag, $body);
+            $this->cache->set($cacheTag, true);
           }
         }
       } catch (Exception $e) {
@@ -164,13 +163,14 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
 
     } else {
       try {
-        $body = '*Debug message*';
+        $subject = 'Debug message';
         if ($tagline) {
-          $body .= ': ' . $tagline;
+          $subject .= ': ' . $tagline;
         }
-        $body .= "\n\n";
-        $body .= $this->buildBody($message);
-        $message = array('text' => $body);
+        $message = array( 'text'        => '*' . $subject . '*' . "\n\n" . $this->getHeader()
+                        , 'username'    => br()->request()->domain()
+                        , 'attachments' => array(array('text' => $message))
+                        );
         br()->browser()->postJSON($this->webHookUrl, $message);
       } catch (Exception $e) {
 

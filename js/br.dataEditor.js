@@ -355,6 +355,7 @@
           try {
             _this.events.trigger('editor.save', op, data);
             if (editorRowid) {
+              _this.events.triggerBefore('editor.update', data);
               _this.dataSource.update(editorRowid, data, function(result, response) {
                 try {
                   if (result) {
@@ -393,6 +394,7 @@
                 }
               });
             } else {
+              _this.events.triggerBefore('editor.insert', data);
               _this.dataSource.insert(data, function(result, response) {
                 try {
                   if (result) {

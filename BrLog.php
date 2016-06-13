@@ -239,7 +239,7 @@ class BrLog extends BrSingleton {
 
   //
 
-  public function logException($e) {
+  public function logException($e, $fatal = false) {
 
     if ($e instanceof BrErrorException) {
       $isFatal = $e->IsFatal();
@@ -247,14 +247,18 @@ class BrLog extends BrSingleton {
       $isFatal = true;
     }
     $type = (($e instanceof BrErrorException) ? $e->getType() : 'Error');
-    $errorMessage = $e->getMessage();
+    $errorMessage  = '';
+    if ($isFatal) {
+      $errorMessage .= '[FATAL] ';
+    }
+    $errorMessage .= $e->getMessage();
     $errorInfo = '';
     if (preg_match('/\[INFO:([^]]+)\](.+)\[\/INFO\]/ism', $errorMessage, $matches)) {
       $info_name = $matches[1];
       $errorInfo = $matches[2];
       $errorMessage = str_replace('[INFO:'.$info_name.']'.$errorInfo.'[/INFO]', '', $errorMessage);
     }
-    $errorLog = '';
+    $errorLog  = '';
     if ($isFatal) {
       $errorLog .= '[FATAL] ';
     }
