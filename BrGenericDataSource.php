@@ -90,14 +90,14 @@ class BrGenericDataSourceCursor implements Iterator {
 
 class BrGenericDataSource extends BrObject {
 
-  protected $defaultOrder;
-  protected $canTraverseBack = null;
-  protected $checkTraversing = false;
+  protected $defaultOrder          = null;
+  protected $canTraverseBack       = null;
+  protected $checkTraversing       = false;
   protected $selectAdjancedRecords = false;
-  protected $priorAdjancedRecord = null;
-  protected $nextAdjancedRecord = null;
-  protected $rowidFieldName = null;
-  protected $rerunIterations = 10;
+  protected $priorAdjancedRecord   = null;
+  protected $nextAdjancedRecord    = null;
+  protected $rowidFieldName        = null;
+  protected $rerunIterations       = 20;
 
   function __construct($options = array()) {
 
