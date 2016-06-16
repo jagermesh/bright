@@ -173,6 +173,10 @@ class BrString {
     return br()->HTML()->fromText($this->value);
   }
 
+  function isHtml() {
+    return br()->HTML()->isHtml($this->value);
+  }
+
   function htmlToText($smart = false) {
     return br()->HTML()->toText($this->value, $smart);
   }

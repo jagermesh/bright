@@ -12,6 +12,12 @@ require_once(__DIR__.'/BrSingleton.php');
 
 class BrHTML extends BrSingleton {
 
+  function isHtml($text) {
+
+    return preg_match('/<[a-z]+[^>]*?>/i', $text) || preg_match('/&[a-z#0-9]+;/i', $text);
+
+  }
+
   function cleanUp($html) {
 
     $html = str_replace('{cke_protected}{C}', '', $html);
