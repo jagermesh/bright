@@ -607,7 +607,9 @@
 
     this.push = function(func) {
       _this.queue.unshift({ func: func });
-      _this.wakeup();
+      if (!_this.lazy) {
+        _this.wakeup();
+      }
     };
 
     this.done = function(func) {
