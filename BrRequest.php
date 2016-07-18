@@ -549,21 +549,24 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function route($method, $path, $func = null) {
+  function route($methods, $path, $func = null) {
 
     if ($func) {
 
     } else {
       $func = $path;
-      $path = $method;
-      $method = 'GET';
+      $path = $methods;
+      $methods = 'GET';
     }
 
     if (!$this->routeComplete()) {
-      if ($this->isMethod($method)) {
-        if ($match = $this->isAt($path)) {
-          $this->continueRoute(false);
-          $func($match);
+      $methods = br($methods)->split();
+      foreach($methods as $method) {
+        if ($this->isMethod($method)) {
+          if ($match = $this->isAt($path)) {
+            $this->continueRoute(false);
+            $func($match);
+          }
         }
       }
     }
