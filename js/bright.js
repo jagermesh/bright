@@ -821,35 +821,39 @@
     a.remove();
   };
 
-  window.br.openPopup = function(url, w, h) {
+  window.br.openPopup = function(url, target) {
 
-    if (w === null) {
-      if (screen.width) {
-        if (screen.width >= 1280) {
-          w = 1000;
-        } else
-        if (screen.width >= 1024) {
-          w = 800;
-        } else {
-          w = 600;
-        }
+    if (!target) {
+      target = '_blank';
+    }
+
+    var w, h;
+
+    if (screen.width) {
+      if (screen.width >= 1280) {
+        w = 1000;
+      } else
+      if (screen.width >= 1024) {
+        w = 800;
+      } else {
+        w = 600;
       }
     }
-    if (h === null) {
-      if (screen.height) {
-        if (screen.height >= 900) {
-          h = 700;
-        } else
-        if (screen.height >= 800) {
-          h = 600;
-        } else {
-          h = 500;
-        }
+
+    if (screen.height) {
+      if (screen.height >= 900) {
+        h = 700;
+      } else
+      if (screen.height >= 800) {
+        h = 600;
+      } else {
+        h = 500;
       }
     }
+
     var left = (screen.width) ? (screen.width-w)/2 : 0;
     var settings = 'height='+h+',width='+w+',top=20,left='+left+',menubar=0,scrollbars=1,resizable=1';
-    var win = window.open(url, '_blank', settings);
+    var win = window.open(url, target, settings);
     if (win) {
       win.focus();
     }
