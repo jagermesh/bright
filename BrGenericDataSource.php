@@ -333,10 +333,17 @@ class BrGenericDataSource extends BrObject {
             } catch (Exception $e2) {
 
             }
-            $result = false;
-            $data = null;
-            $this->callEvent('after:' . $method, $result, $data, $params, $transientData);
-            throw $e;
+            $operation = $method;
+            $error = $e->getMessage();
+            $result = $this->trigger('error', $error, $operation, $e);
+            if (is_null($result)) {
+              $result = false;
+              $data = null;
+              $this->callEvent('after:' . $method, $result, $data, $params, $transientData);
+              throw $e;
+            } else {
+              throw $result;
+            }
           }
         }
         break;
