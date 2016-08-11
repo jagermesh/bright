@@ -76,6 +76,7 @@ class BrFTP extends BrObject {
   private $currentPassword;
   private $currentPort;
   private $currentPassiveMode;
+  private $reconnectsAmount = 10;
 
   function __construct() {
 
@@ -83,7 +84,7 @@ class BrFTP extends BrObject {
 
   }
 
-  function connect($hostName, $userName, $password, $port = 21, $passiveMode = true) {
+  function connect($hostName, $userName, $password, $port = 21, $passiveMode = true, $attempt = 0) {
 
     $this->currentHostName    = $hostName;
     $this->currentUserName    = $userName;
@@ -104,7 +105,12 @@ class BrFTP extends BrObject {
         throw new Exception('Can not connect to ' . $hostName . ' as ' . $userName);
       }
     } else {
-      throw new Exception('Can not connect to ' . $hostName);
+      if ($attempt < $this->reconnectsAmount) {
+        usleep(500000);
+        $this->connect($hostName, $userName, $password, $port, $passiveMode, $attempt + 1);
+      } else {
+        throw new Exception('Can not connect to ' . $hostName);
+      }
     }
 
   }
