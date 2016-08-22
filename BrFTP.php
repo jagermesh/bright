@@ -109,11 +109,11 @@ class BrFTP extends BrObject {
         throw new Exception('Can not connect to ' . $hostName);
       }
     } catch (Exception $e) {
-      if ($attempt < $this->reconnectsAmount) {
+      if (!preg_match('/Login incorrect/', $e->getMessage()) && ($attempt < $this->reconnectsAmount)) {
         usleep(500000);
         $this->connect($hostName, $userName, $password, $port, $passiveMode, $attempt + 1);
       } else {
-        throw new Exception('Can not connect to ' . $hostName);
+        throw new Exception('Can not connect to ' . $hostName . ': ' . $e->getMessage());
       }
     }
 
