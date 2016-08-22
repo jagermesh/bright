@@ -105,11 +105,17 @@ class BrSFTP extends BrObject {
     $this->currentPassword = $password;
     $this->currentPort     = $port;
 
-    $this->connection = new Net_SFTP($hostName, $port);
-
-    if ($this->connection->login($userName, $password)) {
-      $this->currentDirectory = $this->getServerDir();
-    } else {
+    try {
+      if ($this->connection = new Net_SFTP($hostName, $port)) {
+        if ($this->connection->login($userName, $password)) {
+          $this->currentDirectory = $this->getServerDir();
+        } else {
+          throw new Exception('Can not connect to ' . $hostName . ' as ' . $userName);
+        }
+      } else {
+        throw new Exception('Can not connect to ' . $hostName);
+      }
+    } catch (Exception $e) {
       if ($attempt < $this->reconnectsAmount) {
         usleep(500000);
         $this->connect($hostName, $userName, $password, $port, $attempt + 1);

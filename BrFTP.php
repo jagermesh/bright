@@ -94,17 +94,21 @@ class BrFTP extends BrObject {
 
     // br()->log('Connecting to ' . $hostName . ' as ' . $userName);
 
-    if ($this->connectionId = ftp_connect($hostName, $port)) {
-      if (ftp_login($this->connectionId, $userName, $password)) {
-        if (ftp_pasv($this->connectionId, $passiveMode ? true : false)) {
-          $this->currentDirectory = $this->getServerDir();
+    try {
+      if ($this->connectionId = ftp_connect($hostName, $port)) {
+        if (ftp_login($this->connectionId, $userName, $password)) {
+          if (ftp_pasv($this->connectionId, $passiveMode ? true : false)) {
+            $this->currentDirectory = $this->getServerDir();
+          } else {
+            throw new Exception('Can not switch passive mode to ' . $passiveMode);
+          }
         } else {
-          throw new Exception('Can not switch passive mode to ' . $passiveMode);
+          throw new Exception('Can not connect to ' . $hostName . ' as ' . $userName);
         }
       } else {
-        throw new Exception('Can not connect to ' . $hostName . ' as ' . $userName);
+        throw new Exception('Can not connect to ' . $hostName);
       }
-    } else {
+    } catch (Exception $e) {
       if ($attempt < $this->reconnectsAmount) {
         usleep(500000);
         $this->connect($hostName, $userName, $password, $port, $passiveMode, $attempt + 1);
