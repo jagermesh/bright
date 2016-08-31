@@ -391,7 +391,7 @@ class BrDataSourceUsers extends BrDataSource {
     }
     $denied = false;
     if ($this->invokeMethodExists('isAccessDenied')) {
-      $denied = $this->invoke('isAccessDenied', $row);
+      $denied = $this->invoke('isAccessDenied', $row, $params);
     }
     if (!$denied) {
       $passwordField = br()->auth()->getAttr('usersTable.passwordField');
