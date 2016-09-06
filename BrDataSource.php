@@ -65,6 +65,7 @@ class BrDataSource extends BrGenericDataSource {
 
   private $dbEntity;
   private $dbEntityAlias;
+  private $dbIndexHint;
   private $DMLType;
 
   function __construct($dbEntity, $options = array()) {
@@ -92,6 +93,16 @@ class BrDataSource extends BrGenericDataSource {
     }
 
     return $this->dbEntityAlias;
+
+  }
+
+  function dbIndexHint($newValue = null) {
+
+    if ($newValue) {
+      $this->dbIndexHint = $newValue;
+    }
+
+    return $this->dbIndexHint;
 
   }
 
@@ -170,7 +181,7 @@ class BrDataSource extends BrGenericDataSource {
 
       $this->lastSelectAmount = 0;
 
-      $table = br()->db()->table($this->dbEntity(), $this->dbEntityAlias());
+      $table = br()->db()->table($this->dbEntity(), $this->dbEntityAlias(), array('indexHint' => $this->dbIndexHint));
 
       if (!strlen($limit) || ($limit > 0)) {
 

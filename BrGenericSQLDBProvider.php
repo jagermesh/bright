@@ -173,9 +173,11 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   }
 
-  function table($name, $alias = null) {
+  function table($name, $alias = null, $params = array()) {
 
-    return new BrGenericSQLProviderTable($this, $name, $alias);
+    $params['tableAlias'] = $alias;
+
+    return new BrGenericSQLProviderTable($this, $name, $params);
 
   }
 
@@ -646,13 +648,15 @@ class BrGenericSQLProviderTable {
 
   private $tableName;
   private $tableAlias;
+  private $indexHint;
   private $provider;
 
-  function __construct(&$provider, $tableName, $tableAlias = null) {
+  function __construct(&$provider, $tableName, $params = array()) {
 
-    $this->tableName = $tableName;
-    $this->tableAlias = $tableAlias;
-    $this->provider = $provider;
+    $this->tableName  = $tableName;
+    $this->tableAlias = br($params, 'tableAlias');
+    $this->indexHint  = br($params, 'indexHint');
+    $this->provider   = $provider;
 
   }
 
@@ -993,6 +997,9 @@ class BrGenericSQLProviderTable {
     $sql .= ' FROM '.$this->tableName;
     if ($this->tableAlias) {
       $sql .= ' ' . $this->tableAlias;
+    }
+    if ($this->indexHint) {
+      $sql .= ' USE INDEX (' . $this->indexHint . ')';
     }
     $sql .= $joins.' WHERE 1=1 '.$where;
 
