@@ -2019,6 +2019,14 @@
       return ($(_this.selector).find('[data-rowid]').length === 0);
     };
 
+    this.getKeys = function() {
+      var result = [];
+      $('[data-rowid]', _this.selector).each(function() {
+        result.push(br.toInt($(this).attr('data-rowid')));
+      });
+      return result;
+    };
+
     this.init = function() {
 
       var savedOrder = _this.getOrderAndGroup();
