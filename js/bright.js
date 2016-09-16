@@ -2019,10 +2019,13 @@
       return ($(_this.selector).find('[data-rowid]').length === 0);
     };
 
-    this.getKeys = function() {
+    this.getKeys = function(attrName) {
       var result = [];
-      $('[data-rowid]', _this.selector).each(function() {
-        result.push(br.toInt($(this).attr('data-rowid')));
+      if (!attrName) {
+        attrName = 'data-rowid';
+      }
+      $('[' + attrName + ']', $(_this.selector)).each(function() {
+        result.push(br.toInt($(this).attr(attrName)));
       });
       return result;
     };
