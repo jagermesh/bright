@@ -294,8 +294,19 @@ class BrRequest extends BrSingleton {
 
   function isLocalHost() {
 
-    $localHosts = array('localhost', '127.0.0.1');
-    return in_array($this->domain(), $localHosts);
+    if (br($_SERVER, 'REMOTE_ADDR')) {
+      $whitelist = array('127.0.0.1', '::1');
+      if (in_array(br($_SERVER, 'REMOTE_ADDR'), $whitelist)) {
+        return true;
+      }
+    }
+
+    $whitelist = array('localhost', '127.0.0.1');
+    if (in_array($this->domain(), $localHosts)) {
+      return true;
+    }
+
+    return false;
 
   }
 
