@@ -302,7 +302,7 @@ class BrRequest extends BrSingleton {
     }
 
     $whitelist = array('localhost', '127.0.0.1');
-    if (in_array($this->domain(), $localHosts)) {
+    if (in_array($this->domain(), $whitelist)) {
       return true;
     }
 
