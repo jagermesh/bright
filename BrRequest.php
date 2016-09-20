@@ -36,7 +36,8 @@ class BrRequest extends BrSingleton {
       if (!$serverAddr || ($serverAddr == '::1')) {
         $serverAddr = '127.0.0.1';
       }
-      $host = 'http'.((br($_SERVER, 'HTTPS') == "on")?'s':'').'://'.$domain;
+      $protocol = 'http'.((br($_SERVER, 'HTTPS') == 'on') ? 's' : '') . '://';
+      $host = $protocol . $domain;
       $request = br($_SERVER, 'REQUEST_URI');
       $query = preg_replace('~^[^?]*~', '', $request);
       $request = preg_replace('~[?].*$~', '', $request);
@@ -71,8 +72,9 @@ class BrRequest extends BrSingleton {
 
       $this->url = $url;
       $this->path = $path;
-      $this->domain = $domain;
       $this->serverAddr = $serverAddr;
+      $this->domain = $domain;
+      $this->protocol = $protocol;
       $this->host = $host;
       $this->relativeUrl = $relativeUrl;
       $this->baseUrl = $baseUrl;
@@ -123,7 +125,8 @@ class BrRequest extends BrSingleton {
 
       $this->serverAddr = br()->config()->get('br/request/consoleModeServerAddr', '127.0.0.1');
       $this->domain     = br()->config()->get('br/request/consoleModeBaseDomain', 'localhost');
-      $this->host       = br()->config()->get('br/request/consoleModeBaseHost',   'http://'.$this->domain);
+      $this->protocol   = br()->config()->get('br/request/consoleModeWebProtocol', 'http://');
+      $this->host       = br()->config()->get('br/request/consoleModeBaseHost',   br()->config()->get('br/request/consoleModeWebProtocol') . $this->domain);
       $this->baseUrl    = br()->config()->get('br/request/consoleModeBaseUrl',    '/');
 
     }
