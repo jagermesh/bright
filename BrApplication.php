@@ -85,8 +85,10 @@ class BrApplication extends BrSingleton {
 
     if ($controllerFile) {
       br()->log()->writeLn('Controller: '.$controllerFile);
-      br()->import($controllerFile);
-      exit();
+      // if (br()->callerScript() != $controllerFile) {
+        br()->import($controllerFile);
+        exit();
+      // }
     } else {
       // if (!br()->config()->get('simpleMode')) {
       //   br()->response()->send404();
