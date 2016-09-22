@@ -297,10 +297,12 @@ class BrRequest extends BrSingleton {
 
   function isLocalHost() {
 
-    if (br($_SERVER, 'REMOTE_ADDR')) {
-      $whitelist = array('127.0.0.1', '::1');
-      if (in_array(br($_SERVER, 'REMOTE_ADDR'), $whitelist)) {
-        return true;
+    if (isset($_SERVER)) {
+      if (br($_SERVER, 'REMOTE_ADDR')) {
+        $whitelist = array('127.0.0.1', '::1');
+        if (in_array(br($_SERVER, 'REMOTE_ADDR'), $whitelist)) {
+          return true;
+        }
       }
     }
 
