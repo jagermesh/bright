@@ -126,6 +126,10 @@ class BrMongoDBProvider extends BrGenericDBProvider {
 
   }
 
+  function connect($iteration = 0, $rerunError = null) {
+
+  }
+
   function table($name) {
 
     return new BrMongoProviderTable($this, $name);

@@ -36,6 +36,7 @@ class BrDataBase extends BrObject {
               self::$instance = new BrMongoDBProvider($config);
               break;
           }
+          self::$instance->connect();
         } catch (Exception $e) {
           if ($errorPage = br($config, 'errorPage')) {
             if (br()->request()->isAt($errorPage)) {
@@ -44,7 +45,6 @@ class BrDataBase extends BrObject {
               br()->response()->redirect($errorPage);
             }
           } else {
-            br()->trigger('db.connectionError', $e);
             throw new BrDBConnectionError($e->getMessage());
           }
         }
