@@ -12,7 +12,7 @@ require_once(__DIR__.'/BrGenericSQLDBProvider.php');
 
 class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
-  private $connection;
+  private $__connection;
   private $errorRedirect;
   private $config;
   private $reconnectIterations = 10;
@@ -21,21 +21,34 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
   function __construct($config) {
 
     $this->config = $config;
-    $this->connect();
     register_shutdown_function(array(&$this, "captureShutdown"));
+
+  }
+
+  function connection() {
+
+    if ($this->__connection) {
+      return $this->__connection;
+    } else {
+      return $this->connect();
+    }
 
   }
 
   function captureShutdown() {
 
-    @mysql_close($this->connection);
+    if ($this->__connection) {
+      @mysqli_close($this->__connection);
+    }
 
   }
 
   function connect($iteration = 0, $rerunError = null) {
 
     if ($iteration > $this->reconnectIterations) {
-      throw new BrDBConnectionError($rerunError);
+      $e = new BrDBConnectionError($rerunError);
+      br()->triggerSticky('db.connectionError', $e);
+      throw $e;
     }
 
     $hostName     = br($this->config, 'hostname');
@@ -44,27 +57,28 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     $password     = br($this->config, 'password');
 
     try {
-      if ($this->connection = mysql_connect($hostName, $userName, $password, true)) {
-        mysql_select_db($dataBaseName, $this->connection);
+      if ($this->__connection = mysql_connect($hostName, $userName, $password, true)) {
+        mysql_select_db($dataBaseName, $this->__connection);
         if (br($this->config, 'charset')) {
           $this->runQuery('SET NAMES ?', $this->config['charset']);
         }
-        $this->version = mysql_get_server_info($this->connection);
+        $this->version = mysql_get_server_info($this->__connection);
         $this->triggerSticky('after:connect');
         br()->triggerSticky('after:db.connect');
       }
     } catch (Exception $e) {
       if (preg_match('/Unknown database/', $e->getMessage()) ||
           preg_match('/Access denied/', $e->getMessage())) {
+        br()->triggerSticky('db.connectionError', $e);
         throw new BrDBConnectionError($e->getMessage());
       } else {
-        br()->log('Reconnecting... (' . $iteration . ')');
+        $this->__connection = null;
         usleep(500000);
         $this->connect($iteration + 1, $e->getMessage());
       }
     }
 
-    return $this->connection;
+    return $this->__connection;
 
   }
 
@@ -92,14 +106,6 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   }
 
-  function getLastError() {
-
-    if (mysql_errno($this->connection)) {
-      return mysql_errno($this->connection).": ".mysql_error($this->connection);
-    }
-
-  }
-
   function selectNext($query) {
 
     $result = mysql_fetch_assoc($query);
@@ -122,16 +128,16 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
       $queryText = $sql;
     }
 
-    br()->log()->writeln($queryText, "QRY");
-
     if ($iteration > $this->rerunIterations) {
       $error = $rerunError . '. [INFO:SQL]' . $queryText . '[/INFO]';
       throw new BrDBException($error);
     }
 
+    br()->log()->writeln($queryText, "QRY");
+
     try {
       // moved to check problem line
-      $query = @mysql_query($queryText, $this->connection);
+      $query = @mysql_query($queryText, $this->connection());
       if ($query) {
         if ($this->inTransaction()) {
           $this->incTransactionBuffer($queryText);
@@ -146,6 +152,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
           preg_match('/Error reading result set/', $e->getMessage()) ||
           preg_match('/Lost connection to backend server/', $e->getMessage()) ||
           preg_match('/Packets out of order/', $e->getMessage()) ||
+          preg_match('/failed to create new session/', $e->getMessage()) ||
           preg_match('/MySQL server has gone away/', $e->getMessage())) {
         $this->connect();
       }
@@ -154,6 +161,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
           preg_match('/Error reading result set/', $e->getMessage()) ||
           preg_match('/Lost connection to backend server/', $e->getMessage()) ||
           preg_match('/Packets out of order/', $e->getMessage()) ||
+          preg_match('/failed to create new session/', $e->getMessage()) ||
           preg_match('/MySQL server has gone away/', $e->getMessage()) ||
           preg_match('/Lock wait timeout exceeded/', $e->getMessage()) ||
           preg_match('/Deadlock found when trying to get lock/', $e->getMessage())) {
@@ -183,6 +191,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
                 preg_match('/Error reading result set/', $e->getMessage()) ||
                 preg_match('/Lost connection to backend server/', $e->getMessage()) ||
                 preg_match('/Packets out of order/', $e->getMessage()) ||
+                preg_match('/failed to create new session/', $e->getMessage()) ||
                 preg_match('/MySQL server has gone away/', $e->getMessage())) {
               throw new BrDBServerGoneAwayException($error);
             }
@@ -234,12 +243,6 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   }
 
-  function getLastId() {
-
-    return mysql_insert_id($this->connection);
-
-  }
-
   function isEmptyDate($date) {
 
     return (($date == "0000-00-00") or ($date == "0000-00-00 00:00:00") or !$date);
@@ -258,9 +261,35 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   }
 
+  function getLastError() {
+
+    if ($this->__connection) {
+      if (mysql_errno($this->__connection)) {
+        return mysql_errno($this->__connection) . ': ' . mysql_error($this->__connection);
+      }
+    } else {
+      return 'MySQL server has gone away';
+    }
+
+  }
+
+  function getLastId() {
+
+    if ($this->__connection) {
+      return mysql_insert_id($this->__connection);
+    } else {
+      throw new BrDBConnectionError('MySQL server has gone away');
+    }
+
+  }
+
   function getAffectedRowsAmount() {
 
-    return mysql_affected_rows($this->connection);
+    if ($this->__connection) {
+      return mysql_affected_rows($this->__connection);
+    } else {
+      throw new BrDBConnectionError('MySQL server has gone away');
+    }
 
   }
 

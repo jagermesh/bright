@@ -89,3 +89,4 @@ ini_set('session.cache_expire', br()->config()->get('php/session.cache_expire', 
 ini_set('session.cookie_lifetime', br()->config()->get('php/session.cookie_lifetime', 0));
 // Core PHP settings - Secondary - End
 
+br()->triggerSticky('after:br.init');

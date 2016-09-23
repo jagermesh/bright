@@ -21,7 +21,6 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
   function __construct($config) {
 
     $this->config = $config;
-    $this->connect();
     register_shutdown_function(array(&$this, "captureShutdown"));
 
   }
@@ -47,7 +46,9 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
   function connect($iteration = 0, $rerunError = null) {
 
     if ($iteration > $this->reconnectIterations) {
-      throw new BrDBConnectionError($rerunError);
+      $e = new BrDBConnectionError($rerunError);
+      br()->triggerSticky('db.connectionError', $e);
+      throw $e;
     }
 
     $hostName     = br($this->config, 'hostname');
@@ -70,10 +71,10 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
     } catch (Exception $e) {
       if (preg_match('/Unknown database/', $e->getMessage()) ||
           preg_match('/Access denied/', $e->getMessage())) {
+        br()->triggerSticky('db.connectionError', $e);
         throw new BrDBConnectionError($e->getMessage());
       } else {
         $this->__connection = null;
-        br()->log('Reconnecting... (' . $iteration . ')');
         usleep(500000);
         $this->connect($iteration + 1, $e->getMessage());
       }
