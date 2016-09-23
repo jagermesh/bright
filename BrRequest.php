@@ -30,7 +30,16 @@ class BrRequest extends BrSingleton {
 
   function __construct() {
 
-    if (!br()->isConsoleMode()) {
+    if (br()->isConsoleMode()) {
+
+      $this->serverAddr = br()->config()->get('br/request/consoleModeServerAddr',  '127.0.0.1');
+      $this->domain     = br()->config()->get('br/request/consoleModeBaseDomain',  'localhost');
+      $this->protocol   = br()->config()->get('br/request/consoleModeWebProtocol', 'http://');
+      $this->host       = br()->config()->get('br/request/consoleModeBaseHost',    $this->protocol . $this->domain);
+      $this->baseUrl    = br()->config()->get('br/request/consoleModeBaseUrl',     '/');
+
+    } else {
+
       $domain = br($_SERVER, 'HTTP_HOST');
       $serverAddr = br($_SERVER, 'SERVER_ADDR');
       if (!$serverAddr || ($serverAddr == '::1')) {
@@ -121,14 +130,6 @@ class BrRequest extends BrSingleton {
 
       $this->clientIP = br(array_unique(br($this->clientIP)->split()))->join();
 
-    } else {
-
-      $this->serverAddr = br()->config()->get('br/request/consoleModeServerAddr', '127.0.0.1');
-      $this->domain     = br()->config()->get('br/request/consoleModeBaseDomain', 'localhost');
-      $this->protocol   = br()->config()->get('br/request/consoleModeWebProtocol', 'http://');
-      $this->host       = br()->config()->get('br/request/consoleModeBaseHost',   br()->config()->get('br/request/consoleModeWebProtocol') . $this->domain);
-      $this->baseUrl    = br()->config()->get('br/request/consoleModeBaseUrl',    '/');
-
     }
 
   }
@@ -149,7 +150,7 @@ class BrRequest extends BrSingleton {
    */
   function isSelfReferer() {
 
-    return strpos($this->referer(), $this->host.$this->baseUrl) !== false;
+    return strpos($this->referer(), $this->host() . $this->baseUrl()) !== false;
 
   }
 
@@ -180,7 +181,7 @@ class BrRequest extends BrSingleton {
 
   function isAtBaseUrl() {
 
-    return $this->isAt($this->baseUrl.'$');
+    return $this->isAt($this->baseUrl() . '$');
 
   }
 
@@ -224,13 +225,19 @@ class BrRequest extends BrSingleton {
 
   function baseUrl($dec = 0) {
 
-    $result = $this->baseUrl;
-    $dec = abs($dec);
-    while($dec) {
-      $result = preg_replace('#[^/]+/$#', '', $result);
-      $dec--;
+    if (br()->isConsoleMode()) {
+      return br()->config()->get('br/request/consoleModeBaseUrl', '/');
+    } else {
+      $result = $this->baseUrl;
+      if ($dec) {
+        $dec = abs($dec);
+        while($dec) {
+          $result = preg_replace('#[^/]+/$#', '', $result);
+          $dec--;
+        }
+      }
+      return $result;
     }
-    return $result;
 
   }
 
@@ -285,24 +292,30 @@ class BrRequest extends BrSingleton {
 
   function domain() {
 
-    return $this->domain;
+    if (br()->isConsoleMode()) {
+      return br()->config()->get('br/request/consoleModeBaseDomain', 'localhost');
+    } else {
+      return $this->domain;
+    }
 
   }
 
   function serverAddr() {
 
-    return $this->serverAddr;
+    if (br()->isConsoleMode()) {
+      return br()->config()->get('br/request/consoleModeServerAddr', '127.0.0.1');
+    } else {
+      return $this->serverAddr;
+    }
 
   }
 
   function isLocalHost() {
 
-    if (isset($_SERVER)) {
-      if (br($_SERVER, 'REMOTE_ADDR')) {
-        $whitelist = array('127.0.0.1', '::1');
-        if (in_array(br($_SERVER, 'REMOTE_ADDR'), $whitelist)) {
-          return true;
-        }
+    if ($this->serverAddr()) {
+      $whitelist = array('127.0.0.1', '::1');
+      if (in_array($this->serverAddr(), $whitelist)) {
+        return true;
       }
     }
 
@@ -315,15 +328,29 @@ class BrRequest extends BrSingleton {
 
   }
 
+  function protocol() {
+
+    if (br()->isConsoleMode()) {
+      return br()->config()->get('br/request/consoleModeWebProtocol', 'http://');
+    } else {
+      return $this->protocol;
+    }
+
+  }
+
   function host() {
 
-    return $this->host;
+    if (br()->isConsoleMode()) {
+      return br()->config()->get('br/request/consoleModeBaseHost', $this->protocol() . $this->domain());
+    } else {
+      return $this->host;
+    }
 
   }
 
   function origin() {
 
-    return $this->host;
+    return $this->host();
 
   }
 
