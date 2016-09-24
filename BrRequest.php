@@ -324,7 +324,12 @@ class BrRequest extends BrSingleton {
       return true;
     }
 
-    return false;
+    $result = false;
+    $domain = $this->domain();
+
+    $this->trigger('checkLocalHost', $domain, $result);
+
+    return $result;
 
   }
 
