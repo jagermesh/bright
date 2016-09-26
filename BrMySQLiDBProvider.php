@@ -154,7 +154,9 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
           preg_match('/Error reading result set/', $e->getMessage()) ||
           preg_match('/Lost connection to backend server/', $e->getMessage()) ||
           preg_match('/Packets out of order/', $e->getMessage()) ||
+          preg_match('/Connection was killed/', $e->getMessage()) ||
           preg_match('/failed to create new session/', $e->getMessage()) ||
+          preg_match('/WSREP has not yet prepared node for application use/', $e->getMessage()) ||
           preg_match('/MySQL server has gone away/', $e->getMessage())) {
         $this->connect();
       }
@@ -162,10 +164,12 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
       if (preg_match('/Error while sending QUERY packet/', $e->getMessage()) ||
           preg_match('/Error reading result set/', $e->getMessage()) ||
           preg_match('/Lost connection to backend server/', $e->getMessage()) ||
-          preg_match('/Packets out of order/', $e->getMessage()) ||
+          preg_match('/Connection was killed/', $e->getMessage()) ||
           preg_match('/failed to create new session/', $e->getMessage()) ||
+          preg_match('/WSREP has not yet prepared node for application use/', $e->getMessage()) ||
           preg_match('/MySQL server has gone away/', $e->getMessage()) ||
           preg_match('/Lock wait timeout exceeded/', $e->getMessage()) ||
+          preg_match('/Packets out of order/', $e->getMessage()) ||
           preg_match('/Deadlock found when trying to get lock/', $e->getMessage())) {
         if ($this->inTransaction()) {
           if ($this->isTransactionBufferEmpty()) {
@@ -193,7 +197,9 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
                 preg_match('/Error reading result set/', $e->getMessage()) ||
                 preg_match('/Lost connection to backend server/', $e->getMessage()) ||
                 preg_match('/Packets out of order/', $e->getMessage()) ||
+                preg_match('/Connection was killed/', $e->getMessage()) ||
                 preg_match('/failed to create new session/', $e->getMessage()) ||
+                preg_match('/WSREP has not yet prepared node for application use/', $e->getMessage()) ||
                 preg_match('/MySQL server has gone away/', $e->getMessage())) {
               throw new BrDBServerGoneAwayException($error);
             }
