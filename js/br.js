@@ -95,7 +95,7 @@
   };
 
   window.br.isSafari = function() {
-    return Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+    return (navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1);
   };
 
   window.br.isChrome = function() {
@@ -205,12 +205,16 @@
 
   window.br.openPage = function(href) {
     if(typeof (window.popupBlocked) == 'undefined'){
-      var testWindow = window.open("about:blank","","directories=no,height=100,width=100,menubar=no,resizable=no,scrollbars=no,status=no,titlebar=no,top=0,location=no");
-      if (!testWindow) {
-        window.popupBlocked = true;
-      } else {
+      if(window.br.isSafari()){
+        var testWindow = window.open("about:blank","","directories=no,height=100,width=100,menubar=no,resizable=no,scrollbars=no,status=no,titlebar=no,top=0,location=no");
+        if (!testWindow) {
+          window.popupBlocked = true;
+        } else {
+          window.popupBlocked = false;
+          testWindow.close();
+        }
+      }else{
         window.popupBlocked = false;
-        testWindow.close();
       }
     }
     if(window.popupBlocked){
@@ -261,7 +265,9 @@
     if (win) {
       win.focus();
     }else{
-      window.br.openLinkPopup(url);
+      if(window.br.isSafari()){
+        window.br.openLinkPopup(url);
+      }
     }
 
   };
