@@ -98,6 +98,14 @@ if (!function_exists('logme')) {
 class Br extends BrSingleton {
 
   private $processId = null;
+  private $templatesPath = null;
+  private $frameWorkPath = null;
+  private $scriptName = null;
+  private $basePath = null;
+  private $appPath = null;
+  private $APIPath = null;
+  private $relativePath = null;
+  private $application = null;
 
   function __construct() {
 
@@ -181,14 +189,6 @@ class Br extends BrSingleton {
     return $this->DataBase($name);
 
   }
-
-  private $scriptName = null;
-  private $basePath = null;
-  private $appPath = null;
-  private $APIPath = null;
-  private $frameWorkPath = null;
-  private $relativePath = null;
-  private $application = null;
 
   function saveCallerScript($scriptPath) {
 
