@@ -663,7 +663,7 @@ class BrRESTBinder extends BrObject {
     } else {
       $extMsg = br()->log()->logException($e);
     }
-    if (br()->request()->isLocalHost()) {
+    if (br()->request()->isDevHost()) {
       $message = $extMsg;
     } else
     if ($e instanceof BrDBException) {

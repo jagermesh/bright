@@ -312,13 +312,6 @@ class BrRequest extends BrSingleton {
 
   function isLocalHost() {
 
-    // if ($this->serverAddr()) {
-    //   $whitelist = array('127.0.0.1', '::1');
-    //   if (in_array($this->serverAddr(), $whitelist)) {
-    //     return true;
-    //   }
-    // }
-
     $whitelist = array('localhost', '127.0.0.1');
     if (in_array($this->domain(), $whitelist)) {
       return true;
@@ -328,6 +321,21 @@ class BrRequest extends BrSingleton {
     $domain = $this->domain();
 
     $this->trigger('checkLocalHost', $domain, $result);
+
+    return $result;
+
+  }
+
+  function isDevHost() {
+
+    if ($this->isLocalHost()) {
+      return true;
+    }
+
+    $result = false;
+    $domain = $this->domain();
+
+    $this->trigger('checkDevHost', $domain, $result);
 
     return $result;
 

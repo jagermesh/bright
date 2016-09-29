@@ -55,12 +55,12 @@ class BrErrorHandler extends BrObject {
             }
             break;
           case E_DEPRECATED:
-            if (br()->request()->isLocalHost() && !br()->isConsoleMode()) {
+            if (br()->request()->isDevHost() && !br()->isConsoleMode()) {
               br()->log()->logException(new BrErrorException($errmsg, 0, $errno, $errfile, $errline));
             }
             break;
           default:
-            if (br()->request()->isLocalHost() && !$shutdown) {
+            if (br()->request()->isDevHost() && !$shutdown) {
               throw new BrErrorException($errmsg, 0, $errno, $errfile, $errline);
             } else {
               br()->log()->logException(new BrErrorException($errmsg, 0, $errno, $errfile, $errline));
@@ -147,7 +147,7 @@ class BrErrorHandler extends BrObject {
             header('HTTP/1.0 500 Internal Server Error');
           }
 
-          if (br()->request()->isLocalHost() && !($e instanceof BrAppException)) {
+          if (br()->request()->isDevHost() && !($e instanceof BrAppException)) {
             include(__DIR__.'/templates/ErrorReportEx.html');
           } else {
             include(__DIR__.'/templates/ErrorReport.html');

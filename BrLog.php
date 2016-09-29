@@ -332,7 +332,7 @@ class BrLog extends BrSingleton {
       if (br()->isConsoleMode()) {
 
       } else
-      if (br()->request()->isLocalHost()) {
+      if (br()->request()->isDevHost()) {
         include(__DIR__.'/templates/DebugMessage.html');
       }
     }

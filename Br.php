@@ -63,7 +63,7 @@ if (!function_exists('debug')) {
         // echo($message);
         // echo("\n");
       } else
-      if (br()->request()->isLocalHost()) {
+      if (br()->request()->isDevHost()) {
         include(__DIR__.'/templates/DebugMessage.html');
       }
     }
