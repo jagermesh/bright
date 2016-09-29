@@ -740,7 +740,7 @@
   };
 
   window.br.isSafari = function() {
-    return Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+    return (navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1);
   };
 
   window.br.isChrome = function() {
@@ -812,13 +812,66 @@
     Child.superclass = Parent.prototype;
   };
 
+  window.br.openLinkPopup = function(url) {
+    var s = '<div class="modal modal-autosize" ';
+    if (br.bootstrapVersion == 2) {
+      s = s + ' style="top:20px;margin-top:0px;"';
+    }
+    var linkName = url;
+    if(url.indexOf('www.') === -1 && url.indexOf('http') === -1){
+      linkName = '' + document.location.protocol + '//' + document.location.hostname + ( document.location.port ? ':' + document.location.port: '' );
+      if(url.indexOf('/') !== 0){
+        linkName += '/';
+      }
+      linkName += url;
+    }
+
+    s = s + '>' +
+      '<div class="modal-dialog">' +
+      '<div class="modal-content">';
+    s = s + '<div class="modal-body" style="overflow-y:auto;"><p>You browser is currently blocking popups</p>' +
+      '<p>Click the link below to open this manually:</p>' +
+      '<p><a style="color: #08c;" target="_blank" class="open-link-popup-link" href="' + url + '">'+linkName+'</a></p>' +
+      '<p>To eliminate this extra step, we recommend you modify your settings to disable the popup blocker.</p>' +
+      '</div>' +
+      '<div class="modal-footer"><a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn('Dismiss') + '&nbsp;</a></div></div></div></div>';
+    var dialog = $(s);
+    $(dialog).on('hide.bs.modal', function(){
+      dialog.remove();
+    });
+    $(dialog).modal('show');
+    $(dialog).find('.open-link-popup-link').on('click', function(){
+      $(dialog).modal('hide');
+      dialog.remove();
+    });
+    br.enchanceBootstrap(dialog);
+    br.resizeModalPopup(dialog);
+  };
+
   window.br.openPage = function(href) {
-    var a = document.createElement('a');
-    a.href = href;
-    a.target = '_blank';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    if(typeof (window.popupBlocked) == 'undefined'){
+      if(window.br.isSafari()){
+        var testWindow = window.open("about:blank","","directories=no,height=100,width=100,menubar=no,resizable=no,scrollbars=no,status=no,titlebar=no,top=0,location=no");
+        if (!testWindow) {
+          window.popupBlocked = true;
+        } else {
+          window.popupBlocked = false;
+          testWindow.close();
+        }
+      }else{
+        window.popupBlocked = false;
+      }
+    }
+    if(window.popupBlocked){
+      window.br.openLinkPopup(href);
+    }else{
+      var a = document.createElement('a');
+      a.href = href;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
   };
 
   window.br.openPopup = function(url, target) {
@@ -856,6 +909,10 @@
     var win = window.open(url, target, settings);
     if (win) {
       win.focus();
+    }else{
+      if(window.br.isSafari()){
+        window.br.openLinkPopup(url);
+      }
     }
 
   };
