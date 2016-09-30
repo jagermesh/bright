@@ -106,6 +106,7 @@ class Br extends BrSingleton {
   private $APIPath = null;
   private $relativePath = null;
   private $application = null;
+  private $threadMode = false;
 
   function __construct() {
 
@@ -337,6 +338,18 @@ class Br extends BrSingleton {
   function isConsoleMode() {
 
     return !isset($_SERVER) || (!array_key_exists('REQUEST_METHOD', $_SERVER));
+
+  }
+
+  function isThreadMode() {
+
+    return $this->threadMode;
+
+  }
+
+  function setThreadMode() {
+
+    $this->threadMode = true;
 
   }
 

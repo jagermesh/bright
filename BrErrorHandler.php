@@ -124,6 +124,14 @@ class BrErrorHandler extends BrObject {
 
         if (br()->isConsoleMode()) {
 
+          if (br()->isThreadMode()) {
+
+
+          } else {
+
+
+          }
+
           die(1);
 
         } else {
