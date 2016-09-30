@@ -176,7 +176,12 @@
                 $(this).attr('checked', 'checked');
               }
             } else {
-              $(this).val(data[i]);
+              var ckeditorInstance = $(this).data('ckeditorInstance');
+              if (ckeditorInstance) {
+                ckeditorInstance.setData(data[i], {noSnapshot: true});
+              } else {
+                $(this).val(data[i]);
+              }
             }
           });
         }

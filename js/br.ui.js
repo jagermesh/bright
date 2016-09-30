@@ -70,6 +70,7 @@
   };
 
   window.br.confirm = function(title, message, buttons, callback, options) {
+
     if (typeof buttons == 'function') {
       options   = callback;
       callback = buttons;
@@ -85,11 +86,7 @@
     }
     s = s + '" id="br_modalConfirm"';
     if (br.bootstrapVersion == 2) {
-      // if (br.isMobileDevice()) {
-        // s = s + ' style="top:20px;"';
-      // } else {
-        s = s + ' style="top:20px;margin-top:0px;"';
-      // }
+      s = s + ' style="top:20px;margin-top:0px;"';
     }
     s = s + '>';
 
@@ -173,16 +170,16 @@
     $(dialog).modal('show');
     br.enchanceBootstrap(dialog);
     br.resizeModalPopup(dialog);
+
+    return dialog;
+
   };
 
   window.br.error = function(title, message, callback) {
+
     var s = '<div class="modal modal-autosize" id="br_modalError"';
     if (br.bootstrapVersion == 2) {
-      // if (br.isMobileDevice()) {
-        // s = s + ' style="top:20px;"';
-      // } else {
-        s = s + ' style="top:20px;margin-top:0px;"';
-      // }
+      s = s + ' style="top:20px;margin-top:0px;"';
     }
     s = s + '>' +
             '<div class="modal-dialog">' +
@@ -203,6 +200,9 @@
     $(dialog).modal('show');
     br.enchanceBootstrap(dialog);
     br.resizeModalPopup(dialog);
+
+    return dialog;
+
   };
 
   window.br.inform = function(title, message, callback, options) {
@@ -219,11 +219,7 @@
 
     var s = '<div class="modal modal-autosize" id="br_modalInform"';
     if (br.bootstrapVersion == 2) {
-      // if (br.isMobileDevice()) {
-        // s = s + ' style="top:20px;"';
-      // } else {
-        s = s + ' style="top:20px;margin-top:0px;"';
-      // }
+      s = s + ' style="top:20px;margin-top:0px;"';
     }
     s = s + '>' +
             '<div class="modal-dialog">' +
@@ -252,6 +248,9 @@
     $(dialog).modal('show');
     br.enchanceBootstrap(dialog);
     br.resizeModalPopup(dialog);
+
+    return dialog;
+
   };
 
   window.br.prompt = function(title, fields, callback, options) {
@@ -269,11 +268,7 @@
 
     var s = '<div class="modal modal-autosize" id="br_modalPrompt"';
     if (br.bootstrapVersion == 2) {
-      // if (br.isMobileDevice()) {
-        // s = s + ' style="top:20px;"';
-      // } else {
-        s = s + ' style="top:20px;margin-top:0px;"';
-      // }
+      s = s + ' style="top:20px;margin-top:0px;"';
     }
     s = s + '>' +
             '<div class="modal-dialog">' +
@@ -338,6 +333,7 @@
           }
         });
       });
+
     var onHide = function(e) {
       if (options.onHide) {
         options.onHide.call(this);
@@ -353,6 +349,9 @@
     $(dialog).modal('show');
     br.enchanceBootstrap(dialog);
     br.resizeModalPopup(dialog);
+
+    return dialog;
+
   };
 
   var noTemplateEngine = false;

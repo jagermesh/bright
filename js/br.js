@@ -37,6 +37,7 @@
   });
 
   window.br.baseUrl = baseUrl;
+  window.br.popupBlocker = 'unknown';
 
   var logStarted = false;
 
@@ -95,7 +96,7 @@
   };
 
   window.br.isSafari = function() {
-    return Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+    return (navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1);
   };
 
   window.br.isChrome = function() {
@@ -167,50 +168,73 @@
     Child.superclass = Parent.prototype;
   };
 
-  window.br.openPage = function(href) {
-    var a = document.createElement('a');
-    a.href = href;
-    a.target = '_blank';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+  function openUrl(url) {
+
+    var dialog = br.inform( 'You browser is currently blocking popups'
+                          , '<p>Click the link below to open this manually:</p>'
+                          + '<p><a target="_blank" class="action-open-link" href="' + url + '" style="word-wrap: break-word">' + url + '</a></p>'
+                          + '<p>To eliminate this extra step, we recommend you modify your settings to disable the popup blocker.</p>'
+                          );
+
+    $('.action-open-link', dialog).on('click', function() {
+      dialog.modal('hide');
+      dialog.remove();
+    });
+
+  }
+
+  window.br.openPage = function(url) {
+
+    if (br.isSafari()) {
+      br.openPopup(url);
+    } else {
+      var a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
   };
 
   window.br.openPopup = function(url, target) {
 
-    if (!target) {
-      target = '_blank';
-    }
-
-    var w, h;
-
-    if (screen.width) {
-      if (screen.width >= 1280) {
-        w = 1000;
-      } else
-      if (screen.width >= 1024) {
-        w = 800;
-      } else {
-        w = 600;
+    if (window.br.popupBlocker == 'active') {
+      openUrl(url);
+    } else {
+      target = target || '_blank';
+      var w, h;
+      if (screen.width) {
+        if (screen.width >= 1280) {
+          w = 1000;
+        } else
+        if (screen.width >= 1024) {
+          w = 800;
+        } else {
+          w = 600;
+        }
       }
-    }
-
-    if (screen.height) {
-      if (screen.height >= 900) {
-        h = 700;
-      } else
-      if (screen.height >= 800) {
-        h = 600;
-      } else {
-        h = 500;
+      if (screen.height) {
+        if (screen.height >= 900) {
+          h = 700;
+        } else
+        if (screen.height >= 800) {
+          h = 600;
+        } else {
+          h = 500;
+        }
       }
-    }
-
-    var left = (screen.width) ? (screen.width-w)/2 : 0;
-    var settings = 'height='+h+',width='+w+',top=20,left='+left+',menubar=0,scrollbars=1,resizable=1';
-    var win = window.open(url, target, settings);
-    if (win) {
-      win.focus();
+      var left = (screen.width) ? (screen.width-w)/2 : 0;
+      var settings = 'height='+h+',width='+w+',top=20,left='+left+',menubar=0,scrollbars=1,resizable=1';
+      var win = window.open(url, target, settings);
+      if (win) {
+        window.br.popupBlocker = 'inactive';
+        win.focus();
+      } else {
+        window.br.popupBlocker = 'active';
+        openUrl(url);
+      }
     }
 
   };
