@@ -325,7 +325,7 @@ class BrGenericDataSource extends BrObject {
             return $data;
           } catch (BrDBRecoverableException $e) {
             br()->log('Repeating invoke of ' . $method . '... (' . $iteration . ') because of ' . $e->getMessage());
-            usleep(50000);
+            usleep(250000);
             return $this->invoke($method, $params, $transientData, $optionsParam);
           } catch (Exception $e) {
             try {

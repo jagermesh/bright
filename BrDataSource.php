@@ -363,7 +363,7 @@ class BrDataSource extends BrGenericDataSource {
         }
       } catch (BrDBRecoverableException $e) {
         br()->log('Repeating insert... (' . $iteration . ') because of ' . $e->getMessage());
-        usleep(50000);
+        usleep(250000);
         return $this->insert($rowParam, $transientData, $optionsParam, $iteration + 1, $e->getMessage());
       } catch (Exception $e) {
         br()->db()->rollbackTransaction();
@@ -436,7 +436,7 @@ class BrDataSource extends BrGenericDataSource {
         br()->db()->commitTransaction();
       } catch (BrDBRecoverableException $e) {
         br()->log('Repeating update... (' . $iteration . ') because of ' . $e->getMessage());
-        usleep(50000);
+        usleep(250000);
         return $this->update($rowid, $rowParam, $transientData, $optionsParam, $iteration + 1, $e->getMessage());
       } catch (Exception $e) {
         br()->db()->rollbackTransaction();
@@ -498,7 +498,7 @@ class BrDataSource extends BrGenericDataSource {
           br()->db()->commitTransaction();
         } catch (BrDBRecoverableException $e) {
           br()->log('Repeating remove... (' . $iteration . ') because of ' . $e->getMessage());
-          usleep(50000);
+          usleep(250000);
           return $this->remove($rowid, $transientData, $optionsParam, $iteration + 1, $e->getMessage());
         } catch (Exception $e) {
           // TODO: Move to the DB layer
