@@ -648,12 +648,17 @@
         var sizes = [20, 40, 80, 100, 120, 140, 160, 180, 200];
         for (i = 0; i < sizes.length; i++) {
           var size = sizes[i];
-          if (size <= _this.recordsAmount) {
-            if (size == _this.limit) {
-              s = s + '<strong class="pager-nav-element">' + size + '</strong>';
-            } else {
-              s = s + '<a href="javascript:;" class="pager-action-page-size pager-size-element" data-size="' + size + '">' + size + '</a>';
-            }
+          var dsize = size;
+          if (size >= _this.recordsAmount) {
+            dsize = _this.recordsAmount;
+          }
+          if (size == _this.limit) {
+            s = s + '<strong class="pager-nav-element">' + dsize + '</strong>';
+          } else {
+            s = s + '<a href="javascript:;" class="pager-action-page-size pager-size-element" data-size="' + size + '">' + dsize + '</a>';
+          }
+          if (size >= _this.recordsAmount) {
+            break;
           }
         }
         if (s.length > 0) {
