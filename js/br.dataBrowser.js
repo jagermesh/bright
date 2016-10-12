@@ -645,16 +645,23 @@
         $pc = $(c('.pager-page-size-navigation'));
         $pc.html('');
         s = '';
-        var size = 0;
-        for (i = 1; i <= 5; i++) {
-          size = Math.pow(i, 2) * 20;
-          if (size == _this.limit) {
-            s = s + '<strong class="pager-nav-element">' + size + '</strong>';
-          } else {
-            s = s + '<a href="javascript:;" class="pager-action-page-size pager-size-element" data-size="' + size + '">' + size + '</a>';
+        var sizes = [20, 40, 80, 100, 120, 140, 160, 180, 200];
+        for (i = 0; i < sizes.length; i++) {
+          var size = sizes[i];
+          if (size <= _this.recordsAmount) {
+            if (size == _this.limit) {
+              s = s + '<strong class="pager-nav-element">' + size + '</strong>';
+            } else {
+              s = s + '<a href="javascript:;" class="pager-action-page-size pager-size-element" data-size="' + size + '">' + size + '</a>';
+            }
           }
         }
-        $pc.html(s);
+        if (s.length > 0) {
+          $pc.html(s);
+          $(c('.pager-page-size-container')).show();
+        } else {
+          $(c('.pager-page-size-container')).hide();
+        }
       }
 
       var min = (_this.skip + 1);
