@@ -18,8 +18,7 @@ class BrJobCustomJob {
 
   function __construct() {
 
-    $this->temporaryDir = br()->basePath() . '_tmp/';
-    br()->fs()->makeDir($this->temporaryDir);
+    $this->temporaryDir = br()->tempPath();
     $this->lastRunFile = $this->temporaryDir . get_class($this) . '.timestamp';
 
     $this->checkJobCommand = $this->checkJobScript . ' ' . get_class($this);

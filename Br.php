@@ -982,6 +982,14 @@ class Br extends BrSingleton {
 
   }
 
+  function getTempFile($fileName) {
+
+    $this->tempFiles[] = $this->tempPath() . $fileName;
+
+    return $this->tempPath() . $fileName;
+
+  }
+
   function createTempFile($prefix, $extension = '') {
 
     $fileName = tempnam($this->tempPath(), $prefix);
