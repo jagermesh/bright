@@ -369,7 +369,7 @@ class BrDataSource extends BrGenericDataSource {
         br()->db()->rollbackTransaction();
         $operation = 'insert';
         $error = $e->getMessage();
-        $result = $this->trigger('error', $error, $operation, $e);
+        $result = $this->trigger('error', $error, $operation, $e, $row);
         if (is_null($result)) {
           // if (!br()->request()->isLocalHost()) {
             if (preg_match('/1062: Duplicate entry/', $error, $matches)) {
@@ -442,7 +442,7 @@ class BrDataSource extends BrGenericDataSource {
         br()->db()->rollbackTransaction();
         $operation = 'update';
         $error = $e->getMessage();
-        $result = $this->trigger('error', $error, $operation, $e);
+        $result = $this->trigger('error', $error, $operation, $e, $crow);
         if (is_null($result)) {
           if (preg_match('/1062: Duplicate entry/', $error, $matches)) {
             throw new BrAppException('Unique constraint violated');
@@ -512,7 +512,7 @@ class BrDataSource extends BrGenericDataSource {
         br()->db()->rollbackTransaction();
         $operation = 'remove';
         $error = $e->getMessage();
-        $this->trigger('error', $error, $operation, $e);
+        $this->trigger('error', $error, $operation, $e, $crow);
         throw $e;
       }
       return $result;
