@@ -99,6 +99,7 @@ class Br extends BrSingleton {
 
   private $processId = null;
   private $templatesPath = null;
+  private $tempPath = null;
   private $frameWorkPath = null;
   private $scriptName = null;
   private $basePath = null;
@@ -107,12 +108,15 @@ class Br extends BrSingleton {
   private $relativePath = null;
   private $application = null;
   private $threadMode = false;
+  private $tempFiles = array();
 
   function __construct() {
 
     $this->frameWorkPath = str_replace('\\', '/', rtrim(__DIR__, '/').'/');
     $this->processId = null;
     parent::__construct();
+
+    register_shutdown_function(array(&$this, 'captureShutdown'));
 
   }
 
@@ -196,9 +200,9 @@ class Br extends BrSingleton {
     $this->callerScript = $scriptPath;
     $this->basePath = $this->fs()->filePath($scriptPath);
     $this->scriptName = $this->fs()->fileName($scriptPath);
-    $this->appPath = $this->basePath.'app/';
-    $this->APIPath = $this->basePath.'api/';
-    $this->setTemplatesPath($this->basePath.'templates/');
+    $this->appPath = $this->basePath . 'app/';
+    $this->APIPath = $this->basePath . 'api/';
+    $this->setTemplatesPath($this->basePath . 'templates/');
 
     if (stripos($this->frameWorkPath, $this->basePath) === 0) {
       $this->relativePath = substr($this->frameWorkPath, strlen($this->basePath));
@@ -261,6 +265,25 @@ class Br extends BrSingleton {
     return $this->templatesPath;
 
   }
+
+  function setTempPath($tempPath) {
+
+    $this->tempPath = $tempPath;
+
+    br()->fs()->makeDir($this->tempPath(), 0777);
+
+  }
+
+  function tempPath() {
+
+    if (!$this->tempPath) {
+      $this->setTempPath(br()->config()->get('br/tempPath', $this->basePath . '_tmp/'));
+    }
+
+    return $this->tempPath;
+
+  }
+
 
   function atTemplatesPath($path) {
 
@@ -951,7 +974,28 @@ class Br extends BrSingleton {
 
   }
 
+  function captureShutdown() {
 
+    foreach($this->tempFiles as $fileName) {
+      @unlink($fileName);
+    }
+
+  }
+
+  function createTempFile($prefix, $extension = '') {
+
+    $fileName = tempnam($this->tempPath(), $prefix);
+
+    if ($extension) {
+      rename($fileName, $fileName . $extension);
+      $fileName = $fileName . $extension;
+    }
+
+    $this->tempFiles[] = $fileName;
+
+    return $fileName;
+
+  }
 
 }
 
