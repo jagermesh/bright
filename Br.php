@@ -990,7 +990,7 @@ class Br extends BrSingleton {
 
   }
 
-  function createTempFile($prefix, $extension = '') {
+  function createTempFile($prefix, $extension = '', $register = true) {
 
     $fileName = tempnam($this->tempPath(), $prefix);
 
@@ -999,7 +999,9 @@ class Br extends BrSingleton {
       $fileName = $fileName . $extension;
     }
 
-    $this->tempFiles[] = $fileName;
+    if ($register) {
+      $this->tempFiles[] = $fileName;
+    }
 
     return $fileName;
 
