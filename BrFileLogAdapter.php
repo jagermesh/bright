@@ -15,10 +15,10 @@ class BrFileLogAdapter extends BrGenericFileLogAdapter {
   function __construct($filePath, $fileName = null) {
 
     if (!$filePath) {
-      $filePath = dirname(__DIR__).'/_logs/';
+      $filePath = dirname(__DIR__) . '/_logs/';
     }
 
-    $filePath = rtrim($filePath, '/').'/';
+    $filePath = rtrim($filePath, '/') . '/';
 
     $date = @strftime('%Y-%m-%d');
     $hour = @strftime('%H');
