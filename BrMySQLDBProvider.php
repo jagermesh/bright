@@ -182,7 +182,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
             $error .= '. Automatic retrying was not possible - ' . $this->transactionBufferLength() . ' statement(s) in transaction buffer: ';
             $error .= json_encode($this->transactionBuffer());
             $error .= '. [INFO:SQL]' . $sql . '[/INFO]';
-            $this->rollbackTransaction();
+            // $this->rollbackTransaction();
             if (preg_match('/Deadlock found when trying to get lock/', $error)) {
               throw new BrDBDeadLockException($error);
             } else
