@@ -2231,7 +2231,7 @@
             var groupValues = {};
             var groupFieldName = '';
             var $row;
-            for (i in data) {
+            for (i = 0; i < data.length; i++) {
               if (data[i]) {
                 if (br.isArray(group)) {
                   for(k = 0; k < group.length; k++) {
