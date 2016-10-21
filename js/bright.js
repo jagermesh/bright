@@ -2391,6 +2391,7 @@
           params.allowClear = _this.options.allowClear;
           params.placeholder = _this.options.emptyName;
         }
+        params.dropdownAutoWidth = true;
         _this.selector.select2(params);
       }
     }
