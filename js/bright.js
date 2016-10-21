@@ -2392,6 +2392,7 @@
           params.placeholder = _this.options.emptyName;
         }
         params.dropdownAutoWidth = true;
+        params.dropdownCss = { 'max-width': '400px' };
         _this.selector.select2(params);
       }
     }
