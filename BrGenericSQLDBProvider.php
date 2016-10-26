@@ -999,7 +999,7 @@ class BrGenericSQLProviderTable {
       $sql .= ' ' . $this->tableAlias;
     }
     if ($this->indexHint) {
-      $sql .= ' USE INDEX (' . $this->indexHint . ')';
+      $sql .= ' FORCE INDEX (' . $this->indexHint . ')';
     }
     $sql .= $joins.' WHERE 1=1 '.$where;
 
