@@ -265,12 +265,13 @@
 
       _this.dataSource.before('select', function(request, options) {
         request = request || {};
-        request.__skip = _this.skip;
-        request.__limit = _this.limit;
         if ($(c('input.data-filter[name=keyword]')).length > 0) {
           request.keyword = $(c('input.data-filter[name=keyword]')).val();
           _this.setFilter('keyword', request.keyword);
         }
+        options       = options || {};
+        options.skip  = _this.skip;
+        options.limit = _this.limit || _this.defaultLimit;
       });
 
       _this.dataSource.after('remove', function(request, options) {
