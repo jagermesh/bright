@@ -128,7 +128,7 @@
                   }
                   query.callback(data);
                 }
-              });
+              }, { limit: 100 });
             };
           }
           _this.selector.select2(params);
