@@ -787,7 +787,7 @@
         row = $(_this.options.selectors.dataTable).find('tr[data-rowid=' + rowid + ']');
       }
       if (row.length > 0) {
-        row.find('.action-select-row').attr('checked', 'checked');
+        row.find('.action-select-row').prop('checked', 'checked');
         row.addClass('row-selected');
         _this.selection.append(rowid);
         if (!multiple) {
@@ -798,7 +798,7 @@
 
     this.selectAll = function(checked) {
       if (checked) {
-        $(c('.action-select-all')).attr('checked', 'checked');
+        $(c('.action-select-all')).prop('checked', 'checked');
       } else {
         $(c('.action-select-all')).removeAttr('checked');
       }
