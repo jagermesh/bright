@@ -2325,7 +2325,7 @@
       this.selector.addClass('skiptranslate');
     }
 
-    this.loaded = !this.options.lookupMode;
+    this.loaded = this.options.lookupMode;
 
     this.events = br.eventQueue(this);
     this.before = function(event, callback) { this.events.before(event, callback); };
