@@ -827,7 +827,10 @@ class Br extends BrSingleton {
 
     foreach($emails as $email) {
       try {
-        $mail->AddAddress($email);
+        $emailsArray = br(trim($email))->split();
+        foreach($emailsArray as $oneEMail) {
+          $mail->AddAddress($oneEMail);
+        }
       } catch (Exception $e) {
         br()->log('Error in br()->sendMail() line 794: ' . $e->getMessage());
       }
