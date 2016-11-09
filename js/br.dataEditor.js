@@ -180,7 +180,12 @@
               if (ckeditorInstance) {
                 ckeditorInstance.setData(data[i], {noSnapshot: true});
               } else {
-                $(this).val(data[i]);
+                var dataComboInstance = $(this).data('BrDataCombo');
+                if (dataComboInstance) {
+                  dataComboInstance.val(data[i]);
+                } else {
+                  $(this).val(data[i]);
+                }
               }
             }
           });

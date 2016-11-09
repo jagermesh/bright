@@ -17,22 +17,23 @@
 
     this.dataSource = dataSource;
 
-    this.options                      = options || {};
-    this.options.valueField           = this.options.valueField || 'rowid';
-    this.options.nameField            = this.options.nameField || 'name';
-    this.options.levelField           = this.options.levelField || null;
-    this.options.selectedValue        = this.options.selectedValue || null;
-    this.options.skipTranslate        = this.options.skipTranslate || null;
-    this.options.selectedValueField   = this.options.selectedValueField || null;
-    this.options.hideEmptyValue       = this.options.hideEmptyValue || (this.selector.attr('multiple') == 'multiple');
-    this.options.emptyName            = this.options.emptyName || '--any--';
-    this.options.emptyValue           = this.options.emptyValue || '';
-    this.options.allowClear           = this.options.allowClear || false;
-    this.options.lookupMode           = this.options.lookupMode || false;
-    this.options.fields               = this.options.fields || {};
-    this.options.saveSelection        = this.options.saveSelection || false;
-    this.options.saveToSessionStorage = this.options.saveToSessionStorage || false;
-    this.options.selectedValueField   = this.options.selectedValueField || null;
+    this.options                           = options || {};
+    this.options.valueField                = this.options.valueField || 'rowid';
+    this.options.nameField                 = this.options.nameField || 'name';
+    this.options.levelField                = this.options.levelField || null;
+    this.options.selectedValue             = this.options.selectedValue || null;
+    this.options.skipTranslate             = this.options.skipTranslate || null;
+    this.options.selectedValueField        = this.options.selectedValueField || null;
+    this.options.hideEmptyValue            = this.options.hideEmptyValue || (this.selector.attr('multiple') == 'multiple');
+    this.options.emptyName                 = this.options.emptyName || '--any--';
+    this.options.emptyValue                = this.options.emptyValue || '';
+    this.options.allowClear                = this.options.allowClear || false;
+    this.options.lookupMode                = this.options.lookupMode || false;
+    this.options.fields                    = this.options.fields || {};
+    this.options.saveSelection             = this.options.saveSelection || false;
+    this.options.saveToSessionStorage      = this.options.saveToSessionStorage || false;
+    this.options.selectedValueField        = this.options.selectedValueField || null;
+    this.options.lookup_minimumInputLength = this.options.lookup_minimumInputLength || 0;
 
     if (this.options.skipTranslate) {
       this.selector.addClass('skiptranslate');
@@ -112,7 +113,7 @@
           params.dropdownAutoWidth = true;
           params.dropdownCss = { 'max-width': '400px' };
           if (_this.options.lookupMode) {
-            params.minimumInputLength = 0;
+            params.minimumInputLength = _this.options.lookup_minimumInputLength;
             params.allowClear  = true;
             params.placeholder = _this.options.emptyName;
             params.query = function (query) {
@@ -440,12 +441,30 @@
       switchToSelect2();
     });
 
+    this.selector.data('BrDataCombo', _this);
+
   }
 
   window.br = window.br || {};
 
   window.br.dataCombo = function (selector, dataSource, options) {
-    return new BrDataCombo(selector, dataSource, options);
+    var result = [];
+    $(selector).each(function() {
+      var obj = $(this).data('BrDataCombo');
+      if (obj) {
+        result.push(obj);
+      } else {
+        result.push(new BrDataCombo($(this), dataSource, options));
+      }
+    });
+    switch(result.length) {
+      case 0:
+        return new BrDataCombo(selector, dataSource, options);
+      case 1:
+        return result[0];
+      default:
+        return result;
+    }
   };
 
 })(jQuery, window);
