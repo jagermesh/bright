@@ -59,7 +59,7 @@ class qqUploadedFileXhr {
       $dstFileName = $md . '.' . $image->format();
       $dstFilePath = $path . $dstFileName;
 
-      eDoctrinaS3::uploadFile($srcFilePath, $dstFilePath);
+      eDoctrinaAWS::uploadFile($srcFilePath, $dstFilePath);
 
       $fileSize = filesize($srcFilePath);
 
@@ -70,7 +70,7 @@ class qqUploadedFileXhr {
     }
 
     return array( 'url'      => $dstFilePath
-                , 'href'     => eDoctrinaS3::baseUrl() . $dstFilePath
+                , 'href'     => eDoctrinaAWS::baseSecureUrl() . $dstFilePath
                 , 'fileSize' => $fileSize
                 , 'fileName' => $this->getName()
                 );
@@ -127,12 +127,13 @@ class qqUploadedFileForm {
 
     $dstFilePath = $path . $dstFileName;
 
-    $url = eDoctrinaS3::uploadFile($srcFilePath, $dstFilePath);
+    $url = eDoctrinaAWS::uploadFile($srcFilePath, $dstFilePath);
+
+    $fileSize = filesize($srcFilePath);
 
     return array( 'url'      => $dstFilePath
-                , 'href'     => eDoctrinaS3::baseUrl() . $dstFilePath
-                // , 'href'     => br()->request()->baseUrl(-1) . $dstFilePath
-                , 'fileSize' => filesize($srcFilePath)
+                , 'href'     => eDoctrinaAWS::baseSecureUrl() . $dstFilePath
+                , 'fileSize' => $fileSize
                 , 'fileName' => $this->getName()
                 );
 

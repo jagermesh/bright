@@ -54,7 +54,7 @@ class qqUploadedFileXhr {
       $md5path = br($md5)->toCharPath();
       $dstFilePath = $path . $md5path . br()->fs()->normalizeFileName($pathinfo['basename']);
 
-      eDoctrinaS3::uploadFile($srcFilePath, $dstFilePath);
+      eDoctrinaAWS::uploadFile($srcFilePath, $dstFilePath);
 
       $fileSize = filesize($srcFilePath);
 
@@ -65,7 +65,7 @@ class qqUploadedFileXhr {
     }
 
     return array( 'url'      => $dstFilePath
-                , 'href'     => eDoctrinaS3::baseUrl() . $dstFilePath
+                , 'href'     => eDoctrinaAWS::baseSecureUrl() . $dstFilePath
                 , 'fileSize' => $fileSize
                 , 'fileName' => $this->getName()
                 );
@@ -117,12 +117,12 @@ class qqUploadedFileForm {
     $md5path = br($md5)->toCharPath();
     $dstFilePath = $path . $md5path . br()->fs()->normalizeFileName($pathinfo['basename']);
 
-    $url = eDoctrinaS3::uploadFile($srcFilePath, $dstFilePath);
+    $url = eDoctrinaAWS::uploadFile($srcFilePath, $dstFilePath);
 
     $fileSize = filesize($srcFilePath);
 
     return array( 'url'         => $dstFilePath
-                , 'href'        => eDoctrinaS3::baseUrl() . $dstFilePath
+                , 'href'        => eDoctrinaAWS::baseSecureUrl() . $dstFilePath
                 , 'fileName'    => $this->getName()
                 , 'fileSize'    => $fileSize
                 , 'fileSizeStr' => br()->formatBytes($fileSize)
