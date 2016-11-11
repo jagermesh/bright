@@ -232,7 +232,7 @@ class Br extends BrSingleton {
 
   function atBasePath($path) {
 
-    return $this->basePath.ltrim($path, '/');
+    return $this->basePath . ltrim($path, '/');
 
   }
 

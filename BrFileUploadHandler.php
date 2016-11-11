@@ -10,15 +10,22 @@ class BrFileUploadHandler extends BrGenericUploadHandler {
    * Save the file to the specified path
    * @return boolean TRUE on success
    */
-  function save($tempFile, $path, $url) {
+  function save($srcFile, $path) {
 
-    $pathinfo = pathinfo($this->getFileName());
-    $md = md5_file($tempFile);
-    $md5path = br($md5)->toCharPath();
-    $dstFilePath = $path . $md5path . br()->fs()->normalizeFileName($pathinfo['basename']);
+    if (br($this->params, 'basePath')) {
+      $dstPath = rtrim($this->params['basePath'], '/') . '/' . rtrim($path, '/') . '/';
+    } else {
+      $dstPath = rtrim(br()->atBasePath($path), '/') . '/';
+    }
+    $dstFileName = br()->fs()->normalizeFileName(br()->fs()->fileName($this->getFileName()));
+    $dstFilePath = $dstPath . md5_file($srcFile) . '/' . $dstFileName;
     br()->fs()->createDir(br()->fs()->filePath($dstFilePath));
     rename($tempFile, $dstFilePath);
-    return $dstFileName;
+    return array( 'fileName' => $dstFileName
+                , 'url'      => $path . $dstFileName
+                , 'href'     => br()->request()->host() . $path . $dstFileName
+                , 'filePath' => $dstFilePath
+                );
 
   }
 

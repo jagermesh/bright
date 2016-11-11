@@ -89,34 +89,7 @@ class BrGenericUploadHandler {
 
   }
 
-  function handleUpload($tempFile, $path, $url) {
-
-    if ($this->getFileSize() > $this->sizeLimit) {
-      return array('error' => 'File is too large');
-    }
-
-    $ext = br()->fs()->fileExt($this->getFileName());
-
-    if ($this->allowedExtensions && !in_array(strtolower($ext), $this->allowedExtensions)) {
-      $these = implode(', ', $this->allowedExtensions);
-      return array('error' => 'File has an invalid extension, it should be one of '. $these . '.');
-    }
-
-    if ($fileName = $this->save($tempFile, $path, $url)) {
-      return array( 'success'          => true
-                  , 'url'              => $url . $fileName
-                  , 'href'             => br()->request()->host() . $url . $fileName
-                  , 'fileName'         => $fileName
-                  , 'originalFileName' => $this->getFileName()
-                  , 'fileSize'         => $this->getFileSize()
-                  );
-    } else {
-      return array('error' => 'Could not save uploaded file. The upload was cancelled, or server error encountered');
-    }
-
-  }
-
-  function handle() {
+  function handler() {
 
     // list of valid extensions, ex. array("jpeg", "xml", "bmp")
     $this->allowedExtensions = br($this->params, 'allowedExtensions', array());
@@ -132,20 +105,11 @@ class BrGenericUploadHandler {
     $this->checkServerSettings();
 
     if (br($this->params, 'checkLogin') || br($this->params, 'userBasedPath')) {
-      if ($login = br()->auth()->checkLogin()) {
+      if ($login = br()->auth()->getLogin()) {
 
       } else {
         br()->response()->sendNotAuthorized();
       }
-    }
-
-    if (br($this->params, 'url')) {
-      $url = br($this->params, 'url');
-    } else
-    if (br($this->params, 'path')) {
-      $url = br($this->params, 'path');
-    } else {
-      $url = 'uploads/';
     }
 
     if (br($this->params, 'path')) {
@@ -159,13 +123,31 @@ class BrGenericUploadHandler {
       $path .= br()->db()->rowidValue($login) . '/';
     }
 
-    if (!br($this->params, 'externalPath') && !preg_match('~^(/|[A-Z][:])~', $path)) {
-      $path = br()->atBasePath($path);
-    } else {
-
+    if ($this->getFileSize() > $this->sizeLimit) {
+      return array('error' => 'File is too large');
     }
 
-    $result = $this->handleUpload($this->getUploadedFile(), $path, $url);
+    $ext = br()->fs()->fileExt($this->getFileName());
+
+    if ($this->allowedExtensions && !in_array(strtolower($ext), $this->allowedExtensions)) {
+      $these = implode(', ', $this->allowedExtensions);
+      return array('error' => 'File has an invalid extension, it should be one of '. $these . '.');
+    }
+
+    if ($saveResult = $this->save($this->getUploadedFile(), $path)) {
+      $result = array( 'success'          => true
+                     , 'originalFileName' => $this->getFileName()
+                     , 'fileSize'         => $this->getFileSize()
+                     , 'fileSizeStr'      => br()->formatBytes($this->getFileSize())
+                     );
+      foreach($saveResult as $name => $value) {
+        $result[$name] = $value;
+      }
+    } else {
+      $result = array( 'success' => false
+                     , 'error'   => 'Could not save uploaded file. The upload was cancelled, or server error encountered'
+                     );
+    }
 
     // to pass data through iframe you will need to encode all html tags
     echo htmlspecialchars(json_encode($result), ENT_NOQUOTES);

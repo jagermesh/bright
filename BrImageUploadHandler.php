@@ -1,187 +1,11 @@
 <?php
 
+
 require_once(__DIR__ . '/BrGenericUploadHandler.php');
 require_once(__DIR__ . '/BrGenericFORMUploadHandler.php');
 require_once(__DIR__ . '/BrGenericXHRUploadHandler.php');
 
-/**
- * Handle file uploads via XMLHttpRequest
- */
-class qqUploadedFileXhr {
-
-  private $params;
-
-  function __construct($params = array()) {
-
-    $this->params = $params;
-
-  }
-
-  /**
-   * Save the file to the specified path
-   * @return boolean TRUE on success
-   */
-  function save($path) {
-
-    $input = fopen("php://input", "r");
-    $temp = tmpfile();
-    $realSize = stream_copy_to_stream($input, $temp);
-    fclose($input);
-
-    if ($realSize != $this->getSize()){
-      return false;
-    }
-
-    $ext = br()->fs()->fileExt($this->getName());
-    if (!$ext) {
-      $ext = 'dat';
-    }
-    $srcFilePath = $path . 'tmpUploadFile.' . $ext;
-    while(file_exists($srcFilePath)) {
-      $srcFilePath = $path . 'tmpUploadFile.' . rand(1, 10000) . '.' . $ext;
-    }
-    $target = fopen($srcFilePath, "w");
-    fseek($temp, 0, SEEK_SET);
-    stream_copy_to_stream($temp, $target);
-    fclose($target);
-
-    $dstFilePath = '';
-    $dstFileName = '';
-
-    br()->importLib('Image');
-
-    $image = new BrImage($srcFilePath);
-    $md = md5_file($srcFilePath);
-    if (br($this->params, 'generateFileName')) {
-      $dstFileName = $md . '.' . $image->format();
-    } else
-    if (($onGetFileName = br($this->params, 'onGetFileName')) && gettype(br($this->params, 'onGetFileName')) == 'object') {
-      $dstFileName = $onGetFileName(br()->fs()->fileName($this->getName()), $md);
-    } else {
-      if (br($this->params, 'saveToCharsSubFolder')) {
-        $dstFileName = br()->fs()->getCharsPath($md, br()->fs()->fileName($this->getName()));
-      } else {
-        $dstFileName = br()->fs()->fileName(br()->fs()->normalizeFileName($this->getName()));
-      }
-    }
-
-    $dstFilePath = $path . $dstFileName;
-
-    br()->fs()->createDir(br()->fs()->filePath($dstFilePath));
-
-    if (!br($this->params, 'generateFileName') && br($this->params, 'checkExistance')) {
-      $idx = 1;
-      while(file_exists($dstFilePath)) {
-        $dstFileName = br()->fs()->fileName($this->getName(), $idx);
-        $dstFilePath = $path . $dstFileName;
-        $idx++;
-      }
-    }
-
-    if (file_exists($dstFilePath)) {
-      unlink($dstFilePath);
-    }
-    rename($srcFilePath, $dstFilePath);
-
-    return $dstFileName;
-
-  }
-
-  function getName() {
-
-    return $_GET['qqfile'];
-
-  }
-
-  function getSize() {
-
-    if (isset($_SERVER["CONTENT_LENGTH"])){
-      return (int)$_SERVER["CONTENT_LENGTH"];
-    } else {
-      throw new Exception('Getting content length is not supported.');
-    }
-
-  }
-
-}
-
-/**
- * Handle file uploads via regular form post (uses the $_FILES array)
- */
-class qqUploadedFileForm {
-
-  private $params;
-
-  function __construct($params = array()) {
-
-    $this->params = $params;
-
-  }
-
-  /**
-   * Save the file to the specified path
-   * @return boolean TRUE on success
-   */
-  function save($path) {
-
-    br()->importLib('Image');
-
-    $dstFileName = '';
-    $dstFilePath = '';
-
-    $image = new BrImage($_FILES['qqfile']['tmp_name']);
-    $md = md5_file($_FILES['qqfile']['tmp_name']);
-    if (br($this->params, 'generateFileName')) {
-      $dstFileName = $md . '.' . $image->format();
-    } else
-    if(($onGetFileName = br($this->params, 'onGetFileName')) && gettype(br($this->params, 'onGetFileName')) == 'object') {
-      $dstFileName = $onGetFileName(br()->fs()->fileName($this->getName()), $md);
-    } else {
-      if (br($this->params, 'saveToCharsSubFolder')) {
-        $dstFileName = br()->fs()->getCharsPath($md, br()->fs()->fileName($this->getName()));
-      } else {
-        $dstFileName = br()->fs()->fileName(br()->fs()->normalizeFileName($this->getName()));
-      }
-    }
-    $dstFilePath = $path . $dstFileName;
-
-    br()->fs()->createDir(br()->fs()->filePath($dstFilePath));
-
-    if (!br($this->params, 'generateFileName') && br($this->params, 'checkExistance')) {
-      $idx = 1;
-      while (file_exists($dstFilePath)) {
-        $dstFileName = br()->fs()->fileName($this->getName(), $idx);
-        $dstFilePath = $path . $dstFileName;
-        $idx++;
-      }
-    }
-
-    if (file_exists($dstFilePath)) {
-      unlink($dstFilePath);
-    }
-    if (move_uploaded_file($_FILES['qqfile']['tmp_name'], $dstFilePath)) {
-      return $dstFileName;
-    }
-
-    return $dstFileName;
-
-  }
-
-  function getName() {
-
-    return $_FILES['qqfile']['name'];
-
-  }
-
-  function getSize() {
-
-    return $_FILES['qqfile']['size'];
-
-  }
-
-}
-
-class BrImageUploadHandler extends BrGenericUploadHandler {
+class BrFileUploadHandler extends BrGenericUploadHandler {
 
   function __construct($params = array()) {
 
@@ -192,36 +16,26 @@ class BrImageUploadHandler extends BrGenericUploadHandler {
   }
 
   /**
-   * Returns array('success'=>true) or array('error'=>'error message')
+   * Save the file to the specified path
+   * @return boolean TRUE on success
    */
-  function handleUpload($uploadDirectory, $url){
+  function save($srcFile, $path) {
 
-    if (!is_writable($uploadDirectory)) {
-      br()->log("Server error. Upload directory " . $uploadDirectory . " isn't writable.");
-      return array('error' => "Server error. Upload directory isn't writable.");
+    if ($result = parent::save($srcFile, $path)) {
+      if (br()->request()->get('tw') && br()->request()->get('th')) {
+        $result['thumbnail'] = br()->images()->generateThumbnail($url . $fileName, br()->request()->get('tw'), br()->request()->get('th'));
+      } else {
+        $thumbnail = '';
+      }
     }
 
-    if (!$this->file){
-      return array('error' => 'No files were uploaded.');
-    }
+    return $result;
 
-    $size = $this->file->getSize();
+  }
 
-    if ($size == 0) {
-      return array('error' => 'File is empty');
-    }
+}
 
-    if ($size > $this->sizeLimit) {
-      return array('error' => 'File is too large');
-    }
 
-    $pathinfo = pathinfo($this->file->getName());
-    $ext = $pathinfo['extension'];
-
-    if($this->allowedExtensions && !in_array(strtolower($ext), $this->allowedExtensions)){
-      $these = implode(', ', $this->allowedExtensions);
-      return array('error' => 'File has an invalid extension, it should be one of '. $these . '.');
-    }
 
     try {
       if ($fileName = $this->file->save($uploadDirectory)) {
