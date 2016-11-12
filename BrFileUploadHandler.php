@@ -1,8 +1,6 @@
 <?php
 
 require_once(__DIR__ . '/BrGenericUploadHandler.php');
-require_once(__DIR__ . '/BrGenericFORMUploadHandler.php');
-require_once(__DIR__ . '/BrGenericXHRUploadHandler.php');
 
 class BrFileUploadHandler extends BrGenericUploadHandler {
 
@@ -10,21 +8,24 @@ class BrFileUploadHandler extends BrGenericUploadHandler {
    * Save the file to the specified path
    * @return boolean TRUE on success
    */
-  function save($srcFile, $path) {
+  function save($srcFilePath, $path) {
 
-    if (br($this->params, 'basePath')) {
-      $dstPath = rtrim($this->params['basePath'], '/') . '/' . rtrim($path, '/') . '/';
+    if (br($this->options, 'basePath')) {
+      $dstPath = rtrim($this->options['basePath'], '/') . '/' . ltrim(rtrim($path, '/'), '/') . '/';
     } else {
       $dstPath = rtrim(br()->atBasePath($path), '/') . '/';
     }
     $dstFileName = br()->fs()->normalizeFileName(br()->fs()->fileName($this->getFileName()));
-    $dstFilePath = $dstPath . md5_file($srcFile) . '/' . $dstFileName;
+    $md5 = md5_file($srcFilePath);
+    $dstFilePath = $dstPath . $md5 . '/' . $dstFileName;
+    $dstFileUrl  = br()->request()->baseUrl() . ltrim(rtrim($path, '/'), '/') . '/' . $md5 . '/' . $dstFileName;
+    $dstFileHref  = br()->request()->host() . $dstFileUrl;
     br()->fs()->createDir(br()->fs()->filePath($dstFilePath));
-    rename($tempFile, $dstFilePath);
+    rename($srcFilePath, $dstFilePath);
     return array( 'fileName' => $dstFileName
-                , 'url'      => $path . $dstFileName
-                , 'href'     => br()->request()->host() . $path . $dstFileName
-                , 'filePath' => $dstFilePath
+                , 'url'      => $dstFileUrl
+                , 'href'     => $dstFileHref
+                , 'internal' => array('filePath' => $dstFilePath)
                 );
 
   }

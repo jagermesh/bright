@@ -1,9 +1,6 @@
 <?php
 
-require_once(br()->atFrameWorkPath('3rdparty/fileuploader/BrImageUploadHandler.php'));
+br()->importLib('ImageUploadHandler');
 
-$handler = new BrImageUploadHandler(array( 'path'          => 'uploads/'
-                                         ));
+$handler = new BrImageUploadHandler();
 $handler->handle();
-
-

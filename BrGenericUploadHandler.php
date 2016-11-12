@@ -2,25 +2,13 @@
 
 class BrGenericUploadHandler {
 
-  private $params;
-  private $allowedExtensions;
-  private $sizeLimit;
+  protected $options;
+  protected $allowedExtensions;
+  protected $sizeLimit;
 
-  function __construct($params = array()) {
+  function __construct($options = array()) {
 
-    $this->params = $params;
-
-  }
-
-  private function checkServerSettings(){
-
-    $postSize = $this->toBytes(ini_get('post_max_size'));
-    $uploadSize = $this->toBytes(ini_get('upload_max_filesize'));
-
-    if ($postSize < $this->sizeLimit || $uploadSize < $this->sizeLimit){
-      $size = max(1, $this->sizeLimit / 1024 / 1024) . 'M';
-      //die("{'error':'increase post_max_size and upload_max_filesize to $size'}");
-    }
+    $this->options = $options;
 
   }
 
@@ -49,7 +37,7 @@ class BrGenericUploadHandler {
     if (isset($_FILES['qqfile'])) {
       return $_FILES['qqfile']['size'];
     } else {
-      throw new Excpetion('Can not detect uploaded file');
+      throw new Exception('Can not detect uploaded file');
     }
 
   }
@@ -62,7 +50,7 @@ class BrGenericUploadHandler {
     if (isset($_FILES['qqfile'])) {
       return $_FILES['qqfile']['name'];
     } else {
-      throw new Excpetion('Can not detect uploaded file');
+      throw new Exception('Can not detect uploaded file');
     }
 
   }
@@ -70,9 +58,6 @@ class BrGenericUploadHandler {
   function getUploadedFile() {
 
     if (isset($_GET['qqfile'])) {
-      return $_FILES['qqfile']['tmp_name'];
-    } else
-    if (isset($_FILES['qqfile'])) {
       $tempFile = br()->createTempFile('UPL');
       $input = fopen('php://input', 'r');
       $output = fopen($tempFile, 'w');
@@ -80,31 +65,32 @@ class BrGenericUploadHandler {
       $realSize = stream_copy_to_stream($input, $output);
       fclose($input);
       if ($realSize != $this->getFileSize()) {
-        throw new Excpetion('Can not detect uploaded file');
+        throw new Exception('Can not detect uploaded file');
       }
       return $tempFile;
+    } else
+    if (isset($_FILES['qqfile'])) {
+      return $_FILES['qqfile']['tmp_name'];
     } else {
-      throw new Excpetion('Can not detect uploaded file');
+      throw new Exception('Can not detect uploaded file');
     }
 
   }
 
-  function handler() {
+  function handle() {
 
     // list of valid extensions, ex. array("jpeg", "xml", "bmp")
-    $this->allowedExtensions = br($this->params, 'allowedExtensions', array());
+    $this->allowedExtensions = br($this->options, 'allowedExtensions', array());
     $this->allowedExtensions = array_map('strtolower', $this->allowedExtensions);
 
     // max file size in bytes
-    $sizeLimit = br($this->params, 'uploadLimit', 24 * 1024 * 1024);
-    $postSize = $this->toBytes(ini_get('post_max_size'));
+    $sizeLimit  = br($this->options, 'uploadLimit', 24 * 1024 * 1024);
+    $postSize   = $this->toBytes(ini_get('post_max_size'));
     $uploadSize = $this->toBytes(ini_get('upload_max_filesize'));
 
     $this->sizeLimit = min($sizeLimit, $postSize, $uploadSize);
 
-    $this->checkServerSettings();
-
-    if (br($this->params, 'checkLogin') || br($this->params, 'userBasedPath')) {
+    if (br($this->options, 'checkLogin') || br($this->options, 'userBasedPath')) {
       if ($login = br()->auth()->getLogin()) {
 
       } else {
@@ -112,14 +98,13 @@ class BrGenericUploadHandler {
       }
     }
 
-    if (br($this->params, 'path')) {
-      $path = br($this->params, 'path');
+    if (br($this->options, 'path')) {
+      $path = br($this->options, 'path');
     } else {
       $path = 'uploads/';
     }
 
-    if (br($this->params, 'userBasedPath')) {
-      $url  .= br()->db()->rowidValue($login) . '/';
+    if (br($this->options, 'userBasedPath')) {
       $path .= br()->db()->rowidValue($login) . '/';
     }
 
@@ -134,25 +119,31 @@ class BrGenericUploadHandler {
       return array('error' => 'File has an invalid extension, it should be one of '. $these . '.');
     }
 
-    if ($saveResult = $this->save($this->getUploadedFile(), $path)) {
-      $result = array( 'success'          => true
-                     , 'originalFileName' => $this->getFileName()
-                     , 'fileSize'         => $this->getFileSize()
-                     , 'fileSizeStr'      => br()->formatBytes($this->getFileSize())
-                     );
-      foreach($saveResult as $name => $value) {
-        $result[$name] = $value;
+    try {
+      if ($saveResult = $this->save($this->getUploadedFile(), $path)) {
+        $result = array( 'success'          => true
+                       , 'originalFileName' => $this->getFileName()
+                       , 'fileSize'         => $this->getFileSize()
+                       , 'fileSizeStr'      => br()->formatBytes($this->getFileSize())
+                       );
+        foreach($saveResult as $name => $value) {
+          $result[$name] = $value;
+        }
+      } else {
+        $result = array( 'success' => false
+                       , 'error'   => 'Could not save uploaded file. The upload was cancelled, or server error encountered'
+                       );
       }
-    } else {
+
+      unset($result['internal']);
+    } catch (Exception $e) {
       $result = array( 'success' => false
-                     , 'error'   => 'Could not save uploaded file. The upload was cancelled, or server error encountered'
+                     , 'error'   => $e->getMessage()
                      );
     }
 
-    // to pass data through iframe you will need to encode all html tags
-    echo htmlspecialchars(json_encode($result), ENT_NOQUOTES);
+    br()->response()->sendJSON($result);
 
   }
 
 }
-

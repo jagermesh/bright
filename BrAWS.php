@@ -3,17 +3,19 @@
 use Aws\Sqs\SqsClient;
 use Aws\S3\S3Client;
 
-class BrAWS {
+require_once(__DIR__.'/BrObject.php');
+require_once(__DIR__.'/BrException.php');
 
-  static private $S3Client;
-  static private $SqsClient;
+class BrAWS extends BrObject {
 
-  static private $rerunIterations = 50;
+  private $S3Client;
+  private $rerunIterations = 50;
+  private $debugMode = false;
 
-  static function getS3Client() {
+  private function getS3Client() {
 
-    if (!self::$S3Client) {
-      self::$S3Client = S3Client::factory(array( 'credentials' => array( 'key'     => br()->config()->get('AWS/S3AccessKey')
+    if (!$this->S3Client) {
+      $this->S3Client = S3Client::factory(array( 'credentials' => array( 'key'     => br()->config()->get('AWS/S3AccessKey')
                                                                        , 'secret'  => br()->config()->get('AWS/S3AccessSecret')
                                                                        )
                                                , 'region'      => br()->config()->get('AWS/S3Region')
@@ -21,87 +23,50 @@ class BrAWS {
                                                ));
     }
 
-    return self::$S3Client;
+    return $this->S3Client;
 
   }
 
-  static function getSqsClient() {
+  private function checkObjectUrl($url) {
 
-    if (!self::$SqsClient) {
-      self::$SqsClient = SqsClient::factory(array( 'credentials' => array( 'key'     => br()->config()->get('AWS/S3AccessKey')
-                                                                       , 'secret'  => br()->config()->get('AWS/S3AccessSecret')
-                                                                       )
-                                                 , 'region'      => br()->config()->get('AWS/S3Region')
-                                                 , 'version'     => 'latest'
-                                                 ));
+    $url = preg_replace('~^s3://~', '', $url);
+
+    if (preg_match('~([A-Z0-9.-]+)[/](.+)~i', $url, $matches)) {
+      return array( 'bucketName' => $matches[1]
+                  , 'objectPath' => $matches[2]
+                  );
+    } else {
+      throw new BrAppException('Incorrect object path: ' . $url);
     }
 
-    return self::$SqsClient;
+  }
+
+  private function assembleUrl($struct) {
+
+    return 'https://s3.amazonaws.com/' . $struct['bucketName'] . '/' . $struct['objectPath'];
 
   }
 
-  static function getContentType($fileName) {
+  public function uploadFile($source, $destination, $additionalParams = array(), $iteration = 0, $rerunError = null) {
 
-    $result = null;
-
-    $fileExt = strtolower(br()->fs()->fileExt($fileName));
-
-    switch ($fileExt) {
-      case 'txt':
-        $result = 'text/plain';
-        break;
-      case 'html':
-        $result = 'text/html';
-        break;
-      case 'png':
-        $result = 'image/png';
-        break;
-      case 'jpeg':
-      case 'jpg':
-        $result = 'image/jpeg';
-        break;
-      case 'gif':
-        $result = 'image/gif';
-        break;
-      case 'xls':
-        $result = 'application/vnd.ms-excel';
-        break;
-      case 'xlsx':
-        $result = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-        break;
-      case 'doc':
-        $result = 'application/msword';
-        break;
-      case 'docx':
-        $result = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-        break;
-      case 'pdf':
-        $result = 'application/pdf';
-        break;
-    }
-
-    return $result;
-
-  }
-
-  static function uploadFile($source, $destination, $additionalParams = array(), $iteration = 0, $rerunError = null) {
-
-    if ($iteration > self::$rerunIterations) {
+    if ($iteration > $this->rerunIterations) {
       throw new BrAppException($rerunError);
     }
 
-    try {
-      $client = self::getS3Client();
+    $dstStruct = $this->checkObjectUrl($destination);
 
-      $params = array( 'Bucket'     => br()->config()->get('AWS/S3BucketName')
-                     , 'Key'        => $destination
+    try {
+      $client = $this->getS3Client();
+
+      $params = array( 'Bucket'     => $dstStruct['bucketName']
+                     , 'Key'        => $dstStruct['objectPath']
                      , 'SourceFile' => $source
                      );
 
-      if ($contentType = self::getContentType($destination)) {
+      if ($contentType = br()->getContentTypeByExtension($destination)) {
         $params['ContentType'] = $contentType;
       } else
-      if ($contentType = self::getContentType($source)) {
+      if ($contentType = br()->getContentTypeByExtension($source)) {
         $params['ContentType'] = $contentType;
       }
 
@@ -111,107 +76,165 @@ class BrAWS {
 
       $result = $client->putObject($params);
 
-      return self::baseUrl() . $destination;
+      return $this->assembleUrl($dstStruct);
+    } catch (Aws\S3\Exception\PermanentRedirectException $e) {
+      throw new BrAppException('Incorrect bucket: ' . $dstStruct['bucketName']);
+    } catch (Aws\S3\Exception\S3Exception $e) {
+      if ($e->getAwsErrorCode() == 'InvalidAccessKeyId') {
+        throw new BrAppException('Invalid access key Id');
+      } else {
+        usleep(500000);
+        return $this->uploadFile($source, $destination, $additionalParams, $iteration + 1, $e->getMessage());
+      }
     } catch (Exception $e) {
       usleep(500000);
-      return self::uploadFile($source, $destination, $additionalParams, $iteration + 1, $e->getMessage());
+      return $this->uploadFile($source, $destination, $additionalParams, $iteration + 1, $e->getMessage());
     }
 
   }
 
-  static function sendMessage($queueName, $message, $iteration = 0, $rerunError = null) {
+  public function uploadData($content, $destination, $additionalParams = array()) {
 
-    if ($iteration > self::$rerunIterations) {
+    $tempFile = br()->createTempFile('AWSUPL');
+
+    br()->fs()->saveToFile($tempFile, $content);
+
+    return $this->uploadFile($tempFile, $destination, $additionalParams);
+
+  }
+
+  public function copyFile($source, $destination, $additionalParams = array(), $iteration = 0, $rerunError = null) {
+
+    if ($iteration > $this->rerunIterations) {
       throw new BrAppException($rerunError);
     }
 
+    $srcStruct = $this->checkObjectUrl($source);
+    $dstStruct = $this->checkObjectUrl($destination);
+
     try {
-      $client = self::getSqsClient();
+      $client = $this->getS3Client();
 
-      $queue = $client->createQueue(array('QueueName' => $queueName));
+      $params = array( 'Bucket'     => $dstStruct['bucketName']
+                     , 'Key'        => $dstStruct['objectPath']
+                     , 'CopySource' => $srcStruct['bucketName'] . '/' . $srcStruct['objectPath']
+                     );
 
-      $queueUrl = $queue->get('QueueUrl');
+      if ($contentType = br()->getContentTypeByExtension($destination)) {
+        $params['ContentType'] = $contentType;
+      } else
+      if ($contentType = br()->getContentTypeByExtension($source)) {
+        $params['ContentType'] = $contentType;
+      }
 
-      $client->sendMessage( array( 'QueueUrl'    => $queueUrl
-                                 , 'MessageBody' => json_encode($message)
-                                 ));
+      if ($metadata = br($additionalParams, 'Metadata')) {
+        $params['Metadata'] = $metadata;
+      }
+
+      $result = $client->copyObject($params);
+
+      return $this->assembleUrl($dstStruct);
+    } catch (Aws\S3\Exception\PermanentRedirectException $e) {
+      throw new BrAppException('Incorrect bucket: ' . $dstStruct['bucketName']);
+    } catch (Aws\S3\Exception\S3Exception $e) {
+      if ($e->getAwsErrorCode() == 'InvalidAccessKeyId') {
+        throw new BrAppException('Invalid access key Id');
+      } else
+      if ($e->getAwsErrorCode() == 'AccessDenied') {
+        throw new BrAppException('Incorrect bucket: ' . $srcStruct['bucketName']);
+      } else
+      if ($e->getAwsErrorCode() == 'NoSuchKey') {
+        throw new BrAppException('Source file not found: ' . $source);
+      } else {
+        usleep(500000);
+        return $this->copyFile($source, $destination, $additionalParams, $iteration + 1, $e->getMessage());
+      }
     } catch (Exception $e) {
       usleep(500000);
-      return self::sendMessage($queueName, $message, $iteration + 1, $e->getMessage());
+      return $this->copyFile($source, $destination, $additionalParams, $iteration + 1, $e->getMessage());
     }
 
   }
 
-  static function receiveMessage($queueName, $params = array(), $iteration = 0, $rerunError = null) {
+  public function deleteFile($source, $additionalParams = array(), $iteration = 0, $rerunError = null) {
 
-    if ($iteration > self::$rerunIterations) {
+    if ($iteration > $this->rerunIterations) {
       throw new BrAppException($rerunError);
     }
 
-    try {
-      $client = self::getSqsClient();
-
-      $queue = $client->createQueue(array('QueueName' => $queueName));
-
-      $queueUrl = $queue->get('QueueUrl');
-
-      $params['QueueUrl'] = $queueUrl;
-
-      $result = $client->receiveMessage($params);
-
-      return $result['Messages'];
-    } catch (Exception $e) {
-      usleep(500000);
-      return self::receiveMessage($queueName, $params, $iteration + 1, $e->getMessage());
-    }
-
-  }
-
-  static function deleteMessage($queueName, $receiptHandle, $iteration = 0, $rerunError = null) {
-
-    if ($iteration > self::$rerunIterations) {
-      throw new BrAppException($rerunError);
-    }
+    $srcStruct = $this->checkObjectUrl($source);
 
     try {
-      $client = self::getSqsClient();
+      $client = $this->getS3Client();
 
-      $queue = $client->createQueue(array('QueueName' => $queueName));
-      $queueUrl = $queue->get('QueueUrl');
+      $params = array( 'Bucket'     => $srcStruct['bucketName']
+                     , 'Key'        => $srcStruct['objectPath']
+                     );
 
-      $result = $client->deleteMessage(array('QueueUrl' => $queueUrl, 'ReceiptHandle' => $receiptHandle));
+      $result = $client->deleteObject($params);
 
-      return true;
+      return $this->assembleUrl($srcStruct);
+    } catch (Aws\S3\Exception\S3Exception $e) {
+      if ($e->getAwsErrorCode() == 'InvalidAccessKeyId') {
+        throw new BrAppException('Invalid access key Id');
+      } else
+      if ($e->getAwsErrorCode() == 'NoSuchKey') {
+        throw new BrAppException('Source file not found: ' . $source);
+      } else {
+        usleep(500000);
+        return $this->deleteFile($source, $additionalParams, $iteration + 1, $e->getMessage());
+      }
     } catch (Exception $e) {
       usleep(500000);
-      return self::deleteMessage($queueName, $receiptHandle, $iteration + 1, $e->getMessage());
+      return $this->deleteFile($source, $additionalParams, $iteration + 1, $e->getMessage());
     }
 
   }
 
-  static function baseUrl() {
+  public function isFileExists($source) {
 
-    return 'https://s3.amazonaws.com/' . br()->config()->get('AWS/S3BucketName') . '/';
+    $srcStruct = $this->checkObjectUrl($source);
+
+    try {
+      $client = $this->getS3Client();
+
+      $params = array( 'Bucket'     => $srcStruct['bucketName']
+                     , 'Key'        => $srcStruct['objectPath']
+                     );
+
+      $result = $client->headObject($params);
+
+      return $this->assembleUrl($srcStruct);
+    } catch (Exception $e) {
+      return false;
+    }
 
   }
 
-  public static function testCases() {
+  public function moveFile($source, $destination, $additionalParams = array()) {
 
-    self::$rerunIterations = 3;
+    $result = $this->copyFile($source, $destination, $additionalParams);
+    $this->deleteFile($source);
 
-    br()->log('uploadFile: '  . self::uploadFile(__FILE__, 'app-tests/' . br()->fs()->fileName(__FILE__)));
-    // br()->log('guarantedUploadFile: '  . self::guarantedUploadFile(__FILE__, 'app-tests/' . br()->fs()->fileName(__FILE__)));
-    // br()->log('uploadData: '  . self::uploadData(file_get_contents(__FILE__), 'app-tests/' . br()->fs()->fileName(__FILE__) . '.data'));
-    // br()->log('isExists: '  . self::isExists('app-tests/' . br()->fs()->fileName(__FILE__)));
-    // br()->log('isExists: '  . self::isExists('app-tests/' . br()->fs()->fileName(__FILE__) . '.data'));
-    // br()->log('copyFile: '  . self::copyFile('app-tests/' . br()->fs()->fileName(__FILE__), 'app-tests/' . br()->fs()->fileName(__FILE__) . '.copy'));
-    // br()->log('isExists: '  . self::isExists('app-tests/' . br()->fs()->fileName(__FILE__) . '.copy'));
-    // br()->log('moveFile: '  . self::moveFile('app-tests/' . br()->fs()->fileName(__FILE__), 'app-tests/' . br()->fs()->fileName(__FILE__) . '.moved'));
-    // br()->log('isExists: '  . self::isExists('app-tests/' . br()->fs()->fileName(__FILE__)));
-    // br()->log('isExists: '  . self::isExists('app-tests/' . br()->fs()->fileName(__FILE__) . '.moved'));
+    return $result;
+  }
+
+  public function testCases() {
+
+    $this->rerunIterations = 3;
+
+    br()->log('uploadFile: '   . $this->uploadFile(__FILE__, 'secure.edoctrina.org/app-tests/' . br()->fs()->fileName(__FILE__)));
+    br()->log('uploadData: '   . $this->uploadData(file_get_contents(__FILE__), 'secure.edoctrina.org/app-tests/' . br()->fs()->fileName(__FILE__) . '.data'));
+    br()->log('isFileExists: ' . $this->isFileExists('secure.edoctrina.org/app-tests/' . br()->fs()->fileName(__FILE__)));
+    br()->log('isFileExists: ' . $this->isFileExists('secure.edoctrina.org/app-tests/' . br()->fs()->fileName(__FILE__) . '.data'));
+    br()->log('copyFile: '     . $this->copyFile('secure.edoctrina.org/app-tests/' . br()->fs()->fileName(__FILE__), 'secure.edoctrina.org/app-tests/' . br()->fs()->fileName(__FILE__) . '.copy'));
+    br()->log('isFileExists: ' . $this->isFileExists('secure.edoctrina.org/app-tests/' . br()->fs()->fileName(__FILE__) . '.copy'));
+    br()->log('moveFile: '     . $this->moveFile('secure.edoctrina.org/app-tests/' . br()->fs()->fileName(__FILE__), 'secure.edoctrina.org/app-tests/' . br()->fs()->fileName(__FILE__) . '.moved'));
+    br()->log('isFileExists: ' . $this->isFileExists('secure.edoctrina.org/app-tests/' . br()->fs()->fileName(__FILE__)));
+    br()->log('isFileExists: ' . $this->isFileExists('secure.edoctrina.org/app-tests/' . br()->fs()->fileName(__FILE__) . '.moved'));
 
     // br()->config()->set('AWS/S3AccessKey', '1');
-    // br()->log('uploadFile: '  . self::uploadFile(__FILE__, 'app-tests/' . br()->fs()->fileName(__FILE__)));
+    // br()->log('uploadFile: '  . $this->uploadFile(__FILE__, 'secure.edoctrina.org/app-tests/' . br()->fs()->fileName(__FILE__)));
 
   }
 

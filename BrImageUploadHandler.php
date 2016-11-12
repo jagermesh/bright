@@ -1,17 +1,15 @@
 <?php
 
 
-require_once(__DIR__ . '/BrGenericUploadHandler.php');
-require_once(__DIR__ . '/BrGenericFORMUploadHandler.php');
-require_once(__DIR__ . '/BrGenericXHRUploadHandler.php');
+require_once(__DIR__ . '/BrFileUploadHandler.php');
 
-class BrFileUploadHandler extends BrGenericUploadHandler {
+class BrImageUploadHandler extends BrFileUploadHandler {
 
-  function __construct($params = array()) {
+  function __construct($options = array()) {
 
-    $params['allowedExtensions'] = array('jpeg', 'jpg', 'gif', 'png');
+    $options['allowedExtensions'] = array('jpeg', 'jpg', 'gif', 'png');
 
-    parent::__construct($params);
+    parent::__construct($options);
 
   }
 
@@ -19,46 +17,15 @@ class BrFileUploadHandler extends BrGenericUploadHandler {
    * Save the file to the specified path
    * @return boolean TRUE on success
    */
-  function save($srcFile, $path) {
+  function save($srcFilePath, $path) {
 
-    if ($result = parent::save($srcFile, $path)) {
+    if ($result = parent::save($srcFilePath, $path)) {
       if (br()->request()->get('tw') && br()->request()->get('th')) {
-        $result['thumbnail'] = br()->images()->generateThumbnail($url . $fileName, br()->request()->get('tw'), br()->request()->get('th'));
-      } else {
-        $thumbnail = '';
+        $result['thumbnail'] = br()->images()->generateThumbnail($result['internal']['filePath'], br()->request()->get('tw'), br()->request()->get('th'));
       }
     }
 
     return $result;
-
-  }
-
-}
-
-
-
-    try {
-      if ($fileName = $this->file->save($uploadDirectory)) {
-        if (br()->request()->get('tw') && br()->request()->get('th')) {
-          $thumbnail = br()->images()->generateThumbnail($url . $fileName, br()->request()->get('tw'), br()->request()->get('th'));
-        } else {
-          $thumbnail = '';
-        }
-        return array( 'success'          => true
-                    , 'url'              => $url . $fileName
-                    , 'href'             => br()->request()->host() . $url . $fileName
-                    , 'originalFileName' => $this->file->getName()
-                    , 'fileName'         => $fileName
-                    , 'fileSize'         => filesize($uploadDirectory . $fileName)
-                    , 'fileSizeStr'      => br()->formatBytes(filesize($uploadDirectory . $fileName))
-                    , 'thumbnail'        => $thumbnail
-                    );
-      } else {
-        return array('error'=> 'Could not save uploaded file. The upload was cancelled, or server error encountered');
-      }
-    } catch (Exception $e) {
-      return array('error' => $e->getMessage());
-    }
 
   }
 

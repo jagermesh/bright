@@ -1,11 +1,6 @@
 <?php
 
-require_once(br()->atFrameWorkPath('3rdparty/fileuploader/BrVideoUploadHandler.php'));
+br()->importLib('VideoUploadHandler');
 
-$handler = new BrVideoUploadHandler(array( 'path'          => 'uploads/'
-                                         , 'uploadLimit'	   => 104857600
-                                         ));
-
+$handler = new BrVideoUploadHandler();
 $handler->handle();
-
-

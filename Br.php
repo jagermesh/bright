@@ -935,6 +935,59 @@ class Br extends BrSingleton {
 
   }
 
+  function getContentTypeByExtension($fileName) {
+
+    $result = null;
+
+    $fileExt = strtolower(br()->fs()->fileExt($fileName));
+
+    switch ($fileExt) {
+      case 'txt':
+        $result = 'text/plain';
+        break;
+      case 'html':
+        $result = 'text/html';
+        break;
+      case 'png':
+        $result = 'image/png';
+        break;
+      case 'jpeg':
+      case 'jpg':
+        $result = 'image/jpeg';
+        break;
+      case 'gif':
+        $result = 'image/gif';
+        break;
+      case 'xls':
+        $result = 'application/vnd.ms-excel';
+        break;
+      case 'xlsx':
+        $result = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+        break;
+      case 'doc':
+        $result = 'application/msword';
+        break;
+      case 'docx':
+        $result = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        break;
+      case 'pdf':
+        $result = 'application/pdf';
+        break;
+      case 'mp4':
+        $result = 'video/mp4';
+        break;
+      case 'mp3':
+        $result = 'audio/mpeg';
+        break;
+      default:
+        $result = 'application/octet-stream';
+        break;
+    }
+
+    return $result;
+
+  }
+
   // utils
 
   function formatBytes($size) {
