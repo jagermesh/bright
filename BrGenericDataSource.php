@@ -133,6 +133,16 @@ class BrGenericDataSource extends BrObject {
 
   }
 
+  function existsOneCached($filter = array()) {
+
+    if ($row = $this->selectOneCached($filter, array(), array(), array('noCalcFields' => true))) {
+      return true;
+    } else {
+      return false;
+    }
+
+  }
+
   function selectOneCached($filter = array(), $fields = array(), $order = array(), $options = array()) {
 
     if (!is_array($filter)) {
@@ -163,7 +173,7 @@ class BrGenericDataSource extends BrObject {
     if (br()->cache()->exists($cacheTag)) {
       $result = br()->cache()->get($cacheTag);
     } else {
-      $result = $this->select($filter = array(), $fields = array(), $order = array(), $options = array());
+      $result = $this->select($filter, $fields, $order, $options);
       br()->cache()->set($cacheTag, $result);
     }
 
@@ -180,7 +190,7 @@ class BrGenericDataSource extends BrObject {
     if (br()->cache()->exists($cacheTag)) {
       $result = br()->cache()->get($cacheTag);
     } else {
-      $result = $this->select($filter = array(), $fields = array(), $order = array(), $options = array());
+      $result = $this->select($filter, $fields, $order, $options);
       br()->cache()->set($cacheTag, $result);
     }
 
