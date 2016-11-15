@@ -478,6 +478,8 @@ class BrDataSource extends BrGenericDataSource {
     $filter = array();
     $filter[br()->db()->rowidField()] = br()->db()->rowid($rowid);
 
+    $result = $filter;
+
     if ($crow = $table->findOne($filter)) {
       try {
         try {
@@ -517,18 +519,19 @@ class BrDataSource extends BrGenericDataSource {
       }
       return $result;
     } else {
-      $e = new BrDataSourceNotFound();
-      $operation = 'remove';
-      $error = 'Record not found';
-      $result = $this->trigger('error', $error, $operation, $e);
-      if (is_null($result)) {
-        throw $e;
-      } else
-      if (is_bool($result)) {
-        return array();
-      } else {
-        return $result;
-      }
+      // $e = new BrDataSourceNotFound();
+      // $operation = 'remove';
+      // $error = 'Record not found';
+      // $result = $this->trigger('error', $error, $operation, $e);
+      // if (is_null($result)) {
+      //   throw $e;
+      // } else
+      // if (is_bool($result)) {
+      //   return array();
+      // } else {
+      // record not found so looks like we removed it :)
+      return $result;
+      // }
     }
 
   }
