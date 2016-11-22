@@ -463,7 +463,7 @@
       case 1:
         return result[0];
       default:
-        return result;
+        return result[0];
     }
   };
 
