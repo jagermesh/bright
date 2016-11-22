@@ -573,6 +573,9 @@ class BrRESTBinder extends BrObject {
         $data = $data['__values'];
       }
       foreach($data as $name => $value) {
+        if ($name == '__dataSets') {
+          $dataSourceOptions['dataSets'] = $value;
+        } else
         if ($name != '__loginToken') {
           if (!is_array($value)) {
             $value = trim($value);
