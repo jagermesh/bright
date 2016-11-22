@@ -2720,23 +2720,24 @@
   window.br = window.br || {};
 
   window.br.dataCombo = function (selector, dataSource, options) {
-    var result = [];
-    $(selector).each(function() {
-      var obj = $(this).data('BrDataCombo');
-      if (obj) {
-        result.push(obj);
-      } else {
-        result.push(new BrDataCombo($(this), dataSource, options));
-      }
-    });
-    switch(result.length) {
-      case 0:
-        return new BrDataCombo(selector, dataSource, options);
-      case 1:
-        return result[0];
-      default:
-        return result[0];
-    }
+    return new BrDataCombo(selector, dataSource, options);
+    // var result = [];
+    // $(selector).each(function() {
+    //   var obj = $(this).data('BrDataCombo');
+    //   if (obj) {
+    //     result.push(obj);
+    //   } else {
+    //     result.push(new BrDataCombo($(this), dataSource, options));
+    //   }
+    // });
+    // switch(result.length) {
+    //   case 0:
+    //     return new BrDataCombo(selector, dataSource, options);
+    //   case 1:
+    //     return result[0];
+    //   default:
+    //     return result[0];
+    // }
   };
 
 })(jQuery, window);
