@@ -12,6 +12,8 @@
   function BrDataCombo(selector, dataSource, options) {
 
     var _this = this;
+    var select2Binded = false;
+    var currentData = [];
 
     this.selector = $(selector);
 
@@ -95,8 +97,6 @@
       return result;
     }
 
-    var select2Binded = false;
-
     function switchToSelect2() {
       if (_this.isValid() && window.Select2 && !_this.options.noDecoration && !_this.selector.attr('size')) {
         if (_this.options.lookupMode && select2Binded) {
@@ -137,8 +137,6 @@
         }
       }
     }
-
-    var currentData = [];
 
     this.selected = function(fieldName) {
       if (br.isArray(currentData)) {
