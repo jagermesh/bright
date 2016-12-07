@@ -52,13 +52,13 @@ class BrFileLogAdapter extends BrGenericFileLogAdapter {
     $filePath = $tmp;
 
     if (!$fileName) {
-      $fileName = $date.'-';
+      $fileName = $date . '_' . $hour;
       if (br()->isConsoleMode()) {
 
       } else {
-        $fileName .= br()->request()->clientIP().'-';
+        $fileName .= '_' . br()->getProcessID() . '_' . br()->request()->clientIP();
       }
-      $fileName .= $hour.'.log';
+      $fileName .= '.log';
     }
 
     parent::__construct($filePath, $fileName);
