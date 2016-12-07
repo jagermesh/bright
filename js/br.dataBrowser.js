@@ -37,7 +37,11 @@
     this.scrollContainer = function() {
       if (_this.options.selectors.container !== '') {
         if (_this.options.selectors.scrollContainer !== '') {
-          return _this.options.selectors.container + ' ' + _this.options.selectors.scrollContainer;
+          if (this.options.selectors.scrollContainer.indexOf('#') === 0) {
+             return _this.options.selectors.scrollContainer;
+          } else {
+            return _this.options.selectors.container + ' ' + _this.options.selectors.scrollContainer;
+          }
         } else {
           return _this.options.selectors.container;
         }
