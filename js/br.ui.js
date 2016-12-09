@@ -78,6 +78,7 @@
     }
     options = options || {};
     options.cancelTitle = options.cancelTitle || br.trn('Cancel');
+    options.focusedButton = options.focusedButton || 'confirm';
     var i;
 
     var s = '<div class="modal modal-autosize';
@@ -126,7 +127,7 @@
         s = s + '<a href="javascript:;" class="btn btn-sm btn-default action-confirm-close" rel="' + i + '">&nbsp;' + buttons[i] + '&nbsp;</a>';
       }
     }
-    s = s + '<a href="javascript:;" class="btn btn-sm btn-default action-confirm-cancel">&nbsp;' + options.cancelTitle + '&nbsp;</a>';
+    s = s + '<a href="javascript:;" class="btn btn-sm btn-default action-confirm-cancel" rel="confirm">&nbsp;' + options.cancelTitle + '&nbsp;</a>';
     s = s + '</div></div></div></div>';
     var dialog = $(s);
     var remove = true;
@@ -168,6 +169,14 @@
     $(dialog).on('show.bs.modal', onShow);
     $(dialog).on('hide.bs.modal', onHide);
     $(dialog).modal('show');
+
+    var $focusedButton = $('[rel="' + options.focusedButton + '"');
+    if ($focusedButton.length) {
+      $focusedButton.focus();
+    } else {
+      document.activeElement.blur();
+    }
+
     br.enchanceBootstrap(dialog);
     br.resizeModalPopup(dialog);
 
