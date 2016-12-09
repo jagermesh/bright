@@ -78,6 +78,8 @@
     }
     options = options || {};
     options.cancelTitle = options.cancelTitle || br.trn('Cancel');
+    options.onConfirm = options.onConfirm || callback;
+
     var i;
 
     var s = '<div class="modal modal-autosize';
@@ -109,7 +111,7 @@
 
     s = s + '<div class="modal-dialog">' +
             '<div class="modal-content">' +
-            '<div class="modal-header"><h3 class="modal-title">' + title + '</h3></div>' +
+            '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>' +
             '<div class="modal-body" style="overflow-y:auto;">' + message + checkBoxes + '</div>' +
             '<div class="modal-footer">';
     if (options.showDontAskMeAgain) {
@@ -126,10 +128,26 @@
         s = s + '<a href="javascript:;" class="btn btn-sm btn-default action-confirm-close" rel="' + i + '">&nbsp;' + buttons[i] + '&nbsp;</a>';
       }
     }
-    s = s + '<a href="javascript:;" class="btn btn-sm btn-default action-confirm-cancel">&nbsp;' + options.cancelTitle + '&nbsp;</a>';
+    s = s + '<a href="javascript:;" class="btn btn-sm btn-default action-confirm-cancel" rel="cancel">&nbsp;' + options.cancelTitle + '&nbsp;</a>';
     s = s + '</div></div></div></div>';
     var dialog = $(s);
+
+    var oldActiveElement = document.activeElement;
+    if (oldActiveElement) {
+      oldActiveElement.blur();
+    }
+
     var remove = true;
+
+    var onShown = function(e) {
+      if (options.defaultButton) {
+        var btn = $(this).find('.modal-footer a.btn[rel=' + options.defaultButton + ']');
+        if (btn.length > 0) {
+          btn[0].focus();
+        }
+      }
+    };
+
     var onShow = function(e) {
       if (options.onShow) {
         options.onShow.call(dialog);
@@ -143,8 +161,13 @@
         });
         remove = false;
         dialog.modal('hide');
-        callback(button, dontAsk, checks);
+        if (options.onConfirm) {
+          options.onConfirm.call(this, button, dontAsk, checks);
+        }
         dialog.remove();
+        if (oldActiveElement) {
+          oldActiveElement.focus();
+        }
       });
       $(this).find('.action-confirm-cancel').click(function() {
         var button = 'cancel';
@@ -155,19 +178,35 @@
           options.onCancel(button, dontAsk);
         }
         dialog.remove();
+        if (oldActiveElement) {
+          oldActiveElement.focus();
+        }
       });
     };
+
     var onHide = function(e) {
       if (options.onHide) {
         options.onHide.call(this);
       }
       if (remove) {
+        if (options.onCancel) {
+          var button = 'cancel';
+          var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');
+          options.onCancel(button, dontAsk);
+        }
         dialog.remove();
+        if (oldActiveElement) {
+          oldActiveElement.focus();
+        }
       }
     };
+
     $(dialog).on('show.bs.modal', onShow);
     $(dialog).on('hide.bs.modal', onHide);
+    $(dialog).on('shown.bs.modal', onShown);
+
     $(dialog).modal('show');
+
     br.enchanceBootstrap(dialog);
     br.resizeModalPopup(dialog);
 
@@ -188,16 +227,30 @@
       s = s + '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>';
     }
     s = s + '<div class="modal-body" style="overflow-y:auto;">' + message + '</div>' +
-            '<div class="modal-footer" style="background-color:red;"><a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn('Dismiss') + '&nbsp;</a></div></div></div></div>';
+            '<div class="modal-footer" style="background-color:red;">';
+    s = s + '<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn('Dismiss') + '&nbsp;</a><';
+    s = s + '/div></div></div></div>';
     var dialog = $(s);
+
+    var oldActiveElement = document.activeElement;
+    if (oldActiveElement) {
+      oldActiveElement.blur();
+    }
+
     var onHide = function(e) {
       if (callback) {
         callback.call(this);
       }
       dialog.remove();
+      if (oldActiveElement) {
+        oldActiveElement.focus();
+      }
     };
+
     $(dialog).on('hide.bs.modal', onHide);
+
     $(dialog).modal('show');
+
     br.enchanceBootstrap(dialog);
     br.resizeModalPopup(dialog);
 
@@ -236,16 +289,29 @@
               '</label>';
     }
     s = s +'<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn(buttonTitle) + '&nbsp;</a></div></div></div></div>';
+
     var dialog = $(s);
+
+    var oldActiveElement = document.activeElement;
+    if (oldActiveElement) {
+      oldActiveElement.blur();
+    }
+
     var onHide = function(e) {
       var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');
       if (callback) {
         callback.call(this, dontAsk);
       }
       dialog.remove();
+      if (oldActiveElement) {
+        oldActiveElement.focus();
+      }
     };
+
     $(dialog).on('hide.bs.modal', onHide);
+
     $(dialog).modal('show');
+
     br.enchanceBootstrap(dialog);
     br.resizeModalPopup(dialog);
 
@@ -264,6 +330,10 @@
     } else {
       options.valueRequired = true;
       inputs[fields] = '';
+    }
+
+    if (options.onhide) {
+      options.onHide = options.onhide;
     }
 
     var s = '<div class="modal modal-autosize" id="br_modalPrompt"';
@@ -290,63 +360,82 @@
     s = s + '<a href="javascript:;" class="btn btn-sm btn-primary action-confirm-close" rel="confirm" >Ok</a>';
     s = s + '<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn('Cancel') + '&nbsp;</a>';
     s = s + '</div></div></div></div>';
+
     var dialog = $(s);
+
+    var oldActiveElement = document.activeElement;
+    if (oldActiveElement) {
+      oldActiveElement.blur();
+    }
+
     var remove = true;
-    $(dialog)
-      .on('shown.bs.modal', function(e) {
-        $(this).find('input[type=text]')[0].focus();
-      })
-      .on('show.bs.modal', function(e) {
-        $(this).find('.action-confirm-close').click(function() {
-          var results = [];
-          var ok = true, notOkField;
-          var inputs = [];
-          $(this).closest('div.modal').find('input[type=text]').each(function() {
-            if ($(this).hasClass('required') && br.isEmpty($(this).val())) {
+
+    var onShown = function(e) {
+      $(this).find('input[type=text]')[0].focus();
+      br.log($(this).find('input[type=text]')[0]);
+    };
+
+    var onShow = function(e) {
+      $(this).find('.action-confirm-close').click(function() {
+        var results = [];
+        var ok = true, notOkField;
+        var inputs = [];
+        $(this).closest('div.modal').find('input[type=text]').each(function() {
+          if ($(this).hasClass('required') && br.isEmpty($(this).val())) {
+            ok = false;
+            notOkField = $(this);
+          }
+          results.push($(this).val().trim());
+          inputs.push($(this));
+        });
+        if (ok) {
+          if (options.onValidate) {
+            try {
+              options.onValidate.call(this, results);
+            } catch (e) {
               ok = false;
-              notOkField = $(this);
-            }
-            results.push($(this).val().trim());
-            inputs.push($(this));
-          });
-          if (ok) {
-            if (options.onValidate) {
-              try {
-                options.onValidate.call(this, results);
-              } catch (e) {
-                ok = false;
-                br.growlError(e);
-                if (inputs.length == 1) {
-                  inputs[0].focus();
-                }
+              br.growlError(e);
+              if (inputs.length == 1) {
+                inputs[0].focus();
               }
             }
-            if (ok) {
-              remove = false;
-              $(dialog).modal('hide');
-              callback.call(this, results);
-              dialog.remove();
-            }
-          } else {
-            br.growlError('Please enter value');
-            notOkField[0].focus();
           }
-        });
+          if (ok) {
+            remove = false;
+            $(dialog).modal('hide');
+            if (callback) {
+              callback.call(this, results);
+            }
+            dialog.remove();
+            if (oldActiveElement) {
+              oldActiveElement.focus();
+            }
+          }
+        } else {
+          br.growlError('Please enter value');
+          notOkField[0].focus();
+        }
       });
+    };
 
     var onHide = function(e) {
       if (options.onHide) {
         options.onHide.call(this);
-      } else
-      if (options.onhide) {
-        options.onhide.call(this);
       }
       if (remove) {
         dialog.remove();
+        if (oldActiveElement) {
+          oldActiveElement.focus();
+        }
       }
     };
+
+    $(dialog).on('show.bs.modal', onShow);
     $(dialog).on('hide.bs.modal', onHide);
+    $(dialog).on('shown.bs.modal', onShown);
+
     $(dialog).modal('show');
+
     br.enchanceBootstrap(dialog);
     br.resizeModalPopup(dialog);
 

@@ -226,18 +226,18 @@ class BrRequest extends BrSingleton {
   function baseUrl($dec = 0) {
 
     if (br()->isConsoleMode()) {
-      return br()->config()->get('br/request/consoleModeBaseUrl', '/');
+      $result = br()->config()->get('br/request/consoleModeBaseUrl', '/');
     } else {
       $result = $this->baseUrl;
-      if ($dec) {
-        $dec = abs($dec);
-        while($dec) {
-          $result = preg_replace('#[^/]+/$#', '', $result);
-          $dec--;
-        }
-      }
-      return $result;
     }
+    if ($dec) {
+      $dec = abs($dec);
+      while($dec) {
+        $result = preg_replace('#[^/]+/$#', '', $result);
+        $dec--;
+      }
+    }
+    return $result;
 
   }
 
