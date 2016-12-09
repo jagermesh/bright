@@ -97,7 +97,21 @@
       return result;
     }
 
+    function getName(data) {
+      if (br.isFunction(_this.options.onGetName)) {
+        return _this.options.onGetName.call(this, data);
+      } else {
+        var item = { value: data[_this.options.keyField]
+                   , name: data[_this.options.nameField]
+                   };
+        _this.events.trigger('formatItem', item, data);
+        return item.name;
+      }
+    }
+
     function switchToSelect2() {
+      var selectLimit = 50;
+
       if (_this.isValid() && window.Select2 && !_this.options.noDecoration && !_this.selector.attr('size')) {
         if (_this.options.lookupMode && select2Binded) {
           return;
@@ -124,12 +138,15 @@
                   var data = { results: [] };
                   for(var i = 0; i < response.length; i++) {
                     data.results.push({ id:   response[i][_this.options.valueField]
-                                      , text: response[i][_this.options.nameField]
+                                      , text: getName(response[i])
                                       });
                   }
                   query.callback(data);
                 }
-              }, { limit: 100 });
+              }, { limit: selectLimit
+                 , skip: (query.page - 1) * selectLimit
+                 }
+              );
             };
           }
           _this.selector.select2(params);
@@ -174,7 +191,9 @@
             _this.selector.select2('data', data);
             _this.dataSource.selectOne(value, function(result, response) {
               if (result) {
-                data = { id: response[_this.options.valueField], text: response[_this.options.nameField] };
+                data = { id: response[_this.options.valueField]
+                       , text: getName(response)
+                       };
                 _this.selector.select2('data', data);
               }
             });
@@ -218,14 +237,6 @@
     this.selector.on('reset', function() {
       _this.reset();
     });
-
-    function getName(data) {
-      if (br.isFunction(_this.options.onGetName)) {
-        return _this.options.onGetName.call(this, data);
-      } else {
-        return data[_this.options.nameField];
-      }
-    }
 
     function renderRow(data) {
       var s = '';
