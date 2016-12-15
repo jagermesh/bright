@@ -93,7 +93,9 @@ class BrString {
   }
 
   function match($pattern, &$matches = NULL, $flags = 0, $offset = 0) {
-    if (!is_array($matches)) $matches = array();
+    if (!is_array($matches)) {
+      $matches = array();
+    }
     return preg_match($pattern, $this->value, $matches, $flags, $offset);
   }
 
