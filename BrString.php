@@ -17,7 +17,12 @@ class BrString {
   }
 
   function like($pattern) {
-    return preg_match('#' . str_replace(array('%', '_'), array('.*', '.?'), $pattern) . '#', $this->value);
+    $pattern = str_replace(array('%', '.*?'), array('_', '.'), $pattern);
+    return preg_match('#^' . $pattern . '$#ism', $this->value);
+  }
+
+  function contain($pattern) {
+    return (strpos($this->value, $pattern) !== FALSE);
   }
 
   function inArray($array) {

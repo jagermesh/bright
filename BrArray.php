@@ -20,6 +20,10 @@ class BrArray {
     return count($this->value);
   }
 
+  function contain($value, $ignoreCase = false) {
+    return $this->exists($value, $ignoreCase);
+  }
+
   function exists($value, $ignoreCase = false) {
 
     if (is_array($value)) {
