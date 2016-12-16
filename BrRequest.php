@@ -138,9 +138,9 @@ class BrRequest extends BrSingleton {
    * Get referer
    * @return String
    */
-  function referer() {
+  function referer($default = null) {
 
-    return br($_SERVER, 'HTTP_REFERER');
+    return br($_SERVER, 'HTTP_REFERER', $default);
 
   }
 
