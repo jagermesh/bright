@@ -56,7 +56,7 @@ class BrFileLogAdapter extends BrGenericFileLogAdapter {
       if (br()->isConsoleMode()) {
 
       } else {
-        $fileName .= '_' . br()->getProcessID() . '_' . br()->request()->clientIP();
+        $fileName .= '_' . br()->request()->clientIP();
       }
       $fileName .= '.log';
     }
