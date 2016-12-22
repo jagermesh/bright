@@ -409,11 +409,11 @@ class Br extends BrSingleton {
 
   }
 
-  function importLib($FileName) {
+  function importLib($className) {
 
-    $FileName = 'Br'.$FileName.'.php';
+    $fileName = 'Br'.$className.'.php';
 
-    require_once(__DIR__ . '/' . $FileName);
+    require_once(__DIR__ . '/' . $fileName);
 
   }
 

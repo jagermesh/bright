@@ -52,6 +52,27 @@ class BrDateTime extends BrObject {
 
   }
 
+  function setHour($hour) {
+
+    $this->hour = $hour;
+    $this->set($this->asDateTime());
+
+  }
+
+  function setMinutes($minute) {
+
+    $this->minute = $minute;
+    $this->set($this->asDateTime());
+
+  }
+
+  function setSeconds($second) {
+
+    $this->second = $second;
+    $this->set($this->asDateTime());
+
+  }
+
   function setDayToLast() {
 
     $this->setDay(1);
