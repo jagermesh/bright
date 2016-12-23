@@ -169,7 +169,7 @@ class BriCal extends BrObject {
 
   private $calendarName;
   private $calendarUID;
-  private $calendarEvents;
+  private $calendarEvents = array();
 
   function __construct($calendarName = 'GENERIC') {
 
