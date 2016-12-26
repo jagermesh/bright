@@ -9,6 +9,7 @@ require_once(__DIR__.'/BrException.php');
 class BrAWS extends BrObject {
 
   private $S3Client;
+  private $pollyClient;
   private $rerunIterations = 50;
   private $debugMode = false;
 
@@ -217,6 +218,32 @@ class BrAWS extends BrObject {
     $this->deleteFile($source);
 
     return $result;
+  }
+
+  private function getPollyClient() {
+
+    if (!$this->pollyClient) {
+      $this->pollyClient = Aws\Polly\PollyClient::factory(array( 'credentials' => array( 'key'     => br()->config()->get('AWS/S3AccessKey')
+                                                                                       , 'secret'  => br()->config()->get('AWS/S3AccessSecret')
+                                                                                       )
+                                                               , 'region'      => br()->config()->get('AWS/S3Region')
+                                                               , 'version'     => 'latest'
+                                                               ));
+    }
+
+    return $this->pollyClient;
+
+  }
+
+  function synthesizeSpeech($text) {
+
+    $result = $this->getPollyClient()->synthesizeSpeech([ 'OutputFormat' => 'mp3'
+                                                        , 'Text'         => $text
+                                                        , 'VoiceId'      => 'Joanna'
+                                                        ]);
+
+    return $result;
+
   }
 
   public function testCases() {
