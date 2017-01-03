@@ -12,16 +12,9 @@ class BrGenericUploadHandler {
 
   }
 
-  private function toBytes($str){
+  private function toBytes($str) {
 
-    $val = trim($str);
-    $last = strtolower($str[strlen($str)-1]);
-    switch($last) {
-      case 'g': $val *= 1024;
-      case 'm': $val *= 1024;
-      case 'k': $val *= 1024;
-    }
-    return $val;
+    return br($str)->toBytes();
 
   }
 
@@ -108,18 +101,18 @@ class BrGenericUploadHandler {
       $path .= br()->db()->rowidValue($login) . '/';
     }
 
-    if ($this->getFileSize() > $this->sizeLimit) {
-      return array('error' => 'File is too large');
-    }
-
-    $ext = br()->fs()->fileExt($this->getFileName());
-
-    if ($this->allowedExtensions && !in_array(strtolower($ext), $this->allowedExtensions)) {
-      $these = implode(', ', $this->allowedExtensions);
-      return array('error' => 'File has an invalid extension, it should be one of '. $these . '.');
-    }
-
     try {
+      if ($this->getFileSize() > $this->sizeLimit) {
+        throw new BrAppException('File is too large. Max allowed file size is ' . br()->formatBytes($this->sizeLimit));
+      }
+
+      $ext = br()->fs()->fileExt($this->getFileName());
+
+      if ($this->allowedExtensions && !in_array(strtolower($ext), $this->allowedExtensions)) {
+        $these = implode(', ', $this->allowedExtensions);
+        throw new BrAppException('File has an invalid extension, it should be one of '. $these . '.');
+      }
+
       if ($saveResult = $this->save($this->getUploadedFile(), $path)) {
         $result = array( 'success'          => true
                        , 'originalFileName' => $this->getFileName()

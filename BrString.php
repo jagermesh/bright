@@ -45,6 +45,26 @@ class BrString {
     return mb_strlen($this->value);
   }
 
+  function toBytes() {
+    if (preg_match('/([0-9]+)(g|m|k|)/ism', trim($this->value), $matches)) {
+      $val = $matches[1];
+      switch(strtolower($matches[2])) {
+        case 'g':
+          $val *= 1024 * 1024 * 1024;
+          break;
+        case 'm':
+          $val *= 1024 * 1024;
+          break;
+        case 'k':
+        default:
+          $val *= 1024;
+          break;
+      }
+      return $val;
+    }
+    return 0;
+  }
+
   function exists($value, $ignoreCase = false) {
     if (is_array($value)) {
       foreach($value as $val) {

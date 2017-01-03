@@ -218,16 +218,9 @@ class qqFileUploader {
 
   }
 
-  private function toBytes($str){
+  private function toBytes($str) {
 
-    $val = trim($str);
-    $last = strtolower($str[strlen($str)-1]);
-    switch($last) {
-      case 'g': $val *= 1024;
-      case 'm': $val *= 1024;
-      case 'k': $val *= 1024;
-    }
-    return $val;
+    return br($str)->toBytes();
 
   }
 
