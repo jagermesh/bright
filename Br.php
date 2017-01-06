@@ -21,31 +21,29 @@ function br($array = null, $name = null, $default = null) {
       require_once(__DIR__ . '/BrArray.php');
       return new BrArray($array);
     } else {
-    // if (is_string($array)) {
       require_once(__DIR__ . '/BrString.php');
       return new BrString($array);
     }
-  } else {
-    if (is_array($array) && is_array($name)) {
-      $result = null;
-      foreach($name as $oneName) {
-        $result = br($array, $oneName);
-        if (strlen($result)) {
-          return $result;
-        }
+  } else
+  if (is_array($array) && is_array($name)) {
+    foreach($name as $oneName) {
+      $result = br($array, $oneName);
+      if ($result || is_bool($result) || (is_scalar($result) && strlen($result))) {
+        return $result;
       }
-      if (!strlen($result)) {
-        return $default;
-      }
-    } else {
-      return ( is_array($array) &&
-               strlen($name) &&
-               array_key_exists($name, $array) &&
-               ($array[$name] || is_bool($array[$name]) || (is_scalar($array[$name]) && strlen($array[$name])))
-             )
-             ? $array[$name]
-             : $default;
     }
+    return $default;
+  } else
+  if (is_array($array) && is_scalar($name)) {
+    $name = (string)$name;
+    return ( strlen($name) &&
+             array_key_exists($name, $array) &&
+             ($array[$name] || is_bool($array[$name]) || (is_scalar($array[$name]) && strlen($array[$name])))
+           )
+           ? $array[$name]
+           : $default;
+  } else {
+    return $default;
   }
 
 }
