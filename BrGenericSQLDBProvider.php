@@ -781,6 +781,11 @@ class BrGenericSQLProviderTable {
           $this->compileFilter($filterValue, $tableName, '', ' AND ', $joins, $joinsTables, $where, $args);
           $where .= ' ) ';
           break;
+        case '$andNot':
+          $where .= $link . ' NOT ( 1=1 ';
+          $this->compileFilter($filterValue, $tableName, '', ' AND ', $joins, $joinsTables, $where, $args);
+          $where .= ' ) ';
+          break;
         case '$or':
           $where .= $link . ' ( 1=2 ';
           $this->compileFilter($filterValue, $tableName, '', ' OR ', $joins, $joinsTables, $where, $args);
