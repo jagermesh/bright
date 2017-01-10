@@ -20,26 +20,33 @@ class BrHTML extends BrSingleton {
 
   function XSSCleanUp($html) {
 
-    $doc = phpQuery::newDocument($html);
-    foreach(pq($doc)->find('img') as $image) {
-      if (pq($image)->attr('onerror')) {
-        pq($image)->attr('onerror', '');
+    try {
+      $doc = phpQuery::newDocument($html);
+      try {
+        foreach(pq($doc)->find('img') as $image) {
+          if (pq($image)->attr('onerror')) {
+            pq($image)->attr('onerror', '');
+          }
+          if (pq($image)->attr('onclick')) {
+            pq($image)->attr('onclick', '');
+          }
+          if (pq($image)->attr('onfocus')) {
+            pq($image)->attr('onfocus', '');
+          }
+          if (pq($image)->attr('onload')) {
+            pq($image)->attr('onload', '');
+          }
+        }
+        foreach(pq($doc)->find('base,style,meta,script') as $style) {
+          pq($style)->remove();
+        }
+        $html = $doc->html();
+      } finally {
+        phpQuery::unloadDocuments();
       }
-      if (pq($image)->attr('onclick')) {
-        pq($image)->attr('onclick', '');
-      }
-      if (pq($image)->attr('onfocus')) {
-        pq($image)->attr('onfocus', '');
-      }
-      if (pq($image)->attr('onload')) {
-        pq($image)->attr('onload', '');
-      }
+    } catch (Exception $e) {
+
     }
-    foreach(pq($doc)->find('base,style,meta,script') as $style) {
-      pq($style)->remove();
-    }
-    $html = $doc->html();
-    phpQuery::unloadDocuments();
 
     return $html;
 
