@@ -41,7 +41,8 @@ class BrHTML extends BrSingleton {
           pq($style)->remove();
         }
         $html = $doc->html();
-      } finally {
+        phpQuery::unloadDocuments();
+      } catch (Exception $e) {
         phpQuery::unloadDocuments();
       }
     } catch (Exception $e) {
