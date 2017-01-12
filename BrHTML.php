@@ -20,24 +20,44 @@ class BrHTML extends BrSingleton {
 
   function XSSCleanUp($html) {
 
+    $events = [
+       'onbeforecopy'
+      ,'onbeforecut'
+      ,'onbeforepaste'
+      ,'onpaste'
+      ,'oncut'
+      ,'oncopy'
+      ,'ondrag'
+      ,'ondblclick'
+      ,'onmousedown'
+      ,'onmouseout'
+      ,'onmouseover'
+      ,'onmouseup'
+      ,'onmouseenter'
+      ,'onmousemove'
+      ,'onmouseleave'
+      ,'onfocus'
+      ,'onfocusin'
+      ,'onfocusout'
+      ,'onload'
+      ,'onshow'
+      ,'onerror'
+      ,'onmouseout'
+      ,'onmouseover'
+      ,'onclick'
+    ];
+
     try {
       $doc = phpQuery::newDocument($html);
       try {
-        foreach(pq($doc)->find('img') as $image) {
-          if (pq($image)->attr('onerror')) {
-            pq($image)->attr('onerror', '');
-          }
-          if (pq($image)->attr('onclick')) {
-            pq($image)->attr('onclick', '');
-          }
-          if (pq($image)->attr('onfocus')) {
-            pq($image)->attr('onfocus', '');
-          }
-          if (pq($image)->attr('onload')) {
-            pq($image)->attr('onload', '');
+        foreach(pq($doc)->find('img,input,body,link,menu,audio,video,source,track') as $tag) {
+          foreach ($events as $event) {
+            if (pq($tag)->attr($event)) {
+              pq($tag)->attr($event, '');
+            }
           }
         }
-        foreach(pq($doc)->find('base,style,meta,script') as $style) {
+        foreach(pq($doc)->find('base,style,meta,script,object,embed,iframe') as $style) {
           pq($style)->remove();
         }
         $html = $doc->html();
