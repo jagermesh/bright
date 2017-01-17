@@ -69,7 +69,7 @@ class BrHTML extends BrSingleton {
 
     }
 
-    return $html;
+    return trim($html);
 
   }
 
