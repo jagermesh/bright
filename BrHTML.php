@@ -20,7 +20,7 @@ class BrHTML extends BrSingleton {
 
   function XSSCleanUp($html) {
 
-    $events = [
+    $events = array(
        'onbeforecopy'
       ,'onbeforecut'
       ,'onbeforepaste'
@@ -45,7 +45,7 @@ class BrHTML extends BrSingleton {
       ,'onmouseout'
       ,'onmouseover'
       ,'onclick'
-    ];
+    );
 
     try {
       $doc = phpQuery::newDocument($html);
