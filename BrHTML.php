@@ -20,53 +20,55 @@ class BrHTML extends BrSingleton {
 
   function XSSCleanUp($html) {
 
-    $events = array(
-       'onbeforecopy'
-      ,'onbeforecut'
-      ,'onbeforepaste'
-      ,'onpaste'
-      ,'oncut'
-      ,'oncopy'
-      ,'ondrag'
-      ,'ondblclick'
-      ,'onmousedown'
-      ,'onmouseout'
-      ,'onmouseover'
-      ,'onmouseup'
-      ,'onmouseenter'
-      ,'onmousemove'
-      ,'onmouseleave'
-      ,'onfocus'
-      ,'onfocusin'
-      ,'onfocusout'
-      ,'onload'
-      ,'onshow'
-      ,'onerror'
-      ,'onmouseout'
-      ,'onmouseover'
-      ,'onclick'
-    );
+    if ($this->isHtml($html)) {
+      $events = array(
+         'onbeforecopy'
+        ,'onbeforecut'
+        ,'onbeforepaste'
+        ,'onpaste'
+        ,'oncut'
+        ,'oncopy'
+        ,'ondrag'
+        ,'ondblclick'
+        ,'onmousedown'
+        ,'onmouseout'
+        ,'onmouseover'
+        ,'onmouseup'
+        ,'onmouseenter'
+        ,'onmousemove'
+        ,'onmouseleave'
+        ,'onfocus'
+        ,'onfocusin'
+        ,'onfocusout'
+        ,'onload'
+        ,'onshow'
+        ,'onerror'
+        ,'onmouseout'
+        ,'onmouseover'
+        ,'onclick'
+      );
 
-    try {
-      $doc = phpQuery::newDocument($html);
       try {
-        foreach(pq($doc)->find('img,input,body,link,menu,audio,video,source,track') as $tag) {
-          foreach ($events as $event) {
-            if (pq($tag)->attr($event)) {
-              pq($tag)->attr($event, '');
+        $doc = phpQuery::newDocument($html);
+        try {
+          foreach(pq($doc)->find('img,input,body,link,menu,audio,video,source,track') as $tag) {
+            foreach ($events as $event) {
+              if (pq($tag)->attr($event)) {
+                pq($tag)->attr($event, '');
+              }
             }
           }
+          foreach(pq($doc)->find('base,style,meta,script,object,embed,iframe') as $style) {
+            pq($style)->remove();
+          }
+          $html = $doc->html();
+          phpQuery::unloadDocuments();
+        } catch (Exception $e) {
+          phpQuery::unloadDocuments();
         }
-        foreach(pq($doc)->find('base,style,meta,script,object,embed,iframe') as $style) {
-          pq($style)->remove();
-        }
-        $html = $doc->html();
-        phpQuery::unloadDocuments();
       } catch (Exception $e) {
-        phpQuery::unloadDocuments();
-      }
-    } catch (Exception $e) {
 
+      }
     }
 
     return trim($html);
