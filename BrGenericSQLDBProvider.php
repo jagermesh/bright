@@ -723,7 +723,7 @@ class BrGenericSQLProviderTable {
                 if ($joinFieldNameOrValue) {
                   $joins .= br()->placeholder(' AND ' . $joinLeftPart . ' IN (?@)', $joinFieldNameOrValue);
                 } else {
-                  $joins .= ' AND ' . $joinLeftPart . ' IS NULL';
+                  $joins .= ' AND ' . $joinLeftPart . ' IN (NULL)';
                 }
                 break;
               case '$nin':
@@ -732,7 +732,7 @@ class BrGenericSQLProviderTable {
                 if ($joinFieldNameOrValue) {
                   $joins .= br()->placeholder(' AND ' . $joinLeftPart . ' NOT IN (?@)', $joinFieldNameOrValue);
                 } else {
-                  $joins .= ' AND ' . $joinLeftPart . ' IS NOT NULL';
+                  $joins .= ' AND ' . $joinLeftPart . ' NOT IN (NULL)';
                 }
                 break;
               case '$eq':
@@ -742,7 +742,7 @@ class BrGenericSQLProviderTable {
                   if ($joinFieldNameOrValue) {
                     $joins .= br()->placeholder(' AND ' . $joinLeftPart . ' IN (?@)', $joinFieldNameOrValue);
                   } else {
-                    $joins .= ' AND ' . $joinLeftPart . ' IS NULL';
+                    $joins .= ' AND ' . $joinLeftPart . ' IN (NULL)';
                   }
                 } else
                 if (strlen($joinFieldNameOrValue)) {
@@ -758,7 +758,7 @@ class BrGenericSQLProviderTable {
                   if ($joinFieldNameOrValue) {
                     $joins .= br()->placeholder(' AND ' . $joinLeftPart . ' NOT IN (?@)', $joinFieldNameOrValue);
                   } else {
-                    $joins .= ' AND ' . $joinLeftPart . ' IS NOT NULL';
+                    $joins .= ' AND ' . $joinLeftPart . ' NOT IN (NULL)';
                   }
                 } else
                 if (strlen($joinFieldNameOrValue)) {
@@ -859,7 +859,7 @@ class BrGenericSQLProviderTable {
             $where .= $link . $fname2 . ' IN (?@)';
             $args[] = $filterValue;
           } else {
-            $where .= $link . $fname2 . ' IS NULL';
+            $where .= $link . $fname2 . ' IN (NULL)';
           }
           break;
         case '$nin':
@@ -869,7 +869,7 @@ class BrGenericSQLProviderTable {
             $where .= $link . $fname2 . ' NOT IN (?@)';
             $args[] = $filterValue;
           } else {
-            $where .= $link . $fname2 . ' IS NOT NULL';
+            $where .= $link . $fname2 . ' NOT IN (NULL)';
           }
           break;
         case '$eq':
@@ -898,7 +898,7 @@ class BrGenericSQLProviderTable {
               $where .= $link . $fname2 . ' NOT IN (?@)';
               $args[] = $filterValue;
             } else {
-              $where .= $link . $fname2 . ' IS NOT NULL';
+              $where .= $link . $fname2 . ' NOT IN (NULL)';
             }
           } else
           if (strlen($filterValue)) {
