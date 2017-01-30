@@ -718,19 +718,31 @@ class BrGenericSQLProviderTable {
                 $joins .= ' AND '.$joinLeftPart.' >= '.$joinFieldNameOrValue;
                 break;
               case '$in':
-                $joinFieldNameOrValue = br($joinFieldNameOrValue)->split();
-                $joinFieldNameOrValue = br()->removeEmptyValues($joinFieldNameOrValue);
-                if ($joinFieldNameOrValue) {
-                  $joins .= br()->placeholder(' AND ' . $joinLeftPart . ' IN (?@)', $joinFieldNameOrValue);
+                if (is_array($joinFieldNameOrValue)) {
+                  $joinFieldNameOrValue = br()->removeEmptyValues($joinFieldNameOrValue);
+                  if ($joinFieldNameOrValue) {
+                    $joins .= br()->placeholder(' AND ' . $joinLeftPart . ' IN (?@)', $joinFieldNameOrValue);
+                  } else {
+                    $joins .= ' AND ' . $joinLeftPart . ' IN (NULL)';
+                  }
+                } else
+                if (strlen($joinFieldNameOrValue) > 0) {
+                  $joins .= ' AND ' . $joinLeftPart . ' IN (' . $joinFieldNameOrValue . ')';
                 } else {
                   $joins .= ' AND ' . $joinLeftPart . ' IN (NULL)';
                 }
                 break;
               case '$nin':
-                $joinFieldNameOrValue = br($joinFieldNameOrValue)->split();
-                $joinFieldNameOrValue = br()->removeEmptyValues($joinFieldNameOrValue);
-                if ($joinFieldNameOrValue) {
-                  $joins .= br()->placeholder(' AND ' . $joinLeftPart . ' NOT IN (?@)', $joinFieldNameOrValue);
+                if (is_array($joinFieldNameOrValue)) {
+                  $joinFieldNameOrValue = br()->removeEmptyValues($joinFieldNameOrValue);
+                  if ($joinFieldNameOrValue) {
+                    $joins .= br()->placeholder(' AND ' . $joinLeftPart . ' NOT IN (?@)', $joinFieldNameOrValue);
+                  } else {
+                    $joins .= ' AND ' . $joinLeftPart . ' NOT IN (NULL)';
+                  }
+                } else
+                if (strlen($joinFieldNameOrValue) > 0) {
+                  $joins .= ' AND ' . $joinLeftPart . ' NOT IN (' . $joinFieldNameOrValue . ')';
                 } else {
                   $joins .= ' AND ' . $joinLeftPart . ' NOT IN (NULL)';
                 }
@@ -745,7 +757,7 @@ class BrGenericSQLProviderTable {
                     $joins .= ' AND ' . $joinLeftPart . ' IN (NULL)';
                   }
                 } else
-                if (strlen($joinFieldNameOrValue)) {
+                if (strlen($joinFieldNameOrValue) > 0) {
                   $joins .= ' AND ' . $joinLeftPart . ' = ' . $joinFieldNameOrValue;
                 } else {
                   $joins .= ' AND ' . $joinLeftPart . ' IS NULL';
@@ -761,7 +773,7 @@ class BrGenericSQLProviderTable {
                     $joins .= ' AND ' . $joinLeftPart . ' NOT IN (NULL)';
                   }
                 } else
-                if (strlen($joinFieldNameOrValue)) {
+                if (strlen($joinFieldNameOrValue) > 0) {
                   $joins .= ' AND ' . $joinLeftPart . ' != ' . $joinFieldNameOrValue;
                 } else {
                   $joins .= ' AND ' . $joinLeftPart . ' NOT NULL';
@@ -861,8 +873,12 @@ class BrGenericSQLProviderTable {
             } else {
               $where .= $link . $fname2 . ' IN (NULL)';
             }
+          } else
+          if (strlen($filterValue) > 0) {
+            // we assuming it's SQL statement
+            $where .= $link . $fname2 . ' IN (' . $filterValue . ')';
           } else {
-            $where .= $link . $fname2 . ' IN (' . $filterValue . ' )';
+            $where .= $link . $fname2 . ' IN (NULL)';
           }
           break;
         case '$nin':
@@ -874,8 +890,12 @@ class BrGenericSQLProviderTable {
             } else {
               $where .= $link . $fname2 . ' NOT IN (NULL)';
             }
+          } else
+          if (strlen($filterValue) > 0) {
+            // we assuming it's SQL statement
+            $where .= $link . $fname2 . ' NOT IN (' . $filterValue . ')';
           } else {
-            $where .= $link . $fname2 . ' NOT IN (' . $filterValue . ' )';
+            $where .= $link . $fname2 . ' NOT IN (NULL)';
           }
           break;
         case '$eq':
@@ -1014,12 +1034,9 @@ class BrGenericSQLProviderTable {
         default:
           if (is_array($filterValue)) {
             if ($currentFieldName && br()->isRegularArray($filterValue)) {
+              $filterValue = br()->removeEmptyValues($filterValue);
               if ($filterValue) {
                 $where .= $link . $fname . ' IN (?@)';
-                $filterValue = br()->removeEmptyValues($filterValue);
-                if (count($filterValue) == 0) {
-                  $filterValue = array(NULL);
-                }
                 $args[] = $filterValue;
               } else {
                 $where .= $link . $fname . ' IS NULL';
@@ -1032,11 +1049,11 @@ class BrGenericSQLProviderTable {
               $where .= $link.$fname.' REGEXP ?&';
               $args[] = preg_replace('~([?*+\(\)])~', '[$1]', str_replace('\\', '\\\\', rtrim(ltrim($filterValue->getValue(), '/'), '/i')));
             } else {
-              if (!strlen($filterValue)) {
-                $where .= $link.$fname.' IS NULL';
-              } else {
+              if (strlen($filterValue) > 0) {
                 $where .= $link.$fname.' = ?';
                 $args[] = $filterValue;
+              } else {
+                $where .= $link.$fname.' IS NULL';
               }
             }
           }

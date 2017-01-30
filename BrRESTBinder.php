@@ -209,42 +209,27 @@ class BrRESTBinder extends BrObject {
                       $filter[] = array($fields => array('$ne' => $value['$ne']));
                       $valuesArray = false;
                     }
-                    if (br($value, '<')) {
+                    if (br($value, '<') || br($value, '$lt')) {
                       $filter[] = array($fields => array('$lt' => $value['<']));
                       $valuesArray = false;
                     }
-                    if (br($value, '$lt')) {
-                      $filter[] = array($fields => array('$lt' => $value['$lt']));
-                      $valuesArray = false;
-                    }
-                    if (br($value, '>')) {
+                    if (br($value, '>') || br($value, '$gt')) {
                       $filter[] = array($fields => array('$gt' => $value['>']));
                       $valuesArray = false;
                     }
-                    if (br($value, '$gt')) {
-                      $filter[] = array($fields => array('$gt' => $value['$gt']));
-                      $valuesArray = false;
-                    }
-                    if (br($value, '<=')) {
+                    if (br($value, '<=') || br($value, '$lte')) {
                       $filter[] = array($fields => array('$lte' => $value['<=']));
                       $valuesArray = false;
                     }
-                    if (br($value, '$lte')) {
-                      $filter[] = array($fields => array('$lte' => $value['$lte']));
-                      $valuesArray = false;
-                    }
-                    if (br($value, '>=')) {
+                    if (br($value, '>=') || br($value, '$gte')) {
                       $filter[] = array($fields => array('$gte' => $value['>=']));
                       $valuesArray = false;
                     }
-                    if (br($value, '$gte')) {
-                      $filter[] = array($fields => array('$gte' => $value['$gte']));
-                      $valuesArray = false;
-                    }
-                    if (br($value, '$in')) {
-                      $filter[] = array($fields => array('$in' => $value['$in']));
-                      $valuesArray = false;
-                    }
+                    // unsafe because of concatenation
+                    // if (br($value, '$in')) {
+                    //   $filter[] = array($fields => array('$in' => $value['$in']));
+                    //   $valuesArray = false;
+                    // }
                     if ($valuesArray) {
                       $filter[$fields] = $value;
                     }
