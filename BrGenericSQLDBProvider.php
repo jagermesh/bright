@@ -853,23 +853,29 @@ class BrGenericSQLProviderTable {
           $this->compileJoin($filterValue, $tableName, $fieldName, $link, $joins, $joinsTables, $where, $args, 'LEFT');
           break;
         case '$in':
-          $filterValue = br($filterValue)->split();
-          $filterValue = br()->removeEmptyValues($filterValue);
-          if ($filterValue) {
-            $where .= $link . $fname2 . ' IN (?@)';
-            $args[] = $filterValue;
+          if (is_array($filterValue)) {
+            $filterValue = br()->removeEmptyValues($filterValue);
+            if ($filterValue) {
+              $where .= $link . $fname2 . ' IN (?@)';
+              $args[] = $filterValue;
+            } else {
+              $where .= $link . $fname2 . ' IN (NULL)';
+            }
           } else {
-            $where .= $link . $fname2 . ' IN (NULL)';
+            $where .= $link . $fname2 . ' IN (' . $filterValue . ' )';
           }
           break;
         case '$nin':
-          $filterValue = br($filterValue)->split();
-          $filterValue = br()->removeEmptyValues($filterValue);
-          if ($filterValue) {
-            $where .= $link . $fname2 . ' NOT IN (?@)';
-            $args[] = $filterValue;
+          if (is_array($filterValue)) {
+            $filterValue = br()->removeEmptyValues($filterValue);
+            if ($filterValue) {
+              $where .= $link . $fname2 . ' NOT IN (?@)';
+              $args[] = $filterValue;
+            } else {
+              $where .= $link . $fname2 . ' NOT IN (NULL)';
+            }
           } else {
-            $where .= $link . $fname2 . ' NOT IN (NULL)';
+            $where .= $link . $fname2 . ' NOT IN (' . $filterValue . ' )';
           }
           break;
         case '$eq':
