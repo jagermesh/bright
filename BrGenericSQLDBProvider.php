@@ -880,7 +880,7 @@ class BrGenericSQLProviderTable {
               $where .= $link . $fname2 . ' IN (?@)';
               $args[] = $filterValue;
             } else {
-              $where .= $link . $fname2 . ' IS NULL';
+              $where .= $link . $fname2 . ' IN (NULL)';
             }
           } else
           if (strlen($filterValue)) {
