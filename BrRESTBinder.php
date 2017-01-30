@@ -241,7 +241,7 @@ class BrRESTBinder extends BrObject {
                       $filter[] = array($fields => array('$gte' => $value['$gte']));
                       $valuesArray = false;
                     }
-                    // unsafe because
+                    // unsafe because of concatenation
                     // if (br($value, '$in')) {
                     //   $filter[] = array($fields => array('$in' => $value['$in']));
                     //   $valuesArray = false;
