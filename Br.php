@@ -295,13 +295,13 @@ class Br extends BrSingleton {
 
   }
 
-  function removeEmptyKeys($array) {
+  function removeEmptyValues($array) {
 
     $result = array();
     foreach($array as $key => $value) {
       $go = false;
       if (is_array($value)) {
-        $value = br()->RemoveEmptyKeys($value);
+        $value = br()->removeEmptyValues($value);
         $go = $value;
       } else {
         $go = strlen($value);

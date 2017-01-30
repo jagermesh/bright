@@ -79,7 +79,7 @@ class BrArray {
     foreach($this->value as $key => $value) {
       $go = false;
       if (is_array($value)) {
-        $value = br($value)->RemoveEmptyKeys();
+        $value = br($value)->removeEmptyValues();
         $go = $value;
       } else {
         $go = strlen($value);

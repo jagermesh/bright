@@ -660,42 +660,7 @@ class BrGenericSQLProviderTable {
 
   }
 
-  private function compileJoin($filter, $tableName, $fieldName, $link, &$joins, &$joinsTables, &$where, &$args) {
-
-    $first = true;
-    $initialJoinTableName = '';
-    foreach($filter as $joinTableName => $joinField) {
-      if ($first) {
-        if (!in_array($joinTableName, $joinsTables)) {
-          $joinsTables[] = $joinTableName;
-          $tmp = br($joinTableName)->split(' ');
-          if (count($tmp) > 1) {
-            $joinTableName = $tmp[0];
-            $joinTableAlias = $tmp[1];
-          } else {
-            $joinTableAlias = $joinTableName;
-          }
-          if (strpos($fieldName, '.') === false) {
-            $joins .= ' INNER JOIN '.$joinTableName.' '.$joinTableAlias.' ON '.$tableName.'.'.$fieldName.' = '.$joinTableAlias.'.'.$joinField;
-          } else {
-            $joins .= ' INNER JOIN '.$joinTableName.' '.$joinTableAlias.' ON '.$fieldName.' = '.$joinTableAlias.'.'.$joinField;
-          }
-        } else {
-
-        }
-        $first = false;
-      } else {
-        if (strpos($joinTableName, '.') === false) {
-          $joins .= ' AND '.$initialJoinTableName.'.'.$joinTableName.' = '.$joinField;
-        } else {
-          $joins .= ' AND '.$joinTableName.' = '.$joinField;
-        }
-      }
-    }
-
-  }
-
-  private function compileLeftJoin($filter, $tableName, $fieldName, $link, &$joins, &$joinsTables, &$where, &$args) {
+  private function compileJoin($filter, $tableName, $fieldName, $link, &$joins, &$joinsTables, &$where, &$args, $joinType = 'INNER') {
 
     $first = true;
     $initialJoinTableName = '';
@@ -712,19 +677,100 @@ class BrGenericSQLProviderTable {
             $joinTableAlias = $joinTableName;
           }
           if (strpos($fieldName, '.') === false) {
-            $joins .= ' LEFT JOIN '.$joinTableName.' '.$joinTableAlias.' ON '.$tableName.'.'.$fieldName.' = '.$joinTableAlias.'.'.$joinField;
+            $joins .= ' ' . $joinType . ' JOIN '.$joinTableName.' '.$joinTableAlias.' ON '.$tableName.'.'.$fieldName.' = '.$joinTableAlias.'.'.$joinField;
           } else {
-            $joins .= ' LEFT JOIN '.$joinTableName.' '.$joinTableAlias.' ON '.$fieldName.' = '.$joinTableAlias.'.'.$joinField;
+            $joins .= ' ' . $joinType . ' JOIN '.$joinTableName.' '.$joinTableAlias.' ON '.$fieldName.' = '.$joinTableAlias.'.'.$joinField;
           }
         } else {
 
         }
         $first = false;
       } else {
+        if (is_numeric($joinTableName)) {
+          foreach($joinField as $a => $b) {
+            $joinTableName = $a;
+            $joinField = $b;
+          }
+        }
         if (strpos($joinTableName, '.') === false) {
-          $joins .= ' AND '.$initialJoinTableName.'.'.$joinTableName.' = '.$joinField;
+          $joinLeftPart = $initialJoinTableName.'.'.$joinTableName;
         } else {
-          $joins .= ' AND '.$joinTableName.' = '.$joinField;
+          $joinLeftPart = $joinTableName;
+        }
+        if (is_array($joinField)) {
+          foreach($joinField as $operation => $joinFieldNameOrValue) {
+            $operation = (string)$operation;
+            switch($operation) {
+              case '$lt':
+              case '<':
+                $joins .= ' AND '.$joinLeftPart.' < '.$joinFieldNameOrValue;
+                break;
+              case '$lte':
+              case '<=':
+                $joins .= ' AND '.$joinLeftPart.' <= '.$joinFieldNameOrValue;
+                break;
+              case '$gt':
+              case '>':
+                $joins .= ' AND '.$joinLeftPart.' > '.$joinFieldNameOrValue;
+                break;
+              case '$gte':
+              case '>=':
+                $joins .= ' AND '.$joinLeftPart.' >= '.$joinFieldNameOrValue;
+                break;
+              case '$in':
+                $joinFieldNameOrValue = br($joinFieldNameOrValue)->split();
+                $joinFieldNameOrValue = br()->removeEmptyValues($joinFieldNameOrValue);
+                if ($joinFieldNameOrValue) {
+                  $joins .= br()->placeholder(' AND ' . $joinLeftPart . ' IN (?@)', $joinFieldNameOrValue);
+                } else {
+                  $joins .= ' AND ' . $joinLeftPart . ' IS NULL';
+                }
+                break;
+              case '$nin':
+                $joinFieldNameOrValue = br($joinFieldNameOrValue)->split();
+                $joinFieldNameOrValue = br()->removeEmptyValues($joinFieldNameOrValue);
+                if ($joinFieldNameOrValue) {
+                  $joins .= br()->placeholder(' AND ' . $joinLeftPart . ' NOT IN (?@)', $joinFieldNameOrValue);
+                } else {
+                  $joins .= ' AND ' . $joinLeftPart . ' IS NOT NULL';
+                }
+                break;
+              case '$eq':
+              case '=':
+                if (is_array($joinFieldNameOrValue)) {
+                  $joinFieldNameOrValue = br()->removeEmptyValues($joinFieldNameOrValue);
+                  if ($joinFieldNameOrValue) {
+                    $joins .= br()->placeholder(' AND ' . $joinLeftPart . ' IN (?@)', $joinFieldNameOrValue);
+                  } else {
+                    $joins .= ' AND ' . $joinLeftPart . ' IS NULL';
+                  }
+                } else
+                if (strlen($joinFieldNameOrValue)) {
+                  $joins .= ' AND ' . $joinLeftPart . ' = ' . $joinFieldNameOrValue;
+                } else {
+                  $joins .= ' AND ' . $joinLeftPart . ' IS NULL';
+                }
+                break;
+              case '$ne':
+              case '!=':
+                if (is_array($joinFieldNameOrValue)) {
+                  $joinFieldNameOrValue = br()->removeEmptyValues($joinFieldNameOrValue);
+                  if ($joinFieldNameOrValue) {
+                    $joins .= br()->placeholder(' AND ' . $joinLeftPart . ' NOT IN (?@)', $joinFieldNameOrValue);
+                  } else {
+                    $joins .= ' AND ' . $joinLeftPart . ' IS NOT NULL';
+                  }
+                } else
+                if (strlen($joinFieldNameOrValue)) {
+                  $joins .= ' AND ' . $joinLeftPart . ' != ' . $joinFieldNameOrValue;
+                } else {
+                  $joins .= ' AND ' . $joinLeftPart . ' NOT NULL';
+                }
+                break;
+            }
+          }
+        } else {
+          $joins .= ' AND '.$joinLeftPart.' = '.$joinField;
         }
       }
     }
@@ -801,59 +847,87 @@ class BrGenericSQLProviderTable {
           $this->compileNotExists($filterValue, $tableName, '', $link, $joins, $joinsTables, $where, $args);
           break;
         case '$join':
-          $this->compileJoin($filterValue, $tableName, $fieldName, $link, $joins, $joinsTables, $where, $args);
+          $this->compileJoin($filterValue, $tableName, $fieldName, $link, $joins, $joinsTables, $where, $args, 'INNER');
           break;
         case '$leftJoin':
-          $this->compileLeftJoin($filterValue, $tableName, $fieldName, $link, $joins, $joinsTables, $where, $args);
+          $this->compileJoin($filterValue, $tableName, $fieldName, $link, $joins, $joinsTables, $where, $args, 'LEFT');
           break;
         case '$in':
-          if (is_array($filterValue)) {
+          $filterValue = br($filterValue)->split();
+          $filterValue = br()->removeEmptyValues($filterValue);
+          if ($filterValue) {
             $where .= $link . $fname2 . ' IN (?@)';
-            $filterValue = br()->removeEmptyKeys($filterValue);
-            if (count($filterValue) == 0) {
-              $filterValue = array(NULL);
-            }
             $args[] = $filterValue;
           } else {
-            $where .= $link . $fname2 . ' IN (' . $filterValue . ')';
-            // $where .= $link . $fname2 . ' = ?';
-            // $args[] = $filterValue;
+            $where .= $link . $fname2 . ' IS NULL';
           }
           break;
         case '$nin':
-        case '$ne':
-          if (is_array($filterValue)) {
+          $filterValue = br($filterValue)->split();
+          $filterValue = br()->removeEmptyValues($filterValue);
+          if ($filterValue) {
             $where .= $link . $fname2 . ' NOT IN (?@)';
-            $filterValue = br()->removeEmptyKeys($filterValue);
-            if (count($filterValue) == 0) {
-              $filterValue = array(NULL);
-            }
             $args[] = $filterValue;
           } else {
-            $where .= $link . $fname2 . ' NOT IN (' . $filterValue . ')';
+            $where .= $link . $fname2 . ' IS NOT NULL';
+          }
+          break;
+        case '$eq':
+        case '=':
+          if (is_array($filterValue)) {
+            $filterValue = br()->removeEmptyValues($filterValue);
+            if ($filterValue) {
+              $where .= $link . $fname2 . ' IN (?@)';
+              $args[] = $filterValue;
+            } else {
+              $where .= $link . $fname2 . ' IS NULL';
+            }
+          } else
+          if (strlen($filterValue)) {
+            $where .= $link . $fname2 . ' = ?';
+            $args[] = $filterValue;
+          } else {
+            $where .= $link . $fname2 . ' IS NULL';
+          }
+          break;
+        case '$ne':
+        case '!=':
+          if (is_array($filterValue)) {
+            $filterValue = br()->removeEmptyValues($filterValue);
+            if ($filterValue) {
+              $where .= $link . $fname2 . ' NOT IN (?@)';
+              $args[] = $filterValue;
+            } else {
+              $where .= $link . $fname2 . ' IS NOT NULL';
+            }
+          } else
+          if (strlen($filterValue)) {
+            $where .= $link . $fname2 . ' != ?';
+            $args[] = $filterValue;
+          } else {
+            $where .= $link . $fname2 . ' IS NOT NULL';
           }
           break;
         case '$nn':
           $where .= $link . $fname2 . ' IS NOT NULL';
-          // $args[] = $filterValue;
-          break;
-        case '$eq':
-          $where .= $link . $fname2 . ' = ?';
-          $args[] = $filterValue;
           break;
         case '$gt':
+        case '>':
           $where .= $link . $fname2 . ' > ?';
           $args[] = $filterValue;
           break;
         case '$gte':
+        case '>=':
           $where .= $link . $fname2 . ' >= ?';
           $args[] = $filterValue;
           break;
         case '$lt':
+        case '<':
           $where .= $link . $fname2 . ' < ?';
           $args[] = $filterValue;
           break;
         case '$lte':
+        case '<=':
           $where .= $link . $fname2 . ' <= ?';
           $args[] = $filterValue;
           break;
@@ -936,7 +1010,7 @@ class BrGenericSQLProviderTable {
             if ($currentFieldName && br()->isRegularArray($filterValue)) {
               if ($filterValue) {
                 $where .= $link . $fname . ' IN (?@)';
-                $filterValue = br()->removeEmptyKeys($filterValue);
+                $filterValue = br()->removeEmptyValues($filterValue);
                 if (count($filterValue) == 0) {
                   $filterValue = array(NULL);
                 }
