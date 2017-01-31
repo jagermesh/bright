@@ -326,12 +326,16 @@ class BrGenericDataSource extends BrObject {
           throw new Exception('Method [' . $method . '] not supported');
         } else {
           try {
-            br()->db()->startTransaction();
+            if (br()->db()) {
+              br()->db()->startTransaction();
+            }
             $this->callEvent('before:' . $method, $params, $transientData);
             $data = $this->callEvent($method, $params, $transientData);
             $result = true;
             $this->callEvent('after:' . $method, $result, $data, $params, $transientData);
-            br()->db()->commitTransaction();
+            if (br()->db()) {
+              br()->db()->commitTransaction();
+            }
             return $data;
           } catch (BrDBRecoverableException $e) {
             br()->log('Repeating invoke of ' . $method . '... (' . $iteration . ') because of ' . $e->getMessage());
@@ -339,7 +343,9 @@ class BrGenericDataSource extends BrObject {
             return $this->invoke($method, $params, $transientData, $optionsParam);
           } catch (Exception $e) {
             try {
-              br()->db()->rollbackTransaction();
+              if (br()->db()) {
+                br()->db()->rollbackTransaction();
+              }
             } catch (Exception $e2) {
 
             }
