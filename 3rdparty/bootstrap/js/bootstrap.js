@@ -911,11 +911,7 @@
         var that = this
         $(document).on('focusin.modal', function (e) {
           if (that.$element[0] !== e.target && !that.$element.has(e.target).length) {
-            try {
-              that.$element.focus()
-            } catch (e) {
-
-            }
+            that.$element.focus()
           }
         })
       }
