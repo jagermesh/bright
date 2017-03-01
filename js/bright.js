@@ -2465,7 +2465,7 @@
       }
     };
 
-    this.val = function(value) {
+    this.val = function(value, callback) {
       if (value !== undefined) {
         if (_this.options.saveSelection) {
           if (_this.options.saveToSessionStorage) {
@@ -2478,21 +2478,35 @@
           _this.selector.val(value);
           switchToSelect2();
           if (_this.options.lookupMode) {
-            var data = { id: value, text: value };
-            _this.selector.select2('data', data);
-            _this.dataSource.selectOne(value, function(result, response) {
-              if (result) {
-                data = { id: response[_this.options.valueField]
-                       , text: getName(response)
-                       };
-                _this.selector.select2('data', data);
+            if (value) {
+              var data = { id: value, text: value };
+              _this.selector.select2('data', data);
+              _this.dataSource.selectOne(value, function(result, response) {
+                if (result) {
+                  data = { id: response[_this.options.valueField]
+                         , text: getName(response)
+                         };
+                  _this.selector.select2('data', data);
+                }
+                if (callback) {
+                  callback.call(_this.selector, result, response);
+                }
+              });
+            } else {
+              _this.selector.select2('data', null);
+              if (callback) {
+                callback.call(_this.selector, true, value);
               }
-            });
+            }
+          } else {
+            if (callback) {
+              callback.call(_this.selector, true, value);
+            }
           }
         }
       }
       if (_this.isValid()) {
-        var val =_this.selector.val();
+        var val = _this.selector.val();
         if (val !== null) {
           return val;
         } else {
