@@ -200,7 +200,7 @@
                 if (callback) {
                   callback.call(_this.selector, result, response);
                 }
-              });
+              }, { disableEvents: true });
             } else {
               _this.selector.select2('data', null);
               if (callback) {
