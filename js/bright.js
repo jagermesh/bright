@@ -2480,13 +2480,17 @@
           if (_this.options.lookupMode) {
             if (value) {
               var data = { id: value, text: value };
+              var request = { rowid: value };
               _this.selector.select2('data', data);
-              _this.dataSource.selectOne(value, function(result, response) {
+              _this.dataSource.select(request, function(result, response) {
                 if (result) {
-                  data = { id: response[_this.options.valueField]
-                         , text: getName(response)
-                         };
-                  _this.selector.select2('data', data);
+                  if (response.length > 0) {
+                    response = response[0];
+                    data = { id: response[_this.options.valueField]
+                           , text: getName(response)
+                           };
+                    _this.selector.select2('data', data);
+                  }
                 }
                 if (callback) {
                   callback.call(_this.selector, result, response);
