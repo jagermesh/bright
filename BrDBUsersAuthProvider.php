@@ -170,7 +170,7 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
       }
       return br()->session()->set('login', $login);
     } else
-    if ($login && $remember) {
+    if ($login) {
       $data = $this->getLogin();
       $data[$login] = $remember;
       return br()->session()->set('login', $data);
