@@ -58,8 +58,13 @@ class BrHTML extends BrSingleton {
               }
             }
           }
-          foreach(pq($doc)->find('base,style,meta,script,object,embed,iframe') as $style) {
+          foreach(pq($doc)->find('base,style,meta,script,object,embed') as $style) {
             pq($style)->remove();
+          }
+          foreach(pq($doc)->find('iframe') as $tag) {
+            if (!pq($tag)->attr('src') || !preg_match('~^(http[s]?:|)//www[.](vimeo|youtube|flickr)[.]com~i', pq($style)->attr('src'))) {
+              pq($tag)->remove();
+            }
           }
           $html = $doc->html();
           phpQuery::unloadDocuments();
