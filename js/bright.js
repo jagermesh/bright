@@ -1276,7 +1276,9 @@
 
       try {
 
-        _this.events.triggerBefore('insert', request, options);
+        if (!disableEvents) {
+          _this.events.triggerBefore('insert', request, options);
+        }
 
         if (this.options.crossdomain) {
           request.crossdomain = 'put';
@@ -1307,13 +1309,13 @@
                  }
                });
 
-      } catch (error) {
-        br.log(error);
+      } catch (errorMessage) {
+        br.log(errorMessage);
         if (!disableEvents) {
-          _this.events.trigger('error', 'insert', error);
-          _this.events.triggerAfter('insert', false, error, request);
+          _this.events.trigger('error', 'insert', errorMessage);
+          _this.events.triggerAfter('insert', false, errorMessage, request);
         }
-        if (typeof callback == 'function') { callback.call(_this, false, error, request); }
+        if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
       }
 
       return this;
@@ -1350,34 +1352,47 @@
 
       var request = item;
 
-      if (!disableEvents) {
-        _this.events.triggerBefore('update', request, options, rowid);
-      }
+      try {
 
-      if (options && options.dataSets) {
-        request.__dataSets = options.dataSets;
-      }
+        if (!disableEvents) {
+          _this.events.triggerBefore('update', request, options, rowid);
+        }
 
-      $.ajax({ type: 'POST'
-             , data: request
-             , dataType: 'json'
-             , url: this.options.restServiceUrl + rowid + (this.options.authToken ? '?token=' + this.options.authToken : '')
-             , success: function(response) {
-                 returnUpdate(response);
-               }
-             , error: function(jqXHR, textStatus, errorThrown) {
-                 if (br.isUnloading()) {
+        if (this.options.crossdomain) {
+          request.crossdomain = 'post';
+        }
 
-                 } else {
-                   var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                   if (!disableEvents) {
-                     _this.events.trigger('error', 'update', errorMessage);
-                     _this.events.triggerAfter('update', false, errorMessage, request);
-                   }
-                   if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
+        if (options && options.dataSets) {
+          request.__dataSets = options.dataSets;
+        }
+
+        $.ajax({ type: this.options.crossdomain ? 'GET' : 'POST'
+               , data: request
+               , dataType: this.options.crossdomain ? 'jsonp' : 'json'
+               , url: this.options.restServiceUrl + rowid + (this.options.authToken ? '?token=' + this.options.authToken : '')
+               , success: function(response) {
+                   returnUpdate(response);
                  }
-               }
-             });
+               , error: function(jqXHR, textStatus, errorThrown) {
+                   if (br.isUnloading()) {
+
+                   } else {
+                     var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                     if (!disableEvents) {
+                       _this.events.trigger('error', 'update', errorMessage);
+                       _this.events.triggerAfter('update', false, errorMessage, request);
+                     }
+                     if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
+                   }
+                 }
+               });
+
+      } catch (errorMessage) {
+        br.log(errorMessage);
+        _this.events.trigger('error', 'update', errorMessage);
+        _this.events.triggerAfter('update', false, errorMessage, request);
+        if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
+      }
 
       return this;
 
