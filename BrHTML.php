@@ -62,7 +62,7 @@ class BrHTML extends BrSingleton {
             pq($style)->remove();
           }
           foreach(pq($doc)->find('iframe') as $tag) {
-            if (!pq($tag)->attr('src') || !preg_match('~^(http[s]?:|)//www[.](vimeo|youtube|flickr)[.]com~i', pq($style)->attr('src'))) {
+            if (!pq($tag)->attr('src') || !preg_match('~^(http[s]?:|)//www[.](vimeo|youtube|flickr)[.]com~i', pq($tag)->attr('src'))) {
               pq($tag)->remove();
             }
           }
