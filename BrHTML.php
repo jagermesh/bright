@@ -203,32 +203,38 @@ class BrHTML extends BrSingleton {
   }
 
   function unicodeToNamedEntities($html) {
-    $html = json_encode($html);
-    $html = preg_replace('/\\\u([0-9a-z]{4})/', '&#x$1;', $html );
-    $html = json_decode($html);
-    $xmlErrors = libxml_use_internal_errors(true);
-    try {
-      $doc = new DOMDocument();
-      if ($doc->loadHTML($html)) {
-        $search = new DOMXPath($doc);
-        $results = $search->evaluate('//*[@style]');
-        foreach ($results as $result) {
-          $result->removeAttribute('style');
-        }
-        $html = $doc->saveHTML();
-      }
-    } catch (Exception $e) {
 
+    if (strlen($html) > 0) {
+      $html = json_encode($html);
+      $html = preg_replace('/\\\u([0-9a-z]{4})/', '&#x$1;', $html );
+      $html = json_decode($html);
+      $html = trim($html);
+      if (strlen($html) > 0) {
+        $xmlErrors = libxml_use_internal_errors(true);
+        try {
+          $doc = new DOMDocument();
+          if ($doc->loadHTML($html)) {
+            $search = new DOMXPath($doc);
+            $results = $search->evaluate('//*[@style]');
+            foreach ($results as $result) {
+              $result->removeAttribute('style');
+            }
+            $html = $doc->saveHTML();
+          }
+        } catch (Exception $e) {
+
+        }
+        libxml_clear_errors();
+        libxml_use_internal_errors($xmlErrors);
+      }
+      $html = preg_replace("/&nbsp;/ism", ' ', $html);
+      $html = preg_replace("/(\n\n|\r\n\r\n|\r\r)/ism", '', $html);
+      $html = preg_replace('/<br[^>]*>/ism', "\n", $html);
+      $html = preg_replace('/<[A-Z][^>]*?>/ism', '', $html);
+      $html = preg_replace('/<\/[A-Z][^>]*?>/ism', '', $html);
+      $html = preg_replace('/<!DOCTYPE[^>]*?>/ism', '', $html);
+      $html = preg_replace('/<!--[^>]*?>/ism', '', $html);
     }
-    libxml_clear_errors();
-    libxml_use_internal_errors($xmlErrors);
-    $html = preg_replace("/&nbsp;/ism", ' ', $html);
-    $html = preg_replace("/(\n\n|\r\n\r\n|\r\r)/ism", '', $html);
-    $html = preg_replace('/<br[^>]*>/ism', "\n", $html);
-    $html = preg_replace('/<[A-Z][^>]*?>/ism', '', $html);
-    $html = preg_replace('/<\/[A-Z][^>]*?>/ism', '', $html);
-    $html = preg_replace('/<!DOCTYPE[^>]*?>/ism', '', $html);
-    $html = preg_replace('/<!--[^>]*?>/ism', '', $html);
 
     return trim($html);
   }
