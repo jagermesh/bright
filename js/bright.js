@@ -3341,7 +3341,6 @@
 
     var onShown = function(e) {
       $(this).find('input[type=text]')[0].focus();
-      br.log($(this).find('input[type=text]')[0]);
     };
 
     var onShow = function(e) {
