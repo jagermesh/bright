@@ -14,6 +14,7 @@
     var _this = this;
     var select2Binded = false;
     var currentData = [];
+    var selectedValueApplied = false;
 
     this.selector = $(selector);
 
@@ -34,7 +35,6 @@
     this.options.fields                    = this.options.fields || {};
     this.options.saveSelection             = this.options.saveSelection || false;
     this.options.saveToSessionStorage      = this.options.saveToSessionStorage || false;
-    this.options.selectedValueField        = this.options.selectedValueField || null;
     this.options.lookup_minimumInputLength = this.options.lookup_minimumInputLength || 0;
 
     if (this.options.skipTranslate) {
@@ -327,10 +327,11 @@
 
           for(var i = 0; i < data.length; i++) {
             s = s + renderRow(data[i]);
-            if (br.isEmpty(_this.options.selectedValue) && !br.isEmpty(_this.options.selectedValueField)) {
+            if (!selectedValueApplied && br.isEmpty(_this.options.selectedValue) && !br.isEmpty(_this.options.selectedValueField)) {
               var selectedValue = data[i][_this.options.selectedValueField];
               if ((br.isBoolean(selectedValue) && selectedValue) || (br.toInt(selectedValue) == 1)) {
                 _this.options.selectedValue = data[i][_this.options.valueField];
+                selectedValueApplied = true;
               }
             }
           }
