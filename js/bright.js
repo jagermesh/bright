@@ -2320,7 +2320,6 @@
     var _this = this;
     var select2Binded = false;
     var currentData = [];
-    var selectedValueApplied = false;
 
     this.selector = $(selector);
 
@@ -2633,11 +2632,10 @@
 
           for(var i = 0; i < data.length; i++) {
             s = s + renderRow(data[i]);
-            if (!selectedValueApplied && br.isEmpty(_this.options.selectedValue) && !br.isEmpty(_this.options.selectedValueField)) {
+            if (br.isEmpty(_this.options.selectedValue) && !br.isEmpty(_this.options.selectedValueField)) {
               var selectedValue = data[i][_this.options.selectedValueField];
               if ((br.isBoolean(selectedValue) && selectedValue) || (br.toInt(selectedValue) == 1)) {
                 _this.options.selectedValue = data[i][_this.options.valueField];
-                selectedValueApplied = true;
               }
             }
           }
