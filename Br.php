@@ -880,6 +880,12 @@ class Br extends BrSingleton {
       }
     }
 
+    if (br($params, 'attachments')) {
+      foreach($params['attachments'] as $attachment) {
+        $mail->AddAttachment($attachment['path'], $attachment['name']);
+      }
+    }
+
     $mail->Subject = $subject;
 
     $mail->Body = $body;
