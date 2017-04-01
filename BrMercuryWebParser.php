@@ -37,7 +37,7 @@ class BrMercuryWebParser extends BrObject {
     $response = $client->request( 'GET'
                                 , 'https://mercury.postlight.com/parser?url=' . urlencode($url)
                                 , array( 'headers' => array( 'x-api-key' => $this->APIKey )
-                                       , 'debug'   => true
+                                       // , 'debug'   => true
                                        )
                                 );
     $this->lastResult = json_decode($response->getBody(), true);
