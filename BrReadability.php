@@ -8,67 +8,42 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrBrowser.php');
+require_once(__DIR__ . '/BrCustomWebParser.php');
 
-class BrReadability extends BrBrowser {
+require_once(dirname(__DIR__) . '/vendor/autoload.php');
 
-  private $token;
-  private $lastResult;
+use andreskrey\Readability\HTMLParser;
 
-  function __construct($tokens) {
+class BrReadability extends BrCustomWebParser {
 
-    $this->tokens = $tokens;
+  function parsePage($page) {
 
-    parent::__construct();
+    $readability = new HTMLParser();
 
-  }
+    $parsed = $readability->parse($page);
 
-  function getLastResult() {
-
-    return $this->lastResult;
-
-  }
-
-  function lastWasError() {
-
-    if ($this->lastResult && br($this->lastResult, 'error')) {
-      return true;
-    }
-
-    return false;
+    return new BrWebParserResult( array( 'title'    => br($parsed, 'title')
+                                       , 'image'    => br($parsed, 'image')
+                                       , 'encoding' => @$parsed['article']->encoding
+                                       , 'content'  => br($parsed, 'html')
+                                       ));
 
   }
 
-  function hourlyLimitReached() {
+  function parseUrl($url) {
 
-    if ($this->lastResult && br(br($this->lastResult, 'messages'))->like('%Exceeded hourly allowance%')) {
-      return true;
-    }
+    $client = new GuzzleHttp\Client();
 
-    return false;
+    $response = $client->request( 'GET'
+                                , $url
+                                , array( 'headers' => array( 'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.98 Safari/537.36'
+                                                           , 'Accept'     => 'application/json, text/plain, */*'
+                                                           )
+                                       , 'debug' => true,
+                                       )
+                                );
 
-  }
-
-  function parse($url) {
-
-    foreach($this->tokens as $token) {
-      try {
-        $this->lastResult = $this->getJSON('http://readability.com/api/content/v1/parser?url=' . urlencode($url) . '&token=' . $token);
-        if (isset($this->lastResult['content'])) {
-          $this->lastResult['content'] = br($this->lastResult['content'])->decodeNumHtmlEntities();
-        }
-        if (isset($this->lastResult['excerpt'])) {
-          $this->lastResult['excerpt'] = html_entity_decode($this->lastResult['excerpt']);
-        }
-        if (isset($this->lastResult['title'])) {
-          $this->lastResult['title'] = html_entity_decode($this->lastResult['title']);
-        }
-      } catch (Exception $e) {
-        $this->lastResult = @json_decode($e->getMessage(), true);
-      }
-    }
-
-    return $this->lastResult;
+    return $this->parsePage((string)$response->getBody());
 
   }
 

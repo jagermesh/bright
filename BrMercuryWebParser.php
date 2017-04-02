@@ -8,40 +8,36 @@
  * @package Bright Core
  */
 
+require_once(__DIR__ . '/BrReadability.php');
+
 require_once(dirname(__DIR__) . '/vendor/autoload.php');
 
-class BrMercuryWebParser extends BrObject {
+class BrMercuryWebParser extends BrReadability {
 
   private $APIKey = 'xbrmv47sxIh8Bf4b0ztAAk4H6tCOayqgW9FmInrH';
-  private $lastResult;
 
-  function getLastResult() {
-
-    return $this->lastResult;
-
-  }
-
-  function lastWasError() {
-
-    if ($this->lastResult && br($this->lastResult, 'error')) {
-      return true;
-    }
-
-    return false;
-
-  }
-
-  function parse($url) {
+  function parseUrl($url) {
 
     $client = new GuzzleHttp\Client();
+
     $response = $client->request( 'GET'
                                 , 'https://mercury.postlight.com/parser?url=' . urlencode($url)
                                 , array( 'headers' => array( 'x-api-key' => $this->APIKey )
                                        )
                                 );
-    $this->lastResult = json_decode($response->getBody(), true);
 
-    return $this->lastResult;
+    $rsponseBody = (string)$response->getBody();
+    $parsed = @json_decode($rsponseBody, true);
+
+    if ($parsed && (strlen(br($parsed, 'content')) > 256)) {
+      return new BrWebParserResult( array( 'title'    => br($parsed, 'title')
+                                         , 'image'    => br($parsed, 'lead_image_url')
+                                         , 'encoding' => 'utf-8'
+                                         , 'content'  => $parsed['content']
+                                         ));
+    } else {
+      return parent::parseUrl($url);
+    }
 
   }
 
