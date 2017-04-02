@@ -25,6 +25,8 @@ class BrReadability extends BrCustomWebParser {
     return new BrWebParserResult( array( 'title'    => br($parsed, 'title')
                                        , 'image'    => br($parsed, 'image')
                                        , 'encoding' => @$parsed['article']->encoding
+                                       , 'author'   => br($parsed, 'author')
+                                       , 'excerpt'  => br($parsed, 'excerpt')
                                        , 'content'  => br($parsed, 'html')
                                        ));
 
@@ -39,7 +41,7 @@ class BrReadability extends BrCustomWebParser {
                                 , array( 'headers' => array( 'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.98 Safari/537.36'
                                                            , 'Accept'     => 'application/json, text/plain, */*'
                                                            )
-                                       , 'debug' => true,
+                                       // , 'debug' => true,
                                        )
                                 );
 

@@ -33,6 +33,8 @@ class BrMercuryWebParser extends BrReadability {
       return new BrWebParserResult( array( 'title'    => br($parsed, 'title')
                                          , 'image'    => br($parsed, 'lead_image_url')
                                          , 'encoding' => 'utf-8'
+                                         , 'author'   => br($parsed, 'author')
+                                         , 'excerpt'  => br($parsed, 'excerpt')
                                          , 'content'  => $parsed['content']
                                          ));
     } else {

@@ -36,6 +36,18 @@ class BrWebParserResult extends BrObject {
 
   }
 
+  function getAuthor() {
+
+    return $this->getAttr('author');
+
+  }
+
+  function getExcerpt() {
+
+    return $this->getAttr('excerpt');
+
+  }
+
   function getEncoding() {
 
     return $this->getAttr('encoding', 'utf-8');
