@@ -26,8 +26,8 @@ class BrMercuryWebParser extends BrReadability {
                                        )
                                 );
 
-    $rsponseBody = (string)$response->getBody();
-    $parsed = @json_decode($rsponseBody, true);
+    $responseBody = (string)$response->getBody();
+    $parsed = @json_decode($responseBody, true);
 
     if ($parsed && (strlen(br($parsed, 'content')) > 256)) {
       return new BrWebParserResult( array( 'title'    => br($parsed, 'title')

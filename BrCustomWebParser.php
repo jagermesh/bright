@@ -10,7 +10,7 @@
 
 class BrWebParserResult extends BrObject {
 
-  function __construct($struct) {
+  function __construct($struct = array()) {
 
     parent::__construct();
 
