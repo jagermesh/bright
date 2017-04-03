@@ -120,12 +120,12 @@ class BrWebParserResult extends BrObject {
         pq($img)->removeAttr('style');
         pq($img)->attr('width', '');
         pq($img)->attr('max-width', '100%');
-        if ($src = pq($iframe)->attr('src')) {
+        if ($src = pq($img)->attr('src')) {
           if (preg_match('~^[/][/]~', $src)) {
             $src = 'http://' . $src;
           }
           if (!preg_match('~^http[s]?:[/][/]~', $src)) {
-            pq($iframe)->remove();
+            pq($img)->remove();
           }
         }
       }
