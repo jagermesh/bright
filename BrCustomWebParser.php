@@ -13,7 +13,7 @@ class BrWebParserResult extends BrObject {
   private $page;
 
   private $styles = 'body { font-family: "Helvetica Neue",Helvetica,Arial,sans-serif  !important; }'
-                  . 'img { width: 100% !important; }'
+                  . 'img { max-width: 100% !important; }'
                   . 'p { font-size: 16px !important; font-family: "Helvetica Neue",Helvetica,Arial,sans-serif  !important; }'
                   . 'figcaption { font-size: 14px !important; color: #666 !important; font-family: "Helvetica Neue",Helvetica,Arial,sans-serif !important; }'
                   . 'h1 { font-size: 24px !important; font-weight: 300  !important; font-family: "Helvetica Neue",Helvetica,Arial,sans-serif !important; }'
@@ -127,6 +127,8 @@ class BrWebParserResult extends BrObject {
           if (!preg_match('~^http[s]?:[/][/]~', $src)) {
             pq($img)->remove();
           }
+        } else {
+          pq($img)->remove();
         }
       }
       phpQuery::unloadDocuments();
