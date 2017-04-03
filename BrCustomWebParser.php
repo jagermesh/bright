@@ -82,6 +82,21 @@ class BrWebParserResult extends BrObject {
 
   }
 
+  function cleanuUpStyles($s) {
+
+    $inStyles  = br($s)->split(';');
+    $outStyles = [];
+    for ($i = 0; $i < count($inStyles); $i++) {
+      $inStyles[$i] = trim($inStyles[$i]);
+      if (!preg_match('/^background/i', $inStyles[$i])) {
+        $outStyles[] = $inStyles[$i];
+      }
+    }
+
+    return br($outStyles)->join(';');
+
+  }
+
   function getPage() {
 
     if (!$this->page) {
@@ -121,8 +136,17 @@ class BrWebParserResult extends BrObject {
           pq($element)->remove();
         }
       }
-      foreach ($doc->find('link,script') as $element) {
+      foreach ($doc->find('link,script,svg') as $element) {
         pq($element)->remove();
+      }
+      foreach ($doc->find('hr') as $element) {
+        pq($element)->attr('size', 1);
+      }
+      foreach ($doc->find('div') as $element) {
+        if ($style = pq($element)->attr('style')) {
+          $style = $this->cleanuUpStyles($style);
+          pq($element)->attr('style', $style);
+        }
       }
       foreach ($doc->find('img') as $element) {
         pq($element)->removeAttr('style');
