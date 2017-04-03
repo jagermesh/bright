@@ -16,7 +16,7 @@ use andreskrey\Readability\HTMLParser;
 
 class BrReadability extends BrCustomWebParser {
 
-  function parsePage($page) {
+  function parsePage($page, $url = null) {
 
     $readability = new HTMLParser();
 
@@ -29,6 +29,7 @@ class BrReadability extends BrCustomWebParser {
                                            , 'author'   => br($parsed, 'author')
                                            , 'excerpt'  => br($parsed, 'excerpt')
                                            , 'content'  => br($parsed, 'html')
+                                           , 'url'      => $url
                                            ));
       } else {
         throw new BrAppException('Can not parse page');
@@ -89,7 +90,7 @@ class BrReadability extends BrCustomWebParser {
     //                                    )
     //                             );
     if ($responseBody = (string)$response->getBody()) {
-      return $this->parsePage((string)$response->getBody());
+      return $this->parsePage((string)$response->getBody(), $url);
     } else {
       throw new BrAppException('Can not parse page at ' . $url);
     }

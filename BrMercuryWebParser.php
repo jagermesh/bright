@@ -36,6 +36,7 @@ class BrMercuryWebParser extends BrReadability {
                                          , 'author'   => br($parsed, 'author')
                                          , 'excerpt'  => br($parsed, 'excerpt')
                                          , 'content'  => $parsed['content']
+                                         , 'url'      => $url
                                          ));
     } else {
       return parent::parseUrl($url);

@@ -42,6 +42,12 @@ class BrWebParserResult extends BrObject {
 
   }
 
+  function getUrl() {
+
+    return $this->getAttr('url');
+
+  }
+
   function getExcerpt() {
 
     return $this->getAttr('excerpt');
@@ -56,9 +62,13 @@ class BrWebParserResult extends BrObject {
 
   function getPage() {
 
-    $result  = '<html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html; charset=' . $this->getEncoding() . '" /><body>';
+    $result  = '<html xmlns="http://www.w3.org/1999/xhtml" lang="ru">';
+    $result .= '<head><meta http-equiv="Content-Type" content="text/html; charset=' . $this->getEncoding() . '" />';
+    $result .= '<body>';
+    $result .= '<h1><a href="' . $this->getUrl() . '" target="_blank">' . $this->getContent() . '</a><h1>';
     $result .= $this->getContent();
-    $result .= '</body></html>';
+    $result .= '</body>';
+    $result .= '</html>';
 
     return $result;
 
@@ -68,7 +78,7 @@ class BrWebParserResult extends BrObject {
 
 class BrCustomWebParser extends BrObject {
 
-  function parsePage($page) { }
+  function parsePage($page, $url = null) { }
   function parseUrl($url) { }
 
 }
