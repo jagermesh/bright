@@ -106,29 +106,35 @@ class BrWebParserResult extends BrObject {
       require_once(dirname(__DIR__) . '/3rdparty/phpQuery/phpQuery.php');
 
       $doc = phpQuery::newDocument($this->page);
-      foreach ($doc->find('iframe') as $iframe) {
-        if ($src = pq($iframe)->attr('src')) {
+      foreach ($doc->find('iframe') as $element) {
+        // pq($element)->attr('width', '');
+        pq($element)->attr('max-width', '100%');
+        if ($src = pq($element)->attr('src')) {
           if (preg_match('~^[/][/]~', $src)) {
             $src = 'http://' . $src;
           }
-          pq($iframe)->attr('width', '');
-          pq($iframe)->attr('max-width', '100%');
-          pq($iframe)->attr('src', $src);
-        }
-      }
-      foreach ($doc->find('img') as $img) {
-        pq($img)->removeAttr('style');
-        pq($img)->attr('width', '');
-        pq($img)->attr('max-width', '100%');
-        if ($src = pq($img)->attr('src')) {
-          if (preg_match('~^[/][/]~', $src)) {
-            $src = 'http://' . $src;
-          }
+          pq($element)->attr('src', $src);
           if (!preg_match('~^http[s]?:[/][/]~', $src)) {
-            pq($img)->remove();
+            pq($element)->remove();
           }
         } else {
-          pq($img)->remove();
+          pq($element)->remove();
+        }
+      }
+      foreach ($doc->find('img') as $element) {
+        pq($element)->removeAttr('style');
+        pq($element)->attr('width', '');
+        pq($element)->attr('max-width', '100%');
+        if ($src = pq($element)->attr('src')) {
+          if (preg_match('~^[/][/]~', $src)) {
+            $src = 'http://' . $src;
+          }
+          pq($element)->attr('src', $src);
+          if (!preg_match('~^http[s]?:[/][/]~', $src)) {
+            pq($element)->remove();
+          }
+        } else {
+          pq($element)->remove();
         }
       }
       phpQuery::unloadDocuments();
