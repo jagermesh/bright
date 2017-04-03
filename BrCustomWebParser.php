@@ -111,13 +111,15 @@ class BrWebParserResult extends BrObject {
           if (preg_match('~^[/][/]~', $src)) {
             $src = 'http://' . $src;
           }
-          pq($iframe)->attr('width', '100%');
+          pq($iframe)->attr('width', '');
+          pq($iframe)->attr('max-width', '100%');
           pq($iframe)->attr('src', $src);
         }
       }
       foreach ($doc->find('img') as $img) {
         pq($img)->removeAttr('style');
-        pq($img)->attr('width', '100%');
+        pq($img)->attr('width', '');
+        pq($img)->attr('max-width', '100%');
         if ($src = pq($iframe)->attr('src')) {
           if (preg_match('~^[/][/]~', $src)) {
             $src = 'http://' . $src;
