@@ -20,7 +20,7 @@ class BrWebParserResult extends BrObject {
 
   function getTitle() {
 
-    return $this->getAttr('title');
+    return $this->getAttr('title') ? $this->getAttr('title') : $this->getUrl();
 
   }
 
