@@ -121,6 +121,9 @@ class BrWebParserResult extends BrObject {
           pq($element)->remove();
         }
       }
+      foreach ($doc->find('link,script') as $element) {
+        pq($element)->remove();
+      }
       foreach ($doc->find('img') as $element) {
         pq($element)->removeAttr('style');
         pq($element)->attr('width', '');
