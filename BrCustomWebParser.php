@@ -10,11 +10,27 @@
 
 class BrWebParserResult extends BrObject {
 
+  private $page;
+
+  private $styles = 'body { font-family: "Helvetica Neue",Helvetica,Arial,sans-serif  !important; }'
+                  . 'img { width: 100% !important; }'
+                  . 'p { font-size: 16px !important; font-family: "Helvetica Neue",Helvetica,Arial,sans-serif  !important; }'
+                  . 'figcaption { font-size: 14px !important; color: #666 !important; font-family: "Helvetica Neue",Helvetica,Arial,sans-serif !important; }'
+                  . 'h1 { font-size: 24px !important; font-weight: 300  !important; font-family: "Helvetica Neue",Helvetica,Arial,sans-serif !important; }'
+                  . 'h2 { font-size: 20px !important; font-weight: 300  !important; font-family: "Helvetica Neue",Helvetica,Arial,sans-serif !important; }'
+                  . 'h3 { font-size: 18px !important; font-weight: 300  !important; font-family: "Helvetica Neue",Helvetica,Arial,sans-serif !important; }'
+                  . 'h1 a { text-decoration: none !important; }'
+                  ;
+
   function __construct($struct = array()) {
 
     parent::__construct();
 
     $this->setAttributes($struct);
+
+    if (array_key_exists('content', $struct)) {
+
+    }
 
   }
 
@@ -68,22 +84,46 @@ class BrWebParserResult extends BrObject {
 
   function getPage() {
 
-    $result  = '<html xmlns="http://www.w3.org/1999/xhtml" lang="ru">';
-    $result .= '<head>';
-    $result .= '<meta http-equiv="Content-Type" content="text/html; charset=' . $this->getEncoding() . '" />';
-    $result .= '<style>';
-    $result .= '  img { width: 100%; }';
-    $result .= '</style>';
-    $result .= '</head>';
-    $result .= '<body>';
-    $result .= '<h1>';
-    $result .= $this->getLink();
-    $result .= '</h1>';
-    $result .= $this->getContent();
-    $result .= '</body>';
-    $result .= '</html>';
+    if (!$this->page) {
+      $this->page  = '<html xmlns="http://www.w3.org/1999/xhtml" lang="ru">';
+      $this->page .= '<head>';
+      $this->page .= '<meta http-equiv="Content-Type" content="text/html; charset=' . $this->getEncoding() . '" />';
+      $this->page .= '<style>';
+      $this->page .= $this->styles;
+      $this->page .= '</style>';
+      $this->page .= '</head>';
+      $this->page .= '<body>';
+      $this->page .= '<h1>';
+      $this->page .= $this->getLink();
+      $this->page .= '</h1>';
+      if ($this->getContent()) {
+        $this->page .= '<hr size="1" />';
+        $this->page .= $this->getContent();
+      }
+      $this->page .= '</body>';
+      $this->page .= '</html>';
 
-    return $result;
+      require_once(dirname(__DIR__) . '/3rdparty/phpQuery/phpQuery.php');
+
+      $doc = phpQuery::newDocument($this->page);
+      foreach ($doc->find('iframe') as $iframe) {
+        if ($src = pq($iframe)->attr('src')) {
+          if (preg_match('~^[/][/]~', $src)) {
+            $src = 'http://' . $src;
+          }
+          pq($iframe)->attr('width', '100%');
+          pq($iframe)->attr('src', $src);
+        }
+      }
+      foreach ($doc->find('img') as $img) {
+        pq($img)->removeAttr('style');
+        pq($img)->attr('width', '100%');
+      }
+      phpQuery::unloadDocuments();
+      $this->page = $doc->html();
+    }
+
+    return $this->page;
 
   }
 
