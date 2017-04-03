@@ -118,7 +118,7 @@ class BrWebParserResult extends BrObject {
       $this->page .= '</body>';
       $this->page .= '</html>';
 
-      require_once(dirname(__DIR__) . '/3rdparty/phpQuery/phpQuery.php');
+      require_once(__DIR__ . '/3rdparty/phpQuery/phpQuery.php');
 
       $doc = phpQuery::newDocument($this->page);
       foreach ($doc->find('iframe') as $element) {
