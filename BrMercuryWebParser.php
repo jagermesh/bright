@@ -20,26 +20,30 @@ class BrMercuryWebParser extends BrReadability {
 
     $client = new GuzzleHttp\Client();
 
-    $response = $client->request( 'GET'
-                                , 'https://mercury.postlight.com/parser?url=' . urlencode($url)
-                                , array( 'headers' => array( 'x-api-key' => $this->APIKey )
-                                       )
-                                );
+    try {
+      $response = $client->request( 'GET'
+                                  , 'https://mercury.postlight.com/parser?url=' . urlencode($url)
+                                  , array( 'headers' => array( 'x-api-key' => $this->APIKey )
+                                         )
+                                  );
 
-    $responseBody = (string)$response->getBody();
-    $parsed = @json_decode($responseBody, true);
+      $responseBody = (string)$response->getBody();
+      $parsed = @json_decode($responseBody, true);
 
-    if ($parsed && (strlen(br($parsed, 'content')) > 256)) {
-      return new BrWebParserResult( array( 'title'    => br($parsed, 'title')
-                                         , 'image'    => br($parsed, 'lead_image_url')
-                                         , 'encoding' => 'utf-8'
-                                         , 'author'   => br($parsed, 'author')
-                                         , 'excerpt'  => br($parsed, 'excerpt')
-                                         , 'content'  => $parsed['content']
-                                         , 'url'      => $url
-                                         ));
-    } else {
-      return parent::parseUrl($url);
+      if ($parsed && (strlen(br($parsed, 'content')) > 256)) {
+        return new BrWebParserResult( array( 'title'    => br($parsed, 'title')
+                                           , 'image'    => br($parsed, 'lead_image_url')
+                                           , 'encoding' => 'utf-8'
+                                           , 'author'   => br($parsed, 'author')
+                                           , 'excerpt'  => br($parsed, 'excerpt')
+                                           , 'content'  => $parsed['content']
+                                           , 'url'      => $url
+                                           ));
+      } else {
+        return parent::parseUrl($url);
+      }
+    } catch (Exception $e) {
+      return $this->returnDefaultResult($url);
     }
 
   }

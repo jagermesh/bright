@@ -86,7 +86,25 @@ class BrWebParserResult extends BrObject {
 
 class BrCustomWebParser extends BrObject {
 
-  function parsePage($page, $url = null) { }
-  function parseUrl($url) { }
+  function parsePage($page, $url = null) {
+
+  }
+
+  function parseUrl($url) {
+
+  }
+
+  function returnDefaultResult($url = null) {
+
+    return new BrWebParserResult( array( 'title'    => $url
+                                       , 'image'    => null
+                                       , 'encoding' => 'utf-8'
+                                       , 'author'   => null
+                                       , 'excerpt'  => null
+                                       , 'content'  => null
+                                       , 'url'      => $url
+                                       ));
+
+  }
 
 }
