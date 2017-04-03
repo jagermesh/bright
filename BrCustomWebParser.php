@@ -69,7 +69,12 @@ class BrWebParserResult extends BrObject {
   function getPage() {
 
     $result  = '<html xmlns="http://www.w3.org/1999/xhtml" lang="ru">';
-    $result .= '<head><meta http-equiv="Content-Type" content="text/html; charset=' . $this->getEncoding() . '" />';
+    $result .= '<head>';
+    $result .= '<meta http-equiv="Content-Type" content="text/html; charset=' . $this->getEncoding() . '" />';
+    $result .= '<style>';
+    $result .= '  img { width: 100%; }';
+    $result .= '</style>';
+    $result .= '</head>';
     $result .= '<body>';
     $result .= '<h1>';
     $result .= $this->getLink();
