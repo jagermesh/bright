@@ -118,6 +118,14 @@ class BrWebParserResult extends BrObject {
       foreach ($doc->find('img') as $img) {
         pq($img)->removeAttr('style');
         pq($img)->attr('width', '100%');
+        if ($src = pq($iframe)->attr('src')) {
+          if (preg_match('~^[/][/]~', $src)) {
+            $src = 'http://' . $src;
+          }
+          if (!preg_match('~^http[s]?:[/][/]~', $src)) {
+            pq($iframe)->remove();
+          }
+        }
       }
       phpQuery::unloadDocuments();
       $this->page = $doc->html();
