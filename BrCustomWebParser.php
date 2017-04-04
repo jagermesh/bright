@@ -52,6 +52,12 @@ class BrWebParserResult extends BrObject {
 
   }
 
+  function getHtml() {
+
+    return $this->getAttr('html');
+
+  }
+
   function getAuthor() {
 
     return $this->getAttr('author');
@@ -184,7 +190,7 @@ class BrCustomWebParser extends BrObject {
 
   }
 
-  function returnDefaultResult($url = null) {
+  function returnDefaultResult($page, $url = null) {
 
     return new BrWebParserResult( array( 'title'    => $url
                                        , 'image'    => null
@@ -193,6 +199,7 @@ class BrCustomWebParser extends BrObject {
                                        , 'excerpt'  => null
                                        , 'content'  => null
                                        , 'url'      => $url
+                                       , 'html'     => $page
                                        ));
 
   }

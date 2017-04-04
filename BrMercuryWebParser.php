@@ -30,7 +30,7 @@ class BrMercuryWebParser extends BrReadability {
       $responseBody = (string)$response->getBody();
       $parsed = @json_decode($responseBody, true);
 
-      if ($parsed && (strlen(br($parsed, 'content')) > 256)) {
+      if ($parsed) {
         return new BrWebParserResult( array( 'title'    => br($parsed, 'title')
                                            , 'image'    => br($parsed, 'lead_image_url')
                                            , 'encoding' => 'utf-8'
@@ -38,12 +38,13 @@ class BrMercuryWebParser extends BrReadability {
                                            , 'excerpt'  => br($parsed, 'excerpt')
                                            , 'content'  => $parsed['content']
                                            , 'url'      => $url
+                                           , 'html'     => $parsed['content']
                                            ));
       } else {
         return parent::parseUrl($url);
       }
     } catch (Exception $e) {
-      return $this->returnDefaultResult($url);
+      return $this->returnDefaultResult('', $url);
     }
 
   }

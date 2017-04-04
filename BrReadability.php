@@ -29,9 +29,10 @@ class BrReadability extends BrCustomWebParser {
                                          , 'excerpt'  => br($parsed, 'excerpt')
                                          , 'content'  => br($parsed, 'html')
                                          , 'url'      => $url
+                                         , 'html'     => $page
                                          ));
     } catch (Exception $e) {
-      return $this->returnDefaultResult($url);
+      return $this->returnDefaultResult($page, $url);
     }
 
   }
@@ -51,12 +52,12 @@ class BrReadability extends BrCustomWebParser {
                                          )
                                   );
       if ($responseBody = (string)$response->getBody()) {
-        return $this->parsePage((string)$response->getBody(), $url);
+        return $this->parsePage($responseBody, $url);
       } else {
-        return $this->returnDefaultResult($url);
+        return $this->returnDefaultResult($responseBody, $url);
       }
     } catch (Exception $e) {
-      return $this->returnDefaultResult($url);
+      return $this->returnDefaultResult('', $url);
     }
 
   }
