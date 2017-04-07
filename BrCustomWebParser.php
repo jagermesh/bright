@@ -170,8 +170,8 @@ class BrWebParserResult extends BrObject {
           pq($element)->remove();
         }
       }
-      phpQuery::unloadDocuments();
       $this->page = $doc->html();
+      phpQuery::unloadDocuments();
     }
 
     return $this->page;
