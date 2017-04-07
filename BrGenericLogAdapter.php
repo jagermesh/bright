@@ -67,6 +67,7 @@ class BrGenericLogAdapter extends BrObject {
         $requestData = '';
         if ($data = br()->request()->get()) {
           unset($data['password']);
+          unset($data['plainPassword']);
           $requestData = @json_encode($data);
           if ($requestData) {
             if (strlen($requestData) > 1023*16) {
@@ -77,6 +78,7 @@ class BrGenericLogAdapter extends BrObject {
         }
         if ($data = br()->request()->post()) {
           unset($data['password']);
+          unset($data['plainPassword']);
           $requestData = @json_encode($data);
           if ($requestData) {
             if (strlen($requestData) > 1023*16) {
@@ -87,6 +89,7 @@ class BrGenericLogAdapter extends BrObject {
         } else
         if ($data = br()->request()->put()) {
           unset($data['password']);
+          unset($data['plainPassword']);
           $requestData = @json_encode($data);
           if ($requestData) {
             if (strlen($requestData) > 1023*16) {
