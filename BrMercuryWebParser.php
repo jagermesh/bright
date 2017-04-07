@@ -36,7 +36,7 @@ class BrMercuryWebParser extends BrReadability {
                                            , 'encoding' => 'utf-8'
                                            , 'author'   => br($parsed, 'author')
                                            , 'excerpt'  => br($parsed, 'excerpt')
-                                           , 'content'  => $parsed['content']
+                                           , 'content'  => br($parsed, 'content')
                                            , 'url'      => $url
                                            , 'html'     => $parsed['content']
                                            ));
