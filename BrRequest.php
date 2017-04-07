@@ -91,19 +91,21 @@ class BrRequest extends BrSingleton {
       $this->scriptName = $scriptName;
 
       $this->rawInput = file_get_contents("php://input");
+
       if ($json = @json_decode($this->rawInput, true)) {
         $this->putVars = $json;
       } else {
         parse_str($this->rawInput, $this->putVars);
       }
-      if ($this->putVars) {
-        if (get_magic_quotes_gpc()) {
-          br()->stripSlashes($this->putVars);
-        }
-      }
 
       if (!$_POST) {
         $_POST = $this->putVars;
+      }
+
+      foreach($this->putVars as $name => $value) {
+        if (!array_key_exists($name, $_POST)) {
+          $_POST[$name] = $value;
+        }
       }
 
       $this->clientIP = br($_SERVER, 'HTTP_CLIENT_IP');
@@ -492,7 +494,7 @@ class BrRequest extends BrSingleton {
 
   function param($name, $default = null) {
 
-    return $this->get($name, $this->post($name, $default));
+    return $this->get($name, $this->post($name, $this->put($name, $default)));
 
   }
 

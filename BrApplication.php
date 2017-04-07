@@ -35,7 +35,7 @@ class BrApplication extends BrSingleton {
           })
     ;
 
-    if ($token = br()->request()->get('__loginToken', br()->request()->post('__loginToken'))) {
+    if ($token = br()->request()->param('__loginToken')) {
       br()->auth()->clearLogin();
     }
 
