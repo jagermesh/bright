@@ -8,13 +8,7 @@
  * @package Bright Core
  */
 
-require_once(br()->atFrameworkPath('3rdparty/mustache/Mustache.php'));
-
-// require_once(br()->atFrameworkPath('3rdparty/mustache/php/bobthecow/src/Mustache/Autoloader.php'));
-// Mustache_Autoloader::register();
-
-// require_once(br()->atFrameworkPath('3rdparty/handlebars/php/xamin/src/Handlebars/Autoloader.php'));
-// Handlebars\Autoloader::register();
+require_once(__DIR__ . '/3rdparty/mustache/php/Mustache.php');
 
 class BrGenericRenderer extends BrObject {
 

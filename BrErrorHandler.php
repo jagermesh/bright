@@ -45,6 +45,10 @@ class BrErrorHandler extends BrObject {
         // echo('E_NOTICE: '.E_NOTICE.'<br />');
         // echo('error_reporting(): '.error_reporting().'<br />');
 
+        if (br()->request()->isDevHost()) {
+          ini_set('display_errors', true);
+        }
+
         switch ($errno) {
           case E_ERROR:
           case E_USER_ERROR:
