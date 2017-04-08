@@ -3,8 +3,8 @@
 use Aws\Sqs\SqsClient;
 use Aws\S3\S3Client;
 
-require_once(__DIR__.'/BrObject.php');
-require_once(__DIR__.'/BrException.php');
+require_once(__DIR__ . '/BrObject.php');
+require_once(__DIR__ . '/BrException.php');
 
 class BrAWS extends BrObject {
 
