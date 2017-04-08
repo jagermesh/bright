@@ -10,8 +10,6 @@
 
 require_once(__DIR__ . '/BrReadability.php');
 
-require_once(dirname(__DIR__) . '/vendor/autoload.php');
-
 class BrMercuryWebParser extends BrReadability {
 
   private $APIKey = 'xbrmv47sxIh8Bf4b0ztAAk4H6tCOayqgW9FmInrH';

@@ -13,7 +13,6 @@ require_once(__DIR__ . '/BrCustomWebParser.php');
 if (file_exists(dirname(__DIR__) . '/3rdparty/Readability/Readability.php')) {
   require_once(dirname(__DIR__) . '/3rdparty/Readability/Readability.php');
 }
-require_once(dirname(__DIR__) . '/vendor/autoload.php');
 
 use andreskrey\Readability\HTMLParser;
 

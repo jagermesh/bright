@@ -1,7 +1,5 @@
 <?php
 
-require_once(dirname(__DIR__) . '/vendor/autoload.php');
-
 use Aws\Sqs\SqsClient;
 use Aws\S3\S3Client;
 

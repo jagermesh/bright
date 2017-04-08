@@ -807,18 +807,7 @@ class Br extends BrSingleton {
 
   }
 
-  function composerAutoload() {
-
-    if (file_exists(dirname(__DIR__) . '/vendor/autoload.php')) {
-      require_once dirname(__DIR__) . '/vendor/autoload.php';
-    }
-
-
-  }
-
   function sendMail($emails, $subject, $body, $params = array(), $callback = null) {
-
-    $this->composerAutoload();
 
     if (!class_exists('PHPMailer')) {
       require_once(__DIR__ . '/3rdparty/phpmailer/class.phpmailer.php');
