@@ -202,11 +202,11 @@
       if (row.length > 0) {
         var tableRow = _this.renderRow(data);
         if (tableRow) {
+          tableRow.data('data-row', data);
           _this.events.triggerBefore('update', data);
-          var $row0 = $(row[0]);
-          _this.events.trigger('update', data, $row0);
-          $row0.replaceWith(tableRow);
-          $row0.data('data-row', data);
+          _this.events.trigger('update', data, row);
+          $(row[row.length-1]).after(tableRow);
+          row.remove();
           _this.events.triggerAfter('renderRow', data, tableRow);
           _this.events.triggerAfter('update', data, tableRow);
           return true;
