@@ -345,7 +345,9 @@ class BrDataSource extends BrGenericDataSource {
     $result = $this->callEvent('insert', $row, $transientData, $old, $options);
     if (is_null($result)) {
       try {
-        br()->db()->startTransaction();
+        if ($this->transactionalDML()) {
+          br()->db()->startTransaction();
+        }
         if ($row) {
           $table = br()->db()->table($this->dbEntity());
           if (br($options, 'dataTypes')) {
@@ -357,7 +359,9 @@ class BrDataSource extends BrGenericDataSource {
           $this->callEvent('after:insert', $result, $transientData, $old, $options);
           $result['rowid'] = br()->db()->rowidValue($result);
           $this->callEvent('calcFields', $result, $transientData, $options);
-          br()->db()->commitTransaction();
+          if ($this->transactionalDML()) {
+            br()->db()->commitTransaction();
+          }
         } else {
           throw new BrDBException('Empty insert request');
         }
@@ -366,7 +370,9 @@ class BrDataSource extends BrGenericDataSource {
         usleep(250000);
         return $this->insert($rowParam, $transientData, $optionsParam, $iteration + 1, $e->getMessage());
       } catch (Exception $e) {
-        br()->db()->rollbackTransaction();
+        if ($this->transactionalDML()) {
+          br()->db()->rollbackTransaction();
+        }
         $operation = 'insert';
         $error = $e->getMessage();
         $result = $this->trigger('error', $error, $operation, $e, $row);
@@ -409,7 +415,9 @@ class BrDataSource extends BrGenericDataSource {
 
     if ($crow = $table->findOne($filter)) {
       try {
-        br()->db()->startTransaction();
+        if ($this->transactionalDML()) {
+          br()->db()->startTransaction();
+        }
 
         $old = $crow;
         foreach($row as $name => $value) {
@@ -433,13 +441,17 @@ class BrDataSource extends BrGenericDataSource {
           $this->callEvent('calcFields', $result, $transientData, $options);
         }
 
-        br()->db()->commitTransaction();
+        if ($this->transactionalDML()) {
+          br()->db()->commitTransaction();
+        }
       } catch (BrDBRecoverableException $e) {
         br()->log('Repeating update... (' . $iteration . ') because of ' . $e->getMessage());
         usleep(250000);
         return $this->update($rowid, $rowParam, $transientData, $optionsParam, $iteration + 1, $e->getMessage());
       } catch (Exception $e) {
-        br()->db()->rollbackTransaction();
+        if ($this->transactionalDML()) {
+          br()->db()->rollbackTransaction();
+        }
         $operation = 'update';
         $error = $e->getMessage();
         $result = $this->trigger('error', $error, $operation, $e, $crow);
@@ -483,7 +495,9 @@ class BrDataSource extends BrGenericDataSource {
     if ($crow = $table->findOne($filter)) {
       try {
         try {
-          br()->db()->startTransaction();
+          if ($this->transactionalDML()) {
+            br()->db()->startTransaction();
+          }
 
           $this->callEvent('before:remove', $crow, $transientData, $options);
 
@@ -497,7 +511,9 @@ class BrDataSource extends BrGenericDataSource {
             $result['rowid'] = br()->db()->rowidValue($result);
             $this->callEvent('calcFields', $result, $transientData, $options);
           }
-          br()->db()->commitTransaction();
+          if ($this->transactionalDML()) {
+            br()->db()->commitTransaction();
+          }
         } catch (BrDBRecoverableException $e) {
           br()->log('Repeating remove... (' . $iteration . ') because of ' . $e->getMessage());
           usleep(250000);
@@ -511,7 +527,9 @@ class BrDataSource extends BrGenericDataSource {
           }
         }
       } catch (Exception $e) {
-        br()->db()->rollbackTransaction();
+        if ($this->transactionalDML()) {
+          br()->db()->rollbackTransaction();
+        }
         $operation = 'remove';
         $error = $e->getMessage();
         $this->trigger('error', $error, $operation, $e, $crow);

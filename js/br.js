@@ -114,6 +114,41 @@
     document.location.reload();
   };
 
+  window.br.processArray = function(array, processRowCallback, processCompleteCallback, params) {
+
+    function processQueued(processRowCallback, processCompleteCallback, params) {
+
+      if (array.length > 0) {
+        var rowid = array.shift();
+        processRowCallback(rowid, function() {
+          if (params.showProgress) {
+            br.stepProgress();
+          }
+          processQueued(processRowCallback, processCompleteCallback, params);
+        });
+      } else {
+        if (params.showProgress) {
+          br.hideProgress();
+        }
+        if (processCompleteCallback) {
+          processCompleteCallback();
+        }
+      }
+
+    }
+
+    params = params || {};
+    if (array.length > 0) {
+      if (params.showProgress) {
+        br.startProgress(array.length, params.title || '');
+      }
+      processQueued(processRowCallback, processCompleteCallback, params);
+    } else {
+      br.growlError('Please select at least one record');
+    }
+
+  };
+
   function BrTrn() {
     var trn = [];
     this.get = function (phrase) { if (trn[phrase]) { return trn[phrase]; } else { return phrase; } };

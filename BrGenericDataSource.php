@@ -99,6 +99,8 @@ class BrGenericDataSource extends BrObject {
   protected $rowidFieldName        = null;
   protected $rerunIterations       = 20;
 
+  private $__transactionalDML      = true;
+
   function __construct($options = array()) {
 
     $this->defaultOrder          = br($options, 'defaultOrder');
@@ -108,6 +110,16 @@ class BrGenericDataSource extends BrObject {
     $this->selectAdjancedRecords = br($options, 'selectAdjancedRecords');
     $this->rowidFieldName        = br($options, 'rowidFieldName');
     $this->lastSelectAmount      = 0;
+
+  }
+
+  function transactionalDML($value = null) {
+
+    if ($value !== null) {
+      $this->__transactionalDML = $value;
+    }
+
+    return $this->__transactionalDML;
 
   }
 
@@ -327,14 +339,18 @@ class BrGenericDataSource extends BrObject {
         } else {
           try {
             if (br()->db()) {
-              br()->db()->startTransaction();
+              if ($this->transactionalDML()) {
+                br()->db()->startTransaction();
+              }
             }
             $this->callEvent('before:' . $method, $params, $transientData);
             $data = $this->callEvent($method, $params, $transientData);
             $result = true;
             $this->callEvent('after:' . $method, $result, $data, $params, $transientData);
             if (br()->db()) {
-              br()->db()->commitTransaction();
+              if ($this->transactionalDML()) {
+                br()->db()->commitTransaction();
+              }
             }
             return $data;
           } catch (BrDBRecoverableException $e) {
@@ -344,7 +360,9 @@ class BrGenericDataSource extends BrObject {
           } catch (Exception $e) {
             try {
               if (br()->db()) {
-                br()->db()->rollbackTransaction();
+                if ($this->transactionalDML()) {
+                  br()->db()->rollbackTransaction();
+                }
               }
             } catch (Exception $e2) {
 

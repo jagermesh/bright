@@ -148,8 +148,11 @@
       }
       options = options || { };
       options.disableEvents = true;
-      _this.dataSource.selectOne(rowid, function(result, response) {
-        if (result) {
+      _this.dataSource.select({ rowid: rowid }, function(result, response) {
+        if (!result || (response.length === 0)) {
+          _this.refresh(callback);
+        } else {
+          response = response[0];
           if (_this.refreshRow(response, options)) {
 
           } else {
