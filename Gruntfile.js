@@ -13,6 +13,7 @@ module.exports = function(grunt) {
              , 'js/br.eventQueue.js'
              , 'js/br.request.js'
              , 'js/br.thread.js'
+             , 'js/br.profiler.js'
              , 'js/br.js'
              , 'js/br.flagsHolder.js'
              , 'js/br.dataSource.js'

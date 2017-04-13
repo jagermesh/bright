@@ -8,6 +8,8 @@
  */
 
 /* global console */
+/* global ArrayBuffer */
+/* global Uint32Array */
 
 ;(function ($, window) {
 
@@ -514,5 +516,72 @@
     "lazyload",d.setAttribute("charset","utf-8"),b.ie&&!o?d.onreadystatechange=function(){if(/loaded|complete/.test(d.readyState))d.onreadystatechange=null,i()}:o&&(b.gecko||b.webkit)?b.webkit?(q.urls[f]=d.href,s()):(d.innerHTML='@import "'+g+'";',m("css")):d.onload=d.onerror=i,r.appendChild(d)}}function s(){var c=k.css,a;if(c){for(a=t.length;--a>=0;)if(t[a].href===c.urls[0]){m("css");break}h+=1;c&&(h<200?setTimeout(s,50):m("css"))}}var b,r,k={},h=0,n={css:[],js:[]},t=j.styleSheets;return{css:function(c,
     a,b,e){i("css",c,a,b,e)},js:function(c,a,b,e){i("js",c,a,b,e)}}}(document);
   /* jshint ignore:end */
+
+  window.br.URL = window.URL || window.webkitURL;
+
+  var lastTime = 0, isLittleEndian = true;
+
+  window.br.requestAnimationFrame = function(callback, element) {
+
+    var requestAnimationFrame =
+      window.requestAnimationFrame        ||
+      window.webkitRequestAnimationFrame  ||
+      window.mozRequestAnimationFrame     ||
+      window.oRequestAnimationFrame       ||
+      window.msRequestAnimationFrame      ||
+      function(callback, element) {
+        var currTime = new Date().getTime();
+        var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+        var id = window.setTimeout(function() {
+          callback(currTime + timeToCall);
+        }, timeToCall);
+        lastTime = currTime + timeToCall;
+        return id;
+      };
+
+    return requestAnimationFrame.call(window, callback, element);
+
+  };
+
+  window.br.cancelAnimationFrame = function(id) {
+
+    var cancelAnimationFrame =
+      window.cancelAnimationFrame ||
+      function(id) {
+        window.clearTimeout(id);
+      };
+
+    return cancelAnimationFrame.call(window, id);
+
+  };
+
+  window.br.getUserMedia = function(options, success, error) {
+
+    var getUserMedia =
+      window.navigator.getUserMedia ||
+      window.navigator.mozGetUserMedia ||
+      window.navigator.webkitGetUserMedia ||
+      window.navigator.msGetUserMedia ||
+      function(options, success, error) {
+          error();
+      };
+
+    return getUserMedia.call(window.navigator, options, success, error);
+
+  };
+
+  window.br.detectEndian = function() {
+
+    var buf = new ArrayBuffer(8);
+    var data = new Uint32Array(buf);
+    data[0] = 0xff000000;
+    isLittleEndian = true;
+    if (buf[0] === 0xff) {
+      isLittleEndian = false;
+    }
+
+    return isLittleEndian;
+
+  };
 
 })(jQuery, window);

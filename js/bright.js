@@ -643,6 +643,152 @@
   var executionThread = br.thread(true);
 
 })(window);
+/* global Int32Array */
+
+;(function (window) {
+
+  function BrProfiler() {
+
+    function stopwatch() {
+
+      this.start_time = 0;
+      this.stop_time = 0;
+      this.run_time = 0;
+      this.running = false;
+
+      this.start = function() {
+        this.start_time = new Date().getTime();
+        this.running = true;
+      };
+
+      this.stop = function() {
+        this.stop_time = new Date().getTime();
+        this.run_time = (this.stop_time - this.start_time);
+        this.running = false;
+      };
+
+      this.get_runtime = function() {
+        return this.run_time;
+      };
+
+      this.reset = function() {
+        this.run_time = 0;
+      };
+
+      return this;
+
+    }
+
+    function buffer(size) {
+
+      this.arr = new Int32Array(size);
+      this.begin = 0;
+      this.end = -1;
+      this.num_el = 0;
+      this.arr_size = size;
+
+      this.push_back = function(elem) {
+        if (this.num_el<this.arr_size) {
+          this.end++;
+          this.arr[this.end] = elem;
+          this.num_el++;
+        } else {
+          this.end = (this.end+1)%this.arr_size;
+          this.begin = (this.begin+1)%this.arr_size;
+          this.arr[this.end] = elem;
+        }
+      };
+
+      this.get = function(i) {
+        return this.arr[(this.begin+i)%this.arr_size];
+      };
+
+      this.size = function() {
+        return this.num_el;
+      };
+
+      return this;
+
+    }
+
+    var count_frames = 0;
+    var ringbuff = new buffer(20);
+
+    this.fps = 0.0;
+    this.timers = [];
+    this.frame_timer = new stopwatch();
+
+    this.add = function(subj) {
+      this.timers.push([subj, new stopwatch()]);
+    };
+
+    this.new_frame = function() {
+      ++count_frames;
+      var i = 0;
+      var n = this.timers.length | 0;
+      for(i = 0; i < n; ++i) {
+          var sw = this.timers[i][1];
+          sw.reset();
+      }
+
+      if(count_frames >= 1) {
+          this.frame_timer.stop();
+          ringbuff.push_back(this.frame_timer.get_runtime());
+          var size = ringbuff.size();
+          var sum = 0;
+          for(i = 0; i < size; ++i) {
+              sum += ringbuff.get(i);
+          }
+          this.fps = size / sum * 1000;
+          this.frame_timer.start();
+      }
+    };
+
+    this.find_task = function(subj) {
+      var n = this.timers.length | 0;
+      var i = 0;
+      for(i = 0; i < n; ++i) {
+          var pair = this.timers[i];
+          if(pair[0] === subj) {
+              return pair;
+          }
+      }
+      this.add(subj);
+      return this.find_task(subj);
+    };
+
+    this.start = function(subj) {
+      var task = this.find_task(subj);
+      task[1].start();
+    };
+
+    this.stop = function(subj) {
+      var task = this.find_task(subj);
+      task[1].stop();
+    };
+
+    this.log = function() {
+      var n = this.timers.length | 0;
+      var i = 0;
+      var str = "<strong>FPS: " + this.fps.toFixed(2) + "</strong>";
+      for(i = 0; i < n; ++i) {
+          var pair = this.timers[i];
+          str += "<br/>" + pair[0] + ": " + pair[1].get_runtime() + "ms";
+      }
+      return str;
+    };
+
+    return this;
+
+  }
+
+  window.br = window.br || {};
+
+  window.br.profiler = function(lazy) {
+    return new BrProfiler();
+  };
+
+})(window);
 /*
  * Bright 0.0.5
  *
@@ -653,6 +799,8 @@
  */
 
 /* global console */
+/* global ArrayBuffer */
+/* global Uint32Array */
 
 ;(function ($, window) {
 
@@ -1159,6 +1307,73 @@
     "lazyload",d.setAttribute("charset","utf-8"),b.ie&&!o?d.onreadystatechange=function(){if(/loaded|complete/.test(d.readyState))d.onreadystatechange=null,i()}:o&&(b.gecko||b.webkit)?b.webkit?(q.urls[f]=d.href,s()):(d.innerHTML='@import "'+g+'";',m("css")):d.onload=d.onerror=i,r.appendChild(d)}}function s(){var c=k.css,a;if(c){for(a=t.length;--a>=0;)if(t[a].href===c.urls[0]){m("css");break}h+=1;c&&(h<200?setTimeout(s,50):m("css"))}}var b,r,k={},h=0,n={css:[],js:[]},t=j.styleSheets;return{css:function(c,
     a,b,e){i("css",c,a,b,e)},js:function(c,a,b,e){i("js",c,a,b,e)}}}(document);
   /* jshint ignore:end */
+
+  window.br.URL = window.URL || window.webkitURL;
+
+  var lastTime = 0, isLittleEndian = true;
+
+  window.br.requestAnimationFrame = function(callback, element) {
+
+    var requestAnimationFrame =
+      window.requestAnimationFrame        ||
+      window.webkitRequestAnimationFrame  ||
+      window.mozRequestAnimationFrame     ||
+      window.oRequestAnimationFrame       ||
+      window.msRequestAnimationFrame      ||
+      function(callback, element) {
+        var currTime = new Date().getTime();
+        var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+        var id = window.setTimeout(function() {
+          callback(currTime + timeToCall);
+        }, timeToCall);
+        lastTime = currTime + timeToCall;
+        return id;
+      };
+
+    return requestAnimationFrame.call(window, callback, element);
+
+  };
+
+  window.br.cancelAnimationFrame = function(id) {
+
+    var cancelAnimationFrame =
+      window.cancelAnimationFrame ||
+      function(id) {
+        window.clearTimeout(id);
+      };
+
+    return cancelAnimationFrame.call(window, id);
+
+  };
+
+  window.br.getUserMedia = function(options, success, error) {
+
+    var getUserMedia =
+      window.navigator.getUserMedia ||
+      window.navigator.mozGetUserMedia ||
+      window.navigator.webkitGetUserMedia ||
+      window.navigator.msGetUserMedia ||
+      function(options, success, error) {
+          error();
+      };
+
+    return getUserMedia.call(window.navigator, options, success, error);
+
+  };
+
+  window.br.detectEndian = function() {
+
+    var buf = new ArrayBuffer(8);
+    var data = new Uint32Array(buf);
+    data[0] = 0xff000000;
+    isLittleEndian = true;
+    if (buf[0] === 0xff) {
+      isLittleEndian = false;
+    }
+
+    return isLittleEndian;
+
+  };
 
 })(jQuery, window);
 /*
