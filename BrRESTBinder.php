@@ -241,10 +241,11 @@ class BrRESTBinder extends BrObject {
                       $filter[] = array($fields => array('$gte' => $value['$gte']));
                       $valuesArray = false;
                     }
-                    if (br($value, '$in')) {
-                      $filter[] = array($fields => array('$in' => $value['$in']));
-                      $valuesArray = false;
-                    }
+                    // unsafe because of concatenation
+                    // if (br($value, '$in')) {
+                    //   $filter[] = array($fields => array('$in' => $value['$in']));
+                    //   $valuesArray = false;
+                    // }
                     if ($valuesArray) {
                       $filter[$fields] = $value;
                     }
@@ -456,10 +457,14 @@ class BrRESTBinder extends BrObject {
           $data = br()->request()->get();
         }
         foreach($data as $name => $value) {
-          if (!is_array($value)) {
-            $value = trim($value);
+          if ($name == '__dataSets') {
+            $dataSourceOptions['dataSets'] = $value;
+          } else {
+            if (!is_array($value)) {
+              $value = trim($value);
+            }
+            $row[$name] = $value;
           }
-          $row[$name] = $value;
         }
         try {
           $t = array();
@@ -488,7 +493,12 @@ class BrRESTBinder extends BrObject {
           $data = $data['__values'];
         }
         foreach($data as $name => $value) {
-          if ($name != '__loginToken') {
+          if ($name == '__dataSets') {
+            $dataSourceOptions['dataSets'] = $value;
+          } else
+          if ($name == '__loginToken') {
+
+          } else {
             if (!is_array($value)) {
               $value = trim($value);
             }
@@ -564,6 +574,9 @@ class BrRESTBinder extends BrObject {
         $data = $data['__values'];
       }
       foreach($data as $name => $value) {
+        if ($name == '__dataSets') {
+          $dataSourceOptions['dataSets'] = $value;
+        } else
         if ($name != '__loginToken') {
           if (!is_array($value)) {
             $value = trim($value);
@@ -652,19 +665,20 @@ class BrRESTBinder extends BrObject {
     if ($e instanceof BrAppException) {
 
     } else {
-      br()->log()->logException($e, br()->request()->isLocalHost());
+      br()->log()->logException($e, br()->request()->isDevHost());
     }
-    if (!br()->request()->isLocalHost()) {
-      if ($e instanceof BrDBException) {
-        $message = 'Database error';
-      } else {
-        $message = $msg;
-      }
-      if (br()->request()->get('crossdomain')) {
-        br()->response()->sendJSONP($message);
-      } else {
-        br()->response()->sendForbidden($message);
-      }
+    if (br()->request()->isDevHost()) {
+      $message = $extMsg;
+    } else
+    if ($e instanceof BrDBException) {
+      $message = 'Database error';
+    } else {
+      $message = $msg;
+    }
+    if (br()->request()->get('crossdomain')) {
+      br()->response()->sendJSONP($message);
+    } else {
+      br()->response()->sendForbidden($message);
     }
 
   }

@@ -76,6 +76,7 @@ class BrFTP extends BrObject {
   private $currentPassword;
   private $currentPort;
   private $currentPassiveMode;
+  private $reconnectsAmount = 10;
 
   function __construct() {
 
@@ -83,7 +84,7 @@ class BrFTP extends BrObject {
 
   }
 
-  function connect($hostName, $userName, $password, $port = 21, $passiveMode = true) {
+  function connect($hostName, $userName, $password, $port = 21, $passiveMode = true, $attempt = 0) {
 
     $this->currentHostName    = $hostName;
     $this->currentUserName    = $userName;
@@ -93,18 +94,27 @@ class BrFTP extends BrObject {
 
     // br()->log('Connecting to ' . $hostName . ' as ' . $userName);
 
-    if ($this->connectionId = ftp_connect($hostName, $port)) {
-      if (ftp_login($this->connectionId, $userName, $password)) {
-        if (ftp_pasv($this->connectionId, $passiveMode ? true : false)) {
-          $this->currentDirectory = $this->getServerDir();
+    try {
+      if ($this->connectionId = ftp_connect($hostName, $port)) {
+        if (ftp_login($this->connectionId, $userName, $password)) {
+          if (ftp_pasv($this->connectionId, $passiveMode ? true : false)) {
+            $this->currentDirectory = $this->getServerDir();
+          } else {
+            throw new Exception('Can not switch passive mode to ' . $passiveMode);
+          }
         } else {
-          throw new Exception('Can not switch passive mode to ' . $passiveMode);
+          throw new Exception('Can not connect to ' . $hostName . ' as ' . $userName);
         }
       } else {
-        throw new Exception('Can not connect to ' . $hostName . ' as ' . $userName);
+        throw new Exception('Can not connect to ' . $hostName);
       }
-    } else {
-      throw new Exception('Can not connect to ' . $hostName);
+    } catch (Exception $e) {
+      if (!preg_match('/Login incorrect/', $e->getMessage()) && ($attempt < $this->reconnectsAmount)) {
+        usleep(250000);
+        $this->connect($hostName, $userName, $password, $port, $passiveMode, $attempt + 1);
+      } else {
+        throw new Exception('Can not connect to ' . $hostName . ': ' . $e->getMessage());
+      }
     }
 
   }

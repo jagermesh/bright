@@ -17,11 +17,11 @@ class BrAssetsCache extends BrObject {
     $files = array();
     $files[] = __DIR__.'/3rdparty/jquery/jquery-1.7.1.min.js';
     if (strpos(br()->request()->get('extra'), 'jquery-ui') !== false) {
-      $files[] = __DIR__.'/3rdparty/jquery.ui/jquery-ui.js';
+      $files[] = __DIR__.'/3rdparty/jquery.ui/1.11.4/jquery-ui.js';
     }
-    $files[] = __DIR__.'/3rdparty/bootstrap/js/bootstrap.min.js';
+    $files[] = __DIR__.'/3rdparty/bootstrap/2.3.2/js/bootstrap.min.js';
     $files[] = __DIR__.'/3rdparty/humane-js/humane.min.js';
-    $files[] = __DIR__.'/3rdparty/mustache/mustache.min.js';
+    $files[] = __DIR__.'/3rdparty/handlebars/js/handlebars.min.js';
     if (strpos(br()->request()->get('extra'), 'gritter') !== false) {
       $files[] = __DIR__.'/3rdparty/gritter/js/jquery.gritter.min.js';
     }

@@ -84,9 +84,15 @@
 
     this.renderRow = function(data) {
       data = _this.events.trigger('renderRow', data) || data;
-      var result = $(br.fetch(_this.options.templates.row, data));
-      result.data('data-row', data);
-      return result;
+      var s = br.fetch(_this.options.templates.row, data);
+      s = s.trim();
+      if (s.length > 0) {
+        var result = $(s);
+        result.data('data-row', data);
+        return result;
+      } else {
+        return null;
+      }
     };
 
     this.renderGroupRow = function(data) {
@@ -106,21 +112,25 @@
 
     this.insertDataRowAfter = function(row, selector) {
       var tableRow = _this.renderRow(row);
-      $(tableRow).insertAfter(selector);
+      if (tableRow) {
+        $(tableRow).insertAfter(selector);
+      }
       return tableRow;
     };
 
     this.addDataRow = function(row) {
       var tableRow = _this.renderRow(row);
-      _this.events.triggerBefore('insert', row, tableRow);
-      _this.events.trigger('insert', row, tableRow);
-      if (_this.options.appendInInsert) {
-        _this.append(tableRow);
-      } else {
-        _this.prepend(tableRow);
+      if (tableRow) {
+        _this.events.triggerBefore('insert', row, tableRow);
+        _this.events.trigger('insert', row, tableRow);
+        if (_this.options.appendInInsert) {
+          _this.append(tableRow);
+        } else {
+          _this.prepend(tableRow);
+        }
+        _this.events.triggerAfter('renderRow', row, tableRow);
+        _this.events.triggerAfter('insert', row, tableRow);
       }
-      _this.events.triggerAfter('renderRow', row, tableRow);
-      _this.events.triggerAfter('insert', row, tableRow);
       return tableRow;
     };
 
@@ -138,8 +148,11 @@
       }
       options = options || { };
       options.disableEvents = true;
-      _this.dataSource.selectOne(rowid, function(result, response) {
-        if (result) {
+      _this.dataSource.select({ rowid: rowid }, function(result, response) {
+        if (!result || (response.length === 0)) {
+          _this.refresh(callback);
+        } else {
+          response = response[0];
           if (_this.refreshRow(response, options)) {
 
           } else {
@@ -190,15 +203,19 @@
       }
       var row = $(_this.selector).find(filter);
       if (row.length > 0) {
-        var ctrl = _this.renderRow(data);
-        _this.events.triggerBefore('update', data);
-        var $row0 = $(row[0]);
-        _this.events.trigger('update', data, $row0);
-        $row0.replaceWith(ctrl);
-        $row0.data('data-row', data);
-        _this.events.triggerAfter('renderRow', data, ctrl);
-        _this.events.triggerAfter('update', data, ctrl);
-        return true;
+        var tableRow = _this.renderRow(data);
+        if (tableRow) {
+          tableRow.data('data-row', data);
+          _this.events.triggerBefore('update', data);
+          _this.events.trigger('update', data, row);
+          $(row[row.length-1]).after(tableRow);
+          row.remove();
+          _this.events.triggerAfter('renderRow', data, tableRow);
+          _this.events.triggerAfter('update', data, tableRow);
+          return true;
+        } else {
+          return false;
+        }
       } else {
         return false;
       }
@@ -259,6 +276,17 @@
 
     this.isEmpty = function() {
       return ($(_this.selector).find('[data-rowid]').length === 0);
+    };
+
+    this.getKeys = function(attrName) {
+      var result = [];
+      if (!attrName) {
+        attrName = 'data-rowid';
+      }
+      $('[' + attrName + ']', $(_this.selector)).each(function() {
+        result.push(br.toInt($(this).attr(attrName)));
+      });
+      return result;
     };
 
     this.init = function() {
@@ -387,6 +415,7 @@
 
     this.render = function(data, loadingMoreData) {
       var $selector = $(_this.selector);
+      var tableRow;
       _this.events.triggerBefore('change', data, 'render');
       if (data) {
         var i, j, k;
@@ -418,7 +447,10 @@
               for (i in data.rows) {
                 if (data.rows[i]) {
                   if (data.rows[i].row) {
-                    $selector.append(_this.renderRow(data.rows[i].row));
+                    tableRow = _this.renderRow(data.rows[i].row);
+                    if (tableRow) {
+                      $selector.append(tableRow);
+                    }
                   }
                   if (data.rows[i].header) {
                     $(_this.options.selectors.header).append(_this.renderHeader(data.rows[i].header));
@@ -437,8 +469,7 @@
             var group = _this.getOrderAndGroup();
             var groupValues = {};
             var groupFieldName = '';
-            var $row;
-            for (i in data) {
+            for (i = 0; i < data.length; i++) {
               if (data[i]) {
                 if (br.isArray(group)) {
                   for(k = 0; k < group.length; k++) {
@@ -464,9 +495,11 @@
                     }
                   }
                 }
-                $row = _this.renderRow(data[i]);
-                $selector.append($row);
-                _this.events.triggerAfter('renderRow', data[i], $row);
+                tableRow = _this.renderRow(data[i]);
+                if (tableRow) {
+                  $selector.append(tableRow);
+                  _this.events.triggerAfter('renderRow', data[i], tableRow);
+                }
               }
             }
           } else

@@ -8,67 +8,107 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrBrowser.php');
+require_once(__DIR__ . '/BrCustomWebParser.php');
 
-class BrReadability extends BrBrowser {
+if (file_exists(dirname(__DIR__) . '/3rdparty/Readability/Readability.php')) {
+  require_once(dirname(__DIR__) . '/3rdparty/Readability/Readability.php');
+}
 
-  private $token;
-  private $lastResult;
+use andreskrey\Readability\HTMLParser;
 
-  function __construct($tokens) {
+class BrReadability extends BrCustomWebParser {
 
-    $this->tokens = $tokens;
+  private $parsingMode = 'intellectual';
+
+  function __construct($parsingMode = 'intellectual') {
+
+    $this->parsingMode = $parsingMode;
 
     parent::__construct();
 
   }
 
-  function getLastResult() {
+  function parsePage($page, $url = null) {
 
-    return $this->lastResult;
+    $parser1  = new Readability($page, 'utf-8');
+    $parser2  = new HTMLParser();
 
-  }
-
-  function lastWasError() {
-
-    if ($this->lastResult && br($this->lastResult, 'error')) {
-      return true;
-    }
-
-    return false;
-
-  }
-
-  function hourlyLimitReached() {
-
-    if ($this->lastResult && br(br($this->lastResult, 'messages'))->like('%Exceeded hourly allowance%')) {
-      return true;
-    }
-
-    return false;
-
-  }
-
-  function parse($url) {
-
-    foreach($this->tokens as $token) {
+    if ($this->parsingMode == 'standard') {
       try {
-        $this->lastResult = $this->getJSON('http://readability.com/api/content/v1/parser?url=' . urlencode($url) . '&token=' . $token);
-        if (isset($this->lastResult['content'])) {
-          $this->lastResult['content'] = br($this->lastResult['content'])->decodeNumHtmlEntities();
-        }
-        if (isset($this->lastResult['excerpt'])) {
-          $this->lastResult['excerpt'] = html_entity_decode($this->lastResult['excerpt']);
-        }
-        if (isset($this->lastResult['title'])) {
-          $this->lastResult['title'] = html_entity_decode($this->lastResult['title']);
+        br()->log(get_class($parser2) . ': ' . $url);
+        $parsed2 = $parser2->parse($page);
+        return new BrWebParserResult( array( 'title'    => br($parsed2, 'title')
+                                           , 'image'    => br($parsed2, 'image')
+                                           , 'encoding' => @$parsed2['article']->encoding
+                                           , 'author'   => br($parsed2, 'author')
+                                           , 'excerpt'  => br($parsed2, 'excerpt')
+                                           , 'content'  => br($parsed2, 'html')
+                                           , 'url'      => $url
+                                           , 'html'     => $page
+                                           ));
+      } catch (Exception $e) {
+        return $this->returnDefaultResult($page, $url);
+      }
+    } else {
+      try {
+        br()->log(get_class($parser1) . ': ' . $url);
+        $parsed1 = $parser1->getContent();
+        if (strlen(str_replace(' ', '', br($parsed1, 'content'))) > 250) {
+          return new BrWebParserResult( array( 'title'    => br($parsed1, 'title')
+                                             , 'image'    => br($parsed1, 'lead_image_url')
+                                             , 'encoding' => 'utf-8'
+                                             , 'author'   => ''
+                                             , 'excerpt'  => ''
+                                             , 'content'  => br($parsed1, 'content')
+                                             , 'url'      => $url
+                                             , 'html'     => $page
+                                             ));
+        } else {
+          throw new BrAppException('Can not parse');
         }
       } catch (Exception $e) {
-        $this->lastResult = @json_decode($e->getMessage(), true);
+        try {
+          br()->log(get_class($parser2) . ': ' . $url);
+          $parsed2 = $parser2->parse($page);
+          return new BrWebParserResult( array( 'title'    => br($parsed2, 'title')
+                                             , 'image'    => br($parsed2, 'image')
+                                             , 'encoding' => @$parsed2['article']->encoding
+                                             , 'author'   => br($parsed2, 'author')
+                                             , 'excerpt'  => br($parsed2, 'excerpt')
+                                             , 'content'  => br($parsed2, 'html')
+                                             , 'url'      => $url
+                                             , 'html'     => $page
+                                             ));
+        } catch (Exception $e) {
+          return $this->returnDefaultResult($page, $url);
+        }
       }
     }
 
-    return $this->lastResult;
+  }
+
+  function parseUrl($url) {
+
+    $client = new GuzzleHttp\Client();
+    $cookieJar = new \GuzzleHttp\Cookie\CookieJar();
+
+    try {
+      $response = $client->request( 'GET'
+                                  , $url
+                                  , array( 'headers' => array( 'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.98 Safari/537.36'
+                                                             , 'Accept'     => 'text/html, application/xhtml+xml, application/xml, application/json, text/plain, */*'
+                                                             )
+                                         , 'cookies' => $cookieJar
+                                         )
+                                  );
+      if ($responseBody = (string)$response->getBody()) {
+        return $this->parsePage($responseBody, $url);
+      } else {
+        return $this->returnDefaultResult($responseBody, $url);
+      }
+    } catch (Exception $e) {
+      return $this->returnDefaultResult('', $url);
+    }
 
   }
 

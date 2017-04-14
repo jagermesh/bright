@@ -607,7 +607,9 @@
 
     this.push = function(func) {
       _this.queue.unshift({ func: func });
-      _this.wakeup();
+      if (!_this.lazy) {
+        _this.wakeup();
+      }
     };
 
     this.done = function(func) {
@@ -641,6 +643,152 @@
   var executionThread = br.thread(true);
 
 })(window);
+/* global Int32Array */
+
+;(function (window) {
+
+  function BrProfiler() {
+
+    function stopwatch() {
+
+      this.start_time = 0;
+      this.stop_time = 0;
+      this.run_time = 0;
+      this.running = false;
+
+      this.start = function() {
+        this.start_time = new Date().getTime();
+        this.running = true;
+      };
+
+      this.stop = function() {
+        this.stop_time = new Date().getTime();
+        this.run_time = (this.stop_time - this.start_time);
+        this.running = false;
+      };
+
+      this.get_runtime = function() {
+        return this.run_time;
+      };
+
+      this.reset = function() {
+        this.run_time = 0;
+      };
+
+      return this;
+
+    }
+
+    function buffer(size) {
+
+      this.arr = new Int32Array(size);
+      this.begin = 0;
+      this.end = -1;
+      this.num_el = 0;
+      this.arr_size = size;
+
+      this.push_back = function(elem) {
+        if (this.num_el<this.arr_size) {
+          this.end++;
+          this.arr[this.end] = elem;
+          this.num_el++;
+        } else {
+          this.end = (this.end+1)%this.arr_size;
+          this.begin = (this.begin+1)%this.arr_size;
+          this.arr[this.end] = elem;
+        }
+      };
+
+      this.get = function(i) {
+        return this.arr[(this.begin+i)%this.arr_size];
+      };
+
+      this.size = function() {
+        return this.num_el;
+      };
+
+      return this;
+
+    }
+
+    var count_frames = 0;
+    var ringbuff = new buffer(20);
+
+    this.fps = 0.0;
+    this.timers = [];
+    this.frame_timer = new stopwatch();
+
+    this.add = function(subj) {
+      this.timers.push([subj, new stopwatch()]);
+    };
+
+    this.new_frame = function() {
+      ++count_frames;
+      var i = 0;
+      var n = this.timers.length | 0;
+      for(i = 0; i < n; ++i) {
+          var sw = this.timers[i][1];
+          sw.reset();
+      }
+
+      if(count_frames >= 1) {
+          this.frame_timer.stop();
+          ringbuff.push_back(this.frame_timer.get_runtime());
+          var size = ringbuff.size();
+          var sum = 0;
+          for(i = 0; i < size; ++i) {
+              sum += ringbuff.get(i);
+          }
+          this.fps = size / sum * 1000;
+          this.frame_timer.start();
+      }
+    };
+
+    this.find_task = function(subj) {
+      var n = this.timers.length | 0;
+      var i = 0;
+      for(i = 0; i < n; ++i) {
+          var pair = this.timers[i];
+          if(pair[0] === subj) {
+              return pair;
+          }
+      }
+      this.add(subj);
+      return this.find_task(subj);
+    };
+
+    this.start = function(subj) {
+      var task = this.find_task(subj);
+      task[1].start();
+    };
+
+    this.stop = function(subj) {
+      var task = this.find_task(subj);
+      task[1].stop();
+    };
+
+    this.log = function() {
+      var n = this.timers.length | 0;
+      var i = 0;
+      var str = "<strong>FPS: " + this.fps.toFixed(2) + "</strong>";
+      for(i = 0; i < n; ++i) {
+          var pair = this.timers[i];
+          str += "<br/>" + pair[0] + ": " + pair[1].get_runtime() + "ms";
+      }
+      return str;
+    };
+
+    return this;
+
+  }
+
+  window.br = window.br || {};
+
+  window.br.profiler = function(lazy) {
+    return new BrProfiler();
+  };
+
+})(window);
 /*
  * Bright 0.0.5
  *
@@ -651,6 +799,8 @@
  */
 
 /* global console */
+/* global ArrayBuffer */
+/* global Uint32Array */
 
 ;(function ($, window) {
 
@@ -680,6 +830,7 @@
   });
 
   window.br.baseUrl = baseUrl;
+  window.br.popupBlocker = 'unknown';
 
   var logStarted = false;
 
@@ -738,7 +889,7 @@
   };
 
   window.br.isSafari = function() {
-    return Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+    return (navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1);
   };
 
   window.br.isChrome = function() {
@@ -754,6 +905,41 @@
 
   window.br.refresh = function() {
     document.location.reload();
+  };
+
+  window.br.processArray = function(array, processRowCallback, processCompleteCallback, params) {
+
+    function processQueued(processRowCallback, processCompleteCallback, params) {
+
+      if (array.length > 0) {
+        var rowid = array.shift();
+        processRowCallback(rowid, function() {
+          if (params.showProgress) {
+            br.stepProgress();
+          }
+          processQueued(processRowCallback, processCompleteCallback, params);
+        });
+      } else {
+        if (params.showProgress) {
+          br.hideProgress();
+        }
+        if (processCompleteCallback) {
+          processCompleteCallback();
+        }
+      }
+
+    }
+
+    params = params || {};
+    if (array.length > 0) {
+      if (params.showProgress) {
+        br.startProgress(array.length, params.title || '');
+      }
+      processQueued(processRowCallback, processCompleteCallback, params);
+    } else {
+      br.growlError('Please select at least one record');
+    }
+
   };
 
   function BrTrn() {
@@ -810,18 +996,43 @@
     Child.superclass = Parent.prototype;
   };
 
-  window.br.openPage = function(href) {
-    var a = document.createElement('a');
-    a.href = href;
-    a.target = '_blank';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+  function openUrl(url) {
+
+    var dialog = br.inform( 'You browser is currently blocking popups'
+                          , '<p>Click the link below to open this manually:</p>'
+                          + '<p><a target="_blank" class="action-open-link" href="' + url + '" style="word-wrap: break-word">' + url + '</a></p>'
+                          + '<p>To eliminate this extra step, we recommend you modify your settings to disable the popup blocker.</p>'
+                          );
+
+    $('.action-open-link', dialog).on('click', function() {
+      dialog.modal('hide');
+      dialog.remove();
+    });
+
+  }
+
+  window.br.openPage = function(url) {
+
+    if (br.isSafari()) {
+      br.openPopup(url);
+    } else {
+      var a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
   };
 
-  window.br.openPopup = function(url, w, h) {
+  window.br.openPopup = function(url, target) {
 
-    if (w === null) {
+    if (window.br.popupBlocker == 'active') {
+      openUrl(url);
+    } else {
+      target = target || '_blank';
+      var w, h;
       if (screen.width) {
         if (screen.width >= 1280) {
           w = 1000;
@@ -832,8 +1043,6 @@
           w = 600;
         }
       }
-    }
-    if (h === null) {
       if (screen.height) {
         if (screen.height >= 900) {
           h = 700;
@@ -844,12 +1053,16 @@
           h = 500;
         }
       }
-    }
-    var left = (screen.width) ? (screen.width-w)/2 : 0;
-    var settings = 'height='+h+',width='+w+',top=20,left='+left+',menubar=0,scrollbars=1,resizable=1';
-    var win = window.open(url, '_blank', settings);
-    if (win) {
-      win.focus();
+      var left = (screen.width) ? (screen.width-w)/2 : 0;
+      var settings = 'height='+h+',width='+w+',top=20,left='+left+',menubar=0,scrollbars=1,resizable=1';
+      var win = window.open(url, target, settings);
+      if (win) {
+        window.br.popupBlocker = 'inactive';
+        win.focus();
+      } else {
+        window.br.popupBlocker = 'active';
+        openUrl(url);
+      }
     }
 
   };
@@ -1095,6 +1308,73 @@
     a,b,e){i("css",c,a,b,e)},js:function(c,a,b,e){i("js",c,a,b,e)}}}(document);
   /* jshint ignore:end */
 
+  window.br.URL = window.URL || window.webkitURL;
+
+  var lastTime = 0, isLittleEndian = true;
+
+  window.br.requestAnimationFrame = function(callback, element) {
+
+    var requestAnimationFrame =
+      window.requestAnimationFrame        ||
+      window.webkitRequestAnimationFrame  ||
+      window.mozRequestAnimationFrame     ||
+      window.oRequestAnimationFrame       ||
+      window.msRequestAnimationFrame      ||
+      function(callback, element) {
+        var currTime = new Date().getTime();
+        var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+        var id = window.setTimeout(function() {
+          callback(currTime + timeToCall);
+        }, timeToCall);
+        lastTime = currTime + timeToCall;
+        return id;
+      };
+
+    return requestAnimationFrame.call(window, callback, element);
+
+  };
+
+  window.br.cancelAnimationFrame = function(id) {
+
+    var cancelAnimationFrame =
+      window.cancelAnimationFrame ||
+      function(id) {
+        window.clearTimeout(id);
+      };
+
+    return cancelAnimationFrame.call(window, id);
+
+  };
+
+  window.br.getUserMedia = function(options, success, error) {
+
+    var getUserMedia =
+      window.navigator.getUserMedia ||
+      window.navigator.mozGetUserMedia ||
+      window.navigator.webkitGetUserMedia ||
+      window.navigator.msGetUserMedia ||
+      function(options, success, error) {
+          error();
+      };
+
+    return getUserMedia.call(window.navigator, options, success, error);
+
+  };
+
+  window.br.detectEndian = function() {
+
+    var buf = new ArrayBuffer(8);
+    var data = new Uint32Array(buf);
+    data[0] = 0xff000000;
+    isLittleEndian = true;
+    if (buf[0] === 0xff) {
+      isLittleEndian = false;
+    }
+
+    return isLittleEndian;
+
+  };
+
 })(jQuery, window);
 /*
  * Bright 0.0.5
@@ -1196,17 +1476,14 @@
       this.options.restServiceUrl = this.options.restServiceUrl + '/';
     }
 
-    if (this.options.offlineMode) {
-      this.db = TAFFY();
-      this.db.store('taffy-db-' + this.name);
-    }
-
     this.events = br.eventQueue(this);
     this.before = function(event, callback) { this.events.before(event, callback); };
     this.on     = function(event, callback) { this.events.on(event, callback); };
     this.after  = function(event, callback) { this.events.after(event, callback); };
 
     this.insert = function(item, callback, options) {
+
+      options = options || { };
 
       var disableEvents = options && options.disableEvents;
 
@@ -1249,47 +1526,46 @@
 
       try {
 
-        _this.events.triggerBefore('insert', request);
+        if (!disableEvents) {
+          _this.events.triggerBefore('insert', request, options);
+        }
 
         if (this.options.crossdomain) {
           request.crossdomain = 'put';
         }
 
-        if (_this.options.offlineMode) {
-          _this.db.insert(request);
-          request.rowid = request.___id;
-          request.syncState = 'n';
-          returnInsert(request);
-        } else {
-          $.ajax({ type: this.options.crossdomain ? 'GET' : 'PUT'
-                 , data: request
-                 , dataType: this.options.crossdomain ? 'jsonp' : 'json'
-                 , url: this.options.restServiceUrl + (this.options.authToken ? '?token=' + this.options.authToken : '')
-                 , success: function(response) {
-                     returnInsert(response);
-                   }
-                 , error: function(jqXHR, textStatus, errorThrown) {
-                     if (br.isUnloading()) {
+        if (options && options.dataSets) {
+          request.__dataSets = options.dataSets;
+        }
 
-                     } else {
-                       var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                       if (!disableEvents) {
-                         _this.events.trigger('error', 'insert', errorMessage);
-                         _this.events.triggerAfter('insert', false, errorMessage, request);
-                       }
-                       if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
+        $.ajax({ type: this.options.crossdomain ? 'GET' : 'PUT'
+               , data: request
+               , dataType: this.options.crossdomain ? 'jsonp' : 'json'
+               , url: this.options.restServiceUrl + (this.options.authToken ? '?token=' + this.options.authToken : '')
+               , success: function(response) {
+                   returnInsert(response);
+                 }
+               , error: function(jqXHR, textStatus, errorThrown) {
+                   if (br.isUnloading()) {
+
+                   } else {
+                     var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                     if (!disableEvents) {
+                       _this.events.trigger('error', 'insert', errorMessage);
+                       _this.events.triggerAfter('insert', false, errorMessage, request);
                      }
+                     if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
                    }
-                 });
-        }
+                 }
+               });
 
-      } catch (error) {
-        br.log(error);
+      } catch (errorMessage) {
+        br.log(errorMessage);
         if (!disableEvents) {
-          _this.events.trigger('error', 'insert', error);
-          _this.events.triggerAfter('insert', false, error, request);
+          _this.events.trigger('error', 'insert', errorMessage);
+          _this.events.triggerAfter('insert', false, errorMessage, request);
         }
-        if (typeof callback == 'function') { callback.call(_this, false, error, request); }
+        if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
       }
 
       return this;
@@ -1299,6 +1575,8 @@
     this.update = function(rowid, item, callback, options) {
 
       var disableEvents = options && options.disableEvents;
+
+      options = options || { };
 
       function returnUpdate(data) {
         var operation = 'update';
@@ -1324,17 +1602,23 @@
 
       var request = item;
 
-      if (!disableEvents) {
-        _this.events.triggerBefore('update', request, rowid);
-      }
+      try {
 
-      if (_this.options.offlineMode) {
-        _this.db({rowid: rowid}).update(request);
-        returnUpdate(request);
-      } else {
-        $.ajax({ type: 'POST'
+        if (!disableEvents) {
+          _this.events.triggerBefore('update', request, options, rowid);
+        }
+
+        if (this.options.crossdomain) {
+          request.crossdomain = 'post';
+        }
+
+        if (options && options.dataSets) {
+          request.__dataSets = options.dataSets;
+        }
+
+        $.ajax({ type: this.options.crossdomain ? 'GET' : 'POST'
                , data: request
-               , dataType: 'json'
+               , dataType: this.options.crossdomain ? 'jsonp' : 'json'
                , url: this.options.restServiceUrl + rowid + (this.options.authToken ? '?token=' + this.options.authToken : '')
                , success: function(response) {
                    returnUpdate(response);
@@ -1352,6 +1636,12 @@
                    }
                  }
                });
+
+      } catch (errorMessage) {
+        br.log(errorMessage);
+        _this.events.trigger('error', 'update', errorMessage);
+        _this.events.triggerAfter('update', false, errorMessage, request);
+        if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
       }
 
       return this;
@@ -1369,32 +1659,26 @@
 
       var request = {};
 
-      _this.events.triggerBefore('remove', null, rowid);
+      _this.events.triggerBefore('remove', rowid);
 
-      if (_this.options.offlineMode) {
-        var data = _this.db({rowid: rowid}).get();
-        _this.db({rowid: rowid}).remove();
-        returnRemove(data);
-      } else {
-        $.ajax({ type: 'DELETE'
-               , data: request
-               , dataType: 'json'
-               , url: this.options.restServiceUrl + rowid + (this.options.authToken ? '?token=' + this.options.authToken : '')
-               , success: function(response) {
-                   returnRemove(response);
-                 }
-               , error: function(jqXHR, textStatus, errorThrown) {
-                   if (br.isUnloading()) {
+      $.ajax({ type: 'DELETE'
+             , data: request
+             , dataType: 'json'
+             , url: this.options.restServiceUrl + rowid + (this.options.authToken ? '?token=' + this.options.authToken : '')
+             , success: function(response) {
+                 returnRemove(response);
+               }
+             , error: function(jqXHR, textStatus, errorThrown) {
+                 if (br.isUnloading()) {
 
-                   } else {
-                     var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                     _this.events.trigger('error', 'remove', errorMessage);
-                     _this.events.triggerAfter('remove', false, errorMessage, request);
-                     if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
-                   }
+                 } else {
+                   var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                   _this.events.trigger('error', 'remove', errorMessage);
+                   _this.events.triggerAfter('remove', false, errorMessage, request);
+                   if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
                  }
-               });
-      }
+               }
+             });
 
       return this;
 
@@ -1585,35 +1869,31 @@
           request.crossdomain = 'get';
         }
 
-        if (_this.options.offlineMode) {
-          handleSelectSuccess(_this.db(request).get(), request, callback, options);
-        } else {
-          this.ajaxRequest = $.ajax({ type: 'GET'
-                                    , data: request
-                                    , dataType: this.options.crossdomain ? 'jsonp' : 'json'
-                                    , url: url + (this.options.authToken ? '?token=' + this.options.authToken : '')
-                                    , success: function(response) {
-                                        _this.ajaxRequest = null;
-                                        if (_this.options.crossdomain && (typeof response == 'string')) {
-                                          handleSelectError('Unknown error', request, callback, options);
-                                        } else
-                                        if (br.isNull(response)) {
-                                          handleSelectError('Unknown error', request, callback, options);
-                                        } else {
-                                          handleSelectSuccess(response, request, callback, options);
-                                        }
+        this.ajaxRequest = $.ajax({ type: 'GET'
+                                  , data: request
+                                  , dataType: this.options.crossdomain ? 'jsonp' : 'json'
+                                  , url: url + (this.options.authToken ? '?token=' + this.options.authToken : '')
+                                  , success: function(response) {
+                                      _this.ajaxRequest = null;
+                                      if (_this.options.crossdomain && (typeof response == 'string')) {
+                                        handleSelectError('Unknown error', request, callback, options);
+                                      } else
+                                      if (br.isNull(response)) {
+                                        handleSelectError('Unknown error', request, callback, options);
+                                      } else {
+                                        handleSelectSuccess(response, request, callback, options);
                                       }
-                                    , error: function(jqXHR, textStatus, errorThrown) {
-                                        if (br.isUnloading()) {
+                                    }
+                                  , error: function(jqXHR, textStatus, errorThrown) {
+                                      if (br.isUnloading()) {
 
-                                        } else {
-                                          _this.ajaxRequest = null;
-                                          var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                                          handleSelectError(errorMessage, request, callback, options);
-                                        }
+                                      } else {
+                                        _this.ajaxRequest = null;
+                                        var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                                        handleSelectError(errorMessage, request, callback, options);
                                       }
-                                    });
-        }
+                                    }
+                                  });
       } else {
 
       }
@@ -1836,9 +2116,15 @@
 
     this.renderRow = function(data) {
       data = _this.events.trigger('renderRow', data) || data;
-      var result = $(br.fetch(_this.options.templates.row, data));
-      result.data('data-row', data);
-      return result;
+      var s = br.fetch(_this.options.templates.row, data);
+      s = s.trim();
+      if (s.length > 0) {
+        var result = $(s);
+        result.data('data-row', data);
+        return result;
+      } else {
+        return null;
+      }
     };
 
     this.renderGroupRow = function(data) {
@@ -1858,21 +2144,25 @@
 
     this.insertDataRowAfter = function(row, selector) {
       var tableRow = _this.renderRow(row);
-      $(tableRow).insertAfter(selector);
+      if (tableRow) {
+        $(tableRow).insertAfter(selector);
+      }
       return tableRow;
     };
 
     this.addDataRow = function(row) {
       var tableRow = _this.renderRow(row);
-      _this.events.triggerBefore('insert', row, tableRow);
-      _this.events.trigger('insert', row, tableRow);
-      if (_this.options.appendInInsert) {
-        _this.append(tableRow);
-      } else {
-        _this.prepend(tableRow);
+      if (tableRow) {
+        _this.events.triggerBefore('insert', row, tableRow);
+        _this.events.trigger('insert', row, tableRow);
+        if (_this.options.appendInInsert) {
+          _this.append(tableRow);
+        } else {
+          _this.prepend(tableRow);
+        }
+        _this.events.triggerAfter('renderRow', row, tableRow);
+        _this.events.triggerAfter('insert', row, tableRow);
       }
-      _this.events.triggerAfter('renderRow', row, tableRow);
-      _this.events.triggerAfter('insert', row, tableRow);
       return tableRow;
     };
 
@@ -1890,8 +2180,11 @@
       }
       options = options || { };
       options.disableEvents = true;
-      _this.dataSource.selectOne(rowid, function(result, response) {
-        if (result) {
+      _this.dataSource.select({ rowid: rowid }, function(result, response) {
+        if (!result || (response.length === 0)) {
+          _this.refresh(callback);
+        } else {
+          response = response[0];
           if (_this.refreshRow(response, options)) {
 
           } else {
@@ -1942,15 +2235,19 @@
       }
       var row = $(_this.selector).find(filter);
       if (row.length > 0) {
-        var ctrl = _this.renderRow(data);
-        _this.events.triggerBefore('update', data);
-        var $row0 = $(row[0]);
-        _this.events.trigger('update', data, $row0);
-        $row0.replaceWith(ctrl);
-        $row0.data('data-row', data);
-        _this.events.triggerAfter('renderRow', data, ctrl);
-        _this.events.triggerAfter('update', data, ctrl);
-        return true;
+        var tableRow = _this.renderRow(data);
+        if (tableRow) {
+          tableRow.data('data-row', data);
+          _this.events.triggerBefore('update', data);
+          _this.events.trigger('update', data, row);
+          $(row[row.length-1]).after(tableRow);
+          row.remove();
+          _this.events.triggerAfter('renderRow', data, tableRow);
+          _this.events.triggerAfter('update', data, tableRow);
+          return true;
+        } else {
+          return false;
+        }
       } else {
         return false;
       }
@@ -2011,6 +2308,17 @@
 
     this.isEmpty = function() {
       return ($(_this.selector).find('[data-rowid]').length === 0);
+    };
+
+    this.getKeys = function(attrName) {
+      var result = [];
+      if (!attrName) {
+        attrName = 'data-rowid';
+      }
+      $('[' + attrName + ']', $(_this.selector)).each(function() {
+        result.push(br.toInt($(this).attr(attrName)));
+      });
+      return result;
     };
 
     this.init = function() {
@@ -2139,6 +2447,7 @@
 
     this.render = function(data, loadingMoreData) {
       var $selector = $(_this.selector);
+      var tableRow;
       _this.events.triggerBefore('change', data, 'render');
       if (data) {
         var i, j, k;
@@ -2170,7 +2479,10 @@
               for (i in data.rows) {
                 if (data.rows[i]) {
                   if (data.rows[i].row) {
-                    $selector.append(_this.renderRow(data.rows[i].row));
+                    tableRow = _this.renderRow(data.rows[i].row);
+                    if (tableRow) {
+                      $selector.append(tableRow);
+                    }
                   }
                   if (data.rows[i].header) {
                     $(_this.options.selectors.header).append(_this.renderHeader(data.rows[i].header));
@@ -2189,8 +2501,7 @@
             var group = _this.getOrderAndGroup();
             var groupValues = {};
             var groupFieldName = '';
-            var $row;
-            for (i in data) {
+            for (i = 0; i < data.length; i++) {
               if (data[i]) {
                 if (br.isArray(group)) {
                   for(k = 0; k < group.length; k++) {
@@ -2216,9 +2527,11 @@
                     }
                   }
                 }
-                $row = _this.renderRow(data[i]);
-                $selector.append($row);
-                _this.events.triggerAfter('renderRow', data[i], $row);
+                tableRow = _this.renderRow(data[i]);
+                if (tableRow) {
+                  $selector.append(tableRow);
+                  _this.events.triggerAfter('renderRow', data[i], tableRow);
+                }
               }
             }
           } else
@@ -2258,33 +2571,35 @@
   function BrDataCombo(selector, dataSource, options) {
 
     var _this = this;
+    var select2Binded = false;
+    var currentData = [];
 
     this.selector = $(selector);
 
     this.dataSource = dataSource;
 
-    this.options = options || {};
-    this.options.valueField = this.options.valueField || 'rowid';
-    this.options.nameField = this.options.nameField || 'name';
-    this.options.levelField = this.options.levelField || null;
-    this.options.selectedValue = this.options.selectedValue || null;
-    this.options.skipTranslate = this.options.skipTranslate || null;
-    this.options.selectedValueField = this.options.selectedValueField || null;
-    this.options.hideEmptyValue = this.options.hideEmptyValue || (this.selector.attr('multiple') == 'multiple');
-    this.options.emptyName = (typeof this.options.emptyName == 'undefined' ? '--any--' : this.options.emptyName);
-    this.options.emptyValue = (typeof this.options.emptyValue == 'undefined' ? '' : this.options.emptyValue);
-    this.options.allowClear = (typeof this.options.allowClear == 'undefined' ? false : this.options.allowClear);
-    this.loaded = false;
+    this.options                           = options || {};
+    this.options.valueField                = this.options.valueField || 'rowid';
+    this.options.nameField                 = this.options.nameField || 'name';
+    this.options.levelField                = this.options.levelField || null;
+    this.options.selectedValue             = this.options.selectedValue || null;
+    this.options.skipTranslate             = this.options.skipTranslate || null;
+    this.options.selectedValueField        = this.options.selectedValueField || null;
+    this.options.hideEmptyValue            = this.options.hideEmptyValue || (this.selector.attr('multiple') == 'multiple');
+    this.options.emptyName                 = this.options.emptyName || '--any--';
+    this.options.emptyValue                = this.options.emptyValue || '';
+    this.options.allowClear                = this.options.allowClear || false;
+    this.options.lookupMode                = this.options.lookupMode || false;
+    this.options.fields                    = this.options.fields || {};
+    this.options.saveSelection             = this.options.saveSelection || false;
+    this.options.saveToSessionStorage      = this.options.saveToSessionStorage || false;
+    this.options.lookup_minimumInputLength = this.options.lookup_minimumInputLength || 0;
 
     if (this.options.skipTranslate) {
       this.selector.addClass('skiptranslate');
     }
 
-    this.fields = this.options.fields || {};
-    this.saveSelection = this.options.saveSelection || false;
-    this.saveToSessionStorage = this.options.saveToSessionStorage || false;
-    this.selectedValueField = this.options.selectedValueField || null;
-    this.noDecoration = this.options.noDecoration;// || (this.selector.attr('multiple') == 'multiple');
+    this.loaded = this.options.lookupMode;
 
     this.events = br.eventQueue(this);
     this.before = function(event, callback) { this.events.before(event, callback); };
@@ -2340,21 +2655,63 @@
       return result;
     }
 
-    function uiSync() {
-      if (_this.isValid() && window.Select2 && !_this.noDecoration && !_this.selector.attr('size')) {
-        var params = {};
-        if (_this.options.skipTranslate) {
-          params.dropdownCssClass = 'skiptranslate';
-        }
-        if (_this.options.allowClear) {
-          params.allowClear = _this.options.allowClear;
-          params.placeholder = _this.options.emptyName;
-        }
-        _this.selector.select2(params);
+    function getName(data) {
+      if (br.isFunction(_this.options.onGetName)) {
+        return _this.options.onGetName.call(this, data);
+      } else {
+        var item = { value: data[_this.options.keyField]
+                   , name: data[_this.options.nameField]
+                   };
+        _this.events.trigger('formatItem', item, data);
+        return item.name;
       }
     }
 
-    var currentData = [];
+    function switchToSelect2() {
+      var selectLimit = 50;
+
+      if (_this.isValid() && window.Select2 && !_this.options.noDecoration && !_this.selector.attr('size')) {
+        if (_this.options.lookupMode && select2Binded) {
+          return;
+        } else {
+          var params = {};
+          if (_this.options.skipTranslate) {
+            params.dropdownCssClass = 'skiptranslate';
+          }
+          if (_this.options.allowClear) {
+            params.allowClear  = _this.options.allowClear;
+            params.placeholder = _this.options.emptyName;
+          }
+          params.dropdownAutoWidth = true;
+          params.dropdownCss = { 'max-width': '400px' };
+          if (_this.options.lookupMode) {
+            params.minimumInputLength = _this.options.lookup_minimumInputLength;
+            params.allowClear  = true;
+            params.placeholder = _this.options.emptyName;
+            params.query = function (query) {
+              var request = { };
+              request.keyword = query.term;
+              _this.dataSource.select(request, function(result, response) {
+                if (result) {
+                  var data = { results: [] };
+                  for(var i = 0; i < response.length; i++) {
+                    data.results.push({ id:   response[i][_this.options.valueField]
+                                      , text: getName(response[i])
+                                      });
+                  }
+                  query.callback(data);
+                }
+              }, { limit: selectLimit
+                 , skip: (query.page - 1) * selectLimit
+                 }
+              );
+            };
+          }
+          _this.selector.select2(params);
+          select2Binded = true;
+        }
+      }
+    }
 
     this.selected = function(fieldName) {
       if (br.isArray(currentData)) {
@@ -2375,10 +2732,10 @@
       }
     };
 
-    this.val = function(value) {
+    this.val = function(value, callback) {
       if (value !== undefined) {
-        if (_this.saveSelection) {
-          if (_this.saveToSessionStorage) {
+        if (_this.options.saveSelection) {
+          if (_this.options.saveToSessionStorage) {
             br.session.set(storageTag(_this.selector), value);
           } else {
             br.storage.set(storageTag(_this.selector), value);
@@ -2386,11 +2743,41 @@
         }
         if (_this.isValid()) {
           _this.selector.val(value);
-          uiSync();
+          switchToSelect2();
+          if (_this.options.lookupMode) {
+            if (value) {
+              var data = { id: value, text: value };
+              var request = { rowid: value };
+              _this.selector.select2('data', data);
+              _this.dataSource.select(request, function(result, response) {
+                if (result) {
+                  if (response.length > 0) {
+                    response = response[0];
+                    data = { id: response[_this.options.valueField]
+                           , text: getName(response)
+                           };
+                    _this.selector.select2('data', data);
+                  }
+                }
+                if (callback) {
+                  callback.call(_this.selector, result, response);
+                }
+              }, { disableEvents: true });
+            } else {
+              _this.selector.select2('data', null);
+              if (callback) {
+                callback.call(_this.selector, true, value);
+              }
+            }
+          } else {
+            if (callback) {
+              callback.call(_this.selector, true, value);
+            }
+          }
         }
       }
       if (_this.isValid()) {
-        var val =_this.selector.val();
+        var val = _this.selector.val();
         if (val !== null) {
           return val;
         } else {
@@ -2418,7 +2805,7 @@
         if (triggerChange) {
           _this.selector.trigger('change');
         } else {
-          uiSync();
+          switchToSelect2();
         }
       }
     };
@@ -2427,18 +2814,7 @@
       _this.reset();
     });
 
-    function getName(data) {
-
-      if (br.isFunction(_this.options.onGetName)) {
-        return _this.options.onGetName.call(this, data);
-      } else {
-        return data[_this.options.nameField];
-      }
-
-    }
-
     function renderRow(data) {
-
       var s = '';
       if (!br.isEmpty(_this.options.groupField) && br.toInt(data[_this.options.groupField]) > 0) {
         s = s + '<optgroup';
@@ -2462,97 +2838,110 @@
       } else {
         s = s + '</option>';
       }
-
       return s;
-
     }
 
     function render(data) {
 
       currentData = data;
 
-      if (_this.saveSelection) {
-        if (_this.saveToSessionStorage) {
-          _this.options.selectedValue = br.session.get(storageTag(_this.selector));
-        } else {
-          _this.options.selectedValue = br.storage.get(storageTag(_this.selector));
+      if (!_this.options.lookupMode) {
+
+        if (_this.options.saveSelection) {
+          if (_this.options.saveToSessionStorage) {
+            _this.options.selectedValue = br.session.get(storageTag(_this.selector));
+          } else {
+            _this.options.selectedValue = br.storage.get(storageTag(_this.selector));
+          }
         }
-      }
 
-      _this.selector.each(function() {
-        var val = $(this).val();
-        if (br.isEmpty(val)) {
-          val = $(this).attr('data-value');
-          $(this).removeAttr('data-value');
-        }
-        $(this).html('');
+        _this.selector.each(function() {
+          var val = $(this).val();
+          if (br.isEmpty(val)) {
+            val = $(this).attr('data-value');
+            $(this).removeAttr('data-value');
+          }
+          $(this).html('');
 
-        var s = '';
-        var cbObj = {};
-        cbObj.data = data;
-        if (_this.options.hideEmptyValue || (_this.options.autoSelectSingle && (data.length == 1))) {
+          var s = '';
+          var cbObj = {};
+          cbObj.data = data;
+          if (_this.options.hideEmptyValue || (_this.options.autoSelectSingle && (data.length == 1))) {
 
-        } else {
+          } else {
+            cbObj.s = s;
+            _this.events.triggerBefore('generateEmptyOption', cbObj, $(this));
+            s = cbObj.s;
+            if (_this.options.allowClear) {
+              s = s + '<option></option>';
+            } else {
+              s = s + '<option value="' + _this.options.emptyValue + '">' + _this.options.emptyName + '</option>';
+            }
+          }
+
           cbObj.s = s;
-          _this.events.triggerBefore('generateEmptyOption', cbObj, $(this));
+          _this.events.triggerBefore('generateOptions', cbObj, $(this));
           s = cbObj.s;
-          if (_this.options.allowClear) {
-            s = s + '<option></option>';
-          } else {
-            s = s + '<option value="' + _this.options.emptyValue + '">' + _this.options.emptyName + '</option>';
-          }
-        }
 
-        cbObj.s = s;
-        _this.events.triggerBefore('generateOptions', cbObj, $(this));
-        s = cbObj.s;
-
-        for(var i = 0; i < data.length; i++) {
-          s = s + renderRow(data[i]);
-          if (br.isEmpty(_this.options.selectedValue) && !br.isEmpty(_this.options.selectedValueField)) {
-            var selectedValue = data[i][_this.options.selectedValueField];
-            if ((br.isBoolean(selectedValue) && selectedValue) || (br.toInt(selectedValue) == 1)) {
-              _this.options.selectedValue = data[i][_this.options.valueField];
+          for(var i = 0; i < data.length; i++) {
+            s = s + renderRow(data[i]);
+            if (br.isEmpty(_this.options.selectedValue) && !br.isEmpty(_this.options.selectedValueField)) {
+              var selectedValue = data[i][_this.options.selectedValueField];
+              if ((br.isBoolean(selectedValue) && selectedValue) || (br.toInt(selectedValue) == 1)) {
+                _this.options.selectedValue = data[i][_this.options.valueField];
+              }
             }
           }
-        }
-        $(this).html(s);
+          $(this).html(s);
 
-        if (!br.isEmpty(_this.options.selectedValue)) {
-          $(this).find('option[value=' + _this.options.selectedValue +']').attr('selected', 'selected');
-        } else
-        if (!br.isEmpty(val)) {
-          if (br.isArray(val)) {
-            for (var k = 0; k < val.length; k++) {
-              $(this).find('option[value=' + val[k] +']').attr('selected', 'selected');
+          if (!br.isEmpty(_this.options.selectedValue)) {
+            $(this).find('option[value=' + _this.options.selectedValue +']').attr('selected', 'selected');
+          } else
+          if (!br.isEmpty(val)) {
+            if (br.isArray(val)) {
+              for (var k = 0; k < val.length; k++) {
+                $(this).find('option[value=' + val[k] +']').attr('selected', 'selected');
+              }
+            } else {
+              $(this).find('option[value=' + val +']').attr('selected', 'selected');
             }
-          } else {
-            $(this).find('option[value=' + val +']').attr('selected', 'selected');
           }
-        }
 
-      });
+        });
 
-      uiSync();
+        switchToSelect2();
+
+      }
 
     }
 
     _this.load = _this.reload = function(filter, callback) {
+
       if (typeof filter == 'function') {
         callback = filter;
         filter = {};
       }
+
       if (_this.dataSource) {
         if (_this.isValid()) {
-          _this.dataSource.select(filter, function(result, response) {
-            if (result) {
-              if (callback) {
-                callback.call(_this.selector, result, response);
-              }
-              uiSync();
-              _this.loaded = true;
+          if (_this.options.lookupMode) {
+            if (callback) {
+              var result = true;
+              var response = [];
+              callback.call(_this.selector, result, response);
             }
-          }, { fields: _this.fields });
+            switchToSelect2();
+          } else {
+            _this.dataSource.select(filter, function(result, response) {
+              if (result) {
+                if (callback) {
+                  callback.call(_this.selector, result, response);
+                }
+                switchToSelect2();
+                _this.loaded = true;
+              }
+            }, { fields: _this.options.fields });
+          }
         } else {
           if (callback) {
             callback.call(_this.selector, true, []);
@@ -2567,24 +2956,30 @@
 
       _this.dataSource.on('select', function(data) {
         if (_this.isValid()) {
-          render(data);
+          if (!_this.options.lookupMode) {
+            render(data);
+          }
         }
         _this.events.trigger('load', data);
       });
 
       _this.dataSource.after('insert', function(result, data) {
         if (result && _this.isValid()) {
-          _this.selector.append($(renderRow(data)));
-          uiSync();
+          if (!_this.options.lookupMode) {
+            _this.selector.append($(renderRow(data)));
+            switchToSelect2();
+          }
         }
         _this.events.trigger('change');
       });
 
       _this.dataSource.after('update', function(result, data) {
         if (result && _this.isValid()) {
-          if (data[_this.options.valueField]) {
-            _this.selector.find('option[value=' + data[_this.options.valueField] +']').text(getName(data));
-            uiSync();
+          if (!_this.options.lookupMode) {
+            if (data[_this.options.valueField]) {
+              _this.selector.find('option[value=' + data[_this.options.valueField] +']').text(getName(data));
+              switchToSelect2();
+            }
           }
         }
         _this.events.trigger('change');
@@ -2592,9 +2987,11 @@
 
       _this.dataSource.after('remove', function(result, data) {
         if (result && _this.isValid()) {
-          if (data[_this.options.valueField]) {
-            _this.selector.find('option[value=' + data[_this.options.valueField] +']').remove();
-            uiSync();
+          if (!_this.options.lookupMode) {
+            if (data[_this.options.valueField]) {
+              _this.selector.find('option[value=' + data[_this.options.valueField] +']').remove();
+              switchToSelect2();
+            }
           }
         }
         _this.events.trigger('change');
@@ -2602,8 +2999,8 @@
 
     } else {
 
-      if (_this.saveSelection) {
-        if (_this.saveToSessionStorage) {
+      if (_this.options.saveSelection) {
+        if (_this.options.saveToSessionStorage) {
           _this.options.selectedValue = br.session.get(storageTag(_this.selector));
         } else {
           _this.options.selectedValue = br.storage.get(storageTag(_this.selector));
@@ -2613,21 +3010,23 @@
         }
       }
 
-      uiSync();
+      switchToSelect2();
 
     }
 
     _this.selector.change(function() {
-      if (_this.saveSelection) {
-        if (_this.saveToSessionStorage) {
+      if (_this.options.saveSelection) {
+        if (_this.options.saveToSessionStorage) {
           br.session.set(storageTag(this), $(this).val());
         } else {
           br.storage.set(storageTag(this), $(this).val());
         }
       }
       _this.events.trigger('change');
-      uiSync();
+      switchToSelect2();
     });
+
+    this.selector.data('BrDataCombo', _this);
 
   }
 
@@ -2635,6 +3034,23 @@
 
   window.br.dataCombo = function (selector, dataSource, options) {
     return new BrDataCombo(selector, dataSource, options);
+    // var result = [];
+    // $(selector).each(function() {
+    //   var obj = $(this).data('BrDataCombo');
+    //   if (obj) {
+    //     result.push(obj);
+    //   } else {
+    //     result.push(new BrDataCombo($(this), dataSource, options));
+    //   }
+    // });
+    // switch(result.length) {
+    //   case 0:
+    //     return new BrDataCombo(selector, dataSource, options);
+    //   case 1:
+    //     return result[0];
+    //   default:
+    //     return result[0];
+    // }
   };
 
 })(jQuery, window);
@@ -2658,6 +3074,7 @@
     }
     options = options || {};
     _this.options = options;
+    _this.options.popover_placement = _this.ctrl.attr('data-popover-placement') || 'bottom';
     _this.editor = null;
     _this.savedWidth = '';
     _this.click = function(element, e) {
@@ -2699,9 +3116,9 @@
         $('div.popover').remove();
         if (!_this.options.hideHint) {
           if (_this.options.saveOnLoosingFocus) {
-            _this.editor.popover({placement: 'bottom', animation: false, trigger: 'manual', content: 'WARNING!!! Changes will be saved after leaving input box, by pressing [Enter], or by pressing [Tab]. Press [Esc] to cancel changes.'});
+            _this.editor.popover({placement: _this.options.popover_placement, animation: false, trigger: 'manual', content: 'WARNING!!! Changes will be saved after leaving input box, by pressing [Enter], or by pressing [Tab]. Press [Esc] to cancel changes.'});
           } else {
-            _this.editor.popover({placement: 'bottom', animation: false, trigger: 'manual', content: 'Press [Enter] to save changes, [Esc] to cancel changes.'});
+            _this.editor.popover({placement: _this.options.popover_placement, animation: false, trigger: 'manual', content: 'Press [Enter] to save changes, [Esc] to cancel changes.'});
           }
         }
         _this.editor.popover('show');
@@ -2874,6 +3291,7 @@
   };
 
   window.br.confirm = function(title, message, buttons, callback, options) {
+
     if (typeof buttons == 'function') {
       options   = callback;
       callback = buttons;
@@ -2881,6 +3299,8 @@
     }
     options = options || {};
     options.cancelTitle = options.cancelTitle || br.trn('Cancel');
+    options.onConfirm = options.onConfirm || callback;
+
     var i;
 
     var s = '<div class="modal modal-autosize';
@@ -2889,11 +3309,7 @@
     }
     s = s + '" id="br_modalConfirm"';
     if (br.bootstrapVersion == 2) {
-      // if (br.isMobileDevice()) {
-        // s = s + ' style="top:20px;"';
-      // } else {
-        s = s + ' style="top:20px;margin-top:0px;"';
-      // }
+      s = s + ' style="top:20px;margin-top:0px;"';
     }
     s = s + '>';
 
@@ -2916,7 +3332,7 @@
 
     s = s + '<div class="modal-dialog">' +
             '<div class="modal-content">' +
-            '<div class="modal-header"><h3 class="modal-title">' + title + '</h3></div>' +
+            '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>' +
             '<div class="modal-body" style="overflow-y:auto;">' + message + checkBoxes + '</div>' +
             '<div class="modal-footer">';
     if (options.showDontAskMeAgain) {
@@ -2933,10 +3349,26 @@
         s = s + '<a href="javascript:;" class="btn btn-sm btn-default action-confirm-close" rel="' + i + '">&nbsp;' + buttons[i] + '&nbsp;</a>';
       }
     }
-    s = s + '<a href="javascript:;" class="btn btn-sm btn-default action-confirm-cancel">&nbsp;' + options.cancelTitle + '&nbsp;</a>';
+    s = s + '<a href="javascript:;" class="btn btn-sm btn-default action-confirm-cancel" rel="cancel">&nbsp;' + options.cancelTitle + '&nbsp;</a>';
     s = s + '</div></div></div></div>';
     var dialog = $(s);
+
+    var oldActiveElement = document.activeElement;
+    if (oldActiveElement) {
+      oldActiveElement.blur();
+    }
+
     var remove = true;
+
+    var onShown = function(e) {
+      if (options.defaultButton) {
+        var btn = $(this).find('.modal-footer a.btn[rel=' + options.defaultButton + ']');
+        if (btn.length > 0) {
+          btn[0].focus();
+        }
+      }
+    };
+
     var onShow = function(e) {
       if (options.onShow) {
         options.onShow.call(dialog);
@@ -2950,8 +3382,13 @@
         });
         remove = false;
         dialog.modal('hide');
-        callback(button, dontAsk, checks);
+        if (options.onConfirm) {
+          options.onConfirm.call(this, button, dontAsk, checks);
+        }
         dialog.remove();
+        if (oldActiveElement) {
+          oldActiveElement.focus();
+        }
       });
       $(this).find('.action-confirm-cancel').click(function() {
         var button = 'cancel';
@@ -2962,31 +3399,47 @@
           options.onCancel(button, dontAsk);
         }
         dialog.remove();
+        if (oldActiveElement) {
+          oldActiveElement.focus();
+        }
       });
     };
+
     var onHide = function(e) {
       if (options.onHide) {
         options.onHide.call(this);
       }
       if (remove) {
+        if (options.onCancel) {
+          var button = 'cancel';
+          var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');
+          options.onCancel(button, dontAsk);
+        }
         dialog.remove();
+        if (oldActiveElement) {
+          oldActiveElement.focus();
+        }
       }
     };
+
     $(dialog).on('show.bs.modal', onShow);
     $(dialog).on('hide.bs.modal', onHide);
+    $(dialog).on('shown.bs.modal', onShown);
+
     $(dialog).modal('show');
+
     br.enchanceBootstrap(dialog);
     br.resizeModalPopup(dialog);
+
+    return dialog;
+
   };
 
   window.br.error = function(title, message, callback) {
+
     var s = '<div class="modal modal-autosize" id="br_modalError"';
     if (br.bootstrapVersion == 2) {
-      // if (br.isMobileDevice()) {
-        // s = s + ' style="top:20px;"';
-      // } else {
-        s = s + ' style="top:20px;margin-top:0px;"';
-      // }
+      s = s + ' style="top:20px;margin-top:0px;"';
     }
     s = s + '>' +
             '<div class="modal-dialog">' +
@@ -2995,18 +3448,35 @@
       s = s + '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>';
     }
     s = s + '<div class="modal-body" style="overflow-y:auto;">' + message + '</div>' +
-            '<div class="modal-footer" style="background-color:red;"><a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn('Dismiss') + '&nbsp;</a></div></div></div></div>';
+            '<div class="modal-footer" style="background-color:red;">';
+    s = s + '<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn('Dismiss') + '&nbsp;</a><';
+    s = s + '/div></div></div></div>';
     var dialog = $(s);
+
+    var oldActiveElement = document.activeElement;
+    if (oldActiveElement) {
+      oldActiveElement.blur();
+    }
+
     var onHide = function(e) {
       if (callback) {
         callback.call(this);
       }
       dialog.remove();
+      if (oldActiveElement) {
+        oldActiveElement.focus();
+      }
     };
+
     $(dialog).on('hide.bs.modal', onHide);
+
     $(dialog).modal('show');
+
     br.enchanceBootstrap(dialog);
     br.resizeModalPopup(dialog);
+
+    return dialog;
+
   };
 
   window.br.inform = function(title, message, callback, options) {
@@ -3023,11 +3493,7 @@
 
     var s = '<div class="modal modal-autosize" id="br_modalInform"';
     if (br.bootstrapVersion == 2) {
-      // if (br.isMobileDevice()) {
-        // s = s + ' style="top:20px;"';
-      // } else {
-        s = s + ' style="top:20px;margin-top:0px;"';
-      // }
+      s = s + ' style="top:20px;margin-top:0px;"';
     }
     s = s + '>' +
             '<div class="modal-dialog">' +
@@ -3044,18 +3510,34 @@
               '</label>';
     }
     s = s +'<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn(buttonTitle) + '&nbsp;</a></div></div></div></div>';
+
     var dialog = $(s);
+
+    var oldActiveElement = document.activeElement;
+    if (oldActiveElement) {
+      oldActiveElement.blur();
+    }
+
     var onHide = function(e) {
       var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');
       if (callback) {
         callback.call(this, dontAsk);
       }
       dialog.remove();
+      if (oldActiveElement) {
+        oldActiveElement.focus();
+      }
     };
+
     $(dialog).on('hide.bs.modal', onHide);
+
     $(dialog).modal('show');
+
     br.enchanceBootstrap(dialog);
     br.resizeModalPopup(dialog);
+
+    return dialog;
+
   };
 
   window.br.prompt = function(title, fields, callback, options) {
@@ -3071,13 +3553,13 @@
       inputs[fields] = '';
     }
 
+    if (options.onhide) {
+      options.onHide = options.onhide;
+    }
+
     var s = '<div class="modal modal-autosize" id="br_modalPrompt"';
     if (br.bootstrapVersion == 2) {
-      // if (br.isMobileDevice()) {
-        // s = s + ' style="top:20px;"';
-      // } else {
-        s = s + ' style="top:20px;margin-top:0px;"';
-      // }
+      s = s + ' style="top:20px;margin-top:0px;"';
     }
     s = s + '>' +
             '<div class="modal-dialog">' +
@@ -3099,64 +3581,86 @@
     s = s + '<a href="javascript:;" class="btn btn-sm btn-primary action-confirm-close" rel="confirm" >Ok</a>';
     s = s + '<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn('Cancel') + '&nbsp;</a>';
     s = s + '</div></div></div></div>';
+
     var dialog = $(s);
+
+    var oldActiveElement = document.activeElement;
+    if (oldActiveElement) {
+      oldActiveElement.blur();
+    }
+
     var remove = true;
-    $(dialog)
-      .on('shown.bs.modal', function(e) {
-        $(this).find('input[type=text]')[0].focus();
-      })
-      .on('show.bs.modal', function(e) {
-        $(this).find('.action-confirm-close').click(function() {
-          var results = [];
-          var ok = true, notOkField;
-          var inputs = [];
-          $(this).closest('div.modal').find('input[type=text]').each(function() {
-            if ($(this).hasClass('required') && br.isEmpty($(this).val())) {
+
+    var onShown = function(e) {
+      $(this).find('input[type=text]')[0].focus();
+    };
+
+    var onShow = function(e) {
+      $(this).find('.action-confirm-close').click(function() {
+        var results = [];
+        var ok = true, notOkField;
+        var inputs = [];
+        $(this).closest('div.modal').find('input[type=text]').each(function() {
+          if ($(this).hasClass('required') && br.isEmpty($(this).val())) {
+            ok = false;
+            notOkField = $(this);
+          }
+          results.push($(this).val().trim());
+          inputs.push($(this));
+        });
+        if (ok) {
+          if (options.onValidate) {
+            try {
+              options.onValidate.call(this, results);
+            } catch (e) {
               ok = false;
-              notOkField = $(this);
-            }
-            results.push($(this).val().trim());
-            inputs.push($(this));
-          });
-          if (ok) {
-            if (options.onValidate) {
-              try {
-                options.onValidate.call(this, results);
-              } catch (e) {
-                ok = false;
-                br.growlError(e);
-                if (inputs.length == 1) {
-                  inputs[0].focus();
-                }
+              br.growlError(e);
+              if (inputs.length == 1) {
+                inputs[0].focus();
               }
             }
-            if (ok) {
-              remove = false;
-              $(dialog).modal('hide');
-              callback.call(this, results);
-              dialog.remove();
-            }
-          } else {
-            br.growlError('Please enter value');
-            notOkField[0].focus();
           }
-        });
+          if (ok) {
+            remove = false;
+            $(dialog).modal('hide');
+            if (callback) {
+              callback.call(this, results);
+            }
+            dialog.remove();
+            if (oldActiveElement) {
+              oldActiveElement.focus();
+            }
+          }
+        } else {
+          br.growlError('Please enter value');
+          notOkField[0].focus();
+        }
       });
+    };
+
     var onHide = function(e) {
       if (options.onHide) {
         options.onHide.call(this);
-      } else
-      if (options.onhide) {
-        options.onhide.call(this);
       }
       if (remove) {
         dialog.remove();
+        if (oldActiveElement) {
+          oldActiveElement.focus();
+        }
       }
     };
+
+    $(dialog).on('show.bs.modal', onShow);
     $(dialog).on('hide.bs.modal', onHide);
+    $(dialog).on('shown.bs.modal', onShown);
+
     $(dialog).modal('show');
+
     br.enchanceBootstrap(dialog);
     br.resizeModalPopup(dialog);
+
+    return dialog;
+
   };
 
   var noTemplateEngine = false;
@@ -3464,9 +3968,20 @@
 
   };
 
+  if (typeof window.Handlebars == 'object') {
+    Handlebars.registerHelper('if_eq', function(a, b, opts) {
+      if (a === b) {
+        return opts.fn(this);
+      } else {
+        return opts.inverse(this);
+      }
+    });
+  }
+
   $(document).ready(function() {
 
     var notAuthorized = false;
+
 
     if ($.fn['modal']) {
       if ($.fn['modal'].toString().indexOf('bs.modal') == -1) {
@@ -3476,6 +3991,10 @@
       }
     } else {
       br.bootstrapVersion = 0;
+    }
+
+    if (br.bootstrapVersion == 2) {
+      $.fn.modal.Constructor.prototype.enforceFocus = function () {};
     }
 
     $(document).ajaxStart(function() {

@@ -27,6 +27,11 @@ class BrErrorHandler extends BrObject {
 
     if ($this->isEnabled()) {
       if ((error_reporting() & $errno) == $errno) {
+
+        if (br()->request()->isDevHost()) {
+          ini_set('display_errors', true);
+        }
+
         switch ($errno) {
           case E_ERROR:
           case E_USER_ERROR:
@@ -37,7 +42,7 @@ class BrErrorHandler extends BrObject {
             }
             break;
           default:
-            br()->log()->logException(new BrErrorException($errmsg, 0, $errno, $errfile, $errline), !$shutdown && br()->request()->isLocalHost());              
+            br()->log()->logException(new BrErrorException($errmsg, 0, $errno, $errfile, $errline), !$shutdown && br()->request()->isLocalHost());
             break;
         }
       }
@@ -80,7 +85,7 @@ class BrErrorHandler extends BrObject {
           if (!br()->log()->isAdapterExists('BrWebLogAdapter')) {
             br()->importLib('WebLogAdapter');
             br()->log()->addAdapter(new BrWebLogAdapter());
-          }          
+          }
         }
         try {
           if ($e instanceof BrAppException) {

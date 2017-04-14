@@ -47,7 +47,7 @@ br()->importAtBasePath('config.php');
 // Logging
 if (!br()->log()->isAdapterExists('BrErrorFileLogAdapter')) {
   br()->importLib('ErrorFileLogAdapter');
-  br()->log()->addAdapter(new BrErrorFileLogAdapter(br()->atBasePath('_logs')));
+  br()->log()->addAdapter(new BrErrorFileLogAdapter(br()->config()->get('Logger/File/LogsFolder', br()->atBasePath(br()->config()->get('Logger/File/LogsSubFolder', '_logs')))));
 }
 
 if (!br()->log()->isAdapterExists('BrErrorMailLogAdapter')) {
@@ -58,7 +58,7 @@ if (!br()->log()->isAdapterExists('BrErrorMailLogAdapter')) {
 if (br()->config()->get('Logger/File/Active')) {
   if (!br()->log()->isAdapterExists('BrFileLogAdapter')) {
     br()->importLib('FileLogAdapter');
-    br()->log()->addAdapter(new BrFileLogAdapter(br()->atBasePath('_logs')));
+    br()->log()->addAdapter(new BrFileLogAdapter(br()->config()->get('Logger/File/LogsFolder', br()->atBasePath(br()->config()->get('Logger/File/LogsSubFolder', '_logs')))));
   }
 }
 
@@ -94,3 +94,4 @@ ini_set('session.cache_expire', br()->config()->get('php/session.cache_expire', 
 ini_set('session.cookie_lifetime', br()->config()->get('php/session.cookie_lifetime', 0));
 // Core PHP settings - Secondary - End
 
+br()->triggerSticky('after:br.init');

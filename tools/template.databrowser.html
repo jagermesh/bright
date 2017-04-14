@@ -6,11 +6,11 @@
 
     <script class="data-row-template" type="text/template">
       <tr data-rowid="{{rowid}}">
-        <td class="optimal-width">{{#permissions.canUpdate}}<a class="action-edit btn btn-mini" title="Edit"><i class="icon-pencil"></i></a>{{/permissions.canUpdate}}</td>
+        <td class="optimal-width">{{#if permissions.canUpdate}}<a class="action-edit btn btn-mini" title="Edit"><i class="icon-pencil"></i></a>{{/if}}</td>
         [[#fields]]
         <td>{{[[fieldName]]}}</td>
         [[/fields]]
-        <td class="optimal-width">{{#permissions.canRemove}}<a class="action-delete btn btn-mini" title="Delete"><i class="icon-trash"></i></a>{{/permissions.canRemove}}</td>
+        <td class="optimal-width">{{#if permissions.canRemove}}<a class="action-delete btn btn-mini" title="Delete"><i class="icon-trash"></i></a>{{/if}}</td>
       </tr>
     </script>
 

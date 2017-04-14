@@ -15,13 +15,12 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
   private $__connection;
   private $errorRedirect;
   private $config;
-  private $reconnectIterations = 10;
-  private $rerunIterations = 10;
+  private $reconnectIterations = 50;
+  private $rerunIterations     = 50;
 
   function __construct($config) {
 
     $this->config = $config;
-    $this->connect();
     register_shutdown_function(array(&$this, "captureShutdown"));
 
   }
@@ -47,7 +46,9 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
   function connect($iteration = 0, $rerunError = null) {
 
     if ($iteration > $this->reconnectIterations) {
-      throw new BrDBConnectionError($rerunError);
+      $e = new BrDBConnectionError($rerunError);
+      br()->triggerSticky('db.connectionError', $e);
+      throw $e;
     }
 
     $hostName     = br($this->config, 'hostname');
@@ -70,11 +71,11 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
     } catch (Exception $e) {
       if (preg_match('/Unknown database/', $e->getMessage()) ||
           preg_match('/Access denied/', $e->getMessage())) {
+        br()->triggerSticky('db.connectionError', $e);
         throw new BrDBConnectionError($e->getMessage());
       } else {
         $this->__connection = null;
-        br()->log('Reconnecting... (' . $iteration . ')');
-        usleep(500000);
+        usleep(250000);
         $this->connect($iteration + 1, $e->getMessage());
       }
     }
@@ -152,22 +153,29 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
       if (preg_match('/Error while sending QUERY packet/', $e->getMessage()) ||
           preg_match('/Error reading result set/', $e->getMessage()) ||
           preg_match('/Lost connection to backend server/', $e->getMessage()) ||
-          preg_match('/Packets out of order/', $e->getMessage()) ||
-          preg_match('/MySQL server has gone away/', $e->getMessage())) {
+          preg_match('/Connection was killed/', $e->getMessage()) ||
+          preg_match('/failed to create new session/', $e->getMessage()) ||
+          preg_match('/WSREP has not yet prepared node for application use/', $e->getMessage()) ||
+          preg_match('/MySQL server has gone away/', $e->getMessage()) ||
+          preg_match('/Packets out of order/', $e->getMessage())) {
         $this->connect();
       }
       // then we will try re-run queries
       if (preg_match('/Error while sending QUERY packet/', $e->getMessage()) ||
           preg_match('/Error reading result set/', $e->getMessage()) ||
           preg_match('/Lost connection to backend server/', $e->getMessage()) ||
-          preg_match('/Packets out of order/', $e->getMessage()) ||
+          preg_match('/Connection was killed/', $e->getMessage()) ||
+          preg_match('/failed to create new session/', $e->getMessage()) ||
+          preg_match('/WSREP has not yet prepared node for application use/', $e->getMessage()) ||
           preg_match('/MySQL server has gone away/', $e->getMessage()) ||
+          preg_match('/Packets out of order/', $e->getMessage()) ||
           preg_match('/Lock wait timeout exceeded/', $e->getMessage()) ||
+          preg_match('/Duplicate entry \'[0-9]+\' for key \'PRIMARY\'/', $e->getMessage()) ||
           preg_match('/Deadlock found when trying to get lock/', $e->getMessage())) {
         if ($this->inTransaction()) {
           if ($this->isTransactionBufferEmpty()) {
             br()->log()->writeln('Some error occured, but this is first query. Trying restart transaction and repeat query', 'SEP');
-            usleep(50000);
+            usleep(250000);
             $this->rollbackTransaction();
             $this->startTransaction();
             $query = $this->internalRunQuery($sql, $args, $iteration + 1, $e->getMessage());
@@ -176,12 +184,14 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
             $error .= '. Automatic retrying was not possible - ' . $this->transactionBufferLength() . ' statement(s) in transaction buffer: ';
             $error .= json_encode($this->transactionBuffer());
             $error .= '. [INFO:SQL]' . $sql . '[/INFO]';
-            $this->rollbackTransaction();
-            if (preg_match('/Lock wait timeout exceeded/', $error)) {
-              throw new BrDBLockException($error);
-            } else
             if (preg_match('/Deadlock found when trying to get lock/', $error)) {
               throw new BrDBDeadLockException($error);
+            } else
+            if (preg_match('/Duplicate entry \'[0-9]+\' for key \'PRIMARY\'/', $error)) {
+              throw new BrDBUniqueKeyException($error);
+            } else
+            if (preg_match('/Lock wait timeout exceeded/', $error)) {
+              throw new BrDBLockException($error);
             } else
             if (preg_match('/Packets out of order/', $error)) {
               throw new BrDBEngineException($error);
@@ -189,14 +199,16 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
             if (preg_match('/Error while sending QUERY packet/', $e->getMessage()) ||
                 preg_match('/Error reading result set/', $e->getMessage()) ||
                 preg_match('/Lost connection to backend server/', $e->getMessage()) ||
-                preg_match('/Packets out of order/', $e->getMessage()) ||
+                preg_match('/Connection was killed/', $e->getMessage()) ||
+                preg_match('/failed to create new session/', $e->getMessage()) ||
+                preg_match('/WSREP has not yet prepared node for application use/', $e->getMessage()) ||
                 preg_match('/MySQL server has gone away/', $e->getMessage())) {
               throw new BrDBServerGoneAwayException($error);
             }
           }
         } else {
           br()->log()->writeln('Some error occured, but we are not in transaction. Trying repeat query', 'SEP');
-          usleep(50000);
+          usleep(250000);
           $query = $this->internalRunQuery($sql, $args, $iteration + 1, $e->getMessage());
         }
       } else
@@ -276,7 +288,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
     if ($this->__connection) {
       return mysqli_insert_id($this->__connection);
     } else {
-      throw new BrDBConnectionError('MySQL server has gone away');      
+      throw new BrDBConnectionError('MySQL server has gone away');
     }
 
   }

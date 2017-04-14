@@ -12,13 +12,80 @@ require_once(__DIR__.'/BrSingleton.php');
 
 class BrHTML extends BrSingleton {
 
+  function isHtml($text) {
+
+    return preg_match('/<[a-z]+[^>]*?>/i', $text) || preg_match('/&[a-z#0-9]+;/i', $text);
+
+  }
+
+  function XSSCleanUp($html) {
+
+    if ($this->isHtml($html)) {
+      $events = array(
+         'onbeforecopy'
+        ,'onbeforecut'
+        ,'onbeforepaste'
+        ,'onpaste'
+        ,'oncut'
+        ,'oncopy'
+        ,'ondrag'
+        ,'ondblclick'
+        ,'onmousedown'
+        ,'onmouseout'
+        ,'onmouseover'
+        ,'onmouseup'
+        ,'onmouseenter'
+        ,'onmousemove'
+        ,'onmouseleave'
+        ,'onfocus'
+        ,'onfocusin'
+        ,'onfocusout'
+        ,'onload'
+        ,'onshow'
+        ,'onerror'
+        ,'onmouseout'
+        ,'onmouseover'
+        ,'onclick'
+      );
+
+      try {
+        $doc = phpQuery::newDocument($html);
+        try {
+          foreach(pq($doc)->find('img,input,body,link,menu,audio,video,source,track') as $tag) {
+            foreach ($events as $event) {
+              if (pq($tag)->attr($event)) {
+                pq($tag)->attr($event, '');
+              }
+            }
+          }
+          foreach(pq($doc)->find('base,style,meta,script,object,embed') as $style) {
+            pq($style)->remove();
+          }
+          foreach(pq($doc)->find('iframe') as $tag) {
+            if (!pq($tag)->attr('src') || !preg_match('~^(http[s]?:|)//.*?(vimeo|youtube|flickr|soundcloud)[.]com~i', pq($tag)->attr('src'))) {
+              pq($tag)->remove();
+            }
+          }
+          $html = $doc->html();
+          phpQuery::unloadDocuments();
+        } catch (Exception $e) {
+          phpQuery::unloadDocuments();
+        }
+      } catch (Exception $e) {
+
+      }
+    }
+
+    return trim($html);
+
+  }
+
   function cleanUp($html) {
 
     $html = str_replace('{cke_protected}{C}', '', $html);
 
     $html = preg_replace('|<!--.+?-->|ism', '', $html);
     $html = preg_replace('|<title></title>|i', '', $html);
-    // $html = preg_replace('|(style="[^"]*)(text-indent:[^;"]+)|i', '$1', $html);
     $html = preg_replace('|<script[^>]*>.*?</script>|ism', '', $html);
     $html = preg_replace('|<style[^>]*>.*?</style>|ism', '', $html);
     $html = preg_replace('|<head[^>]*>.*?</head>|ism', '', $html);
@@ -136,32 +203,38 @@ class BrHTML extends BrSingleton {
   }
 
   function unicodeToNamedEntities($html) {
-    $html = json_encode($html);
-    $html = preg_replace('/\\\u([0-9a-z]{4})/', '&#x$1;', $html );
-    $html = json_decode($html);
-    $xmlErrors = libxml_use_internal_errors(true);
-    try {
-      $doc = new DOMDocument();
-      if ($doc->loadHTML($html)) {
-        $search = new DOMXPath($doc);
-        $results = $search->evaluate('//*[@style]');
-        foreach ($results as $result) {
-          $result->removeAttribute('style');
-        }
-        $html = $doc->saveHTML();
-      }
-    } catch (Exception $e) {
 
+    if (strlen($html) > 0) {
+      $html = json_encode($html);
+      $html = preg_replace('/\\\u([0-9a-z]{4})/', '&#x$1;', $html );
+      $html = json_decode($html);
+      $html = trim($html);
+      if (strlen($html) > 0) {
+        $xmlErrors = libxml_use_internal_errors(true);
+        try {
+          $doc = new DOMDocument();
+          if ($doc->loadHTML($html)) {
+            $search = new DOMXPath($doc);
+            $results = $search->evaluate('//*[@style]');
+            foreach ($results as $result) {
+              $result->removeAttribute('style');
+            }
+            $html = $doc->saveHTML();
+          }
+        } catch (Exception $e) {
+
+        }
+        libxml_clear_errors();
+        libxml_use_internal_errors($xmlErrors);
+      }
+      $html = preg_replace("/&nbsp;/ism", ' ', $html);
+      $html = preg_replace("/(\n\n|\r\n\r\n|\r\r)/ism", '', $html);
+      $html = preg_replace('/<br[^>]*>/ism', "\n", $html);
+      $html = preg_replace('/<[A-Z][^>]*?>/ism', '', $html);
+      $html = preg_replace('/<\/[A-Z][^>]*?>/ism', '', $html);
+      $html = preg_replace('/<!DOCTYPE[^>]*?>/ism', '', $html);
+      $html = preg_replace('/<!--[^>]*?>/ism', '', $html);
     }
-    libxml_clear_errors();
-    libxml_use_internal_errors($xmlErrors);
-    $html = preg_replace("/&nbsp;/ism", ' ', $html);
-    $html = preg_replace("/(\n\n|\r\n\r\n|\r\r)/ism", '', $html);
-    $html = preg_replace('/<br[^>]*>/ism', "\n", $html);
-    $html = preg_replace('/<[A-Z][^>]*?>/ism', '', $html);
-    $html = preg_replace('/<\/[A-Z][^>]*?>/ism', '', $html);
-    $html = preg_replace('/<!DOCTYPE[^>]*?>/ism', '', $html);
-    $html = preg_replace('/<!--[^>]*?>/ism', '', $html);
 
     return trim($html);
   }

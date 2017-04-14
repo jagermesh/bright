@@ -81,8 +81,9 @@ class BrDataSourceUsers extends BrDataSource {
           $filter = array( $loginField    => $params[$loginField]
                          , $passwordField => $params[$passwordField]
                          );
-          $dataSource->callEvent('before:loginSelectUser', $params, $filter);
-          if ($row = $dataSource->selectOne($filter)) {
+          $order  = array();
+          $dataSource->callEvent('before:loginSelectUser', $params, $filter, $order);
+          if ($row = $dataSource->selectOne($filter, array(), $order)) {
             $row[$passwordField] = $params[$passwordField];
             $row = $dataSource->loginUser($row, $params);
             return $row;
@@ -391,7 +392,7 @@ class BrDataSourceUsers extends BrDataSource {
     }
     $denied = false;
     if ($this->invokeMethodExists('isAccessDenied')) {
-      $denied = $this->invoke('isAccessDenied', $row);
+      $denied = $this->invoke('isAccessDenied', $row, $params);
     }
     if (!$denied) {
       $passwordField = br()->auth()->getAttr('usersTable.passwordField');

@@ -39,7 +39,7 @@ function createAuditTriggers($tableName, $excludeFields, $isAudited, $commandNam
       $sql  = 'CREATE TRIGGER aud_tai_' . $tableName . "\n";
       $sql .= 'AFTER INSERT ON ' . $tableName .' FOR EACH ROW' . "\n";
       $sql .= 'BEGIN' . "\n";
-      $sql .= '  DECLARE auditID INTEGER;' . "\n";
+      $sql .= '  DECLARE auditID BIGINT UNSIGNED;' . "\n";
       $sql .= '  IF @auditDisabled IS NULL THEN' . "\n";
       $sql .= '    INSERT INTO audit_change(action_date, table_name, action_name, object_id, author_id, ip_address) VALUES (NOW(), "'. $tableName . '", "i", NEW.id, @sessionUserID, @sessionUserIP);' . "\n";
       $sql .= '    SET auditID = LAST_INSERT_ID();' . "\n";
@@ -64,7 +64,7 @@ function createAuditTriggers($tableName, $excludeFields, $isAudited, $commandNam
       $sql  = 'CREATE TRIGGER aud_tau_' . $tableName . "\n";
       $sql .= 'AFTER UPDATE ON ' . $tableName .' FOR EACH ROW' . "\n";
       $sql .= 'BEGIN' . "\n";
-      $sql .= '  DECLARE auditID INTEGER;' . "\n";
+      $sql .= '  DECLARE auditID BIGINT UNSIGNED;' . "\n";
       $sql .= '  DECLARE changeExists BOOLEAN;' . "\n";
       $sql .= '  IF @auditDisabled IS NULL THEN' . "\n";
       $sql .= '    SET changeExists = FALSE;' . "\n";
@@ -108,7 +108,7 @@ function createAuditTriggers($tableName, $excludeFields, $isAudited, $commandNam
       $sql  = 'CREATE TRIGGER aud_tad_' . $tableName . "\n";
       $sql .= 'AFTER DELETE ON ' . $tableName .' FOR EACH ROW' . "\n";
       $sql .= 'BEGIN' . "\n";
-      $sql .= '  DECLARE auditID INTEGER;' . "\n";
+      $sql .= '  DECLARE auditID BIGINT UNSIGNED;' . "\n";
       $sql .= '  IF @auditDisabled IS NULL THEN' . "\n";
       $sql .= '    INSERT INTO audit_change(action_date, table_name, action_name, object_id, author_id, ip_address) VALUES (NOW(), "'. $tableName . '", "d", OLD.id, @sessionUserID, @sessionUserIP);' . "\n";
       $sql .= '    SET auditID = LAST_INSERT_ID();' . "\n";

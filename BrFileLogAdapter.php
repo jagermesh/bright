@@ -15,10 +15,10 @@ class BrFileLogAdapter extends BrGenericFileLogAdapter {
   function __construct($filePath, $fileName = null) {
 
     if (!$filePath) {
-      $filePath = dirname(__DIR__).'/_logs/';
+      $filePath = dirname(__DIR__) . '/_logs/';
     }
 
-    $filePath = rtrim($filePath, '/').'/';
+    $filePath = rtrim($filePath, '/') . '/';
 
     $date = @strftime('%Y-%m-%d');
     $hour = @strftime('%H');
@@ -52,13 +52,13 @@ class BrFileLogAdapter extends BrGenericFileLogAdapter {
     $filePath = $tmp;
 
     if (!$fileName) {
-      $fileName = $date.'-';
+      $fileName = $date . '_' . $hour;
       if (br()->isConsoleMode()) {
 
       } else {
-        $fileName .= br()->request()->clientIP().'-';
+        $fileName .= '_' . br()->request()->clientIP();
       }
-      $fileName .= $hour.'.log';
+      $fileName .= '.log';
     }
 
     parent::__construct($filePath, $fileName);

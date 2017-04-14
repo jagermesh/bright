@@ -8,8 +8,8 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrSingleton.php');
-require_once(__DIR__.'/BrException.php');
+require_once(__DIR__ . '/BrSingleton.php');
+require_once(__DIR__ . '/BrException.php');
 
 function br($array = null, $name = null, $default = null) {
 
@@ -21,31 +21,29 @@ function br($array = null, $name = null, $default = null) {
       require_once(__DIR__ . '/BrArray.php');
       return new BrArray($array);
     } else {
-    // if (is_string($array)) {
       require_once(__DIR__ . '/BrString.php');
       return new BrString($array);
     }
-  } else {
-    if (is_array($array) && is_array($name)) {
-      $result = null;
-      foreach($name as $oneName) {
-        $result = br($array, $oneName);
-        if (strlen($result)) {
-          return $result;
-        }
+  } else
+  if (is_array($array) && is_array($name)) {
+    foreach($name as $oneName) {
+      $result = br($array, $oneName);
+      if ($result || is_bool($result) || (is_scalar($result) && strlen($result))) {
+        return $result;
       }
-      if (!strlen($result)) {
-        return $default;
-      }
-    } else {
-      return ( is_array($array) &&
-               strlen($name) &&
-               array_key_exists($name, $array) &&
-               ($array[$name] || is_bool($array[$name]) || (is_scalar($array[$name]) && strlen($array[$name])))
-             )
-             ? $array[$name]
-             : $default;
     }
+    return $default;
+  } else
+  if (is_array($array) && is_scalar($name)) {
+    $name = (string)$name;
+    return ( strlen($name) &&
+             array_key_exists($name, $array) &&
+             ($array[$name] || is_bool($array[$name]) || (is_scalar($array[$name]) && strlen($array[$name])))
+           )
+           ? $array[$name]
+           : $default;
+  } else {
+    return $default;
   }
 
 }
@@ -85,12 +83,25 @@ if (!function_exists('logme')) {
 class Br extends BrSingleton {
 
   private $processId = null;
+  private $templatesPath = null;
+  private $tempPath = null;
+  private $frameWorkPath = null;
+  private $scriptName = null;
+  private $basePath = null;
+  private $appPath = null;
+  private $APIPath = null;
+  private $relativePath = null;
+  private $application = null;
+  private $threadMode = false;
+  private $tempFiles = array();
 
   function __construct() {
 
     $this->frameWorkPath = str_replace('\\', '/', rtrim(__DIR__, '/').'/');
     $this->processId = null;
     parent::__construct();
+
+    register_shutdown_function(array(&$this, 'captureShutdown'));
 
   }
 
@@ -169,22 +180,14 @@ class Br extends BrSingleton {
 
   }
 
-  private $scriptName = null;
-  private $basePath = null;
-  private $appPath = null;
-  private $APIPath = null;
-  private $frameWorkPath = null;
-  private $relativePath = null;
-  private $application = null;
-
   function saveCallerScript($scriptPath) {
 
     $this->callerScript = $scriptPath;
     $this->basePath = $this->fs()->filePath($scriptPath);
     $this->scriptName = $this->fs()->fileName($scriptPath);
-    $this->appPath = $this->basePath.'app/';
-    $this->APIPath = $this->basePath.'api/';
-    $this->setTemplatesPath($this->basePath.'templates/');
+    $this->appPath = $this->basePath . 'app/';
+    $this->APIPath = $this->basePath . 'api/';
+    $this->setTemplatesPath($this->basePath . 'templates/');
 
     if (stripos($this->frameWorkPath, $this->basePath) === 0) {
       $this->relativePath = substr($this->frameWorkPath, strlen($this->basePath));
@@ -214,7 +217,7 @@ class Br extends BrSingleton {
 
   function atBasePath($path) {
 
-    return $this->basePath.ltrim($path, '/');
+    return $this->basePath . ltrim($path, '/');
 
   }
 
@@ -248,6 +251,25 @@ class Br extends BrSingleton {
 
   }
 
+  function setTempPath($tempPath) {
+
+    $this->tempPath = $tempPath;
+
+    br()->fs()->makeDir($this->tempPath(), 0777);
+
+  }
+
+  function tempPath() {
+
+    if (!$this->tempPath) {
+      $this->setTempPath(br()->config()->get('br/tempPath', $this->basePath . '_tmp/'));
+    }
+
+    return $this->tempPath;
+
+  }
+
+
   function atTemplatesPath($path) {
 
     return $this->templatesPath.ltrim($path, '/');
@@ -260,13 +282,13 @@ class Br extends BrSingleton {
 
   }
 
-  function removeEmptyKeys($array) {
+  function removeEmptyValues($array) {
 
     $result = array();
     foreach($array as $key => $value) {
       $go = false;
       if (is_array($value)) {
-        $value = br()->RemoveEmptyKeys($value);
+        $value = br()->removeEmptyValues($value);
         $go = $value;
       } else {
         $go = strlen($value);
@@ -327,6 +349,18 @@ class Br extends BrSingleton {
 
   }
 
+  function isThreadMode() {
+
+    return $this->threadMode;
+
+  }
+
+  function setThreadMode() {
+
+    $this->threadMode = true;
+
+  }
+
   function getMicrotime(){
 
     list($usec, $sec) = explode(" ",microtime());
@@ -360,11 +394,11 @@ class Br extends BrSingleton {
 
   }
 
-  function importLib($FileName) {
+  function importLib($className) {
 
-    $FileName = 'Br'.$FileName.'.php';
+    $fileName = 'Br'.$className.'.php';
 
-    require_once(__DIR__ . '/' . $FileName);
+    require_once(__DIR__ . '/' . $fileName);
 
   }
 
@@ -763,7 +797,7 @@ class Br extends BrSingleton {
   function sendMail($emails, $subject, $body, $params = array(), $callback = null) {
 
     if (!class_exists('PHPMailer')) {
-      require_once(__DIR__.'/3rdparty/phpmailer/class.phpmailer.php');
+      require_once(__DIR__ . '/3rdparty/phpmailer/class.phpmailer.php');
     }
 
     if (is_callable($params)) {
@@ -778,7 +812,10 @@ class Br extends BrSingleton {
 
     foreach($emails as $email) {
       try {
-        $mail->AddAddress($email);
+        $emailsArray = br(trim($email))->split();
+        foreach($emailsArray as $oneEMail) {
+          $mail->AddAddress($oneEMail);
+        }
       } catch (Exception $e) {
         br()->log('Error in br()->sendMail() line 794: ' . $e->getMessage());
       }
@@ -827,6 +864,12 @@ class Br extends BrSingleton {
     if (br($params, 'customHeaders')) {
       foreach($params['customHeaders'] as $customHeader) {
         $mail->AddCustomHeader($customHeader);
+      }
+    }
+
+    if (br($params, 'attachments')) {
+      foreach($params['attachments'] as $attachment) {
+        $mail->AddAttachment($attachment['path'], $attachment['name']);
       }
     }
 
@@ -883,6 +926,59 @@ class Br extends BrSingleton {
 
   }
 
+  function getContentTypeByExtension($fileName) {
+
+    $result = null;
+
+    $fileExt = strtolower(br()->fs()->fileExt($fileName));
+
+    switch ($fileExt) {
+      case 'txt':
+        $result = 'text/plain';
+        break;
+      case 'html':
+        $result = 'text/html';
+        break;
+      case 'png':
+        $result = 'image/png';
+        break;
+      case 'jpeg':
+      case 'jpg':
+        $result = 'image/jpeg';
+        break;
+      case 'gif':
+        $result = 'image/gif';
+        break;
+      case 'xls':
+        $result = 'application/vnd.ms-excel';
+        break;
+      case 'xlsx':
+        $result = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+        break;
+      case 'doc':
+        $result = 'application/msword';
+        break;
+      case 'docx':
+        $result = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        break;
+      case 'pdf':
+        $result = 'application/pdf';
+        break;
+      case 'mp4':
+        $result = 'video/mp4';
+        break;
+      case 'mp3':
+        $result = 'audio/mpeg';
+        break;
+      default:
+        $result = 'application/octet-stream';
+        break;
+    }
+
+    return $result;
+
+  }
+
   // utils
 
   function formatBytes($size) {
@@ -925,7 +1021,38 @@ class Br extends BrSingleton {
 
   }
 
+  function captureShutdown() {
 
+    foreach($this->tempFiles as $fileName) {
+      @unlink($fileName);
+    }
+
+  }
+
+  function getTempFile($fileName) {
+
+    $this->tempFiles[] = $this->tempPath() . $fileName;
+
+    return $this->tempPath() . $fileName;
+
+  }
+
+  function createTempFile($prefix, $extension = '', $register = true) {
+
+    $fileName = tempnam($this->tempPath(), $prefix);
+
+    if ($extension) {
+      rename($fileName, $fileName . $extension);
+      $fileName = $fileName . $extension;
+    }
+
+    if ($register) {
+      $this->tempFiles[] = $fileName;
+    }
+
+    return $fileName;
+
+  }
 
 }
 

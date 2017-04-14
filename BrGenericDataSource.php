@@ -90,14 +90,16 @@ class BrGenericDataSourceCursor implements Iterator {
 
 class BrGenericDataSource extends BrObject {
 
-  protected $defaultOrder;
-  protected $canTraverseBack = null;
-  protected $checkTraversing = false;
+  protected $defaultOrder          = null;
+  protected $canTraverseBack       = null;
+  protected $checkTraversing       = false;
   protected $selectAdjancedRecords = false;
-  protected $priorAdjancedRecord = null;
-  protected $nextAdjancedRecord = null;
-  protected $rowidFieldName = null;
-  protected $rerunIterations = 10;
+  protected $priorAdjancedRecord   = null;
+  protected $nextAdjancedRecord    = null;
+  protected $rowidFieldName        = null;
+  protected $rerunIterations       = 20;
+
+  private $__transactionalDML      = true;
 
   function __construct($options = array()) {
 
@@ -108,6 +110,16 @@ class BrGenericDataSource extends BrObject {
     $this->selectAdjancedRecords = br($options, 'selectAdjancedRecords');
     $this->rowidFieldName        = br($options, 'rowidFieldName');
     $this->lastSelectAmount      = 0;
+
+  }
+
+  function transactionalDML($value = null) {
+
+    if ($value !== null) {
+      $this->__transactionalDML = $value;
+    }
+
+    return $this->__transactionalDML;
 
   }
 
@@ -126,6 +138,16 @@ class BrGenericDataSource extends BrObject {
   function existsOne($filter = array()) {
 
     if ($row = $this->selectOne($filter, array(), array(), array('noCalcFields' => true))) {
+      return true;
+    } else {
+      return false;
+    }
+
+  }
+
+  function existsOneCached($filter = array()) {
+
+    if ($row = $this->selectOneCached($filter, array(), array(), array('noCalcFields' => true))) {
       return true;
     } else {
       return false;
@@ -163,7 +185,7 @@ class BrGenericDataSource extends BrObject {
     if (br()->cache()->exists($cacheTag)) {
       $result = br()->cache()->get($cacheTag);
     } else {
-      $result = $this->select($filter = array(), $fields = array(), $order = array(), $options = array());
+      $result = $this->select($filter, $fields, $order, $options);
       br()->cache()->set($cacheTag, $result);
     }
 
@@ -180,7 +202,7 @@ class BrGenericDataSource extends BrObject {
     if (br()->cache()->exists($cacheTag)) {
       $result = br()->cache()->get($cacheTag);
     } else {
-      $result = $this->select($filter = array(), $fields = array(), $order = array(), $options = array());
+      $result = $this->select($filter, $fields, $order, $options);
       br()->cache()->set($cacheTag, $result);
     }
 
@@ -316,27 +338,46 @@ class BrGenericDataSource extends BrObject {
           throw new Exception('Method [' . $method . '] not supported');
         } else {
           try {
-            br()->db()->startTransaction();
+            if (br()->db()) {
+              if ($this->transactionalDML()) {
+                br()->db()->startTransaction();
+              }
+            }
             $this->callEvent('before:' . $method, $params, $transientData);
             $data = $this->callEvent($method, $params, $transientData);
             $result = true;
             $this->callEvent('after:' . $method, $result, $data, $params, $transientData);
-            br()->db()->commitTransaction();
+            if (br()->db()) {
+              if ($this->transactionalDML()) {
+                br()->db()->commitTransaction();
+              }
+            }
             return $data;
           } catch (BrDBRecoverableException $e) {
             br()->log('Repeating invoke of ' . $method . '... (' . $iteration . ') because of ' . $e->getMessage());
-            usleep(50000);
+            usleep(250000);
             return $this->invoke($method, $params, $transientData, $optionsParam);
           } catch (Exception $e) {
             try {
-              br()->db()->rollbackTransaction();
+              if (br()->db()) {
+                if ($this->transactionalDML()) {
+                  br()->db()->rollbackTransaction();
+                }
+              }
             } catch (Exception $e2) {
 
             }
-            $result = false;
-            $data = null;
-            $this->callEvent('after:' . $method, $result, $data, $params, $transientData);
-            throw $e;
+            $operation = $method;
+            $error = $e->getMessage();
+            $result = $this->trigger('error', $error, $operation, $e);
+            if (is_null($result)) {
+              $result = false;
+              $data = null;
+              $this->callEvent('after:' . $method, $result, $data, $params, $transientData);
+              throw $e;
+            } else {
+              throw $result;
+            }
           }
         }
         break;

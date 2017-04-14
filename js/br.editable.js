@@ -18,6 +18,7 @@
     }
     options = options || {};
     _this.options = options;
+    _this.options.popover_placement = _this.ctrl.attr('data-popover-placement') || 'bottom';
     _this.editor = null;
     _this.savedWidth = '';
     _this.click = function(element, e) {
@@ -59,9 +60,9 @@
         $('div.popover').remove();
         if (!_this.options.hideHint) {
           if (_this.options.saveOnLoosingFocus) {
-            _this.editor.popover({placement: 'bottom', animation: false, trigger: 'manual', content: 'WARNING!!! Changes will be saved after leaving input box, by pressing [Enter], or by pressing [Tab]. Press [Esc] to cancel changes.'});
+            _this.editor.popover({placement: _this.options.popover_placement, animation: false, trigger: 'manual', content: 'WARNING!!! Changes will be saved after leaving input box, by pressing [Enter], or by pressing [Tab]. Press [Esc] to cancel changes.'});
           } else {
-            _this.editor.popover({placement: 'bottom', animation: false, trigger: 'manual', content: 'Press [Enter] to save changes, [Esc] to cancel changes.'});
+            _this.editor.popover({placement: _this.options.popover_placement, animation: false, trigger: 'manual', content: 'Press [Enter] to save changes, [Esc] to cancel changes.'});
           }
         }
         _this.editor.popover('show');

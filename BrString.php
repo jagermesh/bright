@@ -17,7 +17,12 @@ class BrString {
   }
 
   function like($pattern) {
-    return preg_match('#' . str_replace(array('%', '_'), array('.*', '.?'), $pattern) . '#', $this->value);
+    $pattern = str_replace(array('%', '.*?'), array('_', '.'), $pattern);
+    return preg_match('#^' . $pattern . '$#ism', $this->value);
+  }
+
+  function contain($pattern) {
+    return (strpos($this->value, $pattern) !== FALSE);
   }
 
   function inArray($array) {
@@ -38,6 +43,26 @@ class BrString {
 
   function length() {
     return mb_strlen($this->value);
+  }
+
+  function toBytes() {
+    if (preg_match('/([0-9]+)(g|m|k|)/ism', trim($this->value), $matches)) {
+      $val = $matches[1];
+      switch(strtolower($matches[2])) {
+        case 'g':
+          $val *= 1024 * 1024 * 1024;
+          break;
+        case 'm':
+          $val *= 1024 * 1024;
+          break;
+        case 'k':
+        default:
+          $val *= 1024;
+          break;
+      }
+      return $val;
+    }
+    return 0;
   }
 
   function exists($value, $ignoreCase = false) {
@@ -88,7 +113,9 @@ class BrString {
   }
 
   function match($pattern, &$matches = NULL, $flags = 0, $offset = 0) {
-    if (!is_array($matches)) $matches = array();
+    if (!is_array($matches)) {
+      $matches = array();
+    }
     return preg_match($pattern, $this->value, $matches, $flags, $offset);
   }
 
@@ -171,6 +198,10 @@ class BrString {
 
   function textToHtml() {
     return br()->HTML()->fromText($this->value);
+  }
+
+  function isHtml() {
+    return br()->HTML()->isHtml($this->value);
   }
 
   function htmlToText($smart = false) {

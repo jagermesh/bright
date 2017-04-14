@@ -166,17 +166,27 @@
             } else
             if ($(this).attr('type') == 'checkbox') {
               if (br.toInt(data[i]) == 1) {
-                $(this).attr('checked', 'checked');
+                $(this).prop('checked', 'checked');
               } else {
                 $(this).removeAttr('checked');
               }
             } else
             if ($(this).attr('type') == 'radio') {
               if (br.toInt(data[i]) == br.toInt($(this).val())) {
-                $(this).attr('checked', 'checked');
+                $(this).prop('checked', 'checked');
               }
             } else {
-              $(this).val(data[i]);
+              var ckeditorInstance = $(this).data('ckeditorInstance');
+              if (ckeditorInstance) {
+                ckeditorInstance.setData(data[i], {noSnapshot: true});
+              } else {
+                var dataComboInstance = $(this).data('BrDataCombo');
+                if (dataComboInstance) {
+                  dataComboInstance.val(data[i]);
+                } else {
+                  $(this).val(data[i]);
+                }
+              }
             }
           });
         }
@@ -241,7 +251,7 @@
 
         _this.inputsContainer.find('input.data-field[type=checkbox]').each(function() {
           if ($(this).attr('data-default-checked')) {
-            $(this).attr('checked', 'checked');
+            $(this).prop('checked', 'checked');
           }
         });
 

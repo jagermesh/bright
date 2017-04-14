@@ -35,6 +35,28 @@ class BrImages extends BrSingleton {
 
   }
 
+  function getHeight($path) {
+
+    try {
+      $image = new BrImage($path);
+      return $image->height();
+    } catch (Exception $e) {
+      return 0;
+    }
+
+  }
+
+  function getWidth($path) {
+
+    try {
+      $image = new BrImage($path);
+      return $image->width();
+    } catch (Exception $e) {
+      return 0;
+    }
+
+  }
+
   function generateThumbnails($src, $thumbnails = null) {
 
     $result = array();

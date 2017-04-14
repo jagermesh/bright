@@ -20,6 +20,10 @@ class BrArray {
     return count($this->value);
   }
 
+  function contain($value, $ignoreCase = false) {
+    return $this->exists($value, $ignoreCase);
+  }
+
   function exists($value, $ignoreCase = false) {
 
     if (is_array($value)) {
@@ -75,7 +79,7 @@ class BrArray {
     foreach($this->value as $key => $value) {
       $go = false;
       if (is_array($value)) {
-        $value = br($value)->RemoveEmptyKeys();
+        $value = br($value)->removeEmptyValues();
         $go = $value;
       } else {
         $go = strlen($value);

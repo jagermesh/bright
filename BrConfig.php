@@ -15,6 +15,13 @@ class BrConfig extends BrSingleton {
   public function set($name, $value) {
 
     $this->setAttr($name, $value);
+
+    switch($name) {
+      case 'br/tempPath':
+        br()->setTempPath($value);
+        break;
+    }
+
     return $this;
 
   }

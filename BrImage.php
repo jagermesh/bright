@@ -19,9 +19,9 @@ class BrImage extends BrObject {
 
   function imageLibSupported() {
 
-    return ((function_exists("ImageCreateFromGIF")) and
-            (function_exists("ImageCreateFromJPEG")) and
-            (function_exists("ImageCreateFromPNG")));
+    return ((function_exists('ImageCreateFromGIF')) &&
+            (function_exists('ImageCreateFromJPEG')) &&
+            (function_exists('ImageCreateFromPNG')));
 
   }
 
@@ -35,42 +35,36 @@ class BrImage extends BrObject {
     if ($this->imageLibSupported()) {
       switch(br()->fs()->fileExt($path)) {
         case 'png':
-          // br()->log('Trying open ' . $path . ' as PNG');
           if ($this->image = @ImageCreateFromPNG($path)) {
-            $this->format = "png";
+            $this->format = 'png';
           }
           break;
         case 'jpg':
         case 'jpeg':
-          // br()->log('Trying open ' . $path . ' as JPG');
           if ($this->image = @ImageCreateFromJPEG($path)) {
-            $this->format = "jpg";
+            $this->format = 'jpg';
           }
           break;
         case 'gif':
-          // br()->log('Trying open ' . $path . ' as GIF');
           if ($this->image = @ImageCreateFromGIF($path)) {
-            $this->format = "gif";
+            $this->format = 'gif';
           }
           break;
       }
       if ($this->image) {
 
       } else {
-        // br()->log('Trying open ' . $path . ' as PNG');
-        $this->image = ImageCreateFromPNG($path);
+        $this->image = @ImageCreateFromPNG($path);
         if ($this->image) {
-          $this->format = "png";
+          $this->format = 'png';
         } else {
-          // br()->log('Trying open ' . $path . ' as JPEG');
-          $this->image = ImageCreateFromJPEG($path);
+          $this->image = @ImageCreateFromJPEG($path);
           if ($this->image) {
-            $this->format = "jpg";
+            $this->format = 'jpg';
           } else {
-            // br()->log('Trying open ' . $path . ' as GIF');
-            $this->image = ImageCreateFromGIF($path);
+            $this->image = @ImageCreateFromGIF($path);
             if ($this->image) {
-              $this->format = "gif";
+              $this->format = 'gif';
             }
           }
         }
@@ -154,13 +148,13 @@ class BrImage extends BrObject {
       }
     }
 
-    if (function_exists("ImageCreateTrueColor"))
+    if (function_exists('ImageCreateTrueColor'))
       $new_image = ImageCreateTrueColor($new_width, $new_height);
     else
       $new_image = ImageCreate($new_width, $new_height);
 
-    if (function_exists("imagecopyresampled")) {
-      if ($format == "png" || $format == "gif") {
+    if (function_exists('imagecopyresampled')) {
+      if (($format == 'png') || ($format == 'gif')) {
         imagecolortransparent($new_image, imagecolorallocatealpha($new_image, 0, 0, 0, 127));
       } else {
         imagecolortransparent($new_image, imagecolorallocate($new_image, 0, 0, 0));
@@ -193,13 +187,13 @@ class BrImage extends BrObject {
     }
 
     switch ($format) {
-      case "jpg":
+      case 'jpg':
         imageJPEG($new_image, $dstPath, 750);
         break;
-      case "png":
+      case 'png':
         imagePNG($new_image, $dstPath);
         break;
-      case "gif":
+      case 'gif':
         imageGIF($new_image, $dstPath);
         break;
       default:

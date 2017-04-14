@@ -8,6 +8,8 @@
  */
 
 /* global console */
+/* global ArrayBuffer */
+/* global Uint32Array */
 
 ;(function ($, window) {
 
@@ -37,6 +39,7 @@
   });
 
   window.br.baseUrl = baseUrl;
+  window.br.popupBlocker = 'unknown';
 
   var logStarted = false;
 
@@ -95,7 +98,7 @@
   };
 
   window.br.isSafari = function() {
-    return Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+    return (navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1);
   };
 
   window.br.isChrome = function() {
@@ -111,6 +114,41 @@
 
   window.br.refresh = function() {
     document.location.reload();
+  };
+
+  window.br.processArray = function(array, processRowCallback, processCompleteCallback, params) {
+
+    function processQueued(processRowCallback, processCompleteCallback, params) {
+
+      if (array.length > 0) {
+        var rowid = array.shift();
+        processRowCallback(rowid, function() {
+          if (params.showProgress) {
+            br.stepProgress();
+          }
+          processQueued(processRowCallback, processCompleteCallback, params);
+        });
+      } else {
+        if (params.showProgress) {
+          br.hideProgress();
+        }
+        if (processCompleteCallback) {
+          processCompleteCallback();
+        }
+      }
+
+    }
+
+    params = params || {};
+    if (array.length > 0) {
+      if (params.showProgress) {
+        br.startProgress(array.length, params.title || '');
+      }
+      processQueued(processRowCallback, processCompleteCallback, params);
+    } else {
+      br.growlError('Please select at least one record');
+    }
+
   };
 
   function BrTrn() {
@@ -167,18 +205,43 @@
     Child.superclass = Parent.prototype;
   };
 
-  window.br.openPage = function(href) {
-    var a = document.createElement('a');
-    a.href = href;
-    a.target = '_blank';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+  function openUrl(url) {
+
+    var dialog = br.inform( 'You browser is currently blocking popups'
+                          , '<p>Click the link below to open this manually:</p>'
+                          + '<p><a target="_blank" class="action-open-link" href="' + url + '" style="word-wrap: break-word">' + url + '</a></p>'
+                          + '<p>To eliminate this extra step, we recommend you modify your settings to disable the popup blocker.</p>'
+                          );
+
+    $('.action-open-link', dialog).on('click', function() {
+      dialog.modal('hide');
+      dialog.remove();
+    });
+
+  }
+
+  window.br.openPage = function(url) {
+
+    if (br.isSafari()) {
+      br.openPopup(url);
+    } else {
+      var a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
   };
 
-  window.br.openPopup = function(url, w, h) {
+  window.br.openPopup = function(url, target) {
 
-    if (w === null) {
+    if (window.br.popupBlocker == 'active') {
+      openUrl(url);
+    } else {
+      target = target || '_blank';
+      var w, h;
       if (screen.width) {
         if (screen.width >= 1280) {
           w = 1000;
@@ -189,8 +252,6 @@
           w = 600;
         }
       }
-    }
-    if (h === null) {
       if (screen.height) {
         if (screen.height >= 900) {
           h = 700;
@@ -201,12 +262,16 @@
           h = 500;
         }
       }
-    }
-    var left = (screen.width) ? (screen.width-w)/2 : 0;
-    var settings = 'height='+h+',width='+w+',top=20,left='+left+',menubar=0,scrollbars=1,resizable=1';
-    var win = window.open(url, '_blank', settings);
-    if (win) {
-      win.focus();
+      var left = (screen.width) ? (screen.width-w)/2 : 0;
+      var settings = 'height='+h+',width='+w+',top=20,left='+left+',menubar=0,scrollbars=1,resizable=1';
+      var win = window.open(url, target, settings);
+      if (win) {
+        window.br.popupBlocker = 'inactive';
+        win.focus();
+      } else {
+        window.br.popupBlocker = 'active';
+        openUrl(url);
+      }
     }
 
   };
@@ -451,5 +516,72 @@
     "lazyload",d.setAttribute("charset","utf-8"),b.ie&&!o?d.onreadystatechange=function(){if(/loaded|complete/.test(d.readyState))d.onreadystatechange=null,i()}:o&&(b.gecko||b.webkit)?b.webkit?(q.urls[f]=d.href,s()):(d.innerHTML='@import "'+g+'";',m("css")):d.onload=d.onerror=i,r.appendChild(d)}}function s(){var c=k.css,a;if(c){for(a=t.length;--a>=0;)if(t[a].href===c.urls[0]){m("css");break}h+=1;c&&(h<200?setTimeout(s,50):m("css"))}}var b,r,k={},h=0,n={css:[],js:[]},t=j.styleSheets;return{css:function(c,
     a,b,e){i("css",c,a,b,e)},js:function(c,a,b,e){i("js",c,a,b,e)}}}(document);
   /* jshint ignore:end */
+
+  window.br.URL = window.URL || window.webkitURL;
+
+  var lastTime = 0, isLittleEndian = true;
+
+  window.br.requestAnimationFrame = function(callback, element) {
+
+    var requestAnimationFrame =
+      window.requestAnimationFrame        ||
+      window.webkitRequestAnimationFrame  ||
+      window.mozRequestAnimationFrame     ||
+      window.oRequestAnimationFrame       ||
+      window.msRequestAnimationFrame      ||
+      function(callback, element) {
+        var currTime = new Date().getTime();
+        var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+        var id = window.setTimeout(function() {
+          callback(currTime + timeToCall);
+        }, timeToCall);
+        lastTime = currTime + timeToCall;
+        return id;
+      };
+
+    return requestAnimationFrame.call(window, callback, element);
+
+  };
+
+  window.br.cancelAnimationFrame = function(id) {
+
+    var cancelAnimationFrame =
+      window.cancelAnimationFrame ||
+      function(id) {
+        window.clearTimeout(id);
+      };
+
+    return cancelAnimationFrame.call(window, id);
+
+  };
+
+  window.br.getUserMedia = function(options, success, error) {
+
+    var getUserMedia =
+      window.navigator.getUserMedia ||
+      window.navigator.mozGetUserMedia ||
+      window.navigator.webkitGetUserMedia ||
+      window.navigator.msGetUserMedia ||
+      function(options, success, error) {
+          error();
+      };
+
+    return getUserMedia.call(window.navigator, options, success, error);
+
+  };
+
+  window.br.detectEndian = function() {
+
+    var buf = new ArrayBuffer(8);
+    var data = new Uint32Array(buf);
+    data[0] = 0xff000000;
+    isLittleEndian = true;
+    if (buf[0] === 0xff) {
+      isLittleEndian = false;
+    }
+
+    return isLittleEndian;
+
+  };
 
 })(jQuery, window);

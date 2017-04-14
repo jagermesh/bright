@@ -78,6 +78,7 @@ class BrSFTP extends BrObject {
   private $currentPassword;
   private $currentPort;
   private $sftp;
+  private $reconnectsAmount = 10;
 
   function __construct() {
 
@@ -97,19 +98,30 @@ class BrSFTP extends BrObject {
 
   }
 
-  function connect($hostName, $userName, $password, $port = 22) {
+  function connect($hostName, $userName, $password, $port = 22, $attempt = 0) {
 
     $this->currentHostName = $hostName;
     $this->currentUserName = $userName;
     $this->currentPassword = $password;
     $this->currentPort     = $port;
 
-    $this->connection = new Net_SFTP($hostName, $port);
-
-    if ($this->connection->login($userName, $password)) {
-      $this->currentDirectory = $this->getServerDir();
-    } else {
-      throw new Exception('Can not connect to ' . $hostName . ' as ' . $userName);
+    try {
+      if ($this->connection = new Net_SFTP($hostName, $port)) {
+        if ($this->connection->login($userName, $password)) {
+          $this->currentDirectory = $this->getServerDir();
+        } else {
+          throw new Exception('Can not connect to ' . $hostName . ' as ' . $userName);
+        }
+      } else {
+        throw new Exception('Can not connect to ' . $hostName);
+      }
+    } catch (Exception $e) {
+      if ($attempt < $this->reconnectsAmount) {
+        usleep(250000);
+        $this->connect($hostName, $userName, $password, $port, $attempt + 1);
+      } else {
+        throw new Exception('Can not connect to ' . $hostName . ' as ' . $userName);
+      }
     }
 
   }

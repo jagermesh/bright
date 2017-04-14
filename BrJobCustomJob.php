@@ -13,14 +13,11 @@ class BrJobCustomJob {
   private $maxProcessesAmountMultiplier = 8;
   private $maxProcessesAmount;
 
-  protected $temporaryDir;
   protected $lastRunFile;
 
   function __construct() {
 
-    $this->temporaryDir = br()->basePath() . '_tmp/';
-    br()->fs()->makeDir($this->temporaryDir);
-    $this->lastRunFile = $this->temporaryDir . get_class($this) . '.timestamp';
+    $this->lastRunFile = br()->tempPath() . get_class($this) . '.timestamp';
 
     $this->checkJobCommand = $this->checkJobScript . ' ' . get_class($this);
     $this->runJobCommand   = $this->runJobScript   . ' ' . get_class($this);

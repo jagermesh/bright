@@ -21,10 +21,14 @@ div.bright-debug-panel div.title {
   margin-bottom: 4px;
 }
 div.bright-debug-panel div.info-box {
-  padding: 10px;
+  padding: 10pt;
   background-color: #FEFEFE;
   border: 1px solid #EFEFEF;
   white-space: pre;
+}
+div.bright-debug-panel pre {
+  font-size: 8pt;
+  line-height: 10pt;
 }
 
 </style>
@@ -33,7 +37,7 @@ div.bright-debug-panel div.info-box {
   <div class="wrapper">
     <div class="bright-debug-section">
       <div class="title">Debug message:</div>
-      <div class="info-box"><?php print_r($message); ?></div> 
+      <div class="info-box"><?php print_r($message); ?></div>
     </div>
   </div>
 </div>

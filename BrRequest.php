@@ -30,13 +30,23 @@ class BrRequest extends BrSingleton {
 
   function __construct() {
 
-    if (!br()->isConsoleMode()) {
+    if (br()->isConsoleMode()) {
+
+      $this->serverAddr = br()->config()->get('br/request/consoleModeServerAddr',  '127.0.0.1');
+      $this->domain     = br()->config()->get('br/request/consoleModeBaseDomain',  'localhost');
+      $this->protocol   = br()->config()->get('br/request/consoleModeWebProtocol', 'http://');
+      $this->host       = br()->config()->get('br/request/consoleModeBaseHost',    $this->protocol . $this->domain);
+      $this->baseUrl    = br()->config()->get('br/request/consoleModeBaseUrl',     '/');
+
+    } else {
+
       $domain = br($_SERVER, 'HTTP_HOST');
       $serverAddr = br($_SERVER, 'SERVER_ADDR');
       if (!$serverAddr || ($serverAddr == '::1')) {
         $serverAddr = '127.0.0.1';
       }
-      $host = 'http'.((br($_SERVER, 'HTTPS') == "on")?'s':'').'://'.$domain;
+      $protocol = 'http'.((br($_SERVER, 'HTTPS') == 'on') ? 's' : '') . '://';
+      $host = $protocol . $domain;
       $request = br($_SERVER, 'REQUEST_URI');
       $query = preg_replace('~^[^?]*~', '', $request);
       $request = preg_replace('~[?].*$~', '', $request);
@@ -71,8 +81,9 @@ class BrRequest extends BrSingleton {
 
       $this->url = $url;
       $this->path = $path;
-      $this->domain = $domain;
       $this->serverAddr = $serverAddr;
+      $this->domain = $domain;
+      $this->protocol = $protocol;
       $this->host = $host;
       $this->relativeUrl = $relativeUrl;
       $this->baseUrl = $baseUrl;
@@ -80,19 +91,21 @@ class BrRequest extends BrSingleton {
       $this->scriptName = $scriptName;
 
       $this->rawInput = file_get_contents("php://input");
+
       if ($json = @json_decode($this->rawInput, true)) {
         $this->putVars = $json;
       } else {
         parse_str($this->rawInput, $this->putVars);
       }
-      if ($this->putVars) {
-        if (get_magic_quotes_gpc()) {
-          br()->stripSlashes($this->putVars);
-        }
-      }
 
       if (!$_POST) {
         $_POST = $this->putVars;
+      }
+
+      foreach($this->putVars as $name => $value) {
+        if (!array_key_exists($name, $_POST)) {
+          $_POST[$name] = $value;
+        }
       }
 
       $this->clientIP = br($_SERVER, 'HTTP_CLIENT_IP');
@@ -119,13 +132,6 @@ class BrRequest extends BrSingleton {
 
       $this->clientIP = br(array_unique(br($this->clientIP)->split()))->join();
 
-    } else {
-
-      $this->serverAddr = br()->config()->get('br/request/consoleModeServerAddr', '127.0.0.1');
-      $this->domain     = br()->config()->get('br/request/consoleModeBaseDomain', 'localhost');
-      $this->host       = br()->config()->get('br/request/consoleModeBaseHost',   'http://'.$this->domain);
-      $this->baseUrl    = br()->config()->get('br/request/consoleModeBaseUrl',    '/');
-
     }
 
   }
@@ -134,9 +140,9 @@ class BrRequest extends BrSingleton {
    * Get referer
    * @return String
    */
-  function referer() {
+  function referer($default = null) {
 
-    return br($_SERVER, 'HTTP_REFERER');
+    return br($_SERVER, 'HTTP_REFERER', $default);
 
   }
 
@@ -146,7 +152,7 @@ class BrRequest extends BrSingleton {
    */
   function isSelfReferer() {
 
-    return strpos($this->referer(), $this->host.$this->baseUrl) !== false;
+    return strpos($this->referer(), $this->host() . $this->baseUrl()) !== false;
 
   }
 
@@ -177,7 +183,7 @@ class BrRequest extends BrSingleton {
 
   function isAtBaseUrl() {
 
-    return $this->isAt($this->baseUrl.'$');
+    return $this->isAt($this->baseUrl() . '$');
 
   }
 
@@ -221,11 +227,17 @@ class BrRequest extends BrSingleton {
 
   function baseUrl($dec = 0) {
 
-    $result = $this->baseUrl;
-    $dec = abs($dec);
-    while($dec) {
-      $result = preg_replace('#[^/]+/$#', '', $result);
-      $dec--;
+    if (br()->isConsoleMode()) {
+      $result = br()->config()->get('br/request/consoleModeBaseUrl', '/');
+    } else {
+      $result = $this->baseUrl;
+    }
+    if ($dec) {
+      $dec = abs($dec);
+      while($dec) {
+        $result = preg_replace('#[^/]+/$#', '', $result);
+        $dec--;
+      }
     }
     return $result;
 
@@ -282,32 +294,78 @@ class BrRequest extends BrSingleton {
 
   function domain() {
 
-    return $this->domain;
+    if (br()->isConsoleMode()) {
+      return br()->config()->get('br/request/consoleModeBaseDomain', 'localhost');
+    } else {
+      return $this->domain;
+    }
 
   }
 
   function serverAddr() {
 
-    return $this->serverAddr;
+    if (br()->isConsoleMode()) {
+      return br()->config()->get('br/request/consoleModeServerAddr', '127.0.0.1');
+    } else {
+      return $this->serverAddr;
+    }
 
   }
 
   function isLocalHost() {
 
-    $localHosts = array('localhost', '127.0.0.1');
-    return in_array($this->domain(), $localHosts);
+    $whitelist = array('localhost', '127.0.0.1');
+    if (in_array($this->domain(), $whitelist)) {
+      return true;
+    }
+
+    $result = false;
+    $domain = $this->domain();
+
+    $this->trigger('checkLocalHost', $domain, $result);
+
+    return $result;
+
+  }
+
+  function isDevHost() {
+
+    if ($this->isLocalHost()) {
+      return true;
+    }
+
+    $result = false;
+    $domain = $this->domain();
+
+    $this->trigger('checkDevHost', $domain, $result);
+
+    return $result;
+
+  }
+
+  function protocol() {
+
+    if (br()->isConsoleMode()) {
+      return br()->config()->get('br/request/consoleModeWebProtocol', 'http://');
+    } else {
+      return $this->protocol;
+    }
 
   }
 
   function host() {
 
-    return $this->host;
+    if (br()->isConsoleMode()) {
+      return br()->config()->get('br/request/consoleModeBaseHost', $this->protocol() . $this->domain());
+    } else {
+      return $this->host;
+    }
 
   }
 
   function origin() {
 
-    return $this->host;
+    return $this->host();
 
   }
 
@@ -436,7 +494,7 @@ class BrRequest extends BrSingleton {
 
   function param($name, $default = null) {
 
-    return $this->get($name, $this->post($name, $default));
+    return $this->get($name, $this->post($name, $this->put($name, $default)));
 
   }
 
@@ -549,21 +607,24 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function route($method, $path, $func = null) {
+  function route($methods, $path, $func = null) {
 
     if ($func) {
 
     } else {
       $func = $path;
-      $path = $method;
-      $method = 'GET';
+      $path = $methods;
+      $methods = 'GET';
     }
 
     if (!$this->routeComplete()) {
-      if ($this->isMethod($method)) {
-        if ($match = $this->isAt($path)) {
-          $this->continueRoute(false);
-          $func($match);
+      $methods = br($methods)->split();
+      foreach($methods as $method) {
+        if ($this->isMethod($method)) {
+          if ($match = $this->isAt($path)) {
+            $this->continueRoute(false);
+            $func($match);
+          }
         }
       }
     }

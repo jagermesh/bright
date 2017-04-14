@@ -37,7 +37,11 @@
     this.scrollContainer = function() {
       if (_this.options.selectors.container !== '') {
         if (_this.options.selectors.scrollContainer !== '') {
-          return _this.options.selectors.container + ' ' + _this.options.selectors.scrollContainer;
+          if (this.options.selectors.scrollContainer.indexOf('#') === 0) {
+             return _this.options.selectors.scrollContainer;
+          } else {
+            return _this.options.selectors.container + ' ' + _this.options.selectors.scrollContainer;
+          }
         } else {
           return _this.options.selectors.container;
         }
@@ -265,12 +269,13 @@
 
       _this.dataSource.before('select', function(request, options) {
         request = request || {};
-        request.__skip = _this.skip;
-        request.__limit = _this.limit;
         if ($(c('input.data-filter[name=keyword]')).length > 0) {
           request.keyword = $(c('input.data-filter[name=keyword]')).val();
           _this.setFilter('keyword', request.keyword);
         }
+        options       = options || {};
+        options.skip  = _this.skip;
+        options.limit = _this.limit || _this.defaultLimit;
       });
 
       _this.dataSource.after('remove', function(request, options) {
@@ -645,16 +650,28 @@
         $pc = $(c('.pager-page-size-navigation'));
         $pc.html('');
         s = '';
-        var size = 0;
-        for (i = 1; i <= 5; i++) {
-          size = Math.pow(i, 2) * 20;
+        var sizes = [20, 40, 80, 100, 120, 140, 160, 180, 200];
+        for (i = 0; i < sizes.length; i++) {
+          var size = sizes[i];
+          var dsize = size;
+          if (size >= _this.recordsAmount) {
+            dsize = _this.recordsAmount;
+          }
           if (size == _this.limit) {
-            s = s + '<strong class="pager-nav-element">' + size + '</strong>';
+            s = s + '<strong class="pager-nav-element">' + dsize + '</strong>';
           } else {
-            s = s + '<a href="javascript:;" class="pager-action-page-size pager-size-element" data-size="' + size + '">' + size + '</a>';
+            s = s + '<a href="javascript:;" class="pager-action-page-size pager-size-element" data-size="' + size + '">' + dsize + '</a>';
+          }
+          if (size >= _this.recordsAmount) {
+            break;
           }
         }
-        $pc.html(s);
+        if (s.length > 0) {
+          $pc.html(s);
+          $(c('.pager-page-size-container')).show();
+        } else {
+          $(c('.pager-page-size-container')).hide();
+        }
       }
 
       var min = (_this.skip + 1);
@@ -774,7 +791,7 @@
         row = $(_this.options.selectors.dataTable).find('tr[data-rowid=' + rowid + ']');
       }
       if (row.length > 0) {
-        row.find('.action-select-row').attr('checked', 'checked');
+        row.find('.action-select-row').prop('checked', 'checked');
         row.addClass('row-selected');
         _this.selection.append(rowid);
         if (!multiple) {
@@ -785,7 +802,7 @@
 
     this.selectAll = function(checked) {
       if (checked) {
-        $(c('.action-select-all')).attr('checked', 'checked');
+        $(c('.action-select-all')).prop('checked', 'checked');
       } else {
         $(c('.action-select-all')).removeAttr('checked');
       }

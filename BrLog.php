@@ -308,7 +308,7 @@ class BrLog extends BrSingleton {
   }
 
   // same, do not use
-  
+
   public function writeLn($message = '', $group = 'MSG', $tagline = '') {
 
     $this->writeToAdapters($message, $group, $tagline);

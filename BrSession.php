@@ -41,9 +41,8 @@ class BrSession extends BrSingleton {
 
   public function get($name, $default = null) {
 
-    $name = $this->tag.':'.$name;
-
     if (isset($_SESSION)) {
+      $name = $this->tag.':'.$name;
       return br($_SESSION, $name, $default);
     } else {
       return null;
@@ -53,9 +52,8 @@ class BrSession extends BrSingleton {
 
   public function set($name, $value) {
 
-    $name = $this->tag.':'.$name;
-
     if (isset($_SESSION)) {
+      $name = $this->tag.':'.$name;
       $_SESSION[$name] = $value;
     }
 
@@ -63,13 +61,33 @@ class BrSession extends BrSingleton {
 
   }
 
-  public function clear($name) {
-
-    $name = $this->tag.':'.$name;
+  public function clear($name = null) {
 
     if (isset($_SESSION)) {
-      unset($_SESSION[$name]);
+      if ($name) {
+        if (is_callable($name)) {
+          foreach($_SESSION as $varName => $value) {
+            if (strpos($varName, $this->tag.':') === 0) {
+              $localName = substr($varName, strlen($this->tag.':'));
+              if ($name($localName)) {
+                unset($_SESSION[$varName]);
+              }
+            }
+          }
+        } else {
+          $name = $this->tag.':'.$name;
+          unset($_SESSION[$name]);
+        }
+      } else {
+        foreach($_SESSION as $varName => $value) {
+          if (strpos($varName, $this->tag.':') === 0) {
+            unset($_SESSION[$varName]);
+          }
+        }
+      }
     }
+
+    return true;
 
   }
 
