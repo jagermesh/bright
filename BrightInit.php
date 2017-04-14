@@ -50,9 +50,9 @@ if (!br()->log()->isAdapterExists('BrErrorFileLogAdapter')) {
   br()->log()->addAdapter(new BrErrorFileLogAdapter(br()->config()->get('Logger/File/LogsFolder', br()->atBasePath(br()->config()->get('Logger/File/LogsSubFolder', '_logs')))));
 }
 
-if (!br()->log()->isAdapterExists('BrErrorMailLogAdapter')) {
-  br()->importLib('ErrorMailLogAdapter');
-  br()->log()->addAdapter(new BrErrorMailLogAdapter());
+if (!br()->log()->isAdapterExists('BrMailLogAdapter')) {
+  br()->importLib('MailLogAdapter');
+  br()->log()->addAdapter(new BrMailLogAdapter());
 }
 
 if (br()->config()->get('Logger/File/Active')) {

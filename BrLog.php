@@ -49,6 +49,18 @@ class BrLog extends BrSingleton {
 
   }
 
+  function getAdapter($className) {
+
+    foreach($this->adapters as $adapter) {
+      if (get_class($adapter) == $className) {
+        return $adapter;
+      }
+    }
+
+    return null;
+
+  }
+
   function adaptersCount() {
 
     return count($this->adapters);
@@ -198,31 +210,33 @@ class BrLog extends BrSingleton {
 
       if (is_array($message)) {
         if (count($message)) {
-          $logText = var_export($message, true);
+          $logText = @var_export($message, true);
         } else {
           $logText = '[Empty Array]';
         }
       } else
       if (is_object($message)) {
-        $logText = var_export($message, true);
+        $logText = @var_export($message, true);
       } else {
         $logText = $message;
       }
 
       foreach ($this->adapters as $adapter) {
-        switch ($group) {
-          case 'DBG':
-            $adapter->writeDebug($logText, $tagline);
-            break;
-          case 'ERR':
-            $adapter->writeError($logText, $tagline);
-            break;
-          case 'EXC':
-            $adapter->writeException($message, $sendOutput);
-            break;
-          default:
-            $adapter->writeMessage($logText, $group, $tagline);
-            break;
+        if ($adapter->isEnabled()) {
+          switch ($group) {
+            case 'DBG':
+              $adapter->writeDebug($logText, $tagline);
+              break;
+            case 'ERR':
+              $adapter->writeError($logText, $tagline);
+              break;
+            case 'EXC':
+              $adapter->writeException($message, $sendOutput);
+              break;
+            default:
+              $adapter->writeMessage($logText, $group, $tagline);
+              break;
+          }
         }
       }
 

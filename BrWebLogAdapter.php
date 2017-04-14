@@ -41,7 +41,16 @@ class BrWebLogAdapter extends BrGenericLogAdapter {
     if (!br()->isConsoleMode() && $sendOutput) {
       $errorMessage  = (($e instanceof BrErrorException) ? $e->getType() : 'Error');
       $errorMessage .= ': ';
-      $errorMessage .= $e->getMessage();
+
+
+      if (br()->request()->isDevHost()) {
+        $errorMessage .= $e->getMessage();
+      } else
+      if ($e instanceof BrDBException) {
+        $errorMessage .= 'Database error';
+      } else {
+        $errorMessage .= $e->getMessage();
+      }
 
       if (!headers_sent()) {
         header('HTTP/1.0 500 Internal Server Error');

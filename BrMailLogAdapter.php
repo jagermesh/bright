@@ -12,7 +12,7 @@ require_once(__DIR__.'/BrGenericLogAdapter.php');
 require_once(__DIR__.'/BrMemCacheCacheProvider.php');
 require_once(__DIR__.'/BrFileCacheProvider.php');
 
-class BrErrorMailLogAdapter extends BrGenericLogAdapter {
+class BrMailLogAdapter extends BrGenericLogAdapter {
 
   private $cache;
   private $cacheInitialized = false;
@@ -125,7 +125,7 @@ class BrErrorMailLogAdapter extends BrGenericLogAdapter {
     if (br()->request()->isLocalHost() && !br()->isConsoleMode()) {
 
     } else {
-      $email = br()->config()->get('br/mail/support', br()->config()->get('br/BrErrorHandler/exceptionHandler/sendErrorsTo', br()->config()->get('br/report-errors-email')));
+      $email = br()->config()->get('br/mail/support', br()->config()->get('br/BrErrorHandler/exceptionHandler/sendErrorsTo', br()->config()->get('br/mail/tech-support')));
       if ($email) {
         try {
           $this->initCache();
@@ -164,7 +164,7 @@ class BrErrorMailLogAdapter extends BrGenericLogAdapter {
     if (br()->request()->isLocalHost() || br()->isConsoleMode()) {
 
     } else {
-      $email = br()->config()->get('br/mail/support', br()->config()->get('br/BrErrorHandler/exceptionHandler/sendErrorsTo', br()->config()->get('br/report-errors-email')));
+      $email = br()->config()->get('br/mail/support', br()->config()->get('br/BrErrorHandler/exceptionHandler/sendErrorsTo', br()->config()->get('br/mail/tech-support')));
       if ($email) {
         try {
           $subject = 'Debug message';

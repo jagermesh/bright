@@ -42,7 +42,7 @@ class BrErrorHandler extends BrObject {
             }
             break;
           default:
-            br()->log()->logException(new BrErrorException($errmsg, 0, $errno, $errfile, $errline), !$shutdown && br()->request()->isLocalHost());
+            br()->log()->logException(new BrErrorException($errmsg, 0, $errno, $errfile, $errline), !$shutdown && br()->request()->isDevHost());
             break;
         }
       }

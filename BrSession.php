@@ -39,11 +39,22 @@ class BrSession extends BrSingleton {
 
   }
 
-  public function get($name, $default = null) {
+  public function get($name = null, $default = null) {
 
     if (isset($_SESSION)) {
-      $name = $this->tag.':'.$name;
-      return br($_SESSION, $name, $default);
+      if ($name) {
+        $name = $this->tag.':'.$name;
+        return br($_SESSION, $name, $default);
+      } else {
+        $result = array();
+        foreach($_SESSION as $varName => $value) {
+          if (strpos($varName, $this->tag.':') === 0) {
+            $localName = substr($varName, strlen($this->tag.':'));
+            $result[$localName] = $value;
+          }
+        }
+        return $result;
+      }
     } else {
       return null;
     }
