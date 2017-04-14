@@ -14,15 +14,8 @@ require_once(__DIR__.'/BrFileCacheProvider.php');
 
 class BrMailLogAdapter extends BrGenericLogAdapter {
 
-  private $cache;
-  private $cacheInitialized = false;
-
-  function __construct() {
-
-
-    parent::__construct();
-
-  }
+  protected $cache;
+  protected $cacheInitialized = false;
 
   function initCache() {
 
