@@ -4,17 +4,17 @@ div.bright-error-panel {
   font-family: Helvetica,Arial,sans-serif;
   font-weight: 300;
   font-size: 10pt;
-  background: #FFC;
+  margin: 4px;
+  background-color: #FFC;
+  border: 1px solid #EFEFEF;
   z-index: 1000;
   color: black;
-  margin: 5px;
-  border: 1px solid #EFEFEF;
 }
-div.bright-error-panel div.wrapper {
-  padding: 10px;
+div.bright-error-panel-wrapper {
+  padding: 4px;
 }
 div.bright-error-panel div.bright-error-section {
-  padding: 5px;
+  padding: 4px;
 }
 div.bright-error-panel div.error {
   font-size: 14pt;
@@ -24,14 +24,16 @@ div.bright-error-panel div.info-box {
   font-family: Courier;
   padding: 10px;
   background-color: #FEFEFE;
-  border: 1px solid #EFEFEF;
-  white-space: pre;
+  border: 1px solid #DDD;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 12pt;
 }
 
 </style>
 
 <div class="bright-error-panel">
-  <div class="wrapper">
+  <div class="bright-error-panel-wrapper">
     <div class="bright-error-section">
       <div class="error"><?php echo($errorMessage); ?></div>
       <?php if ($errorFile) { ?>

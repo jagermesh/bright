@@ -37,17 +37,17 @@ try {
 
   });
 
-  br()->log()->writeLn($templateName . ' template initialized');
+  br()->log()->write($templateName . ' template initialized');
 
 } catch(Exception $e) {
 
-  br()->log()->writeLn($e->getMessage());
+  br()->log()->write($e->getMessage());
 
 }
 
-br()->log()->writeLn();
+br()->log()->write();
 
 $descFile = __DIR__.'/template-'.$templateName . '/.description';
 if (file_exists($descFile)) {
-  br()->log()->writeLn(br()->fs()->loadFromFile($descFile));
+  br()->log()->write(br()->fs()->loadFromFile($descFile));
 }

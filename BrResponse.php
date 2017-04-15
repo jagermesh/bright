@@ -83,7 +83,7 @@ class BrResponse extends BrSingleton {
       $url .= ((strpos('?', $url) === false)?'?':'&').'caller='.urlencode(br()->request()->url());
     }
 
-    br()->log()->writeLn('Redirecting to ' . $url);
+    br()->log()->write('Redirecting to ' . $url);
 
     if (headers_sent()) {
       if ($timedOut) {

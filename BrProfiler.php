@@ -29,7 +29,7 @@ class BrProfiler extends BrSingleton {
   function logStart($name) {
 
     $s = $this->start($name);
-    br()->log()->writeLn($name. ', ' . br()->formatTraffic($s['memory']) , '+++');
+    br()->log()->write($name. ', ' . br()->formatTraffic($s['memory']) , '+++');
 
   }
 
@@ -79,9 +79,9 @@ class BrProfiler extends BrSingleton {
     }
     $s .=  ', ' . br()->formatTraffic($f['memory']);
 
-    br()->log()->writeLn($s, '+++');
+    br()->log()->write($s, '+++');
     if ($comment) {
-      br()->log()->writeLn($name . ': ' . $comment , '+++');
+      br()->log()->write($name . ': ' . $comment , '+++');
     }
     return $f;
 

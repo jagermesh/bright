@@ -133,7 +133,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
       throw new BrDBException($error);
     }
 
-    br()->log()->writeln($queryText, "QRY");
+    br()->log()->write($queryText, "QRY");
 
     try {
       // moved to check problem line
@@ -172,7 +172,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
           preg_match('/Deadlock found when trying to get lock/', $e->getMessage())) {
         if ($this->inTransaction()) {
           if ($this->isTransactionBufferEmpty()) {
-            br()->log()->writeln('Deadlock occured, but this is first query. Trying restart transaction', 'SEP');
+            br()->log()->write('Deadlock occured, but this is first query. Trying restart transaction', 'SEP');
             usleep(250000);
             $this->rollbackTransaction();
             $this->startTransaction();
@@ -205,7 +205,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
             }
           }
         } else {
-          br()->log()->writeln('Deadlock occured, but we are not in transaction. Trying repeat query', 'SEP');
+          br()->log()->write('Deadlock occured, but we are not in transaction. Trying repeat query', 'SEP');
           usleep(250000);
           $query = $this->internalRunQuery($sql, $args, $iteration + 1, $e->getMessage());
         }
@@ -219,7 +219,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
       }
     }
 
-    br()->log()->writeln('Query complete', 'SEP');
+    br()->log()->write('Query complete', 'SEP');
 
     return $query;
 

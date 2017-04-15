@@ -120,7 +120,7 @@ class BrImages extends BrSingleton {
 
     } else {
 
-      br()->log()->writeLn('Creating thumbnail from ' . $src . ' in ' . $dstPath);
+      br()->log()->write('Creating thumbnail from ' . $src . ' in ' . $dstPath);
 
       $image = new BrImage($path);
       $image->generateThumbnail($w, $h, $dstPath);

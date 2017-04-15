@@ -662,10 +662,12 @@ class BrRESTBinder extends BrObject {
   function returnException($e) {
 
     $msg = $e->getMessage();
+    $outputSent = false;
     if ($e instanceof BrAppException) {
 
     } else {
       br()->log()->logException($e, br()->request()->isDevHost());
+      $outputSent = br()->request()->isDevHost();
     }
     if (br()->request()->isDevHost()) {
       $message = $msg;
@@ -674,6 +676,9 @@ class BrRESTBinder extends BrObject {
       $message = 'Database error';
     } else {
       $message = $msg;
+    }
+    if ($outputSent) {
+      $message = '';
     }
     if (br()->request()->get('crossdomain')) {
       br()->response()->sendJSONP($message);

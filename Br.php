@@ -54,7 +54,7 @@ if (!function_exists('debug')) {
 
     $args = func_get_args();
     foreach($args as $var) {
-      br()->log()->writeLn($var, 'DBG');
+      br()->log()->write($var, 'DBG');
     }
 
   }
@@ -67,7 +67,7 @@ if (!function_exists('logme')) {
 
     $args = func_get_args();
     foreach($args as $var) {
-      br()->log()->writeLn($var);
+      br()->log()->write($var);
     }
 
   }
@@ -878,14 +878,14 @@ class Br extends BrSingleton {
       $mail->ContentType = 'text/plain';
     }
 
-    br()->log()->writeLn('Sending mail to ' . br($emails)->join());
+    br()->log()->write('Sending mail to ' . br($emails)->join());
 
     if (is_callable($callback)) {
       $callback($mail);
     }
 
     if ($mail->Send()) {
-      br()->log()->writeLn('Sent');
+      br()->log()->write('Sent');
     } else {
       throw new Exception('Mail was not sent because of unknown error');
     }

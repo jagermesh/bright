@@ -319,6 +319,10 @@ class BrRequest extends BrSingleton {
       return true;
     }
 
+    if (preg_match('/^local[.]/ism', $this->domain())) {
+      return true;
+    }
+
     $result = false;
     $domain = $this->domain();
 

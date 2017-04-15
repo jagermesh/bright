@@ -88,7 +88,7 @@ class BrApplication extends BrSingleton {
     }
 
     if ($controllerFile) {
-      br()->log()->writeLn('Controller: '.$controllerFile);
+      br()->log()->write('Controller: '.$controllerFile);
       // if (br()->callerScript() != $controllerFile) {
         br()->import($controllerFile);
         exit();
