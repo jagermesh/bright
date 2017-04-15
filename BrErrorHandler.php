@@ -41,6 +41,8 @@ class BrErrorHandler extends BrObject {
               throw new BrErrorException($errmsg, 0, $errno, $errfile, $errline);
             }
             break;
+          case E_DEPRECATED:
+            break;
           default:
             br()->log()->logException(new BrErrorException($errmsg, 0, $errno, $errfile, $errline), !$shutdown && br()->request()->isDevHost());
             break;
