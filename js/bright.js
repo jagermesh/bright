@@ -2667,6 +2667,8 @@
       }
     }
 
+    var requestTimer;
+
     function switchToSelect2() {
       var selectLimit = 50;
 
@@ -2689,22 +2691,27 @@
             params.allowClear  = true;
             params.placeholder = _this.options.emptyName;
             params.query = function (query) {
+              window.clearTimeout(requestTimer);
               var request = { };
               request.keyword = query.term;
-              _this.dataSource.select(request, function(result, response) {
-                if (result) {
-                  var data = { results: [] };
-                  for(var i = 0; i < response.length; i++) {
-                    data.results.push({ id:   response[i][_this.options.valueField]
-                                      , text: getName(response[i])
-                                      });
-                  }
-                  query.callback(data);
+              requestTimer = window.setTimeout(function() {
+                if (query.term) {
+                  _this.dataSource.select(request, function(result, response) {
+                    if (result) {
+                      var data = { results: [] };
+                      for(var i = 0; i < response.length; i++) {
+                        data.results.push({ id:   response[i][_this.options.valueField]
+                                          , text: getName(response[i])
+                                          });
+                      }
+                      query.callback(data);
+                    }
+                  }, { limit: selectLimit
+                     , skip: (query.page - 1) * selectLimit
+                     }
+                  );
                 }
-              }, { limit: selectLimit
-                 , skip: (query.page - 1) * selectLimit
-                 }
-              );
+              }, 300);
             };
           }
           _this.selector.select2(params);
