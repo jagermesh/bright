@@ -61,12 +61,6 @@ if (!function_exists('debug')) {
 
 }
 
-function logStackTrace() {
-
-  br()->log()->logStackTrace();
-
-}
-
 if (!function_exists('logme')) {
 
   function logme() {

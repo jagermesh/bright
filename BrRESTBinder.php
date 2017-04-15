@@ -668,7 +668,7 @@ class BrRESTBinder extends BrObject {
       br()->log()->logException($e, br()->request()->isDevHost());
     }
     if (br()->request()->isDevHost()) {
-      $message = $extMsg;
+      $message = $msg;
     } else
     if ($e instanceof BrDBException) {
       $message = 'Database error';
