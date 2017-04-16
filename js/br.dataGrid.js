@@ -14,6 +14,7 @@
     var _this = this;
 
     this.selector = selector;
+
     this.options = options || {};
     this.options.templates = this.options.templates || {};
     this.options.templates.row = $(rowTemplate).html();
@@ -35,6 +36,10 @@
     this.on     = function(event, callback) { this.events.on(event, callback); };
     this.after  = function(event, callback) { this.events.after(event, callback); };
 
+    if (this.options.fixedHeader) {
+      this.table = br.table($(this.selector).closest('table'), options);
+    }
+
     var noMoreData = false;
 
     _this.loadingMoreData = false;
@@ -52,6 +57,12 @@
     this.after('remove', function(data) {
       _this.events.trigger('change', data, 'remove');
       _this.events.triggerAfter('change', data, 'remove');
+    });
+
+    this.after('change', function() {
+      if (this.table) {
+        this.table.update();
+      }
     });
 
     var disconnected = false;

@@ -17,6 +17,7 @@ module.exports = function(grunt) {
              , 'js/br.js'
              , 'js/br.flagsHolder.js'
              , 'js/br.dataSource.js'
+             , 'js/br.table.js'
              , 'js/br.dataGrid.js'
              , 'js/br.dataCombo.js'
              , 'js/br.editable.js'

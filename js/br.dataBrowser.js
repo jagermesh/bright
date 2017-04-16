@@ -112,6 +112,8 @@
                                  , selectors: { header: headerContainer, remove: '.action-delete' }
                                  , appendInInsert: this.options.appendInInsert
                                  , defaultOrderAndGroup: this.options.defaultOrderAndGroup
+                                 , fixedHeader: this.options.fixedHeader
+                                 , autoHeight: this.options.autoHeight
                                  }
                                );
 
@@ -423,28 +425,18 @@
 
           if ($(c('.filters-panel')).is(':visible')) {
             _this.setStored('filters-hidden', true);
-            if (initial) {
-              $(c('.filters-panel')).hide();
-              showFiltersDesc();
-              _this.events.trigger('hideFilters');
-            } else {
-              $(c('.filters-panel')).slideUp(function() {
-                showFiltersDesc();
-                _this.events.trigger('hideFilters');
-              });
-            }
+            $(c('.filters-panel')).hide();
+            showFiltersDesc();
+            _this.events.trigger('hideFilters');
           } else {
             _this.setStored('filters-hidden', false);
-            if (initial) {
-              $(c('.filters-panel')).show();
-              showFiltersDesc();
-              _this.events.trigger('showFilters');
-            } else {
-              $(c('.filters-panel')).slideDown(function() {
-                showFiltersDesc();
-                _this.events.trigger('showFilters');
-              });
-            }
+            $(c('.filters-panel')).show();
+            showFiltersDesc();
+            _this.events.trigger('showFilters');
+          }
+
+          if (_this.dataGrid.table) {
+            _this.dataGrid.table.update();
           }
 
         }
