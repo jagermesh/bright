@@ -25,6 +25,7 @@
     this.options.selectors = this.options.selectors || {};
     this.options.selectors.container = this.options.selectors.container || '';
     this.options.selectors.scrollContainer = this.options.selectors.scrollContainer || '';
+    this.options.pageSizes = this.options.pageSizes || [20, 50, 100, 200];
 
     function c(selector) {
       if (_this.options.selectors.container !== '') {
@@ -642,7 +643,7 @@
         $pc = $(c('.pager-page-size-navigation'));
         $pc.html('');
         s = '';
-        var sizes = [20, 40, 80, 100, 120, 140, 160, 180, 200];
+        var sizes = _this.options.pageSizes;
         for (i = 0; i < sizes.length; i++) {
           var size = sizes[i];
           var dsize = size;
