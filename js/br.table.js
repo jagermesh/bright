@@ -61,20 +61,18 @@
 
     }
 
-    function internalUpdate(restart) {
+    function update() {
 
       var headerCols = $(table).find('thead tr:first th');
 
       if (options.autoHeight) {
-        // fix table height
-        if (restart == 1) {
-          var windowHeight = $(window).height();
-          var tbody        = $('tbody', table);
-          var thead        = $('thead', table);
-          var tbodyTop     = tbody.offset().top;
-          var tbodyHeight  = windowHeight - tbodyTop - 24;
-          $(tbody).height(tbodyHeight);
-        }
+        br.log('update');
+        var windowHeight = $(window).height();
+        var tbody        = $('tbody', table);
+        var thead        = $('thead', table);
+        var tbodyTop     = tbody.offset().top;
+        var tbodyHeight  = windowHeight - tbodyTop - 24;
+        $(tbody).height(tbodyHeight);
       }
 
       var bodyCols = $(table).find('tbody tr:first td');
@@ -119,7 +117,7 @@
 
     this.update = function() {
       window.setTimeout(function() {
-        internalUpdate(1);
+        update();
       }, 100);
     };
 
@@ -127,9 +125,7 @@
       _this.update();
     });
 
-    window.setTimeout(function() {
-      _this.update();
-    }, 100);
+    _this.update();
 
     return this;
 
