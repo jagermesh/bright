@@ -66,7 +66,6 @@
       var headerCols = $(table).find('thead tr:first th');
 
       if (options.autoHeight) {
-        br.log('update');
         var windowHeight = $(window).height();
         var tbody        = $('tbody', table);
         var thead        = $('thead', table);
@@ -115,8 +114,11 @@
 
     }
 
+    var updateTimer;
+
     this.update = function() {
-      window.setTimeout(function() {
+      window.clearTimeout(updateTimer);
+      updateTimer = window.setTimeout(function() {
         update();
       }, 100);
     };
@@ -125,7 +127,9 @@
       _this.update();
     });
 
-    _this.update();
+    $(window).load(function() {
+      _this.update();
+    });
 
     return this;
 
