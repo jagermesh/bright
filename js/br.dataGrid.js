@@ -159,7 +159,13 @@
       }
       options = options || { };
       options.disableEvents = true;
-      _this.dataSource.select({ rowid: rowid }, function(result, response) {
+      var filter;
+      if (br.isObject(rowid)) {
+        filter = rowid;
+      } else {
+        filter = { rowid: rowid };
+      }
+      _this.dataSource.select(filter, function(result, response) {
         if (!result || (response.length === 0)) {
           _this.refresh(callback);
         } else {
