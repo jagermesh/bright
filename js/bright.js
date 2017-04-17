@@ -2095,6 +2095,8 @@
 
     function update() {
 
+      br.log('update');
+
       var headerCols = $(table).find('thead tr:first th');
 
       if (options.autoHeight) {
@@ -2140,6 +2142,14 @@
           var headerCol  = $(headerCols[idx]);
           var outerWidth = $(this).outerWidth();
           headerCol.outerWidth(outerWidth);
+        });
+
+        $(table).find('img').on('load', function() {
+          if (!$(this).data('bright-fixed-table-loaded')) {
+            br.log('load');
+            $(this).data('bright-fixed-table-loaded', true);
+            _this.update();
+          }
         });
 
       }

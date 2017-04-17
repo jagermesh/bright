@@ -110,6 +110,13 @@
           headerCol.outerWidth(outerWidth);
         });
 
+        $(table).find('img').on('load', function() {
+          if (!$(this).data('bright-fixed-table-loaded')) {
+            $(this).data('bright-fixed-table-loaded', true);
+            _this.update();
+          }
+        });
+
       }
 
     }
