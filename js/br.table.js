@@ -78,11 +78,11 @@
 
       if (bodyCols.length > 0) {
 
-        headerCols.each(function(idx) {
-          $(this).outerWidth(headerWidths[idx]);
-        });
-
-        if (!widthsSaved) {
+        if (widthsSaved) {
+          headerCols.each(function(idx) {
+            $(this).outerWidth(headerWidths[idx]);
+          });
+        } else {
           headerCols.each(function(idx) {
             headerWidths[idx] = $(this).outerWidth();
           });
@@ -91,12 +91,17 @@
 
         var dimensinos = getTableDmensions();
 
-        $(bodyCols[dimensinos.widestCellByOuterWidth]).outerWidth(dimensinos.suggestedOuterWidth);
+        $(bodyCols[dimensinos.widestCellByOuterWidth]).outerWidth(0);
 
         bodyCols.each(function(idx) {
           if (idx != dimensinos.widestCellByOuterWidth) {
+            var headerCol  = $(headerCols[idx]);
             var outerWidth = $(this).outerWidth();
-            $(this).outerWidth(Math.max(outerWidth, headerWidths[idx]));
+            var width = Math.max(outerWidth, headerWidths[idx]);
+            $(this).outerWidth(width);
+            outerWidth = $(this).outerWidth();
+            width = Math.max(outerWidth, headerWidths[idx]);
+            headerCol.outerWidth(width);
           }
         });
 
