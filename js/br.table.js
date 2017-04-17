@@ -127,9 +127,7 @@
       _this.update();
     });
 
-    $(window).load(function() {
-      _this.update();
-    });
+    _this.update();
 
     return this;
 
