@@ -694,6 +694,11 @@
       $(c('.pager-page-size')).text(_this.limit + ' records per page');
 
       pagerSetuped = true;
+
+      if (_this.dataGrid.table) {
+        _this.dataGrid.table.update();
+      }
+
     }
 
     this.restoreSelection = function(selection) {
