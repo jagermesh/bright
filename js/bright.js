@@ -2166,6 +2166,10 @@
       _this.update();
     });
 
+    $(window).on('scroll', function() {
+      _this.update();
+    });
+
     _this.update();
 
     return this;
