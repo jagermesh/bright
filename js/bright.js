@@ -2418,7 +2418,7 @@
           tableRow.data('data-row', data);
           _this.events.triggerBefore('update', data);
           _this.events.trigger('update', data, row);
-          $(row[row.length-1]).after(tableRow);
+          $(row[0]).before(tableRow);
           row.remove();
           _this.events.triggerAfter('renderRow', data, tableRow);
           _this.events.triggerAfter('update', data, tableRow);
