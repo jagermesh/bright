@@ -159,7 +159,7 @@
       }
       options = options || { };
       options.disableEvents = true;
-      options.refreshSelector = options.refreshSelector || _this.options.refreshSelector;
+      options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
       var filter;
       if (br.isObject(rowid)) {
         filter = rowid;
@@ -217,7 +217,7 @@
     this.refreshRow = function(data, options) {
       var filter = '[data-rowid=' + data.rowid + ']';
       options = options || {};
-      options.refreshSelector = options.refreshSelector || _this.options.refreshSelector;
+      options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
       if (options.refreshSelector) {
         filter = options.refreshSelector + filter;
       }

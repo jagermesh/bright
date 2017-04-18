@@ -110,12 +110,11 @@
                                , this.options.templates.row
                                , this.dataSource
                                , { templates: { noData: this.options.templates.noData, groupRow: this.options.templates.groupRow }
-                                 , selectors: { header: headerContainer, remove: '.action-delete' }
+                                 , selectors: { header: headerContainer, remove: '.action-delete', refreshRow: this.options.selectors.refreshRow }
                                  , appendInInsert: this.options.appendInInsert
                                  , defaultOrderAndGroup: this.options.defaultOrderAndGroup
                                  , fixedHeader: this.options.fixedHeader
                                  , autoHeight: this.options.autoHeight
-                                 , refreshSelector: this.options.refreshSelector
                                  }
                                );
 
