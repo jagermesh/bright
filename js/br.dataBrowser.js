@@ -115,6 +115,7 @@
                                  , defaultOrderAndGroup: this.options.defaultOrderAndGroup
                                  , fixedHeader: this.options.fixedHeader
                                  , autoHeight: this.options.autoHeight
+                                 , refreshSelector: this.options.refreshSelector
                                  }
                                );
 

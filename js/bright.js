@@ -2349,6 +2349,7 @@
       }
       options = options || { };
       options.disableEvents = true;
+      options.refreshSelector = options.refreshSelector || _this.options.refreshSelector;
       var filter;
       if (br.isObject(rowid)) {
         filter = rowid;
@@ -2405,7 +2406,9 @@
 
     this.refreshRow = function(data, options) {
       var filter = '[data-rowid=' + data.rowid + ']';
-      if (options && options.refreshSelector) {
+      options = options || {};
+      options.refreshSelector = options.refreshSelector || _this.options.refreshSelector;
+      if (options.refreshSelector) {
         filter = options.refreshSelector + filter;
       }
       var row = $(_this.selector).find(filter);
@@ -2588,7 +2591,7 @@
         });
 
         _this.dataSource.on('update', function(data) {
-          if (_this.refreshRow(data)) {
+          if (_this.refreshRow(data, _this.options)) {
 
           } else {
             _this.dataSource.select();
