@@ -4562,3 +4562,1465 @@
   };
 
 })(window);
+/*!
+ * Bright 0.0.5
+ *
+ * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+  * http://brightfw.com
+ *
+ */
+
+;(function ($, window) {
+
+  function BrDataEditor(selector, dataSource, options) {
+
+    var _this = this;
+    var editorRowid = null;
+    var editorRowData = null;
+    var active = false;
+    var cancelled = false;
+
+    this.options = options || {};
+    this.options.noun = this.options.noun || '';
+    this.options.selectors = this.options.selectors || {};
+    this.options.selectors.save = this.options.selectors.save || '.action-save';
+    this.options.selectors.cancel = this.options.selectors.cancel || '.action-cancel';
+    this.options.selectors.errorMessage = this.options.selectors.errorMessage || '.editor-error-message';
+    this.container = $(selector);
+    if (this.options.inputsContainer) {
+      this.inputsContainer = $(this.options.inputsContainer);
+    } else {
+      this.inputsContainer = this.container;
+    }
+
+    this.dataSource = dataSource;
+
+    this.events = br.eventQueue(this);
+    this.before = function(event, callback) { this.events.before(event, callback); };
+    this.on     = function(event, callback) { this.events.on(event, callback); };
+    this.after  = function(event, callback) { this.events.after(event, callback); };
+
+    this.rowid = function() {
+      return editorRowid;
+    };
+
+    this.rowData = function() {
+      return editorRowData;
+    };
+
+    this.isActive = function() {
+      return _this.container.is(':visible');
+    };
+
+    this.isEditMode = function() {
+      return !br.isNull(editorRowid);
+    };
+
+    this.isInsertMode = function() {
+      return br.isNull(editorRowid);
+    };
+
+    this.lock = function() {
+      $(this.options.selectors.save, _this.container).addClass('disabled');
+    };
+
+    this.unlock = function() {
+      $(this.options.selectors.save, _this.container).removeClass('disabled');
+    };
+
+    this.showError = function(message) {
+      var ctrl = $(this.options.selectors.errorMessage, _this.container);
+      if (ctrl.length > 0) {
+        ctrl.html(message).show();
+      } else {
+        br.growlError(message);
+      }
+    };
+
+    this.editorConfigure = function(isCopy) {
+      var s = '';
+      if (_this.options.title) {
+        s = _this.options.title;
+      } else
+      if (editorRowid) {
+        if (isCopy) {
+          s = 'Copy ' + _this.options.noun;
+        } else {
+          s = 'Edit ' + _this.options.noun;
+          if (!_this.options.hideRowid) {
+            s = s + ' (#' + editorRowid + ')';
+          }
+        }
+      } else {
+        s = 'Create ' + _this.options.noun;
+      }
+      _this.container.find('.operation').text(s);
+    };
+
+    function modalShown(form) {
+      var focusedInput = $('input.focus[type!=hidden]:visible,select.focus:visible,textarea.focus:visible', form);
+      if (focusedInput.length > 0) {
+        try { focusedInput[0].focus(); } catch (e) { }
+      } else {
+        focusedInput = $('input[type!=hidden]:visible,select:visible,textarea:visible', form);
+        if (focusedInput.length > 0) {
+          try { focusedInput[0].focus(); } catch (e) { }
+        }
+      }
+      _this.events.trigger('editor.shown');
+    }
+
+    var closeConfirmationTmp;
+
+    this.init = function() {
+
+      if (_this.container.hasClass('modal')) {
+        _this.container.attr('data-backdrop', 'static');
+        _this.container.on('shown.bs.modal', function() { modalShown($(this)); });
+        _this.container.on('hide.bs.modal', function() {
+          if (cancelled) {
+            cancelled = false;
+          } else {
+            if (!closeConfirmationTmp) {
+              br.resetCloseConfirmation();
+            }
+            _this.events.trigger('editor.cancel', false, editorRowid);
+          }
+          _this.events.trigger('editor.hide', false, editorRowid);
+        });
+        _this.container.on('hidden.bs.modal', function() { _this.events.trigger('editor.hidden', false, editorRowid); });
+      }
+
+      $(this.options.selectors.cancel, _this.container).removeAttr('data-dismiss');
+
+      $(this.options.selectors.cancel, _this.container).click(function() {
+        _this.cancel();
+      });
+
+      $(this.options.selectors.save, _this.container).click(function() {
+        if (!$(this).hasClass('disabled')) {
+          _this.save($(this).hasClass('action-close') || _this.container.hasClass('modal'));
+        }
+      });
+
+      $(_this.inputsContainer).on('click', 'div.data-field[data-toggle=buttons-radio],input.data-field[type=checkbox],input.data-field[type=radio]', function() {
+        br.confirmClose();
+      });
+
+      $(_this.inputsContainer).on('change', 'select.data-field', function() {
+        br.confirmClose();
+      });
+
+      $(_this.inputsContainer).on('keypress', 'input.data-field,textarea.data-field', function() {
+        br.confirmClose();
+      });
+
+      return this;
+
+    };
+
+    _this.fillControls = function(data) {
+      if (data) {
+        for(var i in data) {
+          _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio][name=' + i + '],input.data-field[name=' + i + '],select.data-field[name=' + i + '],textarea.data-field[name=' + i + ']').each(function() {
+            if ($(this).attr('data-toggle') == 'buttons-radio') {
+              var val = br.isNull(data[i]) ? '' : data[i];
+              $(this).find('button[value="' + val + '"]').addClass('active');
+            } else
+            if ($(this).attr('type') == 'checkbox') {
+              if (br.toInt(data[i]) == 1) {
+                $(this).prop('checked', 'checked');
+              } else {
+                $(this).removeAttr('checked');
+              }
+            } else
+            if ($(this).attr('type') == 'radio') {
+              if (br.toInt(data[i]) == br.toInt($(this).val())) {
+                $(this).prop('checked', 'checked');
+              }
+            } else {
+              var ckeditorInstance = $(this).data('ckeditorInstance');
+              if (ckeditorInstance) {
+                ckeditorInstance.setData(data[i], {noSnapshot: true});
+              } else {
+                var dataComboInstance = $(this).data('BrDataCombo');
+                if (dataComboInstance) {
+                  dataComboInstance.val(data[i]);
+                } else {
+                  $(this).val(data[i]);
+                }
+              }
+            }
+          });
+        }
+      }
+      if (window.Select2) {
+        _this.inputsContainer.find('select.data-field').each(function() {
+          $(this).select2();
+        });
+      }
+    };
+
+    this.show = function(rowid, isCopy) {
+      closeConfirmationTmp = br.isCloseConfirmationRequired();
+      editorRowid = null;
+      editorRowData = null;
+      var defaultValues = null;
+      if (br.isNumber(rowid)) {
+        editorRowid = rowid;
+      } else
+      if (br.isObject(rowid)) {
+        defaultValues = rowid;
+      }
+      _this.inputsContainer.find('input.data-field[type!=radio],select.data-field,textarea.data-field').val('');
+      _this.inputsContainer.find('input.data-field[type=checkbox]').val('1');
+      _this.inputsContainer.find('input.data-field[type=checkbox]').removeAttr('checked');
+      _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio]').find('button').removeClass('active');
+
+      var ctrl = $(this.options.selectors.errorMessage, _this.container);
+      if (ctrl.length > 0) {
+        ctrl.html('').hide();
+      }
+
+      if (editorRowid) {
+        var request = { rowid: editorRowid };
+        var options = { disableEvents: true };
+        _this.events.triggerBefore('editor.loadData', request, options);
+        _this.dataSource.selectOne(request, function(result, data) {
+          if (result) {
+            editorRowData = data;
+            _this.events.triggerBefore('editor.show', data, isCopy);
+            _this.editorConfigure(isCopy);
+            _this.fillControls(data);
+            if (isCopy) {
+              editorRowid = null;
+            }
+            _this.events.trigger('editor.show', data, isCopy);
+            br.attachDatePickers(_this.inputsContainer);
+            if (_this.container.hasClass('modal')) {
+              _this.container.modal('show');
+            }
+          } else {
+            if (_this.container.hasClass('modal')) {
+              _this.showError(data);
+            } else {
+              br.backToCaller(_this.options.returnUrl, true);
+            }
+          }
+        }, options);
+      } else {
+        _this.events.triggerBefore('editor.show');
+        _this.editorConfigure(isCopy);
+
+        _this.inputsContainer.find('input.data-field[type=checkbox]').each(function() {
+          if ($(this).attr('data-default-checked')) {
+            $(this).prop('checked', 'checked');
+          }
+        });
+
+        _this.fillControls(defaultValues);
+        _this.events.trigger('editor.show', defaultValues);
+        br.attachDatePickers(_this.inputsContainer);
+        if (_this.container.hasClass('modal')) {
+          _this.container.modal('show');
+        }
+      }
+      return _this.container;
+    };
+
+    this.hide = this.cancel = function() {
+      cancelled = true;
+      if (!closeConfirmationTmp) {
+        br.resetCloseConfirmation();
+      }
+      _this.events.trigger('editor.cancel', false, editorRowid);
+      if (_this.container.hasClass('modal')) {
+        _this.container.modal('hide');
+      } else {
+        _this.events.trigger('editor.hidden', false, editorRowid);
+        _this.events.trigger('editor.hide', false, editorRowid);
+        br.backToCaller(_this.options.returnUrl, false);
+      }
+    };
+
+    var saving = false;
+
+    this.save = function(andClose, callback, silent) {
+      if (saving) {
+        window.setTimeout(function() {
+          _this.save(andClose, callback, silent);
+        }, 100);
+        return;
+      } else {
+        saving = true;
+      }
+      try {
+        if (br.isFunction(andClose)) {
+          callback = andClose;
+          silent = callback;
+          andClose = false;
+        }
+        var data = { };
+        var errors = [];
+        $(this.options.selectors.errorMessage, _this.container).hide();
+        _this.events.triggerBefore('editor.save');
+        _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio],input.data-field,select.data-field,textarea.data-field').each(function() {
+          var val;
+          var skip = false;
+          if (($(this).attr('readonly') != 'readonly') && ($(this).attr('disabled') != 'disabled')) {
+            if ($(this).attr('data-toggle') == 'buttons-radio') {
+              val = $(this).find('button.active').val();
+            } else
+            if ($(this).attr('type') == 'checkbox') {
+              if ($(this).is(':checked')) {
+                val = 1;
+              } else {
+                val = 0;
+              }
+            } else
+            if ($(this).attr('type') == 'radio') {
+              if ($(this).is(':checked')) {
+                val = $(this).val();
+              } else {
+                skip = true;
+              }
+            } else {
+              val = $(this).val();
+            }
+            if (!skip) {
+              if ($(this).hasClass('required') && br.isEmpty(val) && (!$(this).hasClass('required-edit-only') || _this.isEditMode()) && (!$(this).hasClass('required-insert-only') || _this.isInsertMode())) {
+                var title = $(this).attr('title');
+                if (br.isEmpty(title)) {
+                  title = $(this).prev('label').text();
+                }
+                if (errors.length === 0) {
+                  this.focus();
+                }
+                errors.push(br.trn('%s must be filled').replace('%s', title));
+                ok = false;
+              } else
+              if (br.isEmpty(val)) {
+                data[$(this).attr('name')] = '';
+              } else {
+                data[$(this).attr('name')] = val;
+              }
+            }
+          }
+        });
+        if (errors.length > 0) {
+          var tmpl;
+          if (errors.length == 1) {
+            tmpl = '{{#errors}}{{.}}{{/errors}}';
+          } else {
+            tmpl = br.trn('Please check the following:') + '<br /><ul>{{#errors}}<li>{{.}}</li>{{/errors}}</ul>';
+          }
+          var error = br.fetch(tmpl, { errors: errors });
+          _this.showError(error);
+          saving = false;
+        } else {
+          var op = '';
+          var ok = true;
+          if (editorRowid) {
+            op = 'update';
+          } else {
+            op = 'insert';
+          }
+          try {
+            _this.events.trigger('editor.save', op, data);
+            if (editorRowid) {
+              _this.events.triggerBefore('editor.update', data);
+              _this.dataSource.update(editorRowid, data, function(result, response) {
+                try {
+                  if (result) {
+                    if (!closeConfirmationTmp) {
+                      br.resetCloseConfirmation();
+                    }
+                    _this.events.triggerAfter('editor.update', true, response);
+                    _this.events.triggerAfter('editor.save', true, response);
+                    if (andClose) {
+                      if (_this.container.hasClass('modal')) {
+                        // _this.events.trigger('editor.hidden', true, response);
+                        _this.container.modal('hide');
+                        editorRowid = null;
+                        editorRowData = null;
+                      } else {
+                        _this.events.trigger('editor.hidden', true, response);
+                        var callResponse = { refresh: true };
+                        _this.events.trigger('editor.hide', true, response, callResponse);
+                        br.backToCaller(_this.options.returnUrl, callResponse.refresh);
+                      }
+                    } else {
+                      if (!_this.options.hideSaveNotification && !silent) {
+                        br.growlMessage('Changes saved', 'Success');
+                      }
+                    }
+                    if (callback) {
+                      callback.call(this, response);
+                    }
+                  } else {
+                    if (!_this.dataSource.events.has('error')) {
+                      _this.showError(response);
+                    }
+                  }
+                } finally {
+                  saving = false;
+                }
+              });
+            } else {
+              _this.events.triggerBefore('editor.insert', data);
+              _this.dataSource.insert(data, function(result, response) {
+                try {
+                  if (result) {
+                    if (!closeConfirmationTmp) {
+                      br.resetCloseConfirmation();
+                    }
+                    editorRowid = response.rowid;
+                    editorRowData = response;
+                    _this.editorConfigure(false);
+                    _this.events.triggerAfter('editor.insert', true, response);
+                    _this.events.triggerAfter('editor.save', true, response);
+                    if (andClose) {
+                      if (_this.container.hasClass('modal')) {
+                        // _this.events.trigger('editor.hidden', true, response);
+                        _this.container.modal('hide');
+                        editorRowid = null;
+                        editorRowData = null;
+                      } else {
+                        _this.events.trigger('editor.hidden', true, response);
+                        var callResponse = { refresh: true };
+                        _this.events.trigger('editor.hide', true, response, callResponse);
+                        br.backToCaller(_this.options.returnUrl, callResponse.refresh);
+                      }
+                    } else {
+                      if (!_this.options.hideSaveNotification && !silent) {
+                        br.growlMessage('Changes saved', 'Success');
+                      }
+                    }
+                    if (callback) {
+                      callback.call(this, response);
+                    }
+                  } else {
+                    if (!_this.dataSource.events.has('error')) {
+                      _this.showError(response);
+                    }
+                  }
+                } finally {
+                  saving = false;
+                }
+              });
+            }
+          } catch (e) {
+            saving = false;
+            _this.showError(e.message);
+          }
+        }
+      } catch (e) {
+        saving = false;
+        throw e;
+      }
+    };
+
+    return this.init();
+
+  }
+
+  window.br = window.br || {};
+
+  window.br.dataEditor = function (selector, dataSource, options) {
+    return new BrDataEditor(selector, dataSource, options);
+  };
+
+})(jQuery, window);
+/*!
+ * Bright 0.0.5
+ *
+ * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+  * http://brightfw.com
+ *
+ */
+
+;(function ($, window) {
+
+  function BrDataBrowser(entity, options) {
+
+    var _this = this;
+
+    var pagerSetuped = false;
+
+    this.options = options || {};
+    this.options.autoLoad = this.options.autoLoad || false;
+    this.options.defaults = this.options.defaults || {};
+    this.options.defaults.filtersHidden = this.options.defaults.filtersHidden || false;
+    this.options.entity = entity;
+    this.options.features = this.options.features || { editor: true };
+    this.options.noun = this.options.noun || '';
+    this.options.selectors = this.options.selectors || {};
+    this.options.selectors.container = this.options.selectors.container || '';
+    this.options.selectors.scrollContainer = this.options.selectors.scrollContainer || '';
+    this.options.pageSizes = this.options.pageSizes || [20, 50, 100, 200];
+
+    function c(selector) {
+      if (_this.options.selectors.container !== '') {
+        return _this.options.selectors.container + ' ' + selector;
+      } else {
+        return selector;
+      }
+    }
+
+    this.scrollContainer = function() {
+      if (_this.options.selectors.container !== '') {
+        if (_this.options.selectors.scrollContainer !== '') {
+          if (this.options.selectors.scrollContainer.indexOf('#') === 0) {
+             return _this.options.selectors.scrollContainer;
+          } else {
+            return _this.options.selectors.container + ' ' + _this.options.selectors.scrollContainer;
+          }
+        } else {
+          return _this.options.selectors.container;
+        }
+      } else {
+        return _this.options.selectors.scrollContainer;
+      }
+    };
+
+    this.options.selectors.dataTable = c(this.options.selectors.dataTable || '.data-table');
+    this.options.selectors.editForm = this.options.selectors.editForm || '';
+    if (this.options.selectors.editForm === '') {
+      if (this.options.selectors.container === '') {
+        this.options.selectors.editForm = '.data-edit-form';
+      } else {
+        this.options.selectors.editForm = _this.options.selectors.container + ' .data-edit-form';
+      }
+    }
+
+    this.options.templates = this.options.templates || {};
+    this.options.templates.row = this.options.templates.row || this.options.templates.rowTemplate || '.data-row-template';
+    this.options.templates.groupRow = this.options.templates.groupRow || '.data-group-row-template';
+    this.options.templates.noData = this.options.templates.noData || '.data-empty-template';
+
+    var selActionCRUD = c('.action-edit') + ',' + c('.action-create') + ',' + c('.action-copy');
+
+    if (typeof entity == 'string') {
+      if (this.options.entity.indexOf('/') == -1) {
+        this.dataSource = br.dataSource(br.baseUrl + 'api/' + this.options.entity + '/');
+      } else {
+        this.dataSource = br.dataSource(br.baseUrl + this.options.entity);
+      }
+      this.dataSource.on('error', function(operation, error) {
+        br.growlError(error);
+      });
+    } else {
+      this.dataSource = entity;
+    }
+
+    this.storageTag = this.options.storageTag ? this.options.storageTag : document.location.pathname + ':' + this.dataSource.options.restServiceUrl;
+
+    this.setStored = function(name, value) {
+      br.storage.set(this.storageTag + 'stored:' + name, value);
+    };
+
+    this.getStored = function(name, defaultValue) {
+      return br.storage.get(this.storageTag + 'stored:' + name, defaultValue);
+    };
+
+    this.defaultLimit = this.options.limit || 20;
+    this.limit = _this.getStored('pager_PageSize', this.defaultLimit);
+    this.skip = 0;
+    this.recordsAmount = 0;
+
+    this.selection = br.flagsHolder();
+
+    this.countDataSource = br.dataSource(this.dataSource.options.restServiceUrl);
+
+    var headerContainer = 'body';
+
+    if (this.options.selectors.container !== '') {
+      headerContainer = this.options.selectors.container;
+    }
+
+    this.dataGrid = br.dataGrid( this.options.selectors.dataTable
+                               , this.options.templates.row
+                               , this.dataSource
+                               , { templates: { noData: this.options.templates.noData, groupRow: this.options.templates.groupRow }
+                                 , selectors: { header: headerContainer, remove: '.action-delete', refreshRow: this.options.selectors.refreshRow }
+                                 , appendInInsert: this.options.appendInInsert
+                                 , defaultOrderAndGroup: this.options.defaultOrderAndGroup
+                                 , fixedHeader: this.options.fixedHeader
+                                 , autoHeight: this.options.autoHeight
+                                 }
+                               );
+
+    this.events = br.eventQueue(this);
+    this.before = function(event, callback) { this.events.before(event, callback); };
+    this.on     = function(event, callback) { this.events.on(event, callback); };
+    this.after  = function(event, callback) { this.events.after(event, callback); };
+
+    this.before = function(operation, callback) {
+      this.dataSource.before(operation, callback);
+      this.countDataSource.before(operation, callback);
+    };
+
+    this.getOrder = function() {
+      return _this.dataGrid.getOrder();
+    };
+
+    this.isOrderConfigured = function() {
+      return _this.dataGrid.isOrderConfigured();
+    };
+
+    this.setOrder = function(order) {
+      _this.dataGrid.setOrder(order);
+    };
+
+    this.setFilter = function(name, value) {
+      var filter = br.storage.get(this.storageTag + 'filter');
+      filter = filter || { };
+      filter[name] = value;
+      br.storage.set(this.storageTag + 'filter', filter);
+    };
+
+    this.getFilter = function(name, defaultValue) {
+      var filter = br.storage.get(this.storageTag + 'filter', defaultValue);
+      filter = filter || { };
+      return filter[name];
+    };
+
+    this.reloadRow = function(rowid, callback, options) {
+      _this.dataGrid.reloadRow(rowid, callback, options);
+    };
+
+    this.hasRow = function(rowid) {
+      return _this.dataGrid.hasRow(rowid);
+    };
+
+    this.removeRow = function(rowid) {
+      return _this.dataGrid.removeRow(rowid);
+    };
+
+    var selectionQueue = [];
+
+    function deleteQueued() {
+
+      if (selectionQueue.length > 0) {
+        var rowid = selectionQueue.shift();
+        _this.dataSource.remove(rowid, function(result, response) {
+          if (result) {
+            _this.unSelectRow(rowid);
+          }
+          br.stepProgress();
+          deleteQueued();
+        });
+      } else {
+        if (_this.dataGrid.isEmpty()) {
+          _this.refresh();
+        }
+        br.hideProgress();
+      }
+
+    }
+
+    this.deleteSelection = function() {
+      selectionQueue = _this.selection.get().slice(0);
+      if (selectionQueue.length > 0) {
+        br.confirm( 'Delete confirmation'
+                  , 'Are you sure you want do delete ' + selectionQueue.length + ' record(s)?'
+                  , function() {
+                      br.startProgress(selectionQueue.length, 'Deleting...');
+                      deleteQueued();
+                    }
+                  );
+      } else {
+        br.growlError('Please select at least one record');
+      }
+    };
+
+    function updateQueued(func) {
+
+      if (selectionQueue.length > 0) {
+        var rowid = selectionQueue.shift();
+        var data = {};
+        func(data);
+        _this.dataSource.update(rowid, data, function(result, response) {
+          if (result) {
+            _this.unSelectRow(rowid);
+          }
+          br.stepProgress();
+          updateQueued(func);
+        });
+      } else {
+        br.hideProgress();
+      }
+
+    }
+
+    this.updateSelection = function(func) {
+      selectionQueue = _this.selection.get().slice(0);
+      if (selectionQueue.length > 0) {
+        br.startProgress(selectionQueue.length, 'Updating...');
+        updateQueued(func);
+      } else {
+        br.growlError('Please select at least one record');
+      }
+    };
+
+    function processQueued(processRowCallback, processCompleteCallback, params) {
+
+      if (selectionQueue.length > 0) {
+        var rowid = selectionQueue.shift();
+        processRowCallback(rowid, function() {
+          if (params.showProgress) {
+            br.stepProgress();
+          }
+          processQueued(processRowCallback, processCompleteCallback, params);
+        });
+      } else {
+        if (params.showProgress) {
+          br.hideProgress();
+        }
+        if (processCompleteCallback) {
+          processCompleteCallback();
+        }
+      }
+
+    }
+
+    this.processSelection = function(processRowCallback, processCompleteCallback, params) {
+      params = params || {};
+      params.showProgress = params.showProgress || false;
+      selectionQueue = _this.selection.get();
+      if (selectionQueue.length > 0) {
+        if (params.showProgress) {
+          br.startProgress(selectionQueue.length, params.title || '');
+        }
+        processQueued(processRowCallback, processCompleteCallback, params);
+      } else {
+        br.growlError('Please select at least one record');
+      }
+    };
+
+    this.init = function() {
+      // nav
+      $('.nav-item[rel=' + _this.options.nav + ']').addClass('active');
+
+      _this.dataSource.before('select', function(request, options) {
+        request = request || {};
+        if ($(c('input.data-filter[name=keyword]')).length > 0) {
+          request.keyword = $(c('input.data-filter[name=keyword]')).val();
+          _this.setFilter('keyword', request.keyword);
+        }
+        options       = options || {};
+        options.skip  = _this.skip;
+        options.limit = _this.limit || _this.defaultLimit;
+      });
+
+      _this.dataSource.after('remove', function(request, options) {
+        if (selectionQueue.length === 0) {
+          _this.resetPager();
+          _this.updatePager();
+        }
+      });
+
+      _this.dataSource.after('insert', function(request, options) {
+        _this.resetPager();
+        _this.updatePager();
+      });
+
+      _this.countDataSource.before('select', function(request) {
+        if ($(c('input.data-filter[name=keyword]')).length > 0) {
+          request.keyword = $(c('input.data-filter[name=keyword]')).val();
+        }
+      });
+
+      // search
+      br.modified(c('input.data-filter[name=keyword]'), function() {
+        var _val = $(this).val();
+        $(c('input.data-filter[name=keyword]')).each(function() {
+          if ($(this).val() != _val) {
+            $(this).val(_val);
+          }
+        });
+        if ($(this).hasClass('instant-search')) {
+          _this.refreshDeferred();
+        }
+      });
+
+      br.modified(c('input.data-filter') + ',' + c('select.data-filter'), function() {
+        _this.resetPager();
+      });
+
+      br.attachDatePickers();
+
+      if (_this.options.features.editor) {
+        var editorOptions = _this.options.editor || { noun: _this.options.noun };
+        _this.editor = br.dataEditor(_this.options.selectors.editForm, _this.dataSource, editorOptions);
+        _this.editor.events.connectTo(_this.events);
+
+        $(c('.action-create')).show();
+
+        $(document).on('click', selActionCRUD, function() {
+          var isCopy = $(this).hasClass('action-copy');
+          var rowid = $(this).closest('[data-rowid]').attr('data-rowid');
+          _this.editor.show(rowid, isCopy);
+        });
+      }
+
+      br.editable(c('.editable'), function(content) {
+        var $this = $(this);
+        var rowid = $this.closest('[data-rowid]').attr('data-rowid');
+        var dataField = $this.attr('data-field');
+        if (!br.isEmpty(rowid) && !br.isEmpty(dataField)) {
+          var data = {};
+          data[dataField] = content;
+          _this.dataSource.update( rowid
+                                 , data
+                                 , function(result) {
+                                     // if (result) {
+                                     //   br.editable($this, 'apply', content);
+                                     // }
+                                   }
+                                 );
+        }
+      });
+
+      // pager
+      $(c('a.action-next') + ',' + c('a.pager-action-next')).on('click', function() {
+        _this.skip += _this.limit;
+        _this.refresh({}, null, true);
+      });
+
+      $(c('a.action-prior') + ',' + c('a.pager-action-prior')).on('click', function() {
+        _this.skip -= _this.limit;
+        if (_this.skip < 0) {
+          _this.skip = 0;
+        }
+        _this.refresh({}, null, true);
+      });
+
+      $(c('.pager-page-navigation')).on('click', 'a.pager-action-navigate', function() {
+        var value = br.toInt($(this).attr('data-page'));
+        if (value > 0) {
+          var newSkip = _this.limit * (value - 1);
+          if (newSkip != _this.skip) {
+            _this.skip = _this.limit * (value - 1);
+            _this.setStored('pager_PageNo', _this.skip);
+            _this.refresh({}, null, true);
+          }
+        }
+      });
+
+      $(c('.pager-page-size-navigation')).on('click', 'a.pager-action-page-size', function() {
+        var value = br.toInt($(this).attr('data-size'));
+        _this.limit = value;
+        _this.setStored('pager_PageSize', _this.limit);
+        _this.refresh({}, null, true);
+      });
+
+      $(c('.action-refresh')).click(function() {
+        _this.refresh();
+      });
+
+      $(c('.action-clear-one-filter')).click(function() {
+        $(c('.data-filter' + '[name=' + $(this).attr('rel') + ']')).val('');
+        _this.refresh();
+      });
+
+      $(c('input.data-filter[name=keyword]')).val(_this.getFilter('keyword'));
+
+      function showFiltersDesc() {
+
+        if ($(c('.filters-panel')).is(':visible')) {
+          $(c('.action-show-hide-filters')).find('span').text('Hide filters');
+          $(c('.filter-description')).text('');
+        } else {
+          $(c('.action-show-hide-filters')).find('span').text('Show filters');
+          var s = '';
+          $(c('.data-filter')).each(function() {
+            var val = $(this).val();
+            var title = $(this).attr('title');
+            if (val &&title) {
+              s = s + '/ <strong>' + title + '</strong> ';
+              if ($(this).is('select')) {
+                s = s + $(this).find('option[value=' + val + ']').text() + ' ';
+              } else {
+                s = s + val + ' ';
+              }
+
+            }
+          });
+          $(c('.filter-description')).html(s);
+        }
+
+      }
+
+      function setupFilters(initial) {
+
+        function showHideFilters(initial) {
+
+          if ($(c('.filters-panel')).is(':visible')) {
+            _this.setStored('filters-hidden', true);
+            $(c('.filters-panel')).css('display', 'none');
+            showFiltersDesc();
+            _this.events.trigger('hideFilters');
+          } else {
+            _this.setStored('filters-hidden', false);
+            $(c('.filters-panel')).show();
+            showFiltersDesc();
+            _this.events.trigger('showFilters');
+          }
+
+          if (_this.dataGrid.table) {
+            _this.dataGrid.table.update();
+          }
+
+        }
+
+        $(c('.action-show-hide-filters')).on('click', function() {
+          showHideFilters();
+        });
+
+        $(c('.action-reset-filters')).on('click', function () {
+          _this.resetFilters();
+        });
+
+        if (br.isNull(_this.getStored('filters-hidden'))) {
+          _this.setStored('filters-hidden', _this.options.defaults.filtersHidden);
+        }
+
+        if (_this.getStored('filters-hidden')) {
+          showFiltersDesc();
+        } else {
+          showHideFilters(initial);
+        }
+
+      }
+
+      setupFilters(true);
+
+      _this.dataSource.after('select', function(result, response) {
+        if (result) {
+          if (_this.options.autoLoad) {
+            _this.skip = _this.skip + response.length;
+          }
+        }
+        _this.updatePager();
+        showFiltersDesc();
+      });
+
+      function checkAutoLoad() {
+        var docsHeight = $(_this.options.selectors.dataTable).height();
+        var docsContainerHeight = $(_this.scrollContainer()).height();
+        var scrollTop = $(_this.scrollContainer()).scrollTop();
+        if (scrollTop + docsContainerHeight > docsHeight) {
+          _this.dataGrid.loadMore();
+        }
+      }
+
+      if (_this.options.autoLoad) {
+        $(_this.scrollContainer()).on('scroll', function() {
+          checkAutoLoad();
+        });
+      }
+
+      $(document).on('click', c('.action-select-all'), function() {
+        var checked = $(this).is(':checked');
+        _this.selectAll(checked);
+      });
+
+      $(document).on('click', c('.action-select-row'), function() {
+        var row = $(this).closest('[data-rowid]');
+        var rowid = row.attr('data-rowid');
+        var checked = $(this).is(':checked');
+        if (checked) {
+          _this.selectRow(rowid);
+        } else {
+          _this.unSelectRow(rowid);
+        }
+      });
+
+      $(document).on('click', c('.action-clear-selection'), function() {
+        _this.clearSelection();
+      });
+
+      $(document).on('click', c('.action-delete-selected'), function() {
+        _this.deleteSelection();
+      });
+
+      _this.dataGrid.before('changeOrder', function() {
+        _this.resetPager();
+      });
+
+      _this.dataGrid.on('change', function() {
+        $(c('.action-select-all')).removeAttr('checked');
+        var selection = _this.selection.get();
+        if (selection.length > 0) {
+          _this.restoreSelection();
+        } else {
+          _this.clearSelection();
+        }
+        _this.events.trigger('change');
+        _this.events.triggerAfter('change');
+      });
+
+      _this.events.on('selectionChanged', function() {
+        var selection = _this.selection.get();
+        if (selection.length > 0) {
+          $(c('.selection-stat')).text(selection.length + ' record(s) selected');
+          $(c('.selection-stat')).show();
+          $(c('.action-clear-selection')).show();
+        } else {
+          $(c('.selection-stat')).css('display', 'none');
+          $(c('.action-clear-selection')).css('display', 'none');
+        }
+      });
+
+      return this;
+    };
+
+    var pageNavIsSlider = false, pageSizeIsSlider = false, pagerInitialized = false;
+
+    function initPager() {
+
+      if (pagerInitialized) {
+        return;
+      }
+
+      if ($.fn.slider) {
+        $(c('.pager-page-slider')).each(function() {
+          pageNavIsSlider = true;
+          $(this).slider({
+              min: 1
+            , value: 1
+            , change: function(event, ui) {
+                var value = $(c('.pager-page-slider')).slider('option', 'value');
+                if (value > 0) {
+                  var newSkip = _this.limit * (value - 1);
+                  if (newSkip != _this.skip) {
+                    _this.skip = _this.limit * (value - 1);
+                    _this.setStored('pager_PageNo', _this.skip);
+                    _this.refresh({}, null, true);
+                  }
+                }
+              }
+          });
+        });
+
+        $(c('.pager-page-size-slider')).each(function() {
+          pageSizeIsSlider = true;
+          $(this).slider({
+              min: _this.defaultLimit
+            , value: _this.limit
+            , max: _this.defaultLimit * 20
+            , step: _this.defaultLimit
+            , change: function(event, ui) {
+                var value = $(c('.pager-page-size-slider')).slider('option', 'value');
+                _this.limit = value;
+                _this.setStored('pager_PageSize', _this.limit);
+                $(c('.pager-page-slider')).slider('option', 'value', 1);
+                $(c('.pager-page-slider')).slider('option', 'max', Math.ceil(_this.recordsAmount / _this.limit));
+                _this.refresh({}, null, true);
+              }
+          });
+        });
+      }
+
+      pagerInitialized = true;
+
+    }
+
+    function internalUpdatePager() {
+
+      initPager();
+
+      var totalPages = Math.ceil(_this.recordsAmount / _this.limit);
+      var currentPage = Math.ceil(_this.skip / _this.limit) + 1;
+      var $pc, s, i;
+
+      if (pageNavIsSlider) {
+        $(c('.pager-page-slider')).slider('option', 'max', totalPages);
+        $(c('.pager-page-slider')).slider('option', 'value', currentPage);
+      } else {
+        $pc = $(c('.pager-page-navigation'));
+        $pc.html('');
+        s = '';
+        var f1 = false, f2 = false, r = 5, el = false;
+        for (i = 1; i <= totalPages; i++) {
+          if ((i <= r) || ((i > currentPage - r) && (i < currentPage + r)) || (i > (totalPages - r))) {
+            if (i == currentPage) {
+              s = s + '<strong class="pager-nav-element">' + i+ '</strong>';
+            } else {
+              el = true;
+              s = s + '<a href="javascript:;" class="pager-action-navigate pager-nav-element" data-page="'+ i + '">' + i+ '</a>';
+            }
+          } else
+          if (!f1 && i < currentPage) {
+            s = s + '...';
+            f1 = true;
+          } else
+          if (!f2 && i > currentPage) {
+            s = s + '...';
+            f2 = true;
+          }
+        }
+        if (el) {
+          $pc.html(s);
+          $(c('.pager-nav-element')).show();
+        } else {
+          $(c('.pager-nav-element')).css('display', 'none');
+        }
+      }
+
+      if (pageSizeIsSlider) {
+
+      } else {
+        $pc = $(c('.pager-page-size-navigation'));
+        $pc.html('');
+        s = '';
+        var sizes = _this.options.pageSizes;
+        for (i = 0; i < sizes.length; i++) {
+          var size = sizes[i];
+          var dsize = size;
+          if (size >= _this.recordsAmount) {
+            dsize = _this.recordsAmount;
+          }
+          if (size == _this.limit) {
+            s = s + '<strong class="pager-nav-element">' + dsize + '</strong>';
+          } else {
+            s = s + '<a href="javascript:;" class="pager-action-page-size pager-size-element" data-size="' + size + '">' + dsize + '</a>';
+          }
+          if (size >= _this.recordsAmount) {
+            break;
+          }
+        }
+        if (s.length > 0) {
+          $pc.html(s);
+          $(c('.pager-page-size-container')).show();
+        } else {
+          $(c('.pager-page-size-container')).css('display', 'none');
+        }
+      }
+
+      var min = (_this.skip + 1);
+      var max = Math.min(_this.skip + _this.limit, _this.recordsAmount);
+      if (_this.recordsAmount > 0) {
+        if (_this.recordsAmount > max) {
+          $(c('.action-next')).show();
+          $(c('.pager-action-next')).show();
+        } else {
+          $(c('.action-next')).css('display', 'none');
+          $(c('.pager-action-next')).css('display', 'none');
+        }
+        if (_this.skip > 0) {
+          $(c('.action-prior')).show();
+          $(c('.pager-action-prior')).show();
+        } else {
+          $(c('.action-prior')).css('display', 'none');
+          $(c('.pager-action-prior')).css('display', 'none');
+        }
+        $(c('.pager-control')).show();
+        _this.events.triggerAfter('pager.show');
+      } else {
+        $(c('.pager-control')).css('display', 'none');
+        _this.events.triggerAfter('pager.hide');
+      }
+      $(c('.pager-stat')).text('Records ' + min + '-' + max + ' of ' + _this.recordsAmount);
+      $(c('.pager-page-size')).text(_this.limit + ' records per page');
+
+      pagerSetuped = true;
+
+      if (_this.dataGrid.table) {
+        _this.dataGrid.table.update();
+      }
+
+    }
+
+    this.restoreSelection = function(selection) {
+      if (!selection) {
+        selection = _this.selection.get();
+      }
+      for (var i = 0; i < selection.length; i++) {
+        _this.selectRow(selection[i], true);
+      }
+      _this.events.trigger('selectionChanged');
+    };
+
+    this.clearSelection = function() {
+      _this.selection.clear();
+      $(c('.action-select-row')).removeAttr('checked');
+      $(c('tr.row-selected')).removeClass('row-selected');
+      $(c('.action-select-all')).removeAttr('checked');
+      _this.events.trigger('selectionChanged');
+    };
+
+    this.getSelection = function() {
+      return _this.selection.get();
+    };
+
+    this.updatePager = function() {
+
+      if (!pagerSetuped) {
+
+        _this.countDataSource.selectCount(function(success, result) {
+          if (success) {
+            _this.recordsAmount = result;
+            internalUpdatePager();
+            _this.events.triggerAfter('recordsCountRetrieved', result);
+          } else {
+            $(c('.pager-control')).css('display', 'none');
+            _this.events.triggerAfter('pager.hide');
+          }
+        });
+
+      } else {
+        internalUpdatePager();
+      }
+
+    };
+
+    function internalRefresh(deferred, filter, callback) {
+
+      if (deferred) {
+        _this.dataSource.deferredSelect(filter, function(result, response) {
+          if (typeof callback == 'function') {
+            callback.call(this, result, response);
+          }
+        });
+      } else {
+        _this.dataSource.select(filter, function(result, response) {
+          if (typeof callback == 'function') {
+            callback.call(this, result, response);
+          }
+        });
+      }
+
+    }
+
+    this.unSelectRow = function(rowid, multiple) {
+      var chk = $(_this.options.selectors.dataTable).find('input.action-select-row[value=' + rowid + ']');
+      var row;
+      if (chk.length > 0) {
+        row = $(chk).closest('[data-rowid]');
+      } else {
+        row = $(_this.options.selectors.dataTable).find('tr[data-rowid=' + rowid + ']');
+      }
+      if (row.length > 0) {
+        row.find('.action-select-row').removeAttr('checked');
+        row.removeClass('row-selected');
+      }
+      _this.selection.remove(rowid);
+      if (!multiple) {
+        _this.events.trigger('selectionChanged');
+      }
+    };
+
+    this.selectRow = function(rowid, multiple) {
+      var chk = $(_this.options.selectors.dataTable).find('input.action-select-row[value=' + rowid + ']');
+      var row;
+      if (chk.length > 0) {
+        row = $(chk).closest('[data-rowid]');
+      } else {
+        row = $(_this.options.selectors.dataTable).find('tr[data-rowid=' + rowid + ']');
+      }
+      if (row.length > 0) {
+        row.find('.action-select-row').prop('checked', 'checked');
+        row.addClass('row-selected');
+        _this.selection.append(rowid);
+        if (!multiple) {
+          _this.events.trigger('selectionChanged');
+        }
+      }
+    };
+
+    this.selectAll = function(checked) {
+      if (checked) {
+        $(c('.action-select-all')).prop('checked', 'checked');
+      } else {
+        $(c('.action-select-all')).removeAttr('checked');
+      }
+      $(c('.action-select-row')).each(function() {
+        var row = $(this).closest('[data-rowid]');
+        var rowid = row.attr('data-rowid');
+        if (checked) {
+          _this.selectRow(rowid, true);
+        } else {
+          _this.unSelectRow(rowid, true);
+        }
+      });
+      _this.events.trigger('selectionChanged');
+    };
+
+    this.isFiltersVisible = function() {
+      return $(c('.filters-panel')).is(':visible');
+    };
+
+    this.resetPager = function() {
+      pagerSetuped = false;
+      _this.skip = 0;
+    };
+
+    this.resetFilters = function() {
+      $(c('input.data-filter')).val('');
+      $(c('select.data-filter')).val('');
+      $(c('select.data-filter')).trigger('reset');
+      br.storage.remove(this.storageTag + 'filter');
+      _this.events.trigger('resetFilters');
+      br.refresh();
+    };
+
+    this.refreshDeferred = function(filter, callback, doNotResetPager) {
+      if (typeof filter == 'function') {
+        doNotResetPager = callback;
+        callback = filter;
+        filter = {};
+      }
+      if (!doNotResetPager) {
+        _this.resetPager();
+      }
+      internalRefresh(true, filter, callback);
+    };
+
+    this.refresh = function(filter, callback, doNotResetPager) {
+      if (typeof filter == 'function') {
+        doNotResetPager = callback;
+        callback = filter;
+        filter = {};
+      }
+      if (!doNotResetPager) {
+        _this.resetPager();
+      }
+      internalRefresh(false, filter, callback);
+    };
+
+    return this.init();
+
+  }
+
+  window.br = window.br || {};
+
+  window.br.dataBrowser = function (entity, options) {
+    return new BrDataBrowser(entity, options);
+  };
+
+})(jQuery, window);
+/*!
+ * Bright 0.0.5
+ *
+ * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://brightfw.com
+ *
+ */
+
+;(function ($, window) {
+
+  var invokerTemplate = '<div class="dropdown br-ajax-dropdown"><span href="javascript:;" class="br-ex-action-change-menu-menu" style="cursor:pointer;"><span class="br-ex-current-value">{{&value}}</span> <b class="caret"></b></a></div>';
+
+  function showDropDownMenu(invoker, response, rowid, menuElement, dataSource, fieldName, options) {
+    var menuItemTemplate = '<li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>';
+    var dropDown = $('<div class="dropdown br-ajax-dropdown" style="position:absolute;z-index:1050;"><a style="display:none;" href="javascript:;" role="button" data-toggle="dropdown" class="dropdown-toggle br-ex-action-change-menu-menu" style="cursor:pointer;"><span>{{value}}</span> <b class="caret"></b></a><ul class="dropdown-menu" role="menu" style="overflow:auto;"></ul></div>');
+    var dropDownList = dropDown.find('ul');
+    var dropDownMenu = dropDown.find('.br-ex-action-change-menu-menu');
+    dropDown.on('click', '.br-ex-action-change-menu', function() {
+      var value = $(this).attr('data-value');
+      var data = {};
+      data[fieldName] = value;
+      if (options.onClick) {
+        options.onClick.call($(this), dataSource, rowid, data, menuElement);
+      } else {
+        dataSource.update(rowid, data, function(result, response) {
+          if (result) {
+            if (options.onUpdate) {
+              options.onUpdate.call(invoker, response, menuElement);
+            }
+          }
+        });
+      }
+    });
+    $(document).on('click.dropdown.data-api', function() {
+      dropDown.remove();
+    });
+    dropDownList.html('');
+    if (options.allowClear) {
+      dropDownList.append(br.fetch(menuItemTemplate, { id: '', name: (options.clearLabel ? options.clearLabel : '--Clear--') }));
+    }
+    if (options.onBeforeRenderMenu) {
+      options.onBeforeRenderMenu.call(dropDownList, menuItemTemplate);
+    }
+    for(var i in response) {
+      dropDownList.append(br.fetch(menuItemTemplate, { id: response[i][options.keyField], name: response[i][options.nameField] }));
+    }
+    dropDown.css('left', invoker.offset().left + 'px');
+    var invokerItem = invoker.find('.br-ex-action-change-menu-menu');
+    var t = (invokerItem.offset().top + invokerItem.height());
+    var scr = $(window).scrollTop();
+    dropDown.css('top', t + 'px');
+    t = t - scr;
+    var h = Math.max($(window).height() - t - 20, 100);
+    dropDownList.css('max-height', h + 'px');
+    $('body').append(dropDown);
+    dropDownMenu.dropdown('toggle');
+  }
+
+  function handleClick(el, invoker, choicesDataSource, dataSource, fieldName, options) {
+    var rowid = el.closest('[data-rowid]').attr('data-rowid');
+    var menuElement = invoker.find('span.br-ex-current-value');
+    var filter = { __targetRowid: rowid };
+    if (options.onSelect) {
+      options.onSelect.call(choicesDataSource, filter, rowid, $(el));
+    }
+    choicesDataSource.select(filter, function(result, response) {
+      if (result && (response.length > 0)) {
+        showDropDownMenu(invoker, response, rowid, menuElement, dataSource, fieldName, options);
+      }
+    });
+  }
+
+  function setupControl(el, doClick, choicesDataSource, dataSource, fieldName, options) {
+
+    var $this = el;
+    if ($this.data('BrExChangeMenu')) {
+
+    } else {
+      $this.data('BrExChangeMenu', true);
+      var value = $this.text().trim();
+      if ((value.length === 0) || (value == '(click to change)')) {
+        value = '<span style="color:#AAA;">(click to change)</span>';
+      }
+      var invoker = $(br.fetch(invokerTemplate, { value: value }));
+      if (options.onSetupInvoker) {
+        options.onSetupInvoker.call(invoker);
+      }
+      $this.html(invoker);
+      $this.on('click', '.br-ex-action-change-menu-menu', function() {
+        handleClick($(this), $this, choicesDataSource, dataSource, fieldName, options);
+      });
+      if (doClick) {
+        handleClick($this.find('.br-ex-action-change-menu-menu'), $this, choicesDataSource, dataSource, fieldName, options);
+      }
+    }
+  }
+
+  function BrExChangeMenu(selector, choicesDataSource, dataSource, fieldName, options) {
+
+    options = options || {};
+    options.keyField = options.keyField || 'id';
+    options.nameField = options.nameField || 'name';
+
+    $(selector).each(function() {
+      setupControl($(this), false, choicesDataSource, dataSource, fieldName, options);
+    });
+
+    $(document).on('click', selector, function() {
+      setupControl($(this), true, choicesDataSource, dataSource, fieldName, options);
+    });
+
+  }
+
+  window.br = window.br || {};
+
+  window.br.exChangeMenu = function (selector, choicesDataSource, dataSource, fieldName, options) {
+    return new BrExChangeMenu(selector, choicesDataSource, dataSource, fieldName, options);
+  };
+
+})(jQuery, window);
