@@ -444,15 +444,28 @@
 
   var noTemplateEngine = false;
 
+  window.br.compile = function(template) {
+    if (template) {
+      if (typeof window.Mustache == 'undefined') {
+        if (typeof window.Handlebars == 'undefined') {
+          throw 'Template engine not linked';
+        } else {
+          return Handlebars.compile(template);
+        }
+      } else {
+        return function(data) { return Mustache.render(template, data); };
+      }
+    } else {
+      throw 'Empty template';
+    }
+  };
+
   window.br.fetch = function(template, data, tags) {
     data = data || {};
     if (template) {
       if (typeof window.Mustache == 'undefined') {
         if (typeof window.Handlebars == 'undefined') {
-          if (!noTemplateEngine) {
-            noTemplateEngine = true;
-            this.showError('Template engine not found. Please link bright/3rdparty/mustache.js or bright/3rdparty/handlebars.js.');
-          }
+          throw 'Template engine not linked';
         } else {
           var t = Handlebars.compile(template);
           return t(data);

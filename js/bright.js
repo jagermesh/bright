@@ -762,18 +762,26 @@
       task[1].start();
     };
 
-    this.stop = function(subj) {
+    this.stop = function(subj, printToConsole) {
       var task = this.find_task(subj);
       task[1].stop();
+      if (printToConsole) {
+        br.log(task[0] + ": " + task[1].get_runtime() + "ms");
+      }
     };
 
-    this.log = function() {
+    this.log = function(printToConsole) {
       var n = this.timers.length | 0;
       var i = 0;
       var str = "<strong>FPS: " + this.fps.toFixed(2) + "</strong>";
+      var str2 = "FPS: " + this.fps.toFixed(2);
       for(i = 0; i < n; ++i) {
           var pair = this.timers[i];
           str += "<br/>" + pair[0] + ": " + pair[1].get_runtime() + "ms";
+          str2 += ", " + pair[0] + ": " + pair[1].get_runtime() + "ms";
+      }
+      if (printToConsole) {
+        br.log(str2);
       }
       return str;
     };
@@ -784,8 +792,16 @@
 
   window.br = window.br || {};
 
-  window.br.profiler = function(lazy) {
-    return new BrProfiler();
+  var profiler;
+
+  window.br.profiler = function(create) {
+    if (create) {
+      return new BrProfiler();
+    } else
+    if (!profiler) {
+      profiler = new BrProfiler();
+    }
+    return profiler;
   };
 
 })(window);
@@ -2206,17 +2222,36 @@
     this.selector = selector;
 
     this.options = options || {};
-    this.options.templates = this.options.templates || {};
-    this.options.templates.row = $(rowTemplate).html();
+
+    this.options.templates          = this.options.templates || {};
+
+    this.options.templates.row      = $(rowTemplate).html();
     this.options.templates.groupRow = this.options.templates.groupRow ? $(this.options.templates.groupRow).html() : '';
-    this.options.templates.header = this.options.templates.header ? $(this.options.templates.header).html() : '';
-    this.options.templates.footer = this.options.templates.footer ? $(this.options.templates.footer).html() : '';
-    this.options.templates.noData = this.options.templates.noData ? $(this.options.templates.noData).html() : '';
+    this.options.templates.header   = this.options.templates.header   ? $(this.options.templates.header).html() : '';
+    this.options.templates.footer   = this.options.templates.footer   ? $(this.options.templates.footer).html() : '';
+    this.options.templates.noData   = this.options.templates.noData   ? $(this.options.templates.noData).html() : '';
+
+    this.options.templates.row      = this.options.templates.row      || '';
+    this.options.templates.groupRow = this.options.templates.groupRow || '';
+    this.options.templates.header   = this.options.templates.header   || '';
+    this.options.templates.footer   = this.options.templates.footer   || '';
+    this.options.templates.noData   = this.options.templates.noData   || '';
+
+    this.templates = {};
+
+    this.templates.row      = this.options.templates.row.length > 0      ? br.compile(this.options.templates.row)      : function() { return ''; };
+    this.templates.groupRow = this.options.templates.groupRow.length > 0 ? br.compile(this.options.templates.groupRow) : function() { return ''; };
+    this.templates.header   = this.options.templates.header.length > 0   ? br.compile(this.options.templates.header)   : function() { return ''; };
+    this.templates.footer   = this.options.templates.footer.length > 0   ? br.compile(this.options.templates.footer)   : function() { return ''; };
+    this.templates.noData   = this.options.templates.noData.length > 0   ? br.compile(this.options.templates.noData)   : function() { return ''; };
+
+    this.options.selectors          = this.options.selectors || {};
+
+    this.options.selectors.header   = this.options.selectors.header || this.options.headersSelector || this.selector;
+    this.options.selectors.footer   = this.options.selectors.footer || this.options.footersSelector || this.selector;
+    this.options.selectors.remove   = this.options.selectors.remove || this.options.deleteSelector  || '.action-delete';
+
     this.options.dataSource = dataSource;
-    this.options.selectors = this.options.selectors || {};
-    this.options.selectors.header = this.options.selectors.header || this.options.headersSelector || this.selector;
-    this.options.selectors.footer = this.options.selectors.footer || this.options.footersSelector || this.selector;
-    this.options.selectors.remove = this.options.selectors.remove || this.options.deleteSelector  || '.action-delete';
 
     this.dataSource = this.options.dataSource;
     this.storageTag = this.options.storageTag ? this.options.storageTag : document.location.pathname + ':' + this.dataSource.options.restServiceUrl;
@@ -2273,20 +2308,12 @@
       disconnected = false;
     };
 
-    this.renderHeader = function(data) {
+    this.renderHeader = function(data, asString) {
       data = _this.events.trigger('renderHeader', data) || data;
-      return $(br.fetch(_this.options.templates.header, data));
-    };
-
-    this.renderFooter = function(data) {
-      data = _this.events.trigger('renderFooter', data) || data;
-      return $(br.fetch(_this.options.templates.footer, data));
-    };
-
-    this.renderRow = function(data) {
-      data = _this.events.trigger('renderRow', data) || data;
-      var s = br.fetch(_this.options.templates.row, data);
-      s = s.trim();
+      var s = _this.templates.header(data);
+      if (asString) {
+        return s;
+      } else
       if (s.length > 0) {
         var result = $(s);
         result.data('data-row', data);
@@ -2296,11 +2323,49 @@
       }
     };
 
-    this.renderGroupRow = function(data) {
+    this.renderFooter = function(data, asString) {
+      data = _this.events.trigger('renderFooter', data) || data;
+      var s =  _this.templates.footer(data);
+      if (asString) {
+        return s;
+      } else
+      if (s.length > 0) {
+        var result = $(s);
+        result.data('data-row', data);
+        return result;
+      } else {
+        return null;
+      }
+    };
+
+    this.renderRow = function(data, asString) {
+      data = _this.events.trigger('renderRow', data) || data;
+      var s = _this.templates.row(data).trim();
+      if (asString) {
+        return s;
+      } else
+      if (s.length > 0) {
+        var result = $(s);
+        result.data('data-row', data);
+        return result;
+      } else {
+        return null;
+      }
+    };
+
+    this.renderGroupRow = function(data, asString) {
       data = _this.events.trigger('renderGroupRow', data) || data;
-      var result = $(br.fetch(_this.options.templates.groupRow, data));
-      result.data('data-row', data);
-      return result;
+      var s = _this.templates.groupRow(data).trim();
+      if (asString) {
+        return s;
+      } else
+      if (s.length > 0) {
+        var result = $(s);
+        result.data('data-row', data);
+        return result;
+      } else {
+        return null;
+      }
     };
 
     this.prepend = function(row) {
@@ -2377,7 +2442,7 @@
     function checkForEmptyGrid() {
       if (_this.isEmpty()) {
         _this.events.triggerBefore('nodata');
-        $(_this.selector).html(_this.options.templates.noData);
+        $(_this.selector).html(_this.templates.noData());
         _this.events.trigger('nodata');
         _this.events.triggerAfter('nodata');
       }
@@ -2637,14 +2702,20 @@
           if (data.headers) {
             for (i in data.headers) {
               if (data.headers[i]) {
-                $(_this.options.selectors.header).append(_this.renderHeader(data.headers[i]));
+                tableRow = _this.renderHeader(data.headers[i]);
+                if (tableRow) {
+                  $(_this.options.selectors.header).append(tableRow);
+                }
               }
             }
           }
           if (data.footers) {
             for (i in data.footers) {
               if (data.footers[i]) {
-                $(_this.options.selectors.footer).append(_this.renderFooter(data.headers[i]));
+                tableRow = _this.renderFooter(data.headers[i]);
+                if (tableRow) {
+                  $(_this.options.selectors.footer).append(tableRow);
+                }
               }
             }
           }
@@ -2652,7 +2723,7 @@
           $(_this.options.selectors.footer).html('');
           if (data.rows) {
             if (data.rows.length === 0) {
-              $selector.html(this.options.templates.noData);
+              $selector.html(_this.templates.noData());
             } else {
               for (i in data.rows) {
                 if (data.rows[i]) {
@@ -2663,16 +2734,22 @@
                     }
                   }
                   if (data.rows[i].header) {
-                    $(_this.options.selectors.header).append(_this.renderHeader(data.rows[i].header));
+                    tableRow = _this.renderHeader(data.rows[i].header);
+                    if (tableRow) {
+                      $(_this.options.selectors.header).append(tableRow);
+                    }
                   }
                   if (data.rows[i].footer) {
-                    $(_this.options.selectors.footer).append(_this.renderFooter(data.rows[i].footer));
+                    tableRow = _this.renderFooter(data.rows[i].footer);
+                    if (tableRow) {
+                      $(_this.options.selectors.footer).append(tableRow);
+                    }
                   }
                 }
               }
             }
           } else {
-            $selector.html(this.options.templates.noData);
+            $selector.html(_this.templates.noData());
           }
         } else {
           if (data && (data.length > 0)) {
@@ -2701,7 +2778,11 @@
                       tmp.__groupBy.__field = groupFieldName;
                       tmp.__groupBy.__value = data[i][groupFieldName];
                       tmp.__groupBy[groupFieldName] = true;
-                      $selector.append(_this.renderGroupRow(tmp));
+                      tableRow = _this.renderGroupRow(tmp);
+                      if (tableRow) {
+                        $selector.append(tableRow);
+                        _this.events.triggerAfter('renderGroupRow', data[i], tableRow);
+                      }
                     }
                   }
                 }
@@ -2714,11 +2795,11 @@
             }
           } else
           if (!loadingMoreData) {
-            $selector.html(this.options.templates.noData);
+            $selector.html(_this.templates.noData());
           }
         }
       } else {
-        $selector.html(this.options.templates.noData);
+        $selector.html(_this.templates.noData());
       }
       _this.events.trigger('change', data, 'render');
       _this.events.triggerAfter('change', data, 'render');
@@ -3850,15 +3931,28 @@
 
   var noTemplateEngine = false;
 
+  window.br.compile = function(template) {
+    if (template) {
+      if (typeof window.Mustache == 'undefined') {
+        if (typeof window.Handlebars == 'undefined') {
+          throw 'Template engine not linked';
+        } else {
+          return Handlebars.compile(template);
+        }
+      } else {
+        return function(data) { return Mustache.render(template, data); };
+      }
+    } else {
+      throw 'Empty template';
+    }
+  };
+
   window.br.fetch = function(template, data, tags) {
     data = data || {};
     if (template) {
       if (typeof window.Mustache == 'undefined') {
         if (typeof window.Handlebars == 'undefined') {
-          if (!noTemplateEngine) {
-            noTemplateEngine = true;
-            this.showError('Template engine not found. Please link bright/3rdparty/mustache.js or bright/3rdparty/handlebars.js.');
-          }
+          throw 'Template engine not linked';
         } else {
           var t = Handlebars.compile(template);
           return t(data);

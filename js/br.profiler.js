@@ -117,18 +117,26 @@
       task[1].start();
     };
 
-    this.stop = function(subj) {
+    this.stop = function(subj, printToConsole) {
       var task = this.find_task(subj);
       task[1].stop();
+      if (printToConsole) {
+        br.log(task[0] + ": " + task[1].get_runtime() + "ms");
+      }
     };
 
-    this.log = function() {
+    this.log = function(printToConsole) {
       var n = this.timers.length | 0;
       var i = 0;
       var str = "<strong>FPS: " + this.fps.toFixed(2) + "</strong>";
+      var str2 = "FPS: " + this.fps.toFixed(2);
       for(i = 0; i < n; ++i) {
           var pair = this.timers[i];
           str += "<br/>" + pair[0] + ": " + pair[1].get_runtime() + "ms";
+          str2 += ", " + pair[0] + ": " + pair[1].get_runtime() + "ms";
+      }
+      if (printToConsole) {
+        br.log(str2);
       }
       return str;
     };
@@ -139,8 +147,16 @@
 
   window.br = window.br || {};
 
-  window.br.profiler = function(lazy) {
-    return new BrProfiler();
+  var profiler;
+
+  window.br.profiler = function(create) {
+    if (create) {
+      return new BrProfiler();
+    } else
+    if (!profiler) {
+      profiler = new BrProfiler();
+    }
+    return profiler;
   };
 
 })(window);

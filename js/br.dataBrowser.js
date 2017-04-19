@@ -426,7 +426,7 @@
 
           if ($(c('.filters-panel')).is(':visible')) {
             _this.setStored('filters-hidden', true);
-            $(c('.filters-panel')).hide();
+            $(c('.filters-panel')).css('display', 'none');
             showFiltersDesc();
             _this.events.trigger('hideFilters');
           } else {
@@ -536,8 +536,8 @@
           $(c('.selection-stat')).show();
           $(c('.action-clear-selection')).show();
         } else {
-          $(c('.selection-stat')).hide();
-          $(c('.action-clear-selection')).hide();
+          $(c('.selection-stat')).css('display', 'none');
+          $(c('.action-clear-selection')).css('display', 'none');
         }
       });
 
@@ -633,7 +633,7 @@
           $pc.html(s);
           $(c('.pager-nav-element')).show();
         } else {
-          $(c('.pager-nav-element')).hide();
+          $(c('.pager-nav-element')).css('display', 'none');
         }
       }
 
@@ -663,7 +663,7 @@
           $pc.html(s);
           $(c('.pager-page-size-container')).show();
         } else {
-          $(c('.pager-page-size-container')).hide();
+          $(c('.pager-page-size-container')).css('display', 'none');
         }
       }
 
@@ -674,20 +674,20 @@
           $(c('.action-next')).show();
           $(c('.pager-action-next')).show();
         } else {
-          $(c('.action-next')).hide();
-          $(c('.pager-action-next')).hide();
+          $(c('.action-next')).css('display', 'none');
+          $(c('.pager-action-next')).css('display', 'none');
         }
         if (_this.skip > 0) {
           $(c('.action-prior')).show();
           $(c('.pager-action-prior')).show();
         } else {
-          $(c('.action-prior')).hide();
-          $(c('.pager-action-prior')).hide();
+          $(c('.action-prior')).css('display', 'none');
+          $(c('.pager-action-prior')).css('display', 'none');
         }
         $(c('.pager-control')).show();
         _this.events.triggerAfter('pager.show');
       } else {
-        $(c('.pager-control')).hide();
+        $(c('.pager-control')).css('display', 'none');
         _this.events.triggerAfter('pager.hide');
       }
       $(c('.pager-stat')).text('Records ' + min + '-' + max + ' of ' + _this.recordsAmount);
@@ -733,7 +733,7 @@
             internalUpdatePager();
             _this.events.triggerAfter('recordsCountRetrieved', result);
           } else {
-            $(c('.pager-control')).hide();
+            $(c('.pager-control')).css('display', 'none');
             _this.events.triggerAfter('pager.hide');
           }
         });
