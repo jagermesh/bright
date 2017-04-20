@@ -2684,6 +2684,19 @@
           });
         }
 
+        br.editable(_this.selector + ' .editable', function(content) {
+          var $this = $(this);
+          var rowid = $this.closest('[data-rowid]').attr('data-rowid');
+          var dataField = $this.attr('data-field');
+          if (!br.isEmpty(rowid) && !br.isEmpty(dataField)) {
+            var data = {};
+            data[dataField] = content;
+            _this.dataSource.update( rowid
+                                   , data
+                                   );
+          }
+        });
+
       }
 
     };
@@ -5365,24 +5378,6 @@
           _this.editor.show(rowid, isCopy);
         });
       }
-
-      br.editable(c('.editable'), function(content) {
-        var $this = $(this);
-        var rowid = $this.closest('[data-rowid]').attr('data-rowid');
-        var dataField = $this.attr('data-field');
-        if (!br.isEmpty(rowid) && !br.isEmpty(dataField)) {
-          var data = {};
-          data[dataField] = content;
-          _this.dataSource.update( rowid
-                                 , data
-                                 , function(result) {
-                                     // if (result) {
-                                     //   br.editable($this, 'apply', content);
-                                     // }
-                                   }
-                                 );
-        }
-      });
 
       // pager
       $(c('a.action-next') + ',' + c('a.pager-action-next')).on('click', function() {
