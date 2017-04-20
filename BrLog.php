@@ -209,14 +209,10 @@ class BrLog extends BrSingleton {
     if ($this->isEnabled()) {
 
       if (is_array($message)) {
-        if (count($message)) {
-          $logText = @var_export($message, true);
-        } else {
-          $logText = '[Empty Array]';
-        }
+        $logText = @print_r($message, true);
       } else
       if (is_object($message)) {
-        $logText = @var_export($message, true);
+        $logText = @print_r($message, true);
       } else {
         $logText = $message;
       }
