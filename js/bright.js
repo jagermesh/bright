@@ -2684,18 +2684,20 @@
           });
         }
 
-        br.editable(_this.selector + ' .editable', function(content) {
-          var $this = $(this);
-          var rowid = $this.closest('[data-rowid]').attr('data-rowid');
-          var dataField = $this.attr('data-field');
-          if (!br.isEmpty(rowid) && !br.isEmpty(dataField)) {
-            var data = {};
-            data[dataField] = content;
-            _this.dataSource.update( rowid
-                                   , data
-                                   );
-          }
-        });
+        if (br.isString(_this.selector)) {
+          br.editable(_this.selector + ' .editable', function(content) {
+            var $this = $(this);
+            var rowid = $this.closest('[data-rowid]').attr('data-rowid');
+            var dataField = $this.attr('data-field');
+            if (!br.isEmpty(rowid) && !br.isEmpty(dataField)) {
+              var data = {};
+              data[dataField] = content;
+              _this.dataSource.update( rowid
+                                     , data
+                                     );
+            }
+          });
+        }
 
       }
 
