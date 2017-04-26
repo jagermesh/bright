@@ -3845,7 +3845,7 @@
     s = s + '>' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">' +
-            '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>' + title + '</h3></div>' +
+            '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>' +
             '<div class="modal-body" style="overflow-y:auto;">';
     for(var i in inputs) {
       if (br.isObject(inputs[i])) {
@@ -4942,9 +4942,10 @@
             op = 'insert';
           }
           try {
-            _this.events.trigger('editor.save', op, data);
+            var options = {  };
+            _this.events.trigger('editor.save', op, data, options);
             if (editorRowid) {
-              _this.events.triggerBefore('editor.update', data);
+              _this.events.triggerBefore('editor.update', data, options);
               _this.dataSource.update(editorRowid, data, function(result, response) {
                 try {
                   if (result) {
@@ -4981,9 +4982,9 @@
                 } finally {
                   saving = false;
                 }
-              });
+              }, options);
             } else {
-              _this.events.triggerBefore('editor.insert', data);
+              _this.events.triggerBefore('editor.insert', data, options);
               _this.dataSource.insert(data, function(result, response) {
                 try {
                   if (result) {
@@ -5023,7 +5024,7 @@
                 } finally {
                   saving = false;
                 }
-              });
+              }, options);
             }
           } catch (e) {
             saving = false;
