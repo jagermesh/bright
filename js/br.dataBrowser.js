@@ -452,6 +452,7 @@
             _this.skip = _this.skip + response.length;
           }
         }
+        _this.resetPager();
         _this.updatePager();
         showFiltersDesc();
       });
