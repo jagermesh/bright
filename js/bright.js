@@ -1497,6 +1497,8 @@
     this.on     = function(event, callback) { this.events.on(event, callback); };
     this.after  = function(event, callback) { this.events.after(event, callback); };
 
+    var selectOperationCounter = 0;
+
     this.insert = function(item, callback, options) {
 
       options = options || { };
@@ -1794,6 +1796,12 @@
 
     };
 
+    this.doingSelect = function() {
+
+      return selectOperationCounter > 0;
+
+    };
+
     this.select = function(filter, callback, options) {
 
       var request = {};
@@ -1885,11 +1893,14 @@
           request.crossdomain = 'get';
         }
 
+        selectOperationCounter++;
+
         this.ajaxRequest = $.ajax({ type: 'GET'
                                   , data: request
                                   , dataType: this.options.crossdomain ? 'jsonp' : 'json'
                                   , url: url + (this.options.authToken ? '?token=' + this.options.authToken : '')
                                   , success: function(response) {
+                                      selectOperationCounter--;
                                       _this.ajaxRequest = null;
                                       if (_this.options.crossdomain && (typeof response == 'string')) {
                                         handleSelectError('Unknown error', request, callback, options);
@@ -1901,6 +1912,7 @@
                                       }
                                     }
                                   , error: function(jqXHR, textStatus, errorThrown) {
+                                      selectOperationCounter--;
                                       if (br.isUnloading()) {
 
                                       } else {
@@ -5063,7 +5075,7 @@
 
     var _this = this;
 
-    var pagerSetuped = false;
+    var pagerSetUp = false;
 
     this.options = options || {};
     this.options.autoLoad = this.options.autoLoad || false;
@@ -5349,6 +5361,16 @@
         }
       });
 
+      _this.dataSource.after('select', function(result, response) {
+        if (result) {
+          if (_this.options.autoLoad) {
+            _this.skip = _this.skip + response.length;
+          }
+        }
+        _this.updatePager(true);
+        showFiltersDesc();
+      });
+
       // search
       br.modified(c('input.data-filter[name=keyword]'), function() {
         var _val = $(this).val();
@@ -5495,17 +5517,6 @@
       }
 
       setupFilters(true);
-
-      _this.dataSource.after('select', function(result, response) {
-        if (result) {
-          if (_this.options.autoLoad) {
-            _this.skip = _this.skip + response.length;
-          }
-        }
-        _this.resetPager();
-        _this.updatePager();
-        showFiltersDesc();
-      });
 
       function checkAutoLoad() {
         var docsHeight = $(_this.options.selectors.dataTable).height();
@@ -5726,7 +5737,7 @@
       $(c('.pager-stat')).text('Records ' + min + '-' + max + ' of ' + _this.recordsAmount);
       $(c('.pager-page-size')).text(_this.limit + ' records per page');
 
-      pagerSetuped = true;
+      pagerSetUp = true;
 
       if (_this.dataGrid.table) {
         _this.dataGrid.table.update();
@@ -5756,10 +5767,15 @@
       return _this.selection.get();
     };
 
-    this.updatePager = function() {
+    var updatePagerTimer;
 
-      if (!pagerSetuped) {
-
+    function doUpdatePager() {
+      if (_this.dataSource.doingSelect() || _this.countDataSource.doingSelect()) {
+        window.clearTimeout(updatePagerTimer);
+        updatePagerTimer = window.setTimeout(function() {
+          doUpdatePager();
+        });
+      } else {
         _this.countDataSource.selectCount(function(success, result) {
           if (success) {
             _this.recordsAmount = result;
@@ -5770,11 +5786,18 @@
             _this.events.triggerAfter('pager.hide');
           }
         });
+      }
+    }
 
+    this.updatePager = function(force) {
+      if (!pagerSetUp || force) {
+        window.clearTimeout(updatePagerTimer);
+        updatePagerTimer = window.setTimeout(function() {
+          doUpdatePager();
+        });
       } else {
         internalUpdatePager();
       }
-
     };
 
     function internalRefresh(deferred, filter, callback) {
@@ -5854,7 +5877,7 @@
     };
 
     this.resetPager = function() {
-      pagerSetuped = false;
+      pagerSetUp = false;
       _this.skip = 0;
     };
 

@@ -29,6 +29,8 @@
     this.on     = function(event, callback) { this.events.on(event, callback); };
     this.after  = function(event, callback) { this.events.after(event, callback); };
 
+    var selectOperationCounter = 0;
+
     this.insert = function(item, callback, options) {
 
       options = options || { };
@@ -326,6 +328,12 @@
 
     };
 
+    this.doingSelect = function() {
+
+      return selectOperationCounter > 0;
+
+    };
+
     this.select = function(filter, callback, options) {
 
       var request = {};
@@ -417,11 +425,14 @@
           request.crossdomain = 'get';
         }
 
+        selectOperationCounter++;
+
         this.ajaxRequest = $.ajax({ type: 'GET'
                                   , data: request
                                   , dataType: this.options.crossdomain ? 'jsonp' : 'json'
                                   , url: url + (this.options.authToken ? '?token=' + this.options.authToken : '')
                                   , success: function(response) {
+                                      selectOperationCounter--;
                                       _this.ajaxRequest = null;
                                       if (_this.options.crossdomain && (typeof response == 'string')) {
                                         handleSelectError('Unknown error', request, callback, options);
@@ -433,6 +444,7 @@
                                       }
                                     }
                                   , error: function(jqXHR, textStatus, errorThrown) {
+                                      selectOperationCounter--;
                                       if (br.isUnloading()) {
 
                                       } else {
