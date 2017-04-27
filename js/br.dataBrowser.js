@@ -738,6 +738,8 @@
       }
     };
 
+    var refreshTimer;
+
     function internalRefresh(deferred, filter, callback) {
 
       if (deferred) {
@@ -747,11 +749,18 @@
           }
         });
       } else {
-        _this.dataSource.select(filter, function(result, response) {
-          if (typeof callback == 'function') {
-            callback.call(this, result, response);
-          }
-        });
+        if (_this.dataSource.doingSelect() || _this.countDataSource.doingSelect()) {
+          window.clearTimeout(refreshTimer);
+          refreshTimer = window.setTimeout(function() {
+            internalRefresh(deferred, filter, callback);
+          }, 300);
+        } else {
+          _this.dataSource.select(filter, function(result, response) {
+            if (typeof callback == 'function') {
+              callback.call(this, result, response);
+            }
+          });
+        }
       }
 
     }
