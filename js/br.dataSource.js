@@ -432,25 +432,31 @@
                                   , dataType: this.options.crossdomain ? 'jsonp' : 'json'
                                   , url: url + (this.options.authToken ? '?token=' + this.options.authToken : '')
                                   , success: function(response) {
-                                      selectOperationCounter--;
-                                      _this.ajaxRequest = null;
-                                      if (_this.options.crossdomain && (typeof response == 'string')) {
-                                        handleSelectError('Unknown error', request, callback, options);
-                                      } else
-                                      if (br.isNull(response)) {
-                                        handleSelectError('Unknown error', request, callback, options);
-                                      } else {
-                                        handleSelectSuccess(response, request, callback, options);
+                                      try {
+                                        _this.ajaxRequest = null;
+                                        if (_this.options.crossdomain && (typeof response == 'string')) {
+                                          handleSelectError('Unknown error', request, callback, options);
+                                        } else
+                                        if (br.isNull(response)) {
+                                          handleSelectError('Unknown error', request, callback, options);
+                                        } else {
+                                          handleSelectSuccess(response, request, callback, options);
+                                        }
+                                      } finally {
+                                        selectOperationCounter--;
                                       }
                                     }
                                   , error: function(jqXHR, textStatus, errorThrown) {
-                                      selectOperationCounter--;
-                                      if (br.isUnloading()) {
+                                      try {
+                                        if (br.isUnloading()) {
 
-                                      } else {
-                                        _this.ajaxRequest = null;
-                                        var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                                        handleSelectError(errorMessage, request, callback, options);
+                                        } else {
+                                          _this.ajaxRequest = null;
+                                          var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                                          handleSelectError(errorMessage, request, callback, options);
+                                        }
+                                      } finally {
+                                        selectOperationCounter--;
                                       }
                                     }
                                   });
