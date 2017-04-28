@@ -129,11 +129,12 @@ class BrDataSource extends BrGenericDataSource {
 
     $transientData = array();
 
-    $options['fields']     = $fields;
-    $options['order']      = $order;
+    $options['operation']  = 'select';
     $options['dataSets']   = br(br($options, 'dataSets'))->split();
     $options['renderMode'] = br($options, 'renderMode');
     $options['filter']     = $filter;
+    $options['fields']     = $fields;
+    $options['order']      = $order;
 
     $this->callEvent('before:select', $filter, $transientData, $options);
 
@@ -336,6 +337,7 @@ class BrDataSource extends BrGenericDataSource {
     $options['operation']  = 'insert';
     $options['dataSets']   = br(br($options, 'dataSets'))->split();
     $options['renderMode'] = br($options, 'renderMode');
+    $options['filter']     = $filter;
 
     $old = array();
 
@@ -408,6 +410,7 @@ class BrDataSource extends BrGenericDataSource {
     $options['operation']  = 'update';
     $options['dataSets']   = br(br($options, 'dataSets'))->split();
     $options['renderMode'] = br($options, 'renderMode');
+    $options['filter']     = $filter;
 
     $table = br()->db()->table($this->dbEntity());
 
@@ -485,6 +488,7 @@ class BrDataSource extends BrGenericDataSource {
     $options['operation']  = 'remove';
     $options['dataSets']   = br(br($options, 'dataSets'))->split();
     $options['renderMode'] = br($options, 'renderMode');
+    $options['filter']     = $filter;
 
     $table = br()->db()->table($this->dbEntity());
 
