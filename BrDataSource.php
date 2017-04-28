@@ -337,7 +337,7 @@ class BrDataSource extends BrGenericDataSource {
     $options['operation']  = 'insert';
     $options['dataSets']   = br(br($options, 'dataSets'))->split();
     $options['renderMode'] = br($options, 'renderMode');
-    $options['filter']     = $filter;
+    $options['filter']     = array();
 
     $old = array();
 
@@ -410,7 +410,7 @@ class BrDataSource extends BrGenericDataSource {
     $options['operation']  = 'update';
     $options['dataSets']   = br(br($options, 'dataSets'))->split();
     $options['renderMode'] = br($options, 'renderMode');
-    $options['filter']     = $filter;
+    $options['filter']     = array();
 
     $table = br()->db()->table($this->dbEntity());
 
@@ -488,7 +488,7 @@ class BrDataSource extends BrGenericDataSource {
     $options['operation']  = 'remove';
     $options['dataSets']   = br(br($options, 'dataSets'))->split();
     $options['renderMode'] = br($options, 'renderMode');
-    $options['filter']     = $filter;
+    $options['filter']     = array();
 
     $table = br()->db()->table($this->dbEntity());
 
