@@ -133,6 +133,7 @@ class BrDataSource extends BrGenericDataSource {
     $options['order']      = $order;
     $options['dataSets']   = br(br($options, 'dataSets'))->split();
     $options['renderMode'] = br($options, 'renderMode');
+    $options['filter']     = $filter;
 
     $this->callEvent('before:select', $filter, $transientData, $options);
 
