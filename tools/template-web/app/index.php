@@ -1,5 +1,16 @@
 <?php
 
+spl_autoload_register(function($className) {
+
+  if (preg_match('#DataSource$#', $className)) {
+    $fileName = dirname(__DIR__).'/datasources/'.$className.'.php';
+    if (file_exists($fileName)) {
+      require_once($fileName);
+    }
+  }
+
+});
+
 br()
   ->request()
     ->route('/about.html', function() {
