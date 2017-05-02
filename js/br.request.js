@@ -43,6 +43,32 @@
       }
     };
 
+    this.hash = function(name, defaultValue) {
+      var vars = document.location.hash.replace('#', '').split('&');
+      var vals = {};
+      var i;
+      for (i = 0; i < vars.length; i++) {
+        var pair = vars[i].split("=");
+        if (pair[0].indexOf('[') != -1) {
+          var n = pair[0].substr(0, pair[0].indexOf('['));
+          vals[n] = vals[n] || [];
+          vals[n].push(window.unescape(pair[1]));
+        } else {
+          vals[pair[0]] = window.unescape(pair[1]);
+        }
+      }
+      if (name) {
+        for (i in vals) {
+          if (i == name) {
+            return vals[i];
+          }
+        }
+        return defaultValue;
+      } else {
+        return vals;
+      }
+    };
+
     this.anchor = function(defaultValue) {
       var value = document.location.hash.replace('#', '');
       if (value) {
