@@ -106,16 +106,17 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
 
     $login = $this->getLogin();
     if (!$login) {
-      if ($cookie = json_decode(br($_COOKIE, $this->getAuthTag()))) {
-        if (br()->db() && @$cookie->{'login'} && @$cookie->{'token'}) {
-          $users = br()->db()->table($usersTable);
-          if ($login = $users->findOne(array($loginField => $cookie->{'login'}))) {
-            if (($password = br($login, $passwordField)) && ($rowid = br()->db()->rowidValue($login))) {
-              $token = sha1(md5(sha1($password) . sha1($rowid)));
-              if ($token == $cookie->{'token'}) {
-                $this->isDbSynced = true;
-                $this->setLogin($login);
-                return $login;
+      if ($cookie = @json_decode(br($_COOKIE, $this->getAuthTag()), true)) {
+        if (br()->db() && br($cookie, 'login') && br($cookie, 'token')) {
+          if ($users = br()->db()->getCachedRows('SELECT * FROM ' . $usersTable . ' WHERE ' . $loginField . ' = ?', $cookie['login'])) {
+            foreach($users as $user) {
+              if (($password = br($user, $passwordField)) && ($rowid = br()->db()->rowidValue($user))) {
+                $token = sha1(md5(sha1($password) . sha1($rowid)));
+                if ($token == $cookie['token']) {
+                  $this->isDbSynced = true;
+                  $this->setLogin($login);
+                  return $login;
+                }
               }
             }
           }
@@ -139,23 +140,31 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
 
     $this->trigger('checkLoginPrivilege', $login);
 
+    $usersTable    = br()->auth()->getAttr('usersTable.name');
     $loginField    = br()->auth()->getAttr('usersTable.loginField');
     $passwordField = br()->auth()->getAttr('usersTable.passwordField');
 
     if (is_array($login)) {
+      $rowid = br()->db()->rowidValue($login);
       if ($remember) {
         $password = br($login, $passwordField);
-        $rowid    = br()->db()->rowidValue($login);
-        $token    = sha1(md5(sha1($password) . sha1($rowid)));
-        $cookie   = array( 'login'    => br($login, $loginField)
-                         , 'token'    => $token
+        if (!$password) {
+          if ($loginRow = br()->db()->getCachedRow('SELECT * FROM ' . $usersTable . ' WHERE ' . br()->db()->rowidField() . ' = ?', $rowid)) {
+            $password = br($loginRow, $passwordField);
+          }
+        }
+        if ($password && br($login, $loginField)) {
+          $token = sha1(md5(sha1($password) . sha1($rowid)));
+          $cookie = array( 'login' => $login[$loginField]
+                         , 'token' => $token
                          );
-        setcookie( $this->getAuthTag()
-                 , json_encode($cookie)
-                 , time() + 60*60*24*30
-                 , br()->request()->baseUrl()
-                 , br()->request()->domain() == 'localhost' ? false : br()->request()->domain()
-                 );
+          setcookie( $this->getAuthTag()
+                   , json_encode($cookie)
+                   , time() + 60*60*24*30
+                   , br()->request()->baseUrl()
+                   , br()->request()->domain() == 'localhost' ? false : br()->request()->domain()
+                   );
+        }
       }
       $loginObj = $login;
       $loginObj['rowid'] = br()->db()->rowidValue($login);
