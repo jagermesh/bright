@@ -114,8 +114,8 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
                 $token = sha1(md5(sha1($password) . sha1($rowid)));
                 if ($token == $cookie['token']) {
                   $this->isDbSynced = true;
-                  $this->setLogin($login);
-                  return $login;
+                  $this->setLogin($user);
+                  return $user;
                 }
               }
             }
