@@ -409,6 +409,10 @@
           request.__dataSets = options.dataSets;
         }
 
+        if (options && options.excludeFields) {
+          request.__excludeFields = options.excludeFields;
+        }
+
         if (options && options.renderMode) {
           request.__renderMode = options.renderMode;
         }

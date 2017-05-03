@@ -352,6 +352,10 @@ class BrRESTBinder extends BrObject {
         $dataSourceOptions['dataSets'] = $dataSets;
       }
 
+      if ($excludeFields = br()->request()->get('__excludeFields')) {
+        $dataSourceOptions['excludeFields'] = $excludeFields;
+      }
+
       if ($renderMode = br()->request()->get('__renderMode')) {
         $dataSourceOptions['renderMode'] = $renderMode;
       }

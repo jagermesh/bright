@@ -129,12 +129,13 @@ class BrDataSource extends BrGenericDataSource {
 
     $transientData = array();
 
-    $options['operation']  = 'select';
-    $options['dataSets']   = br(br($options, 'dataSets'))->split();
-    $options['renderMode'] = br($options, 'renderMode');
-    $options['filter']     = $filter;
-    $options['fields']     = $fields;
-    $options['order']      = $order;
+    $options['operation']     = 'select';
+    $options['dataSets']      = br(br($options, 'dataSets'))->split();
+    $options['renderMode']    = br($options, 'renderMode');
+    $options['filter']        = $filter;
+    $options['fields']        = $fields;
+    $options['excludeFields'] = br(br($options, 'excludeFields'))->split();
+    $options['order']         = $order;
 
     $this->callEvent('before:select', $filter, $transientData, $options);
 
@@ -249,6 +250,11 @@ class BrDataSource extends BrGenericDataSource {
             $this->lastSelectAmount = 0;
             foreach($cursor as $row) {
               $row['rowid'] = br()->db()->rowidValue($row, $this->rowidFieldName);
+              if ($options['excludeFields']) {
+                foreach($options['excludeFields'] as $excludeFieldName) {
+                  unset($row[$excludeFieldName]);
+                }
+              }
               if ($this->selectAdjancedRecords && $skip && ($idx == 1)) {
                 $this->nextAdjancedRecord = $row;
               } else
