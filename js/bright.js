@@ -1582,6 +1582,10 @@
           request.__dataSets = options.dataSets;
         }
 
+        if (options && options.clientUID) {
+          request.__clientUID = options.clientUID;
+        }
+
         $.ajax({ type: this.options.crossdomain ? 'GET' : 'PUT'
                , data: request
                , dataType: this.options.crossdomain ? 'jsonp' : 'json'
@@ -1658,6 +1662,10 @@
 
         if (options && options.dataSets) {
           request.__dataSets = options.dataSets;
+        }
+
+        if (options && options.clientUID) {
+          request.__clientUID = options.clientUID;
         }
 
         $.ajax({ type: this.options.crossdomain ? 'GET' : 'POST'
@@ -1903,6 +1911,10 @@
           request.__dataSets = options.dataSets;
         }
 
+        if (options && options.clientUID) {
+          request.__clientUID = options.clientUID;
+        }
+
         if (options && options.excludeFields) {
           request.__excludeFields = options.excludeFields;
         }
@@ -1981,20 +1993,35 @@
 
     };
 
-    this.invoke = function(method, params, callback) {
+    this.invoke = function(method, params, callback, options) {
 
-      var request = { };
-
-      if (typeof params == 'function') {
+      if (br.isFunction(params)) {
+        options  = callback;
         callback = params;
-      } else {
-        request = params;
+        params   = {};
       }
+
+      if (callback && !br.isFunction(callback)) {
+        options  = callback;
+        callback = undefined;
+      }
+
+      var request = params || { };
+
+      options = options || { };
 
       _this.events.triggerBefore(method, request);
 
       if (this.options.crossdomain) {
         request.crossdomain = 'post';
+      }
+
+      if (options && options.dataSets) {
+        request.__dataSets = options.dataSets;
+      }
+
+      if (options && options.clientUID) {
+        request.__clientUID = options.clientUID;
       }
 
       $.ajax({ type: this.options.crossdomain ? 'GET' : 'POST'
