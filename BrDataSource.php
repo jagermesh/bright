@@ -131,6 +131,7 @@ class BrDataSource extends BrGenericDataSource {
 
     $options['operation']     = 'select';
     $options['dataSets']      = br(br($options, 'dataSets'))->split();
+    $options['clientUID']     = br($options, 'clientUID');
     $options['renderMode']    = br($options, 'renderMode');
     $options['filter']        = $filter;
     $options['fields']        = $fields;
@@ -342,6 +343,7 @@ class BrDataSource extends BrGenericDataSource {
     $options               = $optionsParam;
     $options['operation']  = 'insert';
     $options['dataSets']   = br(br($options, 'dataSets'))->split();
+    $options['clientUID']  = br($options, 'clientUID');
     $options['renderMode'] = br($options, 'renderMode');
     $options['filter']     = array();
 
@@ -371,6 +373,7 @@ class BrDataSource extends BrGenericDataSource {
           if ($this->transactionalDML()) {
             br()->db()->commitTransaction();
           }
+          $this->callEvent('after:commit', $result, $transientData, $old, $options);
         } else {
           throw new BrDBException('Empty insert request');
         }
@@ -386,11 +389,9 @@ class BrDataSource extends BrGenericDataSource {
         $error = $e->getMessage();
         $result = $this->trigger('error', $error, $operation, $e, $row);
         if (is_null($result)) {
-          // if (!br()->request()->isLocalHost()) {
-            if (preg_match('/1062: Duplicate entry/', $error, $matches)) {
-              throw new BrAppException('Unique constraint violated.');
-            }
-          // }
+          if (preg_match('/1062: Duplicate entry/', $error, $matches)) {
+            throw new BrAppException('Unique constraint violated.');
+          }
           throw $e;
         } else {
           return $result;
@@ -415,6 +416,7 @@ class BrDataSource extends BrGenericDataSource {
     $options               = $optionsParam;
     $options['operation']  = 'update';
     $options['dataSets']   = br(br($options, 'dataSets'))->split();
+    $options['clientUID']  = br($options, 'clientUID');
     $options['renderMode'] = br($options, 'renderMode');
     $options['filter']     = array();
 
@@ -450,10 +452,10 @@ class BrDataSource extends BrGenericDataSource {
           $result['rowid'] = br()->db()->rowidValue($result);
           $this->callEvent('calcFields', $result, $transientData, $options);
         }
-
         if ($this->transactionalDML()) {
           br()->db()->commitTransaction();
         }
+        $this->callEvent('after:commit', $result, $transientData, $old, $options);
       } catch (BrDBRecoverableException $e) {
         br()->log('Repeating update... (' . $iteration . ') because of ' . $e->getMessage());
         usleep(250000);
@@ -493,6 +495,7 @@ class BrDataSource extends BrGenericDataSource {
     $options               = $optionsParam;
     $options['operation']  = 'remove';
     $options['dataSets']   = br(br($options, 'dataSets'))->split();
+    $options['clientUID']  = br($options, 'clientUID');
     $options['renderMode'] = br($options, 'renderMode');
     $options['filter']     = array();
 
@@ -525,6 +528,7 @@ class BrDataSource extends BrGenericDataSource {
           if ($this->transactionalDML()) {
             br()->db()->commitTransaction();
           }
+          $this->callEvent('after:commit', $result, $transientData, $crow, $options);
         } catch (BrDBRecoverableException $e) {
           br()->log('Repeating remove... (' . $iteration . ') because of ' . $e->getMessage());
           usleep(250000);
@@ -548,19 +552,7 @@ class BrDataSource extends BrGenericDataSource {
       }
       return $result;
     } else {
-      // $e = new BrDataSourceNotFound();
-      // $operation = 'remove';
-      // $error = 'Record not found';
-      // $result = $this->trigger('error', $error, $operation, $e);
-      // if (is_null($result)) {
-      //   throw $e;
-      // } else
-      // if (is_bool($result)) {
-      //   return array();
-      // } else {
-      // record not found so looks like we removed it :)
       return $result;
-      // }
     }
 
   }
