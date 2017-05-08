@@ -1235,6 +1235,9 @@
   };
 
   window.br.events = br.eventQueue();
+  window.br.before = function(event, callback) { window.br.events.before(event, callback); };
+  window.br.on     = function(event, callback) { window.br.events.on(event,     callback); };
+  window.br.after  = function(event, callback) { window.br.events.after(event,  callback); };
 
   window.br.backToCaller = function(href, refresh) {
 
@@ -4401,7 +4404,11 @@
 
   window.br = window.br || {};
 
-  var callbacks = [];
+  var clipboardCallbacks = [];
+
+  window.br.onPaste = function(callback) {
+    clipboardCallbacks.push(callback);
+  };
 
   $(document).ready(function() {
     $('body').on('paste', function(evt) {
@@ -4409,7 +4416,14 @@
       var result = { data: { }, dataType: '', dataSubType: '', dataValue: '' };
       evt = evt.originalEvent;
 
-      function loadFile(result, file) {
+      function notify(evt, result) {
+        br.events.trigger('paste', evt, result);
+        for(var i = 0; i < clipboardCallbacks.length; i++) {
+          clipboardCallbacks[i].call(evt, result);
+        }
+      }
+
+      function loadFile(result, file, originalEvt, onerror) {
         var reader = new FileReader();
         reader.onload = function(evt) {
           var parts = /^data[:](.+?)\/(.+?);/.exec(evt.target.result);
@@ -4424,8 +4438,11 @@
           result.dataValue   = evt.target.result;
           result.data[result_dataType] = result.data[result_dataType] || { };
           result.data[result_dataType][result_dataSubType] = evt.target.result;
-          for(var i = 0; i < callbacks.length; i++) {
-            callbacks[i].call(evt, result);
+          notify(originalEvt, result);
+        };
+        reader.onerror = function(evt) {
+          if (onerror) {
+            onerror();
           }
         };
         reader.readAsDataURL(file);
@@ -4456,6 +4473,17 @@
         return false;
       }
 
+      var items = [];
+
+      function processItems() {
+        if (items.length > 0) {
+          var item = items.shift();
+          loadFile(result, item, evt, function() {
+            processItems();
+          });
+        }
+      }
+
       if (evt.clipboardData) {
         var i;
         for(i = 0; i < evt.clipboardData.types.length; i++) {
@@ -4471,8 +4499,7 @@
           result.data[result_dataType][result_dataSubType] = evt.clipboardData.getData(dataType);
         }
 
-        var completed = true;
-
+        var complete = true;
         if (loadData(result, evt.clipboardData, 'public.url', true)) {
 
         } else
@@ -4487,34 +4514,30 @@
           if (evt.clipboardData.items && (evt.clipboardData.items.length > 0)) {
             for(i = 0; i < evt.clipboardData.items.length; i++) {
               if (evt.clipboardData.items[i].type.match('image.*')) {
-                completed = false;
-                loadFile(result, evt.clipboardData.items[i].getAsFile());
+                items.push(evt.clipboardData.items[i].getAsFile());
               }
             }
           }
           if (evt.clipboardData.files && (evt.clipboardData.files.length > 0)) {
             for(i = 0; i < evt.clipboardData.files.length; i++) {
               if (evt.clipboardData.files[i].type.match('image.*')) {
-                completed = false;
-                loadFile(result, evt.clipboardData.files[0]);
+                items.push(evt.clipboardData.files[0]);
               }
             }
           }
+          if (items.length > 0) {
+            complete = false;
+            processItems();
+          }
         }
 
-        if (completed) {
-          for(i in callbacks) {
-            callbacks[i].call(evt, result);
-          }
+        if (complete) {
+          notify(evt, result);
         }
 
       }
     });
   });
-
-  window.br.onPaste = function(callback) {
-    callbacks.push(callback);
-  };
 
 })(jQuery, window);
 /*!
