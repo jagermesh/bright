@@ -263,10 +263,10 @@ class BrAWS extends BrObject {
 
   function synthesizeSpeech($text, $destination, $additionalParams = array()) {
 
-    $result = $this->getPollyClient()->synthesizeSpeech([ 'OutputFormat' => 'mp3'
-                                                        , 'Text'         => $text
-                                                        , 'VoiceId'      => br($additionalParams, 'voice', 'Salli')
-                                                        ]);
+    $result = $this->getPollyClient()->synthesizeSpeech(array( 'OutputFormat' => 'mp3'
+                                                             , 'Text'         => $text
+                                                             , 'VoiceId'      => br($additionalParams, 'voice', 'Salli')
+                                                             ));
     $size = $result['AudioStream']->getSize();
     return array( 'url'      => $this->uploadData($result['AudioStream']->getContents(), $destination, $additionalParams)
                 , 'fileSize' => $size
