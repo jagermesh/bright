@@ -337,26 +337,32 @@ class BrGenericDataSource extends BrObject {
         if (!$this->invokeMethodExists($method)) {
           throw new Exception('Method [' . $method . '] not supported');
         } else {
+          $options               = $optionsParam;
+          $options['operation']  = $method;
+          $options['dataSets']   = br(br($options, 'dataSets'))->split();
+          $options['clientUID']  = br($options, 'clientUID');
+
           try {
             if (br()->db()) {
               if ($this->transactionalDML()) {
                 br()->db()->startTransaction();
               }
             }
-            $this->callEvent('before:' . $method, $params, $transientData);
-            $data = $this->callEvent($method, $params, $transientData);
+            $this->callEvent('before:' . $method, $params, $transientData, $options);
+            $data = $this->callEvent($method, $params, $transientData, $options);
             $result = true;
-            $this->callEvent('after:' . $method, $result, $data, $params, $transientData);
+            $this->callEvent('after:' . $method, $result, $data, $params, $transientData, $options);
             if (br()->db()) {
               if ($this->transactionalDML()) {
                 br()->db()->commitTransaction();
               }
+              $this->callEvent('after:commit', $params, $transientData, $data, $options);
             }
             return $data;
           } catch (BrDBRecoverableException $e) {
             br()->log('Repeating invoke of ' . $method . '... (' . $iteration . ') because of ' . $e->getMessage());
             usleep(250000);
-            return $this->invoke($method, $params, $transientData, $optionsParam);
+            return $this->invoke($method, $params, $transientData, $options);
           } catch (Exception $e) {
             try {
               if (br()->db()) {
@@ -373,7 +379,7 @@ class BrGenericDataSource extends BrObject {
             if (is_null($result)) {
               $result = false;
               $data = null;
-              $this->callEvent('after:' . $method, $result, $data, $params, $transientData);
+              $this->callEvent('after:' . $method, $result, $data, $params, $transientData, $options);
               throw $e;
             } else {
               throw $result;

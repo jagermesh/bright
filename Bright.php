@@ -18,7 +18,7 @@ if (br()->isConsoleMode()) {
   if (isset($_SESSION)) {
 
   } else {
-    session_cache_limiter('none');
+    session_cache_limiter('nocache');
     session_start();
   }
 

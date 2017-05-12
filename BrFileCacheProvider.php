@@ -108,9 +108,8 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
   public function setCachePath($path) {
 
     $this->cachePath = $path;
-    br()->fs()->createDir($this->cachePath);
+    br()->fs()->makeDir($this->cachePath);
 
   }
-
 
 }

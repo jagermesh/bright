@@ -371,6 +371,14 @@ class BrRESTBinder extends BrObject {
         $dataSourceOptions['dataSets'] = $dataSets;
       }
 
+      if ($clientUID = br()->request()->get('__clientUID')) {
+        $dataSourceOptions['clientUID'] = $clientUID;
+      }
+
+      if ($excludeFields = br()->request()->get('__excludeFields')) {
+        $dataSourceOptions['excludeFields'] = $excludeFields;
+      }
+
       if ($renderMode = br()->request()->get('__renderMode')) {
         $dataSourceOptions['renderMode'] = $renderMode;
       }
@@ -476,13 +484,21 @@ class BrRESTBinder extends BrObject {
           $data = br()->request()->get();
         }
         foreach($data as $name => $value) {
-          if ($name == '__dataSets') {
-            $dataSourceOptions['dataSets'] = $value;
-          } else {
-            if (!is_array($value)) {
-              $value = trim($value);
-            }
-            $row[$name] = $value;
+          switch ($name) {
+            case '__dataSets':
+              $dataSourceOptions['dataSets'] = $value;
+              break;
+            case '__clientUID':
+              $dataSourceOptions['clientUID'] = $value;
+              break;
+            case '__loginToken':
+              break;
+            default:
+              if (!is_array($value)) {
+                $value = trim($value);
+              }
+              $row[$name] = $value;
+              break;
           }
         }
         try {
@@ -512,16 +528,21 @@ class BrRESTBinder extends BrObject {
           $data = $data['__values'];
         }
         foreach($data as $name => $value) {
-          if ($name == '__dataSets') {
-            $dataSourceOptions['dataSets'] = $value;
-          } else
-          if ($name == '__loginToken') {
-
-          } else {
-            if (!is_array($value)) {
-              $value = trim($value);
-            }
-            $row[$name] = $value;
+          switch ($name) {
+            case '__dataSets':
+              $dataSourceOptions['dataSets'] = $value;
+              break;
+            case '__clientUID':
+              $dataSourceOptions['clientUID'] = $value;
+              break;
+            case '__loginToken':
+              break;
+            default:
+              if (!is_array($value)) {
+                $value = trim($value);
+              }
+              $row[$name] = $value;
+              break;
           }
         }
         // do not allow to modify ID via REST API
@@ -593,14 +614,21 @@ class BrRESTBinder extends BrObject {
         $data = $data['__values'];
       }
       foreach($data as $name => $value) {
-        if ($name == '__dataSets') {
-          $dataSourceOptions['dataSets'] = $value;
-        } else
-        if ($name != '__loginToken') {
-          if (!is_array($value)) {
-            $value = trim($value);
-          }
-          $row[$name] = $value;
+        switch ($name) {
+          case '__dataSets':
+            $dataSourceOptions['dataSets'] = $value;
+            break;
+          case '__clientUID':
+            $dataSourceOptions['clientUID'] = $value;
+            break;
+          case '__loginToken':
+            break;
+          default:
+            if (!is_array($value)) {
+              $value = trim($value);
+            }
+            $row[$name] = $value;
+            break;
         }
       }
       // do not allow to insert record with ID, passed via REST API

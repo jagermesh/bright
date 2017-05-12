@@ -13,7 +13,7 @@
 
     var _this = this;
 
-    var pagerSetuped = false;
+    var pagerSetUp = false;
 
     this.options = options || {};
     this.options.autoLoad = this.options.autoLoad || false;
@@ -299,6 +299,16 @@
         }
       });
 
+      _this.dataSource.after('select', function(result, response) {
+        if (result) {
+          if (_this.options.autoLoad) {
+            _this.skip = _this.skip + response.length;
+          }
+        }
+        _this.updatePager(true);
+        showFiltersDesc();
+      });
+
       // search
       br.modified(c('input.data-filter[name=keyword]'), function() {
         var _val = $(this).val();
@@ -331,24 +341,6 @@
           _this.editor.show(rowid, isCopy);
         });
       }
-
-      br.editable(c('.editable'), function(content) {
-        var $this = $(this);
-        var rowid = $this.closest('[data-rowid]').attr('data-rowid');
-        var dataField = $this.attr('data-field');
-        if (!br.isEmpty(rowid) && !br.isEmpty(dataField)) {
-          var data = {};
-          data[dataField] = content;
-          _this.dataSource.update( rowid
-                                 , data
-                                 , function(result) {
-                                     // if (result) {
-                                     //   br.editable($this, 'apply', content);
-                                     // }
-                                   }
-                                 );
-        }
-      });
 
       // pager
       $(c('a.action-next') + ',' + c('a.pager-action-next')).on('click', function() {
@@ -463,16 +455,6 @@
       }
 
       setupFilters(true);
-
-      _this.dataSource.after('select', function(result, response) {
-        if (result) {
-          if (_this.options.autoLoad) {
-            _this.skip = _this.skip + response.length;
-          }
-        }
-        _this.updatePager();
-        showFiltersDesc();
-      });
 
       function checkAutoLoad() {
         var docsHeight = $(_this.options.selectors.dataTable).height();
@@ -693,7 +675,7 @@
       $(c('.pager-stat')).text('Records ' + min + '-' + max + ' of ' + _this.recordsAmount);
       $(c('.pager-page-size')).text(_this.limit + ' records per page');
 
-      pagerSetuped = true;
+      pagerSetUp = true;
 
       if (_this.dataGrid.table) {
         _this.dataGrid.table.update();
@@ -723,10 +705,15 @@
       return _this.selection.get();
     };
 
-    this.updatePager = function() {
+    var updatePagerTimer;
 
-      if (!pagerSetuped) {
-
+    function doUpdatePager() {
+      if (_this.dataSource.doingSelect() || _this.countDataSource.doingSelect()) {
+        window.clearTimeout(updatePagerTimer);
+        updatePagerTimer = window.setTimeout(function() {
+          doUpdatePager();
+        }, 300);
+      } else {
         _this.countDataSource.selectCount(function(success, result) {
           if (success) {
             _this.recordsAmount = result;
@@ -737,12 +724,21 @@
             _this.events.triggerAfter('pager.hide');
           }
         });
+      }
+    }
 
+    this.updatePager = function(force) {
+      if (!pagerSetUp || force) {
+        window.clearTimeout(updatePagerTimer);
+        updatePagerTimer = window.setTimeout(function() {
+          doUpdatePager();
+        }, 300);
       } else {
         internalUpdatePager();
       }
-
     };
+
+    var refreshTimer;
 
     function internalRefresh(deferred, filter, callback) {
 
@@ -753,11 +749,18 @@
           }
         });
       } else {
-        _this.dataSource.select(filter, function(result, response) {
-          if (typeof callback == 'function') {
-            callback.call(this, result, response);
-          }
-        });
+        if (_this.dataSource.doingSelect() || _this.countDataSource.doingSelect()) {
+          window.clearTimeout(refreshTimer);
+          refreshTimer = window.setTimeout(function() {
+            internalRefresh(deferred, filter, callback);
+          }, 300);
+        } else {
+          _this.dataSource.select(filter, function(result, response) {
+            if (typeof callback == 'function') {
+              callback.call(this, result, response);
+            }
+          });
+        }
       }
 
     }
@@ -821,7 +824,7 @@
     };
 
     this.resetPager = function() {
-      pagerSetuped = false;
+      pagerSetUp = false;
       _this.skip = 0;
     };
 

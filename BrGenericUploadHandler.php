@@ -77,11 +77,14 @@ class BrGenericUploadHandler {
     $this->allowedExtensions = array_map('strtolower', $this->allowedExtensions);
 
     // max file size in bytes
-    $sizeLimit  = br($this->options, 'uploadLimit', 24 * 1024 * 1024);
     $postSize   = $this->toBytes(ini_get('post_max_size'));
     $uploadSize = $this->toBytes(ini_get('upload_max_filesize'));
 
-    $this->sizeLimit = min($sizeLimit, $postSize, $uploadSize);
+    $this->sizeLimit = min($postSize, $uploadSize);
+
+    if (br($this->options, 'uploadLimit')) {
+      $this->sizeLimit = min($this->sizeLimit, $this->options['uploadLimit']);
+    }
 
     if (br($this->options, 'checkLogin') || br($this->options, 'userBasedPath')) {
       if ($login = br()->auth()->getLogin()) {

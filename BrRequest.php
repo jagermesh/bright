@@ -253,26 +253,28 @@ class BrRequest extends BrSingleton {
     }
     $first = true;
     foreach($params as $name => $value) {
-      if (is_array($value)) {
-        $s = '';
-        foreach($value as $one) {
+      if (!is_object($value)) {
+        if (is_array($value)) {
+          $s = '';
+          foreach($value as $one) {
+            if ($first) {
+              $first = false;
+              $s .= '?';
+            } else {
+              $s .= '&';
+            }
+            $s .= $name . '[]=' . htmlentities($one);
+          }
+          $result .= $s;
+        } else {
           if ($first) {
             $first = false;
-            $s .= '?';
+            $result .= '?';
           } else {
-            $s .= '&';
+            $result .= '&';
           }
-          $s .= $name . '[]=' . htmlentities($one);
+          $result .= $name . '=' . htmlentities($value);
         }
-        $result .= $s;
-      } else {
-        if ($first) {
-          $first = false;
-          $result .= '?';
-        } else {
-          $result .= '&';
-        }
-        $result .= $name . '=' . htmlentities($value);
       }
     }
 

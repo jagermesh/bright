@@ -3,7 +3,7 @@
 br()->importLib('RESTBinder');
 br()->importDataSource('users');
 
-function dataSourcesLoader($className) {
+spl_autoload_register(function($className) {
 
   if (preg_match('#DataSource$#', $className)) {
     $fileName = dirname(__DIR__).'/datasources/'.$className.'.php';
@@ -12,9 +12,7 @@ function dataSourcesLoader($className) {
     }
   }
 
-}
-
-spl_autoload_register('dataSourcesLoader');
+});
 
 $rest = new BrRESTBinder();
 $rest

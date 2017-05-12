@@ -192,6 +192,32 @@ class BrAWS extends BrObject {
 
   }
 
+  public function getFileDesc($source) {
+
+    $srcStruct = $this->checkObjectUrl($source);
+
+    try {
+      $client = $this->getS3Client();
+
+      $params = array( 'Bucket'     => $srcStruct['bucketName']
+                     , 'Key'        => $srcStruct['objectPath']
+                     );
+
+      if ($result = $client->headObject($params)) {
+        return array ( 'fileSize' => $result['ContentLength']
+                     , 'fileType' => $result['ContentType']
+                     , 'url'      => $this->assembleUrl($srcStruct)
+                     );
+      } else {
+        return false;
+      }
+
+    } catch (Exception $e) {
+      return false;
+    }
+
+  }
+
   public function isFileExists($source) {
 
     $srcStruct = $this->checkObjectUrl($source);
@@ -237,13 +263,14 @@ class BrAWS extends BrObject {
 
   function synthesizeSpeech($text, $destination, $additionalParams = array()) {
 
-    $result = $this->getPollyClient()->synthesizeSpeech([ 'OutputFormat' => 'mp3'
-                                                        , 'Text'         => $text
-                                                        , 'VoiceId'      => br($additionalParams, 'voice', 'Salli')
-                                                        ]);
-    // debug($result['AudioStream']);
-    return $this->uploadData($result['AudioStream']->getContents(), $destination, $additionalParams);
-    // br()->fs()->saveToFile('/Users/jagermesh/Downloads/1.mp3', $result['AudioStream']->getContents());
+    $result = $this->getPollyClient()->synthesizeSpeech(array( 'OutputFormat' => 'mp3'
+                                                             , 'Text'         => $text
+                                                             , 'VoiceId'      => br($additionalParams, 'voice', 'Salli')
+                                                             ));
+    $size = $result['AudioStream']->getSize();
+    return array( 'url'      => $this->uploadData($result['AudioStream']->getContents(), $destination, $additionalParams)
+                , 'fileSize' => $size
+                );
 
   }
 

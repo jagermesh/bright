@@ -19,9 +19,7 @@ class BrSession extends BrSingleton {
     if (isset($_SESSION)) {
 
     } else {
-
-      session_cache_limiter('none');
-
+      session_cache_limiter('nocache');
       if (@session_start()) {
 
       } else {

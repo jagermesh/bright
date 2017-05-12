@@ -558,6 +558,32 @@
       }
     };
 
+    this.hash = function(name, defaultValue) {
+      var vars = document.location.hash.replace('#', '').split('&');
+      var vals = {};
+      var i;
+      for (i = 0; i < vars.length; i++) {
+        var pair = vars[i].split("=");
+        if (pair[0].indexOf('[') != -1) {
+          var n = pair[0].substr(0, pair[0].indexOf('['));
+          vals[n] = vals[n] || [];
+          vals[n].push(window.unescape(pair[1]));
+        } else {
+          vals[pair[0]] = window.unescape(pair[1]);
+        }
+      }
+      if (name) {
+        for (i in vals) {
+          if (i == name) {
+            return vals[i];
+          }
+        }
+        return defaultValue;
+      } else {
+        return vals;
+      }
+    };
+
     this.anchor = function(defaultValue) {
       var value = document.location.hash.replace('#', '');
       if (value) {
@@ -1209,6 +1235,9 @@
   };
 
   window.br.events = br.eventQueue();
+  window.br.before = function(event, callback) { window.br.events.before(event, callback); };
+  window.br.on     = function(event, callback) { window.br.events.on(event,     callback); };
+  window.br.after  = function(event, callback) { window.br.events.after(event,  callback); };
 
   window.br.backToCaller = function(href, refresh) {
 
@@ -1497,6 +1526,8 @@
     this.on     = function(event, callback) { this.events.on(event, callback); };
     this.after  = function(event, callback) { this.events.after(event, callback); };
 
+    var selectOperationCounter = 0;
+
     this.insert = function(item, callback, options) {
 
       options = options || { };
@@ -1552,6 +1583,10 @@
 
         if (options && options.dataSets) {
           request.__dataSets = options.dataSets;
+        }
+
+        if (options && options.clientUID) {
+          request.__clientUID = options.clientUID;
         }
 
         $.ajax({ type: this.options.crossdomain ? 'GET' : 'PUT'
@@ -1630,6 +1665,10 @@
 
         if (options && options.dataSets) {
           request.__dataSets = options.dataSets;
+        }
+
+        if (options && options.clientUID) {
+          request.__clientUID = options.clientUID;
         }
 
         $.ajax({ type: this.options.crossdomain ? 'GET' : 'POST'
@@ -1794,6 +1833,12 @@
 
     };
 
+    this.doingSelect = function() {
+
+      return selectOperationCounter > 0;
+
+    };
+
     this.select = function(filter, callback, options) {
 
       var request = {};
@@ -1869,6 +1914,14 @@
           request.__dataSets = options.dataSets;
         }
 
+        if (options && options.clientUID) {
+          request.__clientUID = options.clientUID;
+        }
+
+        if (options && options.excludeFields) {
+          request.__excludeFields = options.excludeFields;
+        }
+
         if (options && options.renderMode) {
           request.__renderMode = options.renderMode;
         }
@@ -1885,28 +1938,38 @@
           request.crossdomain = 'get';
         }
 
+        selectOperationCounter++;
+
         this.ajaxRequest = $.ajax({ type: 'GET'
                                   , data: request
                                   , dataType: this.options.crossdomain ? 'jsonp' : 'json'
                                   , url: url + (this.options.authToken ? '?token=' + this.options.authToken : '')
                                   , success: function(response) {
-                                      _this.ajaxRequest = null;
-                                      if (_this.options.crossdomain && (typeof response == 'string')) {
-                                        handleSelectError('Unknown error', request, callback, options);
-                                      } else
-                                      if (br.isNull(response)) {
-                                        handleSelectError('Unknown error', request, callback, options);
-                                      } else {
-                                        handleSelectSuccess(response, request, callback, options);
+                                      try {
+                                        _this.ajaxRequest = null;
+                                        if (_this.options.crossdomain && (typeof response == 'string')) {
+                                          handleSelectError('Unknown error', request, callback, options);
+                                        } else
+                                        if (br.isNull(response)) {
+                                          handleSelectError('Unknown error', request, callback, options);
+                                        } else {
+                                          handleSelectSuccess(response, request, callback, options);
+                                        }
+                                      } finally {
+                                        selectOperationCounter--;
                                       }
                                     }
                                   , error: function(jqXHR, textStatus, errorThrown) {
-                                      if (br.isUnloading()) {
+                                      try {
+                                        if (br.isUnloading()) {
 
-                                      } else {
-                                        _this.ajaxRequest = null;
-                                        var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                                        handleSelectError(errorMessage, request, callback, options);
+                                        } else {
+                                          _this.ajaxRequest = null;
+                                          var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                                          handleSelectError(errorMessage, request, callback, options);
+                                        }
+                                      } finally {
+                                        selectOperationCounter--;
                                       }
                                     }
                                   });
@@ -1933,20 +1996,35 @@
 
     };
 
-    this.invoke = function(method, params, callback) {
+    this.invoke = function(method, params, callback, options) {
 
-      var request = { };
-
-      if (typeof params == 'function') {
+      if (br.isFunction(params)) {
+        options  = callback;
         callback = params;
-      } else {
-        request = params;
+        params   = {};
       }
+
+      if (callback && !br.isFunction(callback)) {
+        options  = callback;
+        callback = undefined;
+      }
+
+      var request = params || { };
+
+      options = options || { };
 
       _this.events.triggerBefore(method, request);
 
       if (this.options.crossdomain) {
         request.crossdomain = 'post';
+      }
+
+      if (options && options.dataSets) {
+        request.__dataSets = options.dataSets;
+      }
+
+      if (options && options.clientUID) {
+        request.__clientUID = options.clientUID;
       }
 
       $.ajax({ type: this.options.crossdomain ? 'GET' : 'POST'
@@ -2680,6 +2758,21 @@
                             }
                           );
               }
+            }
+          });
+        }
+
+        if (br.isString(_this.selector)) {
+          br.editable(_this.selector + ' .editable', function(content) {
+            var $this = $(this);
+            var rowid = $this.closest('[data-rowid]').attr('data-rowid');
+            var dataField = $this.attr('data-field');
+            if (!br.isEmpty(rowid) && !br.isEmpty(dataField)) {
+              var data = {};
+              data[dataField] = content;
+              _this.dataSource.update( rowid
+                                     , data
+                                     );
             }
           });
         }
@@ -3830,7 +3923,7 @@
     s = s + '>' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">' +
-            '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>' + title + '</h3></div>' +
+            '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>' +
             '<div class="modal-body" style="overflow-y:auto;">';
     for(var i in inputs) {
       if (br.isObject(inputs[i])) {
@@ -4019,14 +4112,27 @@
                             '  </div>' +
                             '</div>';
 
+
+  function fileSize(size) {
+    var i = Math.floor(Math.log(size) / Math.log(1024));
+    return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' '+['B', 'kB', 'MB', 'GB', 'TB'][i];
+  }
+
+  var currentProgressType;
+
   function renderProgress() {
     var p = Math.round(progressBar_Progress * 100 / progressBar_Total);
     $('#br_progressBar_Bar').css('width', p + '%');
     $('#br_progressMessage').text(progressBar_Message);
-    $('#br_progressStage').text(progressBar_Progress + ' of ' + progressBar_Total);
+    if (currentProgressType == 'upload') {
+      $('#br_progressStage').text(fileSize(progressBar_Progress) + ' of ' + fileSize(progressBar_Total));
+    } else {
+      $('#br_progressStage').text(progressBar_Progress + ' of ' + progressBar_Total);
+    }
   }
 
-  window.br.startProgress = function(value, message) {
+  window.br.startProgress = function(value, message, progressType) {
+    currentProgressType = progressType;
     if (!br.isNumber(value)) {
       message = value;
       value = 0;
@@ -4338,7 +4444,11 @@
 
   window.br = window.br || {};
 
-  var callbacks = [];
+  var clipboardCallbacks = [];
+
+  window.br.onPaste = function(callback) {
+    clipboardCallbacks.push(callback);
+  };
 
   $(document).ready(function() {
     $('body').on('paste', function(evt) {
@@ -4346,7 +4456,14 @@
       var result = { data: { }, dataType: '', dataSubType: '', dataValue: '' };
       evt = evt.originalEvent;
 
-      function loadFile(result, file) {
+      function notify(evt, result) {
+        br.events.trigger('paste', evt, result);
+        for(var i = 0; i < clipboardCallbacks.length; i++) {
+          clipboardCallbacks[i].call(evt, result);
+        }
+      }
+
+      function loadFile(result, file, originalEvt, onerror) {
         var reader = new FileReader();
         reader.onload = function(evt) {
           var parts = /^data[:](.+?)\/(.+?);/.exec(evt.target.result);
@@ -4361,8 +4478,11 @@
           result.dataValue   = evt.target.result;
           result.data[result_dataType] = result.data[result_dataType] || { };
           result.data[result_dataType][result_dataSubType] = evt.target.result;
-          for(var i = 0; i < callbacks.length; i++) {
-            callbacks[i].call(evt, result);
+          notify(originalEvt, result);
+        };
+        reader.onerror = function(evt) {
+          if (onerror) {
+            onerror();
           }
         };
         reader.readAsDataURL(file);
@@ -4393,6 +4513,17 @@
         return false;
       }
 
+      var items = [];
+
+      function processItems() {
+        if (items.length > 0) {
+          var item = items.shift();
+          loadFile(result, item, evt, function() {
+            processItems();
+          });
+        }
+      }
+
       if (evt.clipboardData) {
         var i;
         for(i = 0; i < evt.clipboardData.types.length; i++) {
@@ -4408,8 +4539,7 @@
           result.data[result_dataType][result_dataSubType] = evt.clipboardData.getData(dataType);
         }
 
-        var completed = true;
-
+        var complete = true;
         if (loadData(result, evt.clipboardData, 'public.url', true)) {
 
         } else
@@ -4424,34 +4554,30 @@
           if (evt.clipboardData.items && (evt.clipboardData.items.length > 0)) {
             for(i = 0; i < evt.clipboardData.items.length; i++) {
               if (evt.clipboardData.items[i].type.match('image.*')) {
-                completed = false;
-                loadFile(result, evt.clipboardData.items[i].getAsFile());
+                items.push(evt.clipboardData.items[i].getAsFile());
               }
             }
           }
           if (evt.clipboardData.files && (evt.clipboardData.files.length > 0)) {
             for(i = 0; i < evt.clipboardData.files.length; i++) {
               if (evt.clipboardData.files[i].type.match('image.*')) {
-                completed = false;
-                loadFile(result, evt.clipboardData.files[0]);
+                items.push(evt.clipboardData.files[0]);
               }
             }
           }
+          if (items.length > 0) {
+            complete = false;
+            processItems();
+          }
         }
 
-        if (completed) {
-          for(i in callbacks) {
-            callbacks[i].call(evt, result);
-          }
+        if (complete) {
+          notify(evt, result);
         }
 
       }
     });
   });
-
-  window.br.onPaste = function(callback) {
-    callbacks.push(callback);
-  };
 
 })(jQuery, window);
 /*!
@@ -4927,9 +5053,10 @@
             op = 'insert';
           }
           try {
-            _this.events.trigger('editor.save', op, data);
+            var options = {  };
+            _this.events.trigger('editor.save', op, data, options);
             if (editorRowid) {
-              _this.events.triggerBefore('editor.update', data);
+              _this.events.triggerBefore('editor.update', data, options);
               _this.dataSource.update(editorRowid, data, function(result, response) {
                 try {
                   if (result) {
@@ -4966,9 +5093,9 @@
                 } finally {
                   saving = false;
                 }
-              });
+              }, options);
             } else {
-              _this.events.triggerBefore('editor.insert', data);
+              _this.events.triggerBefore('editor.insert', data, options);
               _this.dataSource.insert(data, function(result, response) {
                 try {
                   if (result) {
@@ -5008,7 +5135,7 @@
                 } finally {
                   saving = false;
                 }
-              });
+              }, options);
             }
           } catch (e) {
             saving = false;
@@ -5047,7 +5174,7 @@
 
     var _this = this;
 
-    var pagerSetuped = false;
+    var pagerSetUp = false;
 
     this.options = options || {};
     this.options.autoLoad = this.options.autoLoad || false;
@@ -5333,6 +5460,16 @@
         }
       });
 
+      _this.dataSource.after('select', function(result, response) {
+        if (result) {
+          if (_this.options.autoLoad) {
+            _this.skip = _this.skip + response.length;
+          }
+        }
+        _this.updatePager(true);
+        showFiltersDesc();
+      });
+
       // search
       br.modified(c('input.data-filter[name=keyword]'), function() {
         var _val = $(this).val();
@@ -5365,24 +5502,6 @@
           _this.editor.show(rowid, isCopy);
         });
       }
-
-      br.editable(c('.editable'), function(content) {
-        var $this = $(this);
-        var rowid = $this.closest('[data-rowid]').attr('data-rowid');
-        var dataField = $this.attr('data-field');
-        if (!br.isEmpty(rowid) && !br.isEmpty(dataField)) {
-          var data = {};
-          data[dataField] = content;
-          _this.dataSource.update( rowid
-                                 , data
-                                 , function(result) {
-                                     // if (result) {
-                                     //   br.editable($this, 'apply', content);
-                                     // }
-                                   }
-                                 );
-        }
-      });
 
       // pager
       $(c('a.action-next') + ',' + c('a.pager-action-next')).on('click', function() {
@@ -5497,16 +5616,6 @@
       }
 
       setupFilters(true);
-
-      _this.dataSource.after('select', function(result, response) {
-        if (result) {
-          if (_this.options.autoLoad) {
-            _this.skip = _this.skip + response.length;
-          }
-        }
-        _this.updatePager();
-        showFiltersDesc();
-      });
 
       function checkAutoLoad() {
         var docsHeight = $(_this.options.selectors.dataTable).height();
@@ -5727,7 +5836,7 @@
       $(c('.pager-stat')).text('Records ' + min + '-' + max + ' of ' + _this.recordsAmount);
       $(c('.pager-page-size')).text(_this.limit + ' records per page');
 
-      pagerSetuped = true;
+      pagerSetUp = true;
 
       if (_this.dataGrid.table) {
         _this.dataGrid.table.update();
@@ -5757,10 +5866,15 @@
       return _this.selection.get();
     };
 
-    this.updatePager = function() {
+    var updatePagerTimer;
 
-      if (!pagerSetuped) {
-
+    function doUpdatePager() {
+      if (_this.dataSource.doingSelect() || _this.countDataSource.doingSelect()) {
+        window.clearTimeout(updatePagerTimer);
+        updatePagerTimer = window.setTimeout(function() {
+          doUpdatePager();
+        }, 300);
+      } else {
         _this.countDataSource.selectCount(function(success, result) {
           if (success) {
             _this.recordsAmount = result;
@@ -5771,12 +5885,21 @@
             _this.events.triggerAfter('pager.hide');
           }
         });
+      }
+    }
 
+    this.updatePager = function(force) {
+      if (!pagerSetUp || force) {
+        window.clearTimeout(updatePagerTimer);
+        updatePagerTimer = window.setTimeout(function() {
+          doUpdatePager();
+        }, 300);
       } else {
         internalUpdatePager();
       }
-
     };
+
+    var refreshTimer;
 
     function internalRefresh(deferred, filter, callback) {
 
@@ -5787,11 +5910,18 @@
           }
         });
       } else {
-        _this.dataSource.select(filter, function(result, response) {
-          if (typeof callback == 'function') {
-            callback.call(this, result, response);
-          }
-        });
+        if (_this.dataSource.doingSelect() || _this.countDataSource.doingSelect()) {
+          window.clearTimeout(refreshTimer);
+          refreshTimer = window.setTimeout(function() {
+            internalRefresh(deferred, filter, callback);
+          }, 300);
+        } else {
+          _this.dataSource.select(filter, function(result, response) {
+            if (typeof callback == 'function') {
+              callback.call(this, result, response);
+            }
+          });
+        }
       }
 
     }
@@ -5855,7 +5985,7 @@
     };
 
     this.resetPager = function() {
-      pagerSetuped = false;
+      pagerSetUp = false;
       _this.skip = 0;
     };
 

@@ -29,6 +29,8 @@
     this.on     = function(event, callback) { this.events.on(event, callback); };
     this.after  = function(event, callback) { this.events.after(event, callback); };
 
+    var selectOperationCounter = 0;
+
     this.insert = function(item, callback, options) {
 
       options = options || { };
@@ -84,6 +86,10 @@
 
         if (options && options.dataSets) {
           request.__dataSets = options.dataSets;
+        }
+
+        if (options && options.clientUID) {
+          request.__clientUID = options.clientUID;
         }
 
         $.ajax({ type: this.options.crossdomain ? 'GET' : 'PUT'
@@ -162,6 +168,10 @@
 
         if (options && options.dataSets) {
           request.__dataSets = options.dataSets;
+        }
+
+        if (options && options.clientUID) {
+          request.__clientUID = options.clientUID;
         }
 
         $.ajax({ type: this.options.crossdomain ? 'GET' : 'POST'
@@ -326,6 +336,12 @@
 
     };
 
+    this.doingSelect = function() {
+
+      return selectOperationCounter > 0;
+
+    };
+
     this.select = function(filter, callback, options) {
 
       var request = {};
@@ -401,6 +417,14 @@
           request.__dataSets = options.dataSets;
         }
 
+        if (options && options.clientUID) {
+          request.__clientUID = options.clientUID;
+        }
+
+        if (options && options.excludeFields) {
+          request.__excludeFields = options.excludeFields;
+        }
+
         if (options && options.renderMode) {
           request.__renderMode = options.renderMode;
         }
@@ -417,28 +441,38 @@
           request.crossdomain = 'get';
         }
 
+        selectOperationCounter++;
+
         this.ajaxRequest = $.ajax({ type: 'GET'
                                   , data: request
                                   , dataType: this.options.crossdomain ? 'jsonp' : 'json'
                                   , url: url + (this.options.authToken ? '?token=' + this.options.authToken : '')
                                   , success: function(response) {
-                                      _this.ajaxRequest = null;
-                                      if (_this.options.crossdomain && (typeof response == 'string')) {
-                                        handleSelectError('Unknown error', request, callback, options);
-                                      } else
-                                      if (br.isNull(response)) {
-                                        handleSelectError('Unknown error', request, callback, options);
-                                      } else {
-                                        handleSelectSuccess(response, request, callback, options);
+                                      try {
+                                        _this.ajaxRequest = null;
+                                        if (_this.options.crossdomain && (typeof response == 'string')) {
+                                          handleSelectError('Unknown error', request, callback, options);
+                                        } else
+                                        if (br.isNull(response)) {
+                                          handleSelectError('Unknown error', request, callback, options);
+                                        } else {
+                                          handleSelectSuccess(response, request, callback, options);
+                                        }
+                                      } finally {
+                                        selectOperationCounter--;
                                       }
                                     }
                                   , error: function(jqXHR, textStatus, errorThrown) {
-                                      if (br.isUnloading()) {
+                                      try {
+                                        if (br.isUnloading()) {
 
-                                      } else {
-                                        _this.ajaxRequest = null;
-                                        var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                                        handleSelectError(errorMessage, request, callback, options);
+                                        } else {
+                                          _this.ajaxRequest = null;
+                                          var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                                          handleSelectError(errorMessage, request, callback, options);
+                                        }
+                                      } finally {
+                                        selectOperationCounter--;
                                       }
                                     }
                                   });
@@ -465,20 +499,35 @@
 
     };
 
-    this.invoke = function(method, params, callback) {
+    this.invoke = function(method, params, callback, options) {
 
-      var request = { };
-
-      if (typeof params == 'function') {
+      if (br.isFunction(params)) {
+        options  = callback;
         callback = params;
-      } else {
-        request = params;
+        params   = {};
       }
+
+      if (callback && !br.isFunction(callback)) {
+        options  = callback;
+        callback = undefined;
+      }
+
+      var request = params || { };
+
+      options = options || { };
 
       _this.events.triggerBefore(method, request);
 
       if (this.options.crossdomain) {
         request.crossdomain = 'post';
+      }
+
+      if (options && options.dataSets) {
+        request.__dataSets = options.dataSets;
+      }
+
+      if (options && options.clientUID) {
+        request.__clientUID = options.clientUID;
       }
 
       $.ajax({ type: this.options.crossdomain ? 'GET' : 'POST'
