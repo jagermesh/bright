@@ -206,48 +206,67 @@ class BrRESTBinder extends BrObject {
                       $valuesArray = false;
                     }
                     if (br($value, '$ne')) {
-                      $filter[] = array($fields => array('$ne' => $value['$ne']));
+                      if (is_scalar($value['$ne'])) {
+                        $filter[] = array($fields => array('$ne' => $value['$ne']));
+                      }
                       $valuesArray = false;
                     }
                     if (br($value, '<')) {
-                      $filter[] = array($fields => array('$lt' => $value['<']));
+                      if (is_scalar($value['<'])) {
+                        $filter[] = array($fields => array('$lt' => $value['<']));
+                      }
                       $valuesArray = false;
                     }
                     if (br($value, '$lt')) {
-                      $filter[] = array($fields => array('$lt' => $value['$lt']));
+                      if (is_scalar($value['$lt'])) {
+                        $filter[] = array($fields => array('$lt' => $value['$lt']));
+                      }
                       $valuesArray = false;
                     }
                     if (br($value, '>')) {
-                      $filter[] = array($fields => array('$gt' => $value['>']));
+                      if (is_scalar($value['>'])) {
+                        $filter[] = array($fields => array('$gt' => $value['>']));
+                      }
                       $valuesArray = false;
                     }
                     if (br($value, '$gt')) {
-                      $filter[] = array($fields => array('$gt' => $value['$gt']));
+                      if (is_scalar($value['$gt'])) {
+                        $filter[] = array($fields => array('$gt' => $value['$gt']));
+                      }
                       $valuesArray = false;
                     }
                     if (br($value, '<=')) {
-                      $filter[] = array($fields => array('$lte' => $value['<=']));
+                      if (is_scalar($value['<='])) {
+                        $filter[] = array($fields => array('$lte' => $value['<=']));
+                      }
                       $valuesArray = false;
                     }
                     if (br($value, '$lte')) {
-                      $filter[] = array($fields => array('$lte' => $value['$lte']));
+                      if (is_scalar($value['$lte'])) {
+                        $filter[] = array($fields => array('$lte' => $value['$lte']));
+                      }
                       $valuesArray = false;
                     }
                     if (br($value, '>=')) {
-                      $filter[] = array($fields => array('$gte' => $value['>=']));
+                      if (is_scalar($value['>='])) {
+                        $filter[] = array($fields => array('$gte' => $value['>=']));
+                      }
                       $valuesArray = false;
                     }
                     if (br($value, '$gte')) {
-                      $filter[] = array($fields => array('$gte' => $value['$gte']));
+                      if (is_scalar($value['$gte'])) {
+                        $filter[] = array($fields => array('$gte' => $value['$gte']));
+                      }
                       $valuesArray = false;
                     }
-                    // unsafe because of concatenation
-                    // if (br($value, '$in')) {
-                    //   $filter[] = array($fields => array('$in' => $value['$in']));
-                    //   $valuesArray = false;
-                    // }
                     if ($valuesArray) {
-                      $filter[$fields] = $value;
+                      $values = array();
+                      foreach($value as $val) {
+                        if (is_scalar($val)) {
+                          $values[] = $val;
+                        }
+                      }
+                      $filter[$fields] = $values;
                     }
                   } else
                   if ($value == 'null') {
