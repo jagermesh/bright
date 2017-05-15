@@ -791,8 +791,6 @@ class BrGenericSQLProviderTable {
       }
     }
 
-    $joins .= "\n";
-
   }
 
   private function compileExists($filter, $tableName, $fieldName, $link, &$joins, &$joinsTables, &$where, &$args) {
@@ -1118,8 +1116,7 @@ class BrGenericSQLProviderTable {
     if ($this->indexHint) {
       $sql .= ' FORCE INDEX (' . $this->indexHint . ')';
     }
-    $sql .= $joins;
-    $sql .= ' WHERE 1=1 '.$where;
+    $sql .= $joins.' WHERE 1=1 '.$where;
 
     return new BrGenericSQLProviderCursor($sql, $args, $this->provider);
 
