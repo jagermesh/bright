@@ -200,50 +200,54 @@ class BrRESTBinder extends BrObject {
               switch(br($mapping, 'type', '=')) {
                 case "=":
                   if (is_array($value)) {
-                    $subFilter = [];
-                    foreach($value as $name => $singleValue) {
-                      $name = (string)$name;
-                      switch ($name) {
-                        case '$nn':
-                          $subFilter[] = array('$nn' => '');
-                          break;
-                        case '$ne':
-                          if (is_scalar($singleValue) || br()->isRegularArray($singleValue)) {
-                            $subFilter[] = array('$ne' => $singleValue);
-                          }
-                          break;
-                        case '<':
-                        case '$lt':
-                          if (is_scalar($singleValue)) {
-                            $subFilter[] = array('$lt' => $singleValue);
-                          }
-                          break;
-                        case '>':
-                        case '$gt':
-                          if (is_scalar($singleValue)) {
-                            $subFilter[] = array('$gt' => $singleValue);
-                          }
-                          break;
-                        case '<=':
-                        case '$lte':
-                          if (is_scalar($singleValue)) {
-                            $subFilter[] = array('$lte' => $singleValue);
-                          }
-                          break;
-                        case '>=':
-                        case '$gte':
-                          if (is_scalar($singleValue)) {
-                            $subFilter[] = array('$gte' => $singleValue);
-                          }
-                          break;
-                        default:
-                          if (is_numeric($name) && (is_scalar($singleValue) || br()->isRegularArray($singleValue))) {
-                            $subFilter[] = $singleValue;
-                          }
-                          break;
+                    if (br($mapping, 'options') == 'passthru') {
+                      $filter[$fields] = $value;
+                    } else {
+                      $subFilter = [];
+                      foreach($value as $name => $singleValue) {
+                        $name = (string)$name;
+                        switch ($name) {
+                          case '$nn':
+                            $subFilter[] = array('$nn' => '');
+                            break;
+                          case '$ne':
+                            if (is_scalar($singleValue) || br()->isRegularArray($singleValue)) {
+                              $subFilter[] = array('$ne' => $singleValue);
+                            }
+                            break;
+                          case '<':
+                          case '$lt':
+                            if (is_scalar($singleValue)) {
+                              $subFilter[] = array('$lt' => $singleValue);
+                            }
+                            break;
+                          case '>':
+                          case '$gt':
+                            if (is_scalar($singleValue)) {
+                              $subFilter[] = array('$gt' => $singleValue);
+                            }
+                            break;
+                          case '<=':
+                          case '$lte':
+                            if (is_scalar($singleValue)) {
+                              $subFilter[] = array('$lte' => $singleValue);
+                            }
+                            break;
+                          case '>=':
+                          case '$gte':
+                            if (is_scalar($singleValue)) {
+                              $subFilter[] = array('$gte' => $singleValue);
+                            }
+                            break;
+                          default:
+                            if (is_numeric($name) && (is_scalar($singleValue) || br()->isRegularArray($singleValue))) {
+                              $subFilter[] = $singleValue;
+                            }
+                            break;
+                        }
                       }
+                      $filter[$fields] = $subFilter;
                     }
-                    $filter[$fields] = $subFilter;
                   } else
                   if ($value == 'null') {
                     $filter[$fields] = null;
