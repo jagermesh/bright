@@ -200,74 +200,50 @@ class BrRESTBinder extends BrObject {
               switch(br($mapping, 'type', '=')) {
                 case "=":
                   if (is_array($value)) {
-                    $valuesArray = true;
-                    if (br($value, '$nn')) {
-                      $filter[] = array($fields => array('$nn' => ''));
-                      $valuesArray = false;
-                    }
-                    if (br($value, '$ne')) {
-                      if (is_scalar($value['$ne'])) {
-                        $filter[] = array($fields => array('$ne' => $value['$ne']));
+                    $subFilter = [];
+                    foreach($value as $name => $singleValue) {
+                      $name = (string)$name;
+                      switch ($name) {
+                        case '$nn':
+                          $subFilter[] = array('$nn' => '');
+                          break;
+                        case '$ne':
+                          if (is_scalar($singleValue) || br()->isRegularArray($singleValue)) {
+                            $subFilter[] = array('$ne' => $singleValue);
+                          }
+                          break;
+                        case '<':
+                        case '$lt':
+                          if (is_scalar($singleValue)) {
+                            $subFilter[] = array('$lt' => $singleValue);
+                          }
+                          break;
+                        case '>':
+                        case '$gt':
+                          if (is_scalar($singleValue)) {
+                            $subFilter[] = array('$gt' => $singleValue);
+                          }
+                          break;
+                        case '<=':
+                        case '$lte':
+                          if (is_scalar($singleValue)) {
+                            $subFilter[] = array('$lte' => $singleValue);
+                          }
+                          break;
+                        case '>=':
+                        case '$gte':
+                          if (is_scalar($singleValue)) {
+                            $subFilter[] = array('$gte' => $singleValue);
+                          }
+                          break;
+                        default:
+                          if (is_numeric($name) && (is_scalar($singleValue) || br()->isRegularArray($singleValue))) {
+                            $subFilter[] = $singleValue;
+                          }
+                          break;
                       }
-                      $valuesArray = false;
                     }
-                    if (br($value, '<')) {
-                      if (is_scalar($value['<'])) {
-                        $filter[] = array($fields => array('$lt' => $value['<']));
-                      }
-                      $valuesArray = false;
-                    }
-                    if (br($value, '$lt')) {
-                      if (is_scalar($value['$lt'])) {
-                        $filter[] = array($fields => array('$lt' => $value['$lt']));
-                      }
-                      $valuesArray = false;
-                    }
-                    if (br($value, '>')) {
-                      if (is_scalar($value['>'])) {
-                        $filter[] = array($fields => array('$gt' => $value['>']));
-                      }
-                      $valuesArray = false;
-                    }
-                    if (br($value, '$gt')) {
-                      if (is_scalar($value['$gt'])) {
-                        $filter[] = array($fields => array('$gt' => $value['$gt']));
-                      }
-                      $valuesArray = false;
-                    }
-                    if (br($value, '<=')) {
-                      if (is_scalar($value['<='])) {
-                        $filter[] = array($fields => array('$lte' => $value['<=']));
-                      }
-                      $valuesArray = false;
-                    }
-                    if (br($value, '$lte')) {
-                      if (is_scalar($value['$lte'])) {
-                        $filter[] = array($fields => array('$lte' => $value['$lte']));
-                      }
-                      $valuesArray = false;
-                    }
-                    if (br($value, '>=')) {
-                      if (is_scalar($value['>='])) {
-                        $filter[] = array($fields => array('$gte' => $value['>=']));
-                      }
-                      $valuesArray = false;
-                    }
-                    if (br($value, '$gte')) {
-                      if (is_scalar($value['$gte'])) {
-                        $filter[] = array($fields => array('$gte' => $value['$gte']));
-                      }
-                      $valuesArray = false;
-                    }
-                    if ($valuesArray) {
-                      $values = array();
-                      foreach($value as $val) {
-                        if (is_scalar($val)) {
-                          $values[] = $val;
-                        }
-                      }
-                      $filter[$fields] = $values;
-                    }
+                    $filter[$fields] = $subFilter;
                   } else
                   if ($value == 'null') {
                     $filter[$fields] = null;

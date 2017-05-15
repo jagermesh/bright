@@ -791,6 +791,8 @@ class BrGenericSQLProviderTable {
       }
     }
 
+    $joins .= "\n";
+
   }
 
   private function compileExists($filter, $tableName, $fieldName, $link, &$joins, &$joinsTables, &$where, &$args) {
@@ -1046,7 +1048,7 @@ class BrGenericSQLProviderTable {
                 $where .= $link . $fname . ' IS NULL';
               }
             } else {
-              $this->compileFilter($filterValue, $tableName, $currentFieldName, $link, $joins, $joinsTables, $where, $args);
+              $this->compileFilter($filterValue, $tableName, is_numeric($currentFieldName) ? $fieldName : $currentFieldName, $link, $joins, $joinsTables, $where, $args);
             }
           } else {
             if (is_object($filterValue) && ($filterValue instanceof BrGenericSQLRegExp)) {
@@ -1054,10 +1056,18 @@ class BrGenericSQLProviderTable {
               $args[] = preg_replace('~([?*+\(\)])~', '[$1]', str_replace('\\', '\\\\', rtrim(ltrim($filterValue->getValue(), '/'), '/i')));
             } else {
               if (strlen($filterValue) > 0) {
-                $where .= $link.$fname.' = ?';
+                if (is_numeric($currentFieldName)) {
+                  $where .= $link.$fname2.' = ?';
+                } else {
+                  $where .= $link.$fname.' = ?';
+                }
                 $args[] = $filterValue;
               } else {
-                $where .= $link.$fname.' IS NULL';
+                if (is_numeric($currentFieldName)) {
+                  $where .= $link.$fname2.' IS NULL';
+                } else {
+                  $where .= $link.$fname.' IS NULL';
+                }
               }
             }
           }
@@ -1081,6 +1091,7 @@ class BrGenericSQLProviderTable {
     } else {
       $tableName = $this->tableName;
     }
+
     $this->compileFilter($filter, $tableName, '', ' AND ', $joins, $joinsTables, $where, $args);
 
     $sql = 'SELECT ';
@@ -1107,7 +1118,8 @@ class BrGenericSQLProviderTable {
     if ($this->indexHint) {
       $sql .= ' FORCE INDEX (' . $this->indexHint . ')';
     }
-    $sql .= $joins.' WHERE 1=1 '.$where;
+    $sql .= $joins;
+    $sql .= ' WHERE 1=1 '.$where;
 
     return new BrGenericSQLProviderCursor($sql, $args, $this->provider);
 
