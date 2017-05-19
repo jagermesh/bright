@@ -159,16 +159,24 @@ class BrHTML extends BrSingleton {
   function toText($html, $smart = false) {
 
     if ($smart) {
-      $html = preg_replace('/<div[^>]*?>/ism', "\n", $html);
+      $html = preg_replace('~<div[^>]*?>~ism', "\n", $html);
     }
-    $html = preg_replace('/&nbsp;/ism', ' ', $html);
-    $html = preg_replace("/(\n\n|\r\n\r\n|\r\r)/ism", '', $html);
-    $html = preg_replace("/<br[^>]*>[\n]+/ism", "\n", $html);
-    $html = preg_replace("/<br[^>]*>/ism", "\n", $html);
-    $html = preg_replace('/<[A-Z][^>]*?>/ism', '', $html);
-    $html = preg_replace('/<\/[A-Z][^>]*?>/ism', '', $html);
-    $html = preg_replace('/<!DOCTYPE[^>]*?>/ism', '', $html);
-    $html = preg_replace('/<!--[^>]*?>/ism', '', $html);
+    $html = preg_replace('~<!DOCTYPE[^>]*?>~ism', '', $html);
+    $html = preg_replace('~<head[^>]*?>.*?</head>~ism', '', $html);
+    $html = preg_replace('~<style[^>]*?>.*?</style>~ism', '', $html);
+    $html = preg_replace('~<script[^>]*?>.*?</script>~ism', '', $html);
+    $html = preg_replace('~&nbsp;~ism', ' ', $html);
+    $html = preg_replace("~<br[^>]*>[\n]+~ism", "\n", $html);
+    $html = preg_replace("~<br[^>]*>~ism", "\n", $html);
+    $html = preg_replace('~<[A-Z][^>]*?>~ism', '', $html);
+    $html = preg_replace('~<\/[A-Z][^>]*?>~ism', '', $html);
+    $html = preg_replace('~<!--.*?-->~ism', ' ', $html);
+    $html = preg_replace('~^[ ]+$~ism', '', $html);
+    $html = preg_replace('~^[ ]+~ism', '', $html);
+    $html = preg_replace("~^(\n\r){2,}~ism", "\n", $html);
+    $html = preg_replace("~^(\r\n){2,}~ism", "\n", $html);
+    $html = preg_replace("~^(\n){2,}~ism", "\n", $html);
+    $html = preg_replace("~^(\r){2,}~ism", "\n", $html);
 
     $flags = ENT_COMPAT;
     if (defined('ENT_HTML401')) {
