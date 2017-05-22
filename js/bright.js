@@ -28,6 +28,7 @@
   window.br.isEmpty = function(value) {
     return (
              br.isNull(value) ||
+             (br.isString(value) && (value.trim().length === 0)) ||
              ((typeof value.length != 'undefined') && (value.length === 0)) // Array, String
            );
   };
@@ -4147,14 +4148,27 @@
                             '  </div>' +
                             '</div>';
 
+
+  function fileSize(size) {
+    var i = Math.floor(Math.log(size) / Math.log(1024));
+    return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' '+['B', 'kB', 'MB', 'GB', 'TB'][i];
+  }
+
+  var currentProgressType;
+
   function renderProgress() {
     var p = Math.round(progressBar_Progress * 100 / progressBar_Total);
     $('#br_progressBar_Bar').css('width', p + '%');
     $('#br_progressMessage').text(progressBar_Message);
-    $('#br_progressStage').text(progressBar_Progress + ' of ' + progressBar_Total);
+    if (currentProgressType == 'upload') {
+      $('#br_progressStage').text(fileSize(progressBar_Progress) + ' of ' + fileSize(progressBar_Total));
+    } else {
+      $('#br_progressStage').text(progressBar_Progress + ' of ' + progressBar_Total);
+    }
   }
 
-  window.br.startProgress = function(value, message) {
+  window.br.startProgress = function(value, message, progressType) {
+    currentProgressType = progressType;
     if (!br.isNumber(value)) {
       message = value;
       value = 0;

@@ -22,8 +22,8 @@ class BrGenericUploadHandler {
     $allowedExtensions = br($this->params, 'allowedExtensions', array());
 
     // max file size in bytes
-    $sizeLimit = br($this->params, 'uploadLimit', 24 * 1024 * 1024);
-    $postSize = $this->toBytes(ini_get('post_max_size'));
+    $sizeLimit  = br($this->params, 'uploadLimit', 1024 * 1024 * 1024);
+    $postSize   = $this->toBytes(ini_get('post_max_size'));
     $uploadSize = $this->toBytes(ini_get('upload_max_filesize'));
 
     $sizeLimit = min($sizeLimit, $postSize, $uploadSize);

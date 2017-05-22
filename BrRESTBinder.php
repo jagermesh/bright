@@ -200,54 +200,53 @@ class BrRESTBinder extends BrObject {
               switch(br($mapping, 'type', '=')) {
                 case "=":
                   if (is_array($value)) {
-                    $valuesArray = true;
-                    if (br($value, '$nn')) {
-                      $filter[] = array($fields => array('$nn' => ''));
-                      $valuesArray = false;
-                    }
-                    if (br($value, '$ne')) {
-                      $filter[] = array($fields => array('$ne' => $value['$ne']));
-                      $valuesArray = false;
-                    }
-                    if (br($value, '<')) {
-                      $filter[] = array($fields => array('$lt' => $value['<']));
-                      $valuesArray = false;
-                    }
-                    if (br($value, '$lt')) {
-                      $filter[] = array($fields => array('$lt' => $value['$lt']));
-                      $valuesArray = false;
-                    }
-                    if (br($value, '>')) {
-                      $filter[] = array($fields => array('$gt' => $value['>']));
-                      $valuesArray = false;
-                    }
-                    if (br($value, '$gt')) {
-                      $filter[] = array($fields => array('$gt' => $value['$gt']));
-                      $valuesArray = false;
-                    }
-                    if (br($value, '<=')) {
-                      $filter[] = array($fields => array('$lte' => $value['<=']));
-                      $valuesArray = false;
-                    }
-                    if (br($value, '$lte')) {
-                      $filter[] = array($fields => array('$lte' => $value['$lte']));
-                      $valuesArray = false;
-                    }
-                    if (br($value, '>=')) {
-                      $filter[] = array($fields => array('$gte' => $value['>=']));
-                      $valuesArray = false;
-                    }
-                    if (br($value, '$gte')) {
-                      $filter[] = array($fields => array('$gte' => $value['$gte']));
-                      $valuesArray = false;
-                    }
-                    // unsafe because of concatenation
-                    // if (br($value, '$in')) {
-                    //   $filter[] = array($fields => array('$in' => $value['$in']));
-                    //   $valuesArray = false;
-                    // }
-                    if ($valuesArray) {
+                    if (br($mapping, 'options') == 'passthru') {
                       $filter[$fields] = $value;
+                    } else {
+                      $subFilter = [];
+                      foreach($value as $name => $singleValue) {
+                        $name = (string)$name;
+                        switch ($name) {
+                          case '$nn':
+                            $subFilter[] = array('$nn' => '');
+                            break;
+                          case '$ne':
+                            if (is_scalar($singleValue) || br()->isRegularArray($singleValue)) {
+                              $subFilter[] = array('$ne' => $singleValue);
+                            }
+                            break;
+                          case '<':
+                          case '$lt':
+                            if (is_scalar($singleValue)) {
+                              $subFilter[] = array('$lt' => $singleValue);
+                            }
+                            break;
+                          case '>':
+                          case '$gt':
+                            if (is_scalar($singleValue)) {
+                              $subFilter[] = array('$gt' => $singleValue);
+                            }
+                            break;
+                          case '<=':
+                          case '$lte':
+                            if (is_scalar($singleValue)) {
+                              $subFilter[] = array('$lte' => $singleValue);
+                            }
+                            break;
+                          case '>=':
+                          case '$gte':
+                            if (is_scalar($singleValue)) {
+                              $subFilter[] = array('$gte' => $singleValue);
+                            }
+                            break;
+                          default:
+                            if (is_numeric($name) && (is_scalar($singleValue) || br()->isRegularArray($singleValue))) {
+                              $subFilter[] = $singleValue;
+                            }
+                            break;
+                        }
+                      }
+                      $filter[$fields] = $subFilter;
                     }
                   } else
                   if ($value == 'null') {

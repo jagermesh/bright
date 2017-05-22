@@ -28,6 +28,7 @@
   window.br.isEmpty = function(value) {
     return (
              br.isNull(value) ||
+             (br.isString(value) && (value.trim().length === 0)) ||
              ((typeof value.length != 'undefined') && (value.length === 0)) // Array, String
            );
   };

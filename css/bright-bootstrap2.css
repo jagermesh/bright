@@ -324,7 +324,7 @@ span.required {
   padding: 10px;
   padding-top: 6px;
   padding-bottom: 6px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   border: 1px solid #eee;
   border: 1px solid rgba(0, 0, 0, 0.05);
   -webkit-border-radius: 4px;
@@ -342,7 +342,7 @@ span.required {
 }
 
 .filter-block {
-  height: 65px;
+  height: 60px;
   margin-right: 10px;
 }
 

@@ -238,6 +238,7 @@ the specific language governing permissions and limitations under the Apache Lic
     }
 
     function focus($el) {
+        if (!$el) return false;
         if ($el[0] === document.activeElement) return;
 
         /* set the focus in a 0 timeout - that way the focus is set after the processing
