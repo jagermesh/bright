@@ -128,9 +128,9 @@
 
     this.update = function(rowid, item, callback, options) {
 
-      var disableEvents = options && options.disableEvents;
-
       options = options || { };
+
+      var disableEvents = options && options.disableEvents;
 
       function returnUpdate(data) {
         var operation = 'update';
@@ -197,8 +197,10 @@
 
       } catch (errorMessage) {
         br.log(errorMessage);
-        _this.events.trigger('error', 'update', errorMessage);
-        _this.events.triggerAfter('update', false, errorMessage, request);
+        if (!disableEvents) {
+          _this.events.trigger('error', 'update', errorMessage);
+          _this.events.triggerAfter('update', false, errorMessage, request);
+        }
         if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
       }
 
@@ -206,37 +208,70 @@
 
     };
 
-    this.remove = function(rowid, callback) {
+    this.remove = function(rowid, callback, options) {
+
+      options = options || { };
+
+      var disableEvents = options && options.disableEvents;
 
       function returnRemove(data) {
-        _this.events.trigger('remove', rowid);
-        _this.events.triggerAfter('remove', true, data, request);
-        _this.events.trigger('change', 'remove', data);
+        if (!disableEvents) {
+          _this.events.trigger('remove', rowid);
+          _this.events.triggerAfter('remove', true, data, request);
+          _this.events.trigger('change', 'remove', data);
+        }
         if (typeof callback == 'function') { callback.call(_this, true, data, request); }
       }
 
       var request = {};
 
-      _this.events.triggerBefore('remove', rowid);
+      try {
 
-      $.ajax({ type: 'DELETE'
-             , data: request
-             , dataType: 'json'
-             , url: this.options.restServiceUrl + rowid + (this.options.authToken ? '?token=' + this.options.authToken : '')
-             , success: function(response) {
-                 returnRemove(response);
-               }
-             , error: function(jqXHR, textStatus, errorThrown) {
-                 if (br.isUnloading()) {
+        if (!disableEvents) {
+          _this.events.triggerBefore('remove', request, options, rowid);
+        }
 
-                 } else {
-                   var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                   _this.events.trigger('error', 'remove', errorMessage);
-                   _this.events.triggerAfter('remove', false, errorMessage, request);
-                   if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
+        if (this.options.crossdomain) {
+          request.crossdomain = 'delete';
+        }
+
+        if (options && options.dataSets) {
+          request.__dataSets = options.dataSets;
+        }
+
+        if (options && options.clientUID) {
+          request.__clientUID = options.clientUID;
+        }
+
+        $.ajax({ type: this.options.crossdomain ? 'GET' : 'DELETE'
+               , data: request
+               , dataType: this.options.crossdomain ? 'jsonp' : 'json'
+               , url: this.options.restServiceUrl + rowid + (this.options.authToken ? '?token=' + this.options.authToken : '')
+               , success: function(response) {
+                   returnRemove(response);
                  }
-               }
-             });
+               , error: function(jqXHR, textStatus, errorThrown) {
+                   if (br.isUnloading()) {
+
+                   } else {
+                     var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                     if (!disableEvents) {
+                       _this.events.trigger('error', 'remove', errorMessage);
+                       _this.events.triggerAfter('remove', false, errorMessage, request);
+                     }
+                     if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
+                   }
+                 }
+               });
+
+      } catch (errorMessage) {
+        br.log(errorMessage);
+        if (!disableEvents) {
+          _this.events.trigger('error', 'remove', errorMessage);
+          _this.events.triggerAfter('remove', false, errorMessage, request);
+        }
+        if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
+      }
 
       return this;
 
