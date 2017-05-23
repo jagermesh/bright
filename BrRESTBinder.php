@@ -694,8 +694,6 @@ class BrRESTBinder extends BrObject {
 
     } else {
       br()->log()->logException($e);
-      // br()->log()->logException($e, br()->request()->isDevHost());
-      // $outputSent = br()->request()->isDevHost();
     }
     if (br()->request()->isDevHost()) {
       $message = $msg;
