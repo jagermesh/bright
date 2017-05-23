@@ -16,10 +16,10 @@ class BrAWS extends BrObject {
   private function getS3Client() {
 
     if (!$this->S3Client) {
-      $this->S3Client = S3Client::factory(array( 'credentials' => array( 'key'     => br()->config()->get('AWS/S3AccessKey')
-                                                                       , 'secret'  => br()->config()->get('AWS/S3AccessSecret')
+      $this->S3Client = S3Client::factory(array( 'credentials' => array( 'key'     => br()->config()->get('AWS/S3/AccessKey',    br()->config()->get('AWS/S3AccessKey'))
+                                                                       , 'secret'  => br()->config()->get('AWS/S3/AccessSecret', br()->config()->get('AWS/S3AccessSecret'))
                                                                        )
-                                               , 'region'      => br()->config()->get('AWS/S3Region')
+                                               , 'region'      => br()->config()->get('AWS/S3/Region', br()->config()->get('AWS/S3Region'))
                                                , 'version'     => 'latest'
                                                ));
     }
@@ -249,10 +249,10 @@ class BrAWS extends BrObject {
   private function getPollyClient() {
 
     if (!$this->pollyClient) {
-      $this->pollyClient = Aws\Polly\PollyClient::factory(array( 'credentials' => array( 'key'     => br()->config()->get('AWS/S3AccessKey')
-                                                                                       , 'secret'  => br()->config()->get('AWS/S3AccessSecret')
+      $this->pollyClient = Aws\Polly\PollyClient::factory(array( 'credentials' => array( 'key'     => br()->config()->get('AWS/Polly/AccessKey',    br()->config()->get('AWS/S3AccessKey'))
+                                                                                       , 'secret'  => br()->config()->get('AWS/Polly/AccessSecret', br()->config()->get('AWS/S3AccessSecret'))
                                                                                        )
-                                                               , 'region'      => br()->config()->get('AWS/S3Region')
+                                                               , 'region'      => br()->config()->get('AWS/Polly/Region', br()->config()->get('AWS/S3Region'))
                                                                , 'version'     => 'latest'
                                                                ));
     }
@@ -274,22 +274,19 @@ class BrAWS extends BrObject {
 
   }
 
-  public function testCases() {
+  public function testCases($bucketName) {
 
     $this->rerunIterations = 3;
 
-    br()->log('uploadFile: '   . $this->uploadFile(__FILE__, 'secure.edoctrina.org/app-tests/' . br()->fs()->fileName(__FILE__)));
-    br()->log('uploadData: '   . $this->uploadData(file_get_contents(__FILE__), 'secure.edoctrina.org/app-tests/' . br()->fs()->fileName(__FILE__) . '.data'));
-    br()->log('isFileExists: ' . $this->isFileExists('secure.edoctrina.org/app-tests/' . br()->fs()->fileName(__FILE__)));
-    br()->log('isFileExists: ' . $this->isFileExists('secure.edoctrina.org/app-tests/' . br()->fs()->fileName(__FILE__) . '.data'));
-    br()->log('copyFile: '     . $this->copyFile('secure.edoctrina.org/app-tests/' . br()->fs()->fileName(__FILE__), 'secure.edoctrina.org/app-tests/' . br()->fs()->fileName(__FILE__) . '.copy'));
-    br()->log('isFileExists: ' . $this->isFileExists('secure.edoctrina.org/app-tests/' . br()->fs()->fileName(__FILE__) . '.copy'));
-    br()->log('moveFile: '     . $this->moveFile('secure.edoctrina.org/app-tests/' . br()->fs()->fileName(__FILE__), 'secure.edoctrina.org/app-tests/' . br()->fs()->fileName(__FILE__) . '.moved'));
-    br()->log('isFileExists: ' . $this->isFileExists('secure.edoctrina.org/app-tests/' . br()->fs()->fileName(__FILE__)));
-    br()->log('isFileExists: ' . $this->isFileExists('secure.edoctrina.org/app-tests/' . br()->fs()->fileName(__FILE__) . '.moved'));
-
-    // br()->config()->set('AWS/S3AccessKey', '1');
-    // br()->log('uploadFile: '  . $this->uploadFile(__FILE__, 'secure.edoctrina.org/app-tests/' . br()->fs()->fileName(__FILE__)));
+    br()->log('uploadFile: '   . $this->uploadFile(__FILE__, $bucketName . '/app-tests/' . br()->fs()->fileName(__FILE__)));
+    br()->log('uploadData: '   . $this->uploadData(file_get_contents(__FILE__), $bucketName . '/app-tests/' . br()->fs()->fileName(__FILE__) . '.data'));
+    br()->log('isFileExists: ' . $this->isFileExists($bucketName . '/app-tests/' . br()->fs()->fileName(__FILE__)));
+    br()->log('isFileExists: ' . $this->isFileExists($bucketName . '/app-tests/' . br()->fs()->fileName(__FILE__) . '.data'));
+    br()->log('copyFile: '     . $this->copyFile($bucketName . '/app-tests/' . br()->fs()->fileName(__FILE__), $bucketName . '/app-tests/' . br()->fs()->fileName(__FILE__) . '.copy'));
+    br()->log('isFileExists: ' . $this->isFileExists($bucketName . '/app-tests/' . br()->fs()->fileName(__FILE__) . '.copy'));
+    br()->log('moveFile: '     . $this->moveFile($bucketName . '/app-tests/' . br()->fs()->fileName(__FILE__), $bucketName . '/app-tests/' . br()->fs()->fileName(__FILE__) . '.moved'));
+    br()->log('isFileExists: ' . $this->isFileExists($bucketName . '/app-tests/' . br()->fs()->fileName(__FILE__)));
+    br()->log('isFileExists: ' . $this->isFileExists($bucketName . '/app-tests/' . br()->fs()->fileName(__FILE__) . '.moved'));
 
   }
 

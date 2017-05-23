@@ -48,6 +48,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
     if ($iteration > $this->reconnectIterations) {
       $e = new BrDBConnectionError($rerunError);
       br()->triggerSticky('db.connectionError', $e);
+      br()->triggerSticky('br.db.connect.error', $e);
       throw $e;
     }
 
@@ -70,6 +71,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
         $this->version = mysqli_get_server_info($this->__connection);
         $this->triggerSticky('after:connect');
         br()->triggerSticky('after:db.connect');
+        br()->triggerSticky('after:br.db.connect');
       } else {
         throw new Exception(mysqli_connect_errno() . ': ' . mysqli_connect_error());
       }
@@ -77,6 +79,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
       if (preg_match('/Unknown database/', $e->getMessage()) ||
           preg_match('/Access denied/', $e->getMessage())) {
         br()->triggerSticky('db.connectionError', $e);
+        br()->triggerSticky('br.db.connect.error', $e);
         throw new BrDBConnectionError($e->getMessage());
       } else {
         $this->__connection = null;
