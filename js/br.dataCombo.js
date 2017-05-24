@@ -118,6 +118,9 @@
           return;
         } else {
           var params = {};
+          if (br.isiPad()) {
+            params.minimumResultsForSearch = -1;
+          }
           if (_this.options.skipTranslate) {
             params.dropdownCssClass = 'skiptranslate';
           }
