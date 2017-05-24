@@ -118,7 +118,7 @@
           return;
         } else {
           var params = {};
-          if (br.isiPad()) {
+          if (_this.options.hideSearchBox) {
             params.minimumResultsForSearch = -1;
           }
           if (_this.options.skipTranslate) {
