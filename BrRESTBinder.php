@@ -13,6 +13,9 @@ require_once(__DIR__.'/BrObject.php');
 class BrRESTBinder extends BrObject {
 
   private $continueRoute = true;
+  private $idRegExp      = '[-0-9a-zA-Z]+';
+  private $methodRegExp  = '[_a-zA-Z]+';
+  private $idCheckRegExp = '[0-9]+';
 
   function doRouting() {
 
@@ -118,12 +121,12 @@ class BrRESTBinder extends BrObject {
       }
 
       if (!$found) {
-        foreach($securityRules as $regexp => $value) {
-          if ($regexp == '*') {
-            $regexp = '.*';
+        foreach($securityRules as $RegExp => $value) {
+          if ($RegExp == '*') {
+            $RegExp = '.*';
           }
           foreach($methods as $method) {
-            if (@preg_match('~'.$regexp.'~', $method)) {
+            if (@preg_match('~'.$RegExp.'~', $method)) {
               $result = $value;
               $found = true;
               break;
@@ -164,8 +167,10 @@ class BrRESTBinder extends BrObject {
       br()->request()->continueRoute(false);
 
       $event = 'select';
-      if ($matches = br()->request()->isAt(rtrim($path, '/').'/([-0-9a-z]+)')) {
-        $event = 'selectOne';
+      if ($matches = br()->request()->isAt(rtrim($path, '/') . '/(' . $this->idRegExp . ')')) {
+        if (preg_match('~' . $this->idCheckRegExp . '~', $matches[1])) {
+          $event = 'selectOne';
+        }
       }
 
       $this->checkPermissions($options, array($event, 'select'));
@@ -181,13 +186,15 @@ class BrRESTBinder extends BrObject {
       }
 
       $selectOne = false;
-      if ($matches = br()->request()->isAt(rtrim($path, '/').'/([-0-9a-z]+)')) {
-        $keyValue = $matches[1];
-        if ($keyValue === '-') {
-          $keyValue = null;
+      if ($matches = br()->request()->isAt(rtrim($path, '/') . '/(' . $this->idRegExp . ')')) {
+        if (preg_match('~' . $this->idCheckRegExp . '~', $matches[1])) {
+          $keyValue = $matches[1];
+          if ($keyValue === '-') {
+            $keyValue = null;
+          }
+          $filter[br()->db()->rowidField()] = br()->db()->rowid($keyValue);
+          $selectOne = true;
         }
-        $filter[br()->db()->rowidField()] = br()->db()->rowid($keyValue);
-        $selectOne = true;
       }
 
       if ($filterMappings = br($options, 'filterMappings')) {
@@ -446,7 +453,7 @@ class BrRESTBinder extends BrObject {
 
       $method = $method = br()->request()->get('__method');
       if (!$method) {
-        if ($matches = br()->request()->isAt(rtrim($path, '/').'/([a-zA-Z]+)/($|[?])')) {
+        if ($matches = br()->request()->isAt(rtrim($path, '/') . '/(' . $this->methodRegExp . ')(/|[?]|$)')) {
           $method = $matches[1];
         }
       }
@@ -494,70 +501,74 @@ class BrRESTBinder extends BrObject {
         }
 
       } else
-      if ($matches = br()->request()->isAt(rtrim($path, '/').'/([-]?[0-9a-z]+)')) {
+      if ($matches = br()->request()->isAt(rtrim($path, '/') . '/(' . $this->idRegExp . ')')) {
+        if (preg_match('~' . $this->idCheckRegExp . '~', $matches[1])) {
+          $this->checkPermissions($options, array('update'));
 
-        $this->checkPermissions($options, array('update'));
-
-        $row = array();
-        if (br()->request()->isPOST()) {
-          $data = br()->request()->post();
-        } else {
-          $data = br()->request()->get();
-        }
-        if (br($data, '__values')) {
-          $data = $data['__values'];
-        }
-        foreach($data as $name => $value) {
-          switch ($name) {
-            case '__dataSets':
-              $dataSourceOptions['dataSets'] = $value;
-              break;
-            case '__clientUID':
-              $dataSourceOptions['clientUID'] = $value;
-              break;
-            case '__loginToken':
-              break;
-            default:
-              if (!is_array($value)) {
-                $value = trim($value);
-              }
-              $row[$name] = $value;
-              break;
-          }
-        }
-        // do not allow to modify ID via REST API
-        if (br()->config()->get('br/rest/post/allowRowid')) {
-
-        } else {
-          unset($row['id']);
-        }
-        try {
-          $t = array();
-          $result = $dataSource->update($matches[1], $row, $t, $dataSourceOptions);
-          if (br()->request()->get('crossdomain')) {
-            br()->response()->sendJSONP($result);
+          $row = array();
+          if (br()->request()->isPOST()) {
+            $data = br()->request()->post();
           } else {
-            br()->response()->sendJSON($result);
+            $data = br()->request()->get();
           }
-        } catch (BrDataSourceNotFound $e) {
-          br()->log()->logException($e);
-          if (br()->request()->get('crossdomain')) {
-            br()->response()->sendJSONP('Record not found');
-          } else {
-            br()->response()->send404('Record not found');
+          if (br($data, '__values')) {
+            $data = $data['__values'];
           }
-        } catch (Exception $e) {
-          $this->returnException($e);
-        }
+          foreach($data as $name => $value) {
+            switch ($name) {
+              case '__dataSets':
+                $dataSourceOptions['dataSets'] = $value;
+                break;
+              case '__clientUID':
+                $dataSourceOptions['clientUID'] = $value;
+                break;
+              case '__loginToken':
+                break;
+              default:
+                if (!is_array($value)) {
+                  $value = trim($value);
+                }
+                $row[$name] = $value;
+                break;
+            }
+          }
+          // do not allow to modify ID via REST API
+          if (br()->config()->get('br/rest/post/allowRowid')) {
 
+          } else {
+            unset($row['id']);
+          }
+          try {
+            $t = array();
+            $result = $dataSource->update($matches[1], $row, $t, $dataSourceOptions);
+            if (br()->request()->get('crossdomain')) {
+              br()->response()->sendJSONP($result);
+            } else {
+              br()->response()->sendJSON($result);
+            }
+          } catch (BrDataSourceNotFound $e) {
+            br()->log()->logException($e);
+            if (br()->request()->get('crossdomain')) {
+              br()->response()->sendJSONP('Record not found');
+            } else {
+              br()->response()->send404('Record not found');
+            }
+          } catch (Exception $e) {
+            $this->returnException($e);
+          }
+        } else {
+          if (br()->request()->get('crossdomain')) {
+            br()->response()->sendJSONP('Method not allowed');
+          } else {
+            br()->response()->sendMethodNotAllowed();
+          }
+        }
       } else {
-
         if (br()->request()->get('crossdomain')) {
           br()->response()->sendJSONP('Method not allowed');
         } else {
           br()->response()->sendMethodNotAllowed();
         }
-
       }
 
     }
@@ -647,37 +658,41 @@ class BrRESTBinder extends BrObject {
 
       br()->request()->continueRoute(false);
 
-      if ($matches = br()->request()->isAt(rtrim($path, '/').'/([0-9a-z]+)')) {
+      if ($matches = br()->request()->isAt(rtrim($path, '/') . '/(' . $this->idRegExp . ')')) {
+        if (preg_match('~' . $this->idCheckRegExp . '~', $matches[1])) {
+          $this->checkPermissions($options, array('remove', 'delete'));
 
-        $this->checkPermissions($options, array('remove', 'delete'));
-
-        try {
-          $t = array();
-          $result = $dataSource->remove($matches[1], $t, $dataSourceOptions);
-          if (br()->request()->get('crossdomain')) {
-            br()->response()->sendJSONP($result);
-          } else {
-            br()->response()->sendJSON($result);
+          try {
+            $t = array();
+            $result = $dataSource->remove($matches[1], $t, $dataSourceOptions);
+            if (br()->request()->get('crossdomain')) {
+              br()->response()->sendJSONP($result);
+            } else {
+              br()->response()->sendJSON($result);
+            }
+          } catch (BrDataSourceNotFound $e) {
+            br()->log()->logException($e);
+            if (br()->request()->get('crossdomain')) {
+              br()->response()->sendJSONP('Record not found');
+            } else {
+              br()->response()->send404('Record not found');
+            }
+          } catch (Exception $e) {
+            $this->returnException($e);
           }
-        } catch (BrDataSourceNotFound $e) {
-          br()->log()->logException($e);
+        } else {
           if (br()->request()->get('crossdomain')) {
-            br()->response()->sendJSONP('Record not found');
+            br()->response()->sendJSONP('Method not allowed');
           } else {
-            br()->response()->send404('Record not found');
+            br()->response()->sendMethodNotAllowed();
           }
-        } catch (Exception $e) {
-          $this->returnException($e);
         }
-
       } else {
-
         if (br()->request()->get('crossdomain')) {
           br()->response()->sendJSONP('Method not allowed');
         } else {
           br()->response()->sendMethodNotAllowed();
         }
-
       }
 
     }
