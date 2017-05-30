@@ -2174,8 +2174,9 @@
   function BrTable(selector, options) {
 
     var _this = this;
-
     var table = $(selector);
+
+    _this.options = options || { };
 
     $('thead', table).css('display', 'block');
     $('tbody', table).css('display', 'block').css('overflow', 'auto');
@@ -2227,7 +2228,7 @@
 
       var headerCols = $(table).find('thead tr:first th');
 
-      if (options.autoHeight) {
+      if (_this.options.autoHeight) {
         var windowHeight = $(window).height();
         var tbody        = $('tbody', table);
         var thead        = $('thead', table);
