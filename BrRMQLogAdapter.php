@@ -12,24 +12,22 @@ require_once(__DIR__.'/BrGenericLogAdapter.php');
 
 class BrRMQLogAdapter extends BrGenericLogAdapter {
 
-  var $exchangeName = 'logger';
-  var $rmq;
+  private $exchangeName;
+  private $routingKey;
+  private $rmq;
 
-  function __construct($exchangeName = 'logger') {
+  function __construct($params = array()) {
 
     parent::__construct();
 
-    if ($exchangeName) {
-      $this->exchangeName = $exchangeName;
-    }
+    $this->exchangeName = br($params, 'exchangeName', 'logger');
+    $this->routingKey   = br($params, 'routingKey');
 
     try {
-      $this->rmq = br()->rabbitMQ()->connect( array( 'host'     => br()->config()->get('RMQ/Host')
-                                                   , 'port'     => br()->config()->get('RMQ/Port')
-                                                   , 'login'    => br()->config()->get('RMQ/Login')
-                                                   , 'password' => br()->config()->get('RMQ/Password')
-                                                   , 'vhost'    => br()->config()->get('RMQ/VirtualHost')
-                                                   ) );
+      $this->rmq = new BrRabbitMQ();
+      $this->rmq->connect($params);
+
+      $this->rmq->createExchange($this->exchangeName, br($params, 'exchangeType', 'topic'), br($params, 'exchangePassive'));
     } catch (Exception $e) {
       $this->disable();
     }
@@ -102,9 +100,7 @@ class BrRMQLogAdapter extends BrGenericLogAdapter {
           }
         }
 
-        $this->rmq->sendMessage( $this->exchangeName
-                               , $envelope
-                               );
+        $this->rmq->sendMessage($this->exchangeName, $envelope, $this->routingKey);
       } catch (Exception $e) {
         $this->disable();
       }
