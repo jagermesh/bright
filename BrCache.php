@@ -60,6 +60,9 @@ class BrCache extends BrObject {
       case "xcache":
         require_once(__DIR__.'/BrXCacheCacheProvider.php');
         return new BrXCacheCacheProvider($cacheConfig);
+      case "redis":
+        require_once(__DIR__.'/BrRedisCacheProvider.php');
+        return new BrRedisCacheProvider($cacheConfig);
       default:
         require_once(__DIR__.'/BrMemoryCacheProvider.php');
         return new BrMemoryCacheProvider($cacheConfig);
@@ -79,6 +82,9 @@ class BrCache extends BrObject {
       case "xcache":
         require_once(__DIR__.'/BrXCacheCacheProvider.php');
         return BrXCacheCacheProvider::isSupported();
+      case "redis":
+        require_once(__DIR__.'/BrRedisCacheProvider.php');
+        return BrRedisCacheProvider::isSupported();
       default:
         return true;
         break;
