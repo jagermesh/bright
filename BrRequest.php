@@ -25,7 +25,7 @@ class BrRequest extends BrSingleton {
   private $domain = null;
   private $putVars = array();
   private $serverAddr = null;
-  private $rawInput = null;
+  private $contentType = null;
   private $urlRestrictions = array();
 
   function __construct() {
@@ -89,13 +89,17 @@ class BrRequest extends BrSingleton {
       $this->baseUrl = $baseUrl;
       $this->frameworkUrl = $this->baseUrl() . br()->relativePath();
       $this->scriptName = $scriptName;
+      $this->contentType = br($_SERVER, 'CONTENT_TYPE');
 
-      $this->rawInput = file_get_contents("php://input");
+      if ($this->contentType == 'application/octet-stream') {
 
-      if ($json = @json_decode($this->rawInput, true)) {
-        $this->putVars = $json;
       } else {
-        parse_str($this->rawInput, $this->putVars);
+        $rawInput = file_get_contents('php://input');
+        if ($json = @json_decode($rawInput, true)) {
+          $this->putVars = $json;
+        } else {
+          parse_str($rawInput, $this->putVars);
+        }
       }
 
       if (!$_POST) {
@@ -468,7 +472,7 @@ class BrRequest extends BrSingleton {
 
   function rawInput() {
 
-    return $this->rawInput;
+    return file_get_contents('php://input');
 
   }
 
