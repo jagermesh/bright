@@ -34,7 +34,12 @@
         var width = _this.ctrl.innerWidth();
         var height = _this.ctrl.innerHeight();
         _this.ctrl.text('');
-        _this.editor = $('<input type="text" />');
+        var isTextarea = (_this.ctrl.attr('data-editable-type') == 'textarea');
+        if (isTextarea) {
+          _this.editor = $('<textarea rows="3"></textarea>');
+        } else {
+          _this.editor = $('<input type="text" />');
+        }
         _this.editor.addClass('form-control');
         _this.editor.css('width', '100%');
         _this.editor.css('height', '100%');
@@ -55,18 +60,22 @@
           content = _this.options.onGetContent.call(_this.ctrl, _this.editor, content);
         }
         _this.editor.val(content);
-        _this.ctrl.css('width', width - 10);
+        // _this.ctrl.css('width', width - 10);
         _this.editor.focus();
         $('div.popover').remove();
         if (!_this.options.hideHint) {
-          if (_this.options.saveOnLoosingFocus) {
-            _this.editor.popover({placement: _this.options.popover_placement, animation: false, trigger: 'manual', content: 'WARNING!!! Changes will be saved after leaving input box, by pressing [Enter], or by pressing [Tab]. Press [Esc] to cancel changes.'});
+          if (_this.options.saveOnLoosingFocus || isTextarea) {
+            if (isTextarea) {
+              _this.editor.popover({placement: _this.options.popover_placement, animation: false, trigger: 'manual', content: 'WARNING!!! Changes will be saved after leaving input box or by pressing [Tab]. Press [Esc] to cancel changes.'});
+            } else {
+              _this.editor.popover({placement: _this.options.popover_placement, animation: false, trigger: 'manual', content: 'WARNING!!! Changes will be saved after leaving input box, by pressing [Enter], or by pressing [Tab]. Press [Esc] to cancel changes.'});
+            }
           } else {
             _this.editor.popover({placement: _this.options.popover_placement, animation: false, trigger: 'manual', content: 'Press [Enter] to save changes, [Esc] to cancel changes.'});
           }
         }
         _this.editor.popover('show');
-        if (_this.options.saveOnLoosingFocus) {
+        if (_this.options.saveOnLoosingFocus || isTextarea) {
           $(_this.editor).on('keydown', function(e) {
             if (e.keyCode == 9) {
               var content = $(this).val();

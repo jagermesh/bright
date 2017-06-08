@@ -488,6 +488,11 @@
               data[dataField] = content;
               _this.dataSource.update( rowid
                                      , data
+                                     , function(result, response) {
+                                         if (result) {
+                                           _this.events.trigger('editable.update', $this, content);
+                                         }
+                                       }
                                      );
             }
           });

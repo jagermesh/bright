@@ -160,6 +160,7 @@
 
         if (!disableEvents) {
           _this.events.triggerBefore('update', request, options, rowid);
+          disableEvents = options && options.disableEvents;
         }
 
         if (this.options.crossdomain) {
