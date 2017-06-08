@@ -46,5 +46,10 @@ class BrRenderer extends BrObject {
 
   }
 
+  function reject($pattern) {
+
+    $this->renderer->reject($pattern);
+  }
+
 }
 
