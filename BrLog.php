@@ -15,6 +15,7 @@ class BrLog extends BrSingleton {
 
   private $initTime = null;
   private $initMicroTime = null;
+  private $savedMicroTime = null;
   private $logLevel = 0;
   private $adapters = array();
 
@@ -23,6 +24,7 @@ class BrLog extends BrSingleton {
     parent::__construct();
 
     $this->initMicroTime = br()->getMicrotime();
+    $this->savedMicroTime = $this->initMicroTime;
     $this->initTime = @strftime('%H:%M:%S');
     if (br()->config()->has('br/log/enabled')) {
       if (!br()->config()->get('br/log/enabled')) {
@@ -79,6 +81,12 @@ class BrLog extends BrSingleton {
 
   }
 
+  function saveTime() {
+
+    return $this->savedMicroTime = br()->getMicrotime();
+
+  }
+
   function getInitTime() {
 
     return $this->initTime;
@@ -91,9 +99,21 @@ class BrLog extends BrSingleton {
 
   }
 
+  function getSavedTimeOffset() {
+
+    return br()->getMicrotime() - $this->savedMicroTime;
+
+  }
+
   function getFormattedTimeOffset() {
 
     return br()->formatDuration($this->getTimeOffset());
+
+  }
+
+  function getFormattedSavedTimeOffset() {
+
+    return br()->formatDuration($this->getSavedTimeOffset());
 
   }
 

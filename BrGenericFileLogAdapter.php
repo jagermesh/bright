@@ -152,6 +152,9 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter {
             if ($time = br()->log()->getFormattedTimeOffset()) {
               $logMessage .= '+' . $time;
             }
+            if ($time = br()->log()->getFormattedSavedTimeOffset()) {
+              $logMessage .= '+' . $time;
+            }
             $logMessage .= ' ';
           }
           if ($logLevel = br()->log()->getLevel()) {
@@ -160,6 +163,8 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter {
           $logMessage .= $message;
         }
         $logMessage .= "\n";
+
+        br()->log()->saveTime();
 
         @fwrite($this->filePointer, $logMessage);
       }
