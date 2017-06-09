@@ -150,6 +150,9 @@ class BrString {
 
   function split($delimiters = ',;', $removEmpty = true) {
     $result = preg_split('/[' . $delimiters . ']/', $this->value);
+    for($i = 0; $i < count($result); $i++) {
+      $result[$i] = trim($result[$i]);
+    }
     if ($removEmpty) {
       $result = br($result)->removeEmptyValues(false);
     }
