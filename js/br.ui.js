@@ -7,6 +7,8 @@
  *
  */
 
+/* jshint scripturl:true */
+
 ;(function ($, window) {
 
   window.br = window.br || {};
@@ -121,8 +123,10 @@
               '</label>';
     }
     if (br.isEmpty(buttons)) {
-      var yesTitle = options.yesTitle || br.trn('Yes');
-      s = s + '<a href="javascript:;" class="btn btn-sm btn-primary action-confirm-close" rel="confirm">&nbsp;' + yesTitle + '&nbsp;</a>';
+      var yesTitle    = options.yesTitle || br.trn('Yes');
+      var yesLink     = options.yesLink || 'javascript:;';
+      var targetBlank = options.yesLink && !options.targetSamePage;
+      s = s + '<a href="' + yesLink + '" ' + (targetBlank ? 'target="_blank"' : '') + ' class="btn btn-sm btn-primary action-confirm-close" rel="confirm">&nbsp;' + yesTitle + '&nbsp;</a>';
     } else {
       for(i in buttons) {
         s = s + '<a href="javascript:;" class="btn btn-sm btn-default action-confirm-close" rel="' + i + '">&nbsp;' + buttons[i] + '&nbsp;</a>';
