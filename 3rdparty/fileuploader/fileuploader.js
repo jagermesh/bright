@@ -394,23 +394,25 @@ qq.FileUploaderBasic.prototype = {
         if (this._handler instanceof qq.UploadHandlerXhr){
             this._uploadFileList(input.files);
         } else {
-            if (this._validateFile(input)){
-                this._uploadFile(input);
+            var $this = this;
+            if (this._validateFile(input,function() {
+                $this._uploadFile(input);
+              })){
+              return true;
             }
         }
         this._button.reset();
     },
     _uploadFileList: function(files){
+        var $this = this;
         for (var i=0; i<files.length; i++){
-            if ( this._validateFile(files[i])){
-                this._uploadFile(files[i]);
-                //return;
-            }
+          if ( $this._validateFile(files[i],function() {
+              $this._uploadFile(files[i]);
+            })){
+            return true;
+          }
         }
 
-        // for (var i=0; i<files.length; i++){
-        //     this._uploadFile(files[i]);
-        // }
     },
     _uploadFile: function(fileContainer){
         var id = this._handler.add(fileContainer);
@@ -421,7 +423,7 @@ qq.FileUploaderBasic.prototype = {
             this._handler.upload(id, this._options.params);
         }
     },
-    _validateFile: function(file){
+    _validateFile: function(file,callback){
         var name, size;
 
         if (file.value){
@@ -449,6 +451,14 @@ qq.FileUploaderBasic.prototype = {
         } else if (size && size < this._options.minSizeLimit){
             this._error('minSizeError', name);
             return false;
+        }
+
+        if (this._options.onValidateFile){
+          this._options.onValidateFile(callback);
+        }else{
+          if(typeof callback == 'function') {
+            callback();
+          }
         }
 
         return true;
