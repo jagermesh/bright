@@ -329,6 +329,10 @@ class BrRequest extends BrSingleton {
       return true;
     }
 
+    if (preg_match('/^lo-[a-z]{1,}[.]edoctrina[.]org$/ism', $this->domain())) {
+      return true;
+    }
+
     $result = false;
     $domain = $this->domain();
 
