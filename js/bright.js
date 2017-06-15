@@ -3641,6 +3641,7 @@
   * http://brightfw.com
  *
  */
+/*jshint scripturl:true*/
 
 ;(function ($, window) {
 
@@ -3757,7 +3758,8 @@
     }
     if (br.isEmpty(buttons)) {
       var yesTitle = options.yesTitle || br.trn('Yes');
-      s = s + '<a href="javascript:;" class="btn btn-sm btn-primary action-confirm-close" rel="confirm">&nbsp;' + yesTitle + '&nbsp;</a>';
+      var yesLink =  options.yesLink || 'javascript:;';
+      s = s + '<a href="'+yesLink+'" class="btn btn-sm btn-primary action-confirm-close" rel="confirm">&nbsp;' + yesTitle + '&nbsp;</a>';
     } else {
       for(i in buttons) {
         s = s + '<a href="javascript:;" class="btn btn-sm btn-default action-confirm-close" rel="' + i + '">&nbsp;' + buttons[i] + '&nbsp;</a>';
