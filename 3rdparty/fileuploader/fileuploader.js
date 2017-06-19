@@ -427,8 +427,8 @@ qq.FileUploaderBasic.prototype = {
             name = file.value.replace(/.*(\/|\\)/, "");
         } else {
             // fix missing properties in Safari
-            name = file.fileName !== null ? file.fileName : file.name;
-            size = file.fileSize !== null ? file.fileSize : file.size;
+            name = file.fileName ? file.fileName : file.name;
+            size = file.fileSize ? file.fileSize : file.size;
         }
 
         if (! this._isAllowedExtension(name)){
@@ -456,7 +456,7 @@ qq.FileUploaderBasic.prototype = {
             callback(file);
           });
         } else {
-          callback.call(file);
+          callback(file);
         }
 
         return true;
