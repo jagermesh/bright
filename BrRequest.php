@@ -27,6 +27,7 @@ class BrRequest extends BrSingleton {
   private $serverAddr = null;
   private $contentType = null;
   private $urlRestrictions = array();
+  private $restrictionsLoaded = false;
 
   function __construct() {
 
@@ -37,6 +38,9 @@ class BrRequest extends BrSingleton {
       $this->protocol   = br()->config()->get('br/request/consoleModeWebProtocol', 'http://');
       $this->host       = br()->config()->get('br/request/consoleModeBaseHost',    $this->protocol . $this->domain);
       $this->baseUrl    = br()->config()->get('br/request/consoleModeBaseUrl',     '/');
+
+      $this->urlRestrictions    = array();
+      $this->restrictionsLoaded = true;
 
     } else {
 
@@ -136,11 +140,9 @@ class BrRequest extends BrSingleton {
 
       $this->clientIP = br(array_unique(br($this->clientIP)->split()))->join();
 
-    }
+      $this->urlRestrictions    = array();
+      $this->restrictionsLoaded = false;
 
-    $this->urlRestrictions = br()->session()->get('urlRestrictions', array());
-    if (!is_array($this->urlRestrictions)) {
-      $this->urlRestrictions = array();
     }
 
   }
@@ -604,6 +606,16 @@ class BrRequest extends BrSingleton {
   function checkUrlRestrictions() {
 
     $this->trigger('checkUrlRestrictions');
+
+    if (!$this->restrictionsLoaded) {
+      $this->urlRestrictions = br()->session()->get('urlRestrictions', array());
+
+      if (!is_array($this->urlRestrictions)) {
+        $this->urlRestrictions = array();
+      }
+
+      $this->restrictionsLoaded = true;
+    }
 
     foreach($this->urlRestrictions as $restriction) {
       if (br($restriction, 'type') == 'allowOnly') {
