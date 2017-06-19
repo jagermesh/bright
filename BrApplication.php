@@ -28,12 +28,7 @@ class BrApplication extends BrSingleton {
 
   function main() {
 
-    br()
-      ->request()
-        ->route('bright-assets.js', function() {
-            br()->assetsCache()->send('js');
-          })
-    ;
+    @session_cache_limiter('nocache');
 
     if ($token = br()->request()->param('__loginToken')) {
       br()->auth()->clearLogin();
@@ -90,14 +85,8 @@ class BrApplication extends BrSingleton {
 
     if ($controllerFile) {
       br()->log()->write('Controller: '.$controllerFile);
-      // if (br()->callerScript() != $controllerFile) {
-        br()->import($controllerFile);
-        exit();
-      // }
-    } else {
-      // if (!br()->config()->get('simpleMode')) {
-      //   br()->response()->send404();
-      // }
+      br()->import($controllerFile);
+      exit();
     }
 
   }
