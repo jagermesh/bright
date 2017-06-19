@@ -138,6 +138,11 @@ class BrRequest extends BrSingleton {
 
     }
 
+    $this->urlRestrictions = br()->session()->get('urlRestrictions', array());
+    if (!is_array($this->urlRestrictions)) {
+      $this->urlRestrictions = array();
+    }
+
   }
 
   /**
@@ -596,15 +601,15 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function setUrlRestrictions($restriction) {
+  function checkUrlRestrictions() {
 
-    $this->urlRestrictions[] = $restriction;
+    $this->trigger('checkUrlRestrictions');
 
     foreach($this->urlRestrictions as $restriction) {
-      if ($restriction['type'] == 'allowOnly') {
-        if ($restriction['rule']) {
+      if (br($restriction, 'type') == 'allowOnly') {
+        if (br($restriction, 'rule')) {
           if (!$this->isAt($restriction['rule'])) {
-            if ($restriction['redirect']) {
+            if (br($restriction, 'redirect')) {
               br()->auth()->clearLogin();
               br()->response()->redirect($restriction['redirect']);
             } else {
@@ -614,6 +619,29 @@ class BrRequest extends BrSingleton {
         }
       }
     }
+
+  }
+
+  function setUrlRestrictions($restriction) {
+
+    $this->urlRestrictions = $restriction;
+    br()->session()->set('urlRestrictions', $this->urlRestrictions);
+    $this->checkUrlRestrictions();
+
+  }
+
+  function addUrlRestriction($restriction) {
+
+    $this->urlRestrictions[] = $restriction;
+    br()->session()->set('urlRestrictions', $this->urlRestrictions);
+    $this->checkUrlRestrictions();
+
+  }
+
+  function clearUrlRestrictions() {
+
+    $this->urlRestrictions[] = array();
+    br()->session()->clear('urlRestrictions');
 
   }
 

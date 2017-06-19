@@ -40,6 +40,7 @@ class BrApplication extends BrSingleton {
     }
 
     br()->auth()->checkLogin(false);
+    br()->request()->checkUrlRestrictions();
 
     $request = br()->request();
     $scriptName = $request->scriptName();
