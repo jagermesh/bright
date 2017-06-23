@@ -34,7 +34,7 @@ module.exports = function(grunt) {
     },
     uglify: {
       options: {
-        banner: '/* jshint ignore:start */ /*! <%= pkg.name %> <%= grunt.template.today("dd-mm-yyyy") %> */\n'
+        banner: '/* jshint ignore:start */ /*! <%= pkg.name %> */\n'
       },
       dist: {
         files: {
