@@ -50,17 +50,31 @@ class BrFileRenderer extends BrGenericRenderer {
     $templateFile = $template['file'];
     $content = $template['content'];
 
-    // replace @@template-name with template and compile
+    // replace @@template-name with compiled template
     while (preg_match('/[{]([@]+)([^}]+)[}]/', $content, $matches)) {
-      $includeFileName = dirname($templateFile).'/'.$matches[2];
+      $compileSubtemplate = ($matches[1] == '@@');
+      $internalSubst = $subst;
+      $fileName = $matches[2];
+      if (preg_match('/^([^ ]+?)[ ](.+)/', $fileName, $matches2)) {
+        $fileName = $matches2[1];
+        $compileSubtemplate = true;
+        $varGroups = br($matches2[2])->split(' ');
+        foreach($varGroups as $varGroup) {
+          $vars = br($varGroup)->split('=');
+          if (count($vars) == 2) {
+            $internalSubst[$vars[0]] = trim($vars[1], '"');
+          }
+        }
+      }
+      $includeFileName = dirname($templateFile) . '/' . $fileName;
       $template = $this->fetchFile($includeFileName);
-      if ($matches[1] == '@@') {
-        $template['content'] = $this->compile($template['content'], $subst, dirname($includeFileName));
+      if ($compileSubtemplate) {
+        $template['content'] = $this->compile($template['content'], $internalSubst);
       }
       $content = str_replace($matches[0], $template['content'], $content);
     }
 
-    $content = $this->compile($content, $subst, dirname($templateName));
+    $content = $this->compile($content, $subst);
 
     return $content;
 
