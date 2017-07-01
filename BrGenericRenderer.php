@@ -59,7 +59,7 @@ class BrGenericRenderer extends BrObject {
 
   }
 
-  public function fetchString($string, $subst= array()) {
+  public function fetchString($string, $subst = array()) {
 
   }
 

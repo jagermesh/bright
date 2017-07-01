@@ -16,6 +16,10 @@ class BrDatabasePatch {
   private $className;
   private $patchFile;
 
+  const DO_ABORT    = 0;
+  const DO_CONTINUE = 1;
+  const DO_RETRY    = 2;
+
   function __construct($patchFile) {
 
     $this->patchFile = $patchFile;
@@ -52,7 +56,7 @@ class BrDatabasePatch {
 
   }
 
-  function checkRequirements() {
+  function checkRequirements($raiseError = false) {
 
     br()->assert($this->guid, 'Please generate GUID for this patch');
 
@@ -63,7 +67,11 @@ class BrDatabasePatch {
       if ($patch['patch_hash'] != $this->patchHash) {
         throw new BrAppException('[' . $this->className . '] Error. Same patch already registered but has different hash: ' . $patch['patch_hash']);
       } else {
-        return false;
+        if ($raiseError) {
+          throw new BrAppException('[' . $this->className . '] Error. Already applied');
+        } else {
+          return false;
+        }
       }
     }
 
@@ -97,24 +105,45 @@ class BrDatabasePatch {
       $error = '[' . $this->className . '] UP error step "' . $stepName . '":' . "\n\n" . $e->getMessage();
       br()->log()->write('[' . $this->className . '] DOWN step "' . $stepName . '"');
       try {
-        $rerun = $this->down($stepName, $e->getMessage());
+        $retry = $this->down($stepName, $e->getMessage());
       } catch (Exception $e2) {
         $error = $error . "\n" .
                  '[' . $this->className . '] DOWN error step "' . $stepName . '":' . "\n\n" . $e2->getMessage();
         throw new BrAppException($error);
       }
-      if ($rerun) {
-        br()->log()->write($error, 'RED');
-        br()->log()->write('[' . $this->className . '] DOWN step "' . $stepName . '" requested rerun');
-        try {
-          br()->db()->runQuery($sql);
-        } catch (Exception $e) {
-          $error = '[' . $this->className . '] UP error step "' . $stepName . '":' . "\n\n" . $e->getMessage();
+      switch ($retry) {
+        case self::DO_CONTINUE:
+          break;
+        case self::DO_RETRY:
+          br()->log()->write($error, 'RED');
+          br()->log()->write('[' . $this->className . '] DOWN step "' . $stepName . '" requested rerun');
+          try {
+            br()->db()->runQuery($sql);
+          } catch (Exception $e) {
+            $error = '[' . $this->className . '] UP error step "' . $stepName . '":' . "\n\n" . $e->getMessage();
+            throw new BrAppException($error);
+          }
+          break;
+        default:
           throw new BrAppException($error);
-        }
-      } else {
-        throw new BrAppException($error);
       }
+    }
+
+  }
+
+  static function generatePatchScript($name, $path) {
+
+    $name     = ucfirst($name);
+    $fileName = $path . '/patches/Patch' . $name . '.php';
+
+    if (file_exists($fileName)) {
+      throw new BrAppException('Such patch already exists - ' . $fileName);
+    } else {
+      br()->fs()->saveToFile( $fileName
+                            , br()->renderer()->fetchString( br()->fs()->loadFromFile(__DIR__ . '/templates/DBPatch.tpl')
+                                                           , array( 'guid' => br()->guid()
+                                                                  , 'name' => $name
+                                                                  )));
     }
 
   }

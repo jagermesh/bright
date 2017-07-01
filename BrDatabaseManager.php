@@ -19,20 +19,31 @@ class BrDatabaseManager {
 
   }
 
-  function run() {
+  function run($patchName = null) {
 
-    // if (!br()->isConsoleMode()) { br()->panic('Console mode only'); }
-    // br()->log('Trying to acquire lock for this script to avoid conflict with running instance');
+    if (!br()->isConsoleMode()) { br()->panic('Console mode only'); }
     $handle = br()->OS()->lockIfRunning(br()->callerScript());
 
     $patches      = array();
     $patchObjects = array();
 
-    br()->fs()->iterateDir(br()->basePath(), '^Patch.*[.]php$', function($patchFile) use (&$patches) {
-      $patches[] = array( 'classFile' => $patchFile->nameWithPath()
-                        , 'className' => br()->fs()->fileNameOnly($patchFile->name())
-                        );
-    });
+    if ($patchName) {
+      $patchFile = br()->basePath() . 'patches/' . $patchName . '.php';
+      if (file_exists($patchFile)) {
+        $patches[] = array( 'classFile' => $patchFile
+                          , 'className' => $patchName
+                          );
+      } else {
+        throw new BrAppException('[' . $patchName . '] Patch not found');
+      }
+    } else {
+      br()->fs()->iterateDir(br()->basePath() . 'patches/', '^Patch.+[.]php$', function($patchFile) use (&$patches) {
+        $patches[] = array( 'classFile' => $patchFile->nameWithPath()
+                          , 'className' => br()->fs()->fileNameOnly($patchFile->name())
+                          );
+      });
+    }
+
 
     foreach($patches as $patchDesc) {
       $classFile = $patchDesc['classFile'];
@@ -40,7 +51,7 @@ class BrDatabaseManager {
       require_once($classFile);
       $patch = new $className($classFile);
       $patch->init();
-      if ($patch->checkRequirements()) {
+      if ($patch->checkRequirements($patchName)) {
         $patchObjects[] = $patch;
       }
     }

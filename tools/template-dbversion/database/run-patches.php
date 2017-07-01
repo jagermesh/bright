@@ -6,4 +6,4 @@ br()->importLib('DatabaseManager');
 br()->importLib('DatabasePatch');
 
 $databaseManager = new BrDatabaseManager();
-$databaseManager->run();
+$databaseManager->run(@$argv[1]);
