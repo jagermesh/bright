@@ -104,4 +104,21 @@ class BrJobCustomJob {
 
   }
 
+  static function generateJobScript($name, $path) {
+
+    $name     = ucfirst($name);
+    $fileName = $path . '/jobs/Job' . $name . '.php';
+
+    if (file_exists($fileName)) {
+      throw new BrAppException('Such job already exists - ' . $fileName);
+    } else {
+      br()->fs()->saveToFile( $fileName
+                            , br()->renderer()->fetchString( br()->fs()->loadFromFile(__DIR__ . '/templates/Job.tpl')
+                                                           , array( 'guid' => br()->guid()
+                                                                  , 'name' => $name
+                                                                  )));
+    }
+
+  }
+
 }

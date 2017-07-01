@@ -1,6 +1,8 @@
 <?php
 
-class JobExample extends BrJobCustomJob {
+br()->importLib('JobCustomJob');
+
+class Job[[name]] extends BrJobCustomJob {
 
   function timeToStart($period = 5) {
 

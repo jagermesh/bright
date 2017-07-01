@@ -36,18 +36,23 @@ class BrJobStarter {
           } else {
             $tag = 'run-' . $tag;
           }
-          br()->log('Trying to acquire lock for this script to avoid conflict with running instance');
           $handle = br()->OS()->lockIfRunning($tag);
           require_once($classFile);
           $job = new $className();
-          if ($check) {
-            $job->check();
-          } else {
-            $job->run($arguments);
+          try {
+            if ($check) {
+              br()->log()->write('[' . $className . '] Check');
+              $job->check();
+            } else {
+              br()->log()->write('[' . $className . '] Run');
+              $job->run($arguments);
+            }
+            br()->log()->write('[' . $className . '] Done');
+            return true;
+          } finally {
+            @fclose($handle);
+            @unlink(br()->OS()->lockFileName($tag));
           }
-          @fclose($handle);
-          @unlink(br()->OS()->lockFileName($tag));
-          return true;
         }
       } else {
         br()->log('[ERROR] Job file ' . $classFile . ' not found');
