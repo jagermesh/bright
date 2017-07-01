@@ -289,11 +289,6 @@ class BrLog extends BrSingleton {
     $shortErrorMessage .= ': ';
     $shortErrorMessage .= $e->getMessage();
     $errorInfo = '';
-    if (preg_match('/\[INFO:([^]]+)\](.+)\[\/INFO\]/ism', $shortErrorMessage, $matches)) {
-      $info_name = $matches[1];
-      $errorInfo = $matches[2];
-      $shortErrorMessage = str_replace('[INFO:' . $info_name.']' . $errorInfo . '[/INFO]', '', $shortErrorMessage);
-    }
     $errorLog  = $shortErrorMessage;
     $errorLog .= "\n" . '    in ' . $e->getFile() . ', line ' . $e->getLine();
     if ($errorInfo) {

@@ -95,7 +95,7 @@ class BrErrorHandler extends BrObject {
         try {
           if ($e instanceof BrAppException) {
             if (br()->isConsoleMode()) {
-              br()->log($e->getMessage());
+              br()->log()->write($e->getMessage(), 'RED');
             }
           } else {
             br()->log()->logException($e, true);

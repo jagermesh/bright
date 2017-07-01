@@ -62,14 +62,6 @@ class BrWebLogAdapter extends BrGenericLogAdapter {
 
       if (br()->request()->isLocalHost() && !($e instanceof BrAppException)) {
         $errorFile = $e->getFile() . ', line ' . $e->getLine();
-
-        $errorInfo = '';
-        if (preg_match('/\[INFO:([^]]+)\](.+)\[\/INFO\]/ism', $errorMessage, $matches)) {
-          $info_name = $matches[1];
-          $errorInfo = $matches[2];
-          $errorMessage = str_replace('[INFO:' . $info_name.']' . $errorInfo . '[/INFO]', '', $errorMessage);
-        }
-
         $traceInfo = br()->log()->getStackTraceFromException($e);
       }
 

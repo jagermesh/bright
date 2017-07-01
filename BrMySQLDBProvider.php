@@ -124,7 +124,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     if (count($args) > 0) {
       $queryText = br()->placeholderEx($sql, $args, $error);
       if (!$queryText) {
-        $error = $error . '. [INFO:SQL]' . $sql . '[/INFO]';
+        $error = $error . '.' . "\n" . $sql;
         throw new BrDBException($error);
       }
     } else {
@@ -132,7 +132,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     }
 
     if ($iteration > $this->rerunIterations) {
-      $error = $rerunError . '. [INFO:SQL]' . $queryText . '[/INFO]';
+      $error = $rerunError . '.' . "\n" . $queryText;
       throw new BrDBException($error);
     }
 
@@ -184,7 +184,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
             $error  = $e->getMessage();
             $error .= '. Automatic retrying was not possible - ' . $this->transactionBufferLength() . ' statement(s) in transaction buffer: ';
             $error .= json_encode($this->transactionBuffer());
-            $error .= '. [INFO:SQL]' . $sql . '[/INFO]';
+            $error .= '.' . "\n" . $sql;
             if (preg_match('/Deadlock found when trying to get lock/', $error)) {
               throw new BrDBDeadLockException($error);
             } else
@@ -217,7 +217,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
       } else {
         $error  = $e->getMessage();
-        $error .= '. [INFO:SQL]' . $sql . '[/INFO]';
+        $error .= '.' . "\n" . $sql;
         throw new BrDBException($error);
       }
     }

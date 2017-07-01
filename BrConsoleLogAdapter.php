@@ -23,6 +23,7 @@ class BrConsoleLogAdapter extends BrGenericLogAdapter {
     $out = '';
     switch($group) {
       case 'ERR':
+      case 'RED':
         $out = '[31m'; //Red background
         break;
       case 'SUCCESS':
@@ -54,7 +55,7 @@ class BrConsoleLogAdapter extends BrGenericLogAdapter {
   function writeMessage($message, $group = 'MSG', $tagline = '') {
 
     if (($group != 'QRY') && ($group != 'SEP')) {
-      $this->write($message);
+      $this->write($message, $group);
     }
 
   }

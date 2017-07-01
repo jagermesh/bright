@@ -180,18 +180,16 @@ class BrOS extends BrObject {
       @chmod($lockFile, 0777);
     }
 
-    br()->log($lockFile);
-
     if ($handle = @fopen($lockFile, 'w+')) {
       if (@flock($handle, LOCK_EX | LOCK_NB)) {
         @fwrite($handle, $scriptCommand);
         @chmod($lockFile, 0777);
         return $handle;
       } else {
-        throw new BrAppException('Can not acquire script lock');
+        throw new BrAppException('Can not acquire script lock, trying to lock ' . $lockFile);
       }
     } else {
-      throw new BrAppException('Can not acquire script lock');
+      throw new BrAppException('Can not acquire script lock, trying to lock ' . $lockFile);
     }
 
   }
