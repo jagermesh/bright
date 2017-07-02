@@ -10,14 +10,15 @@ class BrDatabaseDictionary extends BrObject {
           if (is_scalar($value)) {
             $value = trim($value);
             if ($columnDesc = br($tableDesc, $fieldName)) {
+              $columnTitle = br($columnDesc, 'column_comment', ucwords(str_replace('_', ' ', $fieldName)));
               if (!strlen($value) && $columnDesc['required']) {
-                throw new BrAppException(br($columnDesc, 'column_comment', $fieldName) . ' is required field');
+                throw new BrAppException($columnTitle . ' is required field.');
               } else
               if (strlen($value) < $columnDesc['min_length']) {
-                throw new BrAppException(br($columnDesc, 'column_comment', $fieldName) . ' too short. Minimum length is ' . $columnDesc['min_length']);
+                throw new BrAppException($columnTitle . ' too short. Minimum length is ' . $columnDesc['min_length'] . '.');
               } else
               if (strlen($value) > $columnDesc['max_length']) {
-                throw new BrAppException(br($columnDesc, 'column_comment', $fieldName) . ' too long. Maximum length is ' . $columnDesc['max_length']);
+                throw new BrAppException($columnTitle . ' too long. Maximum length is ' . $columnDesc['max_length'] . '.');
               }
             }
           }
