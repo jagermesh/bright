@@ -1,8 +1,8 @@
 <?php
 
-br()->importLib('DatabaseDictionary');
+br()->importLib('DataBaseDictionary');
 
-class DatabaseDictionary extends BrDatabaseDictionary {
+class DataBaseDictionary extends BrDataBaseDictionary {
 
   public $schema = array(
 [[#schema]]
