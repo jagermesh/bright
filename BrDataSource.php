@@ -353,6 +353,8 @@ class BrDataSource extends BrGenericDataSource {
 
     $this->validateInsert($row);
 
+    br()->db()->validate($this->dbEntity(), $row);
+
     $result = $this->callEvent('insert', $row, $transientData, $old, $options);
     if (is_null($result)) {
       try {
@@ -439,6 +441,8 @@ class BrDataSource extends BrGenericDataSource {
         $this->callEvent('before:update', $crow, $transientData, $old, $options);
 
         $this->validateUpdate($old, $crow);
+
+        br()->db()->validate($this->dbEntity(), $crow);
 
         $result = $this->callEvent('update', $crow, $transientData, $old, $options);
         if (is_null($result)) {

@@ -490,7 +490,7 @@
                                      , data
                                      , function(result, response) {
                                          if (result) {
-                                           _this.events.trigger('editable.update', $this, content);
+                                           // _this.events.trigger('editable.update', $this, content);
                                          }
                                        }
                                      );

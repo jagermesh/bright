@@ -140,7 +140,7 @@ class BrDatabasePatch {
       throw new BrAppException('Such patch already exists - ' . $fileName);
     } else {
       br()->fs()->saveToFile( $fileName
-                            , br()->renderer()->fetchString( br()->fs()->loadFromFile(__DIR__ . '/templates/DBPatch.tpl')
+                            , br()->renderer()->fetchString( br()->fs()->loadFromFile(__DIR__ . '/templates/Patch.tpl')
                                                            , array( 'guid' => br()->guid()
                                                                   , 'name' => $name
                                                                   )));
