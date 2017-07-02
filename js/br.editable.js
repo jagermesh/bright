@@ -18,6 +18,8 @@
     }
     options = options || {};
     _this.options = options;
+    _this.options.hideHint = true;
+    _this.options.saveOnLoosingFocus = true;
     _this.options.popover_placement = _this.ctrl.attr('data-popover-placement') || 'bottom';
     _this.editor = null;
     _this.savedWidth = '';
