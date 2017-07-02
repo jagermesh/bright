@@ -13,12 +13,6 @@ require_once(__DIR__ . '/3rdparty/phpQuery/phpQuery.php');
 
 class BrXSS extends BrSingleton {
 
-  function isHtml($text) {
-
-    return preg_match('/<[a-z]+[^>]*?>/i', $text) || preg_match('/&[a-z#0-9]+;/i', $text);
-
-  }
-
   function cleanUp($html) {
 
     if (is_array($html)) {
@@ -26,7 +20,7 @@ class BrXSS extends BrSingleton {
         $html[$key] = $this->cleanUp($html[$key]);
       }
     } else {
-      if ($this->isHtml($html)) {
+      if (br()->HTML()->isHtml($html)) {
         $events = array( 'onbeforecopy'
                        , 'onbeforecut'
                        , 'onbeforepaste'
@@ -54,29 +48,26 @@ class BrXSS extends BrSingleton {
                        );
         try {
           $doc = phpQuery::newDocument($html);
-          try {
-            foreach(pq($doc)->find('img,input,body,link,menu,audio,video,source,track') as $tag) {
-              foreach ($events as $event) {
-                if (pq($tag)->attr($event)) {
-                  pq($tag)->attr($event, '');
-                }
+          foreach(pq($doc)->find('img,input,body,link,menu,audio,video,source,track') as $tag) {
+            foreach ($events as $event) {
+              if (pq($tag)->attr($event)) {
+                pq($tag)->attr($event, '');
               }
             }
-            foreach(pq($doc)->find('base,style,meta,script,object,embed') as $style) {
-              pq($style)->remove();
-            }
-            foreach(pq($doc)->find('iframe') as $tag) {
-              if (!pq($tag)->attr('src') || !preg_match('~^(http[s]?:|)//.*?(vimeo|youtu[.]be|youtube|flickr|soundcloud)[.]com~i', pq($tag)->attr('src'))) {
-                pq($tag)->remove();
-              }
-            }
-            $html = $doc->html();
-            phpQuery::unloadDocuments();
-          } catch (Exception $e) {
-            phpQuery::unloadDocuments();
           }
+          foreach(pq($doc)->find('base,style,meta,script,object,embed') as $style) {
+            pq($style)->remove();
+          }
+          foreach(pq($doc)->find('iframe') as $tag) {
+            if (!pq($tag)->attr('src') || !preg_match('~^(http[s]?:|)//.*?(vimeo|youtu[.]be|youtube|flickr|soundcloud)[.]com~i', pq($tag)->attr('src'))) {
+              pq($tag)->remove();
+            }
+          }
+          $html = $doc->html();
         } catch (Exception $e) {
 
+        } finally {
+          phpQuery::unloadDocuments();
         }
       }
 

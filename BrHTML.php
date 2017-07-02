@@ -21,58 +21,19 @@ class BrHTML extends BrSingleton {
 
   function XSSCleanUp($html) {
 
-    if ($this->isHtml($html)) {
-      $events = array( 'onbeforecopy'
-                     , 'onbeforecut'
-                     , 'onbeforepaste'
-                     , 'onpaste'
-                     , 'oncut'
-                     , 'oncopy'
-                     , 'ondrag'
-                     , 'ondblclick'
-                     , 'onmousedown'
-                     , 'onmouseout'
-                     , 'onmouseover'
-                     , 'onmouseup'
-                     , 'onmouseenter'
-                     , 'onmousemove'
-                     , 'onmouseleave'
-                     , 'onfocus'
-                     , 'onfocusin'
-                     , 'onfocusout'
-                     , 'onload'
-                     , 'onshow'
-                     , 'onerror'
-                     , 'onmouseout'
-                     , 'onmouseover'
-                     , 'onclick'
-                     );
-      try {
-        $doc = phpQuery::newDocument($html);
-        try {
-          foreach(pq($doc)->find('img,input,body,link,menu,audio,video,source,track') as $tag) {
-            foreach ($events as $event) {
-              if (pq($tag)->attr($event)) {
-                pq($tag)->attr($event, '');
-              }
-            }
-          }
-          foreach(pq($doc)->find('base,style,meta,script,object,embed') as $style) {
-            pq($style)->remove();
-          }
-          foreach(pq($doc)->find('iframe') as $tag) {
-            if (!pq($tag)->attr('src') || !preg_match('~^(http[s]?:|)//.*?(vimeo|youtu[.]be|youtube|flickr|soundcloud)[.]com~i', pq($tag)->attr('src'))) {
-              pq($tag)->remove();
-            }
-          }
-          $html = $doc->html();
-          phpQuery::unloadDocuments();
-        } catch (Exception $e) {
-          phpQuery::unloadDocuments();
-        }
-      } catch (Exception $e) {
+    return br()->XSS()->cleanUp($html);
 
-      }
+  }
+
+  function tidyUp($html) {
+
+    try {
+      $doc = phpQuery::newDocument($html);
+      $html = $doc->html();
+    } catch (Exception $e) {
+
+    } finally {
+      phpQuery::unloadDocuments();
     }
 
     return trim($html);
