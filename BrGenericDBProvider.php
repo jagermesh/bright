@@ -38,11 +38,11 @@ class BrGenericDBProvider extends BrObject {
 
   function validate($tableName, $row) {
 
-    $dictionaryFile = br()->basePath() . 'database/schema/DatabaseDictionary.php';
-    if (file_exists($dictionaryFile)) {
-      require_once($dictionaryFile);
-      $databaseDictionary = DatabaseDictionary::getInstance();
-      $databaseDictionary->validate($tableName, $row);
+    $dataBaseDictionaryFile = br()->basePath() . 'database/schema/DataBaseDictionary.php';
+    if (file_exists($dataBaseDictionaryFile)) {
+      require_once($dataBaseDictionaryFile);
+      $dataBaseDictionary = DataBaseDictionary::getInstance();
+      $dataBaseDictionary->validate($tableName, $row);
     }
 
   }

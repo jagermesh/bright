@@ -1,6 +1,6 @@
 <?php
 
-class PatchExample extends BrDatabasePatch {
+class PatchExample extends BrDataBasePatch {
 
   function init() {
 
@@ -43,7 +43,7 @@ class PatchExample extends BrDatabasePatch {
       case 'step1':
         // probably table already created so let's go to the next step
         if (preg_match('/already exists/', $errorMessage)) {
-          return BrDatabasePatch::DO_CONTINUE;
+          return BrDataBasePatch::DO_CONTINUE;
         }
         break;
       case 'step2':
@@ -51,7 +51,7 @@ class PatchExample extends BrDatabasePatch {
         if (preg_match('/already exists/', $errorMessage)) {
           // we worry that it may have wrong structure so we drop it and rerun this step
           br()->db()->runQuery('DROP TABLE tst2');
-          return BrDatabasePatch::DO_RETRY;
+          return BrDataBasePatch::DO_RETRY;
         }
         break;
       case 'step3':
@@ -61,7 +61,7 @@ class PatchExample extends BrDatabasePatch {
       case 5:
         // these steps don't have names so by default they will have index in order
         // not sure what could be wrong here so we do nothing and let patch to continue
-        return BrDatabasePatch::DO_CONTINUE;
+        return BrDataBasePatch::DO_CONTINUE;
 
     }
 
