@@ -116,6 +116,10 @@ class BrRequest extends BrSingleton {
         }
       }
 
+      $_GET          = br()->XSS()->cleanUp($_GET);
+      $_POST         = br()->XSS()->cleanUp($_POST);
+      $this->putVars = br()->XSS()->cleanUp($this->putVars);
+
       $this->clientIP = br($_SERVER, 'HTTP_CLIENT_IP');
 
       if (!$this->clientIP || ($this->clientIP == 'unknown') || ($this->clientIP == '::1')) {
@@ -467,6 +471,12 @@ class BrRequest extends BrSingleton {
 
   }
 
+  function rawInput() {
+
+    return file_get_contents('php://input');
+
+  }
+
   function get($name = null, $default = null) {
 
     if ($name) {
@@ -474,12 +484,6 @@ class BrRequest extends BrSingleton {
     } else {
       return $_GET;
     }
-
-  }
-
-  function rawInput() {
-
-    return file_get_contents('php://input');
 
   }
 

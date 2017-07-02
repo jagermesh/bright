@@ -8,7 +8,8 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrSingleton.php');
+require_once(__DIR__ . '/BrSingleton.php');
+require_once(__DIR__ . '/3rdparty/phpQuery/phpQuery.php');
 
 class BrHTML extends BrSingleton {
 
@@ -21,33 +22,31 @@ class BrHTML extends BrSingleton {
   function XSSCleanUp($html) {
 
     if ($this->isHtml($html)) {
-      $events = array(
-         'onbeforecopy'
-        ,'onbeforecut'
-        ,'onbeforepaste'
-        ,'onpaste'
-        ,'oncut'
-        ,'oncopy'
-        ,'ondrag'
-        ,'ondblclick'
-        ,'onmousedown'
-        ,'onmouseout'
-        ,'onmouseover'
-        ,'onmouseup'
-        ,'onmouseenter'
-        ,'onmousemove'
-        ,'onmouseleave'
-        ,'onfocus'
-        ,'onfocusin'
-        ,'onfocusout'
-        ,'onload'
-        ,'onshow'
-        ,'onerror'
-        ,'onmouseout'
-        ,'onmouseover'
-        ,'onclick'
-      );
-
+      $events = array( 'onbeforecopy'
+                     , 'onbeforecut'
+                     , 'onbeforepaste'
+                     , 'onpaste'
+                     , 'oncut'
+                     , 'oncopy'
+                     , 'ondrag'
+                     , 'ondblclick'
+                     , 'onmousedown'
+                     , 'onmouseout'
+                     , 'onmouseover'
+                     , 'onmouseup'
+                     , 'onmouseenter'
+                     , 'onmousemove'
+                     , 'onmouseleave'
+                     , 'onfocus'
+                     , 'onfocusin'
+                     , 'onfocusout'
+                     , 'onload'
+                     , 'onshow'
+                     , 'onerror'
+                     , 'onmouseout'
+                     , 'onmouseover'
+                     , 'onclick'
+                     );
       try {
         $doc = phpQuery::newDocument($html);
         try {
