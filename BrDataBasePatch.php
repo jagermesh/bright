@@ -100,7 +100,14 @@ class BrDataBasePatch {
 
     br()->log()->write('[' . $this->className . '] UP step "' . $stepName . '"');
     try {
-      br()->db()->runQuery($sql);
+      if (is_callable($sql)) {
+        $sql();
+      } else {
+        br()->log(br('=')->repeat(80));
+        br()->log($sql);
+        br()->log(br('=')->repeat(80));
+        br()->db()->runQuery($sql);
+      }
     } catch (Exception $e) {
       $error = '[' . $this->className . '] UP error step "' . $stepName . '":' . "\n\n" . $e->getMessage();
       br()->log()->write('[' . $this->className . '] DOWN step "' . $stepName . '"');
@@ -118,7 +125,14 @@ class BrDataBasePatch {
           br()->log()->write($error, 'RED');
           br()->log()->write('[' . $this->className . '] DOWN step "' . $stepName . '" requested rerun');
           try {
-            br()->db()->runQuery($sql);
+            if (is_callable($sql)) {
+              $sql();
+            } else {
+              br()->log(br('=')->repeat(80));
+              br()->log($sql);
+              br()->log(br('=')->repeat(80));
+              br()->db()->runQuery($sql);
+            }
           } catch (Exception $e) {
             $error = '[' . $this->className . '] UP error step "' . $stepName . '":' . "\n\n" . $e->getMessage();
             throw new BrAppException($error);
