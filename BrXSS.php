@@ -26,8 +26,13 @@ class BrXSS extends BrSingleton {
           foreach(pq($doc)->find('*') as $tag) {
             if ($attrs = pq($tag)->attr('*')) {
               foreach ($attrs as $name => $value) {
-                if (strpos($name, 'on') === 0) {
-                  pq($tag)->attr($name, '');
+                if (stripos($name, 'on') === 0) {
+                  pq($tag)->removeAttr($name);
+                } else
+                if (stripos(trim($value), 'javascript:') === 0) {
+                  if (strtolower($value) != 'javascript:;') {
+                    pq($tag)->removeAttr($name);
+                  }
                 }
               }
             }
