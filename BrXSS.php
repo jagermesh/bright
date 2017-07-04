@@ -21,37 +21,14 @@ class BrXSS extends BrSingleton {
       }
     } else {
       if (br()->HTML()->isHtml($html)) {
-        $events = array( 'onbeforecopy'
-                       , 'onbeforecut'
-                       , 'onbeforepaste'
-                       , 'onpaste'
-                       , 'oncut'
-                       , 'oncopy'
-                       , 'ondrag'
-                       , 'onclick'
-                       , 'ondblclick'
-                       , 'onmousedown'
-                       , 'onmouseout'
-                       , 'onmouseover'
-                       , 'onmouseup'
-                       , 'onmouseenter'
-                       , 'onmousemove'
-                       , 'onmouseleave'
-                       , 'onfocus'
-                       , 'onfocusin'
-                       , 'onfocusout'
-                       , 'onload'
-                       , 'onshow'
-                       , 'onerror'
-                       , 'onmouseout'
-                       , 'onmouseover'
-                       );
         try {
           $doc = phpQuery::newDocument($html);
-          foreach(pq($doc)->find('a,img,input,body,link,menu,audio,video,source,track') as $tag) {
-            foreach ($events as $event) {
-              if (pq($tag)->attr($event)) {
-                pq($tag)->attr($event, '');
+          foreach(pq($doc)->find('*') as $tag) {
+            if ($attrs = pq($tag)->attr('*')) {
+              foreach ($attrs as $name => $value) {
+                if (strpos($name, 'on') === 0) {
+                  pq($tag)->attr($name, '');
+                }
               }
             }
           }
