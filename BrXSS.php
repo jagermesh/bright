@@ -28,6 +28,7 @@ class BrXSS extends BrSingleton {
                        , 'oncut'
                        , 'oncopy'
                        , 'ondrag'
+                       , 'onclick'
                        , 'ondblclick'
                        , 'onmousedown'
                        , 'onmouseout'
@@ -44,11 +45,10 @@ class BrXSS extends BrSingleton {
                        , 'onerror'
                        , 'onmouseout'
                        , 'onmouseover'
-                       , 'onclick'
                        );
         try {
           $doc = phpQuery::newDocument($html);
-          foreach(pq($doc)->find('img,input,body,link,menu,audio,video,source,track') as $tag) {
+          foreach(pq($doc)->find('a,img,input,body,link,menu,audio,video,source,track') as $tag) {
             foreach ($events as $event) {
               if (pq($tag)->attr($event)) {
                 pq($tag)->attr($event, '');
