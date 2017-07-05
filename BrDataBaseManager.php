@@ -51,8 +51,12 @@ class BrDataBaseManager {
       require_once($classFile);
       $patch = new $className($classFile);
       $patch->init();
-      if ($patch->checkRequirements($patchName)) {
-        $patchObjects[] = $patch;
+      try {
+        if ($patch->checkRequirements($patchName)) {
+          $patchObjects[] = $patch;
+        }
+      } catch (Exception $e) {
+        br()->log()->write($e->getMessage(), 'RED');
       }
     }
 
