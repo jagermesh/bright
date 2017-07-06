@@ -83,13 +83,17 @@ class BrDataBasePatch {
 
     br()->log('[' . $this->className . '] Running (' . $this->patchHash . ')');
 
-    $this->up();
+    try {
+      $this->up();
 
-    br()->db()->runQuery( 'INSERT INTO br_db_patch (guid, patch_file, patch_hash) VALUES (?, ?, ?)'
-                        , $this->guid, basename($this->patchFile), $this->patchHash
-                        );
+      br()->db()->runQuery( 'INSERT INTO br_db_patch (guid, patch_file, patch_hash) VALUES (?, ?, ?)'
+                          , $this->guid, basename($this->patchFile), $this->patchHash
+                          );
 
-    br()->log('[' . $this->className . '] Done');
+      br()->log('[' . $this->className . '] Done');
+    } catch (Exception $e) {
+      br()->log()->write($e->getMessage(), 'RED');
+    }
 
   }
 
