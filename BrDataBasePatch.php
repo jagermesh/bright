@@ -99,6 +99,18 @@ class BrDataBasePatch {
 
   function execute($sql, $stepName = null) {
 
+    return $this->internalExecute($sql, $stepName, false);
+
+  }
+
+  function executeScript($sql, $stepName = null) {
+
+    return $this->internalExecute($sql, $stepName, true);
+
+  }
+
+  function internalExecute($sql, $stepName = null, $script = false) {
+
     $this->stepNo++;
     $stepName = $stepName ? $stepName : $this->stepNo;
 
@@ -110,7 +122,11 @@ class BrDataBasePatch {
         br()->log(br('=')->repeat(80));
         br()->log($sql);
         br()->log(br('=')->repeat(80));
-        br()->db()->runQuery($sql);
+        if ($script) {
+          br()->db()->runScript($sql);
+        } else {
+          br()->db()->runQuery($sql);
+        }
       }
     } catch (Exception $e) {
       $error = '[' . $this->className . '] UP error step "' . $stepName . '":' . "\n\n" . $e->getMessage();
@@ -135,7 +151,11 @@ class BrDataBasePatch {
               br()->log(br('=')->repeat(80));
               br()->log($sql);
               br()->log(br('=')->repeat(80));
-              br()->db()->runQuery($sql);
+              if ($script) {
+                br()->db()->runScript($sql);
+              } else {
+                br()->db()->runQuery($sql);
+              }
             }
           } catch (Exception $e) {
             $error = '[' . $this->className . '] UP error step "' . $stepName . '":' . "\n\n" . $e->getMessage();

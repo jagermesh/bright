@@ -191,6 +191,15 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   }
 
+  function runScript() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    return $this->internalRunQuery($sql, $args, 0, null, true);
+
+  }
+
   function openCursor() {
 
     $args = func_get_args();
