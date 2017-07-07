@@ -87,11 +87,13 @@ class BrGenericRenderer extends BrObject {
       $localVars['authorized'] = true;
     }
 
-    $m = new Mustache(null, null, null, array('delimiters' => br($this->params, 'delimiters', '[[ ]]')));
-    $body = $m->render($body, $localVars);
-
-    // $m = new Mustache_Engine;
-    // $body = $m->render($body, $localVars);
+    if (class_exists('Mustache_Engine')) {
+      $m = new Mustache_Engine(array('delimiters' => br($this->params, 'delimiters', '[[ ]]')));
+      $body = $m->render($body, $localVars);
+    } else {
+      $m = new Mustache(null, null, null, array('delimiters' => br($this->params, 'delimiters', '[[ ]]')));
+      $body = $m->render($body, $localVars);
+    }
 
     // $m = new Handlebars\Handlebars;
     // $body = $m->render($body, $localVars);
