@@ -95,7 +95,7 @@ class BrDataBasePatch {
             }
           }
       }
-    } else {
+    } else
     if ($command == 'register') {
       br()->db()->runQuery( 'INSERT IGNORE INTO br_db_patch (guid, patch_file, patch_hash) VALUES (?, ?, ?)'
                           , $this->guid, basename($this->patchFile), $this->patchHash
