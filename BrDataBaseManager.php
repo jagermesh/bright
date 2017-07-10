@@ -19,7 +19,7 @@ class BrDataBaseManager {
 
   }
 
-  function run($patchName = null) {
+  function run($patchName = null, $force = false) {
 
     if (!br()->isConsoleMode()) { br()->panic('Console mode only'); }
     $handle = br()->OS()->lockIfRunning(br()->callerScript());
@@ -52,7 +52,7 @@ class BrDataBaseManager {
       $patch = new $className($classFile);
       $patch->init();
       try {
-        if ($patch->checkRequirements($patchName)) {
+        if ($patch->checkRequirements($patchName, $force)) {
           $patchObjects[] = $patch;
         }
       } catch (Exception $e) {

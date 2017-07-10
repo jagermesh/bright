@@ -56,21 +56,23 @@ class BrDataBasePatch {
 
   }
 
-  function checkRequirements($raiseError = false) {
+  function checkRequirements($raiseError = false, $force = false) {
 
     br()->assert($this->guid, 'Please generate GUID for this patch');
 
     if ($patch = br()->db()->getRow('SELECT * FROM br_db_patch WHERE guid = ?', $this->guid)) {
-      if ($patch['patch_file'] != basename($this->patchFile)) {
-        throw new BrAppException('[' . $this->className . '] Error. Same patch already registered but has different name: ' . $patch['patch_file']);
-      } else
-      if ($patch['patch_hash'] != $this->patchHash) {
-        throw new BrAppException('[' . $this->className . '] Error. Same patch already registered but has different hash: ' . $patch['patch_hash']);
-      } else {
-        if ($raiseError) {
-          throw new BrAppException('[' . $this->className . '] Error. Already applied');
+      if (!$force) {
+        if ($patch['patch_file'] != basename($this->patchFile)) {
+          throw new BrAppException('[' . $this->className . '] Error. Same patch already registered but has different name: ' . $patch['patch_file']);
+        } else
+        if ($patch['patch_hash'] != $this->patchHash) {
+          throw new BrAppException('[' . $this->className . '] Error. Same patch already registered but has different hash: ' . $patch['patch_hash']);
         } else {
-          return false;
+          if ($raiseError) {
+            throw new BrAppException('[' . $this->className . '] Error. Already applied');
+          } else {
+            return false;
+          }
         }
       }
     }
@@ -86,7 +88,7 @@ class BrDataBasePatch {
     try {
       $this->up();
 
-      br()->db()->runQuery( 'INSERT INTO br_db_patch (guid, patch_file, patch_hash) VALUES (?, ?, ?)'
+      br()->db()->runQuery( 'INSERT IGNORE INTO br_db_patch (guid, patch_file, patch_hash) VALUES (?, ?, ?)'
                           , $this->guid, basename($this->patchFile), $this->patchHash
                           );
 
