@@ -51,12 +51,8 @@ class BrDataBaseManager {
       require_once($classFile);
       $patch = new $className($classFile);
       $patch->init();
-      try {
-        if ($patch->checkRequirements($patchName, $command)) {
-          $patchObjects[] = $patch;
-        }
-      } catch (Exception $e) {
-        br()->log()->logException(new Exception($patch->logPrefix() . ' Error. ' . $e->getMessage()), true, false);
+      if ($patch->checkRequirements($patchName, $command)) {
+        $patchObjects[] = $patch;
       }
     }
 

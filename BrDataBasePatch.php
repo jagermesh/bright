@@ -83,17 +83,14 @@ class BrDataBasePatch {
           return false;
         default:
           if ($patch['patch_file'] != basename($this->patchFile)) {
-            throw new BrAppException('Same patch already registered but has different name: ' . $patch['patch_file']);
+            br()->log()->write($this->logPrefix() . ' Error. Same patch already registered but has different name: ' . $patch['patch_file']);
           } else
           if ($patch['patch_hash'] != $this->patchHash) {
-            throw new BrAppException('Same patch already registered but has different hash: ' . $patch['patch_hash']);
+            br()->log()->write($this->logPrefix() . ' Error. Same patch already registered but has different hash: ' . $patch['patch_hash']);
           } else {
-            if ($raiseError) {
-              throw new BrAppException('Already applied');
-            } else {
-              return false;
-            }
+            br()->log()->write($this->logPrefix() . ' Error. Already applied');
           }
+          return false;
       }
     } else
     if ($command == 'register') {
