@@ -92,7 +92,7 @@ class BrDataBasePatch {
 
       br()->log('[' . $this->className . '] Done');
     } catch (Exception $e) {
-      br()->log()->write($e->getMessage(), 'RED');
+      br()->log()->logException($e, true, false);
     }
 
   }

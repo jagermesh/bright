@@ -72,5 +72,16 @@ class BrConsoleLogAdapter extends BrGenericLogAdapter {
 
   }
 
+  function writeException($e, $sendOutput = false, $printCallStack = true) {
+
+    if ($printCallStack) {
+      $formatted = br()->log()->formatExceptionInfo($e);
+      $this->writeError($formatted['errorLog'], $formatted['shortErrorMessage']);
+    } else {
+      $this->writeError($e->getMessage());
+    }
+
+  }
+
 }
 

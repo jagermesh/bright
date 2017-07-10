@@ -36,12 +36,11 @@ class BrWebLogAdapter extends BrGenericLogAdapter {
 
   }
 
-  function writeException($e, $sendOutput = false) {
+  function writeException($e, $sendOutput = false, $printCallStack = true) {
 
     if (!br()->isConsoleMode() && $sendOutput) {
       $errorMessage  = (($e instanceof BrErrorException) ? $e->getType() : 'Error');
       $errorMessage .= ': ';
-
 
       if (br()->request()->isDevHost()) {
         $errorMessage .= $e->getMessage();

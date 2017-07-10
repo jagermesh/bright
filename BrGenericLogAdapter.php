@@ -30,7 +30,7 @@ class BrGenericLogAdapter extends BrObject {
 
   }
 
-  function writeException($e, $sendOutput = false) {
+  function writeException($e, $sendOutput = false, $printCallStack = true) {
 
   	$formatted = br()->log()->formatExceptionInfo($e);
   	$this->writeError($formatted['errorLog'], $formatted['shortErrorMessage']);

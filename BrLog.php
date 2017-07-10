@@ -224,7 +224,7 @@ class BrLog extends BrSingleton {
 
   //
 
-  private function writeToAdapters($message, $group = 'MSG', $tagline = null, $sendOutput = false) {
+  private function writeToAdapters($message, $group = 'MSG', $tagline = null, $sendOutput = false, $printCallStack = true) {
 
     if ($this->isEnabled()) {
 
@@ -247,7 +247,7 @@ class BrLog extends BrSingleton {
               $adapter->writeError($logText, $tagline);
               break;
             case 'EXC':
-              $adapter->writeException($message, $sendOutput);
+              $adapter->writeException($message, $sendOutput, $printCallStack);
               break;
             default:
               $adapter->writeMessage($logText, $group, $tagline);
@@ -294,16 +294,15 @@ class BrLog extends BrSingleton {
     if ($errorInfo) {
       $errorLog .= "\n" . '  ' . $errorInfo;
     }
-
     $errorLog .= "\n" . br()->log()->getStackTraceFromException($e);
 
     return array('shortErrorMessage' => $shortErrorMessage, 'errorLog' => $errorLog);
 
   }
 
-  public function logException($e, $sendOutput = false) {
+  public function logException($e, $sendOutput = false, $printCallStack = true) {
 
-    $this->writeToAdapters($e, 'EXC', '', $sendOutput);
+    $this->writeToAdapters($e, 'EXC', '', $sendOutput, $printCallStack);
 
   }
 

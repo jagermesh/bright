@@ -55,7 +55,7 @@ class BrJobsManager {
               }
             }
           } catch (Exception $e) {
-            br()->logException($e);
+            br()->log()->logException($e);
           }
         }
       }
