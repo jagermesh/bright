@@ -57,6 +57,8 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     $userName     = br($this->config, 'username');
     $password     = br($this->config, 'password');
 
+    $this->setDataBaseName($dataBaseName);
+
     try {
       if ($this->__connection = mysql_connect($hostName, $userName, $password, true)) {
         mysql_select_db($dataBaseName, $this->__connection);

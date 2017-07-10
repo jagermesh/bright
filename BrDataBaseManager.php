@@ -56,7 +56,7 @@ class BrDataBaseManager {
           $patchObjects[] = $patch;
         }
       } catch (Exception $e) {
-        br()->log()->write($e->getMessage(), 'RED');
+        br()->log()->logException(new Exception($patch->logPrefix() . ' Error. ' . $e->getMessage()), true, false);
       }
     }
 

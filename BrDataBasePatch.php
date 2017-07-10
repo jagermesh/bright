@@ -34,6 +34,11 @@ class BrDataBasePatch {
 
   }
 
+  function logPrefix() {
+
+    return '[' . br()->db()->getDataBaseName() . '] [' . $this->className . ']';
+  }
+
   function addDependency($value) {
 
     $this->dependencies[] = $value;
@@ -45,7 +50,7 @@ class BrDataBasePatch {
     foreach($this->dependencies as $dependency) {
       if (!br()->db()->getValue('SELECT id FROM br_db_patch WHERE guid = ?', $dependency)) {
         if ($raiseError) {
-          throw new BrAppException('[' . $this->className . '] Error. Dependency not met: ' . $dependency);
+          throw new BrAppException($this->logPrefix() . ' Error. Dependency not met: ' . $dependency);
         } else {
           return false;
         }
@@ -78,13 +83,13 @@ class BrDataBasePatch {
           return false;
         default:
           if ($patch['patch_file'] != basename($this->patchFile)) {
-            throw new BrAppException('[' . $this->className . '] Error. Same patch already registered but has different name: ' . $patch['patch_file']);
+            throw new BrAppException('Same patch already registered but has different name: ' . $patch['patch_file']);
           } else
           if ($patch['patch_hash'] != $this->patchHash) {
-            throw new BrAppException('[' . $this->className . '] Error. Same patch already registered but has different hash: ' . $patch['patch_hash']);
+            throw new BrAppException('Same patch already registered but has different hash: ' . $patch['patch_hash']);
           } else {
             if ($raiseError) {
-              throw new BrAppException('[' . $this->className . '] Error. Already applied');
+              throw new BrAppException('Already applied');
             } else {
               return false;
             }
@@ -98,7 +103,7 @@ class BrDataBasePatch {
 
   function run() {
 
-    br()->log('[' . $this->className . '] Running (' . $this->patchHash . ')');
+    br()->log($this->logPrefix() . ' Running (' . $this->patchHash . ')');
 
     try {
       $this->up();
@@ -107,9 +112,9 @@ class BrDataBasePatch {
                           , $this->guid, basename($this->patchFile), $this->patchHash
                           );
 
-      br()->log('[' . $this->className . '] Done');
+      br()->log($this->logPrefix() . ' Done');
     } catch (Exception $e) {
-      br()->log()->logException($e, true, false);
+      br()->log()->logException(new Exception($this->logPrefix() . ' Error. ' . $e->getMessage()), true, false);
     }
 
   }
@@ -131,7 +136,7 @@ class BrDataBasePatch {
     $this->stepNo++;
     $stepName = $stepName ? $stepName : $this->stepNo;
 
-    br()->log()->write('[' . $this->className . '] UP step "' . $stepName . '"');
+    br()->log()->write($this->logPrefix() . ' UP step "' . $stepName . '"');
     try {
       if (is_callable($sql)) {
         $sql();
@@ -146,13 +151,13 @@ class BrDataBasePatch {
         }
       }
     } catch (Exception $e) {
-      $error = '[' . $this->className . '] UP error step "' . $stepName . '":' . "\n\n" . $e->getMessage();
-      br()->log()->write('[' . $this->className . '] DOWN step "' . $stepName . '"');
+      $error = 'UP error step "' . $stepName . '":' . "\n\n" . $e->getMessage();
+      br()->log()->write($this->logPrefix() . ' DOWN step "' . $stepName . '"');
       try {
         $retry = $this->down($stepName, $e->getMessage());
       } catch (Exception $e2) {
         $error = $error . "\n" .
-                 '[' . $this->className . '] DOWN error step "' . $stepName . '":' . "\n\n" . $e2->getMessage();
+                 'DOWN error step "' . $stepName . '":' . "\n\n" . $e2->getMessage();
         throw new BrAppException($error);
       }
       switch ($retry) {
@@ -160,7 +165,7 @@ class BrDataBasePatch {
           break;
         case self::DO_RETRY:
           br()->log()->write($error, 'RED');
-          br()->log()->write('[' . $this->className . '] DOWN step "' . $stepName . '" requested rerun');
+          br()->log()->write($this->logPrefix() . ' DOWN step "' . $stepName . '" requested rerun');
           try {
             if (is_callable($sql)) {
               $sql();
@@ -175,8 +180,7 @@ class BrDataBasePatch {
               }
             }
           } catch (Exception $e) {
-            $error = '[' . $this->className . '] UP error step "' . $stepName . '":' . "\n\n" . $e->getMessage();
-            throw new BrAppException($error);
+            throw new BrAppException('UP error step "' . $stepName . '":' . "\n\n" . $e->getMessage());
           }
           break;
         default:

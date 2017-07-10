@@ -63,6 +63,8 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
       $port       = br($this->config, 'port');
     }
 
+    $this->setDataBaseName($dataBaseName);
+
     try {
       if ($this->__connection = @mysqli_connect($hostName, $userName, $password, $dataBaseName, $port)) {
         if (br($this->config, 'charset')) {

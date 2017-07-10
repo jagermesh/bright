@@ -12,6 +12,20 @@ require_once(__DIR__.'/BrObject.php');
 
 class BrGenericDBProvider extends BrObject {
 
+  private $dataBaseName;
+
+  function setDataBaseName($name) {
+
+    $this->dataBaseName = $name;
+
+  }
+
+  function getDataBaseName() {
+
+    return $this->dataBaseName;
+
+  }
+
   function now() {
 
     return $this->toDateTime(time());
