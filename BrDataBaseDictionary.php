@@ -41,6 +41,8 @@ class BrDataBaseDictionary extends BrObject {
     $schema = [];
 
     foreach($columns as $column) {
+      $column['table_name'] = strtolower($column['table_name']);
+      $column['column_name'] = strtolower($column['column_name']);
       if (!array_key_exists($column['table_name'], $schema)) {
         $schema[$column['table_name']] = [];
       }
