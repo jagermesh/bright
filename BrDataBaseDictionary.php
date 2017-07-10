@@ -33,7 +33,8 @@ class BrDataBaseDictionary extends BrObject {
     $sql = br()->placeholder( 'SELECT table_name, column_name, data_type, is_nullable, character_maximum_length, column_comment
                                  FROM information_schema.columns
                                 WHERE table_schema = ?
-                                  AND character_maximum_length IS NOT NULL'
+                                  AND character_maximum_length IS NOT NULL
+                                ORDER BY table_name, column_name'
                             , br()->config()->get('db')['name']);
 
     $columns = br()->db()->getRows($sql);
