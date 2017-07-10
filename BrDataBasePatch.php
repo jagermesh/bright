@@ -56,24 +56,39 @@ class BrDataBasePatch {
 
   }
 
-  function checkRequirements($raiseError = false, $force = false) {
+  function checkRequirements($raiseError = false, $command = false) {
 
     br()->assert($this->guid, 'Please generate GUID for this patch');
 
     if ($patch = br()->db()->getRow('SELECT * FROM br_db_patch WHERE guid = ?', $this->guid)) {
-      if (!$force) {
-        if ($patch['patch_file'] != basename($this->patchFile)) {
-          throw new BrAppException('[' . $this->className . '] Error. Same patch already registered but has different name: ' . $patch['patch_file']);
-        } else
-        if ($patch['patch_hash'] != $this->patchHash) {
-          throw new BrAppException('[' . $this->className . '] Error. Same patch already registered but has different hash: ' . $patch['patch_hash']);
-        } else {
-          if ($raiseError) {
-            throw new BrAppException('[' . $this->className . '] Error. Already applied');
+      switch ($command) {
+        case 'force':
+          br()->db()->runQuery( 'UPDATE br_db_patch SET patch_file = ?, patch_hash = ? WHERE guid = ?'
+                              , basename($this->patchFile)
+                              , $this->patchHash
+                              , $this->guid
+                              );
+          break;
+        case 'register':
+          br()->db()->runQuery( 'UPDATE br_db_patch SET patch_file = ?, patch_hash = ? WHERE guid = ?'
+                              , basename($this->patchFile)
+                              , $this->patchHash
+                              , $this->guid
+                              );
+          return false;
+        default:
+          if ($patch['patch_file'] != basename($this->patchFile)) {
+            throw new BrAppException('[' . $this->className . '] Error. Same patch already registered but has different name: ' . $patch['patch_file']);
+          } else
+          if ($patch['patch_hash'] != $this->patchHash) {
+            throw new BrAppException('[' . $this->className . '] Error. Same patch already registered but has different hash: ' . $patch['patch_hash']);
           } else {
-            return false;
+            if ($raiseError) {
+              throw new BrAppException('[' . $this->className . '] Error. Already applied');
+            } else {
+              return false;
+            }
           }
-        }
       }
     }
 
