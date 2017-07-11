@@ -3316,8 +3316,6 @@
 
       }
 
-      switchToSelect2();
-
     }
 
     _this.load = _this.reload = function(filter, callback) {
@@ -3364,6 +3362,7 @@
           if (!_this.options.lookupMode) {
             render(data);
           }
+          switchToSelect2();
         }
         _this.events.trigger('load', data);
       });
@@ -3372,8 +3371,8 @@
         if (result && _this.isValid()) {
           if (!_this.options.lookupMode) {
             _this.selector.append($(renderRow(data)));
-            switchToSelect2();
           }
+          switchToSelect2();
         }
         _this.events.trigger('change');
       });
@@ -3383,9 +3382,9 @@
           if (!_this.options.lookupMode) {
             if (data[_this.options.valueField]) {
               _this.selector.find('option[value=' + data[_this.options.valueField] +']').text(getName(data));
-              switchToSelect2();
             }
           }
+          switchToSelect2();
         }
         _this.events.trigger('change');
       });
@@ -3395,9 +3394,9 @@
           if (!_this.options.lookupMode) {
             if (data[_this.options.valueField]) {
               _this.selector.find('option[value=' + data[_this.options.valueField] +']').remove();
-              switchToSelect2();
             }
           }
+          switchToSelect2();
         }
         _this.events.trigger('change');
       });
@@ -3415,9 +3414,9 @@
         }
       }
 
-      switchToSelect2();
-
     }
+
+    switchToSelect2();
 
     _this.selector.change(function() {
       if (_this.options.saveSelection) {
