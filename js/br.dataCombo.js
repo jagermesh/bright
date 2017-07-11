@@ -360,9 +360,9 @@
 
         });
 
-        switchToSelect2();
-
       }
+
+      switchToSelect2();
 
     }
 
