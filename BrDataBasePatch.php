@@ -66,32 +66,34 @@ class BrDataBasePatch {
     br()->assert($this->guid, 'Please generate GUID for this patch');
 
     if ($patch = br()->db()->getRow('SELECT * FROM br_db_patch WHERE guid = ?', $this->guid)) {
-      switch ($command) {
-        case 'force':
-          br()->db()->runQuery( 'UPDATE br_db_patch SET patch_file = ?, patch_hash = ? WHERE guid = ?'
-                              , basename($this->patchFile)
-                              , $this->patchHash
-                              , $this->guid
-                              );
-          break;
-        case 'register':
-          br()->db()->runQuery( 'UPDATE br_db_patch SET patch_file = ?, patch_hash = ? WHERE guid = ?'
-                              , basename($this->patchFile)
-                              , $this->patchHash
-                              , $this->guid
-                              );
-          return false;
-        default:
-          if ($patch['patch_file'] != basename($this->patchFile)) {
-            br()->log()->write($this->logPrefix() . ' Error. Same patch already registered but has different name: ' . $patch['patch_file'], 'RED');
-          } else
-          if ($patch['patch_hash'] != $this->patchHash) {
-            br()->log()->write($this->logPrefix() . ' Error. Same patch already registered but has different hash: ' . $patch['patch_hash'], 'RED');
-          } else
-          if ($raiseError) {
-            br()->log()->write($this->logPrefix() . ' Error. Already applied', 'RED');
-          }
-          return false;
+      if (($patch['patch_hash'] != $this->patchHash) || ($patch['patch_file'] != basename($this->patchFile))) {
+        switch ($command) {
+          case 'force':
+            return true;
+          case 'register':
+            br()->db()->runQuery( 'UPDATE br_db_patch SET patch_file = ?, patch_hash = ? WHERE guid = ?'
+                                , basename($this->patchFile)
+                                , $this->patchHash
+                                , $this->guid
+                                );
+            return false;
+          default:
+            if ($patch['patch_file'] != basename($this->patchFile)) {
+              br()->log()->write($this->logPrefix() . ' Error. Same patch already registered but has different name: ' . $patch['patch_file'], 'RED');
+            } else
+            if ($patch['patch_hash'] != $this->patchHash) {
+              br()->log()->write($this->logPrefix() . ' Error. Same patch already registered but has different hash: ' . $patch['patch_hash'], 'RED');
+            } else
+            if ($raiseError) {
+              br()->log()->write($this->logPrefix() . ' Error. Already applied', 'RED');
+            }
+            return false;
+        }
+      } else {
+        if ($raiseError) {
+          br()->log()->write($this->logPrefix() . ' Error. Already applied', 'RED');
+        }
+        return false;
       }
     } else
     if ($command == 'register') {
@@ -112,8 +114,11 @@ class BrDataBasePatch {
     try {
       $this->up();
 
-      br()->db()->runQuery( 'INSERT IGNORE INTO br_db_patch (guid, patch_file, patch_hash) VALUES (?, ?, ?)'
+      br()->db()->runQuery( 'INSERT INTO br_db_patch (guid, patch_file, patch_hash) VALUES (?, ?, ?)
+                                 ON DUPLICATE KEY
+                             UPDATE patch_file = ?, patch_hash = ?'
                           , $this->guid, basename($this->patchFile), $this->patchHash
+                                       , basename($this->patchFile), $this->patchHash
                           );
 
       br()->log($this->logPrefix() . ' Done');
