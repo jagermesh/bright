@@ -17,7 +17,7 @@ class Patch[[name]] extends BrDatabasePatch {
 
   }
 
-  function down($failedUpStep, $erroMessage) {
+  function down($failedUpStep, $errorMessage) {
 
     // put your error recovering code here
 
