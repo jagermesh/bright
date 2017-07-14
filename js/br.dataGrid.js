@@ -370,7 +370,7 @@
       function showOrder(orderAndGroup) {
         for(var i = 0; i < orderAndGroup.length; i++) {
           var ctrl = $('.sortable[data-field="' + orderAndGroup[i].fieldName + '"].' + (orderAndGroup[i].asc ? 'order-asc' : 'order-desc'), $(_this.options.selectors.header));
-          ctrl.addClass('icon-white').addClass('icon-border');
+          ctrl.addClass('icon-white').addClass('icon-border').addClass('fa-square-o');
           var idx = ctrl.parent().find('div.br-sort-index');
           if (orderAndGroup.length > 1) {
             if (idx.length > 0) {
@@ -385,16 +385,16 @@
       showOrder(_this.getOrderAndGroup());
 
       $(this.options.selectors.header).on('click', '.sortable', function(event) {
-        var sorted = ($(this).hasClass('icon-white') || $(this).hasClass('icon-border'));
+        var sorted = ($(this).hasClass('icon-white') || $(this).hasClass('icon-border') || $(this).hasClass('fa-square-o'));
         if (!event.metaKey) {
-          $('.sortable', $(_this.options.selectors.header)).removeClass('icon-white').removeClass('icon-border');
+          $('.sortable', $(_this.options.selectors.header)).removeClass('icon-white').removeClass('icon-border').removeClass('fa-square-o');
           $('.br-sort-index', $(_this.options.selectors.header)).remove();
         }
         if (sorted) {
-          $(this).removeClass('icon-white').removeClass('icon-border');
+          $(this).removeClass('icon-white').removeClass('icon-border').removeClass('fa-square-o');
         } else {
-          $(this).siblings('i').removeClass('icon-white').removeClass('icon-border');
-          $(this).addClass('icon-white').addClass('icon-border');
+          $(this).siblings('i').removeClass('icon-white').removeClass('icon-border').removeClass('fa-square-o');
+          $(this).addClass('icon-white').addClass('icon-border').addClass('fa-square-o');
         }
         var orderAndGroup;
         var fieldName = $(this).attr('data-field');
