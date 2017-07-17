@@ -166,12 +166,12 @@ class BrDataBasePatch {
     $this->stepNo++;
     $stepName = $stepName ? $stepName : $this->stepNo;
 
+    br()->log(br('=')->repeat(80));
     br()->log()->write($this->logPrefix() . ' UP step "' . $stepName . '"');
     try {
       if (is_callable($sql)) {
         $sql();
       } else {
-        br()->log(br('=')->repeat(80));
         br()->log($sql);
         if ($script) {
           br()->db()->runScript($sql);
