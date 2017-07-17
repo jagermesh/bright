@@ -131,6 +131,26 @@ class BrDataBasePatch {
 
   }
 
+  function registerTableForAuditing($tableName, $auditMode = 7) {
+
+    br()->log(br('=')->repeat(80));
+    br()->log('registerTableForAuditing(' . $tableName . ', ' . $auditMode . ')');
+    br()->log(br('=')->repeat(80));
+
+    return $this->dbManager->registerTableForAuditing($tableName, $auditMode);
+
+  }
+
+  function refreshTableSupport($tableName, $auditMode = 7) {
+
+    br()->log(br('=')->repeat(80));
+    br()->log('refreshTableSupport(' . $tableName . ', ' . $auditMode . ')');
+    br()->log(br('=')->repeat(80));
+
+    return $this->dbManager->refreshTableSupport($tableName, $auditMode);
+
+  }
+
   function execute($sql, $stepName = null) {
 
     return $this->internalExecute($sql, $stepName, false);
