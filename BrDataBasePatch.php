@@ -16,15 +16,18 @@ class BrDataBasePatch {
   private $className;
   private $patchFile;
 
+  protected $dbManager;
+
   const DO_ABORT    = 0;
   const DO_CONTINUE = 1;
   const DO_RETRY    = 2;
 
-  function __construct($patchFile) {
+  function __construct($patchFile, $dbManager) {
 
     $this->patchFile = $patchFile;
     $this->className = get_called_class();
     $this->patchHash = sha1_file($patchFile);
+    $this->dbManager = $dbManager;
 
   }
 
@@ -61,7 +64,7 @@ class BrDataBasePatch {
 
   }
 
-  function checkRequirements($raiseError = false, $command = false) {
+  function checkRequirements($raiseError = false, $command = 'run') {
 
     br()->assert($this->guid, 'Please generate GUID for this patch');
 

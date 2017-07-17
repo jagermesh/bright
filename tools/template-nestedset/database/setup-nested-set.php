@@ -3,7 +3,11 @@
 require_once(dirname(__DIR__).'/bright/Bright.php');
 
 if (!br()->isConsoleMode()) { br()->panic('Console mode only'); }
-if ($pid = br()->OS()->isPHPScriptRunning(__FILE__)) { br()->panic('This script already running, PID ' . $pid); }
+$handle = br()->OS()->lockIfRunning(br()->callerScript());
+
+$scriptFile = __FILE__;
+
+$logPrefix = '[' . basename($scriptFile) . '] [' . br()->db()->getDataBaseName() . ']';
 
 if ($tableName = @$argv[1]) {
 
@@ -26,16 +30,18 @@ if ($tableName = @$argv[1]) {
       br()->db()->runQuery('ALTER TABLE ' . $tableName . ' ADD right_key INTEGER');
       br()->db()->runQuery('ALTER TABLE ' . $tableName . ' ADD level     INTEGER DEFAULT 1');
     } catch (Exception $e) {
-      br()->log('Can not create structure for ' . $tableName . ': ' . $e->getMessage());
-      die();
+      br()->log()->write('[' . basename($scriptFile) . '] Error. Can not create structure for ' . $tableName . ': ' . $e->getMessage(), 'ERR');
+      exit();
     }
   }
+
+  br()->log()->write($logPrefix . ' Running ' . basename($scriptFile) . ' ' . $tableName);
 
   $nestedSet = new BrNestedSet($tableName, $params);
   $nestedSet->setup();
 
 } else {
 
-  br()->log('Usage: php setupNestedSet.php tableName [--createStructure] [--nameField=name] [--rangeField=] [--orderField=name] [--parentField=parent_id]');
+  br()->log('Usage: php ' . basename($scriptFile) . ' tableName [--createStructure] [--nameField=name] [--rangeField=] [--orderField=name] [--parentField=parent_id]');
 
 }
