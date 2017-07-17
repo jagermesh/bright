@@ -92,6 +92,7 @@ class BrDataBaseManager {
                         . '   AND tbl.table_name NOT LIKE "backup%"' . "\n"
                         . '   AND tbl.table_name NOT LIKE "view_%"' . "\n"
                         . '   AND tbl.table_name NOT LIKE "viev_%"' . "\n"
+                        . '   AND tbl.table_name NOT LIKE "v_%"' . "\n"
                         . '   AND tbl.table_name NOT LIKE "shared_%"' . "\n"
                         . '   AND tbl.table_name NOT LIKE "audit_%"'
                         . '   AND tbl.table_name NOT LIKE "br_%"'

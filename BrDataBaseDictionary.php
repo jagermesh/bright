@@ -30,11 +30,19 @@ class BrDataBaseDictionary extends BrObject {
 
   static function generateDictionaryScript($path) {
 
-    $sql = br()->placeholder( 'SELECT table_name, column_name, data_type, is_nullable, character_maximum_length, column_comment
-                                 FROM information_schema.columns
-                                WHERE table_schema = ?
-                                  AND character_maximum_length IS NOT NULL
-                                ORDER BY table_name, column_name'
+    $sql = br()->placeholder( 'SELECT col.table_name, col.column_name, col.data_type, col.is_nullable, col.character_maximum_length, col.column_comment' . "\n"
+                            . '  FROM information_schema.columns col' . "\n"
+                            . ' WHERE col.table_schema = ?' . "\n"
+                            . '   AND col.character_maximum_length IS NOT NULL' . "\n"
+                            . '   AND col.table_name NOT LIKE "tmp%"' . "\n"
+                            . '   AND col.table_name NOT LIKE "backup%"' . "\n"
+                            . '   AND col.table_name NOT LIKE "view_%"' . "\n"
+                            . '   AND col.table_name NOT LIKE "viev_%"' . "\n"
+                            . '   AND col.table_name NOT LIKE "v_%"' . "\n"
+                            . '   AND col.table_name NOT LIKE "shared_%"' . "\n"
+                            . '   AND col.table_name NOT LIKE "audit_%"' . "\n"
+                            . '   AND col.table_name NOT LIKE "br_%"' . "\n"
+                            . ' ORDER BY col.table_name, col.column_name'
                             , br()->config()->get('db')['name']);
 
     $columns = br()->db()->getRows($sql);
