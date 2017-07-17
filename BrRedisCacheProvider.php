@@ -10,8 +10,8 @@
 
 class BrRedisCacheProvider extends BrGenericCacheProvider {
 
-  const DefaultHostName = 'localhost';
-  const DefaultPort = 6379;
+  const DEFAULT_HOST_NAME = 'localhost';
+  const DEFAULT_PORT      = 6379;
 
   private $redis;
 
@@ -19,14 +19,15 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
 
     parent::__construct($cfg);
 
-    $hostname = br($cfg, 'hostname', self::DefaultHostName);
-    $port = br($cfg, 'port', self::DefaultPort);
+    $hostname = br($cfg, 'hostname', self::DEFAULT_HOST_NAME);
+    $port     = br($cfg, 'port',     self::DEFAULT_PORT);
 
     if (br($cfg, 'lifeTime')) {
       $this->setCacheLifeTime($cfg['lifeTime']);
     }
 
     $this->redis = new Redis();
+
     if (!$this->redis->pconnect($hostname, $port)) {
       throw new BrException('Can not connect to Redis server ' . $hostname . ':' . $port);
     }
@@ -53,27 +54,38 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
 
   }
 
-  public function remove($name) {
-
-    $name = $this->safeName($name);
-
-    return $this->redis->del($name);
-
-  }
-
   public function get($name, $default = null, $saveDefault = false) {
 
     $name = $this->safeName($name);
 
-    $return = $this->redis->get($name);
+    $result = $this->redis->get($name);
 
-    if ($return === false) {
-      $return = $default;
+    if ($result === false) {
+      $result = $default;
+      if ($saveDefault) {
+        $this->set($name, $result);
+      }
     } else {
-      $return = unserialize($return);
+      $result = unserialize($result);
     }
 
-    return $return;
+    return $result;
+
+  }
+
+  public function getEx($name) {
+
+    $name = $this->safeName($name);
+
+    $result = $this->redis->get($name);
+
+    if ($result === false) {
+      $result = array('success' => false);
+    } else {
+      $result = array('success' => true, 'value' => unserialize($result));
+    }
+
+    return $result;
 
   }
 
@@ -83,8 +95,20 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
 
     if (!$cacheLifeTime) { $cacheLifeTime = $this->getCacheLifeTime(); }
 
-    $this->redis->set($name, serialize($value), $cacheLifeTime);
-    
+    if ($this->redis->set($name, serialize($value), $cacheLifeTime)) {
+      return $value;
+    } else {
+      return false;
+    }
+
+  }
+
+  public function remove($name) {
+
+    $name = $this->safeName($name);
+
+    return $this->redis->del($name);
+
   }
 
 }

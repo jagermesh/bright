@@ -34,33 +34,61 @@ class BrXCacheCacheProvider extends BrGenericCacheProvider {
 
   }
 
+  public function exists($name) {
+
+    $name = $this->safeName($name);
+
+    return xcache_isset($name);
+
+  }
+
   public function get($name, $default = null, $saveDefault = false) {
 
     $name = $this->safeName($name);
 
-    $value = xcache_get($name);
-    if ($value === false) {
-      $value = $default;
+    $result = xcache_get($name);
+
+    if ($result === false) {
+      $result = $default;
       if ($saveDefault) {
-        $this->set($name, $value);
+        $this->set($name, $result);
       }
+    } else {
+      $result = unserialize($result);
     }
 
-    return $value;
+    return $result;
+
+  }
+
+  public function getEx($name) {
+
+    $name = $this->safeName($name);
+
+    $result = xcache_get($name);
+
+    if ($result === false) {
+      $result = array('success' => false);
+    } else {
+      $result = array('success' => true, 'value' => unserialize($result));
+    }
+
+    return $result;
 
   }
 
   public function set($name, $value, $cacheLifeTime = null) {
 
-    if (!$cacheLifeTime) { $cacheLifeTime = $this->getCacheLifeTime(); }
-
     $name = $this->safeName($name);
 
-    if (!xcache_isset($name)) {
-      xcache_set($name, $value, $cacheLifeTime);
+    if (!$cacheLifeTime) { $cacheLifeTime = $this->getCacheLifeTime(); }
+
+    if (xcache_set($name, serialize($value), $cacheLifeTime)) {
+      return $value;
+    } else {
+      return false;
     }
 
-    return $value;
 
   }
 
@@ -73,4 +101,3 @@ class BrXCacheCacheProvider extends BrGenericCacheProvider {
   }
 
 }
-

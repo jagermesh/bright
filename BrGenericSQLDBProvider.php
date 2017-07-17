@@ -17,7 +17,330 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
   private $__deadlocksHandlerEnabled = true;
   private $version;
 
-  function getCountSQL($sql) {
+  public function startTransaction($force = false) {
+
+    $this->resetTransaction();
+    $this->__inTransaction++;
+
+  }
+
+  public function commitTransaction($force = false) {
+
+    $this->resetTransaction();
+
+  }
+
+  public function rollbackTransaction($force = false) {
+
+    $this->resetTransaction();
+
+  }
+
+  function incTransactionBuffer($sql) {
+
+    if (!preg_match('/^SET( |$)/', $sql)) {
+      if (!preg_match('/^SELECT( |$)/', $sql)) {
+        $this->__transactionBuffer[] = $sql;
+      }
+    }
+
+  }
+
+  function internalRunQuery($sql, $args = array(), $iteration = 0, $rerunError = null) {
+
+  }
+
+  public function resetTransaction() {
+
+    $this->__inTransaction = 0;
+    $this->__transactionBuffer = array();
+
+  }
+
+  public function inTransaction() {
+
+    return ($this->__inTransaction > 0);
+
+  }
+
+  public function isTransactionBufferEmpty() {
+
+    return (count($this->__transactionBuffer) == 0);
+
+  }
+
+  public function transactionBufferLength() {
+
+    return count($this->__transactionBuffer);
+
+  }
+
+  public function transactionBuffer() {
+
+    return $this->__transactionBuffer;
+
+  }
+
+  public function disableDeadLocksHandler() {
+
+    $this->__deadlocksHandlerEnabled = false;
+    return $this->__deadlocksHandlerEnabled;
+
+  }
+
+  public function enableDeadLocksHandler() {
+
+    $this->__deadlocksHandlerEnabled = true;
+    return $this->__deadlocksHandlerEnabled;
+
+  }
+
+  public function isDeadLocksHandlerEnabled() {
+
+    return $this->__deadlocksHandlerEnabled;
+
+  }
+
+  public function regexpCondition($value) {
+
+    return new BrGenericSQLRegExp($value);
+
+  }
+
+  public function rowid($row, $fieldName = null) {
+
+    if (is_array($row)) {
+      return br($row, $fieldName?$fieldName:$this->rowidField());
+    } else {
+      return $row;
+    }
+
+  }
+
+  public function rowidField() {
+
+    return 'id';
+
+  }
+
+  public function rowidValue($row, $fieldName = null) {
+
+    if (is_array($row)) {
+      return br($row, $fieldName ? $fieldName : $this->rowidField());
+    } else {
+      return $row;
+    }
+
+  }
+
+  public function table($name, $alias = null, $params = array()) {
+
+    $params['tableAlias'] = $alias;
+
+    return new BrGenericSQLProviderTable($this, $name, $params);
+
+  }
+
+
+  public function runQuery() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    return $this->internalRunQuery($sql, $args);
+
+  }
+
+  public function runScript() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    return $this->internalRunQuery($sql, $args, 0, null, true);
+
+  }
+
+  public function openCursor() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    return $this->internalRunQuery($sql, $args);
+
+  }
+
+  public function getCursor() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    return new BrGenericSQLProviderCursor($sql, $args, $this, true);
+
+  }
+
+  public function select() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    return $this->internalRunQuery($sql, $args);
+
+  }
+
+  public function getRow() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    return $this->selectNext($this->internalRunQuery($sql, $args));
+
+  }
+
+  public function getCachedRow() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    $cacheTag = get_class($this) . ':getCachedRow:' . md5($sql) . md5(serialize($args));
+
+    $result = br()->cache()->getEx($cacheTag);
+    if ($result['success']) {
+      $result = $result['value'];
+    } else {
+      $result = $this->selectNext($this->internalRunQuery($sql, $args));
+      br()->cache()->set($cacheTag, $result);
+    }
+
+    return $result;
+
+  }
+
+  public function getRows() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    $query = $this->internalRunQuery($sql, $args);
+    $result = array();
+    if (is_object($query) || is_resource($query)) {
+      while($row = $this->selectNext($query)) {
+        $result[] = $row;
+      }
+    }
+
+    return $result;
+
+  }
+
+  public function getCachedRows() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    $cacheTag = get_class($this) . ':getCachedRows:' . md5($sql) . md5(serialize($args));
+
+    $result = br()->cache()->getEx($cacheTag);
+    if ($result['success']) {
+      $result = $result['value'];
+    } else {
+      $query = $this->internalRunQuery($sql, $args);
+      $result = array();
+      if (is_object($query) || is_resource($query)) {
+        while($row = $this->selectNext($query)) {
+          $result[] = $row;
+        }
+      }
+      br()->cache()->set($cacheTag, $result);
+    }
+
+    return $result;
+
+  }
+
+  public function getValue() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    $result = $this->selectNext($this->internalRunQuery($sql, $args));
+    if (is_array($result)) {
+      return array_shift($result);
+    } else {
+      return null;
+    }
+
+  }
+
+  public function getCachedValue() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    $cacheTag = get_class($this) . ':getCachedValue:' . md5($sql) . md5(serialize($args));
+
+    $result = br()->cache()->getEx($cacheTag);
+    if ($result['success']) {
+      $result = $result['value'];
+    } else {
+      if ($result = $this->selectNext($this->internalRunQuery($sql, $args))) {
+        if (is_array($result)) {
+          $result = array_shift($result);
+        } else {
+          $result = null;
+        }
+      } else {
+        $result = null;
+      }
+      br()->cache()->set($cacheTag, $result);
+    }
+
+    return $result;
+
+  }
+
+  public function getValues() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    $query = $this->internalRunQuery($sql, $args);
+    $result = array();
+    if (is_object($query) || is_resource($query)) {
+      while($row = $this->selectNext($query)) {
+        array_push($result, array_shift($row));
+      }
+    }
+
+    return $result;
+
+  }
+
+  public function getCachedValues() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    $cacheTag = get_class($this) . ':getCachedValues:' . md5($sql) . md5(serialize($args));
+
+    $result = br()->cache()->getEx($cacheTag);
+    if ($result['success']) {
+      $result = $result['value'];
+    } else {
+      $query = $this->internalRunQuery($sql, $args);
+      $result = array();
+      if (is_object($query) || is_resource($query)) {
+        while($row = $this->selectNext($query)) {
+          array_push($result, array_shift($row));
+        }
+      }
+      br()->cache()->set($cacheTag, $result);
+    }
+
+    return $result;
+
+  }
+
+  protected function getCountSQL($sql) {
 
     $offset = 0;
     if (preg_match('/(^[ \t\n]*|[ (])(SELECT)([ \n\r])/sim', $sql, $token, PREG_OFFSET_CAPTURE)) {
@@ -54,321 +377,6 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
       return $sql;
     } else
       return null;
-
-  }
-
-  function startTransaction($force = false) {
-
-    $this->resetTransaction();
-    $this->__inTransaction++;
-
-  }
-
-  function commitTransaction($force = false) {
-
-    $this->resetTransaction();
-
-  }
-
-  function rollbackTransaction($force = false) {
-
-    $this->resetTransaction();
-
-  }
-
-  function incTransactionBuffer($sql) {
-
-    if (!preg_match('/^SET( |$)/', $sql)) {
-      if (!preg_match('/^SELECT( |$)/', $sql)) {
-        $this->__transactionBuffer[] = $sql;
-      }
-    }
-
-  }
-
-  function internalRunQuery($sql, $args = array(), $iteration = 0, $rerunError = null) {
-
-  }
-
-  function resetTransaction() {
-
-    $this->__inTransaction = 0;
-    $this->__transactionBuffer = array();
-
-  }
-
-  function inTransaction() {
-
-    return ($this->__inTransaction > 0);
-
-  }
-
-  function isTransactionBufferEmpty() {
-
-    return (count($this->__transactionBuffer) == 0);
-
-  }
-
-  function transactionBufferLength() {
-
-    return count($this->__transactionBuffer);
-
-  }
-
-  function transactionBuffer() {
-
-    return $this->__transactionBuffer;
-
-  }
-
-  function disableDeadLocksHandler() {
-
-    $this->__deadlocksHandlerEnabled = false;
-    return $this->__deadlocksHandlerEnabled;
-
-  }
-
-  function enableDeadLocksHandler() {
-
-    $this->__deadlocksHandlerEnabled = true;
-    return $this->__deadlocksHandlerEnabled;
-
-  }
-
-  function isDeadLocksHandlerEnabled() {
-
-    return $this->__deadlocksHandlerEnabled;
-
-  }
-
-  function regexpCondition($value) {
-
-    return new BrGenericSQLRegExp($value);
-
-  }
-
-  function rowid($row, $fieldName = null) {
-
-    if (is_array($row)) {
-      return br($row, $fieldName?$fieldName:$this->rowidField());
-    } else {
-      return $row;
-    }
-
-  }
-
-  function rowidField() {
-
-    return 'id';
-
-  }
-
-  function rowidValue($row, $fieldName = null) {
-
-    if (is_array($row)) {
-      return br($row, $fieldName ? $fieldName : $this->rowidField());
-    } else {
-      return $row;
-    }
-
-  }
-
-  function table($name, $alias = null, $params = array()) {
-
-    $params['tableAlias'] = $alias;
-
-    return new BrGenericSQLProviderTable($this, $name, $params);
-
-  }
-
-
-  function runQuery() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    return $this->internalRunQuery($sql, $args);
-
-  }
-
-  function runScript() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    return $this->internalRunQuery($sql, $args, 0, null, true);
-
-  }
-
-  function openCursor() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    return $this->internalRunQuery($sql, $args);
-
-  }
-
-  function getCursor() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    return new BrGenericSQLProviderCursor($sql, $args, $this, true);
-
-  }
-
-  function select() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    return $this->internalRunQuery($sql, $args);
-
-  }
-
-  function getRow() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    return $this->selectNext($this->internalRunQuery($sql, $args));
-
-  }
-
-  function getCachedRow() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    $cacheTag = get_class($this) . ':getCachedRow:' . md5($sql) . md5(serialize($args));
-
-    $result = br()->cache()->get($cacheTag);
-
-    if (!$result && !br()->cache()->exists($cacheTag)) {
-      $result = $this->selectNext($this->internalRunQuery($sql, $args));
-      br()->cache()->set($cacheTag, $result);
-    }
-
-    return $result;
-
-  }
-
-  function getRows() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    $query = $this->internalRunQuery($sql, $args);
-    $result = array();
-    if (is_object($query) || is_resource($query)) {
-      while($row = $this->selectNext($query)) {
-        $result[] = $row;
-      }
-    }
-
-    return $result;
-
-  }
-
-  function getCachedRows() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    $cacheTag = get_class($this) . ':getCachedRows:' . md5($sql) . md5(serialize($args));
-
-    $result = br()->cache()->get($cacheTag);
-
-    if (!$result && !br()->cache()->exists($cacheTag)) {
-      $query = $this->internalRunQuery($sql, $args);
-      $result = array();
-      if (is_object($query) || is_resource($query)) {
-        while($row = $this->selectNext($query)) {
-          $result[] = $row;
-        }
-      }
-      br()->cache()->set($cacheTag, $result);
-    }
-
-    return $result;
-
-  }
-
-  function getValue() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    $result = $this->selectNext($this->internalRunQuery($sql, $args));
-    if (is_array($result)) {
-      return array_shift($result);
-    } else {
-      return null;
-    }
-
-  }
-
-  public function getCachedValue() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    $cacheTag = get_class($this) . ':getCachedValue:' . md5($sql) . md5(serialize($args));
-
-    $result = br()->cache()->get($cacheTag);
-
-    if (!$result && !br()->cache()->exists($cacheTag)) {
-      if ($value = $this->selectNext($this->internalRunQuery($sql, $args))) {
-        if (is_array($value)) {
-          $result = array_shift($value);
-        } else {
-          $result = $value;
-        }
-      }
-      br()->cache()->set($cacheTag, $result);
-    }
-
-    return $result;
-
-  }
-
-  function getValues() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    $query = $this->internalRunQuery($sql, $args);
-    $result = array();
-    if (is_object($query) || is_resource($query)) {
-      while($row = $this->selectNext($query)) {
-        array_push($result, array_shift($row));
-      }
-    }
-    return $result;
-
-  }
-
-  function getCachedValues() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    $cacheTag = get_class($this) . ':getCachedValues:' . md5($sql) . md5(serialize($args));
-
-    $result = br()->cache()->get($cacheTag);
-
-    if (!$result && !br()->cache()->exists($cacheTag)) {
-      $query = $this->internalRunQuery($sql, $args);
-      $result = array();
-      if (is_object($query) || is_resource($query)) {
-        while($row = $this->selectNext($query)) {
-          array_push($result, array_shift($row));
-        }
-      }
-      br()->cache()->set($cacheTag, $result);
-    }
-    return $result;
 
   }
 

@@ -45,6 +45,10 @@ class BrGenericCacheProvider extends BrObject {
 
   }
 
+  public function getEx($name) {
+
+  }
+
   public function set($name, $value, $expirationSeconds = null) {
 
   }

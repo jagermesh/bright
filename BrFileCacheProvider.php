@@ -43,16 +43,21 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
 
   public function exists($name) {
 
+    $name = $this->safeName($name);
+
     return $this->checkCacheFile($this->getCacheFilePath($name));
 
   }
 
   public function get($name, $default = null, $saveDefault = false) {
 
+    $name = $this->safeName($name);
+
     $filePath = $this->getCacheFilePath($name);
 
     if ($this->checkCacheFile($filePath)) {
-      $value = @json_decode(br()->fs()->loadFromFile($filePath), true);
+      // $value = @json_decode(br()->fs()->loadFromFile($filePath), true);
+      $value = unserialize(br()->fs()->loadFromFile($filePath));
     } else {
       $value = $default;
       if ($saveDefault) {
@@ -64,13 +69,33 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
 
   }
 
+  public function getEx($name) {
+
+    $name = $this->safeName($name);
+
+    $filePath = $this->getCacheFilePath($name);
+
+    if ($this->checkCacheFile($filePath)) {
+      // $result = array('success' => true, 'value' => @json_decode(br()->fs()->loadFromFile($filePath), true));
+      $result = array('success' => true, 'value' => unserialize(br()->fs()->loadFromFile($filePath)));
+    } else {
+      $result = array('success' => false);
+    }
+
+    return $value;
+
+  }
+
   public function set($name, $value, $cacheLifeTime = null) {
+
+    $name = $this->safeName($name);
 
     if (!$cacheLifeTime) { $cacheLifeTime = $this->getCacheLifeTime(); }
 
     $filePath = $this->getCacheFilePath($name);
     br()->fs()->makeDir(br()->fs()->filePath($filePath));
-    br()->fs()->saveToFile($filePath, @json_encode($value));
+    // br()->fs()->saveToFile($filePath, @json_encode($value));
+    br()->fs()->saveToFile($filePath, serialize($value));
 
     return $value;
 
@@ -78,10 +103,14 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
 
   public function remove($name) {
 
+    $name = $this->safeName($name);
+
     $filePath = $this->getCacheFilePath($name);
+
     if (file_exists($filePath)) {
       unlink($filePath);
     }
+
     $this->clearAttr($name);
 
   }
@@ -100,7 +129,8 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
 
   private function getCacheFilePath($name) {
 
-    $filePath = $this->cachePath . br()->fs()->getCharsPath(md5($name) . '.json');
+    // $filePath = $this->cachePath . br()->fs()->getCharsPath(md5($name) . '.json');
+    $filePath = $this->cachePath . br()->fs()->getCharsPath(md5($name) . '.cache');
     return $filePath;
 
   }
