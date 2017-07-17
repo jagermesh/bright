@@ -416,14 +416,16 @@ class BrDataBaseManager {
 
   }
 
-  function registerTableForAuditing($tableName, $auditMode = 7) {
+  function registerTableForAuditing($tableName, $auditMode = 7, $excludeFields = null) {
 
-    br()->db()->runQuery( 'INSERT IGNORE INTO audit_tables (name, is_audited) VALUES (?, ?)' . "\n"
+    br()->db()->runQuery( 'INSERT IGNORE INTO audit_tables (name, is_audited, exclude_fields) VALUES (?, ?, ?)' . "\n"
                         . '    ON DUPLICATE KEY' . "\n"
-                        . 'UPDATE is_audited = ?'
+                        . 'UPDATE is_audited = ?, exclude_fields = ?'
                         , $tableName
                         , $auditMode
+                        , $excludeFields
                         , $auditMode
+                        , $excludeFields
                         );
 
     $this->createAuditTriggers($tableName);
@@ -431,11 +433,12 @@ class BrDataBaseManager {
 
   }
 
-  function refreshTableSupport($tableName, $auditMode = 7) {
+  function refreshTableSupport($tableName, $auditMode = 7, $excludeFields = null) {
 
-    br()->db()->runQuery( 'INSERT IGNORE INTO audit_tables (name, is_audited) VALUES (?, ?)'
+    br()->db()->runQuery( 'INSERT IGNORE INTO audit_tables (name, is_audited, exclude_fields) VALUES (?, ?, ?)'
                         , $tableName
                         , $auditMode
+                        , $excludeFields
                         );
 
     $this->createAuditTriggers($tableName);
