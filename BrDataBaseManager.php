@@ -427,16 +427,14 @@ class BrDataBaseManager {
                         );
 
     $this->createAuditTriggers($tableName);
+    $this->createCascadeTrigger($tableName);
 
   }
 
   function refreshTableSupport($tableName, $auditMode = 7) {
 
-    br()->db()->runQuery( 'INSERT IGNORE INTO audit_tables (name, is_audited) VALUES (?, ?)' . "\n"
-                        . '    ON DUPLICATE KEY' . "\n"
-                        . 'UPDATE is_audited = ?'
+    br()->db()->runQuery( 'INSERT IGNORE INTO audit_tables (name, is_audited) VALUES (?, ?)'
                         , $tableName
-                        , $auditMode
                         , $auditMode
                         );
 
