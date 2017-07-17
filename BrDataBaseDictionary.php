@@ -15,10 +15,10 @@ class BrDataBaseDictionary extends BrObject {
                 throw new BrAppException($columnTitle . ' is required field.');
               } else
               if (strlen($value) < $columnDesc['min_length']) {
-                throw new BrAppException($columnTitle . ' too short. Minimum length is ' . $columnDesc['min_length'] . '.');
+                throw new BrAppException($columnTitle . ' is too short. Minimum length is ' . $columnDesc['min_length'] . ' character' . ($columnDesc['max_length'] > 1 ? 's' : ''));
               } else
               if (strlen($value) > $columnDesc['max_length']) {
-                throw new BrAppException($columnTitle . ' too long. Maximum length is ' . $columnDesc['max_length'] . '.');
+                throw new BrAppException($columnTitle . ' is too long. Maximum length is ' . $columnDesc['max_length'] . ' character' . ($columnDesc['max_length'] > 1 ? 's' : ''));
               }
             }
           }
