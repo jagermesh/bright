@@ -135,7 +135,6 @@ class BrDataBasePatch {
 
     br()->log(br('=')->repeat(80));
     br()->log('registerTableForAuditing(' . $tableName . ', ' . $auditMode . ')');
-    br()->log(br('=')->repeat(80));
 
     return $this->dbManager->registerTableForAuditing($tableName, $auditMode);
 
@@ -145,7 +144,6 @@ class BrDataBasePatch {
 
     br()->log(br('=')->repeat(80));
     br()->log('refreshTableSupport(' . $tableName . ', ' . $auditMode . ')');
-    br()->log(br('=')->repeat(80));
 
     return $this->dbManager->refreshTableSupport($tableName, $auditMode);
 
@@ -175,7 +173,6 @@ class BrDataBasePatch {
       } else {
         br()->log(br('=')->repeat(80));
         br()->log($sql);
-        br()->log(br('=')->repeat(80));
         if ($script) {
           br()->db()->runScript($sql);
         } else {
@@ -204,7 +201,6 @@ class BrDataBasePatch {
             } else {
               br()->log(br('=')->repeat(80));
               br()->log($sql);
-              br()->log(br('=')->repeat(80));
               if ($script) {
                 br()->db()->runScript($sql);
               } else {
