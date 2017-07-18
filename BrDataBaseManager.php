@@ -568,9 +568,11 @@ class BrDataBaseManager {
 
     try {
       $this->deleteCascadeTrigger($tableName, false);
-      if ($sql = $this->generateCascadeTrigger($tableName)) {
-        br()->db()->runQuery($sql);
-        $this->log('[' . $tableName . '] Cascade deletions audited');
+      if (!br()->db()->getCachedRow('SELECT * FROM br_cascade_triggers WHERE table_name = ? AND is_skip = 1', $tableName)) {
+        if ($sql = $this->generateCascadeTrigger($tableName)) {
+          br()->db()->runQuery($sql);
+          $this->log('[' . $tableName . '] Cascade deletions audited');
+        }
       }
     } catch (Exception $e) {
       $this->logException('[' . $tableName . '] Error. ' . $e->getMessage());
