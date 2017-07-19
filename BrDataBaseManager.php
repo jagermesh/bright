@@ -662,8 +662,17 @@ class BrDataBaseManager {
 
     switch($command) {
       case 'run':
+        break;
       case 'force':
       case 'register':
+        if ($regularRun) {
+          br()->log()->write('Error: please specify patch name', 'RED');
+          br()->log()->write('Usage: php ' . basename($scriptFile) . ' [run|force|register] [patchName]');
+          br()->log()->write('       php ' . basename($scriptFile) . '');
+          br()->log()->write('       php ' . basename($scriptFile) . ' register Patch1234');
+          br()->log()->write('       php ' . basename($scriptFile) . ' force Patch1234');
+          exit();
+        }
         break;
       case '?':
       case 'help':
@@ -735,6 +744,8 @@ class BrDataBaseManager {
       case '?':
       case 'help':
         br()->log()->write('Usage: php ' . basename($scriptFile) . ' [setup|delete|print] [tableName]');
+        br()->log()->write('       php ' . basename($scriptFile) . '');
+        br()->log()->write('       php ' . basename($scriptFile) . ' delete year');
         exit();
       default:
         $tableName = $command;
