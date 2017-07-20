@@ -4959,7 +4959,14 @@
       if (br.isObject(rowid)) {
         defaultValues = rowid;
       }
-      _this.inputsContainer.find('input.data-field[type!=radio],select.data-field,textarea.data-field').val('');
+      _this.inputsContainer.find('input.data-field[type!=radio],select.data-field,textarea.data-field').each(function() {
+        var dataComboInstance = $(this).data('BrDataCombo');
+        if (dataComboInstance) {
+          dataComboInstance.val('');
+        } else {
+          $(this).val('');
+        }
+      });
       _this.inputsContainer.find('input.data-field[type=checkbox]').val('1');
       _this.inputsContainer.find('input.data-field[type=checkbox]').removeAttr('checked');
       _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio]').find('button').removeClass('active');
