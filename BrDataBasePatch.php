@@ -216,6 +216,10 @@ class BrDataBasePatch {
       }
     }
 
+    br()->log()->write(br()->db()->getAffectedRowsAmount() . ' row(s) affected');
+
+    return br()->db()->getAffectedRowsAmount();
+
   }
 
   static function generatePatchScript($name, $path) {
