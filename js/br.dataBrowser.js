@@ -179,9 +179,9 @@
           deleteQueued();
         });
       } else {
-        if (_this.dataGrid.isEmpty()) {
-          _this.refresh();
-        }
+        // if (_this.dataGrid.isEmpty()) {
+          // _this.refresh();
+        // }
         br.hideProgress();
       }
 
@@ -285,6 +285,9 @@
         if (selectionQueue.length === 0) {
           _this.resetPager();
           _this.updatePager();
+        }
+        if (_this.dataGrid.isEmpty()) {
+          _this.refresh();
         }
       });
 
