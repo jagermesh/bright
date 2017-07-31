@@ -288,6 +288,15 @@
     };
 
     var saving = false;
+    var savingAndClosing = false;
+
+    this.isSaving = function() {
+      return saving;
+    };
+
+    this.isSavingAndClosing = function() {
+      return saving && savingAndClosing;
+    };
 
     this.save = function(andClose, callback, silent) {
       if (saving) {
@@ -304,6 +313,7 @@
           silent = callback;
           andClose = false;
         }
+        savingAndClosing = andClose;
         var data = { };
         var errors = [];
         $(this.options.selectors.errorMessage, _this.container).hide();
