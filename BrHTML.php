@@ -40,6 +40,21 @@ class BrHTML extends BrSingleton {
 
   }
 
+  function cleanUpEndOfText($html) {
+
+    $s = $html;
+    while (true) {
+      $html = preg_replace('|<br[ /]*>$|i', '', $s);
+      if ($html == $s) {
+        break;
+      }
+      $s = $html;
+    }
+
+    return $html;
+
+  }
+
   function cleanUp($html) {
 
     $html = str_replace('{cke_protected}{C}', '', $html);
