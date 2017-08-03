@@ -390,6 +390,12 @@ a.btn-url {
   padding-left:5px;
   padding-right:5px;
 }
+.badge {
+  font-weight: normal !important;
+  padding:1px;
+  padding-left:5px;
+  padding-right:5px;
+}
 
 table.table th {
   text-align: center;
