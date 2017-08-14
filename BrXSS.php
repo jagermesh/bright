@@ -37,7 +37,7 @@ class BrXSS extends BrSingleton {
               }
             }
           }
-          foreach(pq($doc)->find('base,style,meta,script,object,embed') as $style) {
+          foreach(pq($doc)->find('base,meta,script,object,embed') as $style) {
             pq($style)->remove();
           }
           foreach(pq($doc)->find('iframe') as $tag) {
