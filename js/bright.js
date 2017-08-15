@@ -2227,7 +2227,7 @@
 
     function update() {
 
-      var headerCols = $(table).find('thead tr:first th:visible');
+      var headerCols = $(table).find('thead tr:first th');
 
       if (_this.options.autoHeight) {
         var windowHeight = $(window).height();
