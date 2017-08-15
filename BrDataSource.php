@@ -392,6 +392,7 @@ class BrDataSource extends BrGenericDataSource {
         $result = $this->trigger('error', $error, $operation, $e, $row);
         if (is_null($result)) {
           if (preg_match('/1062: Duplicate entry/', $error, $matches)) {
+            br()->log()->logException($e);
             throw new BrAppException('Unique constraint violated.');
           }
           throw $e;
@@ -473,9 +474,11 @@ class BrDataSource extends BrGenericDataSource {
         $result = $this->trigger('error', $error, $operation, $e, $crow);
         if (is_null($result)) {
           if (preg_match('/1062: Duplicate entry/', $error, $matches)) {
+            br()->log()->logException($e);
             throw new BrAppException('Unique constraint violated');
           }
           if (preg_match("/1265: Data truncated for column '([a-z_]+)'/i", $error, $matches)) {
+            br()->log()->logException($e);
             throw new BrAppException('Wrong value for field ' . br()->config()->get('dbSchema.' . $this->dbEntity() . '.' . $matches[1] . '.displayName', $matches[1]));
           }
           throw $e;
