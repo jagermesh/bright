@@ -2182,7 +2182,7 @@
     $('thead', table).css('display', 'block');
     $('tbody', table).css('display', 'block').css('overflow', 'auto');
 
-    var headerCols = $(table).find('thead tr:first th');
+    var headerCols = $(table).find('thead tr:first th:visible');
     var headerWidths = {};
 
     var widthsSaved = false;
@@ -2196,7 +2196,7 @@
       var totalInnerWidth = 0;
       var totalOuterWidth = 0;
 
-      table.find('tbody tr:first td').each(function(idx) {
+      table.find('tbody tr:first td:visible').each(function(idx) {
         var innerWidth = $(this).innerWidth();
         var outerWidth = $(this).outerWidth();
         totalInnerWidth += outerWidth;
@@ -2227,7 +2227,7 @@
 
     function update() {
 
-      var headerCols = $(table).find('thead tr:first th');
+      var headerCols = $(table).find('thead tr:first th:visible');
 
       if (_this.options.autoHeight) {
         var windowHeight = $(window).height();
@@ -2238,7 +2238,7 @@
         $(tbody).height(tbodyHeight);
       }
 
-      var bodyCols = $(table).find('tbody tr:first td');
+      var bodyCols = $(table).find('tbody tr:first td:visible');
 
       if (bodyCols.length > 0) {
 
