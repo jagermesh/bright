@@ -134,4 +134,20 @@ class BrArray {
 
   }
 
+  function valuesOf($index = null) {
+
+    if (strlen($index)) {
+      $result = array();
+      foreach($this->value as $row) {
+        if (isset($row[$index])) {
+          $result[] = $row[$index];
+        }
+      }
+      return $result;
+    } else {
+      return $this->value;
+    }
+
+  }
+
 }
