@@ -146,4 +146,24 @@ class BrArray {
 
   }
 
+  function extract($fields) {
+
+    $fields = br($fields)->split();
+
+    $result = array();
+    foreach($this->value as $row) {
+      $trow = array();
+      foreach($fields as $field) {
+        if (isset($row[$field])) {
+          $trow[$field] = $row[$field];
+        }
+      }
+      if ($trow) {
+        $result[] = $trow;
+      }
+    }
+    return $result;
+
+  }
+
 }
