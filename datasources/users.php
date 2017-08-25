@@ -94,13 +94,15 @@ class BrDataSourceUsers extends BrDataSource {
           throw new BrAppException('Please enter login/password');
         }
       } catch (BrAppException $e) {
-        $params['filter'] = $filter;
-        $params['error']  = $e->getMessage();
+        $params['filter']         = $filter;
+        $params['error']          = $e->getMessage();
+        $params['exceptionClass'] = get_class($e);;
         $dataSource->callEvent('loginError', $params);
         throw new BrAppException($params['error']);
       } catch (Exception $e) {
-        $params['filter'] = $filter;
-        $params['error']  = $e->getMessage();
+        $params['filter']         = $filter;
+        $params['error']          = $e->getMessage();
+        $params['exceptionClass'] = get_class($e);;
         $dataSource->callEvent('loginError', $params);
         throw new Exception($params['error']);
       }
