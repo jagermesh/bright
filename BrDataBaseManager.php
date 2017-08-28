@@ -403,15 +403,15 @@ class BrDataBaseManager {
     $this->initAuditSubsystem();
 
     if ($table = br()->db()->getCachedRow('SELECT * FROM audit_tables WHERE name LIKE ?', $tableName)) {
-      if (($table['is_audited'] & 4) === 4) {
+      // if (($table['is_audited'] & 4) === 4) {
         $this->log($this->generateInsertAuditTrigger($table['name']));
-      }
-      if (($table['is_audited'] & 2) === 2) {
+      // }
+      // if (($table['is_audited'] & 2) === 2) {
         $this->log($this->generateUpdateAuditTrigger($table['name']));
-      }
-      if (($table['is_audited'] & 1) === 1) {
+      // }
+      // if (($table['is_audited'] & 1) === 1) {
         $this->log($this->generateDeleteAuditTrigger($table['name']));
-      }
+      // }
     }
 
   }
