@@ -3517,9 +3517,9 @@
           content = _this.options.onGetContent.call(_this.ctrl, _this.editor, content);
         }
         _this.editor.val(content);
-        $(_this.editor).on('keydown', function(e) {
+        _this.editor.on('keydown', function(e) {
           if (e.keyCode == 9) {
-            var content = $(this).val();
+            var content = _this.editor.val();
             if (_this.options.onSave) {
               _this.options.onSave.call(_this.ctrl, content, 'keyup');
             } else {
@@ -3529,8 +3529,8 @@
             e.preventDefault();
           }
         });
-        $(_this.editor).on('keyup', function(e) {
-          var content = $(this).val();
+        _this.editor.on('keyup', function(e) {
+          var content = _this.editor.val();
           switch (e.keyCode) {
             case 13:
               if (_this.options.onSave) {
@@ -3546,12 +3546,18 @@
               break;
           }
         });
-        $(_this.editor).on('blur', function(e) {
-          var content = $(this).val();
-          if (_this.options.onSave) {
-            _this.options.onSave.call(_this.ctrl, content, 'blur');
-          } else {
-            _this.apply(content);
+        _this.editor.on('blur', function(e) {
+          var ok = true;
+          if (_this.options.onBlur) {
+            ok = _this.options.onBlur.call(_this.ctrl, e);
+          }
+          if (ok) {
+            var content = _this.editor.val();
+            if (_this.options.onSave) {
+              _this.options.onSave.call(_this.ctrl, content, 'blur');
+            } else {
+              _this.apply(content);
+            }
           }
         });
         _this.editor.focus();
@@ -3566,21 +3572,41 @@
       return _this.editor !== null;
     };
 
-    _this.apply = function(content) {
-      _this.editor.remove();
-      _this.editor = null;
-      _this.ctrl.html(content);
-      if (typeof _this.ctrl.attr('data-editable') != 'undefined') {
-        _this.ctrl.attr('data-editable', content);
+    _this.save = function(content) {
+      if (_this.editor) {
+        if (content == undefined) {
+          content = _this.editor.val();
+        }
+        if (_this.options.onSave) {
+          _this.options.onSave.call(_this.ctrl, content, 'blur');
+        } else {
+          _this.apply(content);
+        }
       }
-      _this.ctrl.css('width', '');
+    };
+
+    _this.apply = function(content) {
+      if (_this.editor) {
+        if (content == undefined) {
+          content = _this.editor.val();
+        }
+        _this.editor.remove();
+        _this.editor = null;
+        _this.ctrl.html(content);
+        if (typeof _this.ctrl.attr('data-editable') != 'undefined') {
+          _this.ctrl.attr('data-editable', content);
+        }
+        _this.ctrl.css('width', '');
+      }
     };
 
     _this.cancel = function() {
-      _this.editor.remove();
-      _this.editor = null;
-      _this.ctrl.html(_this.ctrl.data('brEditable-original-html'));
-      _this.ctrl.css('width', '');
+      if (_this.editor) {
+        _this.editor.remove();
+        _this.editor = null;
+        _this.ctrl.html(_this.ctrl.data('brEditable-original-html'));
+        _this.ctrl.css('width', '');
+      }
     };
 
   }
@@ -3603,6 +3629,7 @@
           break;
         case 'get':
         case 'apply':
+        case 'save':
         case 'cancel':
         case 'click':
           if (!data) {
