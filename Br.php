@@ -1033,7 +1033,7 @@ class Br extends BrSingleton {
 
   function createTempFile($prefix, $extension = '', $register = true) {
 
-    $fileName = tempnam($this->tempPath(), $prefix);
+    $fileName = @tempnam($this->tempPath(), $prefix);
 
     if ($extension) {
       rename($fileName, $fileName . $extension);
