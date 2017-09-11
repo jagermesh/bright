@@ -22,9 +22,12 @@ class BrDataBaseDictionary extends BrObject {
                 if ($length > $columnDesc['max_length']) {
                   throw new BrAppException($columnTitle . ' is too long. Maximum length is ' . $columnDesc['max_length'] . ' character' . ($columnDesc['max_length'] > 1 ? 's' : ''));
                 } else {
-                  if ($columnDesc['is_integer'] || $columnDesc['is_decimal']) {
+                  if (br($columnDesc, 'is_numeric')) {
                     if (!is_numeric($value)) {
-                      throw new BrAppException($columnTitle . ' must be numeric');
+                      throw new BrAppException($columnTitle . ' must be numeric value');
+                    } else
+                    if ($columnDesc['is_integer'] && !preg_match('/^[-]?[0-9]+$/', $value)) {
+                      throw new BrAppException($columnTitle . ' must be integer value');
                     } else
                     if ($value < $columnDesc['min_value']) {
                       throw new BrAppException($columnTitle . ' must be greater or equal to ' . $columnDesc['min_value']);
@@ -77,7 +80,7 @@ class BrDataBaseDictionary extends BrObject {
                                            WHEN UPPER(col.data_type) = "DECIMAL"
                                              OR UPPER(col.data_type) = "NUMERIC"
                                              OR UPPER(col.data_type) = "FLOAT"
-                                             OR UPPER(col.data_type) = "DOUBLE"    THEN IF(INSTR(col.column_type, "unsigned") > 0, 0, CONCAT("-", REPEAT("9", col.numeric_precision - col.numeric_scale), IF(col.numeric_scale IS NOT NULL, CONCAT(",", REPEAT("9", col.numeric_scale)), "")))
+                                             OR UPPER(col.data_type) = "DOUBLE"    THEN IF(INSTR(col.column_type, "unsigned") > 0, 0, CONCAT("-", REPEAT("9", col.numeric_precision - IFNULL(col.numeric_scale, 0)), IF(col.numeric_scale IS NOT NULL, CONCAT(",", REPEAT("9", col.numeric_scale)), "")))
                                            ELSE 0
                                       END min_value
                                     , CASE WHEN UPPER(col.data_type) = "BIGINT"    THEN IF(INSTR(col.column_type, "unsigned") > 0, 18446744073709551615, 9223372036854775807)
@@ -88,7 +91,7 @@ class BrDataBaseDictionary extends BrObject {
                                            WHEN UPPER(col.data_type) = "DECIMAL"
                                              OR UPPER(col.data_type) = "NUMERIC"
                                              OR UPPER(col.data_type) = "FLOAT"
-                                             OR UPPER(col.data_type) = "DOUBLE"    THEN CONCAT(REPEAT("9", col.numeric_precision - col.numeric_scale), IF(col.numeric_scale IS NOT NULL, CONCAT(",", REPEAT("9", col.numeric_scale)), ""))
+                                             OR UPPER(col.data_type) = "DOUBLE"    THEN CONCAT(REPEAT("9", col.numeric_precision - IFNULL(col.numeric_scale, 0)), IF(col.numeric_scale IS NOT NULL, CONCAT(",", REPEAT("9", col.numeric_scale)), ""))
                                            ELSE 0
                                       END max_value
                                     , IF(col.is_nullable = "NO" AND column_default IS NULL, 1, 0) required
@@ -133,11 +136,12 @@ class BrDataBaseDictionary extends BrObject {
                                                                , 'required'       => $column['required']
                                                                , 'min_length'     => $column['min_length']
                                                                , 'max_length'     => $column['max_length']
+                                                               , 'column_comment' => $column['column_comment']
+                                                               , 'is_numeric'     => $column['is_integer'] || $column['is_decimal'] ? 1 : 0
                                                                , 'is_integer'     => $column['is_integer']
                                                                , 'is_decimal'     => $column['is_decimal']
                                                                , 'min_value'      => $column['min_value']
                                                                , 'max_value'      => $column['max_value']
-                                                               , 'column_comment' => $column['column_comment']
                                                                ];
     }
 

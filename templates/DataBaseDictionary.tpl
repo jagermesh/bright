@@ -13,11 +13,13 @@ class DataBaseDictionary extends BrDataBaseDictionary {
       , 'required'       => [[field_data.required]]
       , 'min_length'     => [[field_data.min_length]]
       , 'max_length'     => [[field_data.max_length]]
+      , 'column_comment' => '[[field_data.column_comment]]'
+      , 'is_numeric'     => [[field_data.is_numeric]]
+    [[#field_data.is_numeric]]
       , 'is_integer'     => [[field_data.is_integer]]
-      , 'is_decimal'     => [[field_data.is_decimal]]
       , 'min_value'      => [[field_data.min_value]]
       , 'max_value'      => [[field_data.max_value]]
-      , 'column_comment' => '[[field_data.column_comment]]'
+    [[/field_data.is_numeric]]
       )
     [[/table_data]]
     )
