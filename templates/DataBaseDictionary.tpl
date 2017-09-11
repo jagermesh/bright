@@ -13,6 +13,9 @@ class DataBaseDictionary extends BrDataBaseDictionary {
       , 'required'       => [[field_data.required]]
       , 'min_length'     => [[field_data.min_length]]
       , 'max_length'     => [[field_data.max_length]]
+      , 'is_integer'     => [[field_data.is_integer]]
+      , 'min_value'      => [[field_data.min_value]]
+      , 'max_value'      => [[field_data.max_value]]
       , 'column_comment' => '[[field_data.column_comment]]'
       )
     [[/table_data]]
