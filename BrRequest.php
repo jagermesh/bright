@@ -624,7 +624,7 @@ class BrRequest extends BrSingleton {
     foreach($this->urlRestrictions as $restriction) {
       if (br($restriction, 'type') == 'allowOnly') {
         if (br($restriction, 'rule')) {
-          $restriction['rule'] = rtrim($restriction['rule'], '|');
+          $restriction['rule'] = ltrim(rtrim($restriction['rule'], '|'), '|');
           if (!$this->isAt($restriction['rule'])) {
             if (br($restriction, 'redirect')) {
               br()->auth()->clearLogin();
