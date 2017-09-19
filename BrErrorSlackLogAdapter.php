@@ -88,8 +88,8 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
         unset($data['password']);
         $requestData = @json_encode($data);
         if ($requestData) {
-          if (strlen($requestData) > 1023*16) {
-            $requestData = substr($requestData, 0, 1023*16) . '...';
+          if (strlen($requestData) > 1024*16) {
+            $requestData = substr($requestData, 0, 1024*16) . '...';
           }
           $body .= '_Request data (GET):_  ```' . $requestData . '```' ."\n";
         }
@@ -98,8 +98,8 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
         unset($data['password']);
         $requestData = @json_encode($data);
         if ($requestData) {
-          if (strlen($requestData) > 1023*16) {
-            $requestData = substr($requestData, 0, 1023*16) . '...';
+          if (strlen($requestData) > 1024*16) {
+            $requestData = substr($requestData, 0, 1024*16) . '...';
           }
           $body .= '_Request data (POST):_ ```' . $requestData . '```' . "\n";
         }
@@ -108,8 +108,8 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
         unset($data['password']);
         $requestData = @json_encode($data);
         if ($requestData) {
-          if (strlen($requestData) > 1023*16) {
-            $requestData = substr($requestData, 0, 1023*16) . '...';
+          if (strlen($requestData) > 1024*16) {
+            $requestData = substr($requestData, 0, 1024*16) . '...';
           }
           $body .= '_Request data (PUT):_  ```' . $requestData . '```' . "\n";
         }

@@ -72,8 +72,8 @@ class BrRMQLogAdapter extends BrGenericLogAdapter {
             unset($data['password']);
             $requestData = @json_encode($data);
             if ($requestData) {
-              if (strlen($requestData) > 1023*16) {
-                $requestData = substr($requestData, 0, 1023*16) . '...';
+              if (strlen($requestData) > 1024*16) {
+                $requestData = substr($requestData, 0, 1024*16) . '...';
               }
               $envelope['RequestDataGET'] = $requestData;
             }
@@ -82,8 +82,8 @@ class BrRMQLogAdapter extends BrGenericLogAdapter {
             unset($data['password']);
             $requestData = @json_encode($data);
             if ($requestData) {
-              if (strlen($requestData) > 1023*16) {
-                $requestData = substr($requestData, 0, 1023*16) . '...';
+              if (strlen($requestData) > 1024*16) {
+                $requestData = substr($requestData, 0, 1024*16) . '...';
               }
               $envelope['RequestDataPOST'] = $requestData;
             }
@@ -92,8 +92,8 @@ class BrRMQLogAdapter extends BrGenericLogAdapter {
             unset($data['password']);
             $requestData = @json_encode($data);
             if ($requestData) {
-              if (strlen($requestData) > 1023*16) {
-                $requestData = substr($requestData, 0, 1023*16) . '...';
+              if (strlen($requestData) > 1024*16) {
+                $requestData = substr($requestData, 0, 1024*16) . '...';
               }
               $envelope['RequestDataPUT'] = $requestData;
             }

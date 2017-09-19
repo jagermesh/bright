@@ -97,8 +97,8 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter {
           unset($data['password']);
           $requestData = @json_encode($data);
           if ($requestData) {
-            if (strlen($requestData) > 1023*16) {
-              $requestData = substr($requestData, 0, 1023*16) . '...';
+            if (strlen($requestData) > 1024*16) {
+              $requestData = substr($requestData, 0, 1024*16) . '...';
             }
             $this->writeMessage('Request GET:   ' . $requestData,                $group);
           }
@@ -107,8 +107,8 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter {
           unset($data['password']);
           $requestData = @json_encode($data);
           if ($requestData) {
-            if (strlen($requestData) > 1023*16) {
-              $requestData = substr($requestData, 0, 1023*16) . '...';
+            if (strlen($requestData) > 1024*16) {
+              $requestData = substr($requestData, 0, 1024*16) . '...';
             }
             $this->writeMessage('Request POST:  ' . $requestData,                $group);
           }
@@ -117,8 +117,8 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter {
           unset($data['password']);
           $requestData = @json_encode($data);
           if ($requestData) {
-            if (strlen($requestData) > 1023*16) {
-              $requestData = substr($requestData, 0, 1023*16) . '...';
+            if (strlen($requestData) > 1024*16) {
+              $requestData = substr($requestData, 0, 1024*16) . '...';
             }
             $this->writeMessage('Request PUT:   ' . $requestData,                $group);
           }
