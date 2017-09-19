@@ -2,6 +2,7 @@
 
 use Aws\Sqs\SqsClient;
 use Aws\S3\S3Client;
+use Aws\Polly\PollyClient;
 
 require_once(__DIR__ . '/BrObject.php');
 require_once(__DIR__ . '/BrException.php');
@@ -28,6 +29,12 @@ class BrAWS extends BrObject {
 
   }
 
+  private function getS3Endpoint() {
+
+    return 'https://' . br()->config()->get('AWS/S3/Endpoint', 's3.amazonaws.com') . '/';
+
+  }
+
   private function checkObjectUrl($url) {
 
     $url = preg_replace('~^s3://~', '', $url);
@@ -44,7 +51,7 @@ class BrAWS extends BrObject {
 
   private function assembleUrl($struct) {
 
-    return 'https://s3.amazonaws.com/' . $struct['bucketName'] . '/' . $struct['objectPath'];
+    return $this->getS3Endpoint() . $struct['bucketName'] . '/' . $struct['objectPath'];
 
   }
 
@@ -268,6 +275,7 @@ class BrAWS extends BrObject {
                                                              , 'VoiceId'      => br($additionalParams, 'voice', 'Salli')
                                                              ));
     $size = $result['AudioStream']->getSize();
+
     return array( 'url'      => $this->uploadData($result['AudioStream']->getContents(), $destination, $additionalParams)
                 , 'fileSize' => $size
                 );
