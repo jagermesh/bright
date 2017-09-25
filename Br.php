@@ -710,10 +710,15 @@ class Br extends BrSingleton {
   function getCommandLineArguments($asString = false) {
 
     global $argv;
+
     $result = array();
-    for($i = 1; $i < count($argv); $i++) {
-      $result[] = $argv[$i];
+
+    if (is_array($argv)) {
+      for($i = 1; $i < count($argv); $i++) {
+        $result[] = $argv[$i];
+      }
     }
+
     if ($asString) {
       return br($result)->join(' ');
     } else {
