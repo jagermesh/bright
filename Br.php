@@ -601,7 +601,6 @@ class Br extends BrSingleton {
         }
 
         if (($type === '@') || ($type === '@&')) {
-          debug($type);
           foreach ($a as $v) {
             if ($type === '@&') {
               $repl .= ($repl===''? "" : ",").("'".addslashes($v)."'");
