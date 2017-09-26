@@ -494,6 +494,10 @@ class Br extends BrSingleton {
         case '@':
         case '#':
           $type = $c;
+          if (substr($tmpl, $p+1, 1) == '&') {
+            $type = $type . '&';
+            ++$p;
+          }
           ++$p;
           break;
         default:
@@ -504,15 +508,17 @@ class Br extends BrSingleton {
       if (preg_match('/^((?:[^\s[:punct:]]|_)+)/', substr($tmpl, $p), $pock)) {
 
         $key = $pock[1];
-        if ($type != '#')
+        if ($type != '#') {
           $has_named = true;
+        }
         $p += strlen($key);
 
       } else {
 
         $key = $i;
-        if ($type != '#')
+        if ($type != '#') {
           $i++;
+        }
 
       }
 
@@ -594,9 +600,14 @@ class Br extends BrSingleton {
           break;
         }
 
-        if ($type === '@') {
+        if (($type === '@') || ($type === '@&')) {
+          debug($type);
           foreach ($a as $v) {
-            $repl .= ($repl===''? "" : ",").(preg_match('#^[-]?([1-9][0-9]*|[0-9])($|[.,][0-9]+$)#', $v) ? str_replace(',', '.', $v):"'".addslashes($v)."'");
+            if ($type === '@&') {
+              $repl .= ($repl===''? "" : ",").("'".addslashes($v)."'");
+            } else {
+              $repl .= ($repl===''? "" : ",").(preg_match('#^[-]?([1-9][0-9]*|[0-9])($|[.,][0-9]+$)#', $v) ? str_replace(',', '.', $v):"'".addslashes($v)."'");
+            }
           }
         } else
         if ($type === '%') {
