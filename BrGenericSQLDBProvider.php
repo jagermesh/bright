@@ -15,7 +15,8 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
   private $__inTransaction = 0;
   private $__transactionBuffer = array();
   private $__deadlocksHandlerEnabled = true;
-  private $version;
+
+  protected $version;
 
   public function startTransaction($force = false) {
 
@@ -1001,44 +1002,25 @@ class BrGenericSQLProviderTable {
           }
           break;
         case '$fulltext':
-          if ((br()->db()->getMajorVersion() >= 5) && (br()->db()->getMinorVersion() >= 6) && (br()->db()->getBuildNumber() >= 4)) {
-            if (is_array($filterValue)) {
-              $tmpFName = '';
-              $tmpValue = '';
-              foreach($filterValue as $name => $value) {
-                if (strpos($name, '.') === false) {
-                  $tmpFName2 = $tableName.'.'.$name;
-                } else {
-                  $tmpFName2 = $name;
-                }
-                $tmpFName = br($tmpFName)->inc($tmpFName2);
-                $tmpValue = $value;
+          if (is_array($filterValue)) {
+            $tmpFName = '';
+            $tmpValue = '';
+            foreach($filterValue as $name => $value) {
+              if (strpos($name, '.') === false) {
+                $tmpFName2 = $tableName.'.'.$name;
+              } else {
+                $tmpFName2 = $name;
               }
-              $where .= $link . 'MATCH (' . $tmpFName . ') AGAINST (? IN BOOLEAN MODE)';
-              $filterValue = $tmpValue;
-            } else {
-              $where .= $link . 'MATCH (' . $fname2 . ') AGAINST (? IN BOOLEAN MODE)';
+              $tmpFName = br($tmpFName)->inc($tmpFName2);
+              $tmpValue = $value;
             }
-            $filterValue = preg_replace('~[@()]~', ' ', $filterValue);
-            $args[] = $filterValue;
+            $where .= $link . 'MATCH (' . $tmpFName . ') AGAINST (? IN BOOLEAN MODE)';
+            $filterValue = $tmpValue;
           } else {
-            if (is_array($filterValue)) {
-              $where .= $link . '(1=2 ';
-              foreach($filterValue as $name => $value) {
-                if (strpos($name, '.') === false) {
-                  $tmpFName2 = $tableName.'.'.$name;
-                } else {
-                  $tmpFName2 = $name;
-                }
-                $where .= ' OR ' . $tmpFName2 . ' LIKE ?';
-                $args[] = '%'.$value.'%';
-              }
-              $where .= ')';
-            } else {
-              $where .= $link . $fname2 . ' LIKE ?';
-              $args[] = '%'.$filterValue.'%';
-            }
+            $where .= $link . 'MATCH (' . $fname2 . ') AGAINST (? IN BOOLEAN MODE)';
           }
+          $filterValue = preg_replace('~[@()]~', ' ', $filterValue);
+          $args[] = $filterValue;
           break;
         case '$starts':
           $where .= $link . $fname2 . ' LIKE ?';
