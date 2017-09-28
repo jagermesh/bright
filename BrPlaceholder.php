@@ -8,7 +8,7 @@ class BrPlaceholder extends BrObject {
 
   }
 
-  static function format($args) {
+  static function formatEx($args) {
 
     $result            = '';
 
@@ -86,7 +86,7 @@ class BrPlaceholder extends BrObject {
     if (!$value) {
       return 'NULL';
     } else
-    if (is_array($value))) {
+    if (is_array($value)) {
       $result = $comma = '';
       foreach ($value as $oneValue) {
         $result .= $comma . $this->formatString($oneValue);

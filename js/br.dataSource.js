@@ -92,6 +92,12 @@
           request.__clientUID = options.clientUID;
         }
 
+        for(var paramName in request) {
+          if (request[paramName] === null) {
+            request[paramName] = 'null';
+          }
+        }
+
         $.ajax({ type: this.options.crossdomain ? 'GET' : 'PUT'
                , data: request
                , dataType: this.options.crossdomain ? 'jsonp' : 'json'
@@ -175,6 +181,12 @@
           request.__clientUID = options.clientUID;
         }
 
+        for(var paramName in request) {
+          if (request[paramName] === null) {
+            request[paramName] = 'null';
+          }
+        }
+
         $.ajax({ type: this.options.crossdomain ? 'GET' : 'POST'
                , data: request
                , dataType: this.options.crossdomain ? 'jsonp' : 'json'
@@ -242,6 +254,12 @@
 
         if (options && options.clientUID) {
           request.__clientUID = options.clientUID;
+        }
+
+        for(var paramName in request) {
+          if (request[paramName] === null) {
+            request[paramName] = 'null';
+          }
         }
 
         $.ajax({ type: this.options.crossdomain ? 'GET' : 'DELETE'
@@ -479,6 +497,12 @@
 
         selectOperationCounter++;
 
+        for(var paramName in request) {
+          if (request[paramName] === null) {
+            request[paramName] = 'null';
+          }
+        }
+
         this.ajaxRequest = $.ajax({ type: 'GET'
                                   , data: request
                                   , dataType: this.options.crossdomain ? 'jsonp' : 'json'
@@ -564,6 +588,12 @@
 
       if (options && options.clientUID) {
         request.__clientUID = options.clientUID;
+      }
+
+      for(var paramName in request) {
+        if (request[paramName] === null) {
+          request[paramName] = 'null';
+        }
       }
 
       $.ajax({ type: this.options.crossdomain ? 'GET' : 'POST'
