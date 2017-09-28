@@ -92,11 +92,11 @@
           request.__clientUID = options.clientUID;
         }
 
-        for(var paramName in request) {
-          if (request[paramName] === null) {
-            request[paramName] = 'null';
-          }
-        }
+        // for(var paramName in request) {
+        //   if (request[paramName] === null) {
+        //     request[paramName] = 'null';
+        //   }
+        // }
 
         $.ajax({ type: this.options.crossdomain ? 'GET' : 'PUT'
                , data: request
@@ -181,11 +181,11 @@
           request.__clientUID = options.clientUID;
         }
 
-        for(var paramName in request) {
-          if (request[paramName] === null) {
-            request[paramName] = 'null';
-          }
-        }
+        // for(var paramName in request) {
+        //   if (request[paramName] === null) {
+        //     request[paramName] = 'null';
+        //   }
+        // }
 
         $.ajax({ type: this.options.crossdomain ? 'GET' : 'POST'
                , data: request
@@ -256,11 +256,11 @@
           request.__clientUID = options.clientUID;
         }
 
-        for(var paramName in request) {
-          if (request[paramName] === null) {
-            request[paramName] = 'null';
-          }
-        }
+        // for(var paramName in request) {
+        //   if (request[paramName] === null) {
+        //     request[paramName] = 'null';
+        //   }
+        // }
 
         $.ajax({ type: this.options.crossdomain ? 'GET' : 'DELETE'
                , data: request
