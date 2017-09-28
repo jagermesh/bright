@@ -2564,15 +2564,22 @@
       }
     }
 
-    this.removeRow = function(rowid) {
-      var row = $(_this.selector).find('[data-rowid=' + rowid + ']');
+    this.removeRow = function(rowid, options) {
+      var filter = '[data-rowid=' + rowid + ']';
+      options = options || {};
+      options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
+      if (options.refreshSelector) {
+        filter = options.refreshSelector + filter;
+      }
+      var row = $(_this.selector).find(filter);
       if (row.length > 0) {
         _this.events.triggerBefore('remove', rowid);
         _this.events.trigger('remove', rowid, row);
         row.remove();
         checkForEmptyGrid();
         _this.events.triggerAfter('remove', rowid, row);
-      } else {
+      } else
+      if (!_this.options.singleRowMode) {
         _this.dataSource.select();
       }
     };
@@ -2774,13 +2781,14 @@
         _this.dataSource.on('update', function(data) {
           if (_this.refreshRow(data, _this.options)) {
 
-          } else {
+          } else
+          if (!_this.options.singleRowMode) {
             _this.dataSource.select();
           }
         });
 
         _this.dataSource.on('remove', function(rowid) {
-          _this.removeRow(rowid);
+          _this.removeRow(rowid, _this.options);
         });
 
         if (this.options.selectors.remove) {
@@ -3574,7 +3582,7 @@
 
     _this.save = function(content) {
       if (_this.editor) {
-        if (content == undefined) {
+        if (content === undefined) {
           content = _this.editor.val();
         }
         if (_this.options.onSave) {
@@ -3587,7 +3595,7 @@
 
     _this.apply = function(content) {
       if (_this.editor) {
-        if (content == undefined) {
+        if (content === undefined) {
           content = _this.editor.val();
         }
         _this.editor.remove();

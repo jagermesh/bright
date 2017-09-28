@@ -494,6 +494,10 @@ class Br extends BrSingleton {
         case '@':
         case '#':
           $type = $c;
+          if (substr($tmpl, $p+1, 1) == '&') {
+            $type = $type . '&';
+            ++$p;
+          }
           ++$p;
           break;
         default:
@@ -504,15 +508,17 @@ class Br extends BrSingleton {
       if (preg_match('/^((?:[^\s[:punct:]]|_)+)/', substr($tmpl, $p), $pock)) {
 
         $key = $pock[1];
-        if ($type != '#')
+        if ($type != '#') {
           $has_named = true;
+        }
         $p += strlen($key);
 
       } else {
 
         $key = $i;
-        if ($type != '#')
+        if ($type != '#') {
           $i++;
+        }
 
       }
 
@@ -594,9 +600,13 @@ class Br extends BrSingleton {
           break;
         }
 
-        if ($type === '@') {
+        if (($type === '@') || ($type === '@&')) {
           foreach ($a as $v) {
-            $repl .= ($repl===''? "" : ",").(preg_match('#^[-]?([1-9][0-9]*|[0-9])($|[.,][0-9]+$)#', $v) ? str_replace(',', '.', $v):"'".addslashes($v)."'");
+            if ($type === '@&') {
+              $repl .= ($repl===''? "" : ",").("'".addslashes($v)."'");
+            } else {
+              $repl .= ($repl===''? "" : ",").(preg_match('#^[-]?([1-9][0-9]*|[0-9])($|[.,][0-9]+$)#', $v) ? str_replace(',', '.', $v):"'".addslashes($v)."'");
+            }
           }
         } else
         if ($type === '%') {
@@ -710,10 +720,15 @@ class Br extends BrSingleton {
   function getCommandLineArguments($asString = false) {
 
     global $argv;
+
     $result = array();
-    for($i = 1; $i < count($argv); $i++) {
-      $result[] = $argv[$i];
+
+    if (is_array($argv)) {
+      for($i = 1; $i < count($argv); $i++) {
+        $result[] = $argv[$i];
+      }
     }
+
     if ($asString) {
       return br($result)->join(' ');
     } else {
@@ -1048,5 +1063,34 @@ class Br extends BrSingleton {
 
   }
 
-}
+  function closureDump($c) {
 
+    $str = 'function (';
+    $r = new \ReflectionFunction($c);
+    $params = array();
+    foreach($r->getParameters() as $p) {
+        $s = '';
+        if($p->isArray()) {
+            $s .= 'array ';
+        } else if($p->getClass()) {
+            $s .= $p->getClass()->name . ' ';
+        }
+        if($p->isPassedByReference()){
+            $s .= '&';
+        }
+        $s .= '$' . $p->name;
+        if($p->isOptional()) {
+            $s .= ' = ' . var_export($p->getDefaultValue(), TRUE);
+        }
+        $params []= $s;
+    }
+    $str .= implode(', ', $params);
+    $str .= '){' . PHP_EOL;
+    $lines = file($r->getFileName());
+    for($l = $r->getStartLine(); $l < $r->getEndLine(); $l++) {
+        $str .= $lines[$l];
+    }
+    return $str;
+  }
+
+}

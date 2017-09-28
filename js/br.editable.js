@@ -114,7 +114,7 @@
 
     _this.save = function(content) {
       if (_this.editor) {
-        if (content == undefined) {
+        if (content === undefined) {
           content = _this.editor.val();
         }
         if (_this.options.onSave) {
@@ -127,7 +127,7 @@
 
     _this.apply = function(content) {
       if (_this.editor) {
-        if (content == undefined) {
+        if (content === undefined) {
           content = _this.editor.val();
         }
         _this.editor.remove();
