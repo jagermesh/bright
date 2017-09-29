@@ -223,7 +223,7 @@ class BrDataBaseManager {
     $sql .= '    SET auditID = LAST_INSERT_ID();' . "\n";
 
     for ($i = 0; $i < count($fields); $i++) {
-      $sql .= '    INSERT INTO ' . $this->auditChangeLogTable . ' (change_id, field_name, old_value, new_value) VALUES (auditID, "' . $fields[$i] . '", null, NEW.' . $fields[$i] . ');' . "\n";
+      $sql .= '    IF (NEW.' . $fields[$i] . ' IS NOT NULL) THEN INSERT INTO ' . $this->auditChangeLogTable . ' (change_id, field_name, old_value, new_value) VALUES (auditID, "' . $fields[$i] . '", null, NEW.' . $fields[$i] . '); END IF;' . "\n";
     }
 
     $sql .= '  END IF;' . "\n";
@@ -283,7 +283,7 @@ class BrDataBaseManager {
     $sql .= '    SET auditID = LAST_INSERT_ID();' . "\n";
 
     for ($i = 0; $i < count($fields); $i++) {
-      $sql .= '    INSERT INTO ' . $this->auditChangeLogTable . ' (change_id, field_name, old_value, new_value) VALUES (auditID, "' . $fields[$i] . '", OLD.' . $fields[$i] . ', null);' . "\n";
+      $sql .= '    IF (OLD.' . $fields[$i] . ' IS NOT NULL) THEN INSERT INTO ' . $this->auditChangeLogTable . ' (change_id, field_name, old_value, new_value) VALUES (auditID, "' . $fields[$i] . '", OLD.' . $fields[$i] . ', null); END IF;' . "\n";
     }
 
     $sql .= '  END IF;' . "\n";
