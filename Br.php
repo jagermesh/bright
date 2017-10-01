@@ -830,10 +830,12 @@ class Br extends BrSingleton {
       }
     }
 
-    if ($from = br($params, 'sender', br()->config()->get('br/mail/sender', br()->config()->get('br/mail/from', br()->config()->get('br/Br/sendMail/from'))))) {
+    $fromName = br($params, 'senderName', br()->config()->get('br/mail/fromName'));
+
+    if ($from = br($params, 'sender', br()->config()->get('br/mail/from'))) {
       if ($from = br($from)->split()) {
-        $mail->AddReplyTo($from[0]);
-        $mail->SetFrom($from[0]);
+        $mail->AddReplyTo($from[0], $fromName);
+        $mail->SetFrom($from[0], $fromName);
       }
     }
 
