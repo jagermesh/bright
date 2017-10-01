@@ -80,7 +80,7 @@ class BrDataBaseDictionary extends BrObject {
                                            WHEN UPPER(col.data_type) = "DECIMAL"
                                              OR UPPER(col.data_type) = "NUMERIC"
                                              OR UPPER(col.data_type) = "FLOAT"
-                                             OR UPPER(col.data_type) = "DOUBLE"    THEN IF(INSTR(col.column_type, "unsigned") > 0, 0, CONCAT("-", REPEAT("9", col.numeric_precision - IFNULL(col.numeric_scale, 0)), IF(col.numeric_scale IS NOT NULL, CONCAT(",", REPEAT("9", col.numeric_scale)), "")))
+                                             OR UPPER(col.data_type) = "DOUBLE"    THEN IF(INSTR(col.column_type, "unsigned") > 0, 0, CONCAT("-", REPEAT("9", col.numeric_precision - IFNULL(col.numeric_scale, 0)), IF(col.numeric_scale IS NOT NULL, CONCAT(".", REPEAT("9", col.numeric_scale)), "")))
                                            ELSE 0
                                       END min_value
                                     , CASE WHEN UPPER(col.data_type) = "BIGINT"    THEN IF(INSTR(col.column_type, "unsigned") > 0, 18446744073709551615, 9223372036854775807)
@@ -91,7 +91,7 @@ class BrDataBaseDictionary extends BrObject {
                                            WHEN UPPER(col.data_type) = "DECIMAL"
                                              OR UPPER(col.data_type) = "NUMERIC"
                                              OR UPPER(col.data_type) = "FLOAT"
-                                             OR UPPER(col.data_type) = "DOUBLE"    THEN CONCAT(REPEAT("9", col.numeric_precision - IFNULL(col.numeric_scale, 0)), IF(col.numeric_scale IS NOT NULL, CONCAT(",", REPEAT("9", col.numeric_scale)), ""))
+                                             OR UPPER(col.data_type) = "DOUBLE"    THEN CONCAT(REPEAT("9", col.numeric_precision - IFNULL(col.numeric_scale, 0)), IF(col.numeric_scale IS NOT NULL, CONCAT(".", REPEAT("9", col.numeric_scale)), ""))
                                            ELSE 0
                                       END max_value
                                     , IF(col.is_nullable = "NO" AND column_default IS NULL, 1, 0) required
