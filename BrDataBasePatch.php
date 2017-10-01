@@ -74,9 +74,15 @@ class BrDataBasePatch {
           case 'force':
             return true;
           case 'register':
-            br()->db()->runQuery( 'UPDATE br_db_patch SET patch_file = ?, patch_hash = ? WHERE guid = ?'
+            br()->db()->runQuery( 'UPDATE br_db_patch
+                                      SET patch_file = ?
+                                        , patch_hash = ?
+                                        , body = ?
+                                        , re_installed_at = NOW()
+                                    WHERE guid = ?'
                                 , basename($this->patchFile)
                                 , $this->patchHash
+                                , br()->fs()->loadFromFile($this->patchFile)
                                 , $this->guid
                                 );
             return false;
@@ -100,8 +106,11 @@ class BrDataBasePatch {
       }
     } else
     if ($command == 'register') {
-      br()->db()->runQuery( 'INSERT IGNORE INTO br_db_patch (guid, patch_file, patch_hash) VALUES (?, ?, ?)'
-                          , $this->guid, basename($this->patchFile), $this->patchHash
+      br()->db()->runQuery( 'INSERT IGNORE INTO br_db_patch (guid, patch_file, patch_hash, body, installed_at, re_installed_at) VALUES (?, ?, ?, ?, NOW(), NOW())'
+                          , $this->guid
+                          , basename($this->patchFile)
+                          , $this->patchHash
+                          , br()->fs()->loadFromFile($this->patchFile)
                           );
       return false;
     }
@@ -117,11 +126,11 @@ class BrDataBasePatch {
     try {
       $this->up();
 
-      br()->db()->runQuery( 'INSERT INTO br_db_patch (guid, patch_file, patch_hash) VALUES (?, ?, ?)
+      br()->db()->runQuery( 'INSERT INTO br_db_patch (guid, patch_file, patch_hash, body, installed_at) VALUES (?, ?, ?, ?, NOW())
                                  ON DUPLICATE KEY
-                             UPDATE patch_file = ?, patch_hash = ?'
-                          , $this->guid, basename($this->patchFile), $this->patchHash
-                                       , basename($this->patchFile), $this->patchHash
+                             UPDATE patch_file = ?, patch_hash = ?, body = ?, re_installed_at = NOW()'
+                          , $this->guid, basename($this->patchFile), $this->patchHash, br()->fs()->loadFromFile($this->patchFile)
+                                       , basename($this->patchFile), $this->patchHash, br()->fs()->loadFromFile($this->patchFile)
                           );
 
       br()->log($this->logPrefix() . ' Done');

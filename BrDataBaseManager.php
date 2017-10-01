@@ -135,6 +135,17 @@ class BrDataBaseManager {
                           );
     }
 
+    try {
+      br()->db()->runQuery('ALTER TABLE br_db_patch ROW_FORMAT=DYNAMIC');
+    } catch (Exception $e) {
+    }
+    try {
+      br()->db()->runQuery('ALTER TABLE br_db_patch ADD body LONGTEXT
+                                                  , ADD installed_at    DATETIME
+                                                  , ADD re_installed_at DATETIME');
+    } catch (Exception $e) {
+    }
+
     $this->migrationSubsystemInitialized = true;
 
   }
