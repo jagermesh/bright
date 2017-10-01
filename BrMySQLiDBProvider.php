@@ -130,6 +130,9 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
   function internalRunQuery($sql, $args = array(), $iteration = 0, $rerunError = null, $script = false) {
 
+    // check connection
+    $this->connection();
+
     if (count($args) > 0) {
       $queryText = br()->placeholderEx($sql, $args, $error);
       if (!$queryText) {
