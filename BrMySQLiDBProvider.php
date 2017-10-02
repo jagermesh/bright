@@ -234,9 +234,14 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
       } else
       if (preg_match('/1329: No data/', $e->getMessage())) {
 
+      } else
+      if (preg_match('/Duplicate entry/', $e->getMessage())) {
+        $error  = $e->getMessage();
+        $error .= '.' . "\n" . $queryText;
+        throw new BrDBUniqueException($error);
       } else {
         $error  = $e->getMessage();
-        $error .= '.' . "\n" . $sql;
+        $error .= '.' . "\n" . $queryText;
         throw new BrDBException($error);
       }
     }
