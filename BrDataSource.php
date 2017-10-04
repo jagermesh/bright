@@ -371,7 +371,9 @@ class BrDataSource extends BrGenericDataSource {
           $result = $row;
           $this->callEvent('after:insert', $result, $transientData, $old, $options);
           $result['rowid'] = br()->db()->rowidValue($result);
-          $this->callEvent('calcFields', $result, $transientData, $options);
+          if (!br($options, 'noCalcFields')) {
+            $this->callEvent('calcFields', $result, $transientData, $options);
+          }
           if ($this->transactionalDML()) {
             br()->db()->commitTransaction();
           }
@@ -456,7 +458,9 @@ class BrDataSource extends BrGenericDataSource {
           $result = $crow;
           $this->callEvent('after:update', $result, $transientData, $old, $options);
           $result['rowid'] = br()->db()->rowidValue($result);
-          $this->callEvent('calcFields', $result, $transientData, $options);
+          if (!br($options, 'noCalcFields')) {
+            $this->callEvent('calcFields', $result, $transientData, $options);
+          }
         }
         if ($this->transactionalDML()) {
           br()->db()->commitTransaction();
@@ -531,7 +535,9 @@ class BrDataSource extends BrGenericDataSource {
             $result = $crow;
             $this->callEvent('after:remove', $result, $transientData, $options);
             $result['rowid'] = br()->db()->rowidValue($result);
-            $this->callEvent('calcFields', $result, $transientData, $options);
+            if (!br($options, 'noCalcFields')) {
+              $this->callEvent('calcFields', $result, $transientData, $options);
+            }
           }
           if ($this->transactionalDML()) {
             br()->db()->commitTransaction();
