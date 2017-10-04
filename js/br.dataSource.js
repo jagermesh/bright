@@ -483,6 +483,10 @@
           request.__renderMode = options.renderMode;
         }
 
+        if (options && options.noCalcFields) {
+          request.__noCalcFields = options.noCalcFields;
+        }
+
         if (options && options.order) {
           request.__order = options.order;
         }

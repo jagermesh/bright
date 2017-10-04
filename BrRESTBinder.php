@@ -370,6 +370,10 @@ class BrRESTBinder extends BrObject {
         $dataSourceOptions['renderMode'] = $renderMode;
       }
 
+      if ($noCalcFields = br()->request()->get('__noCalcFields')) {
+        $dataSourceOptions['noCalcFields'] = $noCalcFields;
+      }
+
       if ($order = br()->request()->get('__order')) {
         if (!is_array($order)) {
           $order = array($order => 1);

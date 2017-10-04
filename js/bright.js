@@ -1981,6 +1981,10 @@
           request.__renderMode = options.renderMode;
         }
 
+        if (options && options.noCalcFields) {
+          request.__noCalcFields = options.noCalcFields;
+        }
+
         if (options && options.order) {
           request.__order = options.order;
         }
@@ -2444,6 +2448,10 @@
 
     this.getStored = function(name, defaultValue) {
       return br.storage.get(this.storageTag + 'stored:' + name, defaultValue);
+    };
+
+    this.isDisconnected = function() {
+      return disconnected;
     };
 
     this.disconnectFromDataSource = function() {

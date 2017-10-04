@@ -94,6 +94,10 @@
       return br.storage.get(this.storageTag + 'stored:' + name, defaultValue);
     };
 
+    this.isDisconnected = function() {
+      return disconnected;
+    };
+
     this.disconnectFromDataSource = function() {
       disconnected = true;
     };
