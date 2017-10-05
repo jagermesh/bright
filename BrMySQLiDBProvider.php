@@ -254,6 +254,19 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
   function internalGetRowsAmount($sql, $args) {
 
+    $countSQL = $this->getCountSQL($sql);
+    try {
+      $query = $this->internalRunQuery($countSQL, $args);
+      if ($row = $this->selectNext($query)) {
+        return array_shift($row);
+      } else  {
+        return mysqli_num_rows($this->internalRunQuery($sql, $args));
+      }
+    } catch (Exception $e) {
+      return mysqli_num_rows($this->internalRunQuery($sql, $args));
+    }
+
+    /*
     $sql = str_replace("\n", " ", $sql);
     $sql = str_replace("\r", " ", $sql);
     $sql = preg_replace('~USE INDEX[(][^)]+[)]~i', '', $sql);
@@ -275,6 +288,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
       }
     }
     return mysqli_num_rows($this->internalRunQuery($sql, $args));
+    */
 
   }
 

@@ -343,6 +343,9 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   protected function getCountSQL($sql) {
 
+    return 'SELECT COUNT(1) FROM (' . $sql . ') a';
+
+/*
     $offset = 0;
     if (preg_match('/(^[ \t\n]*|[ (])(SELECT)([ \n\r])/sim', $sql, $token, PREG_OFFSET_CAPTURE)) {
       $select_offset = $token[2][1];
@@ -376,8 +379,10 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
       $sql = $sql_start."SELECT COUNT(1) FROM".$sql_finish;
       $sql = preg_replace("/ORDER BY.+/sim", "", $sql, 1);
       return $sql;
-    } else
+    } else {
       return null;
+    }
+*/
 
   }
 

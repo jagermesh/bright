@@ -205,7 +205,7 @@ class BrDataSource extends BrGenericDataSource {
             $cursor = $cursor->having($having);
           }
 
-          if ($sortOrder && is_array($sortOrder)) {
+          if (!$countOnly && $sortOrder && is_array($sortOrder)) {
             foreach($sortOrder as $fieldName => $direction) {
               $sortOrder[$fieldName] = (int)$direction;
             }
