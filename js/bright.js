@@ -3296,6 +3296,7 @@
 
       currentData = data;
 
+
       if (!_this.options.lookupMode) {
 
         if (_this.options.saveSelection) {
@@ -3380,6 +3381,8 @@
               callback.call(_this.selector, result, response);
             }
             switchToSelect2();
+            _this.loaded = true;
+            _this.events.trigger('load', []);
           } else {
             _this.dataSource.select(filter, function(result, response) {
               if (result) {
@@ -3447,24 +3450,25 @@
         _this.events.trigger('change');
       });
 
-    } else {
+    }
 
-      if (_this.options.saveSelection) {
-        if (_this.options.saveToSessionStorage) {
-          _this.options.selectedValue = br.session.get(storageTag(_this.selector));
-        } else {
-          _this.options.selectedValue = br.storage.get(storageTag(_this.selector));
-        }
-        if (!br.isEmpty(_this.options.selectedValue)) {
-          _this.val(_this.options.selectedValue);
-        }
+    if (_this.options.saveSelection && (!_this.dataSource || _this.options.lookupMode)) {
+
+      if (_this.options.saveToSessionStorage) {
+        _this.options.selectedValue = br.session.get(storageTag(_this.selector));
+      } else {
+        _this.options.selectedValue = br.storage.get(storageTag(_this.selector));
+      }
+
+      if (!br.isEmpty(_this.options.selectedValue)) {
+        _this.val(_this.options.selectedValue);
       }
 
     }
 
     switchToSelect2();
 
-    _this.selector.change(function() {
+    _this.selector.on('change', function() {
       if (_this.options.saveSelection) {
         if (_this.options.saveToSessionStorage) {
           br.session.set(storageTag(this), $(this).val());
@@ -6216,7 +6220,7 @@
     });
     dropDownList.html('');
     if (options.allowClear) {
-      dropDownList.append(br.fetch(menuItemTemplate, { id: '', name: (options.clearLabel ? options.clearLabel : '--Clear--') }));
+      dropDownList.append(br.fetch(menuItemTemplate, { id: '', name: (options.clearLabel ? options.clearLabel : '-- сlear --') }));
     }
     if (options.onBeforeRenderMenu) {
       options.onBeforeRenderMenu.call(dropDownList, menuItemTemplate);
