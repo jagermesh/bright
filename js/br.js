@@ -205,11 +205,21 @@
     Child.superclass = Parent.prototype;
   };
 
-  function openUrl(url) {
+  function openUrl(url, options) {
+
+    options = options || { };
+
+    var s;
+
+    if (options.urlTitle) {
+      s = '<p>Click below to open link manually</p>'
+        + '<p><a target="_blank" class="action-open-link" href="' + url + '" style="word-wrap: break-word">' + options.urlTitle + '</a></p>';
+    } else {
+      s = '<p>Click a <a target="_blank" class="action-open-link" href="' + url + '" style="word-wrap: break-word">here</a> to open link manually</p>';
+    }
 
     var dialog = br.inform( 'You browser is currently blocking popups'
-                          , '<p>Click the link below to open this manually:</p>'
-                          + '<p><a target="_blank" class="action-open-link" href="' + url + '" style="word-wrap: break-word">' + url + '</a></p>'
+                          , s
                           + '<p>To eliminate this extra step, we recommend you modify your settings to disable the popup blocker.</p>'
                           );
 
@@ -246,7 +256,7 @@
     options.target = options.target || '_blank';
 
     if (window.br.popupBlocker == 'active') {
-      openUrl(url);
+      openUrl(url, options);
     } else {
       var w, h;
       if (screen.width) {
@@ -285,7 +295,7 @@
         win.focus();
       } else {
         window.br.popupBlocker = 'active';
-        openUrl(url);
+        openUrl(url, options);
       }
     }
 
