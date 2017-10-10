@@ -1069,36 +1069,51 @@
 
   };
 
-  window.br.openPopup = function(url, target) {
+  window.br.openPopup = function(url, options) {
+
+    if (br.isString(options)) {
+      options = { target: options };
+    } else {
+      options = options || { };
+    }
+
+    options.target = options.target || '_blank';
 
     if (window.br.popupBlocker == 'active') {
       openUrl(url);
     } else {
-      target = target || '_blank';
       var w, h;
       if (screen.width) {
-        if (screen.width >= 1280) {
-          w = 1000;
-        } else
-        if (screen.width >= 1024) {
-          w = 800;
+        if (options.fullScreen) {
+          w = screen.width;
         } else {
-          w = 600;
+          if (screen.width >= 1280) {
+            w = 1000;
+          } else
+          if (screen.width >= 1024) {
+            w = 800;
+          } else {
+            w = 600;
+          }
         }
       }
       if (screen.height) {
-        if (screen.height >= 900) {
-          h = 700;
-        } else
-        if (screen.height >= 800) {
-          h = 600;
+        if (options.fullScreen) {
+          h = screen.height;
         } else {
-          h = 500;
+          if (screen.height >= 900) {
+            h = 700;
+          } else
+          if (screen.height >= 800) {
+            h = 600;
+          } else {
+            h = 500;
+          }
         }
       }
       var left = (screen.width) ? (screen.width-w)/2 : 0;
       var settings = 'height='+h+',width='+w+',top=20,left='+left+',menubar=0,scrollbars=1,resizable=1';
-      var win = window.open(url, target, settings);
+      var win = window.open(url, options.target, settings);
       if (win) {
         window.br.popupBlocker = 'inactive';
         win.focus();
