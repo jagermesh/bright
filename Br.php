@@ -981,6 +981,9 @@ class Br extends BrSingleton {
       case 'mp3':
         $result = 'audio/mpeg';
         break;
+      case 'swf':
+        $result = 'application/x-shockwave-flash';
+        break;
       default:
         $result = 'application/octet-stream';
         break;
