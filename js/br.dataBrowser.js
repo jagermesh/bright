@@ -514,10 +514,9 @@
         _this.events.triggerAfter('change');
       });
 
-      _this.events.on('selectionChanged', function() {
-        var selection = _this.selection.get();
-        if (selection.length > 0) {
-          $(c('.selection-stat')).text(selection.length + ' record(s) selected');
+      _this.events.on('selectionChanged', function(count) {
+        if (count > 0) {
+          $(c('.selection-stat')).text(count + ' record(s) selected');
           $(c('.selection-stat')).show();
           $(c('.action-clear-selection')).show();
         } else {
@@ -693,7 +692,7 @@
       for (var i = 0; i < selection.length; i++) {
         _this.selectRow(selection[i], true);
       }
-      _this.events.trigger('selectionChanged');
+      _this.events.trigger('selectionChanged', _this.selection.get().length);
     };
 
     this.clearSelection = function() {
@@ -701,7 +700,7 @@
       $(c('.action-select-row')).removeAttr('checked');
       $(c('tr.row-selected')).removeClass('row-selected');
       $(c('.action-select-all')).removeAttr('checked');
-      _this.events.trigger('selectionChanged');
+      _this.events.trigger('selectionChanged', _this.selection.get().length);
     };
 
     this.getSelection = function() {
@@ -782,7 +781,7 @@
       }
       _this.selection.remove(rowid);
       if (!multiple) {
-        _this.events.trigger('selectionChanged');
+        _this.events.trigger('selectionChanged', _this.selection.get().length);
       }
     };
 
@@ -799,7 +798,7 @@
         row.addClass('row-selected');
         _this.selection.append(rowid);
         if (!multiple) {
-          _this.events.trigger('selectionChanged');
+          _this.events.trigger('selectionChanged', _this.selection.get().length);
         }
       }
     };
@@ -819,7 +818,7 @@
           _this.unSelectRow(rowid, true);
         }
       });
-      _this.events.trigger('selectionChanged');
+      _this.events.trigger('selectionChanged', _this.selection.get().length);
     };
 
     this.isFiltersVisible = function() {
