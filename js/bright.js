@@ -2400,6 +2400,8 @@
 
     this.options.templates          = this.options.templates || {};
 
+    this.options.templates.noData   = this.options.templates.noData || '.data-empty-template';
+
     this.options.templates.row      = $(rowTemplate).html();
     this.options.templates.groupRow = this.options.templates.groupRow ? $(this.options.templates.groupRow).html() : '';
     this.options.templates.header   = this.options.templates.header   ? $(this.options.templates.header).html() : '';
