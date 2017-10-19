@@ -115,6 +115,7 @@
                                  , defaultOrderAndGroup: this.options.defaultOrderAndGroup
                                  , fixedHeader: this.options.fixedHeader
                                  , autoHeight: this.options.autoHeight
+                                 , storageTag: this.options.storageTag
                                  }
                                );
 
@@ -128,16 +129,24 @@
       this.countDataSource.before(operation, callback);
     };
 
-    this.getOrder = function() {
-      return _this.dataGrid.getOrder();
-    };
-
     this.isOrderConfigured = function() {
       return _this.dataGrid.isOrderConfigured();
     };
 
-    this.setOrder = function(order) {
-      _this.dataGrid.setOrder(order);
+    this.getOrder = function() {
+      return _this.dataGrid.getOrder();
+    };
+
+    this.setOrder = function(order, callback) {
+      return _this.dataGrid.setOrder(order, callback);
+    };
+
+    this.getOrderAndGroup = function() {
+      return _this.dataGrid.getOrderAndGroup();
+    };
+
+    this.setOrderAndGroup = function(orderAndGroup, callback) {
+      return _this.dataGrid.setOrderAndGroup(orderAndGroup, callback);
     };
 
     this.setFilter = function(name, value) {

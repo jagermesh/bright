@@ -2650,10 +2650,8 @@
     };
 
     this.refresh = function(callback) {
-      _this.dataSource.select(function() {
-        if (callback) {
-          callback();
-        }
+      _this.dataSource.select(function(result, response) {
+        if (typeof callback == 'function') { callback.call(_this, result, response); }
       });
     };
 
@@ -2684,47 +2682,6 @@
       }
     };
 
-    this.getOrder = function() {
-      var order = _this.getOrderAndGroup();
-      var result = {};
-      if (br.isArray(order)) {
-        for(var i = 0; i < order.length; i++) {
-          if (order[i].asc) {
-            result[order[i].fieldName] = 1;
-          } else {
-            result[order[i].fieldName] = -1;
-          }
-        }
-      }
-      return result;
-    };
-
-    this.setOrder = function(order) {
-      var orderAndGroup = [];
-      for(var name in order) {
-        orderAndGroup.push({ fieldName: name, asc: order[name] > 0, group: false, index: orderAndGroup.length });
-      }
-      return order;
-    };
-
-    this.setOrderAndGroup = function(order) {
-      br.storage.set(this.storageTag + 'orderAndGroup', order);
-      return order;
-    };
-
-    this.getOrderAndGroup = function() {
-      var result = br.storage.get(this.storageTag + 'orderAndGroup', []);
-      if (br.isEmpty(result) || !br.isArray(result)) {
-        result = [];
-      }
-      return result;
-    };
-
-    this.isOrderConfigured = function() {
-      var orderAndGroup = _this.getOrderAndGroup();
-      return br.isArray(orderAndGroup) && (orderAndGroup.length > 0);
-    };
-
     this.loadMore = function(callback) {
       if (noMoreData || _this.loadingMoreData) {
 
@@ -2752,29 +2709,79 @@
       return result;
     };
 
-    this.init = function() {
+    this.isOrderConfigured = function() {
+      var orderAndGroup = _this.getOrderAndGroup();
+      return br.isArray(orderAndGroup) && (orderAndGroup.length > 0);
+    };
 
-      var savedOrder = _this.getOrderAndGroup();
-      if (!br.isArray(savedOrder) || (savedOrder.length === 0)) {
-        if (_this.options.defaultOrderAndGroup) {
-          _this.setOrderAndGroup(_this.options.defaultOrderAndGroup);
-        }
-      }
+    function saveOrderAndGroup(orderAndGroup) {
+      br.storage.set(_this.storageTag + 'orderAndGroup', orderAndGroup);
+      return orderAndGroup;
+    }
 
-      function showOrder(orderAndGroup) {
-        for(var i = 0; i < orderAndGroup.length; i++) {
-          var ctrl = $('.sortable[data-field="' + orderAndGroup[i].fieldName + '"].' + (orderAndGroup[i].asc ? 'order-asc' : 'order-desc'), $(_this.options.selectors.header));
-          ctrl.addClass('icon-white').addClass('icon-border').addClass('fa-border');
-          var idx = ctrl.parent().find('div.br-sort-index');
-          if (orderAndGroup.length > 1) {
-            if (idx.length > 0) {
-              idx.text(i + 1);
-            } else {
-              ctrl.parent().append($('<div class="br-sort-index">' + (i + 1) + '</div>'));
-            }
+    function showOrder(orderAndGroup) {
+      for(var i = 0; i < orderAndGroup.length; i++) {
+        var ctrl = $('.sortable[data-field="' + orderAndGroup[i].fieldName + '"].' + (orderAndGroup[i].asc ? 'order-asc' : 'order-desc'), $(_this.options.selectors.header));
+        ctrl.addClass('icon-white').addClass('icon-border').addClass('fa-border');
+        var idx = ctrl.parent().find('div.br-sort-index');
+        if (orderAndGroup.length > 1) {
+          if (idx.length > 0) {
+            idx.text(i + 1);
+          } else {
+            ctrl.parent().append($('<div class="br-sort-index">' + (i + 1) + '</div>'));
           }
         }
       }
+    }
+
+    this.getOrder = function() {
+      var order = _this.getOrderAndGroup();
+      var result = {};
+      if (br.isArray(order)) {
+        for(var i = 0; i < order.length; i++) {
+          if (order[i].asc) {
+            result[order[i].fieldName] = 1;
+          } else {
+            result[order[i].fieldName] = -1;
+          }
+        }
+      }
+      return result;
+    };
+
+    this.setOrder = function(order, callback) {
+      var orderAndGroup = [];
+      for(var name in order) {
+        orderAndGroup.push({ fieldName: name, asc: order[name] > 0, group: false, index: orderAndGroup.length });
+      }
+      _this.setOrderAndGroup(orderAndGroup, callback);
+    };
+
+    this.getOrderAndGroup = function() {
+      var result = br.storage.get(this.storageTag + 'orderAndGroup', []);
+      if (br.isEmpty(result) || !br.isArray(result) || (result.length === 0)) {
+        if (_this.options.defaultOrderAndGroup) {
+          result = _this.options.defaultOrderAndGroup;
+        } else {
+          result = [];
+        }
+      }
+      return result;
+    };
+
+    this.setOrderAndGroup = function(orderAndGroup, callback) {
+      saveOrderAndGroup(orderAndGroup);
+      showOrder(orderAndGroup);
+      _this.events.triggerBefore('changeOrder', orderAndGroup);
+      if (callback) {
+        _this.dataSource.select(function(result, response) {
+          if (typeof callback == 'function') { callback.call(_this, result, response); }
+        });
+      }
+      return orderAndGroup;
+    };
+
+    this.init = function() {
 
       showOrder(_this.getOrderAndGroup());
 
@@ -2808,10 +2815,7 @@
         if (!sorted) {
           orderAndGroup.push(newOrder);
         }
-        showOrder(orderAndGroup);
-        _this.setOrderAndGroup(orderAndGroup);
-        _this.events.triggerBefore('changeOrder', orderAndGroup);
-        _this.dataSource.select();
+        _this.setOrderAndGroup(orderAndGroup, true);
       });
 
       if (_this.dataSource) {
@@ -5448,6 +5452,7 @@
                                  , defaultOrderAndGroup: this.options.defaultOrderAndGroup
                                  , fixedHeader: this.options.fixedHeader
                                  , autoHeight: this.options.autoHeight
+                                 , storageTag: this.options.storageTag
                                  }
                                );
 
@@ -5461,16 +5466,24 @@
       this.countDataSource.before(operation, callback);
     };
 
-    this.getOrder = function() {
-      return _this.dataGrid.getOrder();
-    };
-
     this.isOrderConfigured = function() {
       return _this.dataGrid.isOrderConfigured();
     };
 
-    this.setOrder = function(order) {
-      _this.dataGrid.setOrder(order);
+    this.getOrder = function() {
+      return _this.dataGrid.getOrder();
+    };
+
+    this.setOrder = function(order, callback) {
+      return _this.dataGrid.setOrder(order, callback);
+    };
+
+    this.getOrderAndGroup = function() {
+      return _this.dataGrid.getOrderAndGroup();
+    };
+
+    this.setOrderAndGroup = function(orderAndGroup, callback) {
+      return _this.dataGrid.setOrderAndGroup(orderAndGroup, callback);
     };
 
     this.setFilter = function(name, value) {
