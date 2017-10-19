@@ -11,6 +11,34 @@
 require_once(__DIR__.'/BrObject.php');
 require_once(__DIR__.'/BrException.php');
 
+class BrOSProcess extends BrObject {
+
+  private $_pid;
+  private $_command;
+
+  function __construct($pid, $command) {
+
+    $this->_pid     = $pid;
+    $this->_command = $command;
+
+  }
+
+  function kill() {
+
+    br()->OS()->execute('kill ' . $this->_pid);
+
+    return !$this->isValid();
+
+  }
+
+  function isValid() {
+
+    return br()->OS()->isValidProcessId($this->_pid);
+
+  }
+
+}
+
 class BrOS extends BrObject {
 
   function execute($command) {
@@ -23,7 +51,8 @@ class BrOS extends BrObject {
   function killProcess($pid) {
 
     $this->execute('kill ' . $pid);
-    return !$this->findProcess($pid);
+
+    return !$this->isValidProcessId($pid);
 
   }
 
@@ -54,93 +83,56 @@ class BrOS extends BrObject {
 
   }
 
-  function getProcessesAmount($pid) {
+  function findProcesses($masks, $regexp = false) {
 
-    $result = 0;
+    $result = array();
 
-    if (is_numeric($pid)) {
-      $output = $this->execute('ps -p ' . $pid);
-      if (isset($output[1])) {
-        $result++;
-      }
-    } else {
-      if (!is_array($pid)) {
-        $pid = array($pid);
-      }
-      $output = $this->execute('ps ax 2>&1');
-      foreach($pid as $search) {
-        $search = trim($search);
-        foreach($output as $line) {
-          $line = trim($line);
-          if (strpos($line, $search) === false) {
-
-          } else {
-            $result++;
-          }
-        }
-      }
+    if (!is_array($masks)) {
+      $masks = array($masks);
     }
 
-    return $result;
-
-  }
-
-  function findProcess($pid) {
-
-    if (is_numeric($pid)) {
-      $output = $this->execute('ps -p ' . $pid);
-      if (isset($output[1])) {
-        return $pid;
-      }
-    } else {
-      if (!is_array($pid)) {
-        $pid = array($pid);
-      }
-      $output = $this->execute('ps ax 2>&1');
-      foreach($pid as $search) {
-        $search = trim($search);
-        foreach ($output as $line) {
-          $line = trim($line);
-          if (strpos($line, $search) === false) {
-
-          } else {
-            if (preg_match('#^([0-9]+).*?[0-9]+:[0-9]+ (.+)$#', $line, $matches)) {
-              if (strtolower(trim($matches[2])) == strtolower(trim($search))) {
-                return $matches[1];
-              }
+    $output = $this->execute('ps ax 2>&1');
+    foreach($masks as $mask) {
+      $mask = trim($mask);
+      foreach($output as $line) {
+        $line = trim($line);
+        if ($regexp) {
+          $found = (preg_match($mask, $line) > 0);
+        } else {
+          $found = strpos($line, $mask);
+        }
+        if ($found !== false) {
+          if (preg_match('#^([0-9]+).*?[0-9]+:[0-9]+([.0-9]+|) (.+)$#', $line, $matches)) {
+            $command = $matches[3];
+            if ($regexp) {
+              $found = (preg_match($mask, $command) > 0);
+            } else {
+              $found = strpos($command, $mask);
+            }
+            if ($found !== false) {
+              $result[] = new BrOSProcess($matches[1], $matches[3]);
             }
           }
         }
       }
     }
 
-    return false;
+    return new ArrayObject($result);
 
   }
 
-  function findProcessLike($pid) {
+  function isValidProcessId($pid) {
 
-    if (!is_array($pid)) {
-      $pid = array($pid);
-    }
-    $output = $this->execute('ps ax 2>&1');
-    foreach($pid as $search) {
-      $search = trim($search);
-      foreach ($output as $line) {
-        $line = trim($line);
-        if (preg_match('#^([0-9]+) .+?[0-9]+:[0-9.]+ ' . $search . '#', $line, $matches)) {
-          return $matches[1];
-        }
-      }
-    }
+    $output = $this->execute('ps -p ' . $pid);
 
-    return false;
+    return (count($output) > 1);
 
   }
 
   function nohup($command) {
 
     $output = $this->execute('nohup '.$command.' >/dev/null 2>&1 & echo $!');
+
     return (int)$output[0];
 
   }

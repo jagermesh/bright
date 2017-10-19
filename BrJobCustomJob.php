@@ -29,7 +29,7 @@ class BrJobCustomJob {
 
   function waitForProcessor() {
 
-    while (br()->OS()->getProcessesAmount(array($this->runJobScript, $this->checkJobScript)) > $this->maxProcessesAmount) {
+    while (br()->OS()->findProcesses(array($this->runJobScript, $this->checkJobScript))->count() > $this->maxProcessesAmount) {
       br()->log('[...] Too many processes started, maximum is ' . $this->maxProcessesAmount . '. Waiting to continue');
       sleep(10);
     }
@@ -46,7 +46,7 @@ class BrJobCustomJob {
       $runCommand = trim($this->runJobCommand . ' ' . $arguments);
     }
     br()->log('[CHK] Checking is it running ' . $runCommand);
-    if (br()->OS()->getProcessesAmount($runCommand) == 0) {
+    if (br()->OS()->findProcesses($runCommand)->count() == 0) {
       $logFileName = br()->basePath() . '_logs';
       if (is_writable($logFileName)) {
         $logFileName .= '/' . date('Y-m-d') . '/' . br()->fs()->normalizeFileName(trim($runCommand));
