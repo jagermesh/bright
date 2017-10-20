@@ -313,7 +313,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     if ($this->__connection) {
       return mysql_insert_id($this->__connection);
     } else {
-      throw new BrDBConnectionError('MySQL server has gone away');
+      throw new BrDBServerGoneAwayException('MySQL server has gone away');
     }
 
   }
@@ -323,7 +323,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     if ($this->__connection) {
       return mysql_affected_rows($this->__connection);
     } else {
-      throw new BrDBConnectionError('MySQL server has gone away');
+      throw new BrDBServerGoneAwayException('MySQL server has gone away');
     }
 
   }

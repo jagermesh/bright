@@ -312,7 +312,7 @@ class BrGenericDataSource extends BrObject {
 
   function invokeMethodExists($method) {
 
-    return br($this->events, $method);
+    return isset($this->events[$method]);
 
   }
 
@@ -323,7 +323,6 @@ class BrGenericDataSource extends BrObject {
     }
 
     $method = trim($method);
-
     switch($method) {
       case 'select':
       case 'selectOne':
