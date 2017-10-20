@@ -19,61 +19,73 @@ class BrDataBaseManager {
       return true;
     }
 
+    $this->auditChangeTable = 'audit_change';
     try {
-      $check = br()->db()->getValue('DESC audit_change');
-      $this->auditChangeTable = 'audit_change';
+      $check = br()->db()->getValue('DESC ' . $this->auditChangeTable);
     } catch (Exception $e) {
       $this->auditChangeTable = 'br_audit_change';
-      br()->db()->runQuery( 'CREATE TABLE br_audit_change (' . "\n"
-                          . '  id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY' . "\n"
-                          . ', action_date TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP()' . "\n"
-                          . ', table_name  VARCHAR(100)    NOT NULL' . "\n"
-                          . ', action_name CHAR(1)         NOT NULL' . "\n"
-                          . ', object_id   INTEGER         NOT NULL' . "\n"
-                          . ', author_id   INTEGER' . "\n"
-                          . ', ip_address  VARCHAR(250)' . "\n"
-                          . ', context     VARCHAR(250)' . "\n"
-                          . ', INDEX idx_' . $this->auditChangeTable . '_date (action_date)' . "\n"
-                          . ', INDEX idx_' . $this->auditChangeTable . '_table (table_name)' . "\n"
-                          . ', INDEX idx_' . $this->auditChangeTable . '_action (action_name)' . "\n"
-                          . ', INDEX idx_' . $this->auditChangeTable . '_object (object_id)' . "\n"
-                          . ', INDEX idx_' . $this->auditChangeTable . '_author (author_id)' . "\n"
-                          . ', INDEX idx_' . $this->auditChangeTable . '_ip_address (ip_address)' . "\n"
-                          . ', INDEX idx_' . $this->auditChangeTable . '_context (context)' . "\n"
-                          . ') ENGINE=InnoDB DEFAULT CHARSET=utf8'
-                          );
+      try {
+        $check = br()->db()->getValue('DESC ' . $this->auditChangeTable);
+      } catch (Exception $e) {
+        br()->db()->runQuery( 'CREATE TABLE ' . $this->auditChangeTable . ' (' . "\n"
+                            . '  id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY' . "\n"
+                            . ', action_date TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP()' . "\n"
+                            . ', table_name  VARCHAR(100)    NOT NULL' . "\n"
+                            . ', action_name CHAR(1)         NOT NULL' . "\n"
+                            . ', object_id   INTEGER         NOT NULL' . "\n"
+                            . ', author_id   INTEGER' . "\n"
+                            . ', ip_address  VARCHAR(250)' . "\n"
+                            . ', context     VARCHAR(250)' . "\n"
+                            . ', INDEX idx_' . $this->auditChangeTable . '_date (action_date)' . "\n"
+                            . ', INDEX idx_' . $this->auditChangeTable . '_table (table_name)' . "\n"
+                            . ', INDEX idx_' . $this->auditChangeTable . '_action (action_name)' . "\n"
+                            . ', INDEX idx_' . $this->auditChangeTable . '_object (object_id)' . "\n"
+                            . ', INDEX idx_' . $this->auditChangeTable . '_author (author_id)' . "\n"
+                            . ', INDEX idx_' . $this->auditChangeTable . '_ip_address (ip_address)' . "\n"
+                            . ', INDEX idx_' . $this->auditChangeTable . '_context (context)' . "\n"
+                            . ') ENGINE=InnoDB DEFAULT CHARSET=utf8'
+                            );
+      }
     }
 
+    $this->auditChangeLogTable = 'audit_change_log';
     try {
-      $check = br()->db()->getValue('DESC audit_change_log');
-      $this->auditChangeLogTable = 'audit_change_log';
+      $check = br()->db()->getValue('DESC ' . $this->auditChangeLogTable);
     } catch (Exception $e) {
-      br()->db()->runQuery( 'CREATE TABLE br_audit_change_log (' . "\n"
-                          . '  id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY' . "\n"
-                          . ', change_id  BIGINT UNSIGNED NOT NULL' . "\n"
-                          . ', field_name VARCHAR(100)    NOT NULL' . "\n"
-                          . ', old_value  LONGTEXT' . "\n"
-                          . ', new_value  LONGTEXT' . "\n"
-                          . ', INDEX idx_audit_change_log_field_name (field_name)' . "\n"
-                          . ', CONSTRAINT fk_' . $this->auditChangeLogTable . '_change_id FOREIGN KEY (change_id) REFERENCES ' . $this->auditChangeTable . ' (id) ON DELETE CASCADE' . "\n"
-                          . ') ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC'
-                          );
       $this->auditChangeLogTable = 'br_audit_change_log';
+      try {
+        $check = br()->db()->getValue('DESC ' . $this->auditChangeLogTable);
+      } catch (Exception $e) {
+        br()->db()->runQuery( 'CREATE TABLE ' . $this->auditChangeLogTable . ' (' . "\n"
+                            . '  id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY' . "\n"
+                            . ', change_id  BIGINT UNSIGNED NOT NULL' . "\n"
+                            . ', field_name VARCHAR(100)    NOT NULL' . "\n"
+                            . ', old_value  LONGTEXT' . "\n"
+                            . ', new_value  LONGTEXT' . "\n"
+                            . ', INDEX idx_audit_change_log_field_name (field_name)' . "\n"
+                            . ', CONSTRAINT fk_' . $this->auditChangeLogTable . '_change_id FOREIGN KEY (change_id) REFERENCES ' . $this->auditChangeTable . ' (id) ON DELETE CASCADE' . "\n"
+                            . ') ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC'
+                            );
+      }
     }
 
+    $this->auditTablesTable = 'audit_tables';
     try {
-      $check = br()->db()->getValue('DESC audit_tables');
-      $this->auditTablesTable = 'audit_tables';
+      $check = br()->db()->getValue('DESC ' . $this->auditTablesTable);
     } catch (Exception $e) {
       $this->auditTablesTable = 'br_audit_tables';
-      br()->db()->runQuery( 'CREATE TABLE br_audit_tables (' . "\n"
-                          . '  id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY' . "\n"
-                          . ', name           VARCHAR(250)    NOT NULL' . "\n"
-                          . ', is_audited     TINYINT(1)      NOT NULL DEFAULT 7' . "\n"
-                          . ', exclude_fields LONGTEXT' . "\n"
-                          . ', UNIQUE INDEX un_' . $this->auditTablesTable . '_name (name)' . "\n"
-                          . ') ENGINE=InnoDB DEFAULT CHARSET=utf8'
-                          );
+      try {
+        $check = br()->db()->getValue('DESC ' . $this->auditTablesTable);
+      } catch (Exception $e) {
+        br()->db()->runQuery( 'CREATE TABLE br_audit_tables (' . "\n"
+                            . '  id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY' . "\n"
+                            . ', name           VARCHAR(250)    NOT NULL' . "\n"
+                            . ', is_audited     TINYINT(1)      NOT NULL DEFAULT 7' . "\n"
+                            . ', exclude_fields LONGTEXT' . "\n"
+                            . ', UNIQUE INDEX un_' . $this->auditTablesTable . '_name (name)' . "\n"
+                            . ') ENGINE=InnoDB DEFAULT CHARSET=utf8'
+                            );
+      }
     }
 
     br()->db()->runQuery( 'DROP VIEW IF EXISTS v_missing_audit');
@@ -86,7 +98,7 @@ class BrDataBaseManager {
                         . ' WHERE tbl.table_schema = ?' . "\n"
                         . '   AND tbl.table_type LIKE "%TABLE%"' . "\n"
                         . '   AND NOT EXISTS (SELECT 1' . "\n"
-                        . '                     FROM audit_tables' . "\n"
+                        . '                     FROM ' . $this->auditTablesTable  . "\n"
                         . '                    WHERE name = tbl.table_name)' . "\n"
                         . '   AND tbl.table_name NOT LIKE "tmp%"' . "\n"
                         . '   AND tbl.table_name NOT LIKE "backup%"' . "\n"
@@ -138,12 +150,15 @@ class BrDataBaseManager {
     try {
       br()->db()->runQuery('ALTER TABLE br_db_patch ROW_FORMAT=DYNAMIC');
     } catch (Exception $e) {
+
     }
+
     try {
       br()->db()->runQuery('ALTER TABLE br_db_patch ADD body LONGTEXT
                                                   , ADD installed_at    DATETIME
                                                   , ADD re_installed_at DATETIME');
     } catch (Exception $e) {
+
     }
 
     $this->migrationSubsystemInitialized = true;
@@ -200,11 +215,15 @@ class BrDataBaseManager {
 
   private function getAuditExcludeFields($tableName) {
 
+    $this->initAuditSubsystem();
+
     return br(br()->db()->getValue('SELECT exclude_fields FROM ' . $this->auditTablesTable . ' WHERE name = ?', $tableName))->split();
 
   }
 
   private function getAuditFields($tableName) {
+
+    $this->initAuditSubsystem();
 
     $excludeFields = $this->getAuditExcludeFields($tableName);
 
@@ -222,6 +241,8 @@ class BrDataBaseManager {
   }
 
   private function generateInsertAuditTrigger($tableName) {
+
+    $this->initAuditSubsystem();
 
     $fields = $this->getAuditFields($tableName);
 
@@ -245,6 +266,8 @@ class BrDataBaseManager {
   }
 
   private function generateUpdateAuditTrigger($tableName) {
+
+    $this->initAuditSubsystem();
 
     $fields = $this->getAuditFields($tableName);
 
@@ -283,6 +306,8 @@ class BrDataBaseManager {
 
   private function generateDeleteAuditTrigger($tableName) {
 
+    $this->initAuditSubsystem();
+
     $fields = $this->getAuditFields($tableName);
 
     $sql  = 'CREATE TRIGGER aud_tad_' . $tableName . "\n";
@@ -306,6 +331,8 @@ class BrDataBaseManager {
 
   private function createInsertAuditTrigger($tableName) {
 
+    $this->initAuditSubsystem();
+
     try {
       $this->deleteInsertAuditTrigger($tableName, false);
       br()->db()->runQuery($this->generateInsertAuditTrigger($tableName));
@@ -317,6 +344,8 @@ class BrDataBaseManager {
   }
 
   private function deleteInsertAuditTrigger($tableName, $log = true) {
+
+    $this->initAuditSubsystem();
 
     try {
       br()->db()->runQuery('DROP TRIGGER IF EXISTS aud_tai_' . $tableName);
@@ -331,6 +360,8 @@ class BrDataBaseManager {
 
   private function createUpdateAuditTrigger($tableName) {
 
+    $this->initAuditSubsystem();
+
     try {
       $this->deleteUpdateAuditTrigger($tableName, false);
       br()->db()->runQuery($this->generateUpdateAuditTrigger($tableName));
@@ -342,6 +373,8 @@ class BrDataBaseManager {
   }
 
   private function deleteUpdateAuditTrigger($tableName, $log = true) {
+
+    $this->initAuditSubsystem();
 
     try {
       br()->db()->runQuery('DROP TRIGGER IF EXISTS aud_tau_' . $tableName);
@@ -356,6 +389,8 @@ class BrDataBaseManager {
 
   private function createDeleteAuditTrigger($tableName) {
 
+    $this->initAuditSubsystem();
+
     try {
       $this->deleteDeleteAuditTrigger($tableName, false);
       br()->db()->runQuery($this->generateDeleteAuditTrigger($tableName));
@@ -367,6 +402,8 @@ class BrDataBaseManager {
   }
 
   private function deleteDeleteAuditTrigger($tableName, $log = true) {
+
+    $this->initAuditSubsystem();
 
     try {
       br()->db()->runQuery('DROP TRIGGER IF EXISTS aud_tad_' . $tableName);
@@ -385,7 +422,7 @@ class BrDataBaseManager {
 
     $this->deleteAuditTriggers($tableName, false);
 
-    if ($table = br()->db()->getCachedRow('SELECT * FROM audit_tables WHERE name LIKE ?', $tableName)) {
+    if ($table = br()->db()->getCachedRow('SELECT * FROM ' . $this->auditTablesTable . ' WHERE name LIKE ?', $tableName)) {
       if (($table['is_audited'] & 4) === 4) {
         $this->createInsertAuditTrigger($table['name']);
       }
@@ -413,23 +450,20 @@ class BrDataBaseManager {
 
     $this->initAuditSubsystem();
 
-    if ($table = br()->db()->getCachedRow('SELECT * FROM audit_tables WHERE name LIKE ?', $tableName)) {
-      // if (($table['is_audited'] & 4) === 4) {
-        $this->log($this->generateInsertAuditTrigger($table['name']));
-      // }
-      // if (($table['is_audited'] & 2) === 2) {
-        $this->log($this->generateUpdateAuditTrigger($table['name']));
-      // }
-      // if (($table['is_audited'] & 1) === 1) {
-        $this->log($this->generateDeleteAuditTrigger($table['name']));
-      // }
+    if ($table = br()->db()->getCachedRow('SELECT * FROM ' . $this->auditTablesTable . ' WHERE name LIKE ?', $tableName)) {
+      $this->log($this->generateInsertAuditTrigger($table['name']));
+      $this->log($this->generateUpdateAuditTrigger($table['name']));
+      $this->log($this->generateDeleteAuditTrigger($table['name']));
     }
 
   }
 
   function registerTableForAuditing($tableName, $auditMode = 7, $excludeFields = null) {
 
-    br()->db()->runQuery( 'INSERT IGNORE INTO audit_tables (name, is_audited, exclude_fields) VALUES (?, ?, ?)' . "\n"
+    $this->initAuditSubsystem();
+    $this->initCascadeTriggersSubsystem();
+
+    br()->db()->runQuery( 'INSERT IGNORE INTO ' . $this->auditTablesTable . ' (name, is_audited, exclude_fields) VALUES (?, ?, ?)' . "\n"
                         . '    ON DUPLICATE KEY' . "\n"
                         . 'UPDATE is_audited = ?, exclude_fields = ?'
                         , $tableName
@@ -446,7 +480,10 @@ class BrDataBaseManager {
 
   function refreshTableSupport($tableName, $auditMode = 7, $excludeFields = null) {
 
-    br()->db()->runQuery( 'INSERT IGNORE INTO audit_tables (name, is_audited, exclude_fields) VALUES (?, ?, ?)'
+    $this->initAuditSubsystem();
+    $this->initCascadeTriggersSubsystem();
+
+    br()->db()->runQuery( 'INSERT IGNORE INTO ' . $this->auditTablesTable . ' (name, is_audited, exclude_fields) VALUES (?, ?, ?)'
                         , $tableName
                         , $auditMode
                         , $excludeFields
@@ -458,6 +495,8 @@ class BrDataBaseManager {
   }
 
   function internalRunMigration($patchObjects) {
+
+    $this->initMigrationsSubsystem();
 
     if ($patchObjects) {
       $patchObjects2     = [];
@@ -485,6 +524,8 @@ class BrDataBaseManager {
   }
 
   private function generateCascadeTrigger($tableName, $commandName = 'setup') {
+
+    $this->initCascadeTriggersSubsystem();
 
     $sql  = 'CREATE TRIGGER csc_tbd_' . $tableName . "\n";
     $sql .= 'BEFORE DELETE ON ' . $tableName .' FOR EACH ROW' . "\n";
@@ -627,7 +668,7 @@ class BrDataBaseManager {
 
     $this->log('Running: ' . basename($scriptFile) . ' ' . $command . ' ' . $tableName);
 
-    $tables = br()->db()->getRows('SELECT * FROM audit_tables WHERE name LIKE ? ORDER BY name', $tableName);
+    $tables = br()->db()->getRows('SELECT * FROM ' . $this->auditTablesTable . ' WHERE name LIKE ? ORDER BY name', $tableName);
 
     if (count($tables) === 0) {
       if (!$regularRun) {
