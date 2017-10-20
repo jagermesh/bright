@@ -21,7 +21,15 @@ class BrArray {
   }
 
   function contain($value, $ignoreCase = false) {
+
     return $this->exists($value, $ignoreCase);
+
+  }
+
+  function has($value, $ignoreCase = false) {
+
+    return $this->exists($value, $ignoreCase);
+
   }
 
   function exists($value, $ignoreCase = false) {
@@ -163,6 +171,22 @@ class BrArray {
       }
     }
     return $result;
+
+  }
+
+  function in($value) {
+
+    if (is_array($value)) {
+      $cnt = 0;
+      foreach($this->value as $item) {
+        if (in_array($item, $value)) {
+          $cnt++;
+        }
+      }
+      return ($cnt == count($this->value));
+    } else {
+      return false;
+    }
 
   }
 

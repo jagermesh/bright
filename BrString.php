@@ -235,4 +235,14 @@ class BrString {
     return $crc;
   }
 
+  function in($value) {
+
+    if (is_array($value)) {
+      return in_array($this->value, $value);
+    } else {
+      return false;
+    }
+
+  }
+
 }
