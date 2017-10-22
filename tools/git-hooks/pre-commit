@@ -1,0 +1,72 @@
+#!/usr/bin/php
+<?php
+
+class Linter {
+
+  private function log($s) {
+    echo($s . "\n");
+  }
+
+  private function beginError() {
+    echo(chr(27) . '[31m' . "\n");
+  }
+
+  private function endError() {
+    echo(chr(27) . '[0m' . "\n");
+  }
+
+  private function logError($s) {
+    $this->beginError();
+    echo($s . "\n");
+    $this->endError();
+  }
+
+  private function lint($fileMask, $command, $toolName, $installUrl) {
+    $files  = array();
+    $output = array();
+    $retval = 0;
+
+    exec('git diff --cached --name-only --diff-filter=ACM | grep "' . $fileMask . '"', $files, $retval);
+
+    if ($files) {
+      $this->log('Running ' . $toolName . ' validation');
+      foreach($files as $file) {
+        $this->log('Checking: ' . $file);
+        $command = $command . ' "' . $file . '"';
+        exec($command . ' 2> /dev/null', $output, $retval);
+        if ($retval !== 0) {
+          $this->beginError();
+          if ($output) {
+            foreach($output as $line) {
+              if ($line) {
+                $this->log($line);
+              }
+            }
+          } else {
+            $this->log('Can not run "' . $command . '", probably ' . $toolName . ' not installed');
+            $this->log('Please refer to this link about how to install ' . $toolName . ': ' . $installUrl);
+          }
+          $this->endError();
+          exit(1);
+        }
+      }
+    }
+  }
+
+  private function JSLint() {
+    $this->lint('.js$', 'jshint', 'JSHint', 'http://jshint.com/install/');
+  }
+
+  private function PHPLint() {
+    $this->lint('.php$', 'php -l', 'PHP', 'http://php.net/');
+  }
+
+  function run() {
+    $this->JSLint();
+    $this->PHPLint();
+  }
+
+}
+
+$linter = new Linter();
+$linter->run();
