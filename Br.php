@@ -1098,4 +1098,16 @@ class Br extends BrSingleton {
     return $str;
   }
 
+  function encodeUtf8mb4($string) {
+
+    return preg_replace_callback('/./u', function (array $match) {
+      $res = $match[0];
+      if (strlen($res) >= 4) {
+        $res = mb_convert_encoding($res, 'HTML-ENTITIES', "UTF-8") ;
+      }
+      return $res;
+    }, $string);
+
+  }
+
 }
