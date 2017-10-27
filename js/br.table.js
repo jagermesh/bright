@@ -19,6 +19,8 @@
     $('thead', table).css('display', 'block');
     $('tbody', table).css('display', 'block').css('overflow', 'auto');
 
+    $(table).css('border-bottom', '0px');
+
     var headerCols = $(table).find('thead tr:first th');
     var headerWidths = {};
 
