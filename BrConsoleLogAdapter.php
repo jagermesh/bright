@@ -26,11 +26,13 @@ class BrConsoleLogAdapter extends BrGenericLogAdapter {
       case 'RED':
         $out = '[31m'; //Red background
         break;
+      case 'GREEN':
       case 'SUCCESS':
         $out = '[32m'; //Green background
         break;
+      case 'YELLOW':
       case 'DBG':
-        $out = '[33m'; //Blue background
+        $out = '[33m'; //Yello background
         break;
     }
 

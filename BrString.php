@@ -245,4 +245,139 @@ class BrString {
 
   }
 
+  private function mergeLine($old_line, $new_line) {
+
+    $result = '';
+    $old_words_count = count($old_line);
+    $new_words_count = count($new_line);
+    $max_words_count = ($old_words_count>$new_words_count?$old_words_count:$new_words_count);
+    $old_line_offset = 0;
+    $new_line_offset = 0;
+    while (($old_line_offset < $old_words_count) || ($new_line_offset < $new_words_count)) {
+      if (($old_line_offset < $old_words_count) && ($new_line_offset < $new_words_count)) {
+        $old_word = trim($old_line[$old_line_offset]);
+        $new_word = trim($new_line[$new_line_offset]);
+        if ($old_word == $new_word) {
+          $result .= $new_word." ";
+          $old_line_offset++;
+          $new_line_offset++;
+        } else {
+          $old_word_next_index = array_search($old_word, $new_line);
+          if (($old_word_next_index !== FALSE) && ($old_word_next_index > $new_line_offset))  {
+            for ($k = $new_line_offset; $k < $old_word_next_index; $k++) {
+              $result .= '<inserted>'.$new_line[$k].'</inserted>';
+            }
+            $new_line_offset = $old_word_next_index;
+          } else {
+            $result .= '<removed>'.$old_word.'</removed>';
+            $old_line_offset++;
+          }
+        }
+      } else
+      if ($old_line_offset < $old_words_count) {
+        $result .= '<removed>'.$old_line[$old_line_offset].'</removed>';
+        $old_line_offset++;
+      } else {
+        $result .= '<inserted>'.$new_line[$new_line_offset].'</inserted>';
+        $new_line_offset++;
+      }
+    }
+
+    return $result;
+
+  }
+
+  private function mergeText($old_text, $new_text) {
+
+    $result = [];
+    $lineNo = 1;
+    $old_text = explode("\n", $old_text);
+    $new_text = explode("\n", $new_text);
+    for ($i = 0; $i < count($old_text); $i++) {
+      $old_text[$i] = trim($old_text[$i], "\r\n");
+    }
+    for ($i = 0; $i < count($new_text); $i++) {
+      $new_text[$i] = trim($new_text[$i], "\r\n");
+    }
+    $old_text_int = $old_text;
+    $new_text_int = $new_text;
+    for ($i = 0; $i < count($old_text); $i++) {
+      $old_text_int[$i] = trim(strtolower($old_text[$i]));
+    }
+    for ($i = 0; $i < count($new_text); $i++) {
+      $new_text_int[$i] = trim(strtolower($new_text[$i]));
+    }
+    $old_lines_count = count($old_text);
+    $new_lines_count = count($new_text);
+    $max_lines = round(log10($old_lines_count + $old_lines_count));
+    $old_text_offset = 0;
+    $new_text_offset = 0;
+    while (($old_text_offset < $old_lines_count) || ($new_text_offset < $new_lines_count)) {
+      if (($old_text_offset < $old_lines_count) && ($new_text_offset < $new_lines_count)) {
+        $old_line = trim($old_text_int[$old_text_offset]);
+        $new_line = trim($new_text_int[$new_text_offset]);
+        if ($old_line == $new_line) {
+          $result[] = ['lineNo' => $lineNo++, 'maxLines' => $max_lines, 'type' => ' ', 'text' => $new_text[$new_text_offset]];
+          $old_text_offset++;
+          $new_text_offset++;
+        } else {
+          $old_line_next_index = array_search($old_line, $new_text_int);
+          if (($old_line_next_index !== FALSE) && ($old_line_next_index > $new_text_offset) && ($old_line_next_index - $new_text_offset < 5)) {
+            for ($k = $new_text_offset; $k < $old_line_next_index; $k++) {
+              $result[] = ['lineNo' => $lineNo++, 'maxLines' => $max_lines, 'type' => '+', 'text' => $new_text[$k]];
+            }
+            $new_text_offset = $old_line_next_index;
+          } else {
+            similar_text($old_line, $new_line, $percent);
+            // if ($percent > 10) {
+            //   $result[] = ['lineNo' => $lineNo++, 'maxLines' => $max_lines, 'type' => '*', 'text' => $this->mergeLine( explode(' ', $old_text[$old_text_offset]), explode(' ', $new_text[$new_text_offset]))];
+            //   $old_text_offset++;
+            //   $new_text_offset++;
+            // } else {
+              $result[] = ['lineNo' => $lineNo++, 'maxLines' => $max_lines, 'type' => '-', 'text' => $old_text[$old_text_offset]];
+              $old_text_offset++;
+            // }
+          }
+        }
+      } else
+      if ($old_text_offset < $old_lines_count) {
+        $result[] = ['lineNo' => $lineNo++, 'maxLines' => $max_lines, 'type' => '-', 'text' => $old_text[$old_text_offset]];
+        $old_text_offset++;
+      } else {
+        $result[] = ['lineNo' => $lineNo++, 'maxLines' => $max_lines, 'type' => '+', 'text' => $new_text[$new_text_offset]];
+        $new_text_offset++;
+      }
+
+    }
+
+    return $result;
+
+  }
+
+  function logDifference($newText, $logObject = null, $console = true) {
+
+    if (!$logObject) {
+      $logObject = br()->log();
+    }
+
+    $mergeStruct = $this->mergeText($this->value, $newText);
+    foreach($mergeStruct as $line) {
+      $s = $line['text'];
+      if ($console) {
+        $s = str_replace('<removed>', chr(27) . '[31m', $s);
+        $s = str_replace('</removed>', chr(27) . '[0m', $s);
+        $s = str_replace('<inserted>', chr(27) . '[32m', $s);
+        $s = str_replace('</inserted>', chr(27) . '[0m', $s);
+        if ($line['type'] == '+') {
+          $s = chr(27) . '[32m' . $s . chr(27) . '[0m';
+        }
+        if ($line['type'] == '-') {
+          $s = chr(27) . '[31m' . $s . chr(27) . '[0m';
+        }
+      }
+      $logObject->log(str_pad($line['lineNo'], $line['maxLines'], ' ', STR_PAD_LEFT) . ': ' . $line['type'] . ' ' . $s);
+    }
+
+  }
+
 }

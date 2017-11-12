@@ -15,6 +15,7 @@ class BrDataBasePatch {
   private $dependencies = [];
   private $className;
   private $patchFile;
+  private $logObject;
 
   protected $dbManager;
 
@@ -22,12 +23,13 @@ class BrDataBasePatch {
   const DO_CONTINUE = 1;
   const DO_RETRY    = 2;
 
-  function __construct($patchFile, $dbManager) {
+  function __construct($patchFile, $dbManager, $logObject) {
 
     $this->patchFile = $patchFile;
     $this->className = get_called_class();
     $this->patchHash = sha1_file($patchFile);
     $this->dbManager = $dbManager;
+    $this->logObject = $logObject;
 
   }
 
@@ -40,6 +42,7 @@ class BrDataBasePatch {
   function logPrefix() {
 
     return '[' . br()->db()->getDataBaseName() . '] [' . $this->className . ']';
+
   }
 
   function addDependency($value) {
@@ -53,10 +56,9 @@ class BrDataBasePatch {
     foreach($this->dependencies as $dependency) {
       if (!br()->db()->getValue('SELECT id FROM br_db_patch WHERE guid = ?', $dependency)) {
         if ($raiseError) {
-          throw new BrAppException($this->logPrefix() . ' Error. Dependency not met: ' . $dependency);
-        } else {
-          return false;
+          $this->logObject->log('Error. Dependency not met: ' . $dependency, 'RED');
         }
+        return false;
       }
     }
 
@@ -88,19 +90,33 @@ class BrDataBasePatch {
             return false;
           default:
             if ($patch['patch_file'] != basename($this->patchFile)) {
-              br()->log()->write($this->logPrefix() . ' Error. Same patch already registered but has different name: ' . $patch['patch_file'], 'RED');
+              br()->log('');
+              $this->logObject->log('Apply');
+              $this->logObject->log('Error. Same patch already registered but has different name: ' . $patch['patch_file'], 'RED');
+              if ($patch['body']) {
+                br($patch['body'])->logDifference(br()->fs()->loadFromFile($this->patchFile), $this->logObject);
+              }
             } else
             if ($patch['patch_hash'] != $this->patchHash) {
-              br()->log()->write($this->logPrefix() . ' Error. Same patch already registered but has different hash: ' . $patch['patch_hash'], 'RED');
+              br()->log('');
+              $this->logObject->log('Apply');
+              $this->logObject->log('Error. Same patch already registered but has different hash: ' . $patch['patch_hash'], 'RED');
+              if ($patch['body']) {
+                br($patch['body'])->logDifference(br()->fs()->loadFromFile($this->patchFile), $this->logObject);
+              }
             } else
             if ($raiseError) {
-              br()->log()->write($this->logPrefix() . ' Error. Already applied', 'RED');
+              br()->log('');
+              $this->logObject->log('Apply');
+              $this->logObject->log('Error. Already applied', 'RED');
             }
             return false;
         }
       } else {
         if ($raiseError) {
-          br()->log()->write($this->logPrefix() . ' Error. Already applied', 'RED');
+          br()->log('');
+          $this->logObject->log('Apply');
+          $this->logObject->log('Error. Already applied', 'RED');
         }
         return false;
       }
@@ -121,7 +137,8 @@ class BrDataBasePatch {
 
   function run() {
 
-    br()->log($this->logPrefix() . ' Running (' . $this->patchHash . ')');
+    br()->log('');
+    $this->logObject->log('Apply');
 
     try {
       $this->up();
@@ -133,17 +150,17 @@ class BrDataBasePatch {
                                        , basename($this->patchFile), $this->patchHash, br()->fs()->loadFromFile($this->patchFile)
                           );
 
-      br()->log($this->logPrefix() . ' Done');
+      $this->logObject->log('Applied', 'GREEN');
     } catch (Exception $e) {
-      br()->log()->logException(new Exception($this->logPrefix() . ' Error. ' . $e->getMessage()), true, false);
+      $this->logObject->logException($e->getMessage());
     }
 
   }
 
   function registerTableForAuditing($tableName, $auditMode = 7) {
 
-    br()->log(br('=')->repeat(80));
-    br()->log('registerTableForAuditing(' . $tableName . ', ' . $auditMode . ')');
+    $this->logObject->log(br('=')->repeat(80));
+    $this->logObject->log('registerTableForAuditing(' . $tableName . ', ' . $auditMode . ')');
 
     return $this->dbManager->registerTableForAuditing($tableName, $auditMode);
 
@@ -151,8 +168,8 @@ class BrDataBasePatch {
 
   function refreshTableSupport($tableName, $auditMode = 7) {
 
-    br()->log(br('=')->repeat(80));
-    br()->log('refreshTableSupport(' . $tableName . ', ' . $auditMode . ')');
+    $this->logObject->log(br('=')->repeat(80));
+    $this->logObject->log('refreshTableSupport(' . $tableName . ', ' . $auditMode . ')');
 
     return $this->dbManager->refreshTableSupport($tableName, $auditMode);
 
@@ -175,13 +192,13 @@ class BrDataBasePatch {
     $this->stepNo++;
     $stepName = $stepName ? $stepName : $this->stepNo;
 
-    br()->log(br('=')->repeat(80));
-    br()->log()->write($this->logPrefix() . ' UP step "' . $stepName . '"');
+    $this->logObject->log(br('=')->repeat(20) . ' ' . 'UP step "' . $stepName . '"' . ' ' . br('=')->repeat(20), 'YELLOW');
+    // $this->logObject->log();
     try {
       if (is_callable($sql)) {
         $sql();
       } else {
-        br()->log($sql);
+        $this->logObject->log($sql);
         if ($script) {
           br()->db()->runScript($sql);
         } else {
@@ -189,8 +206,8 @@ class BrDataBasePatch {
         }
       }
     } catch (Exception $e) {
-      $error = 'UP error step "' . $stepName . '":' . "\n\n" . $e->getMessage();
-      br()->log()->write($this->logPrefix() . ' DOWN step "' . $stepName . '"');
+      $error = 'Error. UP step "' . $stepName . '":' . "\n\n" . $e->getMessage();
+      $this->logObject->log(br('=')->repeat(20) . ' ' . 'DOWN step "' . $stepName . '"' . ' ' . br('=')->repeat(20), 'YELLOW');
       try {
         $retry = $this->down($stepName, $e->getMessage());
       } catch (Exception $e2) {
@@ -202,14 +219,14 @@ class BrDataBasePatch {
         case self::DO_CONTINUE:
           break;
         case self::DO_RETRY:
-          br()->log()->write($error, 'RED');
-          br()->log()->write($this->logPrefix() . ' DOWN step "' . $stepName . '" requested rerun');
+          $this->logObject->log($error, 'RED');
+          $this->logObject->log('DOWN step "' . $stepName . '" requested rerun');
           try {
             if (is_callable($sql)) {
               $sql();
             } else {
-              br()->log(br('=')->repeat(80));
-              br()->log($sql);
+              $this->logObject->log(br('=')->repeat(80));
+              $this->logObject->log($sql);
               if ($script) {
                 br()->db()->runScript($sql);
               } else {
@@ -225,7 +242,7 @@ class BrDataBasePatch {
       }
     }
 
-    br()->log()->write(br()->db()->getAffectedRowsAmount() . ' row(s) affected');
+    $this->logObject->log(br()->db()->getAffectedRowsAmount() . ' row(s) affected', 'GREEN');
 
     return br()->db()->getAffectedRowsAmount();
 

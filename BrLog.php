@@ -11,7 +11,14 @@
 require_once(__DIR__.'/Br.php');
 require_once(__DIR__.'/BrSingleton.php');
 
-class BrLog extends BrSingleton {
+interface BrLoggable {
+
+  public function log($message = '', $group = 'MSG', $tagline = '');
+  public function logException($messageOrException, $sendOutput = false, $printCallStack = true);
+
+}
+
+class BrLog extends BrSingleton implements BrLoggable {
 
   private $initTime = null;
   private $initMicroTime = null;
@@ -300,9 +307,9 @@ class BrLog extends BrSingleton {
 
   }
 
-  public function logException($e, $sendOutput = false, $printCallStack = true) {
+  public function logException($messageOrException, $sendOutput = false, $printCallStack = true) {
 
-    $this->writeToAdapters($e, 'EXC', '', $sendOutput, $printCallStack);
+    $this->writeToAdapters($messageOrException, 'EXC', '', $sendOutput, $printCallStack);
 
   }
 
@@ -326,6 +333,12 @@ class BrLog extends BrSingleton {
   }
 
   public function write($message = '', $group = 'MSG', $tagline = '') {
+
+    $this->writeToAdapters($message, $group, $tagline);
+
+  }
+
+  public function log($message = '', $group = 'MSG', $tagline = '') {
 
     $this->writeToAdapters($message, $group, $tagline);
 

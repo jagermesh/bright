@@ -65,7 +65,9 @@ class BrDataBaseDictionary extends BrObject {
 
   }
 
-  static function generateDictionaryScript($path) {
+  function generateDictionaryScript($scriptFile) {
+
+    br()->log()->log('[' . br()->db()->getDataBaseName() . '] Generating dictionary file');
 
     $sql = br()->placeholder( 'SELECT col.*, col.table_name
                                     , col.column_name
@@ -162,12 +164,13 @@ class BrDataBaseDictionary extends BrObject {
 
     // debug($schema2);exit();
 
-    $fileName = $path . '/schema/DataBaseDictionary.php';
+    $fileName = br()->fs()->filePath($scriptFile) . '/schema/DataBaseDictionary.php';
 
     br()->fs()->saveToFile( $fileName
                           , br()->renderer()->fetchString( br()->fs()->loadFromFile(__DIR__ . '/templates/DataBaseDictionary.tpl')
                                                          , array( 'schema' => $schema2 )));
 
+    br()->log()->log('[' . br()->db()->getDataBaseName() . '] Dictionary file saved into ' . $fileName, 'GREEN');
 
   }
 
