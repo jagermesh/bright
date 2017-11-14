@@ -116,6 +116,7 @@ class BrCSVParser extends BrObject {
           $line = str_replace(chr(160), ' ', $line);
           $line = str_replace(chr(194), '',  $line);
           $line = str_replace(chr(180), '´', $line);
+          $line = str_replace(chr(248), 'ø', $line);
           $line = mb_convert_encoding($line, 'UTF-8');
           $line = trim($line);
           //------------------
