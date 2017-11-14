@@ -18,6 +18,10 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   protected $version;
 
+  public function connection() {
+
+  }
+
   public function startTransaction($force = false) {
 
     $this->resetTransaction();

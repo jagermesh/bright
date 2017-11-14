@@ -14,43 +14,49 @@ class BrGenericDBProvider extends BrObject {
 
   private $dataBaseName;
 
-  function setDataBaseName($name) {
+  public function setDataBaseName($name) {
 
     $this->dataBaseName = $name;
 
   }
 
-  function getDataBaseName() {
+  public function getDataBaseName() {
+
+    $this->connection();
 
     return $this->dataBaseName;
 
   }
 
-  function now() {
+  public function now() {
 
     return $this->toDateTime(time());
 
   }
 
-  function today() {
+  public function today() {
 
     return $this->toDate(time());
 
   }
 
-  function startTransaction() {
+  public function connection() {
 
   }
 
-  function commitTransaction() {
+  public function startTransaction() {
 
   }
 
-  function rollbackTransaction() {
+  public function commitTransaction() {
 
   }
 
-  function validate($tableName, $row) {
+  public function rollbackTransaction() {
+
+  }
+
+  public function validate($tableName, $row) {
 
     $dataBaseDictionaryFile = br()->basePath() . 'database/schema/UserDefinedDataBaseDictionary.php';
     if (file_exists($dataBaseDictionaryFile)) {
