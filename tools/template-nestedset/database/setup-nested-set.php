@@ -5,24 +5,41 @@ require_once(dirname(__DIR__).'/bright/Bright.php');
 if (!br()->isConsoleMode()) { br()->panic('Console mode only'); }
 $handle = br()->OS()->lockIfRunning(br()->callerScript());
 
+br()->importLib('NestedSet');
+
 $scriptFile = __FILE__;
 
-$logPrefix = '[' . basename($scriptFile) . '] [' . br()->db()->getDataBaseName() . ']';
+br()->cmd()->run(function($cmd) use ($scriptFile) {
 
-if ($tableName = @$argv[1]) {
+  $cmd->setLogPrefix('[' . br()->db()->getDataBaseName() . ']');
 
-  br()->importLib('NestedSet');
+  $tableName = $cmd->getParam(1);
 
-  $params = array();
+  $showHelp = false;
 
-  foreach($argv as $value) {
-    if (preg_match('/--([A-Z]+)=(.+)/ism', $value, $matches)) {
-      $params[$matches[1]] = $matches[2];
-    }
-    if (preg_match('/--([A-Z]+)$/ism', $value, $matches)) {
-      $params[$matches[1]] = true;
+  if (!$tableName) {
+    $showHelp = true;
+  }
+
+  if ($showHelp) {
+    br()->log()->write('Usage: php ' . basename($scriptFile) . ' tableName [--createStructure] [--nameField=name] [--rangeField=] [--orderField=name] [--parentField=parent_id]');
+    exit();
+  }
+
+  $params = $cmd->getSwitches();
+
+  $s = 'Running: ' . basename($scriptFile) . ' ' . $tableName;
+
+  foreach($params as $name => $value) {
+    $s .= ' ' . $name;
+    if (strlen($value)) {
+      $s .= '=' . $value;
     }
   }
+
+  $cmd->log($s);
+
+  $cmd->setLogPrefix('[' . br()->db()->getDataBaseName() . '] [' . $tableName . ']');
 
   if (br($params, 'createStructure')) {
     try {
@@ -30,18 +47,19 @@ if ($tableName = @$argv[1]) {
       br()->db()->runQuery('ALTER TABLE ' . $tableName . ' ADD right_key INTEGER');
       br()->db()->runQuery('ALTER TABLE ' . $tableName . ' ADD level     INTEGER DEFAULT 1');
     } catch (Exception $e) {
-      br()->log()->write('[' . basename($scriptFile) . '] Error. Can not create structure for ' . $tableName . ': ' . $e->getMessage(), 'ERR');
+      $cmd->logException('Error. Can not create structure for ' . $tableName . ': ' . $e->getMessage());
       exit();
     }
   }
 
-  br()->log()->write($logPrefix . ' Running ' . basename($scriptFile) . ' ' . $tableName);
-
   $nestedSet = new BrNestedSet($tableName, $params);
-  $nestedSet->setup();
 
-} else {
+  try {
+    $nestedSet->setup();
+  } catch (Exception $e) {
+    $cmd->logException('Error');
+    br()->log()->logException($e);
+    exit();
+  }
 
-  br()->log('Usage: php ' . basename($scriptFile) . ' tableName [--createStructure] [--nameField=name] [--rangeField=] [--orderField=name] [--parentField=parent_id]');
-
-}
+});
