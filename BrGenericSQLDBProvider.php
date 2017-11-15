@@ -115,7 +115,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
   public function rowid($row, $fieldName = null) {
 
     if (is_array($row)) {
-      return br($row, $fieldName?$fieldName:$this->rowidField());
+      return br($row, $fieldName ? $fieldName : $this->rowidField());
     } else {
       return $row;
     }

@@ -181,11 +181,12 @@ class BrRESTBinder extends BrObject {
       $filter = array();
 
       if ($rowid = br()->request()->get('rowid')) {
-        $filter[br()->db()->rowidField()] = br()->db()->rowid($rowid);
-        $dataSourceOptions['limit'] = 1;
+        $filter[br()->db()->rowidField()] = br($rowid)->split();
+        $dataSourceOptions['limit'] = count($filter[br()->db()->rowidField()]);
       }
 
       $selectOne = false;
+
       if ($matches = br()->request()->isAt(rtrim($path, '/') . '/(' . $this->idRegExp . ')')) {
         if (preg_match('~' . $this->idCheckRegExp . '~', $matches[1])) {
           $keyValue = $matches[1];
