@@ -16,6 +16,15 @@
     this.subscribers = {};
     this.connections = [];
     this.obj = obj || this;
+    this.enabled = true;
+
+    this.enable = function() {
+      this.enabled = true;
+    };
+
+    this.disable = function() {
+      this.enabled = false;
+    };
 
     this.before = function(events, callback) {
       events = events.split(',');
@@ -81,26 +90,30 @@
 
     this.triggerEx = function(event, pos, largs) {
 
-      var args = [];
-      var i;
+      if (this.enabled) {
 
-      for(i = 0; i < largs.length; i++) {
-        args.push(largs[i]);
+        var args = [];
+        var i;
+
+        for(i = 0; i < largs.length; i++) {
+          args.push(largs[i]);
+        }
+
+        if (event != '*') {
+          trigger('*', pos, args);
+        }
+
+        args.splice(0,1);
+
+        var result = trigger(event, pos, args);
+
+        for (i = 0; i < _this.connections.length; i++) {
+          _this.connections[i].triggerEx(event, pos, largs);
+        }
+
+        return result;
+
       }
-
-      if (event != '*') {
-        trigger('*', pos, args);
-      }
-
-      args.splice(0,1);
-
-      var result = trigger(event, pos, args);
-
-      for (i = 0; i < _this.connections.length; i++) {
-        _this.connections[i].triggerEx(event, pos, largs);
-      }
-
-      return result;
 
     };
 

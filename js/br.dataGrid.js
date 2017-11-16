@@ -184,7 +184,7 @@
       return tableRow;
     };
 
-    this.addDataRow = function(row) {
+    this.addDataRow = function(row, disableEvents) {
       var tableRow = _this.renderRow(row);
       if (tableRow) {
         _this.events.triggerBefore('insert', row, tableRow);
@@ -194,8 +194,10 @@
         } else {
           _this.prepend(tableRow);
         }
-        _this.events.triggerAfter('renderRow', row, tableRow);
-        _this.events.triggerAfter('insert', row, tableRow);
+        if (!disableEvents) {
+          _this.events.triggerAfter('renderRow', row, tableRow);
+          _this.events.triggerAfter('insert', row, tableRow);
+        }
       }
       return tableRow;
     };
