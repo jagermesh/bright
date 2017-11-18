@@ -12,7 +12,7 @@ class BrDataBasePatch {
 
   private $stepNo = 0;
   private $guid = null;
-  private $dependencies = [];
+  private $dependencies = array();
   private $className;
   private $patchFile;
   private $logObject;

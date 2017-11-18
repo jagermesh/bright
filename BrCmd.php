@@ -43,7 +43,7 @@ class BrCmd extends BrObject implements BrLoggable {
 
     global $argv;
 
-    $result = [];
+    $result = array();
 
     foreach($argv as $value) {
       if (preg_match('/--([A-Z]+)=(.+)/ism', $value, $matches)) {
@@ -55,26 +55,6 @@ class BrCmd extends BrObject implements BrLoggable {
     }
 
     return $result;
-
-  }
-
-  function ifParamsCount($count, $callable) {
-
-    global $argv;
-
-    if (count($argv) - 1  == $count) {
-      $callable($this);
-    }
-
-    return $this;
-
-  }
-
-  function else($callable1) {
-
-    $callable1($this);
-
-    return $this;
 
   }
 

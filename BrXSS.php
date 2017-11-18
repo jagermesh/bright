@@ -46,9 +46,8 @@ class BrXSS extends BrSingleton {
             }
           }
           $html = $doc->html();
+          phpQuery::unloadDocuments();
         } catch (Exception $e) {
-
-        } finally {
           phpQuery::unloadDocuments();
         }
       }

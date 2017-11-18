@@ -211,7 +211,7 @@ class BrRESTBinder extends BrObject {
                     if (br($mapping, 'options') == 'passthru') {
                       $filter[$fields] = $value;
                     } else {
-                      $subFilter = [];
+                      $subFilter = array();
                       foreach($value as $name => $singleValue) {
                         $name = (string)$name;
                         switch ($name) {

@@ -30,9 +30,8 @@ class BrHTML extends BrSingleton {
     try {
       $doc = phpQuery::newDocument($html);
       $html = $doc->html();
+      phpQuery::unloadDocuments();
     } catch (Exception $e) {
-
-    } finally {
       phpQuery::unloadDocuments();
     }
 

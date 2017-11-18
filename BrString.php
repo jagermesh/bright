@@ -317,14 +317,14 @@ class BrString {
         $old_line = trim($old_text_int[$old_text_offset]);
         $new_line = trim($new_text_int[$new_text_offset]);
         if ($old_line == $new_line) {
-          $result[] = ['lineNo' => $lineNo++, 'maxLines' => $max_lines, 'type' => ' ', 'text' => $new_text[$new_text_offset]];
+          $result[] = array('lineNo' => $lineNo++, 'maxLines' => $max_lines, 'type' => ' ', 'text' => $new_text[$new_text_offset]);
           $old_text_offset++;
           $new_text_offset++;
         } else {
           $old_line_next_index = array_search($old_line, $new_text_int);
           if (($old_line_next_index !== FALSE) && ($old_line_next_index > $new_text_offset) && ($old_line_next_index - $new_text_offset < 5)) {
             for ($k = $new_text_offset; $k < $old_line_next_index; $k++) {
-              $result[] = ['lineNo' => $lineNo++, 'maxLines' => $max_lines, 'type' => '+', 'text' => $new_text[$k]];
+              $result[] = array('lineNo' => $lineNo++, 'maxLines' => $max_lines, 'type' => '+', 'text' => $new_text[$k]);
             }
             $new_text_offset = $old_line_next_index;
           } else {
@@ -334,17 +334,17 @@ class BrString {
             //   $old_text_offset++;
             //   $new_text_offset++;
             // } else {
-              $result[] = ['lineNo' => $lineNo++, 'maxLines' => $max_lines, 'type' => '-', 'text' => $old_text[$old_text_offset]];
+              $result[] = array('lineNo' => $lineNo++, 'maxLines' => $max_lines, 'type' => '-', 'text' => $old_text[$old_text_offset]);
               $old_text_offset++;
             // }
           }
         }
       } else
       if ($old_text_offset < $old_lines_count) {
-        $result[] = ['lineNo' => $lineNo++, 'maxLines' => $max_lines, 'type' => '-', 'text' => $old_text[$old_text_offset]];
+        $result[] = array('lineNo' => $lineNo++, 'maxLines' => $max_lines, 'type' => '-', 'text' => $old_text[$old_text_offset]);
         $old_text_offset++;
       } else {
-        $result[] = ['lineNo' => $lineNo++, 'maxLines' => $max_lines, 'type' => '+', 'text' => $new_text[$new_text_offset]];
+        $result[] = array('lineNo' => $lineNo++, 'maxLines' => $max_lines, 'type' => '+', 'text' => $new_text[$new_text_offset]);
         $new_text_offset++;
       }
 

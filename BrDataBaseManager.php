@@ -777,7 +777,7 @@ class BrDataBaseManager {
       }
 
       if ($patchObjects) {
-        $patchObjects2     = [];
+        $patchObjects2     = array();
         $somethingExecuted = false;
         foreach($patchObjects as $patch) {
           $cmd->setLogPrefix('[' . br()->db()->getDataBaseName() . '] [' . get_class($patch) . ']');
