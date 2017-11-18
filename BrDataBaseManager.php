@@ -514,12 +514,15 @@ class BrDataBaseManager {
 
     $sql2 = '';
 
+    $db = br()->config()->get('db');
+    $dbName = $db['name'];
+
     if ($constraints = br()->db()->getRows( 'SELECT ctr.constraint_schema, ctr.constraint_name, ctr.constraint_catalog
                                                FROM br_referential_constraints ctr
                                               WHERE ctr.constraint_schema     = ?
                                                 AND ctr.delete_rule           = ?
                                                 AND ctr.referenced_table_name = ?'
-                                          , br()->config()->get('db')['name']
+                                          , $dbName
                                           , 'CASCADE'
                                           , $tableName
                                           )) {
@@ -547,7 +550,7 @@ class BrDataBaseManager {
                                               WHERE ctr.constraint_schema     = ?
                                                 AND ctr.delete_rule           = ?
                                                 AND ctr.referenced_table_name = ?'
-                                          , br()->config()->get('db')['name']
+                                          , $dbName
                                           , 'SET NULL'
                                           , $tableName
                                           )) {

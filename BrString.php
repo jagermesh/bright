@@ -289,7 +289,7 @@ class BrString {
 
   private function mergeText($old_text, $new_text) {
 
-    $result = [];
+    $result = array();
     $lineNo = 1;
     $old_text = explode("\n", $old_text);
     $new_text = explode("\n", $new_text);
