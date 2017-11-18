@@ -48,10 +48,13 @@ class BrJobStarter {
               $job->run($arguments);
             }
             br()->log()->write('[' . $className . '] Done');
-            return true;
-          } finally {
             @fclose($handle);
             @unlink(br()->OS()->lockFileName($tag));
+            return true;
+          } catch (Exeception $e) {
+            @fclose($handle);
+            @unlink(br()->OS()->lockFileName($tag));
+            throw $e;
           }
         }
       } else {
