@@ -77,7 +77,9 @@
       try {
 
         if (!disableEvents) {
+          _this.events.triggerBefore('request', request, options);
           _this.events.triggerBefore('insert', request, options);
+          disableEvents = options && options.disableEvents;
         }
 
         if (this.options.crossdomain) {
@@ -165,6 +167,7 @@
       try {
 
         if (!disableEvents) {
+          _this.events.triggerBefore('request', request, options);
           _this.events.triggerBefore('update', request, options, rowid);
           disableEvents = options && options.disableEvents;
         }
@@ -241,7 +244,9 @@
       try {
 
         if (!disableEvents) {
+          _this.events.triggerBefore('request', request, options, rowid);
           _this.events.triggerBefore('remove', request, options, rowid);
+          disableEvents = options && options.disableEvents;
         }
 
         if (this.options.crossdomain) {
@@ -443,11 +448,18 @@
 
       if (!disableEvents) {
         try {
+          _this.events.triggerBefore('request', request, options);
+        } catch(e) {
+          br.log(e);
+          proceed = false;
+        }
+        try {
           _this.events.triggerBefore('select', request, options);
         } catch(e) {
           br.log(e);
           proceed = false;
         }
+        disableEvents = options && options.disableEvents;
       }
 
       if (proceed) {
@@ -580,7 +592,14 @@
 
       options = options || { };
 
-      _this.events.triggerBefore(method, request);
+      var disableEvents = options && options.disableEvents;
+
+      if (!disableEvents) {
+        _this.events.triggerBefore('request', request, options);
+        _this.events.triggerBefore('invoke', request, options);
+        _this.events.triggerBefore(method, request, options);
+        disableEvents = options && options.disableEvents;
+      }
 
       if (this.options.crossdomain) {
         request.crossdomain = 'post';
