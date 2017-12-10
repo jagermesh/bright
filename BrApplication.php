@@ -10,7 +10,6 @@
 
 require_once(__DIR__.'/BrSingleton.php');
 require_once(__DIR__.'/BrException.php');
-require_once(__DIR__.'/BrFileRenderer.php');
 
 class BrApplication extends BrSingleton {
 
