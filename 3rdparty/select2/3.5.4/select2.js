@@ -3268,7 +3268,9 @@ the specific language governing permissions and limitations under the Apache Lic
                   if (!this.isInterfaceEnabled()) return;
 
                   this.unselect($(e.target));
-                  this.selection.find(".select2-search-choice-focus").removeClass("select2-search-choice-focus");
+                  if (this.selection) {
+                      this.selection.find(".select2-search-choice-focus").removeClass("select2-search-choice-focus");
+                  }
                   killEvent(e);
                   this.close();
                   this.focusSearch();
