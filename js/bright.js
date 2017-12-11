@@ -5316,6 +5316,10 @@
       }
     }
 
+    function cancelContinue() {
+      saving = false;
+    }
+
     this.save = function(andClose, callback, silent) {
       if (saving) {
         window.setTimeout(function() {
@@ -5392,9 +5396,17 @@
             op = 'insert';
           }
           if (this.events.has('editor.save', 'pause')) {
-            _this.events.triggerPause('editor.save', function(data) {
-              saveContinue(andClose, callback, silent, data);
-            }, op, data);
+            _this.events.triggerPause( 'editor.save'
+                                     , { save: function(data) {
+                                           saveContinue(andClose, callback, silent, data);
+                                         }
+                                       , cancel: function() {
+                                           cancelContinue();
+                                         }
+                                       }
+                                     , op
+                                     , data
+                                     );
           } else {
             saveContinue(andClose, callback, silent, data);
           }
