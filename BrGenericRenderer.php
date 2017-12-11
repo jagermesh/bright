@@ -8,8 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__ . '/3rdparty/mustache/php/Mustache.php');
-
 class BrGenericRenderer extends BrObject {
 
   private $templates = array();

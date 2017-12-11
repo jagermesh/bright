@@ -8,6 +8,9 @@
  * @package Bright Core
  */
 
+// require_once(__DIR__ . '/3rdparty/mustache/php/Mustache_Old.php');
+require_once(__DIR__ . '/3rdparty/mustache/php/Mustache.php');
+
 require_once(__DIR__.'/BrGenericRenderer.php');
 
 class BrMustacheRenderer extends BrGenericRenderer {
