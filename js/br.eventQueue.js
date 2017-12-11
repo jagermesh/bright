@@ -29,7 +29,7 @@
     this.before = function(events, callback) {
       events = events.split(',');
       for(var i = 0; i < events.length; i++) {
-        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], before: [], after: [] };
+        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], pause: [], before: [], after: [] };
         _this.subscribers[events[i]].before.push(callback);
       }
     };
@@ -37,21 +37,37 @@
     this.on = function(events, callback) {
       events = events.split(',');
       for(var i = 0; i < events.length; i++) {
-        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], before: [], after: [] };
+        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], pause: [], before: [], after: [] };
         _this.subscribers[events[i]].on.push(callback);
+      }
+    };
+
+    this.pause = function(events, callback) {
+      events = events.split(',');
+      for(var i = 0; i < events.length; i++) {
+        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], pause: [], before: [], after: [] };
+        _this.subscribers[events[i]].pause.push(callback);
       }
     };
 
     this.after = function(events, callback) {
       events = events.split(',');
       for(var i = 0; i < events.length; i++) {
-        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], before: [], after: [] };
+        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], pause: [], before: [], after: [] };
         _this.subscribers[events[i]].after.push(callback);
       }
     };
 
-    this.has = function(eventName) {
-      return _this.subscribers.hasOwnProperty(eventName);
+    this.has = function(eventName, pos) {
+      if (this.subscribers[eventName]) {
+        if (!pos) {
+          return true;
+        } else {
+          return this.subscribers[eventName][pos].length > 0;
+        }
+      } else {
+        return false;
+      }
     };
 
     this.connectTo = function(eventQueue) {
@@ -74,6 +90,11 @@
           case 'on':
             for (i = 0; i < eventSubscribers.on.length; i++) {
               result = eventSubscribers.on[i].apply(_this.obj, args);
+            }
+            break;
+          case 'pause':
+            for (i = 0; i < eventSubscribers.on.length; i++) {
+              result = eventSubscribers.pause[i].apply(_this.obj, args);
             }
             break;
           case 'after':
@@ -122,11 +143,15 @@
     };
 
     this.trigger = function(event) {
-      return this.triggerEx(event, 'on',     arguments);
+      return this.triggerEx(event, 'on', arguments);
+    };
+
+    this.triggerPause = function(event) {
+      return this.triggerEx(event, 'pause', arguments);
     };
 
     this.triggerAfter = function(event) {
-      return this.triggerEx(event, 'after',  arguments);
+      return this.triggerEx(event, 'after', arguments);
     };
 
   }
