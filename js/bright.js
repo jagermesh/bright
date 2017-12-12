@@ -5397,7 +5397,7 @@
           }
           if (this.events.has('editor.save', 'pause')) {
             _this.events.triggerPause( 'editor.save'
-                                     , { save: function(data) {
+                                     , { continue: function(data) {
                                            saveContinue(andClose, callback, silent, data);
                                          }
                                        , cancel: function() {
