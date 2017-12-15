@@ -164,7 +164,7 @@ class BrDataBaseDictionary extends BrObject {
 
     // debug($schema2);exit();
 
-    $fileName = br()->fs()->filePath($scriptFile) . '/schema/DataBaseDictionary.php';
+    $fileName = br()->fs()->filePath($scriptFile) . 'schema/DataBaseDictionary.php';
 
     br()->fs()->saveToFile( $fileName
                           , br()->renderer()->fetchString( br()->fs()->loadFromFile(__DIR__ . '/templates/DataBaseDictionary.tpl')
