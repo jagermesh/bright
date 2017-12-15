@@ -244,7 +244,7 @@ class BrDataBasePatch {
 
   }
 
-  private function internalExecute($sql, $stepName = null, $script = false) {
+  private function internalExecute($sql, $stepName = null) {
 
     $stepName = $stepName ? $stepName : $this->stepNo;
 
@@ -255,11 +255,7 @@ class BrDataBasePatch {
         $sql();
       } else {
         $this->logObject->log($sql);
-        if ($script) {
-          br()->db()->runScript($sql);
-        } else {
-          br()->db()->runQuery($sql);
-        }
+        br()->db()->runQuery($sql);
       }
     } catch (Exception $e) {
       $error = 'Error. UP step "' . $stepName . '":' . "\n\n" . $e->getMessage();
@@ -283,11 +279,7 @@ class BrDataBasePatch {
             } else {
               $this->logObject->log(br('=')->repeat(80));
               $this->logObject->log($sql);
-              if ($script) {
-                br()->db()->runScript($sql);
-              } else {
-                br()->db()->runQuery($sql);
-              }
+              br()->db()->runQuery($sql);
             }
           } catch (Exception $e) {
             throw new BrAppException('UP error step "' . $stepName . '":' . "\n\n" . $e->getMessage());

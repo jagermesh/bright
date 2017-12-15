@@ -156,15 +156,6 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   }
 
-  public function runScript() {
-
-    $args = func_get_args();
-    $sql = array_shift($args);
-
-    return $this->internalRunQuery($sql, $args, 0, null, true);
-
-  }
-
   public function openCursor() {
 
     $args = func_get_args();
@@ -348,45 +339,6 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
   protected function getCountSQL($sql) {
 
     return 'SELECT COUNT(1) FROM (' . $sql . ') a';
-
-/*
-    $offset = 0;
-    if (preg_match('/(^[ \t\n]*|[ (])(SELECT)([ \n\r])/sim', $sql, $token, PREG_OFFSET_CAPTURE)) {
-      $select_offset = $token[2][1];
-      $offset = $select_offset + 6;
-      $work_str = substr($sql, $offset);
-      $in_select = 0;
-      while (preg_match('/((^[ \t\n]*|[ (])(SELECT)([ \n\r])|([ \t\n])(FROM)([ \n\r]))/sim', $work_str, $token, PREG_OFFSET_CAPTURE)) {
-        if (strtolower(@$token[6][0]) == 'from') {
-          if ($in_select)
-            $in_select--;
-          else {
-            $from_offset = $offset + $token[6][1];
-            break;
-          }
-          $inc = $token[6][1] + 4;
-          $offset += $inc;
-          $work_str = substr($work_str, $inc);
-        }
-        if (strtolower(@$token[3][0]) == 'select') {
-          $in_select++;
-          $inc = $token[3][1] + 6;
-          $offset += $inc;
-          $work_str = substr($work_str, $inc);
-        }
-      }
-    }
-
-    if (isset($select_offset) && isset($from_offset)) {
-      $sql_start  = substr($sql, 0, $select_offset);
-      $sql_finish = substr($sql, $from_offset + 4);
-      $sql = $sql_start."SELECT COUNT(1) FROM".$sql_finish;
-      $sql = preg_replace("/ORDER BY.+/sim", "", $sql, 1);
-      return $sql;
-    } else {
-      return null;
-    }
-*/
 
   }
 
