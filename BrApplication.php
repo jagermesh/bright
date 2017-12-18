@@ -27,8 +27,6 @@ class BrApplication extends BrSingleton {
 
   function main() {
 
-    @session_cache_limiter('nocache');
-
     if ($token = br()->request()->param('__loginToken')) {
       br()->auth()->clearLogin();
     }
