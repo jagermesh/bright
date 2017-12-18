@@ -142,7 +142,9 @@ class BrRequest extends BrSingleton {
         $this->clientIP = '127.0.0.1';
       }
 
-      $this->clientIP = br(array_unique(br($this->clientIP)->split()))->join();
+      if ($ips = array_unique(br($this->clientIP)->split())) {
+        $this->clientIP = $ips[0];
+      }
 
       $this->urlRestrictions    = array();
       $this->restrictionsLoaded = false;
