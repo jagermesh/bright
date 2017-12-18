@@ -128,7 +128,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
   }
 
-  function internalRunQuery($sql, $args = array(), $iteration = 0, $rerunError = null, $script = false) {
+  function internalRunQuery($sql, $args = array(), $iteration = 0, $rerunError = null) {
 
     // check connection
     $this->connection();
@@ -152,15 +152,8 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
     try {
       // moved to check problem line
-      if ($script) {
-        $query = @mysqli_multi_query($this->connection(), $queryText);
-      } else {
-        $query = @mysqli_query($this->connection(), $queryText);
-      }
+      $query = @mysqli_query($this->connection(), $queryText);
       if ($query) {
-        if ($script) {
-          while (mysqli_next_result($this->connection())) {;}
-        }
         if ($this->inTransaction()) {
           $this->incTransactionBuffer($queryText);
         }
@@ -198,7 +191,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
             usleep(250000);
             $this->rollbackTransaction();
             $this->startTransaction();
-            $query = $this->internalRunQuery($sql, $args, $iteration + 1, $e->getMessage(), $script);
+            $query = $this->internalRunQuery($sql, $args, $iteration + 1, $e->getMessage());
           } else {
             $error  = $e->getMessage();
             $error .= '. Automatic retrying was not possible - ' . $this->transactionBufferLength() . ' statement(s) in transaction buffer: ';
@@ -229,7 +222,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
         } else {
           br()->log()->write('Some error occured, but we are not in transaction. Trying repeat query', 'SEP');
           usleep(250000);
-          $query = $this->internalRunQuery($sql, $args, $iteration + 1, $e->getMessage(), $script);
+          $query = $this->internalRunQuery($sql, $args, $iteration + 1, $e->getMessage());
         }
       } else
       if (preg_match('/1329: No data/', $e->getMessage())) {
