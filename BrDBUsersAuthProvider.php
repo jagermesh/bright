@@ -187,12 +187,6 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
 
   }
 
-  function getSessionLogin() {
-
-    return br()->session()->get('login');
-
-  }
-
   function getLogin($param = null, $default = null) {
 
     $usersTable = br()->auth()->getAttr('usersTable.name');

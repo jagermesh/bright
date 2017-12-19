@@ -44,6 +44,11 @@ if (strtolower(basename($traces[0]['file'])) == 'bright.php') {
 // Loading application settings
 br()->importAtBasePath('config.php');
 
+// Core PHP settings - Secondary
+require_once(__DIR__.'/BrSession.php');
+BrSession::configure();
+// Core PHP settings - Secondary - End
+
 // Base Logging
 if (!br()->log()->isAdapterExists('BrErrorFileLogAdapter')) {
   br()->importLib('ErrorFileLogAdapter');
@@ -74,17 +79,6 @@ if (br()->isConsoleMode()) {
   }
 }
 
-// Core PHP settings - Secondary
-ini_set('session.gc_maxlifetime',  br()->config()->get('php/session.gc_maxlifetime', 3600));
-ini_set('session.cache_expire',    br()->config()->get('php/session.cache_expire', 180));
-ini_set('session.cookie_lifetime', br()->config()->get('php/session.cookie_lifetime', 0));
-ini_set('session.cache_limiter',   br()->config()->get('php/session.cache_limiter', 'nocache'));
-// Core PHP settings - Secondary - End
-
-br()->triggerSticky('after:br.init');
-
-// Advanced Logging
-
 if (br()->config()->get('Logger/RMQ/Active')) {
   if (!br()->log()->isAdapterExists('BrRMQLogAdapter')) {
     br()->importLib('RMQLogAdapter');
@@ -108,3 +102,5 @@ if (br()->config()->get('Logger/Slack/Active')) {
     br()->log()->addAdapter(new BrErrorSlackLogAdapter(br()->config()->get('Logger/Slack/WebHookUrl')));
   }
 }
+
+br()->triggerSticky('after:br.init');

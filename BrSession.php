@@ -16,23 +16,30 @@ class BrSession extends BrSingleton {
 
   function __construct() {
 
-    if (isset($_SESSION)) {
-
-    } else {
-      if (@session_start()) {
-
-      } else {
+    if (!isset($_SESSION)) {
+      self::configure();
+      if (!@session_start()) {
         if (br()->isConsoleMode()) {
           global $_SESSION;
           $_SESSION = array();
         }
       }
-
     }
 
     $this->tag = md5(__FILE__);
 
     parent::__construct();
+
+  }
+
+  static function configure() {
+
+    if (!isset($_SESSION)) {
+      @ini_set('session.gc_maxlifetime',  br()->config()->get('php/session.gc_maxlifetime', 3600));
+      @ini_set('session.cache_expire',    br()->config()->get('php/session.cache_expire', 180));
+      @ini_set('session.cookie_lifetime', br()->config()->get('php/session.cookie_lifetime', 0));
+      @ini_set('session.cache_limiter',   br()->config()->get('php/session.cache_limiter', 'nocache'));
+    }
 
   }
 
