@@ -116,8 +116,6 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     $result = mysql_fetch_assoc($query);
     if (is_array($result)) {
       $result = array_change_key_case($result, CASE_LOWER);
-    } else {
-      $result = array();
     }
     return $result;
 
