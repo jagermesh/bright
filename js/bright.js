@@ -463,6 +463,14 @@
       _this.connections.push(eventQueue);
     };
 
+    this.getEvents = function() {
+      var res = [];
+      for(var name in _this.subscribers) {
+        res[res.length] = name;
+      }
+      return res;
+    };
+
     function trigger(event, pos, args) {
 
       var result = null;
@@ -1590,7 +1598,20 @@
     this.on     = function(event, callback) { this.events.on(event, callback); };
     this.after  = function(event, callback) { this.events.after(event, callback); };
 
+    this.clientUID = null;
+
     var selectOperationCounter = 0;
+
+    this.getClientUID = function() {
+      if (!this.clientUID) {
+        this.clientUID = Math.round(Math.random() * 100000);
+      }
+      return this.clientUID;
+    };
+
+    this.setClientUID = function(clientUID) {
+      this.clientUID = clientUID;
+    };
 
     this.insert = function(item, callback, options) {
 
@@ -1649,6 +1670,10 @@
 
         if (options && options.dataSets) {
           request.__dataSets = options.dataSets;
+        }
+
+        if (_this.clientUID) {
+          request.__clientUID = _this.clientUID;
         }
 
         if (options && options.clientUID) {
@@ -1741,6 +1766,10 @@
           request.__dataSets = options.dataSets;
         }
 
+        if (_this.clientUID) {
+          request.__clientUID = _this.clientUID;
+        }
+
         if (options && options.clientUID) {
           request.__clientUID = options.clientUID;
         }
@@ -1816,6 +1845,10 @@
 
         if (options && options.dataSets) {
           request.__dataSets = options.dataSets;
+        }
+
+        if (_this.clientUID) {
+          request.__clientUID = _this.clientUID;
         }
 
         if (options && options.clientUID) {
@@ -2044,6 +2077,10 @@
           request.__dataSets = options.dataSets;
         }
 
+        if (_this.clientUID) {
+          request.__clientUID = _this.clientUID;
+        }
+
         if (options && options.clientUID) {
           request.__clientUID = options.clientUID;
         }
@@ -2168,6 +2205,10 @@
 
       if (options && options.dataSets) {
         request.__dataSets = options.dataSets;
+      }
+
+      if (_this.clientUID) {
+        request.__clientUID = _this.clientUID;
       }
 
       if (options && options.clientUID) {

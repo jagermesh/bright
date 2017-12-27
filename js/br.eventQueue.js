@@ -74,6 +74,14 @@
       _this.connections.push(eventQueue);
     };
 
+    this.getEvents = function() {
+      var res = [];
+      for(var name in _this.subscribers) {
+        res[res.length] = name;
+      }
+      return res;
+    };
+
     function trigger(event, pos, args) {
 
       var result = null;
