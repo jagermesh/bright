@@ -191,11 +191,13 @@ class BrArray {
   }
 
   private function canMoveElement($element, $blockShufflingCheck) {
+
     if (is_callable($blockShufflingCheck)) {
       return !$blockShufflingCheck($element);
     } else {
       return true;
     }
+
   }
 
   function shuffle($blockShufflingCheck = null) {
