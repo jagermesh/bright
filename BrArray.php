@@ -190,4 +190,39 @@ class BrArray {
 
   }
 
+  private function canMoveElement($element, $blockShufflingCheck) {
+    if (is_callable($blockShufflingCheck)) {
+      return !$blockShufflingCheck($element);
+    } else {
+      return true;
+    }
+  }
+
+  function shuffle($blockShufflingCheck = null) {
+
+    $result = $this->value;
+    $moved = array();
+
+    for ($i = 0; $i < count($result); $i++) {
+      if (!in_array($i, $moved)) {
+        if ($this->canMoveElement($result[$i], $blockShufflingCheck)) {
+          $newIdx = rand(0, count($result) - 1);
+          $iteration = 0;
+          while(($iteration++ < count($result)*2) && (($newIdx == $i) || !$this->canMoveElement($result[$newIdx], $blockShufflingCheck))) {
+            $newIdx = rand(0, count($result) - 1);
+          }
+          if ($this->canMoveElement($result[$newIdx], $blockShufflingCheck)) {
+            $tmp = $result[$newIdx];
+            $result[$newIdx] = $result[$i];
+            $result[$i] = $tmp;
+            $moved[] = $newIdx;
+          }
+        }
+      }
+    }
+
+    return $result;
+
+  }
+
 }
