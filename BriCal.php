@@ -72,6 +72,12 @@ class BriCalEvent extends BrObject {
 
   }
 
+  function setAlarm($value) {
+
+    $this->alarm = $value;
+
+  }
+
   function addAttachment($name, $url) {
 
     $this->attachments[] = array( 'name' => $name
