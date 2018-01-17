@@ -45,7 +45,9 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
     if (!preg_match('/^SET( |$)/', $sql)) {
       if (!preg_match('/^SELECT( |$)/', $sql)) {
-        $this->__transactionBuffer[] = $sql;
+        if (!preg_match('/^CALL( |$)/', $sql)) {
+          $this->__transactionBuffer[] = $sql;
+        }
       }
     }
 
