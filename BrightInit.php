@@ -103,4 +103,11 @@ if (br()->config()->get('Logger/Slack/Active')) {
   }
 }
 
+if (br()->config()->get('Logger/Telegram/Active')) {
+  if (!br()->log()->isAdapterExists('BrErrorTelegramLogAdapter')) {
+    br()->importLib('ErrorTelegramLogAdapter');
+    br()->log()->addAdapter(new BrErrorTelegramLogAdapter(br()->config()->get('Logger/Telegram/Bot/ApiKey'), br()->config()->get('Logger/Telegram/Bot/Name'), br()->config()->get('Logger/Telegram/ChatIds')));
+  }
+}
+
 br()->triggerSticky('after:br.init');
