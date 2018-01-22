@@ -559,7 +559,8 @@
       window.msRequestAnimationFrame      ||
       function(callback, element) {
         var currTime = new Date().getTime();
-        var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+        // var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+        var timeToCall = 500;
         var id = window.setTimeout(function() {
           callback(currTime + timeToCall);
         }, timeToCall);
