@@ -14,6 +14,7 @@ module.exports = function(grunt) {
                    , 'js/br.request.js'
                    , 'js/br.thread.js'
                    , 'js/br.profiler.js'
+                   , 'js/br.webCamera.js'
                    , 'js/br.js'
                    , 'js/br.flagsHolder.js'
                    , 'js/br.dataSource.js'

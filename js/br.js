@@ -547,7 +547,7 @@
 
   window.br.URL = window.URL || window.webkitURL;
 
-  var lastTime = 0, isLittleEndian = true;
+  var lastTime = 0;
 
   window.br.requestAnimationFrame = function(callback, element) {
 
@@ -598,6 +598,8 @@
     return getUserMedia.call(window.navigator, options, success, error);
 
   };
+
+  var isLittleEndian = true;
 
   window.br.detectEndian = function() {
 
