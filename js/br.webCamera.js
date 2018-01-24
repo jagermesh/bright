@@ -18,6 +18,8 @@
       _this.on     = function(event, callback) { _this.events.on(event, callback); };
       _this.after  = function(event, callback) { _this.events.after(event, callback); };
 
+      var lastTime = 0;
+
       _this.requestAnimationFrame = function(callback, element) {
 
         var requestAnimationFrame =
@@ -28,10 +30,11 @@
           window.msRequestAnimationFrame      ||
           function(callback, element) {
             var currTime = new Date().getTime();
-            // var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+            var timeToCall = Math.max(0, 16 - (currTime - lastTime));
             var id = window.setTimeout(function() {
-              callback();
-            }, 500);
+              callback(currTime + timeToCall);
+            }, timeToCall);
+            lastTime = currTime + timeToCall;
             return id;
           };
 
