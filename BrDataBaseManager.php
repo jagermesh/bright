@@ -430,7 +430,7 @@ class BrDataBaseManager {
 
     $this->initAuditSubsystem();
 
-    $this->deleteAuditTriggers($tableName, false);
+    $this->deleteAuditTriggers($tableName, true);
 
     if ($table = br()->db()->getCachedRow('SELECT * FROM ' . $this->auditTablesTable . ' WHERE name LIKE ?', $tableName)) {
       if (($table['is_audited'] & 4) === 4) {
@@ -501,6 +501,12 @@ class BrDataBaseManager {
 
     $this->createAuditTriggers($tableName);
     $this->createCascadeTrigger($tableName);
+
+  }
+
+  function setupTableSupport($tableName, $auditMode = 7, $excludeFields = null) {
+
+    $this->refreshTableSupport($tableName, $auditMode, $excludeFields);
 
   }
 
