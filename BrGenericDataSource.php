@@ -329,6 +329,7 @@ class BrGenericDataSource extends BrObject {
       case 'insert':
       case 'update':
       case 'remove':
+      case 'prepareCalcFields':
       case 'calcFields':
         throw new Exception('Method [' . $method . '] not supported');
         break;

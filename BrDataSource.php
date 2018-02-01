@@ -264,15 +264,18 @@ class BrDataSource extends BrGenericDataSource {
                 $this->lastSelectAmount++;
               } else
               if (!$limit || (count($result) < $limit)) {
-                if (!br($options, 'noCalcFields')) {
-                  $this->callEvent('calcFields', $row, $transientData, $options);
-                }
                 $result[] = $row;
                 $this->lastSelectAmount++;
               } else {
                 $this->lastSelectAmount++;
               }
               $idx++;
+            }
+            if (!br($options, 'noCalcFields')) {
+              $this->callEvent('prepareCalcFields', $result, $transientData, $options);
+              foreach($result as &$row) {
+                $this->callEvent('calcFields', $row, $transientData, $options);
+              }
             }
           }
         } catch (Exception $e) {
@@ -282,8 +285,6 @@ class BrDataSource extends BrGenericDataSource {
           throw $e;
         }
 
-      } else {
-
       }
 
     } else {
@@ -292,10 +293,13 @@ class BrDataSource extends BrGenericDataSource {
         $this->lastSelectAmount = 0;
         foreach($result as &$row) {
           $row['rowid'] = br()->db()->rowidValue($row, $this->rowidFieldName);
-          if (!br($options, 'noCalcFields')) {
+          $this->lastSelectAmount++;
+        }
+        if (!br($options, 'noCalcFields')) {
+          $this->callEvent('prepareCalcFields', $result, $transientData, $options);
+          foreach($result as &$row) {
             $this->callEvent('calcFields', $row, $transientData, $options);
           }
-          $this->lastSelectAmount++;
         }
       }
     }

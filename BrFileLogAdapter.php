@@ -79,7 +79,7 @@ class BrFileLogAdapter extends BrGenericFileLogAdapter {
   function end() {
 
     if (function_exists('memory_get_usage')) {
-      $this->writeMessage('Memory usage:  ' . memory_get_usage(), '---');
+      $this->writeMessage('Memory usage:  ' . br()->formatBytes(memory_get_usage()), '---');
     }
 
   }
