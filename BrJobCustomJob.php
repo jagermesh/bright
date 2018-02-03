@@ -45,8 +45,9 @@ class BrJobCustomJob {
     } else {
       $runCommand = trim($this->runJobCommand . ' ' . $arguments);
     }
-    br()->log('[CHK] Checking is it running ' . $runCommand);
-    if (br()->OS()->findProcesses($runCommand)->count() == 0) {
+    $fullCommand = br()->basePath() . $runCommand;
+    br()->log('[CHK] Checking ' . $fullCommand);
+    if (br()->OS()->findProcesses($fullCommand)->count() == 0) {
       $logFileName = br()->basePath() . '_logs';
       if (is_writable($logFileName)) {
         $logFileName .= '/' . date('Y-m-d') . '/' . br()->fs()->normalizeFileName(trim($runCommand));
@@ -58,7 +59,7 @@ class BrJobCustomJob {
       } else {
         $logFileName = '/dev/null';
       }
-      $command = $this->shellScript . ' ' . br()->basePath() . $runCommand . ' >> ' . $logFileName . ' 2>&1 & echo $!';
+      $command = $this->shellScript . ' ' . $fullCommand . ' >> ' . $logFileName . ' 2>&1 & echo $!';
       br()->log('[PRC] Starting ' . $command);
       $output = '';
       exec($command, $output);
