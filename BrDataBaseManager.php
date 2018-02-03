@@ -788,8 +788,9 @@ class BrDataBaseManager {
         foreach($patchObjects as $patch) {
           $cmd->setLogPrefix('[' . br()->db()->getDataBaseName() . '] [' . get_class($patch) . ']');
           if ($patch->checkDependencies()) {
-            $patch->run();
-            $somethingExecuted = true;
+            if ($patch->run()) {
+              $somethingExecuted = true;
+            }
           } else {
             $patchObjects2[] = $patch;
           }

@@ -151,8 +151,10 @@ class BrDataBasePatch {
                           );
 
       $this->logObject->log('Applied', 'GREEN');
+      return true;
     } catch (Exception $e) {
       $this->logObject->logException($e->getMessage());
+      return false;
     }
 
   }
