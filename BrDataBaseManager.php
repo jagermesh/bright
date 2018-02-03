@@ -797,7 +797,7 @@ class BrDataBaseManager {
 
         if ($patchObjects2) {
           if ($somethingExecuted) {
-            $this->internalRunMigration($patchObjects2);
+            $this->runMigrationCommand($scriptFile);
           } else {
             foreach($patchObjects2 as $patch) {
               $cmd->setLogPrefix('[' . br()->db()->getDataBaseName() . '] [' . get_class($patch) . ']');
