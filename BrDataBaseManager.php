@@ -517,6 +517,7 @@ class BrDataBaseManager {
     $sql  = 'CREATE TRIGGER csc_tbd_' . $tableName . "\n";
     $sql .= 'BEFORE DELETE ON ' . $tableName .' FOR EACH ROW' . "\n";
     $sql .= 'BEGIN' . "\n";
+    $sql .= '  SET @BR_CSC_' . $tableName . ' = 1;' . "\n";
 
     $sql2 = '';
 
@@ -544,7 +545,9 @@ class BrDataBaseManager {
                                               )) {
           foreach($definitions as $definition) {
             if ($definition['table_name'] != $tableName) {
-              $sql2 .= '  DELETE FROM ' . $definition['table_name'] . ' WHERE ' . $definition['column_name'] . ' = OLD.' . $definition['referenced_column_name'] . ";\n";
+              $sql2 .= '    IF (@BR_CSC_' . $definition['table_name'] . ' IS NULL) THEN' . "\n";
+              $sql2 .= '      DELETE FROM ' . $definition['table_name'] . ' WHERE ' . $definition['column_name'] . ' = OLD.' . $definition['referenced_column_name'] . ";\n";
+              $sql2 .= '    END IF;' . "\n";
             }
           }
         }
@@ -572,7 +575,9 @@ class BrDataBaseManager {
                                               )) {
           foreach($definitions as $definition) {
             if ($definition['table_name'] != $tableName) {
-              $sql2 .= '  UPDATE ' . $definition['table_name'] . ' SET ' . $definition['column_name'] . ' = NULL WHERE ' . $definition['column_name'] . ' = OLD.' . $definition['referenced_column_name'] . ";\n";
+              $sql2 .= '    IF (@BR_CSC_' . $definition['table_name'] . ' IS NULL) THEN' . "\n";
+              $sql2 .= '      UPDATE ' . $definition['table_name'] . ' SET ' . $definition['column_name'] . ' = NULL WHERE ' . $definition['column_name'] . ' = OLD.' . $definition['referenced_column_name'] . ";\n";
+              $sql2 .= '    END IF;' . "\n";
             }
           }
         }
@@ -581,6 +586,7 @@ class BrDataBaseManager {
 
     if ($sql2) {
       $sql .= $sql2;
+      $sql .= '  SET @BR_CSC_' . $tableName . ' = NULL;' . "\n";
       $sql .= 'END' . "\n";
       return $sql;
     } else {
