@@ -858,18 +858,24 @@ class BrDataBaseManager {
           break;
       }
 
-      $tables = br()->db()->getValues( 'SELECT DISTINCT ctr.referenced_table_name
-                                          FROM br_referential_constraints ctr
-                                         WHERE ctr.constraint_schema = ?
-                                           AND (ctr.delete_rule = ? OR ctr.delete_rule = ?)
-                                           AND NOT EXISTS (SELECT 1 FROM br_cascade_triggers WHERE table_name = ctr.referenced_table_name AND skip = 1)
-                                           AND ctr.referenced_table_name LIKE ?
-                                         ORDER BY ctr.referenced_table_name'
-                                     , br()->config()->get('db.name')
-                                     , 'CASCADE'
-                                     , 'SET NULL'
-                                     , $tableName
-                                     );
+      $sql = br()->placeholder( 'SELECT DISTINCT ctr.referenced_table_name
+                                   FROM br_referential_constraints ctr
+                                  WHERE ctr.constraint_schema = ?
+                                    AND (ctr.delete_rule = ? OR ctr.delete_rule = ?)
+                                    AND ctr.referenced_table_name LIKE ?'
+                              , br()->config()->get('db.name')
+                              , 'CASCADE'
+                              , 'SET NULL'
+                              , $tableName
+                              );
+
+      if ($commnd == 'print') {
+        $sql .= ' AND NOT EXISTS (SELECT 1 FROM br_cascade_triggers WHERE table_name = ctr.referenced_table_name AND skip = 1)';
+      }
+
+      $sql .= ' ORDER BY ctr.referenced_table_name';
+
+      $tables = br()->db()->getValues($sql);
 
       if (count($tables) === 0) {
         if (!$regularRun) {
