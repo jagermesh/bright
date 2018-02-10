@@ -36,18 +36,43 @@ class BrJobCustomJob {
 
   }
 
+  private function getCommand($check, $withPath = true, $arguments = '') {
+
+    if ($check) {
+      $cmd = trim($this->checkJobCommand . ' ' . $arguments);
+    } else {
+      $cmd = trim($this->runJobCommand . ' ' . $arguments);
+    }
+
+    if ($withPath) {
+      $cmd = br()->basePath() . $cmd;
+    }
+
+    return $cmd;
+
+  }
+
+  function getCheckCommand($withPath = true, $arguments = '') {
+
+    return $this->getCommand(true, $withPath, $arguments);
+
+  }
+
+  function getRunCommand($withPath = true, $arguments = '') {
+
+    return $this->getCommand(false, $withPath, $arguments);
+
+  }
+
   function spawn($check, $arguments = '') {
 
     $this->waitForProcessor();
 
-    if ($check) {
-      $runCommand = trim($this->checkJobCommand . ' ' . $arguments);
-    } else {
-      $runCommand = trim($this->runJobCommand . ' ' . $arguments);
-    }
-    $fullCommand = br()->basePath() . $runCommand;
-    br()->log('[CHK] Checking ' . $fullCommand);
-    if (br()->OS()->findProcesses($fullCommand)->count() == 0) {
+    $runCommand = $this->getCommand($check, false, $arguments);
+    $runCommandWithPath = $this->getCommand($check, true, $arguments);
+
+    br()->log('[CHK] Checking ' . $runCommandWithPath);
+    if (br()->OS()->findProcesses($runCommandWithPath)->count() == 0) {
       $logFileName = br()->basePath() . '_logs';
       if (is_writable($logFileName)) {
         $logFileName .= '/' . date('Y-m-d') . '/' . br()->fs()->normalizeFileName(trim($runCommand));
@@ -59,7 +84,7 @@ class BrJobCustomJob {
       } else {
         $logFileName = '/dev/null';
       }
-      $command = $this->shellScript . ' ' . $fullCommand . ' >> ' . $logFileName . ' 2>&1 & echo $!';
+      $command = $this->shellScript . ' ' . $runCommandWithPath . ' >> ' . $logFileName . ' 2>&1 & echo $!';
       br()->log('[PRC] Starting ' . $command);
       $output = '';
       exec($command, $output);
