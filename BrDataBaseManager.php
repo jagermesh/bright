@@ -869,7 +869,7 @@ class BrDataBaseManager {
                               , $tableName
                               );
 
-      if ($commnd == 'print') {
+      if ($command == 'print') {
         $sql .= ' AND NOT EXISTS (SELECT 1 FROM br_cascade_triggers WHERE table_name = ctr.referenced_table_name AND skip = 1)';
       }
 
