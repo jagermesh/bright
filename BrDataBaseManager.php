@@ -155,48 +155,6 @@ class BrDataBaseManager {
       }
     }
 
-
-    br()->db()->runQuery( 'DROP VIEW IF EXISTS v_missing_audit');
-    br()->db()->runQuery( 'DROP VIEW IF EXISTS view_br_missing_audit');
-
-    br()->db()->runQuery( 'CREATE VIEW view_br_missing_audit AS
-                           SELECT tbl.table_name name
-                                , 1 is_insert_audited
-                                , 1 is_update_audited
-                                , 1 is_delete_audited
-                             FROM information_schema.tables tbl
-                            WHERE tbl.table_schema = ?
-                              AND tbl.table_type LIKE "%TABLE%"
-                              AND tbl.table_name NOT LIKE "tmp%"
-                              AND tbl.table_name NOT LIKE "backup%"
-                              AND tbl.table_name NOT LIKE "view_%"
-                              AND tbl.table_name NOT LIKE "v_%"
-                              AND tbl.table_name NOT LIKE "shared_%"
-                              AND tbl.table_name NOT LIKE "audit_%"
-                              AND tbl.table_name NOT LIKE "br_%"
-                              AND NOT EXISTS (SELECT 1
-                                                FROM ' . $this->auditTablesTable . '
-                                               WHERE name = tbl.table_name)'
-                        , br()->config()->get('db.name')
-                        );
-
-    br()->db()->runQuery( 'INSERT IGNORE INTO ' . $this->auditTablesTable . ' (name, is_insert_audited, is_update_audited, is_delete_audited)
-                           SELECT name
-                                , is_insert_audited
-                                , is_update_audited
-                                , is_delete_audited
-                             FROM view_br_missing_audit'
-                        );
-
-    br()->db()->runQuery( ' DELETE atb
-                              FROM ' . $this->auditTablesTable . ' atb
-                             WHERE NOT EXISTS (SELECT 1
-                                                 FROM information_schema.tables tbl
-                                                WHERE tbl.table_schema = ?
-                                                  AND atb.name = tbl.table_name)'
-                        , br()->config()->get('db.name')
-                        );
-
     br()->db()->runQuery('DROP TABLE IF EXISTS br_key_column_usage');
     br()->db()->runQuery('DROP TABLE IF EXISTS br_referential_constraints');
 
@@ -255,6 +213,100 @@ class BrDataBaseManager {
                            SELECT constraint_catalog, constraint_schema, constraint_name, delete_rule, referenced_table_name
                              FROM information_schema.referential_constraints
                             WHERE constraint_schema = ?'
+                        , br()->config()->get('db.name')
+                        );
+
+    try {
+      $check = br()->db()->getValue('DESC br_db_triggers');
+    } catch (Exception $e) {
+      if (stripos($e->getMessage(), "doesn't exist")) {
+        br()->db()->runQuery( 'CREATE TABLE br_db_triggers (
+                                 id                    BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
+                               , event_object_schema   VARCHAR(250)    NOT NULL
+                               , event_object_table    VARCHAR(64)     NOT NULL
+                               , action_timing         VARCHAR(64)     NOT NULL
+                               , event_manipulation    VARCHAR(64)     NOT NULL
+                               , INDEX idx_br_db_triggers1 (event_object_schema, event_object_table, action_timing, event_manipulation)
+                               ) ENGINE=InnoDB DEFAULT CHARSET=utf8'
+                            );
+      } else {
+        throw $e;
+      }
+    }
+
+    br()->db()->runQuery( 'TRUNCATE TABLE br_db_triggers');
+    br()->db()->runQuery( 'INSERT
+                             INTO br_db_triggers (event_object_schema, event_object_table, action_timing, event_manipulation)
+                           SELECT event_object_schema, event_object_table, action_timing, event_manipulation
+                             FROM information_schema.triggers
+                            WHERE event_object_schema = ?'
+                        , br()->config()->get('db.name')
+                        );
+
+    br()->db()->runQuery( 'DROP VIEW IF EXISTS v_missing_audit');
+    br()->db()->runQuery( 'DROP VIEW IF EXISTS view_br_missing_audit');
+    br()->db()->runQuery( 'DROP VIEW IF EXISTS view_br_audit_tables');
+
+    br()->db()->runQuery( 'CREATE VIEW view_br_audit_tables AS
+                           SELECT tbl.table_name name
+                                , IFNULL(aut.is_insert_audited, 1) is_insert_audited
+                                , IFNULL(aut.is_update_audited, 1) is_update_audited
+                                , IFNULL(aut.is_delete_audited, 1) is_delete_audited
+                                , IFNULL(aut.is_cascade_audited, 1) is_cascade_audited
+                                , (SELECT COUNT(1)
+                                     FROM br_db_triggers
+                                    WHERE action_timing = "AFTER"
+                                      AND event_manipulation = "INSERT"
+                                      AND event_object_schema = tbl.table_schema
+                                      AND event_object_table = tbl.table_name) is_insert_trigger_exists
+                                , (SELECT COUNT(1)
+                                     FROM br_db_triggers
+                                    WHERE action_timing = "AFTER"
+                                      AND event_manipulation = "UPDATE"
+                                      AND event_object_schema = tbl.table_schema
+                                      AND event_object_table = tbl.table_name) is_update_trigger_exists
+                                , (SELECT COUNT(1)
+                                     FROM br_db_triggers
+                                    WHERE action_timing = "AFTER"
+                                      AND event_manipulation = "DELETE"
+                                      AND event_object_schema = tbl.table_schema
+                                      AND event_object_table = tbl.table_name) is_delete_trigger_exists
+                                , (SELECT COUNT(1)
+                                     FROM br_db_triggers
+                                    WHERE action_timing = "BEFORE"
+                                      AND event_manipulation = "DELETE"
+                                      AND event_object_schema = tbl.table_schema
+                                      AND event_object_table = tbl.table_name) is_cascade_trigger_exists
+                                , IF(aut.id IS NULL, 0, 1) is_registered
+                             FROM information_schema.tables tbl LEFT JOIN audit_tables aut ON tbl.table_name = aut.name
+                            WHERE tbl.table_schema = ?
+                              AND tbl.table_type LIKE "%TABLE%"
+                              AND tbl.table_name NOT LIKE "tmp%"
+                              AND tbl.table_name NOT LIKE "backup%"
+                              AND tbl.table_name NOT LIKE "view_%"
+                              AND tbl.table_name NOT LIKE "v_%"
+                              AND tbl.table_name NOT LIKE "shared_%"
+                              AND tbl.table_name NOT LIKE "audit_%"
+                              AND tbl.table_name NOT LIKE "br_%"'
+                        , br()->config()->get('db.name')
+                        );
+
+    br()->db()->runQuery( 'INSERT IGNORE INTO ' . $this->auditTablesTable . ' (name, is_insert_audited, is_update_audited, is_delete_audited, is_cascade_audited)
+                           SELECT name
+                                , is_insert_audited
+                                , is_update_audited
+                                , is_delete_audited
+                                , is_cascade_audited
+                             FROM view_br_audit_tables
+                            WHERE is_registered = 0'
+                        );
+
+    br()->db()->runQuery( ' DELETE atb
+                              FROM ' . $this->auditTablesTable . ' atb
+                             WHERE NOT EXISTS (SELECT 1
+                                                 FROM information_schema.tables tbl
+                                                WHERE tbl.table_schema = ?
+                                                  AND atb.name = tbl.table_name)'
                         , br()->config()->get('db.name')
                         );
 
@@ -513,7 +565,7 @@ class BrDataBaseManager {
 
   }
 
-  private function createInsertAuditTrigger($tableName) {
+  function createInsertAuditTrigger($tableName) {
 
     $this->initAuditSubsystem();
 
@@ -542,7 +594,7 @@ class BrDataBaseManager {
 
   }
 
-  private function createUpdateAuditTrigger($tableName) {
+  function createUpdateAuditTrigger($tableName) {
 
     $this->initAuditSubsystem();
 
@@ -571,7 +623,7 @@ class BrDataBaseManager {
 
   }
 
-  private function createDeleteAuditTrigger($tableName) {
+  function createDeleteAuditTrigger($tableName) {
 
     $this->initAuditSubsystem();
 
@@ -600,7 +652,7 @@ class BrDataBaseManager {
 
   }
 
-  private function createCascadeAuditTrigger($tableName) {
+  function createCascadeAuditTrigger($tableName) {
 
     $this->initAuditSubsystem();
 
@@ -685,7 +737,7 @@ class BrDataBaseManager {
     $this->initAuditSubsystem();
 
     br()->db()->runQuery( 'INSERT IGNORE INTO ' . $this->auditTablesTable . ' (name, is_insert_audited, is_update_audited, is_delete_audited, is_cascade_audited, exclude_fields)
-                           VALUES (?, ?, ?, ?, ?)
+                           VALUES (?, ?, ?, ?, ?, ?)
                                ON DUPLICATE KEY
                            UPDATE is_insert_audited = VALUES(is_insert_audited)
                                 , is_update_audited = VALUES(is_update_audited)
@@ -715,7 +767,7 @@ class BrDataBaseManager {
     $this->initAuditSubsystem();
 
     br()->db()->runQuery( 'INSERT IGNORE INTO ' . $this->auditTablesTable . ' (name, is_insert_audited, is_update_audited, is_delete_audited, is_cascade_audited, exclude_fields)
-                           VALUES (?, ?, ?, ?, ?)'
+                           VALUES (?, ?, ?, ?, ?, ?)'
                         , $tableName
                         , $isInsertAudited
                         , $isUpdateAudited
