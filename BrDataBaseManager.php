@@ -861,7 +861,7 @@ class BrDataBaseManager {
 
     $dbManager = $this;
 
-    br()->cmd()->run(function($cmd) use ($scriptFile, $dbManager) {
+    br()->cmd()->run(function($cmd) use ($scriptFile, $dbManager, &$results) {
 
       $dbManager->setLogObject($cmd);
 
