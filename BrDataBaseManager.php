@@ -130,9 +130,9 @@ class BrDataBaseManager {
                                                                         , ADD is_update_audited  TINYINT(1) NOT NULL DEFAULT 1
                                                                         , ADD is_delete_audited  TINYINT(1) NOT NULL DEFAULT 1
                                                                         , ADD is_cascade_audited TINYINT(1) NOT NULL DEFAULT 1');
-        br()->db()->runQuery('UPDATE ' . $this->auditTablesTable . ' SET is_insert_audited = IF(is_audited & 1 = 1, 1, 0)
+        br()->db()->runQuery('UPDATE ' . $this->auditTablesTable . ' SET is_insert_audited = IF(is_audited & 4 = 4, 1, 0)
                                                                        , is_update_audited = IF(is_audited & 2 = 2, 1, 0)
-                                                                       , is_delete_audited = IF(is_audited & 4 = 4, 1, 0)');
+                                                                       , is_delete_audited = IF(is_audited & 1 = 1, 1, 0)');
         br()->db()->runQuery('ALTER TABLE ' . $this->auditTablesTable . ' DROP is_audited');
 
         try {
