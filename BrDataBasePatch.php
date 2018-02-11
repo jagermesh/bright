@@ -51,14 +51,13 @@ class BrDataBasePatch {
 
   }
 
-  function checkDependencies($raiseError = false) {
+  function checkDependencies() {
 
     foreach($this->dependencies as $dependency) {
-      if (!br()->db()->getValue('SELECT id FROM br_db_patch WHERE guid = ?', $dependency)) {
-        if ($raiseError) {
-          $this->logObject->log('Error. Dependency not met: ' . $dependency, 'RED');
-        }
-        return false;
+      if (br()->db()->getValue('SELECT id FROM br_db_patch WHERE guid = ?', $dependency)) {
+
+      } else {
+        throw new BrAppException('Error. Dependency not met: ' . $dependency);
       }
     }
 
@@ -66,7 +65,7 @@ class BrDataBasePatch {
 
   }
 
-  function checkRequirements($raiseError = false, $command = 'run') {
+  function checkRequirements($regularRun = true, $command = 'run') {
 
     br()->assert($this->guid, 'Please generate GUID for this patch');
 
@@ -89,36 +88,24 @@ class BrDataBasePatch {
                                 );
             return false;
           default:
-            if ($patch['patch_file'] != basename($this->patchFile)) {
-              br()->log('');
-              $this->logObject->log('Apply');
-              $this->logObject->log('Error. Same patch already registered but has different name: ' . $patch['patch_file'], 'RED');
-              if ($patch['body']) {
-                br($patch['body'])->logDifference(br()->fs()->loadFromFile($this->patchFile), $this->logObject);
-              }
-            } else
+            // br()->log('');
+            // if (strlen($patch['body']) > 0) {
+            //   br($patch['body'])->logDifference(br()->fs()->loadFromFile($this->patchFile), $this->logObject);
+            // }
             if ($patch['patch_hash'] != $this->patchHash) {
-              br()->log('');
-              $this->logObject->log('Apply');
-              $this->logObject->log('Error. Same patch already registered but has different hash: ' . $patch['patch_hash'], 'RED');
-              if ($patch['body']) {
-                br($patch['body'])->logDifference(br()->fs()->loadFromFile($this->patchFile), $this->logObject);
-              }
+              throw new BrAppException('Error. Same patch already registered but has different hash: ' . $patch['patch_hash']);
             } else
-            if ($raiseError) {
-              br()->log('');
-              $this->logObject->log('Apply');
-              $this->logObject->log('Error. Already applied', 'RED');
+            if ($patch['patch_file'] != basename($this->patchFile)) {
+              throw new BrAppException('Error. Same patch already registered but has different name: ' . $patch['patch_file']);
+            } else {
+              throw new BrAppException('Hmm... Not sure how and why we got here!!!');
             }
-            return false;
         }
-      } else {
-        if ($raiseError) {
-          br()->log('');
-          $this->logObject->log('Apply');
-          $this->logObject->log('Error. Already applied', 'RED');
-        }
+      } else
+      if ($regularRun) {
         return false;
+      } else {
+        throw new BrAppException('Error. Already applied');
       }
     } else
     if ($command == 'register') {
@@ -140,22 +127,17 @@ class BrDataBasePatch {
     br()->log('');
     $this->logObject->log('Apply');
 
-    try {
-      $this->up();
+    $this->up();
 
-      br()->db()->runQuery( 'INSERT INTO br_db_patch (guid, patch_file, patch_hash, body, installed_at) VALUES (?, ?, ?, ?, NOW())
-                                 ON DUPLICATE KEY
-                             UPDATE patch_file = ?, patch_hash = ?, body = ?, re_installed_at = NOW()'
-                          , $this->guid, basename($this->patchFile), $this->patchHash, br()->fs()->loadFromFile($this->patchFile)
-                                       , basename($this->patchFile), $this->patchHash, br()->fs()->loadFromFile($this->patchFile)
-                          );
+    br()->db()->runQuery( 'INSERT INTO br_db_patch (guid, patch_file, patch_hash, body, installed_at) VALUES (?, ?, ?, ?, NOW())
+                               ON DUPLICATE KEY
+                           UPDATE patch_file = ?, patch_hash = ?, body = ?, re_installed_at = NOW()'
+                        , $this->guid, basename($this->patchFile), $this->patchHash, br()->fs()->loadFromFile($this->patchFile)
+                                     , basename($this->patchFile), $this->patchHash, br()->fs()->loadFromFile($this->patchFile)
+                        );
 
-      $this->logObject->log('Applied', 'GREEN');
-      return true;
-    } catch (Exception $e) {
-      $this->logObject->logException($e->getMessage());
-      return false;
-    }
+    $this->logObject->log('Applied', 'GREEN');
+    return true;
 
   }
 

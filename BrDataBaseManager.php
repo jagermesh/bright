@@ -857,7 +857,7 @@ class BrDataBaseManager {
 
   }
 
-  function runMigrationCommand($scriptFile) {
+  function runMigrationCommand($scriptFile, $results = array()) {
 
     $dbManager = $this;
 
@@ -937,34 +937,60 @@ class BrDataBaseManager {
         $patch = new $className($classFile, $dbManager, $cmd);
         $patch->init();
         $cmd->setLogPrefix('[' . br()->db()->getDataBaseName() . '] [' . get_class($patch) . ']');
-        if ($patch->checkRequirements(!$regularRun, $command)) {
-          $patchObjects[] = $patch;
+        try {
+          if ($patch->checkRequirements($regularRun, $command)) {
+            $patchObjects[] = $patch;
+          }
+        } catch (Exception $e) {
+          $results[] = array( 'message'  => $patch->logPrefix() . ' ' . $e->getMessage()
+                            , 'is_error' => true
+                            );
         }
       }
 
       if ($patchObjects) {
-        $patchObjects2     = array();
-        $somethingExecuted = false;
+        $patchObjectsDeferred = array();
+        $patchObjectsExecuted = array();
         foreach($patchObjects as $patch) {
           $cmd->setLogPrefix('[' . br()->db()->getDataBaseName() . '] [' . get_class($patch) . ']');
-          if ($patch->checkDependencies()) {
-            if ($patch->run()) {
-              $somethingExecuted = true;
+          try {
+            $patch->checkDependencies();
+            try {
+              $patch->run();
+              $patchObjectsExecuted[] = $patch;
+            } catch (Exception $e) {
+              $cmd->logException($e->getMessage());
             }
-          } else {
-            $patchObjects2[] = $patch;
+          } catch (Exception $e) {
+            $patchObjectsDeferred[] = $patch;
           }
         }
 
-        if ($patchObjects2) {
-          if ($somethingExecuted) {
-            $this->runMigrationCommand($scriptFile);
+        if (count($patchObjectsDeferred) > 0) {
+          if (count($patchObjectsExecuted) > 0) {
+            return $this->runMigrationCommand($scriptFile, $results);
           } else {
-            foreach($patchObjects2 as $patch) {
+            foreach($patchObjectsDeferred as $patch) {
               $cmd->setLogPrefix('[' . br()->db()->getDataBaseName() . '] [' . get_class($patch) . ']');
-              $patch->checkDependencies(true);
+              try {
+                $patch->checkDependencies();
+              } catch (Exception $e) {
+                $results[] = array( 'message'  => $patch->logPrefix() . ' ' . $e->getMessage()
+                                  , 'is_error' => true
+                                  );
+              }
             }
           }
+        }
+      }
+
+      $cmd->setLogPrefix('');
+
+      foreach($results as $result) {
+        if ($result['is_error']) {
+          br()->log()->write($result['message'], 'RED');
+        } else {
+          br()->log()->write($result['message'], 'GREEN');
         }
       }
 
