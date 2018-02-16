@@ -27,12 +27,12 @@ class BrDataBaseManager {
       return true;
     }
 
-    $this->auditChangeTable = 'br_audit_change';
+    $this->auditChangeTable = 'audit_change';
     try {
       $check = br()->db()->getValue('DESC ' . $this->auditChangeTable);
     } catch (Exception $e) {
       if (stripos($e->getMessage(), "doesn't exist")) {
-        $this->auditChangeTable = 'audit_change';
+        $this->auditChangeTable = 'br_audit_change';
         try {
           $check = br()->db()->getValue('DESC ' . $this->auditChangeTable);
         } catch (Exception $e) {
@@ -64,12 +64,12 @@ class BrDataBaseManager {
       }
     }
 
-    $this->auditChangeLogTable = 'br_audit_change_log';
+    $this->auditChangeLogTable = 'audit_change_log';
     try {
       $check = br()->db()->getValue('DESC ' . $this->auditChangeLogTable);
     } catch (Exception $e) {
       if (stripos($e->getMessage(), "doesn't exist")) {
-        $this->auditChangeLogTable = 'audit_change_log';
+        $this->auditChangeLogTable = 'br_audit_change_log';
         try {
           $check = br()->db()->getValue('DESC ' . $this->auditChangeLogTable);
         } catch (Exception $e) {
@@ -93,23 +93,24 @@ class BrDataBaseManager {
       }
     }
 
-    $this->auditTablesTable = 'br_audit_tables';
+    $this->auditTablesTable = 'audit_tables';
     try {
       $check = br()->db()->getValue('DESC ' . $this->auditTablesTable);
     } catch (Exception $e) {
       if (stripos($e->getMessage(), "doesn't exist")) {
-        $this->auditTablesTable = 'audit_tables';
+        $this->auditTablesTable = 'br_audit_tables';
         try {
           $check = br()->db()->getValue('DESC ' . $this->auditTablesTable);
         } catch (Exception $e) {
           if (stripos($e->getMessage(), "doesn't exist")) {
             br()->db()->runQuery( 'CREATE TABLE br_audit_tables (
-                                     id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
-                                   , name              VARCHAR(250)    NOT NULL
-                                   , is_insert_audited TINYINT(1)      NOT NULL DEFAULT 1
-                                   , is_update_audited TINYINT(1)      NOT NULL DEFAULT 1
-                                   , is_delete_audited TINYINT(1)      NOT NULL DEFAULT 1
-                                   , exclude_fields LONGTEXT
+                                     id                 BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
+                                   , name               VARCHAR(250)    NOT NULL
+                                   , is_insert_audited  TINYINT(1)      NOT NULL DEFAULT 1
+                                   , is_update_audited  TINYINT(1)      NOT NULL DEFAULT 1
+                                   , is_delete_audited  TINYINT(1)      NOT NULL DEFAULT 1
+                                   , is_cascade_audited TINYINT(1)     NOT NULL DEFAULT 1
+                                   , exclude_fields     LONGTEXT
                                    , UNIQUE INDEX un_' . $this->auditTablesTable . '_name (name)
                                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8'
                                 );
@@ -278,7 +279,7 @@ class BrDataBaseManager {
                                       AND event_object_schema = tbl.table_schema
                                       AND event_object_table = tbl.table_name) is_cascade_trigger_exists
                                 , IF(aut.id IS NULL, 0, 1) is_registered
-                             FROM information_schema.tables tbl LEFT JOIN audit_tables aut ON tbl.table_name = aut.name
+                             FROM information_schema.tables tbl LEFT JOIN ' . $this->auditTablesTable . ' aut ON tbl.table_name = aut.name
                             WHERE tbl.table_schema = ?
                               AND tbl.table_type LIKE "%TABLE%"
                               AND tbl.table_name NOT LIKE "tmp%"
