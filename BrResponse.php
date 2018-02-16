@@ -12,7 +12,7 @@ require_once(__DIR__.'/BrSingleton.php');
 
 class BrResponse extends BrSingleton {
 
-  function sendJSON($response, $alreadyPacked = false) {
+  function sendJSON($response, $alreadyPacked = false, $andExit = true) {
 
     if (!$alreadyPacked) {
       $response = @json_encode($response);
@@ -39,7 +39,10 @@ class BrResponse extends BrSingleton {
     header('Content-type: application/json');
 
     echo($response);
-    exit();
+
+    if ($andExit) {
+      exit();
+    }
 
   }
 
