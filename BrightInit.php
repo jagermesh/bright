@@ -79,7 +79,7 @@ if (br()->isConsoleMode()) {
   }
 }
 
-if (br()->config()->get('Logger/RMQ/Active')) {
+if (br()->config()->get('Logger/RMQ/Active') && br()->config()->get('Logger/RMQ/Host') && br()->config()->get('Logger/RMQ/Port')) {
   if (!br()->log()->isAdapterExists('BrRMQLogAdapter')) {
     br()->importLib('RMQLogAdapter');
     br()->log()->addAdapter(new BrRMQLogAdapter( array( 'host'            => br()->config()->get('Logger/RMQ/Host')
@@ -96,14 +96,14 @@ if (br()->config()->get('Logger/RMQ/Active')) {
   }
 }
 
-if (br()->config()->get('Logger/Slack/Active')) {
+if (br()->config()->get('Logger/Slack/Active') && br()->config()->get('Logger/Slack/WebHookUrl')) {
   if (!br()->log()->isAdapterExists('BrErrorSlackLogAdapter')) {
     br()->importLib('ErrorSlackLogAdapter');
     br()->log()->addAdapter(new BrErrorSlackLogAdapter(br()->config()->get('Logger/Slack/WebHookUrl')));
   }
 }
 
-if (br()->config()->get('Logger/Telegram/Active')) {
+if (br()->config()->get('Logger/Telegram/Active') && br()->config()->get('Logger/Telegram/Bot/ApiKey') && br()->config()->get('Logger/Telegram/Bot/Name') && br()->config()->get('Logger/Telegram/ChatIds')) {
   if (!br()->log()->isAdapterExists('BrErrorTelegramLogAdapter')) {
     br()->importLib('ErrorTelegramLogAdapter');
     br()->log()->addAdapter(new BrErrorTelegramLogAdapter(br()->config()->get('Logger/Telegram/Bot/ApiKey'), br()->config()->get('Logger/Telegram/Bot/Name'), br()->config()->get('Logger/Telegram/ChatIds')));
