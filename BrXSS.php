@@ -13,11 +13,17 @@ require_once(__DIR__ . '/3rdparty/phpQuery/phpQuery.php');
 
 class BrXSS extends BrSingleton {
 
-  function cleanUp($html) {
+  function cleanUp($html, $callback = null) {
 
     if (is_array($html)) {
       foreach($html as $key => $value) {
-        $html[$key] = $this->cleanUp($html[$key]);
+        $proceed = true;
+        if (is_callable($callback)) {
+          $callback($key, $proceed);
+        }
+        if ($proceed) {
+          $html[$key] = $this->cleanUp($html[$key], $callback);
+        }
       }
     } else {
       if (br()->HTML()->isHtml($html)) {

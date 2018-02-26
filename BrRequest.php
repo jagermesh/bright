@@ -116,9 +116,20 @@ class BrRequest extends BrSingleton {
         }
       }
 
-      // $_GET          = br()->XSS()->cleanUp($_GET);
-      // $_POST         = br()->XSS()->cleanUp($_POST);
-      // $this->putVars = br()->XSS()->cleanUp($this->putVars);
+      if (!br()->config()->get('Br/Request/XSSCleanup/Disabled')) {
+        $_GET = br()->XSS()->cleanUp($_GET, function($name, &$proceed) {
+          $method = 'GET';
+          br()->trigger('Br/Request/XSSCleanup', $method, $name, $proceed);
+        });
+        $_POST = br()->XSS()->cleanUp($_POST, function($name, &$proceed) {
+          $method = 'POST';
+          br()->trigger('Br/Request/XSSCleanup', $method, $name, $proceed);
+        });
+        $this->putVars = br()->XSS()->cleanUp($this->putVars, function($name, &$proceed) {
+          $method = 'PUT';
+          br()->trigger('Br/Request/XSSCleanup', $method, $name, $proceed);
+        });
+      }
 
       $this->clientIP = br($_SERVER, 'HTTP_CLIENT_IP');
 

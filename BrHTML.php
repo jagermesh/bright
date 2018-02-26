@@ -19,9 +19,9 @@ class BrHTML extends BrSingleton {
 
   }
 
-  function XSSCleanUp($html) {
+  function XSSCleanUp($html, $callback = null) {
 
-    return br()->XSS()->cleanUp($html);
+    return br()->XSS()->cleanUp($html, $callback);
 
   }
 
