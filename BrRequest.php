@@ -116,7 +116,7 @@ class BrRequest extends BrSingleton {
         }
       }
 
-      $_GET          = br()->XSS()->cleanUp($_GET);
+      // $_GET          = br()->XSS()->cleanUp($_GET);
       // $_POST         = br()->XSS()->cleanUp($_POST);
       // $this->putVars = br()->XSS()->cleanUp($this->putVars);
 
