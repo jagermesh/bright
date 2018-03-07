@@ -148,13 +148,13 @@ class BrString {
 
   }
 
-  function split($delimiters = ',;', $removEmpty = true) {
+  function split($delimiters = ',;', $removeEmpty = true) {
     $delimiters = str_replace('/', '\/', $delimiters);
     $result = preg_split('/[' . $delimiters . ']/', $this->value);
     for($i = 0; $i < count($result); $i++) {
       $result[$i] = trim($result[$i]);
     }
-    if ($removEmpty) {
+    if ($removeEmpty) {
       $result = br($result)->removeEmptyValues(false);
     }
     return $result;
