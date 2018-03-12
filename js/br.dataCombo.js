@@ -200,6 +200,8 @@
               var data = { id: value, text: value };
               var request = { rowid: value };
               _this.selector.select2('data', data);
+              var options = { disableEvents: true };
+              _this.dataSource.events.triggerBefore('selectByRowid', request, options);
               _this.dataSource.select(request, function(result, response) {
                 if (result) {
                   if (response.length > 0) {
@@ -213,7 +215,7 @@
                 if (callback) {
                   callback.call(_this.selector, result, response);
                 }
-              }, { disableEvents: true });
+              }, options);
             } else {
               _this.selector.select2('data', null);
               if (callback) {
