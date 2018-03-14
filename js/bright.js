@@ -3324,7 +3324,7 @@
     this.options.fields                    = this.options.fields || {};
     this.options.saveSelection             = this.options.saveSelection || false;
     this.options.saveToSessionStorage      = this.options.saveToSessionStorage || false;
-    this.options.lookup_minimumInputLength = this.options.lookup_minimumInputLength || 0;
+    this.options.lookup_minimumInputLength = this.options.lookup_minimumInputLength || 1;
 
     if (this.options.skipTranslate) {
       this.selector.addClass('skiptranslate');
