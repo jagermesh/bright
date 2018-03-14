@@ -154,9 +154,6 @@
                      , skip: (query.page - 1) * selectLimit
                      }
                   );
-                // } else {
-                  // var data = { results: [] };
-                  // query.callback(data);
                 }
               }, 300);
             };
