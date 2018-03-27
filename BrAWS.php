@@ -8,6 +8,7 @@ require_once(__DIR__ . '/BrObject.php');
 require_once(__DIR__ . '/BrException.php');
 
 class BrAWS extends BrObject {
+  const AMAZON_POLLY_MAX_CHARACTERS = 1500;
 
   private $S3Client;
   private $pollyClient;
@@ -268,18 +269,62 @@ class BrAWS extends BrObject {
 
   }
 
-  function synthesizeSpeech($text, $destination, $additionalParams = array()) {
+  protected function splitLongTextIntoChunks($string) {
+    $encoding = mb_detect_encoding($string);
+    $out = array();
+    while(mb_strlen($string, $encoding) > 0) {
 
-    $result = $this->getPollyClient()->synthesizeSpeech(array( 'OutputFormat' => 'mp3'
-                                                             , 'Text'         => $text
-                                                             , 'VoiceId'      => br($additionalParams, 'voice', 'Salli')
-                                                             ));
-    $size = $result['AudioStream']->getSize();
+      if (mb_strlen($string, $encoding) <= self::AMAZON_POLLY_MAX_CHARACTERS) {
+        $out[].= $string;
+        break;
+      }
 
-    return array( 'url'      => $this->uploadData($result['AudioStream']->getContents(), $destination, $additionalParams)
-                , 'fileSize' => $size
-                );
+      $dirtyChunk = mb_substr($string, 0, self::AMAZON_POLLY_MAX_CHARACTERS);
+      $furthestPositionOfSentenceStop = max(
+        strrpos($dirtyChunk, '.'),
+        strrpos($dirtyChunk, '!'),
+        strrpos($dirtyChunk, '?')
+      );
+      if (false === $furthestPositionOfSentenceStop) {
+        $furthestPositionOfSentenceStop = mb_strlen($dirtyChunk, $encoding);
+      }
+      $chunk = substr($dirtyChunk, 0, $furthestPositionOfSentenceStop+1);
 
+      $out[] = $chunk;
+
+      //skip the processed chunk from the beginning
+      $string = substr($string, $furthestPositionOfSentenceStop+1);
+    }
+    return $out;
+  }
+
+  public function synthesizeSpeech($text, $destination, $additionalParams = array()) {
+    $chunks = $this->splitLongTextIntoChunks($text);
+    $promises = array();
+    $polly = $this->getPollyClient();
+    foreach ($chunks as $chunk) {
+      $promise = $promises[] = $polly->synthesizeSpeechAsync(
+        array(
+          'OutputFormat'  => 'mp3',
+          'TextType'      => 'text',
+          'Text'          => $chunk,
+          'VoiceId'       => br($additionalParams, 'voice',  'Salli')
+        )
+      );
+    }
+
+    $combinedAudioContents = '';
+    $combinedAudioSize = 0;
+    $results = GuzzleHttp\Promise\unwrap($promises);
+    foreach ($results as $result) {
+      $combinedAudioContents .= $result['AudioStream']->getContents();
+      $combinedAudioSize += $result['AudioStream']->getSize();
+    }
+
+    return array(
+      'url' => $this->uploadData($combinedAudioContents, $destination, $additionalParams),
+      'fileSize' => $combinedAudioSize
+    );
   }
 
   public function testCases($bucketName) {

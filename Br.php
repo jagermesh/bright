@@ -100,31 +100,16 @@ class Br extends BrSingleton {
   }
 
   public function __call($name, $arguments) {
-
     $className = 'Br' . ucwords($name);
-    $classFile = __DIR__ . '/' . $className . '.php';
-    if (file_exists($classFile)) {
-      require_once($classFile);
-      // ARGH HOW UGLY!!!
-      if (!count($arguments)) {
-        return $className::getInstance();
-      } else
-      if (count($arguments) == 1) {
-        return $className::getInstance($arguments[0]);
-      } else
-      if (count($arguments) == 2) {
-        return $className::getInstance($arguments[0], $arguments[1]);
-      } else
-      if (count($arguments) == 3) {
-        return $className::getInstance($arguments[0], $arguments[1], $arguments[2]);
-      } else
-      if (count($arguments) == 4) {
-        return $className::getInstance($arguments[0], $arguments[1], $arguments[2], $arguments[3]);
+    if (!class_exists($className)) {
+      $classFile = __DIR__ . '/' . $className . '.php';
+      if (!file_exists($classFile)) {
+        throw new Exception('Call to unknown method - ' . $name);
       }
-    } else {
-      throw new Exception('Call to unknown method - ' . $name);
+      require_once($classFile);
     }
 
+    return call_user_func_array(array($className, "getInstance"), $arguments);
   }
 
   function log() {
