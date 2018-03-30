@@ -313,18 +313,69 @@ class BrAWS extends BrObject {
       );
     }
 
-    $combinedAudioContents = '';
-    $combinedAudioSize = 0;
     $results = GuzzleHttp\Promise\unwrap($promises);
-    foreach ($results as $result) {
-      $combinedAudioContents .= $result['AudioStream']->getContents();
-      $combinedAudioSize += $result['AudioStream']->getSize();
+
+    if (empty($results)) {
+      return;
     }
 
-    return array(
-      'url' => $this->uploadData($combinedAudioContents, $destination, $additionalParams),
-      'fileSize' => $combinedAudioSize
+    if (1 == sizeof($results)) {
+      $result = current($results);
+      $data = $result['AudioStream']->getContents();
+      $size = $result['AudioStream']->getSize();
+      return array(
+        'url' => $this->uploadData($data, $destination, $additionalParams),
+        'fileSize' => $size
+      );
+    }
+
+    $fs = br()->fs();
+    $filesList = array();
+    $unqieFolderName = time() . rand(100, 999);
+    $filesFolder = br()->tempPath() . $unqieFolderName;
+    $fs->createDir($filesFolder);
+    $i = 0;
+    foreach ($results as $result) {
+      $i++;
+      try {
+        $tempFile = $filesFolder . '/PollyAudio' . $i . '.mp3';
+        $result = file_put_contents($tempFile, $result['AudioStream']->getContents());
+        if (false === $result) {
+          throw new Exception("File could not written");
+        }
+      }
+      catch(Exception $e) {
+        br()->log('Could not save Polly audio to temporary file: ' . $e->getMessage());
+        throw $e;
+      }
+
+      $filesList[] = $fs->fileName($tempFile);
+    }
+
+    $finalAudioFile = $filesFolder . '/PollyAudio_final.mp3';
+
+    //have to do it to fix broken metadata in-between - then it plays well in Chrome
+    $command = sprintf(
+      'cd %s && ffmpeg -i "concat:%s" -codec:a libmp3lame -b:a 128k %s',
+      $filesFolder,
+      implode('|', $filesList),
+      $fs->fileName($finalAudioFile)
     );
+
+    passthru($command, $output);
+
+    $result = array(
+      'url' => $this->uploadFile($finalAudioFile, $destination, $additionalParams),
+      'fileSize' => filesize($finalAudioFile)
+    );
+
+    foreach ($filesList as $filename) {
+      unlink($filesFolder . '/' . $filename);
+    }
+    unlink($finalAudioFile);
+    rmdir($filesFolder);
+
+    return $result;
   }
 
   public function testCases($bucketName) {
