@@ -270,112 +270,109 @@ class BrAWS extends BrObject {
   }
 
   protected function splitLongTextIntoChunks($string) {
-    $encoding = mb_detect_encoding($string);
-    $out = array();
-    while(mb_strlen($string, $encoding) > 0) {
 
-      if (mb_strlen($string, $encoding) <= self::AMAZON_POLLY_MAX_CHARACTERS) {
-        $out[].= $string;
-        break;
+    $result = array();
+
+    if ($string = trim($string)) {
+      if ($encoding = mb_detect_encoding($string)) {
+        while(mb_strlen($string, $encoding) > 0) {
+          if (mb_strlen($string, $encoding) <= self::AMAZON_POLLY_MAX_CHARACTERS) {
+            $result[] = $string;
+            break;
+          }
+          $dirtyChunk = mb_substr($string, 0, self::AMAZON_POLLY_MAX_CHARACTERS);
+          $furthestPositionOfSentenceStop = max( strrpos($dirtyChunk, '.')
+                                               , strrpos($dirtyChunk, '!')
+                                               , strrpos($dirtyChunk, '?')
+                                               );
+          if (false === $furthestPositionOfSentenceStop) {
+            $furthestPositionOfSentenceStop = mb_strlen($dirtyChunk, $encoding);
+          }
+          $chunk = substr($dirtyChunk, 0, $furthestPositionOfSentenceStop + 1);
+          $result[] = $chunk;
+          //skip the processed chunk from the beginning
+          $string = substr($string, $furthestPositionOfSentenceStop + 1);
+        }
       }
-
-      $dirtyChunk = mb_substr($string, 0, self::AMAZON_POLLY_MAX_CHARACTERS);
-      $furthestPositionOfSentenceStop = max(
-        strrpos($dirtyChunk, '.'),
-        strrpos($dirtyChunk, '!'),
-        strrpos($dirtyChunk, '?')
-      );
-      if (false === $furthestPositionOfSentenceStop) {
-        $furthestPositionOfSentenceStop = mb_strlen($dirtyChunk, $encoding);
-      }
-      $chunk = substr($dirtyChunk, 0, $furthestPositionOfSentenceStop+1);
-
-      $out[] = $chunk;
-
-      //skip the processed chunk from the beginning
-      $string = substr($string, $furthestPositionOfSentenceStop+1);
     }
-    return $out;
+
+    return $result;
+
   }
 
   public function synthesizeSpeech($text, $destination, $additionalParams = array()) {
-    $chunks = $this->splitLongTextIntoChunks($text);
-    $promises = array();
-    $polly = $this->getPollyClient();
-    foreach ($chunks as $chunk) {
-      $promise = $promises[] = $polly->synthesizeSpeechAsync(
-        array(
-          'OutputFormat'  => 'mp3',
-          'TextType'      => 'text',
-          'Text'          => $chunk,
-          'VoiceId'       => br($additionalParams, 'voice',  'Salli')
-        )
-      );
-    }
 
-    $results = GuzzleHttp\Promise\unwrap($promises);
+    if ($chunks = $this->splitLongTextIntoChunks($text)) {
+      $polly = $this->getPollyClient();
 
-    if (empty($results)) {
-      return;
-    }
+      $promises = array();
+      foreach ($chunks as $chunk) {
+        $promises[] = $polly->synthesizeSpeechAsync( array( 'OutputFormat'  => 'mp3'
+                                                          , 'TextType'      => 'text'
+                                                          , 'Text'          => $chunk
+                                                          , 'VoiceId'       => br($additionalParams, 'voice',  'Salli')
+                                                          ));
+      }
 
-    if (1 == sizeof($results)) {
-      $result = current($results);
-      $data = $result['AudioStream']->getContents();
-      $size = $result['AudioStream']->getSize();
-      return array(
-        'url' => $this->uploadData($data, $destination, $additionalParams),
-        'fileSize' => $size
-      );
-    }
+      if ($streams = GuzzleHttp\Promise\unwrap($promises)) {
 
-    $fs = br()->fs();
-    $filesList = array();
-    $unqieFolderName = time() . rand(100, 999);
-    $filesFolder = br()->tempPath() . $unqieFolderName;
-    $fs->createDir($filesFolder);
-    $i = 0;
-    foreach ($results as $result) {
-      $i++;
-      try {
-        $tempFile = $filesFolder . '/PollyAudio' . $i . '.mp3';
-        $result = file_put_contents($tempFile, $result['AudioStream']->getContents());
-        if (false === $result) {
-          throw new Exception("File could not written");
+        if (1 == sizeof($streams)) {
+          $stream = current($streams);
+          $data = $stream['AudioStream']->getContents();
+          $size = $stream['AudioStream']->getSize();
+          return array( 'url'      => $this->uploadData($data, $destination, $additionalParams)
+                      , 'fileSize' => $size
+                      );
         }
-      }
-      catch(Exception $e) {
-        br()->log('Could not save Polly audio to temporary file: ' . $e->getMessage());
-        throw $e;
-      }
 
-      $filesList[] = $fs->fileName($tempFile);
+        $filesFolder = br()->tempPath() . br()->guid();
+        br()->fs()->createDir($filesFolder);
+        try {
+          $filesList = array();
+          try {
+            $i = 0;
+            foreach ($streams as $stream) {
+              $i++;
+              $tempFileName = 'PollyAudio' . $i . '.mp3';
+              $tempFilePath = $filesFolder . '/' . $tempFileName;
+              br()->fs()->saveToFile($tempFilePath, $stream['AudioStream']->getContents());
+              $filesList[] = $tempFileName;
+            }
+
+            $finalAudioFileName = 'PollyAudio_final.mp3';
+            $finalAudioFilePath = $filesFolder . '/' . $finalAudioFileName;
+
+            //have to do it to fix broken metadata in-between - then it plays well in Chrome
+            $command = sprintf( 'cd %s && ffmpeg -i "concat:%s" -codec:a libmp3lame -b:a 128k %s'
+                              , $filesFolder
+                              , br($filesList)->join('|')
+                              , $finalAudioFileName
+                              );
+            try {
+              passthru($command, $output);
+              return array( 'url'      => $this->uploadFile($finalAudioFilePath, $destination, $additionalParams)
+                          , 'fileSize' => filesize($finalAudioFilePath)
+                          );
+            } finally {
+              unlink($finalAudioFilePath);
+            }
+          } finally {
+            foreach ($filesList as $fileName) {
+              if (file_exists($filesFolder . '/' . $fileName)) {
+                @unlink($filesFolder . '/' . $fileName);
+              }
+            }
+          }
+        } finally {
+          @rmdir($filesFolder);
+        }
+      } else {
+        throw new BrAppException('Can not synthesize given text');
+      }
+    } else {
+      throw new BrAppException('Empty text given');
     }
 
-    $finalAudioFile = $filesFolder . '/PollyAudio_final.mp3';
-
-    //have to do it to fix broken metadata in-between - then it plays well in Chrome
-    $command = sprintf(
-      'cd %s && ffmpeg -i "concat:%s" -codec:a libmp3lame -b:a 128k %s',
-      $filesFolder,
-      implode('|', $filesList),
-      $fs->fileName($finalAudioFile)
-    );
-
-    passthru($command, $output);
-
-    $result = array(
-      'url' => $this->uploadFile($finalAudioFile, $destination, $additionalParams),
-      'fileSize' => filesize($finalAudioFile)
-    );
-
-    foreach ($filesList as $filename) {
-      unlink($filesFolder . '/' . $filename);
-    }
-    unlink($finalAudioFile);
-    rmdir($filesFolder);
-
-    return $result;
   }
 
   public function testCases($bucketName) {
