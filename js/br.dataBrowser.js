@@ -716,6 +716,16 @@
       return _this.selection.get();
     };
 
+    this.setSelection = function(selection) {
+      if (selection) {
+        for (var i = 0; i < selection.length; i++) {
+          _this.selectRow(selection[i], true);
+          _this.selection.append(selection[i]);
+        }
+        _this.events.trigger('selectionChanged', _this.selection.get().length);
+      }
+    };
+
     var updatePagerTimer;
 
     function doUpdatePager() {
