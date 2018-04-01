@@ -35,6 +35,7 @@ module.exports = function(grunt) {
         , bright_core_js_1_0: {
               src: [ '3rdparty/handlebars/js/4.0.11/handlebars.min.js'
                    , '3rdparty/gritter/js/jquery.gritter.min.js'
+                   , '3rdparty/promisejs/promise-7.0.4.min.js'
                    , 'js/bright.min.js'
                    ]
             , dest: 'dist/1.0/bright.core.js'

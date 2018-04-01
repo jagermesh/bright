@@ -1,2 +1,4 @@
 js/bright.js
 js/bright.min.js
+dist/**/*.js
+3rdparty/**/*.js
