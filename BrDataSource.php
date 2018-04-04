@@ -435,31 +435,39 @@ class BrDataSource extends BrGenericDataSource {
     $filter = array();
     $filter[br()->db()->rowidField()] = br()->db()->rowid($rowid);
 
-    if ($crow = $table->findOne($filter)) {
+    if ($currentRow = $table->findOne($filter)) {
       try {
         if ($this->transactionalDML()) {
           br()->db()->startTransaction();
         }
 
-        $old = $crow;
+        $old = $currentRow;
+        $new = $currentRow;
         foreach($row as $name => $value) {
-          $crow[$name] = $value;
+          $new[$name] = $value;
         }
 
-        $this->callEvent('before:update', $crow, $transientData, $old, $options);
+        $this->callEvent('before:update', $new, $transientData, $old, $options);
 
-        $this->validateUpdate($old, $crow);
+        $this->validateUpdate($old, $new);
 
-        br()->db()->validate($this->dbEntity(), $crow);
+        br()->db()->validate($this->dbEntity(), $new);
 
-        $result = $this->callEvent('update', $crow, $transientData, $old, $options);
+        $result = $this->callEvent('update', $new, $transientData, $old, $options);
         if (is_null($result)) {
-          if ($crow) {
-            $table->update($crow, $rowid, br($options, 'dataTypes'));
-          } else {
-            $crow = $table->findOne($filter);
+          $changes = array();
+          foreach($new as $name => $value) {
+            if (!array_key_exists($name, $old) || ($new[$name] != $old[$name])) {
+              $changes[$name] = $value;
+            }
           }
-          $result = $crow;
+          if ($changes) {
+            $table->update($changes, $rowid, br($options, 'dataTypes'));
+            // $table->update($new, $rowid, br($options, 'dataTypes'));
+          } else {
+            $new = $table->findOne($filter);
+          }
+          $result = $new;
           $this->callEvent('after:update', $result, $transientData, $old, $options);
           $result['rowid'] = br()->db()->rowidValue($result);
           if (!br($options, 'noCalcFields')) {
@@ -480,7 +488,7 @@ class BrDataSource extends BrGenericDataSource {
         }
         $operation = 'update';
         $error = $e->getMessage();
-        $result = $this->trigger('error', $error, $operation, $e, $crow);
+        $result = $this->trigger('error', $error, $operation, $e, $new);
         if (is_null($result)) {
           if (preg_match('/Duplicate entry/', $error, $matches)) {
             br()->log()->logException($e);
