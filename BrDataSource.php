@@ -457,7 +457,7 @@ class BrDataSource extends BrGenericDataSource {
         if (is_null($result)) {
           $changes = array();
           foreach($new as $name => $value) {
-            if (!array_key_exists($name, $old) || ($new[$name] != $old[$name])) {
+            if (!array_key_exists($name, $old) || ($new[$name] !== $old[$name])) {
               $changes[$name] = $value;
             }
           }
