@@ -5481,6 +5481,8 @@
                   successCallback.call(_this, response);
                 }
               } else {
+                _this.events.triggerAfter('editor.update', false, response);
+                _this.events.triggerAfter('editor.save', false, response, op);
                 if (!_this.dataSource.events.has('error')) {
                   _this.showError(response);
                 }
@@ -5526,6 +5528,8 @@
                   successCallback.call(_this, response);
                 }
               } else {
+                _this.events.triggerAfter('editor.insert', false, response);
+                _this.events.triggerAfter('editor.save', false, response, op);
                 if (!_this.dataSource.events.has('error')) {
                   _this.showError(response);
                 }
