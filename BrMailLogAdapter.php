@@ -22,7 +22,7 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
     if (!$this->cacheInitialized) {
       try {
         $this->cache = new BrFileCacheProvider();
-        $this->cache->setCacheLifeTime(60);
+        $this->cache->setCacheLifeTime(300);
       } catch (Exception $e) {
 
       }

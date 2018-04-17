@@ -28,9 +28,16 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
 
     $this->redis = new Redis();
 
-    if (!$this->redis->pconnect($hostname, $port)) {
-      throw new BrException('Can not connect to Redis server ' . $hostname . ':' . $port);
+    if (!$this->redis->connect($hostname, $port)) {
+      throw new Exception('Can not connect to Redis server ' . $hostname . ':' . $port);
     }
+
+    if (br($cfg, 'password')) {
+      if (!$this->redis->auth($cfg['password'])) {
+        throw new Exception('Can not authenticate with Redis server ' . $hostname . ':' . $port);
+      }
+    }
+
 
   }
 
@@ -93,7 +100,9 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
 
     $name = $this->safeName($name);
 
-    if (!$cacheLifeTime) { $cacheLifeTime = $this->getCacheLifeTime(); }
+    if (!$cacheLifeTime) {
+      $cacheLifeTime = $this->getCacheLifeTime();
+    }
 
     if ($this->redis->set($name, serialize($value), $cacheLifeTime)) {
       return $value;
@@ -108,6 +117,12 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
     $name = $this->safeName($name);
 
     return $this->redis->del($name);
+
+  }
+
+  public function getService() {
+
+    return $this->redis;
 
   }
 

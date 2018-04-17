@@ -15,37 +15,52 @@ class BrCache extends BrObject {
   static $instances = array();
   static $reconsider = true;
 
-  public static function getInstance($name = 'default') {
+  public static function getInstance($name = null) {
 
-    $instance = null;
+    $name = $name ? $name : 'default';
 
-    if (self::$reconsider || !isset(self::$instances[$name])) {
-      if ($dbList = br()->config()->get('cache')) {
-        self::$reconsider = false;
-        $cacheConfig = br($dbList, $name, $dbList);
-        br()->assert($cacheConfig, 'Cache [' . $name . '] not configured');
-        try {
-          $instance = BrCache::createInstance($cacheConfig['engine'], $cacheConfig);
-        } catch (Exception $e) {
-          $instance = BrCache::createInstance('default', $cacheConfig);
-        }
-      } else {
-        if (isset(self::$instances[$name])) {
-          $instance = self::$instances[$name];
-        } else {
-          $instance = BrCache::createInstance($name);
+    if (!array_key_exists($name, self::$instances)) {
+
+      $cacheConfig = array('engine' => $name);
+
+      if ($config = br()->config()->get('cache')) {
+        if (br($config, $name)) {
+          if (br($config[$name], 'engine')) {
+            $cacheConfig = $config[$name];
+          }
+        } else
+        if ((!$name || ($name == 'default')) && br($config, 'engine')) {
+          $cacheConfig = $config;
         }
       }
+
+      $instance = null;
+
+      try {
+        if (self::isSupported($cacheConfig['engine'])) {
+          $instance = self::createInstance($cacheConfig['engine'], $cacheConfig);
+        } else {
+          throw new Exception($cacheConfig['engine'] . ' cache is not supported');
+        }
+      } catch (Exception $e) {
+        if (br($cacheConfig, 'required')) {
+          throw new Exception('Can not initialize ' . $cacheConfig['engine'] . ' caching engine: ' . $e->getMessage());
+        } else {
+          br()->log()->logException(new Exception('Can not initialize ' . $cacheConfig['engine'] . ' caching engine: ' . $e->getMessage() . '. Switching to memory caching.'));
+          $instance = self::createInstance('memory');
+        }
+      }
+
       self::$instances[$name] = $instance;
-    } else {
-      $instance = self::$instances[$name];
     }
 
-    return $instance;
+    return self::$instances[$name];
 
   }
 
-  private static function createInstance($engine = 'default', $cacheConfig = array()) {
+  private static function createInstance($engine = null, $cacheConfig = array()) {
+
+    $engine = $engine ? $engine : 'memory';
 
     switch($engine) {
       case "memcache":
@@ -63,6 +78,7 @@ class BrCache extends BrObject {
       case "redis":
         require_once(__DIR__.'/BrRedisCacheProvider.php');
         return new BrRedisCacheProvider($cacheConfig);
+      case "memory":
       default:
         require_once(__DIR__.'/BrMemoryCacheProvider.php');
         return new BrMemoryCacheProvider($cacheConfig);
@@ -70,7 +86,9 @@ class BrCache extends BrObject {
 
   }
 
-  public static function isSupported($engine) {
+  public static function isSupported($engine = null) {
+
+    $engine = $engine ? $engine : 'memory';
 
     switch ($engine) {
       case "memcache":

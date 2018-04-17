@@ -42,11 +42,5 @@ class BrDataBase extends BrObject {
 
   }
 
-  function __construct() {
-
-    parent::__construct();
-
-  }
-
 }
 

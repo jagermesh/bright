@@ -71,6 +71,10 @@ class BrGenericCacheProvider extends BrObject {
 
   }
 
+  public function getService() {
+
+  }
+
   protected function safeName($name) {
 
     return $this->cacheTag.':'.$name;

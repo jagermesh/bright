@@ -77,7 +77,9 @@ class BrAPCCacheProvider extends BrGenericCacheProvider {
 
   public function set($name, $value, $cacheLifeTime = null) {
 
-    if (!$cacheLifeTime) { $cacheLifeTime = $this->getCacheLifeTime(); }
+    if (!$cacheLifeTime) {
+      $cacheLifeTime = $this->getCacheLifeTime();
+    }
 
     $name = $this->safeName($name);
 
