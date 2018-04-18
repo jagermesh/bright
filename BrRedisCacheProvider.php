@@ -61,6 +61,21 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
 
   }
 
+  public function search($pattern) {
+
+    $pattern = $this->safeName($pattern);
+    $cacheTag = $this->safeName('');
+
+    $result = $this->redis->keys($pattern);
+    
+    foreach ($result as &$res) {
+      $res = str_replace($cacheTag, '', $res);
+    }
+
+    return $result;
+
+  }
+
   public function get($name, $default = null, $saveDefault = false) {
 
     $name = $this->safeName($name);
