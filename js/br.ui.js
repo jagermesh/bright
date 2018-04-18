@@ -218,9 +218,22 @@
 
   };
 
-  window.br.error = function(title, message, callback) {
+  window.br.error = function(title, message, callback, options) {
 
-    var s = '<div class="modal modal-autosize" id="br_modalError"';
+    if (callback) {
+      if (typeof callback != 'function') {
+        options  = callback;
+        callback = null;
+      }
+    }
+
+    options = options || {};
+
+    var buttonTitle = options.buttonTitle || 'Dismiss';
+
+    // $('#br_modalError').remove();
+
+    var s = '<div class="modal modal-autosize" id="br_modalError" data-backdrop="static"';
     if (br.bootstrapVersion == 2) {
       s = s + ' style="top:20px;margin-top:0px;"';
     }
@@ -232,7 +245,7 @@
     }
     s = s + '<div class="modal-body" style="overflow-y:auto;">' + message + '</div>' +
             '<div class="modal-footer" style="background-color:red;">';
-    s = s + '<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn('Dismiss') + '&nbsp;</a><';
+    s = s + '<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn(buttonTitle) + '&nbsp;</a><';
     s = s + '/div></div></div></div>';
     var dialog = $(s);
 
@@ -272,9 +285,12 @@
     }
 
     options = options || {};
+
     var buttonTitle = options.buttonTitle || 'Dismiss';
 
-    var s = '<div class="modal modal-autosize" id="br_modalInform"';
+    // $('#br_modalInform').remove();
+
+    var s = '<div class="modal modal-autosize" id="br_modalInform" data-backdrop="static"';
     if (br.bootstrapVersion == 2) {
       s = s + ' style="top:20px;margin-top:0px;"';
     }
@@ -340,7 +356,9 @@
       options.onHide = options.onhide;
     }
 
-    var s = '<div class="modal modal-autosize" id="br_modalPrompt"';
+    // $('#br_modalPrompt').remove();
+
+    var s = '<div class="modal modal-autosize" id="br_modalPrompt" data-backdrop="static"';
     if (br.bootstrapVersion == 2) {
       s = s + ' style="top:20px;margin-top:0px;"';
     }
