@@ -231,7 +231,15 @@
 
     var buttonTitle = options.buttonTitle || 'Dismiss';
 
-    // $('#br_modalError').remove();
+    if ($('#br_modalError').length > 0) {
+      var currentMessage = $('#br_modalError .modal-body').html();
+      if (currentMessage.indexOf(message) == -1) {
+        message = message + '<br /><br />' + currentMessage;
+      }
+      $('#br_modalError').off('hide.bs.modal');
+      $('#br_modalError').modal('hide');
+      $('#br_modalError').remove();
+    }
 
     var s = '<div class="modal modal-autosize" id="br_modalError" data-backdrop="static"';
     if (br.bootstrapVersion == 2) {
@@ -288,7 +296,15 @@
 
     var buttonTitle = options.buttonTitle || 'Dismiss';
 
-    // $('#br_modalInform').remove();
+    if ($('#br_modalInform').length > 0) {
+      var currentMessage = $('#br_modalInform .modal-body').html();
+      if (currentMessage.indexOf(message) == -1) {
+        message = message + '<br /><br />' + currentMessage;
+      }
+      $('#br_modalInform').off('hide.bs.modal');
+      $('#br_modalInform').modal('hide');
+      $('#br_modalInform').remove();
+    }
 
     var s = '<div class="modal modal-autosize" id="br_modalInform" data-backdrop="static"';
     if (br.bootstrapVersion == 2) {
