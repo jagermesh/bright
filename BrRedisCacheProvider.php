@@ -38,6 +38,7 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
       }
     }
 
+    $this->redis->setOption(Redis::OPT_PREFIX, $this->getDefaultNamePrefix());
 
   }
 
@@ -55,15 +56,11 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
 
   public function exists($name) {
 
-    $name = $this->safeName($name);
-
     return $this->redis->exists($name);
 
   }
 
   public function get($name, $default = null, $saveDefault = false) {
-
-    $name = $this->safeName($name);
 
     $result = $this->redis->get($name);
 
@@ -82,8 +79,6 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
 
   public function getEx($name) {
 
-    $name = $this->safeName($name);
-
     $result = $this->redis->get($name);
 
     if ($result === false) {
@@ -96,9 +91,19 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
 
   }
 
-  public function set($name, $value, $cacheLifeTime = null) {
+  public function getKeys($pattern) {
 
-    $name = $this->safeName($name);
+    $result = $this->redis->keys($pattern);
+
+    foreach ($result as &$res) {
+      $res = str_replace($this->getDefaultNamePrefix(), '', $res);
+    }
+
+    return $result;
+
+  }
+
+  public function set($name, $value, $cacheLifeTime = null) {
 
     if (!$cacheLifeTime) {
       $cacheLifeTime = $this->getCacheLifeTime();
@@ -113,8 +118,6 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
   }
 
   public function remove($name) {
-
-    $name = $this->safeName($name);
 
     return $this->redis->del($name);
 

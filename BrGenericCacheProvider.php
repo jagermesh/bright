@@ -12,13 +12,13 @@ require_once(__DIR__.'/BrObject.php');
 
 class BrGenericCacheProvider extends BrObject {
 
-  private $cacheTag = null;
+  private $defaultNamePrefix = null;
   private $cacheLifeTime = 300;
 
   function __construct($cfg = array()) {
 
     if ($this->isSupported()) {
-      $this->cacheTag = md5(__FILE__);
+      $this->defaultNamePrefix = md5(__FILE__) . ':';
     } else {
       throw new BrException(get_class($this).' is not supported.');
     }
@@ -49,6 +49,10 @@ class BrGenericCacheProvider extends BrObject {
 
   }
 
+  public function getKeys($pattern) {
+
+  }
+
   public function set($name, $value, $expirationSeconds = null) {
 
   }
@@ -75,9 +79,15 @@ class BrGenericCacheProvider extends BrObject {
 
   }
 
-  protected function safeName($name) {
+  public function safeName($name) {
 
-    return $this->cacheTag.':'.$name;
+    return $this->defaultNamePrefix . $name;
+
+  }
+
+  protected function getDefaultNamePrefix() {
+
+    return $this->defaultNamePrefix;
 
   }
 
