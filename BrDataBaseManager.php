@@ -378,6 +378,7 @@ class BrDataBaseManager {
     $this->initAuditSubsystem();
 
     $excludeFields = $this->getAuditExcludeFields($tableName);
+    $excludeFields[] = 'id';
 
     $desc = br()->db()->getCachedRows('DESC ' . $tableName);
 
