@@ -52,16 +52,23 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
       throw $e;
     }
 
-    $hostName     = br($this->config, 'hostname');
-    $dataBaseName = br($this->config, 'name');
-    $userName     = br($this->config, 'username');
-    $password     = br($this->config, 'password');
-
-    $this->setDataBaseName($dataBaseName);
+    $hostName      = br($this->config, 'hostname');
+    $dataBaseNames = br(br($this->config, 'name'))->split();
+    $userName      = br($this->config, 'username');
+    $password      = br($this->config, 'password');
 
     try {
-      if ($this->__connection = mysql_connect($hostName, $userName, $password, true)) {
-        mysql_select_db($dataBaseName, $this->__connection);
+      if ($this->__connection = @mysql_connect($hostName, $userName, $password, true)) {
+        $dbselected = false;
+        foreach($dataBaseNames as $dataBaseName) {
+          if ($dbselected = mysql_select_db($dataBaseName, $this->__connection)) {
+            $this->setDataBaseName($dataBaseName);
+            break;
+          }
+        }
+        if (!$dbselected) {
+          throw new Exception(mysql_errno() . ': ' . mysql_error());
+        }
         if (br($this->config, 'charset')) {
           $this->runQuery('SET NAMES ?', $this->config['charset']);
         }
@@ -69,6 +76,8 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
         $this->triggerSticky('after:connect');
         br()->triggerSticky('after:db.connect');
         br()->triggerSticky('after:br.db.connect');
+      } else {
+        throw new Exception(mysql_errno() . ': ' . mysql_error());
       }
     } catch (Exception $e) {
       if (preg_match('/Unknown database/', $e->getMessage()) ||

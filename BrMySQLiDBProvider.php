@@ -52,21 +52,25 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
       throw $e;
     }
 
-    $hostName     = br($this->config, 'hostname');
-    $dataBaseName = br($this->config, 'name');
-    $userName     = br($this->config, 'username');
-    $password     = br($this->config, 'password');
+    $hostName      = br($this->config, 'hostname');
+    $dataBaseNames = br(br($this->config, 'name'))->split();
+    $userName      = br($this->config, 'username');
+    $password      = br($this->config, 'password');
     if (preg_match('/(.+?)[:]([0-9]+)$/', $hostName, $matches)) {
-      $hostName   = $matches[1];
-      $port       = $matches[2];
+      $hostName    = $matches[1];
+      $port        = $matches[2];
     } else {
-      $port       = br($this->config, 'port');
+      $port        = br($this->config, 'port');
     }
 
-    $this->setDataBaseName($dataBaseName);
-
     try {
-      if ($this->__connection = @mysqli_connect($hostName, $userName, $password, $dataBaseName, $port)) {
+      foreach($dataBaseNames as $dataBaseName) {
+        if ($this->__connection = @mysqli_connect($hostName, $userName, $password, $dataBaseName, $port)) {
+          $this->setDataBaseName($dataBaseName);
+          break;
+        }
+      }
+      if ($this->__connection) {
         if (br($this->config, 'charset')) {
           $this->runQuery('SET NAMES ?', $this->config['charset']);
         }
