@@ -98,6 +98,10 @@ class BrErrorHandler extends BrObject {
           if ($e instanceof BrAppException) {
             if (br()->isConsoleMode()) {
               br()->log()->write($e->getMessage(), 'RED');
+            } else {
+              br()->importLib('WebLogAdapter');
+              $webLogAdapter = new BrWebLogAdapter();
+              $webLogAdapter->writeException($e, true);
             }
           } else {
             br()->log()->logException($e, true);
