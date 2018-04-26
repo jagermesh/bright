@@ -34,9 +34,12 @@ class BrResponse extends BrSingleton {
       }
     }
 
-    header('Cache-Control: no-cache, must-revalidate');
-    header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
-    header('Content-type: application/json');
+    if (!headers_sent()) {
+      header('Cache-Control: no-cache, must-revalidate');
+      header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+      header('Content-type: application/json');
+    }
+
 
     echo($response);
 
@@ -68,11 +71,14 @@ class BrResponse extends BrSingleton {
     }
     $response = $callback . '(' . $response . ')';
 
-    header('Cache-Control: no-cache, must-revalidate');
-    header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
-    header('Content-type: application/jsonp');
+    if (!headers_sent()) {
+      header('Cache-Control: no-cache, must-revalidate');
+      header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+      header('Content-type: application/jsonp');
+    }
 
     echo($response);
+
     exit();
 
   }
@@ -96,10 +102,11 @@ class BrResponse extends BrSingleton {
       }
     } else {
       if ($permanent) {
-        header("HTTP/1.1 301 Moved Permanently");
+        header('HTTP/1.1 301 Moved Permanently');
       }
-      header("Location: $url");
+      header('Location: ' . $url);
     }
+
     exit();
 
   }
@@ -120,14 +127,16 @@ class BrResponse extends BrSingleton {
 
     if (!headers_sent()) {
       header('HTTP/1.0 404 Not Found');
-      if ($message) {
-        echo($message);
-      } else {
-        echo "<h1>404 Not Found</h1>";
-        echo "The page that you have requested could not be found.";
-      }
-      exit();
     }
+
+    if ($message) {
+      echo($message);
+    } else {
+      echo('<h1>404 Not Found</h1>');
+      echo('The page that you have requested could not be found.');
+    }
+
+    exit();
 
   }
 
@@ -135,13 +144,15 @@ class BrResponse extends BrSingleton {
 
     if (!headers_sent()) {
       header('HTTP/1.0 401 Not Authorized');
-      if ($error) {
-        echo($error);
-      } else {
-        echo('<h1>401 Not Authorized</h1>');
-      }
-      exit();
     }
+
+    if ($error) {
+      echo($error);
+    } else {
+      echo('<h1>401 Not Authorized</h1>');
+    }
+
+    exit();
 
   }
 
@@ -149,9 +160,13 @@ class BrResponse extends BrSingleton {
 
     if (!headers_sent()) {
       header('HTTP/1.0 204 No Content');
-      echo $error;
-      exit();
     }
+
+    if ($error) {
+      echo($error);
+    }
+
+    exit();
 
   }
 
@@ -159,11 +174,13 @@ class BrResponse extends BrSingleton {
 
     if (!headers_sent()) {
       header('HTTP/1.0 403 Forbidden');
-      if ($error) {
-        echo($error);
-      }
-      exit();
     }
+
+    if ($error) {
+      echo($error);
+    }
+
+    exit();
 
   }
 
@@ -171,11 +188,13 @@ class BrResponse extends BrSingleton {
 
     if (!headers_sent()) {
       header('HTTP/1.0 405 Method Not Allowed');
-      if ($error) {
-        echo($error);
-      }
-      exit();
     }
+
+    if ($error) {
+      echo($error);
+    }
+
+    exit();
 
   }
 
@@ -215,16 +234,20 @@ class BrResponse extends BrSingleton {
 
     if (!headers_sent()) {
       header('HTTP/1.0 409 Conflict');
-      if ($error) {
-        echo($error);
-      }
-      exit();
     }
+
+    if ($error) {
+      echo($error);
+    }
+
+    exit();
 
   }
 
   function send($body = null) {
+
     $this->sendSuccess($body);
+
   }
 
   function sendSuccess($body = null) {
@@ -244,9 +267,13 @@ class BrResponse extends BrSingleton {
   function sendXML($data) {
 
     if (!headers_sent()) {
-      header("Content-type: text/xml");
+      header('Cache-Control: no-cache, must-revalidate');
+      header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+      header('Content-type: text/xml');
     }
+
     echo($data);
+
     exit();
 
   }
