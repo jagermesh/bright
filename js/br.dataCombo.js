@@ -1,9 +1,9 @@
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -490,23 +490,6 @@
 
   window.br.dataCombo = function (selector, dataSource, options) {
     return new BrDataCombo(selector, dataSource, options);
-    // var result = [];
-    // $(selector).each(function() {
-    //   var obj = $(this).data('BrDataCombo');
-    //   if (obj) {
-    //     result.push(obj);
-    //   } else {
-    //     result.push(new BrDataCombo($(this), dataSource, options));
-    //   }
-    // });
-    // switch(result.length) {
-    //   case 0:
-    //     return new BrDataCombo(selector, dataSource, options);
-    //   case 1:
-    //     return result[0];
-    //   default:
-    //     return result[0];
-    // }
   };
 
 })(jQuery, window);

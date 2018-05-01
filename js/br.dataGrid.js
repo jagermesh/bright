@@ -1,9 +1,9 @@
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -270,7 +270,7 @@
       }
     };
 
-    this.refresh = function(callback) {
+    this.load = this.refresh = function(callback) {
       _this.dataSource.select(function(result, response) {
         if (typeof callback == 'function') { callback.call(_this, result, response); }
       });

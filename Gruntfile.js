@@ -28,6 +28,7 @@ module.exports = function(grunt) {
                    , 'js/br.dataEditor.js'
                    , 'js/br.dataBrowser.js'
                    , 'js/br.exChangeMenu.js'
+                   , 'js/br.dataHelpers.js'
                    ]
             , dest: 'js/bright.js'
             , nonull: true

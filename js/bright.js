@@ -1,9 +1,9 @@
 /* jshint ignore:start *//*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -115,11 +115,11 @@
 
 })(window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -388,11 +388,11 @@
 
 })(window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -561,11 +561,11 @@
 
 })(window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -660,11 +660,11 @@
 
 })(window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -716,6 +716,15 @@
   var executionThread = br.thread(true);
 
 })(window);
+/*!
+ * Bright 1.0
+ *
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://brightfw.com
+ *
+ */
+
 /* global Int32Array */
 
 ;(function (window) {
@@ -879,11 +888,11 @@
 
 })(window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -1033,10 +1042,10 @@
     };
 
   })(window);
-/*
- * Bright 0.0.5
+/*!
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
@@ -1650,12 +1659,12 @@
   };
 
 })(jQuery, window);
-/*
- * Bright 0.0.5
+/*!
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -1725,15 +1734,13 @@
 
 })(window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
-
-/* global TAFFY */
 
 ;(function ($, window) {
 
@@ -2152,7 +2159,7 @@
 
     };
 
-    this.select = function(filter, callback, options) {
+    this.load = this.select = function(filter, callback, options) {
 
       var request = {};
       var requestRowid;
@@ -2476,11 +2483,11 @@
 
 })(jQuery, window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -2637,11 +2644,11 @@
 
 })(jQuery, window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -2908,7 +2915,7 @@
       }
     };
 
-    this.refresh = function(callback) {
+    this.load = this.refresh = function(callback) {
       _this.dataSource.select(function(result, response) {
         if (typeof callback == 'function') { callback.call(_this, result, response); }
       });
@@ -3289,11 +3296,11 @@
 
 })(jQuery, window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -3780,30 +3787,13 @@
 
   window.br.dataCombo = function (selector, dataSource, options) {
     return new BrDataCombo(selector, dataSource, options);
-    // var result = [];
-    // $(selector).each(function() {
-    //   var obj = $(this).data('BrDataCombo');
-    //   if (obj) {
-    //     result.push(obj);
-    //   } else {
-    //     result.push(new BrDataCombo($(this), dataSource, options));
-    //   }
-    // });
-    // switch(result.length) {
-    //   case 0:
-    //     return new BrDataCombo(selector, dataSource, options);
-    //   case 1:
-    //     return result[0];
-    //   default:
-    //     return result[0];
-    // }
   };
 
 })(jQuery, window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
@@ -3995,11 +3985,11 @@
 
 })(jQuery, window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -4886,11 +4876,11 @@
 
 })(jQuery, window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -5035,11 +5025,11 @@
 
 })(jQuery, window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -5143,11 +5133,11 @@
 
 })(window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -5706,11 +5696,11 @@
 
 })(jQuery, window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -6577,7 +6567,7 @@
       internalRefresh(true, filter, callback);
     };
 
-    this.refresh = function(filter, callback, doNotResetPager) {
+    this.load = this.refresh = function(filter, callback, doNotResetPager) {
       if (typeof filter == 'function') {
         doNotResetPager = callback;
         callback = filter;
@@ -6601,9 +6591,9 @@
 
 })(jQuery, window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
@@ -6718,6 +6708,49 @@
 
   window.br.exChangeMenu = function (selector, choicesDataSource, dataSource, fieldName, options) {
     return new BrExChangeMenu(selector, choicesDataSource, dataSource, fieldName, options);
+  };
+
+})(jQuery, window);
+/*!
+ * Bright 1.0
+ *
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://brightfw.com
+ *
+ */
+
+/* global Promise */
+
+;(function ($, window) {
+
+  window.br = window.br || {};
+
+  window.br.dataHelpers = window.br.dataHelpers || {};
+
+  window.br.dataHelpers.load = window.br.dataHelpers.select = function(dataControls, callback) {
+
+    var promises = [];
+
+    for(var i = 0; i < dataControls.length; i++) {
+      (function(dc) {
+        promises.push(
+          new Promise(function(resolve, reject) {
+            dc.load(function(result, response) {
+              if (result) {
+                resolve({ dataCombo: dc, response: response });
+              } else {
+                reject({ dataCombo: dc, response: response });
+              }
+            });
+          })
+        );
+      })(dataControls[i]);
+    }
+
+    Promise.all(promises).then(function(response, ds) { callback(true, response, ds); })
+                         .catch(function(response, ds) { callback(false, response, ds); });
+
   };
 
 })(jQuery, window);
