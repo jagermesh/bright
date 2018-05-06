@@ -697,7 +697,9 @@ class BrGenericSQLProviderTable {
     foreach($filter as $joinTableName => $joinField) {
       if ($first) {
         $initialJoinTableName = $joinTableName;
-        if (!in_array($joinTableName, $joinsTables)) {
+        if (in_array($joinTableName, $joinsTables)) {
+          // already joined
+        } else {
           $joinsTables[] = $joinTableName;
           $tmp = br($joinTableName)->split(' ');
           if (count($tmp) > 1) {
@@ -706,13 +708,19 @@ class BrGenericSQLProviderTable {
           } else {
             $joinTableAlias = $joinTableName;
           }
-          if (strpos($fieldName, '.') === false) {
-            $joins .= ' ' . $joinType . ' JOIN '.$joinTableName.' '.$joinTableAlias.' ON '.$tableName.'.'.$fieldName.' = '.$joinTableAlias.'.'.$joinField;
+          if (is_array($joinField)) {
+            if (br($joinField, '$sql')) {
+              $joins .= ' ' . $joinType . ' JOIN ' . $joinTableName . ' ' . $joinTableAlias . ' ON ' . $joinField['$sql'];
+            } else {
+              throw new Exception('Wrong join format');
+            }
           } else {
-            $joins .= ' ' . $joinType . ' JOIN '.$joinTableName.' '.$joinTableAlias.' ON '.$fieldName.' = '.$joinTableAlias.'.'.$joinField;
+            if (strpos($fieldName, '.') === false) {
+              $joins .= ' ' . $joinType . ' JOIN ' . $joinTableName . ' ' . $joinTableAlias . ' ON ' . $tableName . '.' . $fieldName . ' = ' . $joinTableAlias . '.' . $joinField;
+            } else {
+              $joins .= ' ' . $joinType . ' JOIN ' . $joinTableName . ' ' . $joinTableAlias . ' ON ' . $fieldName . ' = ' . $joinTableAlias . '.' . $joinField;
+            }
           }
-        } else {
-
         }
         $first = false;
       } else {
@@ -723,32 +731,32 @@ class BrGenericSQLProviderTable {
           }
         }
         if (strpos($joinTableName, '.') === false) {
-          $joinLeftPart = $initialJoinTableName.'.'.$joinTableName;
+          $joinLeftPart = $initialJoinTableName . '.' . $joinTableName;
         } else {
           $joinLeftPart = $joinTableName;
         }
         if (is_array($joinField)) {
           if (br()->isRegularArray($joinField)) {
-            $joins .= br()->placeholder(' AND '.$joinLeftPart.' IN (?@)', $joinField);
+            $joins .= br()->placeholder(' AND ' . $joinLeftPart . ' IN (?@)', $joinField);
           } else {
             foreach($joinField as $operation => $joinFieldNameOrValue) {
               $operation = (string)$operation;
               switch($operation) {
                 case '$lt':
                 case '<':
-                  $joins .= ' AND '.$joinLeftPart.' < '.$joinFieldNameOrValue;
+                  $joins .= ' AND ' . $joinLeftPart . ' < ' . $joinFieldNameOrValue;
                   break;
                 case '$lte':
                 case '<=':
-                  $joins .= ' AND '.$joinLeftPart.' <= '.$joinFieldNameOrValue;
+                  $joins .= ' AND ' . $joinLeftPart . ' <= ' . $joinFieldNameOrValue;
                   break;
                 case '$gt':
                 case '>':
-                  $joins .= ' AND '.$joinLeftPart.' > '.$joinFieldNameOrValue;
+                  $joins .= ' AND ' . $joinLeftPart . ' > ' . $joinFieldNameOrValue;
                   break;
                 case '$gte':
                 case '>=':
-                  $joins .= ' AND '.$joinLeftPart.' >= '.$joinFieldNameOrValue;
+                  $joins .= ' AND ' . $joinLeftPart . ' >= ' . $joinFieldNameOrValue;
                   break;
                 case '$in':
                   if (is_array($joinFieldNameOrValue)) {
