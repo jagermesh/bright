@@ -221,8 +221,18 @@ class BrFileSystem extends BrSingleton {
       $targetFileName = $this->fileName($sourceFilePath);
     }
 
-    return copy($sourceFilePath, $this->getCurrentDir() . $targetFileName);
-    // return file_exists($this->getCurrentDir() . $fileName);
+    $targetFilePath = $this->getCurrentDir() . $targetFileName;
+    $targetFilePathTmp = $targetFilePath . '.tmp';
+
+    if (file_exists($targetFilePathTmp)) {
+      @unlink($targetFilePathTmp);
+    }
+
+    if ($result = copy($sourceFilePath, $targetFilePathTmp)) {
+      return rename($targetFilePathTmp, $targetFilePath);
+    } else {
+      return $result;
+    }
 
   }
 
