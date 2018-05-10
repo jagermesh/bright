@@ -25,8 +25,9 @@ class BrRequest extends BrSingleton {
   private $domain = null;
   private $putVars = array();
   private $serverAddr = null;
-  private $rawInput = null;
+  private $contentType = null;
   private $urlRestrictions = array();
+  private $restrictionsLoaded = false;
 
   function __construct() {
 
@@ -37,6 +38,9 @@ class BrRequest extends BrSingleton {
       $this->protocol   = br()->config()->get('br/request/consoleModeWebProtocol', 'http://');
       $this->host       = br()->config()->get('br/request/consoleModeBaseHost',    $this->protocol . $this->domain);
       $this->baseUrl    = br()->config()->get('br/request/consoleModeBaseUrl',     '/');
+
+      $this->urlRestrictions    = array();
+      $this->restrictionsLoaded = true;
 
     } else {
 
@@ -89,16 +93,16 @@ class BrRequest extends BrSingleton {
       $this->baseUrl = $baseUrl;
       $this->frameworkUrl = $this->baseUrl() . br()->relativePath();
       $this->scriptName = $scriptName;
+      $this->contentType = br($_SERVER, 'CONTENT_TYPE');
 
-      $this->rawInput = file_get_contents("php://input");
-      if ($json = @json_decode($this->rawInput, true)) {
-        $this->putVars = $json;
+      if ($this->contentType == 'application/octet-stream') {
+
       } else {
-        parse_str($this->rawInput, $this->putVars);
-      }
-      if ($this->putVars) {
-        if (get_magic_quotes_gpc()) {
-          br()->stripSlashes($this->putVars);
+        $rawInput = file_get_contents('php://input');
+        if ($json = @json_decode($rawInput, true)) {
+          $this->putVars = $json;
+        } else {
+          parse_str($rawInput, $this->putVars);
         }
       }
 
@@ -106,14 +110,35 @@ class BrRequest extends BrSingleton {
         $_POST = $this->putVars;
       }
 
+      foreach($this->putVars as $name => $value) {
+        if (!array_key_exists($name, $_POST)) {
+          $_POST[$name] = $value;
+        }
+      }
+
+      if (!br()->config()->get('Br/Request/XSSCleanup/Disabled')) {
+        $_GET = br()->XSS()->cleanUp($_GET, function($name, &$proceed) {
+          $method = 'GET';
+          br()->trigger('Br/Request/XSSCleanup', $method, $name, $proceed);
+        });
+        $_POST = br()->XSS()->cleanUp($_POST, function($name, &$proceed) {
+          $method = 'POST';
+          br()->trigger('Br/Request/XSSCleanup', $method, $name, $proceed);
+        });
+        $this->putVars = br()->XSS()->cleanUp($this->putVars, function($name, &$proceed) {
+          $method = 'PUT';
+          br()->trigger('Br/Request/XSSCleanup', $method, $name, $proceed);
+        });
+      }
+
       $this->clientIP = br($_SERVER, 'HTTP_CLIENT_IP');
 
       if (!$this->clientIP || ($this->clientIP == 'unknown') || ($this->clientIP == '::1')) {
-        $this->clientIP = br($_SERVER, 'REMOTE_ADDR');
+        $this->clientIP = br($_SERVER, 'HTTP_X_FORWARDED_FOR');
       }
 
       if (!$this->clientIP || ($this->clientIP == 'unknown') || ($this->clientIP == '::1')) {
-        $this->clientIP = br($_SERVER, 'HTTP_X_FORWARDED_FOR');
+        $this->clientIP = br($_SERVER, 'REMOTE_ADDR');
       }
 
       if ($this->clientIP == '::1') {
@@ -128,7 +153,12 @@ class BrRequest extends BrSingleton {
         $this->clientIP = '127.0.0.1';
       }
 
-      $this->clientIP = br(array_unique(br($this->clientIP)->split()))->join();
+      if ($ips = array_unique(br($this->clientIP)->split())) {
+        $this->clientIP = $ips[0];
+      }
+
+      $this->urlRestrictions    = array();
+      $this->restrictionsLoaded = false;
 
     }
 
@@ -251,16 +281,23 @@ class BrRequest extends BrSingleton {
     }
     $first = true;
     foreach($params as $name => $value) {
+      if (is_object($value)) {
+
+      } else
       if (is_array($value)) {
         $s = '';
         foreach($value as $one) {
-          if ($first) {
-            $first = false;
-            $s .= '?';
+          if (is_array($one)) {
+
           } else {
-            $s .= '&';
+            if ($first) {
+              $first = false;
+              $s .= '?';
+            } else {
+              $s .= '&';
+            }
+            $s .= $name . '[]=' . htmlentities($one);
           }
-          $s .= $name . '[]=' . htmlentities($one);
         }
         $result .= $s;
       } else {
@@ -314,6 +351,10 @@ class BrRequest extends BrSingleton {
 
     $whitelist = array('localhost', '127.0.0.1');
     if (in_array($this->domain(), $whitelist)) {
+      return true;
+    }
+
+    if (preg_match('/^local[.]/ism', $this->domain())) {
       return true;
     }
 
@@ -448,6 +489,12 @@ class BrRequest extends BrSingleton {
 
   }
 
+  function rawInput() {
+
+    return file_get_contents('php://input');
+
+  }
+
   function get($name = null, $default = null) {
 
     if ($name) {
@@ -455,12 +502,6 @@ class BrRequest extends BrSingleton {
     } else {
       return $_GET;
     }
-
-  }
-
-  function rawInput() {
-
-    return $this->rawInput;
 
   }
 
@@ -492,7 +533,7 @@ class BrRequest extends BrSingleton {
 
   function param($name, $default = null) {
 
-    return $this->get($name, $this->post($name, $default));
+    return $this->get($name, $this->post($name, $this->put($name, $default)));
 
   }
 
@@ -584,15 +625,26 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function setUrlRestrictions($restriction) {
+  function checkUrlRestrictions() {
 
-    $this->urlRestrictions[] = $restriction;
+    $this->trigger('checkUrlRestrictions');
+
+    if (!$this->restrictionsLoaded) {
+      $this->urlRestrictions = br()->session()->get('urlRestrictions', array());
+
+      if (!is_array($this->urlRestrictions)) {
+        $this->urlRestrictions = array();
+      }
+
+      $this->restrictionsLoaded = true;
+    }
 
     foreach($this->urlRestrictions as $restriction) {
-      if ($restriction['type'] == 'allowOnly') {
-        if ($restriction['rule']) {
+      if (br($restriction, 'type') == 'allowOnly') {
+        if (br($restriction, 'rule')) {
+          $restriction['rule'] = ltrim(rtrim($restriction['rule'], '|'), '|');
           if (!$this->isAt($restriction['rule'])) {
-            if ($restriction['redirect']) {
+            if (br($restriction, 'redirect')) {
               br()->auth()->clearLogin();
               br()->response()->redirect($restriction['redirect']);
             } else {
@@ -602,6 +654,29 @@ class BrRequest extends BrSingleton {
         }
       }
     }
+
+  }
+
+  function setUrlRestrictions($restriction) {
+
+    $this->urlRestrictions = $restriction;
+    br()->session()->set('urlRestrictions', $this->urlRestrictions);
+    $this->checkUrlRestrictions();
+
+  }
+
+  function addUrlRestriction($restriction) {
+
+    $this->urlRestrictions[] = $restriction;
+    br()->session()->set('urlRestrictions', $this->urlRestrictions);
+    $this->checkUrlRestrictions();
+
+  }
+
+  function clearUrlRestrictions() {
+
+    $this->urlRestrictions[] = array();
+    br()->session()->clear('urlRestrictions');
 
   }
 

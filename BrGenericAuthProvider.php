@@ -30,6 +30,12 @@ class BrGenericAuthProvider extends BrSingleton {
 
   }
 
+  function getSessionLogin() {
+
+    return br()->session()->get('login');
+
+  }
+
   function checkLogin($returnNotAuthorized = true) {
 
     throw new Exception('Abstract error');
@@ -59,7 +65,7 @@ class BrGenericAuthProvider extends BrSingleton {
       $this->trigger('setLogin', $login);
       return br()->session()->set('login', $login);
     } else
-    if ($login && $remember) {
+    if ($login) {
       $data = $this->getLogin();
       $data[$login] = $remember;
       return br()->session()->set('login', $data);

@@ -493,6 +493,7 @@ class BrIMAPMailMessage extends BrObject {
             case 'mixed':
             case 'related':
             case 'alternative':
+            case 'signed':
             case '':
               $this->textBody->configure($partNo ? $partNo : 1, $structure);
               break;
@@ -503,6 +504,7 @@ class BrIMAPMailMessage extends BrObject {
             case 'mixed':
             case 'related':
             case 'alternative':
+            case 'signed':
             case '':
               $this->HTMLBody->configure($partNo ? $partNo : 1, $structure);
               break;

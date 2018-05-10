@@ -8,8 +8,8 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrSingleton.php');
-require_once(__DIR__.'/BrException.php');
+require_once(__DIR__ . '/BrSingleton.php');
+require_once(__DIR__ . '/BrException.php');
 
 function br($array = null, $name = null, $default = null) {
 
@@ -54,27 +54,8 @@ if (!function_exists('debug')) {
 
     $args = func_get_args();
     foreach($args as $var) {
-      br()->log()->writeLn($var, 'DBG');
-
-      $message = print_r($var, true);
-      if (br()->isConsoleMode()) {
-        // echo($message);
-        // echo("\n");
-      } else
-      if (br()->request()->isDevHost()) {
-        include(__DIR__.'/templates/DebugMessage.html');
-      }
+      br()->log()->write($var, 'DBG');
     }
-
-  }
-
-}
-
-if (!function_exists('callStack')) {
-
-  function callStack() {
-
-    br()->log()->callStack();
 
   }
 
@@ -86,7 +67,7 @@ if (!function_exists('logme')) {
 
     $args = func_get_args();
     foreach($args as $var) {
-      br()->log()->writeLn($var);
+      br()->log()->write($var);
     }
 
   }
@@ -119,31 +100,16 @@ class Br extends BrSingleton {
   }
 
   public function __call($name, $arguments) {
-
     $className = 'Br' . ucwords($name);
-    $classFile = __DIR__ . '/' . $className . '.php';
-    if (file_exists($classFile)) {
-      require_once($classFile);
-      // ARGH HOW UGLY!!!
-      if (!count($arguments)) {
-        return $className::getInstance();
-      } else
-      if (count($arguments) == 1) {
-        return $className::getInstance($arguments[0]);
-      } else
-      if (count($arguments) == 2) {
-        return $className::getInstance($arguments[0], $arguments[1]);
-      } else
-      if (count($arguments) == 3) {
-        return $className::getInstance($arguments[0], $arguments[1], $arguments[2]);
-      } else
-      if (count($arguments) == 4) {
-        return $className::getInstance($arguments[0], $arguments[1], $arguments[2], $arguments[3]);
+    if (!class_exists($className)) {
+      $classFile = __DIR__ . '/' . $className . '.php';
+      if (!file_exists($classFile)) {
+        throw new Exception('Call to unknown method - ' . $name);
       }
-    } else {
-      throw new Exception('Call to unknown method - ' . $name);
+      require_once($classFile);
     }
 
+    return call_user_func_array(array($className, "getInstance"), $arguments);
   }
 
   function log() {
@@ -153,10 +119,19 @@ class Br extends BrSingleton {
 
     $args = func_get_args();
     foreach($args as $var) {
-      $log->writeLn($var);
+      $log->write($var);
     }
 
     return $log;
+
+  }
+
+  function cmd() {
+
+    require_once(__DIR__.'/BrCmd.php');
+    $cmd = BrCmd::getInstance();
+
+    return $cmd;
 
   }
 
@@ -295,13 +270,13 @@ class Br extends BrSingleton {
 
   }
 
-  function removeEmptyKeys($array) {
+  function removeEmptyValues($array) {
 
     $result = array();
     foreach($array as $key => $value) {
       $go = false;
       if (is_array($value)) {
-        $value = br()->RemoveEmptyKeys($value);
+        $value = br()->removeEmptyValues($value);
         $go = $value;
       } else {
         $go = strlen($value);
@@ -513,6 +488,10 @@ class Br extends BrSingleton {
         case '@':
         case '#':
           $type = $c;
+          if (substr($tmpl, $p+1, 1) == '&') {
+            $type = $type . '&';
+            ++$p;
+          }
           ++$p;
           break;
         default:
@@ -523,15 +502,17 @@ class Br extends BrSingleton {
       if (preg_match('/^((?:[^\s[:punct:]]|_)+)/', substr($tmpl, $p), $pock)) {
 
         $key = $pock[1];
-        if ($type != '#')
+        if ($type != '#') {
           $has_named = true;
+        }
         $p += strlen($key);
 
       } else {
 
         $key = $i;
-        if ($type != '#')
+        if ($type != '#') {
           $i++;
+        }
 
       }
 
@@ -613,9 +594,13 @@ class Br extends BrSingleton {
           break;
         }
 
-        if ($type === '@') {
+        if (($type === '@') || ($type === '@&')) {
           foreach ($a as $v) {
-            $repl .= ($repl===''? "" : ",").(preg_match('#^[-]?([1-9][0-9]*|[0-9])($|[.,][0-9]+$)#', $v) ? str_replace(',', '.', $v):"'".addslashes($v)."'");
+            if ($type === '@&') {
+              $repl .= ($repl===''? "" : ",").("'".addslashes($v)."'");
+            } else {
+              $repl .= ($repl===''? "" : ",").(preg_match('#^[-]?([1-9][0-9]*|[0-9])($|[.,][0-9]+$)#', $v) ? str_replace(',', '.', $v):"'".addslashes($v)."'");
+            }
           }
         } else
         if ($type === '%') {
@@ -729,10 +714,15 @@ class Br extends BrSingleton {
   function getCommandLineArguments($asString = false) {
 
     global $argv;
+
     $result = array();
-    for($i = 1; $i < count($argv); $i++) {
-      $result[] = $argv[$i];
+
+    if (is_array($argv)) {
+      for($i = 1; $i < count($argv); $i++) {
+        $result[] = $argv[$i];
+      }
     }
+
     if ($asString) {
       return br($result)->join(' ');
     } else {
@@ -810,7 +800,7 @@ class Br extends BrSingleton {
   function sendMail($emails, $subject, $body, $params = array(), $callback = null) {
 
     if (!class_exists('PHPMailer')) {
-      require_once(__DIR__.'/3rdparty/phpmailer/class.phpmailer.php');
+      require_once(__DIR__ . '/3rdparty/phpmailer/class.phpmailer.php');
     }
 
     if (is_callable($params)) {
@@ -834,10 +824,12 @@ class Br extends BrSingleton {
       }
     }
 
-    if ($from = br($params, 'sender', br()->config()->get('br/mail/sender', br()->config()->get('br/mail/from', br()->config()->get('br/Br/sendMail/from'))))) {
+    $fromName = br($params, 'senderName', br()->config()->get('br/mail/fromName'));
+
+    if ($from = br($params, 'sender', br()->config()->get('br/mail/from'))) {
       if ($from = br($from)->split()) {
-        $mail->AddReplyTo($from[0]);
-        $mail->SetFrom($from[0]);
+        $mail->AddReplyTo($from[0], $fromName);
+        $mail->SetFrom($from[0], $fromName);
       }
     }
 
@@ -880,6 +872,12 @@ class Br extends BrSingleton {
       }
     }
 
+    if (br($params, 'attachments')) {
+      foreach($params['attachments'] as $attachment) {
+        $mail->AddAttachment($attachment['path'], $attachment['name']);
+      }
+    }
+
     $mail->Subject = $subject;
 
     $mail->Body = $body;
@@ -891,14 +889,14 @@ class Br extends BrSingleton {
       $mail->ContentType = 'text/plain';
     }
 
-    br()->log()->writeLn('Sending mail to ' . br($emails)->join());
+    br()->log()->write('Sending mail to ' . br($emails)->join());
 
     if (is_callable($callback)) {
       $callback($mail);
     }
 
     if ($mail->Send()) {
-      br()->log()->writeLn('Sent');
+      br()->log()->write('Sent');
     } else {
       throw new Exception('Mail was not sent because of unknown error');
     }
@@ -977,6 +975,9 @@ class Br extends BrSingleton {
       case 'mp3':
         $result = 'audio/mpeg';
         break;
+      case 'swf':
+        $result = 'application/x-shockwave-flash';
+        break;
       default:
         $result = 'application/octet-stream';
         break;
@@ -1046,7 +1047,7 @@ class Br extends BrSingleton {
 
   function createTempFile($prefix, $extension = '', $register = true) {
 
-    $fileName = tempnam($this->tempPath(), $prefix);
+    $fileName = @tempnam($this->tempPath(), $prefix);
 
     if ($extension) {
       rename($fileName, $fileName . $extension);
@@ -1061,5 +1062,46 @@ class Br extends BrSingleton {
 
   }
 
-}
+  function closureDump($c) {
 
+    $str = 'function (';
+    $r = new \ReflectionFunction($c);
+    $params = array();
+    foreach($r->getParameters() as $p) {
+        $s = '';
+        if($p->isArray()) {
+            $s .= 'array ';
+        } else if($p->getClass()) {
+            $s .= $p->getClass()->name . ' ';
+        }
+        if($p->isPassedByReference()){
+            $s .= '&';
+        }
+        $s .= '$' . $p->name;
+        if($p->isOptional()) {
+            $s .= ' = ' . var_export($p->getDefaultValue(), TRUE);
+        }
+        $params []= $s;
+    }
+    $str .= implode(', ', $params);
+    $str .= '){' . PHP_EOL;
+    $lines = file($r->getFileName());
+    for($l = $r->getStartLine(); $l < $r->getEndLine(); $l++) {
+        $str .= $lines[$l];
+    }
+    return $str;
+  }
+
+  function encodeUtf8mb4($string) {
+
+    return preg_replace_callback('/./u', function (array $match) {
+      $res = $match[0];
+      if (strlen($res) >= 4) {
+        $res = mb_convert_encoding($res, 'HTML-ENTITIES', "UTF-8") ;
+      }
+      return $res;
+    }, $string);
+
+  }
+
+}

@@ -41,6 +41,11 @@ class BrFileLogAdapter extends BrGenericFileLogAdapter {
       }
     } else {
       $filePath .= br()->request()->clientIP();
+      if ($login = br()->auth()->getSessionLogin()) {
+        if (br($login, 'id')) {
+          $filePath .= '/' . $login['id'];
+        }
+      }
     }
 
     $tmp = $filePath . '/';
@@ -74,7 +79,7 @@ class BrFileLogAdapter extends BrGenericFileLogAdapter {
   function end() {
 
     if (function_exists('memory_get_usage')) {
-      $this->writeMessage('Memory usage:  ' . memory_get_usage(), '---');
+      $this->writeMessage('Memory usage:  ' . br()->formatBytes(memory_get_usage()), '---');
     }
 
   }

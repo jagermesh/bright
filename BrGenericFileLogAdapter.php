@@ -58,6 +58,79 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter {
 
   }
 
+  function writeAppInfo($group = '---') {
+
+    if ($this->isEnabled() && br()->log()->isEnabled()) {
+
+      $this->writeMessage('***************************************************************', $group);
+
+      $this->writeMessage('PID:           ' . br()->getProcessID(),          $group);
+      $this->writeMessage('Script Name:   ' . br()->scriptName(),            $group);
+      $this->writeMessage('PHP Version:   ' . phpversion(),                  $group);
+      if (br()->isConsoleMode()) {
+        $this->writeMessage('Comand line:   ' . br(br()->getCommandLineArguments())->join(' '),      $group);
+      } else {
+        $this->writeMessage('Request URL:   ' . br()->request()->url(),      $group);
+        $this->writeMessage('Referer URL:   ' . br()->request()->referer(),  $group);
+        $this->writeMessage('Client IP:     ' . br()->request()->clientIP(), $group);
+
+        if ($login = br()->auth()->getSessionLogin()) {
+          $this->writeMessage('User ID:       ' . br($login, 'id'), $group);
+          if (br($login, 'name')) {
+            $this->writeMessage('User name:     ' . br($login, 'name'), $group);
+          }
+          if ($loginField = br()->auth()->getAttr('usersTable.loginField')) {
+            if (br($login, $loginField)) {
+              $this->writeMessage('User login:    ' . br($login, $loginField), $group);
+            }
+          }
+          if ($emailField = br()->auth()->getAttr('usersTable.emailField')) {
+            if (br($login, $loginField)) {
+              $this->writeMessage('User e-mail:   ' . br($login, $emailField), $group);
+            }
+          }
+        }
+
+        $this->writeMessage('Request type:  ' . br()->request()->method(),   $group);
+        $requestData = '';
+        if ($data = br()->request()->get()) {
+          unset($data['password']);
+          $requestData = @json_encode($data);
+          if ($requestData) {
+            if (strlen($requestData) > 1024*16) {
+              $requestData = substr($requestData, 0, 1024*16) . '...';
+            }
+            $this->writeMessage('Request GET:   ' . $requestData,                $group);
+          }
+        }
+        if ($data = br()->request()->post()) {
+          unset($data['password']);
+          $requestData = @json_encode($data);
+          if ($requestData) {
+            if (strlen($requestData) > 1024*16) {
+              $requestData = substr($requestData, 0, 1024*16) . '...';
+            }
+            $this->writeMessage('Request POST:  ' . $requestData,                $group);
+          }
+        } else
+        if ($data = br()->request()->put()) {
+          unset($data['password']);
+          $requestData = @json_encode($data);
+          if ($requestData) {
+            if (strlen($requestData) > 1024*16) {
+              $requestData = substr($requestData, 0, 1024*16) . '...';
+            }
+            $this->writeMessage('Request PUT:   ' . $requestData,                $group);
+          }
+        }
+      }
+
+      $this->writeMessage('***************************************************************', $group);
+
+    }
+
+  }
+
   function write($message, $group = 'MSG') {
 
     $this->init();
@@ -79,6 +152,9 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter {
             if ($time = br()->log()->getFormattedTimeOffset()) {
               $logMessage .= '+' . $time;
             }
+            if ($time = br()->log()->getFormattedSavedTimeOffset()) {
+              $logMessage .= '+' . $time;
+            }
             $logMessage .= ' ';
           }
           if ($logLevel = br()->log()->getLevel()) {
@@ -88,6 +164,8 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter {
         }
         $logMessage .= "\n";
 
+        br()->log()->saveTime();
+
         @fwrite($this->filePointer, $logMessage);
       }
 
@@ -95,7 +173,7 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter {
 
   }
 
-  function writeMessage($message, $group = 'MSG') {
+  function writeMessage($message, $group = 'MSG', $tagline = '') {
 
     $this->write($message, $group);
 
@@ -107,7 +185,7 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter {
 
   }
 
-  function writeError($message) {
+  function writeError($message, $tagline = '') {
 
     $this->write($message, 'ERR');
 

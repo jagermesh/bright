@@ -1,9 +1,9 @@
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -14,18 +14,40 @@
     var _this = this;
 
     this.selector = selector;
+
     this.options = options || {};
-    this.options.templates = this.options.templates || {};
-    this.options.templates.row = $(rowTemplate).html();
+
+    this.options.templates          = this.options.templates || {};
+
+    this.options.templates.noData   = this.options.templates.noData || '.data-empty-template';
+
+    this.options.templates.row      = $(rowTemplate).html();
     this.options.templates.groupRow = this.options.templates.groupRow ? $(this.options.templates.groupRow).html() : '';
-    this.options.templates.header = this.options.templates.header ? $(this.options.templates.header).html() : '';
-    this.options.templates.footer = this.options.templates.footer ? $(this.options.templates.footer).html() : '';
-    this.options.templates.noData = this.options.templates.noData ? $(this.options.templates.noData).html() : '';
+    this.options.templates.header   = this.options.templates.header   ? $(this.options.templates.header).html() : '';
+    this.options.templates.footer   = this.options.templates.footer   ? $(this.options.templates.footer).html() : '';
+    this.options.templates.noData   = this.options.templates.noData   ? $(this.options.templates.noData).html() : '';
+
+    this.options.templates.row      = this.options.templates.row      || '';
+    this.options.templates.groupRow = this.options.templates.groupRow || '';
+    this.options.templates.header   = this.options.templates.header   || '';
+    this.options.templates.footer   = this.options.templates.footer   || '';
+    this.options.templates.noData   = this.options.templates.noData   || '';
+
+    this.templates = {};
+
+    this.templates.row      = this.options.templates.row.length > 0      ? br.compile(this.options.templates.row)      : function() { return ''; };
+    this.templates.groupRow = this.options.templates.groupRow.length > 0 ? br.compile(this.options.templates.groupRow) : function() { return ''; };
+    this.templates.header   = this.options.templates.header.length > 0   ? br.compile(this.options.templates.header)   : function() { return ''; };
+    this.templates.footer   = this.options.templates.footer.length > 0   ? br.compile(this.options.templates.footer)   : function() { return ''; };
+    this.templates.noData   = this.options.templates.noData.length > 0   ? br.compile(this.options.templates.noData)   : function() { return ''; };
+
+    this.options.selectors          = this.options.selectors || {};
+
+    this.options.selectors.header   = this.options.selectors.header || this.options.headersSelector || this.selector;
+    this.options.selectors.footer   = this.options.selectors.footer || this.options.footersSelector || this.selector;
+    this.options.selectors.remove   = this.options.selectors.remove || this.options.deleteSelector  || '.action-delete';
+
     this.options.dataSource = dataSource;
-    this.options.selectors = this.options.selectors || {};
-    this.options.selectors.header = this.options.selectors.header || this.options.headersSelector || this.selector;
-    this.options.selectors.footer = this.options.selectors.footer || this.options.footersSelector || this.selector;
-    this.options.selectors.remove = this.options.selectors.remove || this.options.deleteSelector  || '.action-delete';
 
     this.dataSource = this.options.dataSource;
     this.storageTag = this.options.storageTag ? this.options.storageTag : document.location.pathname + ':' + this.dataSource.options.restServiceUrl;
@@ -34,6 +56,10 @@
     this.before = function(event, callback) { this.events.before(event, callback); };
     this.on     = function(event, callback) { this.events.on(event, callback); };
     this.after  = function(event, callback) { this.events.after(event, callback); };
+
+    if (this.options.fixedHeader) {
+      this.table = br.table($(this.selector).closest('table'), options);
+    }
 
     var noMoreData = false;
 
@@ -54,6 +80,12 @@
       _this.events.triggerAfter('change', data, 'remove');
     });
 
+    this.after('change', function() {
+      if (this.table) {
+        this.table.update();
+      }
+    });
+
     var disconnected = false;
 
     this.setStored = function(name, value) {
@@ -64,6 +96,10 @@
       return br.storage.get(this.storageTag + 'stored:' + name, defaultValue);
     };
 
+    this.isDisconnected = function() {
+      return disconnected;
+    };
+
     this.disconnectFromDataSource = function() {
       disconnected = true;
     };
@@ -72,20 +108,12 @@
       disconnected = false;
     };
 
-    this.renderHeader = function(data) {
+    this.renderHeader = function(data, asString) {
       data = _this.events.trigger('renderHeader', data) || data;
-      return $(br.fetch(_this.options.templates.header, data));
-    };
-
-    this.renderFooter = function(data) {
-      data = _this.events.trigger('renderFooter', data) || data;
-      return $(br.fetch(_this.options.templates.footer, data));
-    };
-
-    this.renderRow = function(data) {
-      data = _this.events.trigger('renderRow', data) || data;
-      var s = br.fetch(_this.options.templates.row, data);
-      s = s.trim();
+      var s = _this.templates.header(data);
+      if (asString) {
+        return s;
+      } else
       if (s.length > 0) {
         var result = $(s);
         result.data('data-row', data);
@@ -95,11 +123,49 @@
       }
     };
 
-    this.renderGroupRow = function(data) {
+    this.renderFooter = function(data, asString) {
+      data = _this.events.trigger('renderFooter', data) || data;
+      var s =  _this.templates.footer(data);
+      if (asString) {
+        return s;
+      } else
+      if (s.length > 0) {
+        var result = $(s);
+        result.data('data-row', data);
+        return result;
+      } else {
+        return null;
+      }
+    };
+
+    this.renderRow = function(data, asString) {
+      data = _this.events.trigger('renderRow', data) || data;
+      var s = _this.templates.row(data).trim();
+      if (asString) {
+        return s;
+      } else
+      if (s.length > 0) {
+        var result = $(s);
+        result.data('data-row', data);
+        return result;
+      } else {
+        return null;
+      }
+    };
+
+    this.renderGroupRow = function(data, asString) {
       data = _this.events.trigger('renderGroupRow', data) || data;
-      var result = $(br.fetch(_this.options.templates.groupRow, data));
-      result.data('data-row', data);
-      return result;
+      var s = _this.templates.groupRow(data).trim();
+      if (asString) {
+        return s;
+      } else
+      if (s.length > 0) {
+        var result = $(s);
+        result.data('data-row', data);
+        return result;
+      } else {
+        return null;
+      }
     };
 
     this.prepend = function(row) {
@@ -118,7 +184,7 @@
       return tableRow;
     };
 
-    this.addDataRow = function(row) {
+    this.addDataRow = function(row, disableEvents) {
       var tableRow = _this.renderRow(row);
       if (tableRow) {
         _this.events.triggerBefore('insert', row, tableRow);
@@ -128,8 +194,10 @@
         } else {
           _this.prepend(tableRow);
         }
-        _this.events.triggerAfter('renderRow', row, tableRow);
-        _this.events.triggerAfter('insert', row, tableRow);
+        if (!disableEvents) {
+          _this.events.triggerAfter('renderRow', row, tableRow);
+          _this.events.triggerAfter('insert', row, tableRow);
+        }
       }
       return tableRow;
     };
@@ -148,8 +216,18 @@
       }
       options = options || { };
       options.disableEvents = true;
-      _this.dataSource.selectOne(rowid, function(result, response) {
-        if (result) {
+      options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
+      var filter;
+      if (br.isObject(rowid)) {
+        filter = rowid;
+      } else {
+        filter = { rowid: rowid };
+      }
+      _this.dataSource.select(filter, function(result, response) {
+        if (!result || (response.length === 0)) {
+          _this.refresh(callback);
+        } else {
+          response = response[0];
           if (_this.refreshRow(response, options)) {
 
           } else {
@@ -166,47 +244,54 @@
     function checkForEmptyGrid() {
       if (_this.isEmpty()) {
         _this.events.triggerBefore('nodata');
-        $(_this.selector).html(_this.options.templates.noData);
+        $(_this.selector).html(_this.templates.noData());
         _this.events.trigger('nodata');
         _this.events.triggerAfter('nodata');
       }
     }
 
-    this.removeRow = function(rowid) {
-      var row = $(_this.selector).find('[data-rowid=' + rowid + ']');
+    this.removeRow = function(rowid, options) {
+      var filter = '[data-rowid=' + rowid + ']';
+      options = options || {};
+      options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
+      if (options.refreshSelector) {
+        filter = options.refreshSelector + filter;
+      }
+      var row = $(_this.selector).find(filter);
       if (row.length > 0) {
         _this.events.triggerBefore('remove', rowid);
         _this.events.trigger('remove', rowid, row);
         row.remove();
         checkForEmptyGrid();
         _this.events.triggerAfter('remove', rowid, row);
-      } else {
+      } else
+      if (!_this.options.singleRowMode) {
         _this.dataSource.select();
       }
     };
 
-    this.refresh = function(callback) {
-      _this.dataSource.select(function() {
-        if (callback) {
-          callback();
-        }
+    this.load = this.refresh = function(callback) {
+      _this.dataSource.select(function(result, response) {
+        if (typeof callback == 'function') { callback.call(_this, result, response); }
       });
     };
 
     this.refreshRow = function(data, options) {
       var filter = '[data-rowid=' + data.rowid + ']';
-      if (options && options.refreshSelector) {
+      options = options || {};
+      options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
+      if (options.refreshSelector) {
         filter = options.refreshSelector + filter;
       }
       var row = $(_this.selector).find(filter);
       if (row.length > 0) {
         var tableRow = _this.renderRow(data);
         if (tableRow) {
+          tableRow.data('data-row', data);
           _this.events.triggerBefore('update', data);
-          var $row0 = $(row[0]);
-          _this.events.trigger('update', data, $row0);
-          $row0.replaceWith(tableRow);
-          $row0.data('data-row', data);
+          _this.events.trigger('update', data, row);
+          $(row[0]).before(tableRow);
+          row.remove();
           _this.events.triggerAfter('renderRow', data, tableRow);
           _this.events.triggerAfter('update', data, tableRow);
           return true;
@@ -216,47 +301,6 @@
       } else {
         return false;
       }
-    };
-
-    this.getOrder = function() {
-      var order = _this.getOrderAndGroup();
-      var result = {};
-      if (br.isArray(order)) {
-        for(var i = 0; i < order.length; i++) {
-          if (order[i].asc) {
-            result[order[i].fieldName] = 1;
-          } else {
-            result[order[i].fieldName] = -1;
-          }
-        }
-      }
-      return result;
-    };
-
-    this.setOrder = function(order) {
-      var orderAndGroup = [];
-      for(var name in order) {
-        orderAndGroup.push({ fieldName: name, asc: order[name] > 0, group: false, index: orderAndGroup.length });
-      }
-      return order;
-    };
-
-    this.setOrderAndGroup = function(order) {
-      br.storage.set(this.storageTag + 'orderAndGroup', order);
-      return order;
-    };
-
-    this.getOrderAndGroup = function() {
-      var result = br.storage.get(this.storageTag + 'orderAndGroup', []);
-      if (br.isEmpty(result) || !br.isArray(result)) {
-        result = [];
-      }
-      return result;
-    };
-
-    this.isOrderConfigured = function() {
-      var orderAndGroup = _this.getOrderAndGroup();
-      return br.isArray(orderAndGroup) && (orderAndGroup.length > 0);
     };
 
     this.loadMore = function(callback) {
@@ -286,43 +330,93 @@
       return result;
     };
 
-    this.init = function() {
+    this.isOrderConfigured = function() {
+      var orderAndGroup = _this.getOrderAndGroup();
+      return br.isArray(orderAndGroup) && (orderAndGroup.length > 0);
+    };
 
-      var savedOrder = _this.getOrderAndGroup();
-      if (!br.isArray(savedOrder) || (savedOrder.length === 0)) {
-        if (_this.options.defaultOrderAndGroup) {
-          _this.setOrderAndGroup(_this.options.defaultOrderAndGroup);
-        }
-      }
+    function saveOrderAndGroup(orderAndGroup) {
+      br.storage.set(_this.storageTag + 'orderAndGroup', orderAndGroup);
+      return orderAndGroup;
+    }
 
-      function showOrder(orderAndGroup) {
-        for(var i = 0; i < orderAndGroup.length; i++) {
-          var ctrl = $('.sortable[data-field="' + orderAndGroup[i].fieldName + '"].' + (orderAndGroup[i].asc ? 'order-asc' : 'order-desc'), $(_this.options.selectors.header));
-          ctrl.addClass('icon-white').addClass('icon-border');
-          var idx = ctrl.parent().find('div.br-sort-index');
-          if (orderAndGroup.length > 1) {
-            if (idx.length > 0) {
-              idx.text(i + 1);
-            } else {
-              ctrl.parent().append($('<div class="br-sort-index">' + (i + 1) + '</div>'));
-            }
+    function showOrder(orderAndGroup) {
+      for(var i = 0; i < orderAndGroup.length; i++) {
+        var ctrl = $('.sortable[data-field="' + orderAndGroup[i].fieldName + '"].' + (orderAndGroup[i].asc ? 'order-asc' : 'order-desc'), $(_this.options.selectors.header));
+        ctrl.addClass('icon-white').addClass('icon-border').addClass('fa-border');
+        var idx = ctrl.parent().find('div.br-sort-index');
+        if (orderAndGroup.length > 1) {
+          if (idx.length > 0) {
+            idx.text(i + 1);
+          } else {
+            ctrl.parent().append($('<div class="br-sort-index">' + (i + 1) + '</div>'));
           }
         }
       }
+    }
+
+    this.getOrder = function() {
+      var order = _this.getOrderAndGroup();
+      var result = {};
+      if (br.isArray(order)) {
+        for(var i = 0; i < order.length; i++) {
+          if (order[i].asc) {
+            result[order[i].fieldName] = 1;
+          } else {
+            result[order[i].fieldName] = -1;
+          }
+        }
+      }
+      return result;
+    };
+
+    this.setOrder = function(order, callback) {
+      var orderAndGroup = [];
+      for(var name in order) {
+        orderAndGroup.push({ fieldName: name, asc: order[name] > 0, group: false, index: orderAndGroup.length });
+      }
+      _this.setOrderAndGroup(orderAndGroup, callback);
+    };
+
+    this.getOrderAndGroup = function() {
+      var result = br.storage.get(this.storageTag + 'orderAndGroup', []);
+      if (br.isEmpty(result) || !br.isArray(result) || (result.length === 0)) {
+        if (_this.options.defaultOrderAndGroup) {
+          result = _this.options.defaultOrderAndGroup;
+        } else {
+          result = [];
+        }
+      }
+      return result;
+    };
+
+    this.setOrderAndGroup = function(orderAndGroup, callback) {
+      saveOrderAndGroup(orderAndGroup);
+      showOrder(orderAndGroup);
+      _this.events.triggerBefore('changeOrder', orderAndGroup);
+      if (callback) {
+        _this.dataSource.select(function(result, response) {
+          if (typeof callback == 'function') { callback.call(_this, result, response); }
+        });
+      }
+      return orderAndGroup;
+    };
+
+    this.init = function() {
 
       showOrder(_this.getOrderAndGroup());
 
       $(this.options.selectors.header).on('click', '.sortable', function(event) {
-        var sorted = ($(this).hasClass('icon-white') || $(this).hasClass('icon-border'));
+        var sorted = ($(this).hasClass('icon-white') || $(this).hasClass('icon-border') || $(this).hasClass('fa-border'));
         if (!event.metaKey) {
-          $('.sortable', $(_this.options.selectors.header)).removeClass('icon-white').removeClass('icon-border');
+          $('.sortable', $(_this.options.selectors.header)).removeClass('icon-white').removeClass('icon-border').removeClass('fa-border');
           $('.br-sort-index', $(_this.options.selectors.header)).remove();
         }
         if (sorted) {
-          $(this).removeClass('icon-white').removeClass('icon-border');
+          $(this).removeClass('icon-white').removeClass('icon-border').removeClass('fa-border');
         } else {
-          $(this).siblings('i').removeClass('icon-white').removeClass('icon-border');
-          $(this).addClass('icon-white').addClass('icon-border');
+          $(this).siblings('i').removeClass('icon-white').removeClass('icon-border').removeClass('fa-border');
+          $(this).addClass('icon-white').addClass('icon-border').addClass('fa-border');
         }
         var orderAndGroup;
         var fieldName = $(this).attr('data-field');
@@ -342,10 +436,7 @@
         if (!sorted) {
           orderAndGroup.push(newOrder);
         }
-        showOrder(orderAndGroup);
-        _this.setOrderAndGroup(orderAndGroup);
-        _this.events.triggerBefore('changeOrder', orderAndGroup);
-        _this.dataSource.select();
+        _this.setOrderAndGroup(orderAndGroup, true);
       });
 
       if (_this.dataSource) {
@@ -378,15 +469,16 @@
         });
 
         _this.dataSource.on('update', function(data) {
-          if (_this.refreshRow(data)) {
+          if (_this.refreshRow(data, _this.options)) {
 
-          } else {
+          } else
+          if (!_this.options.singleRowMode) {
             _this.dataSource.select();
           }
         });
 
         _this.dataSource.on('remove', function(rowid) {
-          _this.removeRow(rowid);
+          _this.removeRow(rowid, _this.options);
         });
 
         if (this.options.selectors.remove) {
@@ -402,6 +494,26 @@
                             }
                           );
               }
+            }
+          });
+        }
+
+        if (br.isString(_this.selector)) {
+          br.editable(_this.selector + ' .editable', function(content) {
+            var $this = $(this);
+            var rowid = $this.closest('[data-rowid]').attr('data-rowid');
+            var dataField = $this.attr('data-field');
+            if (!br.isEmpty(rowid) && !br.isEmpty(dataField)) {
+              var data = {};
+              data[dataField] = content;
+              _this.dataSource.update( rowid
+                                     , data
+                                     , function(result, response) {
+                                         if (result) {
+                                           _this.events.trigger('editable.update', $this, content);
+                                         }
+                                       }
+                                     );
             }
           });
         }
@@ -424,14 +536,20 @@
           if (data.headers) {
             for (i in data.headers) {
               if (data.headers[i]) {
-                $(_this.options.selectors.header).append(_this.renderHeader(data.headers[i]));
+                tableRow = _this.renderHeader(data.headers[i]);
+                if (tableRow) {
+                  $(_this.options.selectors.header).append(tableRow);
+                }
               }
             }
           }
           if (data.footers) {
             for (i in data.footers) {
               if (data.footers[i]) {
-                $(_this.options.selectors.footer).append(_this.renderFooter(data.headers[i]));
+                tableRow = _this.renderFooter(data.headers[i]);
+                if (tableRow) {
+                  $(_this.options.selectors.footer).append(tableRow);
+                }
               }
             }
           }
@@ -439,7 +557,7 @@
           $(_this.options.selectors.footer).html('');
           if (data.rows) {
             if (data.rows.length === 0) {
-              $selector.html(this.options.templates.noData);
+              $selector.html(_this.templates.noData());
             } else {
               for (i in data.rows) {
                 if (data.rows[i]) {
@@ -450,16 +568,22 @@
                     }
                   }
                   if (data.rows[i].header) {
-                    $(_this.options.selectors.header).append(_this.renderHeader(data.rows[i].header));
+                    tableRow = _this.renderHeader(data.rows[i].header);
+                    if (tableRow) {
+                      $(_this.options.selectors.header).append(tableRow);
+                    }
                   }
                   if (data.rows[i].footer) {
-                    $(_this.options.selectors.footer).append(_this.renderFooter(data.rows[i].footer));
+                    tableRow = _this.renderFooter(data.rows[i].footer);
+                    if (tableRow) {
+                      $(_this.options.selectors.footer).append(tableRow);
+                    }
                   }
                 }
               }
             }
           } else {
-            $selector.html(this.options.templates.noData);
+            $selector.html(_this.templates.noData());
           }
         } else {
           if (data && (data.length > 0)) {
@@ -488,7 +612,11 @@
                       tmp.__groupBy.__field = groupFieldName;
                       tmp.__groupBy.__value = data[i][groupFieldName];
                       tmp.__groupBy[groupFieldName] = true;
-                      $selector.append(_this.renderGroupRow(tmp));
+                      tableRow = _this.renderGroupRow(tmp);
+                      if (tableRow) {
+                        $selector.append(tableRow);
+                        _this.events.triggerAfter('renderGroupRow', data[i], tableRow);
+                      }
                     }
                   }
                 }
@@ -501,11 +629,11 @@
             }
           } else
           if (!loadingMoreData) {
-            $selector.html(this.options.templates.noData);
+            $selector.html(_this.templates.noData());
           }
         }
       } else {
-        $selector.html(this.options.templates.noData);
+        $selector.html(_this.templates.noData());
       }
       _this.events.trigger('change', data, 'render');
       _this.events.triggerAfter('change', data, 'render');

@@ -1,9 +1,9 @@
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -16,9 +16,7 @@
     if (br.isFunction(options)) {
       options = { onSave: options };
     }
-    options = options || {};
-    _this.options = options;
-    _this.options.popover_placement = _this.ctrl.attr('data-popover-placement') || 'bottom';
+    _this.options = options || {};
     _this.editor = null;
     _this.savedWidth = '';
     _this.click = function(element, e) {
@@ -31,11 +29,15 @@
         }
         _this.ctrl.data('brEditable-original-html', _this.ctrl.html());
         _this.ctrl.data('brEditable-original-width', _this.ctrl.css('width'));
-        var width = _this.ctrl.innerWidth();
-        var height = _this.ctrl.innerHeight();
         _this.ctrl.text('');
-        _this.editor = $('<input type="text" />');
+        var isTextarea = (_this.ctrl.attr('data-editable-type') == 'textarea');
+        if (isTextarea) {
+          _this.editor = $('<textarea rows="3"></textarea>');
+        } else {
+          _this.editor = $('<input type="text" />');
+        }
         _this.editor.addClass('form-control');
+        _this.editor.addClass('br-editable-control');
         _this.editor.css('width', '100%');
         _this.editor.css('height', '100%');
         _this.editor.css('min-height', '30px');
@@ -55,46 +57,22 @@
           content = _this.options.onGetContent.call(_this.ctrl, _this.editor, content);
         }
         _this.editor.val(content);
-        _this.ctrl.css('width', width - 10);
-        _this.editor.focus();
-        $('div.popover').remove();
-        if (!_this.options.hideHint) {
-          if (_this.options.saveOnLoosingFocus) {
-            _this.editor.popover({placement: _this.options.popover_placement, animation: false, trigger: 'manual', content: 'WARNING!!! Changes will be saved after leaving input box, by pressing [Enter], or by pressing [Tab]. Press [Esc] to cancel changes.'});
-          } else {
-            _this.editor.popover({placement: _this.options.popover_placement, animation: false, trigger: 'manual', content: 'Press [Enter] to save changes, [Esc] to cancel changes.'});
-          }
-        }
-        _this.editor.popover('show');
-        if (_this.options.saveOnLoosingFocus) {
-          $(_this.editor).on('keydown', function(e) {
-            if (e.keyCode == 9) {
-              var content = $(this).val();
-              $('div.popover').remove();
-              if (_this.options.onSave) {
-                _this.options.onSave.call(_this.ctrl, content, 'keyup');
-              } else {
-                _this.apply(content);
-              }
-              e.stopPropagation();
-              e.preventDefault();
-            }
-          });
-          $(_this.editor).on('blur', function(e) {
-            $('div.popover').remove();
-            var content = $(this).val();
+        _this.editor.on('keydown', function(e) {
+          if (e.keyCode == 9) {
+            var content = _this.editor.val();
             if (_this.options.onSave) {
-              _this.options.onSave.call(_this.ctrl, content, 'blur');
+              _this.options.onSave.call(_this.ctrl, content, 'keyup');
             } else {
               _this.apply(content);
             }
-          });
-        }
-        $(_this.editor).on('keyup', function(e) {
-          var content = $(this).val();
+            e.stopPropagation();
+            e.preventDefault();
+          }
+        });
+        _this.editor.on('keyup', function(e) {
+          var content = _this.editor.val();
           switch (e.keyCode) {
             case 13:
-              $('div.popover').remove();
               if (_this.options.onSave) {
                 _this.options.onSave.call(_this.ctrl, content, 'keyup');
               } else {
@@ -103,36 +81,72 @@
               e.stopPropagation();
               break;
             case 27:
-              $('div.popover').remove();
               _this.cancel();
               e.stopPropagation();
               break;
           }
         });
+        _this.editor.on('blur', function(e) {
+          var ok = true;
+          if (_this.options.onBlur) {
+            ok = _this.options.onBlur.call(_this.ctrl, e);
+          }
+          if (ok) {
+            var content = _this.editor.val();
+            if (_this.options.onSave) {
+              _this.options.onSave.call(_this.ctrl, content, 'blur');
+            } else {
+              _this.apply(content);
+            }
+          }
+        });
+        _this.editor.focus();
       }
+    };
+
+    _this.get = function() {
+      return _this;
     };
 
     _this.activated = function() {
       return _this.editor !== null;
     };
 
-    _this.apply = function(content) {
-      $('div.popover').remove();
-      _this.editor.remove();
-      _this.editor = null;
-      _this.ctrl.html(content);
-      if (typeof _this.ctrl.attr('data-editable') != 'undefined') {
-        _this.ctrl.attr('data-editable', content);
+    _this.save = function(content) {
+      if (_this.editor) {
+        if (content === undefined) {
+          content = _this.editor.val();
+        }
+        if (_this.options.onSave) {
+          _this.options.onSave.call(_this.ctrl, content, 'blur');
+        } else {
+          _this.apply(content);
+        }
       }
-      _this.ctrl.css('width', '');
+    };
+
+    _this.apply = function(content) {
+      if (_this.editor) {
+        if (content === undefined) {
+          content = _this.editor.val();
+        }
+        _this.editor.remove();
+        _this.editor = null;
+        _this.ctrl.html(content);
+        if (typeof _this.ctrl.attr('data-editable') != 'undefined') {
+          _this.ctrl.attr('data-editable', content);
+        }
+        _this.ctrl.css('width', '');
+      }
     };
 
     _this.cancel = function() {
-      $('div.popover').remove();
-      _this.editor.remove();
-      _this.editor = null;
-      _this.ctrl.html(_this.ctrl.data('brEditable-original-html'));
-      _this.ctrl.css('width', '');
+      if (_this.editor) {
+        _this.editor.remove();
+        _this.editor = null;
+        _this.ctrl.html(_this.ctrl.data('brEditable-original-html'));
+        _this.ctrl.css('width', '');
+      }
     };
 
   }
@@ -140,16 +154,31 @@
   window.br = window.br || {};
 
   window.br.editable = function(selector, callback, value) {
-    if ($('#br_editablePopover').length === 0) {
-      $('body').append($('<div id="br_editablePopover"></div>'));
-    }
     if (typeof callback == 'string') {
-      var data = $(selector).data('brEditable-editable');
-      if (!data) {
-        $(selector).data('brEditable-editable', (data = new BrEditable($(selector), callback)));
+      if ($(selector).hasClass('br-editable-control')) {
+        selector = $(selector).parent();
       }
-      if (data) {
-        data[callback](value);
+      var data = $(selector).data('brEditable-editable');
+      switch (callback) {
+        case 'exists':
+          if (data) {
+            return true;
+          } else {
+            return false;
+          }
+          break;
+        case 'get':
+        case 'apply':
+        case 'save':
+        case 'cancel':
+        case 'click':
+          if (!data) {
+            $(selector).data('brEditable-editable', (data = new BrEditable($(selector), callback)));
+          }
+          if (data) {
+            return data[callback](value);
+          }
+          break;
       }
     } else {
       $(document).on('click', selector, function(e) {

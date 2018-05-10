@@ -15,62 +15,27 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
   private $__inTransaction = 0;
   private $__transactionBuffer = array();
   private $__deadlocksHandlerEnabled = true;
-  private $version;
 
-  function getCountSQL($sql) {
+  protected $version;
 
-    $offset = 0;
-    if (preg_match('/(^[ \t\n]*|[ (])(SELECT)([ \n\r])/sim', $sql, $token, PREG_OFFSET_CAPTURE)) {
-      $select_offset = $token[2][1];
-      $offset = $select_offset + 6;
-      $work_str = substr($sql, $offset);
-      $in_select = 0;
-      while (preg_match('/((^[ \t\n]*|[ (])(SELECT)([ \n\r])|([ \t\n])(FROM)([ \n\r]))/sim', $work_str, $token, PREG_OFFSET_CAPTURE)) {
-        if (strtolower(@$token[6][0]) == 'from') {
-          if ($in_select)
-            $in_select--;
-          else {
-            $from_offset = $offset + $token[6][1];
-            break;
-          }
-          $inc = $token[6][1] + 4;
-          $offset += $inc;
-          $work_str = substr($work_str, $inc);
-        }
-        if (strtolower(@$token[3][0]) == 'select') {
-          $in_select++;
-          $inc = $token[3][1] + 6;
-          $offset += $inc;
-          $work_str = substr($work_str, $inc);
-        }
-      }
-    }
-
-    if (isset($select_offset) && isset($from_offset)) {
-      $sql_start  = substr($sql, 0, $select_offset);
-      $sql_finish = substr($sql, $from_offset + 4);
-      $sql = $sql_start."SELECT COUNT(1) FROM".$sql_finish;
-      $sql = preg_replace("/ORDER BY.+/sim", "", $sql, 1);
-      return $sql;
-    } else
-      return null;
+  public function connection() {
 
   }
 
-  function startTransaction($force = false) {
+  public function startTransaction($force = false) {
 
     $this->resetTransaction();
     $this->__inTransaction++;
 
   }
 
-  function commitTransaction($force = false) {
+  public function commitTransaction($force = false) {
 
     $this->resetTransaction();
 
   }
 
-  function rollbackTransaction($force = false) {
+  public function rollbackTransaction($force = false) {
 
     $this->resetTransaction();
 
@@ -80,7 +45,9 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
     if (!preg_match('/^SET( |$)/', $sql)) {
       if (!preg_match('/^SELECT( |$)/', $sql)) {
-        $this->__transactionBuffer[] = $sql;
+        if (!preg_match('/^CALL( |$)/', $sql)) {
+          $this->__transactionBuffer[] = $sql;
+        }
       }
     }
 
@@ -90,80 +57,64 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   }
 
-  function resetTransaction() {
+  public function resetTransaction() {
 
     $this->__inTransaction = 0;
     $this->__transactionBuffer = array();
 
   }
 
-  function inTransaction() {
+  public function inTransaction() {
 
     return ($this->__inTransaction > 0);
 
   }
 
-  function isTransactionBufferEmpty() {
+  public function isTransactionBufferEmpty() {
 
     return (count($this->__transactionBuffer) == 0);
 
   }
 
-  function transactionBufferLength() {
+  public function transactionBufferLength() {
 
     return count($this->__transactionBuffer);
 
   }
 
-  function transactionBuffer() {
+  public function transactionBuffer() {
 
     return $this->__transactionBuffer;
 
   }
 
-  function disableDeadLocksHandler() {
+  public function disableDeadLocksHandler() {
 
     $this->__deadlocksHandlerEnabled = false;
     return $this->__deadlocksHandlerEnabled;
 
   }
 
-  function enableDeadLocksHandler() {
+  public function enableDeadLocksHandler() {
 
     $this->__deadlocksHandlerEnabled = true;
     return $this->__deadlocksHandlerEnabled;
 
   }
 
-  function isDeadLocksHandlerEnabled() {
+  public function isDeadLocksHandlerEnabled() {
 
     return $this->__deadlocksHandlerEnabled;
 
   }
 
-  function regexpCondition($value) {
+  public function regexpCondition($value) {
 
     return new BrGenericSQLRegExp($value);
 
   }
 
-  function rowid($row, $fieldName = null) {
-
-    if (is_array($row)) {
-      return br($row, $fieldName?$fieldName:$this->rowidField());
-    } else {
-      return $row;
-    }
-
-  }
-
-  function rowidField() {
-
-    return 'id';
-
-  }
-
-  function rowidValue($row, $fieldName = null) {
+  public function rowid($row, $fieldName = null) {
 
     if (is_array($row)) {
       return br($row, $fieldName ? $fieldName : $this->rowidField());
@@ -173,7 +124,23 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   }
 
-  function table($name, $alias = null, $params = array()) {
+  public function rowidField() {
+
+    return 'id';
+
+  }
+
+  public function rowidValue($row, $fieldName = null) {
+
+    if (is_array($row)) {
+      return br($row, $fieldName ? $fieldName : $this->rowidField());
+    } else {
+      return $row;
+    }
+
+  }
+
+  public function table($name, $alias = null, $params = array()) {
 
     $params['tableAlias'] = $alias;
 
@@ -182,7 +149,56 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
   }
 
 
-  function runQuery() {
+  function parseScript($script) {
+
+    $result = array();
+    $delimiter = ';';
+    while(strlen($script) && preg_match('/((DELIMITER)[ ]+([^\n\r])|[' . $delimiter . ']|$)/is', $script, $matches, PREG_OFFSET_CAPTURE)) {
+      if (count($matches) > 2) {
+        $delimiter = $matches[3][0];
+        $script = substr($script, $matches[3][1] + 1);
+      } else {
+        if (strlen($statement = trim(substr($script, 0, $matches[0][1])))) {
+          $result[] = $statement;
+        }
+        $script = substr($script, $matches[0][1] + 1);
+      }
+    }
+
+    return $result;
+
+  }
+
+
+  public function runScript($script) {
+
+    if ($statements = $this->parseScript($script)) {
+      foreach($statements as $statement) {
+        $this->internalRunQuery($statement);
+      }
+    }
+
+    return true;
+
+  }
+
+  public function runScriptFile($fileName) {
+
+    $result = 0;
+
+    if (file_exists($fileName)) {
+      if ($script = br()->fs()->loadFromFile($fileName)) {
+        return $this->runScript($script);
+      } else {
+        throw new Exception('Script file empty: ' . $fileName);
+      }
+    } else {
+      throw new Exception('Script file not found: ' . $fileName);
+    }
+
+  }
+
+  public function runQuery() {
 
     $args = func_get_args();
     $sql = array_shift($args);
@@ -191,7 +207,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   }
 
-  function openCursor() {
+  public function openCursor() {
 
     $args = func_get_args();
     $sql = array_shift($args);
@@ -200,7 +216,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   }
 
-  function getCursor() {
+  public function getCursor() {
 
     $args = func_get_args();
     $sql = array_shift($args);
@@ -209,7 +225,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   }
 
-  function select() {
+  public function select() {
 
     $args = func_get_args();
     $sql = array_shift($args);
@@ -218,7 +234,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   }
 
-  function getRow() {
+  public function getRow() {
 
     $args = func_get_args();
     $sql = array_shift($args);
@@ -227,16 +243,17 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   }
 
-  function getCachedRow() {
+  public function getCachedRow() {
 
     $args = func_get_args();
     $sql = array_shift($args);
 
     $cacheTag = get_class($this) . ':getCachedRow:' . md5($sql) . md5(serialize($args));
 
-    $result = br()->cache()->get($cacheTag);
-
-    if (!$result && !br()->cache()->exists($cacheTag)) {
+    $result = br()->cache()->getEx($cacheTag);
+    if ($result['success']) {
+      $result = $result['value'];
+    } else {
       $result = $this->selectNext($this->internalRunQuery($sql, $args));
       br()->cache()->set($cacheTag, $result);
     }
@@ -245,7 +262,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   }
 
-  function getRows() {
+  public function getRows() {
 
     $args = func_get_args();
     $sql = array_shift($args);
@@ -262,16 +279,17 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   }
 
-  function getCachedRows() {
+  public function getCachedRows() {
 
     $args = func_get_args();
     $sql = array_shift($args);
 
     $cacheTag = get_class($this) . ':getCachedRows:' . md5($sql) . md5(serialize($args));
 
-    $result = br()->cache()->get($cacheTag);
-
-    if (!$result && !br()->cache()->exists($cacheTag)) {
+    $result = br()->cache()->getEx($cacheTag);
+    if ($result['success']) {
+      $result = $result['value'];
+    } else {
       $query = $this->internalRunQuery($sql, $args);
       $result = array();
       if (is_object($query) || is_resource($query)) {
@@ -286,7 +304,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   }
 
-  function getValue() {
+  public function getValue() {
 
     $args = func_get_args();
     $sql = array_shift($args);
@@ -307,15 +325,18 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
     $cacheTag = get_class($this) . ':getCachedValue:' . md5($sql) . md5(serialize($args));
 
-    $result = br()->cache()->get($cacheTag);
-
-    if (!$result && !br()->cache()->exists($cacheTag)) {
-      if ($value = $this->selectNext($this->internalRunQuery($sql, $args))) {
-        if (is_array($value)) {
-          $result = array_shift($value);
+    $result = br()->cache()->getEx($cacheTag);
+    if ($result['success']) {
+      $result = $result['value'];
+    } else {
+      if ($result = $this->selectNext($this->internalRunQuery($sql, $args))) {
+        if (is_array($result)) {
+          $result = array_shift($result);
         } else {
-          $result = $value;
+          $result = null;
         }
+      } else {
+        $result = null;
       }
       br()->cache()->set($cacheTag, $result);
     }
@@ -324,7 +345,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   }
 
-  function getValues() {
+  public function getValues() {
 
     $args = func_get_args();
     $sql = array_shift($args);
@@ -336,20 +357,22 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
         array_push($result, array_shift($row));
       }
     }
+
     return $result;
 
   }
 
-  function getCachedValues() {
+  public function getCachedValues() {
 
     $args = func_get_args();
     $sql = array_shift($args);
 
     $cacheTag = get_class($this) . ':getCachedValues:' . md5($sql) . md5(serialize($args));
 
-    $result = br()->cache()->get($cacheTag);
-
-    if (!$result && !br()->cache()->exists($cacheTag)) {
+    $result = br()->cache()->getEx($cacheTag);
+    if ($result['success']) {
+      $result = $result['value'];
+    } else {
       $query = $this->internalRunQuery($sql, $args);
       $result = array();
       if (is_object($query) || is_resource($query)) {
@@ -359,7 +382,14 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
       }
       br()->cache()->set($cacheTag, $result);
     }
+
     return $result;
+
+  }
+
+  protected function getCountSQL($sql) {
+
+    return 'SELECT COUNT(1) FROM (' . $sql . ') a';
 
   }
 
@@ -660,49 +690,16 @@ class BrGenericSQLProviderTable {
 
   }
 
-  private function compileJoin($filter, $tableName, $fieldName, $link, &$joins, &$joinsTables, &$where, &$args) {
-
-    $first = true;
-    $initialJoinTableName = '';
-    foreach($filter as $joinTableName => $joinField) {
-      if ($first) {
-        if (!in_array($joinTableName, $joinsTables)) {
-          $joinsTables[] = $joinTableName;
-          $tmp = br($joinTableName)->split(' ');
-          if (count($tmp) > 1) {
-            $joinTableName = $tmp[0];
-            $joinTableAlias = $tmp[1];
-          } else {
-            $joinTableAlias = $joinTableName;
-          }
-          if (strpos($fieldName, '.') === false) {
-            $joins .= ' INNER JOIN '.$joinTableName.' '.$joinTableAlias.' ON '.$tableName.'.'.$fieldName.' = '.$joinTableAlias.'.'.$joinField;
-          } else {
-            $joins .= ' INNER JOIN '.$joinTableName.' '.$joinTableAlias.' ON '.$fieldName.' = '.$joinTableAlias.'.'.$joinField;
-          }
-        } else {
-
-        }
-        $first = false;
-      } else {
-        if (strpos($joinTableName, '.') === false) {
-          $joins .= ' AND '.$initialJoinTableName.'.'.$joinTableName.' = '.$joinField;
-        } else {
-          $joins .= ' AND '.$joinTableName.' = '.$joinField;
-        }
-      }
-    }
-
-  }
-
-  private function compileLeftJoin($filter, $tableName, $fieldName, $link, &$joins, &$joinsTables, &$where, &$args) {
+  private function compileJoin($filter, $tableName, $fieldName, $link, &$joins, &$joinsTables, &$where, &$args, $joinType = 'INNER') {
 
     $first = true;
     $initialJoinTableName = '';
     foreach($filter as $joinTableName => $joinField) {
       if ($first) {
         $initialJoinTableName = $joinTableName;
-        if (!in_array($joinTableName, $joinsTables)) {
+        if (in_array($joinTableName, $joinsTables)) {
+          // already joined
+        } else {
           $joinsTables[] = $joinTableName;
           $tmp = br($joinTableName)->split(' ');
           if (count($tmp) > 1) {
@@ -711,20 +708,123 @@ class BrGenericSQLProviderTable {
           } else {
             $joinTableAlias = $joinTableName;
           }
-          if (strpos($fieldName, '.') === false) {
-            $joins .= ' LEFT JOIN '.$joinTableName.' '.$joinTableAlias.' ON '.$tableName.'.'.$fieldName.' = '.$joinTableAlias.'.'.$joinField;
+          if (is_array($joinField)) {
+            if (br($joinField, '$sql')) {
+              $joins .= ' ' . $joinType . ' JOIN ' . $joinTableName . ' ' . $joinTableAlias . ' ON ' . $joinField['$sql'];
+            } else {
+              throw new Exception('Wrong join format');
+            }
           } else {
-            $joins .= ' LEFT JOIN '.$joinTableName.' '.$joinTableAlias.' ON '.$fieldName.' = '.$joinTableAlias.'.'.$joinField;
+            if (strpos($fieldName, '.') === false) {
+              $joins .= ' ' . $joinType . ' JOIN ' . $joinTableName . ' ' . $joinTableAlias . ' ON ' . $tableName . '.' . $fieldName . ' = ' . $joinTableAlias . '.' . $joinField;
+            } else {
+              $joins .= ' ' . $joinType . ' JOIN ' . $joinTableName . ' ' . $joinTableAlias . ' ON ' . $fieldName . ' = ' . $joinTableAlias . '.' . $joinField;
+            }
           }
-        } else {
-
         }
         $first = false;
       } else {
+        if (is_numeric($joinTableName)) {
+          foreach($joinField as $a => $b) {
+            $joinTableName = $a;
+            $joinField = $b;
+          }
+        }
         if (strpos($joinTableName, '.') === false) {
-          $joins .= ' AND '.$initialJoinTableName.'.'.$joinTableName.' = '.$joinField;
+          $joinLeftPart = $initialJoinTableName . '.' . $joinTableName;
         } else {
-          $joins .= ' AND '.$joinTableName.' = '.$joinField;
+          $joinLeftPart = $joinTableName;
+        }
+        if (is_array($joinField)) {
+          if (br()->isRegularArray($joinField)) {
+            $joins .= br()->placeholder(' AND ' . $joinLeftPart . ' IN (?@)', $joinField);
+          } else {
+            foreach($joinField as $operation => $joinFieldNameOrValue) {
+              $operation = (string)$operation;
+              switch($operation) {
+                case '$lt':
+                case '<':
+                  $joins .= ' AND ' . $joinLeftPart . ' < ' . $joinFieldNameOrValue;
+                  break;
+                case '$lte':
+                case '<=':
+                  $joins .= ' AND ' . $joinLeftPart . ' <= ' . $joinFieldNameOrValue;
+                  break;
+                case '$gt':
+                case '>':
+                  $joins .= ' AND ' . $joinLeftPart . ' > ' . $joinFieldNameOrValue;
+                  break;
+                case '$gte':
+                case '>=':
+                  $joins .= ' AND ' . $joinLeftPart . ' >= ' . $joinFieldNameOrValue;
+                  break;
+                case '$in':
+                  if (is_array($joinFieldNameOrValue)) {
+                    $joinFieldNameOrValue = br()->removeEmptyValues($joinFieldNameOrValue);
+                    if ($joinFieldNameOrValue) {
+                      $joins .= br()->placeholder(' AND ' . $joinLeftPart . ' IN (?@)', $joinFieldNameOrValue);
+                    } else {
+                      $joins .= ' AND ' . $joinLeftPart . ' IN (NULL)';
+                    }
+                  } else
+                  if (strlen($joinFieldNameOrValue) > 0) {
+                    $joins .= ' AND ' . $joinLeftPart . ' IN (' . $joinFieldNameOrValue . ')';
+                  } else {
+                    $joins .= ' AND ' . $joinLeftPart . ' IN (NULL)';
+                  }
+                  break;
+                case '$nin':
+                  if (is_array($joinFieldNameOrValue)) {
+                    $joinFieldNameOrValue = br()->removeEmptyValues($joinFieldNameOrValue);
+                    if ($joinFieldNameOrValue) {
+                      $joins .= br()->placeholder(' AND ' . $joinLeftPart . ' NOT IN (?@)', $joinFieldNameOrValue);
+                    } else {
+                      $joins .= ' AND ' . $joinLeftPart . ' NOT IN (NULL)';
+                    }
+                  } else
+                  if (strlen($joinFieldNameOrValue) > 0) {
+                    $joins .= ' AND ' . $joinLeftPart . ' NOT IN (' . $joinFieldNameOrValue . ')';
+                  } else {
+                    $joins .= ' AND ' . $joinLeftPart . ' NOT IN (NULL)';
+                  }
+                  break;
+                case '$eq':
+                case '=':
+                  if (is_array($joinFieldNameOrValue)) {
+                    $joinFieldNameOrValue = br()->removeEmptyValues($joinFieldNameOrValue);
+                    if ($joinFieldNameOrValue) {
+                      $joins .= br()->placeholder(' AND ' . $joinLeftPart . ' IN (?@)', $joinFieldNameOrValue);
+                    } else {
+                      $joins .= ' AND ' . $joinLeftPart . ' IN (NULL)';
+                    }
+                  } else
+                  if (strlen($joinFieldNameOrValue) > 0) {
+                    $joins .= ' AND ' . $joinLeftPart . ' = ' . $joinFieldNameOrValue;
+                  } else {
+                    $joins .= ' AND ' . $joinLeftPart . ' IS NULL';
+                  }
+                  break;
+                case '$ne':
+                case '!=':
+                  if (is_array($joinFieldNameOrValue)) {
+                    $joinFieldNameOrValue = br()->removeEmptyValues($joinFieldNameOrValue);
+                    if ($joinFieldNameOrValue) {
+                      $joins .= br()->placeholder(' AND ' . $joinLeftPart . ' NOT IN (?@)', $joinFieldNameOrValue);
+                    } else {
+                      $joins .= ' AND ' . $joinLeftPart . ' NOT IN (NULL)';
+                    }
+                  } else
+                  if (strlen($joinFieldNameOrValue) > 0) {
+                    $joins .= ' AND ' . $joinLeftPart . ' != ' . $joinFieldNameOrValue;
+                  } else {
+                    $joins .= ' AND ' . $joinLeftPart . ' NOT NULL';
+                  }
+                  break;
+              }
+            }
+          }
+        } else {
+          $joins .= ' AND '.$joinLeftPart.' = '.$joinField;
         }
       }
     }
@@ -801,59 +901,101 @@ class BrGenericSQLProviderTable {
           $this->compileNotExists($filterValue, $tableName, '', $link, $joins, $joinsTables, $where, $args);
           break;
         case '$join':
-          $this->compileJoin($filterValue, $tableName, $fieldName, $link, $joins, $joinsTables, $where, $args);
+          $this->compileJoin($filterValue, $tableName, $fieldName, $link, $joins, $joinsTables, $where, $args, 'INNER');
           break;
         case '$leftJoin':
-          $this->compileLeftJoin($filterValue, $tableName, $fieldName, $link, $joins, $joinsTables, $where, $args);
+          $this->compileJoin($filterValue, $tableName, $fieldName, $link, $joins, $joinsTables, $where, $args, 'LEFT');
           break;
         case '$in':
           if (is_array($filterValue)) {
-            $where .= $link . $fname2 . ' IN (?@)';
-            $filterValue = br()->removeEmptyKeys($filterValue);
-            if (count($filterValue) == 0) {
-              $filterValue = array(NULL);
+            $filterValue = br()->removeEmptyValues($filterValue);
+            if ($filterValue) {
+              $where .= $link . $fname2 . ' IN (?@)';
+              $args[] = $filterValue;
+            } else {
+              $where .= $link . $fname2 . ' IN (NULL)';
             }
-            $args[] = $filterValue;
-          } else {
+          } else
+          if (strlen($filterValue) > 0) {
+            // we assuming it's SQL statement
             $where .= $link . $fname2 . ' IN (' . $filterValue . ')';
-            // $where .= $link . $fname2 . ' = ?';
-            // $args[] = $filterValue;
+          } else {
+            $where .= $link . $fname2 . ' IN (NULL)';
           }
           break;
         case '$nin':
-        case '$ne':
           if (is_array($filterValue)) {
-            $where .= $link . $fname2 . ' NOT IN (?@)';
-            $filterValue = br()->removeEmptyKeys($filterValue);
-            if (count($filterValue) == 0) {
-              $filterValue = array(NULL);
+            $filterValue = br()->removeEmptyValues($filterValue);
+            if ($filterValue) {
+              $where .= $link . $fname2 . ' NOT IN (?@)';
+              $args[] = $filterValue;
+            } else {
+              $where .= $link . $fname2 . ' NOT IN (NULL)';
             }
+          } else
+          if (strlen($filterValue) > 0) {
+            // we assuming it's SQL statement
+            $where .= $link . $fname2 . ' NOT IN (' . $filterValue . ')';
+          } else {
+            $where .= $link . $fname2 . ' NOT IN (NULL)';
+          }
+          break;
+        case '$eq':
+        case '=':
+          if (is_array($filterValue)) {
+            $filterValue = br()->removeEmptyValues($filterValue);
+            if ($filterValue) {
+              $where .= $link . $fname2 . ' IN (?@)';
+              $args[] = $filterValue;
+            } else {
+              $where .= $link . $fname2 . ' IN (NULL)';
+            }
+          } else
+          if (strlen($filterValue)) {
+            $where .= $link . $fname2 . ' = ?';
             $args[] = $filterValue;
           } else {
-            $where .= $link . $fname2 . ' NOT IN (' . $filterValue . ')';
+            $where .= $link . $fname2 . ' IS NULL';
+          }
+          break;
+        case '$ne':
+        case '!=':
+          if (is_array($filterValue)) {
+            $filterValue = br()->removeEmptyValues($filterValue);
+            if ($filterValue) {
+              $where .= $link . $fname2 . ' NOT IN (?@)';
+              $args[] = $filterValue;
+            } else {
+              $where .= $link . $fname2 . ' NOT IN (NULL)';
+            }
+          } else
+          if (strlen($filterValue)) {
+            $where .= $link . $fname2 . ' != ?';
+            $args[] = $filterValue;
+          } else {
+            $where .= $link . $fname2 . ' IS NOT NULL';
           }
           break;
         case '$nn':
           $where .= $link . $fname2 . ' IS NOT NULL';
-          // $args[] = $filterValue;
-          break;
-        case '$eq':
-          $where .= $link . $fname2 . ' = ?';
-          $args[] = $filterValue;
           break;
         case '$gt':
+        case '>':
           $where .= $link . $fname2 . ' > ?';
           $args[] = $filterValue;
           break;
         case '$gte':
+        case '>=':
           $where .= $link . $fname2 . ' >= ?';
           $args[] = $filterValue;
           break;
         case '$lt':
+        case '<':
           $where .= $link . $fname2 . ' < ?';
           $args[] = $filterValue;
           break;
         case '$lte':
+        case '<=':
           $where .= $link . $fname2 . ' <= ?';
           $args[] = $filterValue;
           break;
@@ -880,44 +1022,25 @@ class BrGenericSQLProviderTable {
           }
           break;
         case '$fulltext':
-          if ((br()->db()->getMajorVersion() >= 5) && (br()->db()->getMinorVersion() >= 6) && (br()->db()->getBuildNumber() >= 4)) {
-            if (is_array($filterValue)) {
-              $tmpFName = '';
-              $tmpValue = '';
-              foreach($filterValue as $name => $value) {
-                if (strpos($name, '.') === false) {
-                  $tmpFName2 = $tableName.'.'.$name;
-                } else {
-                  $tmpFName2 = $name;
-                }
-                $tmpFName = br($tmpFName)->inc($tmpFName2);
-                $tmpValue = $value;
+          if (is_array($filterValue)) {
+            $tmpFName = '';
+            $tmpValue = '';
+            foreach($filterValue as $name => $value) {
+              if (strpos($name, '.') === false) {
+                $tmpFName2 = $tableName.'.'.$name;
+              } else {
+                $tmpFName2 = $name;
               }
-              $where .= $link . 'MATCH (' . $tmpFName . ') AGAINST (? IN BOOLEAN MODE)';
-              $filterValue = $tmpValue;
-            } else {
-              $where .= $link . 'MATCH (' . $fname2 . ') AGAINST (? IN BOOLEAN MODE)';
+              $tmpFName = br($tmpFName)->inc($tmpFName2);
+              $tmpValue = $value;
             }
-            $filterValue = preg_replace('~[@()]~', ' ', $filterValue);
-            $args[] = $filterValue;
+            $where .= $link . 'MATCH (' . $tmpFName . ') AGAINST (? IN BOOLEAN MODE)';
+            $filterValue = $tmpValue;
           } else {
-            if (is_array($filterValue)) {
-              $where .= $link . '(1=2 ';
-              foreach($filterValue as $name => $value) {
-                if (strpos($name, '.') === false) {
-                  $tmpFName2 = $tableName.'.'.$name;
-                } else {
-                  $tmpFName2 = $name;
-                }
-                $where .= ' OR ' . $tmpFName2 . ' LIKE ?';
-                $args[] = '%'.$value.'%';
-              }
-              $where .= ')';
-            } else {
-              $where .= $link . $fname2 . ' LIKE ?';
-              $args[] = '%'.$filterValue.'%';
-            }
+            $where .= $link . 'MATCH (' . $fname2 . ') AGAINST (? IN BOOLEAN MODE)';
           }
+          $filterValue = preg_replace('~[@()]~', ' ', $filterValue);
+          $args[] = $filterValue;
           break;
         case '$starts':
           $where .= $link . $fname2 . ' LIKE ?';
@@ -934,29 +1057,34 @@ class BrGenericSQLProviderTable {
         default:
           if (is_array($filterValue)) {
             if ($currentFieldName && br()->isRegularArray($filterValue)) {
+              $filterValue = br()->removeEmptyValues($filterValue);
               if ($filterValue) {
                 $where .= $link . $fname . ' IN (?@)';
-                $filterValue = br()->removeEmptyKeys($filterValue);
-                if (count($filterValue) == 0) {
-                  $filterValue = array(NULL);
-                }
                 $args[] = $filterValue;
               } else {
                 $where .= $link . $fname . ' IS NULL';
               }
             } else {
-              $this->compileFilter($filterValue, $tableName, $currentFieldName, $link, $joins, $joinsTables, $where, $args);
+              $this->compileFilter($filterValue, $tableName, is_numeric($currentFieldName) ? $fieldName : $currentFieldName, $link, $joins, $joinsTables, $where, $args);
             }
           } else {
             if (is_object($filterValue) && ($filterValue instanceof BrGenericSQLRegExp)) {
               $where .= $link.$fname.' REGEXP ?&';
               $args[] = preg_replace('~([?*+\(\)])~', '[$1]', str_replace('\\', '\\\\', rtrim(ltrim($filterValue->getValue(), '/'), '/i')));
             } else {
-              if (!strlen($filterValue)) {
-                $where .= $link.$fname.' IS NULL';
-              } else {
-                $where .= $link.$fname.' = ?';
+              if (strlen($filterValue) > 0) {
+                if (is_numeric($currentFieldName)) {
+                  $where .= $link.$fname2.' = ?';
+                } else {
+                  $where .= $link.$fname.' = ?';
+                }
                 $args[] = $filterValue;
+              } else {
+                if (is_numeric($currentFieldName)) {
+                  $where .= $link.$fname2.' IS NULL';
+                } else {
+                  $where .= $link.$fname.' IS NULL';
+                }
               }
             }
           }
@@ -980,6 +1108,7 @@ class BrGenericSQLProviderTable {
     } else {
       $tableName = $this->tableName;
     }
+
     $this->compileFilter($filter, $tableName, '', ' AND ', $joins, $joinsTables, $where, $args);
 
     $sql = 'SELECT ';

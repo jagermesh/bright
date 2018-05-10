@@ -10,7 +10,6 @@
 
 require_once(__DIR__.'/BrSingleton.php');
 require_once(__DIR__.'/BrException.php');
-require_once(__DIR__.'/BrFileRenderer.php');
 
 class BrApplication extends BrSingleton {
 
@@ -28,14 +27,12 @@ class BrApplication extends BrSingleton {
 
   function main() {
 
-    br()
-      ->request()
-        ->route('bright-assets.js', function() {
-            br()->assetsCache()->send('js');
-          })
-    ;
+    if ($token = br()->request()->param('__loginToken')) {
+      br()->auth()->clearLogin();
+    }
 
     br()->auth()->checkLogin(false);
+    br()->request()->checkUrlRestrictions();
 
     $request = br()->request();
     $scriptName = $request->scriptName();
@@ -84,15 +81,9 @@ class BrApplication extends BrSingleton {
     }
 
     if ($controllerFile) {
-      br()->log()->writeLn('Controller: '.$controllerFile);
-      // if (br()->callerScript() != $controllerFile) {
-        br()->import($controllerFile);
-        exit();
-      // }
-    } else {
-      // if (!br()->config()->get('simpleMode')) {
-      //   br()->response()->send404();
-      // }
+      br()->log()->write('Controller: '.$controllerFile);
+      br()->import($controllerFile);
+      exit();
     }
 
   }

@@ -1,13 +1,11 @@
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
-
-/* global TAFFY */
 
 ;(function ($, window) {
 
@@ -28,6 +26,21 @@
     this.before = function(event, callback) { this.events.before(event, callback); };
     this.on     = function(event, callback) { this.events.on(event, callback); };
     this.after  = function(event, callback) { this.events.after(event, callback); };
+
+    this.clientUID = null;
+
+    var selectOperationCounter = 0;
+
+    this.getClientUID = function() {
+      if (!this.clientUID) {
+        this.clientUID = Math.round(Math.random() * 100000);
+      }
+      return this.clientUID;
+    };
+
+    this.setClientUID = function(clientUID) {
+      this.clientUID = clientUID;
+    };
 
     this.insert = function(item, callback, options) {
 
@@ -74,7 +87,11 @@
 
       try {
 
-        _this.events.triggerBefore('insert', request, options);
+        if (!disableEvents) {
+          _this.events.triggerBefore('request', request, options);
+          _this.events.triggerBefore('insert', request, options);
+          disableEvents = options && options.disableEvents;
+        }
 
         if (this.options.crossdomain) {
           request.crossdomain = 'put';
@@ -82,6 +99,20 @@
 
         if (options && options.dataSets) {
           request.__dataSets = options.dataSets;
+        }
+
+        if (_this.clientUID) {
+          request.__clientUID = _this.clientUID;
+        }
+
+        if (options && options.clientUID) {
+          request.__clientUID = options.clientUID;
+        }
+
+        for(var paramName in request) {
+          if (request[paramName] === null) {
+            request[paramName] = 'null';
+          }
         }
 
         $.ajax({ type: this.options.crossdomain ? 'GET' : 'PUT'
@@ -105,13 +136,13 @@
                  }
                });
 
-      } catch (error) {
-        br.log(error);
+      } catch (errorMessage) {
+        br.log(errorMessage);
         if (!disableEvents) {
-          _this.events.trigger('error', 'insert', error);
-          _this.events.triggerAfter('insert', false, error, request);
+          _this.events.trigger('error', 'insert', errorMessage);
+          _this.events.triggerAfter('insert', false, errorMessage, request);
         }
-        if (typeof callback == 'function') { callback.call(_this, false, error, request); }
+        if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
       }
 
       return this;
@@ -120,9 +151,9 @@
 
     this.update = function(rowid, item, callback, options) {
 
-      var disableEvents = options && options.disableEvents;
-
       options = options || { };
+
+      var disableEvents = options && options.disableEvents;
 
       function returnUpdate(data) {
         var operation = 'update';
@@ -148,70 +179,146 @@
 
       var request = item;
 
-      if (!disableEvents) {
-        _this.events.triggerBefore('update', request, options, rowid);
-      }
+      try {
 
-      if (options && options.dataSets) {
-        request.__dataSets = options.dataSets;
-      }
+        if (!disableEvents) {
+          _this.events.triggerBefore('request', request, options);
+          _this.events.triggerBefore('update', request, options, rowid);
+          disableEvents = options && options.disableEvents;
+        }
 
-      $.ajax({ type: 'POST'
-             , data: request
-             , dataType: 'json'
-             , url: this.options.restServiceUrl + rowid + (this.options.authToken ? '?token=' + this.options.authToken : '')
-             , success: function(response) {
-                 returnUpdate(response);
-               }
-             , error: function(jqXHR, textStatus, errorThrown) {
-                 if (br.isUnloading()) {
+        if (this.options.crossdomain) {
+          request.crossdomain = 'post';
+        }
 
-                 } else {
-                   var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                   if (!disableEvents) {
-                     _this.events.trigger('error', 'update', errorMessage);
-                     _this.events.triggerAfter('update', false, errorMessage, request);
-                   }
-                   if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
+        if (options && options.dataSets) {
+          request.__dataSets = options.dataSets;
+        }
+
+        if (_this.clientUID) {
+          request.__clientUID = _this.clientUID;
+        }
+
+        if (options && options.clientUID) {
+          request.__clientUID = options.clientUID;
+        }
+
+        for(var paramName in request) {
+          if (request[paramName] === null) {
+            request[paramName] = 'null';
+          }
+        }
+
+        $.ajax({ type: this.options.crossdomain ? 'GET' : 'POST'
+               , data: request
+               , dataType: this.options.crossdomain ? 'jsonp' : 'json'
+               , url: this.options.restServiceUrl + rowid + (this.options.authToken ? '?token=' + this.options.authToken : '')
+               , success: function(response) {
+                   returnUpdate(response);
                  }
-               }
-             });
+               , error: function(jqXHR, textStatus, errorThrown) {
+                   if (br.isUnloading()) {
+
+                   } else {
+                     var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                     if (!disableEvents) {
+                       _this.events.trigger('error', 'update', errorMessage);
+                       _this.events.triggerAfter('update', false, errorMessage, request);
+                     }
+                     if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
+                   }
+                 }
+               });
+
+      } catch (errorMessage) {
+        br.log(errorMessage);
+        if (!disableEvents) {
+          _this.events.trigger('error', 'update', errorMessage);
+          _this.events.triggerAfter('update', false, errorMessage, request);
+        }
+        if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
+      }
 
       return this;
 
     };
 
-    this.remove = function(rowid, callback) {
+    this.remove = function(rowid, callback, options) {
+
+      options = options || { };
+
+      var disableEvents = options && options.disableEvents;
 
       function returnRemove(data) {
-        _this.events.trigger('remove', rowid);
-        _this.events.triggerAfter('remove', true, data, request);
-        _this.events.trigger('change', 'remove', data);
+        if (!disableEvents) {
+          _this.events.trigger('remove', rowid);
+          _this.events.triggerAfter('remove', true, data, request);
+          _this.events.trigger('change', 'remove', data);
+        }
         if (typeof callback == 'function') { callback.call(_this, true, data, request); }
       }
 
       var request = {};
 
-      _this.events.triggerBefore('remove', rowid);
+      try {
 
-      $.ajax({ type: 'DELETE'
-             , data: request
-             , dataType: 'json'
-             , url: this.options.restServiceUrl + rowid + (this.options.authToken ? '?token=' + this.options.authToken : '')
-             , success: function(response) {
-                 returnRemove(response);
-               }
-             , error: function(jqXHR, textStatus, errorThrown) {
-                 if (br.isUnloading()) {
+        if (!disableEvents) {
+          _this.events.triggerBefore('request', request, options, rowid);
+          _this.events.triggerBefore('remove', request, options, rowid);
+          disableEvents = options && options.disableEvents;
+        }
 
-                 } else {
-                   var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                   _this.events.trigger('error', 'remove', errorMessage);
-                   _this.events.triggerAfter('remove', false, errorMessage, request);
-                   if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
+        if (this.options.crossdomain) {
+          request.crossdomain = 'delete';
+        }
+
+        if (options && options.dataSets) {
+          request.__dataSets = options.dataSets;
+        }
+
+        if (_this.clientUID) {
+          request.__clientUID = _this.clientUID;
+        }
+
+        if (options && options.clientUID) {
+          request.__clientUID = options.clientUID;
+        }
+
+        for(var paramName in request) {
+          if (request[paramName] === null) {
+            request[paramName] = 'null';
+          }
+        }
+
+        $.ajax({ type: this.options.crossdomain ? 'GET' : 'DELETE'
+               , data: request
+               , dataType: this.options.crossdomain ? 'jsonp' : 'json'
+               , url: this.options.restServiceUrl + rowid + (this.options.authToken ? '?token=' + this.options.authToken : '')
+               , success: function(response) {
+                   returnRemove(response);
                  }
-               }
-             });
+               , error: function(jqXHR, textStatus, errorThrown) {
+                   if (br.isUnloading()) {
+
+                   } else {
+                     var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                     if (!disableEvents) {
+                       _this.events.trigger('error', 'remove', errorMessage);
+                       _this.events.triggerAfter('remove', false, errorMessage, request);
+                     }
+                     if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
+                   }
+                 }
+               });
+
+      } catch (errorMessage) {
+        br.log(errorMessage);
+        if (!disableEvents) {
+          _this.events.trigger('error', 'remove', errorMessage);
+          _this.events.triggerAfter('remove', false, errorMessage, request);
+        }
+        if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
+      }
 
       return this;
 
@@ -311,7 +418,13 @@
 
     };
 
-    this.select = function(filter, callback, options) {
+    this.doingSelect = function() {
+
+      return selectOperationCounter > 0;
+
+    };
+
+    this.load = this.select = function(filter, callback, options) {
 
       var request = {};
       var requestRowid;
@@ -358,11 +471,18 @@
 
       if (!disableEvents) {
         try {
+          _this.events.triggerBefore('request', request, options);
+        } catch(e) {
+          br.log(e);
+          proceed = false;
+        }
+        try {
           _this.events.triggerBefore('select', request, options);
         } catch(e) {
           br.log(e);
           proceed = false;
         }
+        disableEvents = options && options.disableEvents;
       }
 
       if (proceed) {
@@ -386,8 +506,24 @@
           request.__dataSets = options.dataSets;
         }
 
+        if (_this.clientUID) {
+          request.__clientUID = _this.clientUID;
+        }
+
+        if (options && options.clientUID) {
+          request.__clientUID = options.clientUID;
+        }
+
+        if (options && options.excludeFields) {
+          request.__excludeFields = options.excludeFields;
+        }
+
         if (options && options.renderMode) {
           request.__renderMode = options.renderMode;
+        }
+
+        if (options && options.noCalcFields) {
+          request.__noCalcFields = options.noCalcFields;
         }
 
         if (options && options.order) {
@@ -402,28 +538,44 @@
           request.crossdomain = 'get';
         }
 
+        selectOperationCounter++;
+
+        for(var paramName in request) {
+          if (request[paramName] === null) {
+            request[paramName] = 'null';
+          }
+        }
+
         this.ajaxRequest = $.ajax({ type: 'GET'
                                   , data: request
                                   , dataType: this.options.crossdomain ? 'jsonp' : 'json'
                                   , url: url + (this.options.authToken ? '?token=' + this.options.authToken : '')
                                   , success: function(response) {
-                                      _this.ajaxRequest = null;
-                                      if (_this.options.crossdomain && (typeof response == 'string')) {
-                                        handleSelectError('Unknown error', request, callback, options);
-                                      } else
-                                      if (br.isNull(response)) {
-                                        handleSelectError('Unknown error', request, callback, options);
-                                      } else {
-                                        handleSelectSuccess(response, request, callback, options);
+                                      try {
+                                        _this.ajaxRequest = null;
+                                        if (_this.options.crossdomain && (typeof response == 'string')) {
+                                          handleSelectError('Unknown error', request, callback, options);
+                                        } else
+                                        if (br.isNull(response)) {
+                                          handleSelectError('Unknown error', request, callback, options);
+                                        } else {
+                                          handleSelectSuccess(response, request, callback, options);
+                                        }
+                                      } finally {
+                                        selectOperationCounter--;
                                       }
                                     }
                                   , error: function(jqXHR, textStatus, errorThrown) {
-                                      if (br.isUnloading()) {
+                                      try {
+                                        if (br.isUnloading()) {
 
-                                      } else {
-                                        _this.ajaxRequest = null;
-                                        var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                                        handleSelectError(errorMessage, request, callback, options);
+                                        } else {
+                                          _this.ajaxRequest = null;
+                                          var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                                          handleSelectError(errorMessage, request, callback, options);
+                                        }
+                                      } finally {
+                                        selectOperationCounter--;
                                       }
                                     }
                                   });
@@ -450,20 +602,52 @@
 
     };
 
-    this.invoke = function(method, params, callback) {
+    this.invoke = function(method, params, callback, options) {
 
-      var request = { };
-
-      if (typeof params == 'function') {
+      if (br.isFunction(params)) {
+        options  = callback;
         callback = params;
-      } else {
-        request = params;
+        params   = {};
       }
 
-      _this.events.triggerBefore(method, request);
+      if (callback && !br.isFunction(callback)) {
+        options  = callback;
+        callback = undefined;
+      }
+
+      var request = params || { };
+
+      options = options || { };
+
+      var disableEvents = options && options.disableEvents;
+
+      if (!disableEvents) {
+        _this.events.triggerBefore('request', request, options);
+        _this.events.triggerBefore('invoke', request, options);
+        _this.events.triggerBefore(method, request, options);
+        disableEvents = options && options.disableEvents;
+      }
 
       if (this.options.crossdomain) {
         request.crossdomain = 'post';
+      }
+
+      if (options && options.dataSets) {
+        request.__dataSets = options.dataSets;
+      }
+
+      if (_this.clientUID) {
+        request.__clientUID = _this.clientUID;
+      }
+
+      if (options && options.clientUID) {
+        request.__clientUID = options.clientUID;
+      }
+
+      for(var paramName in request) {
+        if (request[paramName] === null) {
+          request[paramName] = 'null';
+        }
       }
 
       $.ajax({ type: this.options.crossdomain ? 'GET' : 'POST'

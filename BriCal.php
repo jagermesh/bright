@@ -16,23 +16,29 @@ class BriCalEvent extends BrObject {
   private $title;
   private $dateStart;
   private $dateEnd;
-  private $id;
+  private $createdAt;
+  private $uid;
   private $description;
   private $HTMLDescription;
   private $url;
+  private $organizer;
+  private $priority;
+  private $class;
   private $alarm;
   private $attachments = array();
   private $allDayEvent = false;
 
   function __construct($title, $dateStart, $dateEnd = null) {
 
-    $this->title = $title;
-    $this->dateStart = is_string($dateStart) ? strtotime($dateStart) : $dateStart;
-    if ($dateEnd) {
-      $this->dateEnd = is_string($dateEnd) ? strtotime($dateEnd) : $dateEnd;
-    } else {
-      $this->dateEnd = $this->dateStart;
-    }
+    if (!$dateEnd)   { $dateEnd   = $dateStart; }
+    if (!$dateStart) { $dateStart = $dateEnd;   }
+
+    $dateStart = is_string($dateStart) ? strtotime($dateStart) : $dateStart;
+    $dateEnd   = is_string($dateEnd)   ? strtotime($dateEnd)   : $dateEnd;
+
+    $this->title     = $title;
+    $this->dateStart = $dateStart;
+    $this->dateEnd   = $dateEnd;
 
   }
 
@@ -44,13 +50,25 @@ class BriCalEvent extends BrObject {
 
   function setId($value) {
 
-    $this->id = $value;
+    $this->uid = $value;
+
+  }
+
+  function setUID($value) {
+
+    $this->uid = $value;
 
   }
 
   function setDescription($value) {
 
     $this->description = $value;
+
+  }
+
+  function setCreatedAt($value) {
+
+    $this->createdAt = $value;
 
   }
 
@@ -66,7 +84,31 @@ class BriCalEvent extends BrObject {
 
   }
 
+  function setOrganizer($value) {
+
+    $this->organizer = $value;
+
+  }
+
+  function setPriority($value) {
+
+    $this->priority = $value;
+
+  }
+
+  function setClass($value) {
+
+    $this->class = $value;
+
+  }
+
   function setAlart($value) {
+
+    $this->alarm = $value;
+
+  }
+
+  function setAlarm($value) {
 
     $this->alarm = $value;
 
@@ -111,6 +153,12 @@ class BriCalEvent extends BrObject {
 
   }
 
+  function getCreatedAt() {
+
+    return $this->createdAt;
+
+  }
+
   function getDescription() {
 
     return $this->description;
@@ -131,13 +179,37 @@ class BriCalEvent extends BrObject {
 
   function getId() {
 
-    return $this->id;
+    return $this->uid;
+
+  }
+
+  function getUID() {
+
+    return $this->uid;
 
   }
 
   function getUrl() {
 
     return $this->url;
+
+  }
+
+  function getOrganizer() {
+
+    return $this->organizer;
+
+  }
+
+  function getPriority() {
+
+    return $this->priority;
+
+  }
+
+  function getClass() {
+
+    return $this->class;
 
   }
 
@@ -171,10 +243,10 @@ class BriCal extends BrObject {
   private $calendarUID;
   private $calendarEvents = array();
 
-  function __construct($calendarName = 'GENERIC') {
+  function __construct($calendarName = 'GENERIC', $calendarUID = null) {
 
     $this->calendarName = $calendarName;
-    $this->calendarUID = preg_replace('/[^A-Z0-9]/', '', $this->calendarName);
+    $this->calendarUID = $calendarUID ? $calendarUID : preg_replace('/[^A-Z0-9]/i', '', $this->calendarName);
 
   }
 
@@ -236,6 +308,7 @@ class BriCal extends BrObject {
 
     $result = "BEGIN:VCALENDAR\r\n"
               . "VERSION:2.0\r\n"
+              . "CALSCALE:GREGORIAN\r\n"
               . "METHOD:PUBLISH\r\n"
               . "PRODID:-//jagermesh//bright//EN\r\n"
               . "X-WR-CALNAME:" . $this->calendarName . "\r\n"
@@ -243,7 +316,6 @@ class BriCal extends BrObject {
 
     $result  .= "BEGIN:VTIMEZONE\r\n"
                 . "TZID:" . $timeZone ."\r\n"
-                // . "TZURL:http://tzurl.org/zoneinfo-outlook/" . $timeZone . "\r\n"
                 . "X-LIC-LOCATION:" . $timeZone . "\r\n";
 
     $minYear = date('Y');
@@ -251,29 +323,33 @@ class BriCal extends BrObject {
 
     foreach($this->calendarEvents as $event) {
       $minYear = min($minYear, date('Y', $event->getDateStart()));
-      $maxYear = max($maxYear, date('Y', $event->getDateEnd()));
+
+      $dateEnd = new BrDateTime($event->getDateEnd());
+      $dateEnd->incDay();
+
+      $maxYear = max($maxYear, date('Y', $dateEnd->asDateTime()));
     }
 
     $timezone = new DateTimeZone($timeZone);
-    $transitions = $timezone->getTransitions(mktime(0, 0, 0, 1, 1, $minYear), mktime(0, 0, 0, 12, 31, $maxYear));
-
-    for($i = 1; $i < count($transitions); $i++) {
-      $time = $transitions[$i-1]['time'];
-      if (preg_match('/([0-9]+)[-]([0-9]+)[-]([0-9]+[T][0-9]+)[:]([0-9]+)[:]([0-9]+)/', $time, $matches)) {
-        $time = $matches[1].$matches[2].$matches[3].$matches[4].$matches[5];
-        if ($transitions[$i]['isdst']) {
-          $result .= "BEGIN:DAYLIGHT\r\n";
-        } else {
-          $result .= "BEGIN:STANDARD\r\n";
-        }
-        $result .= 'DTSTART:' . $time . "\r\n";
-        $result .= 'TZOFFSETFROM:' . $this->formatOffset($transitions[$i-1]['offset']) . "\r\n";
-        $result .= 'TZOFFSETTO:' . $this->formatOffset($transitions[$i]['offset']) . "\r\n";
-        $result .= 'TZNAME:' . $transitions[$i]['abbr'] . "\r\n";
-        if ($transitions[$i]['isdst']) {
-          $result .= "END:DAYLIGHT\r\n";
-        } else {
-          $result .= "END:STANDARD\r\n";
+    if ($transitions = $timezone->getTransitions(mktime(0, 0, 0, 1, 1, $minYear), mktime(0, 0, 0, 12, 31, $maxYear))) {
+      for($i = 1; $i < count($transitions); $i++) {
+        $time = $transitions[$i-1]['time'];
+        if (preg_match('/([0-9]+)[-]([0-9]+)[-]([0-9]+[T][0-9]+)[:]([0-9]+)[:]([0-9]+)/', $time, $matches)) {
+          $time = $matches[1].$matches[2].$matches[3].$matches[4].$matches[5];
+          if ($transitions[$i]['isdst']) {
+            $result .= "BEGIN:DAYLIGHT\r\n";
+          } else {
+            $result .= "BEGIN:STANDARD\r\n";
+          }
+          $result .= 'DTSTART:' . $time . "\r\n";
+          $result .= 'TZOFFSETFROM:' . $this->formatOffset($transitions[$i-1]['offset']) . "\r\n";
+          $result .= 'TZOFFSETTO:' . $this->formatOffset($transitions[$i]['offset']) . "\r\n";
+          $result .= 'TZNAME:' . $transitions[$i]['abbr'] . "\r\n";
+          if ($transitions[$i]['isdst']) {
+            $result .= "END:DAYLIGHT\r\n";
+          } else {
+            $result .= "END:STANDARD\r\n";
+          }
         }
       }
     }
@@ -286,7 +362,11 @@ class BriCal extends BrObject {
 
       if ($event->isAllDayEvent()) {
         $result .= "DTSTART;VALUE=DATE:" . date("Ymd", $event->getDateStart()) . "\r\n";
-        $result .= "DTEND;VALUE=DATE:" . date("Ymd", $event->getDateEnd()) . "\r\n";
+
+        $dateEnd = new BrDateTime($event->getDateEnd());
+        $dateEnd->incDay();
+
+        $result .= "DTEND;VALUE=DATE:" . date("Ymd", $dateEnd->asDateTime()) . "\r\n";
       } else {
         $result .= "DTSTART:" . date("Ymd\THis", $event->getDateStart()) . "\r\n";
         $result .= "DTEND:" . date("Ymd\THis", $event->getDateEnd()) . "\r\n";
@@ -309,34 +389,49 @@ class BriCal extends BrObject {
         $descriptionHTML .= '</P>';
       }
 
-      $title = preg_replace('#[\n\r]#', '', $event->getTitle());
+      $title           = preg_replace('#[\n\r]#', '', $event->getTitle());
       $descriptionHTML = preg_replace('#[\n\r]#', '', $descriptionHTML);
-      $description = rtrim(trim(preg_replace('#[\n\r]#', '', $event->GetDescription())), ';');
+      $description     = rtrim(trim(preg_replace('#[\n\r]#', '', $event->getDescription())), ';');
 
       $result .= "TRANSP:OPAQUE\r\n"
                . "SEQUENCE:0\r\n"
                . "STATUS:CONFIRMED\r\n";
-      if ($event->getId()) {
-        $result .= "UID:" . $this->calendarUID . $event->getId() . "\r\n";
+      $result .= "SUMMARY:".$title."\r\n";
+      $result .= "DTSTAMP:".gmdate("Ymd\THis")."Z\r\n";
+      if ($event->getUID()) {
+        $result .= "UID:" . $event->getUID() . "\r\n";
       }
-      $result .= "DTSTAMP:".date("Ymd\THis")."\r\n"
-               . "SUMMARY:".$title."\r\n"
-               . "DESCRIPTION:". $description."\r\n"
-               . "URL;VALUE=URI:".$event->getUrl()."\r\n"
-               . $attachments
-               // . 'X-ALT-DESC;FMTTYPE=text/html:<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">'
-               // . '<HTML>'
-               // . '  <HEAD>'
-               // . '    <META NAME="Generator" CONTENT="MS Exchange Server version 08.01.0240.003">'
-               // . '    <TITLE></TITLE>'
-               // . '  </HEAD>'
-               // . '  <BODY>'
-               // . $descriptionHTML
-               // . '  </BODY>'
-               // . '</HTML>'."\r\n"
-               . "ORGANIZER:\r\n"
-               . "PRIORITY:1\r\n"
-               . "CLASS:PUBLIC\r\n";
+      if ($event->getCreatedAt()) {
+        $result .= "CREATED:".gmdate("Ymd\THis", $event->getCreatedAt())."Z\r\n";
+      }
+      if ($description) {
+        $result .= "DESCRIPTION:". $description."\r\n";
+      }
+      if ($event->getUrl()) {
+        $result .= "URL;VALUE=URI:".$event->getUrl()."\r\n";
+      }
+      if ($attachments) {
+        $result .= $attachments;
+      }
+      // $result .= 'X-ALT-DESC;FMTTYPE=text/html:<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">'
+      //          . '<HTML>'
+      //          . '  <HEAD>'
+      //          . '    <META NAME="Generator" CONTENT="MS Exchange Server version 08.01.0240.003">'
+      //          . '    <TITLE></TITLE>'
+      //          . '  </HEAD>'
+      //          . '  <BODY>'
+      //          . $descriptionHTML
+      //          . '  </BODY>'
+      //          . '</HTML>'."\r\n";
+      if ($event->getOrganizer()) {
+        $result .= "ORGANIZER:".$event->getOrganizer()."\r\n";
+      }
+      if ($event->getPriority()) {
+        $result .= "PRIORITY:".$event->getPriority()."\r\n";
+      }
+      if ($event->getClass()) {
+        $result .= "CLASS:".$event->getClass()."\r\n";
+      }
       if ($event->hasAlarm()) {
         $alarmDate = new BrDateTime($event->getDateStart());
         $alarmDate->decDay(1);

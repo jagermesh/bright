@@ -16,21 +16,14 @@ class BrSession extends BrSingleton {
 
   function __construct() {
 
-    if (isset($_SESSION)) {
-
-    } else {
-
-      session_cache_limiter('none');
-
-      if (@session_start()) {
-
-      } else {
+    if (!isset($_SESSION)) {
+      self::configure();
+      if (!@session_start()) {
         if (br()->isConsoleMode()) {
           global $_SESSION;
           $_SESSION = array();
         }
       }
-
     }
 
     $this->tag = md5(__FILE__);
@@ -39,12 +32,33 @@ class BrSession extends BrSingleton {
 
   }
 
-  public function get($name, $default = null) {
+  static function configure() {
 
-    $name = $this->tag.':'.$name;
+    if (!isset($_SESSION)) {
+      @ini_set('session.gc_maxlifetime',  br()->config()->get('php/session.gc_maxlifetime', 3600));
+      @ini_set('session.cache_expire',    br()->config()->get('php/session.cache_expire', 180));
+      @ini_set('session.cookie_lifetime', br()->config()->get('php/session.cookie_lifetime', 0));
+      @ini_set('session.cache_limiter',   br()->config()->get('php/session.cache_limiter', 'nocache'));
+    }
+
+  }
+
+  public function get($name = null, $default = null) {
 
     if (isset($_SESSION)) {
-      return br($_SESSION, $name, $default);
+      if ($name) {
+        $name = $this->tag.':'.$name;
+        return br($_SESSION, $name, $default);
+      } else {
+        $result = array();
+        foreach($_SESSION as $varName => $value) {
+          if (strpos($varName, $this->tag.':') === 0) {
+            $localName = substr($varName, strlen($this->tag.':'));
+            $result[$localName] = $value;
+          }
+        }
+        return $result;
+      }
     } else {
       return null;
     }
@@ -53,9 +67,8 @@ class BrSession extends BrSingleton {
 
   public function set($name, $value) {
 
-    $name = $this->tag.':'.$name;
-
     if (isset($_SESSION)) {
+      $name = $this->tag.':'.$name;
       $_SESSION[$name] = $value;
     }
 
@@ -63,13 +76,33 @@ class BrSession extends BrSingleton {
 
   }
 
-  public function clear($name) {
-
-    $name = $this->tag.':'.$name;
+  public function clear($name = null) {
 
     if (isset($_SESSION)) {
-      unset($_SESSION[$name]);
+      if ($name) {
+        if (is_callable($name)) {
+          foreach($_SESSION as $varName => $value) {
+            if (strpos($varName, $this->tag.':') === 0) {
+              $localName = substr($varName, strlen($this->tag.':'));
+              if ($name($localName)) {
+                unset($_SESSION[$varName]);
+              }
+            }
+          }
+        } else {
+          $name = $this->tag.':'.$name;
+          unset($_SESSION[$name]);
+        }
+      } else {
+        foreach($_SESSION as $varName => $value) {
+          if (strpos($varName, $this->tag.':') === 0) {
+            unset($_SESSION[$varName]);
+          }
+        }
+      }
     }
+
+    return true;
 
   }
 

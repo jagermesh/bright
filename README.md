@@ -1,3 +1,5 @@
 # Bright Web Development framework
 
-If you are ready for incomplete documentation - [here it is](http://brightfw.com/) :)
+## Settings
+
+Error reports e-mail `br/mail/tech-support`

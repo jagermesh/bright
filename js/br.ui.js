@@ -1,11 +1,13 @@
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
+
+/* jshint scripturl:true */
 
 ;(function ($, window) {
 
@@ -121,8 +123,10 @@
               '</label>';
     }
     if (br.isEmpty(buttons)) {
-      var yesTitle = options.yesTitle || br.trn('Yes');
-      s = s + '<a href="javascript:;" class="btn btn-sm btn-primary action-confirm-close" rel="confirm">&nbsp;' + yesTitle + '&nbsp;</a>';
+      var yesTitle    = options.yesTitle || br.trn('Yes');
+      var yesLink     = options.yesLink || 'javascript:;';
+      var targetBlank = options.yesLink && !options.targetSamePage;
+      s = s + '<a href="' + yesLink + '" ' + (targetBlank ? 'target="_blank"' : '') + ' class="btn btn-sm btn-primary action-confirm-close" rel="confirm">&nbsp;' + yesTitle + '&nbsp;</a>';
     } else {
       for(i in buttons) {
         s = s + '<a href="javascript:;" class="btn btn-sm btn-default action-confirm-close" rel="' + i + '">&nbsp;' + buttons[i] + '&nbsp;</a>';
@@ -214,9 +218,30 @@
 
   };
 
-  window.br.error = function(title, message, callback) {
+  window.br.error = function(title, message, callback, options) {
 
-    var s = '<div class="modal modal-autosize" id="br_modalError"';
+    if (callback) {
+      if (typeof callback != 'function') {
+        options  = callback;
+        callback = null;
+      }
+    }
+
+    options = options || {};
+
+    var buttonTitle = options.buttonTitle || 'Dismiss';
+
+    if ($('#br_modalError').length > 0) {
+      var currentMessage = $('#br_modalError .modal-body').html();
+      if (currentMessage.indexOf(message) == -1) {
+        message = message + '<br /><br />' + currentMessage;
+      }
+      $('#br_modalError').off('hide.bs.modal');
+      $('#br_modalError').modal('hide');
+      $('#br_modalError').remove();
+    }
+
+    var s = '<div class="modal modal-autosize" id="br_modalError" data-backdrop="static"';
     if (br.bootstrapVersion == 2) {
       s = s + ' style="top:20px;margin-top:0px;"';
     }
@@ -228,7 +253,7 @@
     }
     s = s + '<div class="modal-body" style="overflow-y:auto;">' + message + '</div>' +
             '<div class="modal-footer" style="background-color:red;">';
-    s = s + '<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn('Dismiss') + '&nbsp;</a><';
+    s = s + '<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn(buttonTitle) + '&nbsp;</a><';
     s = s + '/div></div></div></div>';
     var dialog = $(s);
 
@@ -268,9 +293,20 @@
     }
 
     options = options || {};
+
     var buttonTitle = options.buttonTitle || 'Dismiss';
 
-    var s = '<div class="modal modal-autosize" id="br_modalInform"';
+    if ($('#br_modalInform').length > 0) {
+      var currentMessage = $('#br_modalInform .modal-body').html();
+      if (currentMessage.indexOf(message) == -1) {
+        message = message + '<br /><br />' + currentMessage;
+      }
+      $('#br_modalInform').off('hide.bs.modal');
+      $('#br_modalInform').modal('hide');
+      $('#br_modalInform').remove();
+    }
+
+    var s = '<div class="modal modal-autosize" id="br_modalInform" data-backdrop="static"';
     if (br.bootstrapVersion == 2) {
       s = s + ' style="top:20px;margin-top:0px;"';
     }
@@ -336,14 +372,16 @@
       options.onHide = options.onhide;
     }
 
-    var s = '<div class="modal modal-autosize" id="br_modalPrompt"';
+    // $('#br_modalPrompt').remove();
+
+    var s = '<div class="modal modal-autosize" id="br_modalPrompt" data-backdrop="static"';
     if (br.bootstrapVersion == 2) {
       s = s + ' style="top:20px;margin-top:0px;"';
     }
     s = s + '>' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">' +
-            '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>' + title + '</h3></div>' +
+            '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>' +
             '<div class="modal-body" style="overflow-y:auto;">';
     for(var i in inputs) {
       if (br.isObject(inputs[i])) {
@@ -372,7 +410,6 @@
 
     var onShown = function(e) {
       $(this).find('input[type=text]')[0].focus();
-      br.log($(this).find('input[type=text]')[0]);
     };
 
     var onShow = function(e) {
@@ -445,15 +482,28 @@
 
   var noTemplateEngine = false;
 
+  window.br.compile = function(template) {
+    if (template) {
+      if (typeof window.Mustache == 'undefined') {
+        if (typeof window.Handlebars == 'undefined') {
+          throw 'Template engine not linked';
+        } else {
+          return Handlebars.compile(template);
+        }
+      } else {
+        return function(data) { return Mustache.render(template, data); };
+      }
+    } else {
+      throw 'Empty template';
+    }
+  };
+
   window.br.fetch = function(template, data, tags) {
     data = data || {};
     if (template) {
       if (typeof window.Mustache == 'undefined') {
         if (typeof window.Handlebars == 'undefined') {
-          if (!noTemplateEngine) {
-            noTemplateEngine = true;
-            this.showError('Template engine not found. Please link bright/3rdparty/mustache.js or bright/3rdparty/handlebars.js.');
-          }
+          throw 'Template engine not linked';
         } else {
           var t = Handlebars.compile(template);
           return t(data);
@@ -520,14 +570,27 @@
                             '  </div>' +
                             '</div>';
 
+
+  function fileSize(size) {
+    var i = Math.floor(Math.log(size) / Math.log(1024));
+    return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' '+['B', 'kB', 'MB', 'GB', 'TB'][i];
+  }
+
+  var currentProgressType;
+
   function renderProgress() {
     var p = Math.round(progressBar_Progress * 100 / progressBar_Total);
     $('#br_progressBar_Bar').css('width', p + '%');
     $('#br_progressMessage').text(progressBar_Message);
-    $('#br_progressStage').text(progressBar_Progress + ' of ' + progressBar_Total);
+    if (currentProgressType == 'upload') {
+      $('#br_progressStage').text(fileSize(progressBar_Progress) + ' of ' + fileSize(progressBar_Total));
+    } else {
+      $('#br_progressStage').text(progressBar_Progress + ' of ' + progressBar_Total);
+    }
   }
 
-  window.br.startProgress = function(value, message) {
+  window.br.startProgress = function(value, message, progressType) {
+    currentProgressType = progressType;
     if (!br.isNumber(value)) {
       message = value;
       value = 0;
@@ -748,9 +811,20 @@
 
   };
 
+  if (typeof window.Handlebars == 'object') {
+    Handlebars.registerHelper('if_eq', function(a, b, opts) {
+      if (a === b) {
+        return opts.fn(this);
+      } else {
+        return opts.inverse(this);
+      }
+    });
+  }
+
   $(document).ready(function() {
 
     var notAuthorized = false;
+
 
     if ($.fn['modal']) {
       if ($.fn['modal'].toString().indexOf('bs.modal') == -1) {
@@ -760,6 +834,10 @@
       }
     } else {
       br.bootstrapVersion = 0;
+    }
+
+    if (br.bootstrapVersion == 2) {
+      $.fn.modal.Constructor.prototype.enforceFocus = function () {};
     }
 
     $(document).ajaxStart(function() {

@@ -25,26 +25,26 @@ class BrDataSourceUsers extends BrDataSource {
 
         $row = $dataSource->insert($params, $data);
 
-        br()->log()->writeLn('User registered:');
-        br()->log()->writeLn($row);
-        br()->log()->writeLn($data);
+        br()->log()->write('User registered:');
+        br()->log()->write($row);
+        br()->log()->write($data);
 
         if ($mailTemplate = br()->auth()->getAttr('signup.mail.template')) {
           if ($email = br($row, $emailField)) {
             $user = $row;
             $user[$passwordField] = br($data, 'password');
             $message = br()->renderer()->fetch($mailTemplate, $user);
-            br()->log()->writeLn('Sending signup mail to ' . $email);
+            br()->log()->write('Sending signup mail to ' . $email);
             if (br()->sendMail($email, br()->auth()->getAttr('signup.mail.subject'), $message, array('sender' => br()->auth()->getAttr('mail.from')))) {
-              br()->log()->writeLn('Sent');
+              br()->log()->write('Sent');
             } else {
               throw new Exception('Mail was not sent because of unknown error');
             }
           } else {
-            br()->log()->writeLn('Signup mail was not sent - email field not found or empty');
+            br()->log()->write('Signup mail was not sent - email field not found or empty');
           }
         } else {
-          br()->log()->writeLn('Signup mail was not sent - mail template not found or empty');
+          br()->log()->write('Signup mail was not sent - mail template not found or empty');
         }
 
         br()->auth()->setLogin($row);
@@ -81,8 +81,9 @@ class BrDataSourceUsers extends BrDataSource {
           $filter = array( $loginField    => $params[$loginField]
                          , $passwordField => $params[$passwordField]
                          );
-          $dataSource->callEvent('before:loginSelectUser', $params, $filter);
-          if ($row = $dataSource->selectOne($filter)) {
+          $order  = array();
+          $dataSource->callEvent('before:loginSelectUser', $params, $filter, $order);
+          if ($row = $dataSource->selectOne($filter, array(), $order)) {
             $row[$passwordField] = $params[$passwordField];
             $row = $dataSource->loginUser($row, $params);
             return $row;
@@ -93,13 +94,15 @@ class BrDataSourceUsers extends BrDataSource {
           throw new BrAppException('Please enter login/password');
         }
       } catch (BrAppException $e) {
-        $params['filter'] = $filter;
-        $params['error']  = $e->getMessage();
+        $params['filter']         = $filter;
+        $params['error']          = $e->getMessage();
+        $params['exceptionClass'] = get_class($e);;
         $dataSource->callEvent('loginError', $params);
         throw new BrAppException($params['error']);
       } catch (Exception $e) {
-        $params['filter'] = $filter;
-        $params['error']  = $e->getMessage();
+        $params['filter']         = $filter;
+        $params['error']          = $e->getMessage();
+        $params['exceptionClass'] = get_class($e);;
         $dataSource->callEvent('loginError', $params);
         throw new Exception($params['error']);
       }
@@ -146,8 +149,8 @@ class BrDataSourceUsers extends BrDataSource {
                 if ($message = br()->renderer()->fetch($mailTemplate, $user)) {
                   if (br()->sendMail($email, br()->auth()->getAttr('passwordReminder.verificationMail.subject'), $message, array('sender' => br()->auth()->getAttr('passwordReminder.verificationMail.from')))) {
                     br()->db()->runQuery('UPDATE ' . $usersTable . ' SET ' . $passwordResetField . ' = ? WHERE id = ?', $user[$passwordResetField], br()->db()->rowidValue($user));
-                    br()->log()->writeLn('Password reset verification sent to ' . $email);
-                    br()->log()->writeLn($user);
+                    br()->log()->write('Password reset verification sent to ' . $email);
+                    br()->log()->write($user);
                     return true;
                   } else {
                     throw new Exception('Mail was not sent because of unknown error');
@@ -458,8 +461,8 @@ class BrRESTUsersBinder extends BrRESTBinder {
                 if ($message = br()->renderer()->fetch($mailTemplate, array('user' => $user, 'data' => $data))) {
                   if (br()->sendMail($email, br()->auth()->getAttr('passwordReminder.passwordMail.subject'), $message, array('sender' => br()->auth()->getAttr('passwordReminder.passwordMail.from')))) {
                     br()->db()->runQuery('UPDATE ' . $usersTable . ' SET ' . $passwordResetField . ' = null, ' . $passwordField . ' = ?& WHERE id = ?', $finalPassword, $user['id']);
-                    br()->log()->writeLn('New password sent to ' . $email);
-                    br()->log()->writeLn($user);
+                    br()->log()->write('New password sent to ' . $email);
+                    br()->log()->write($user);
                     br()->response()->redirect($data['loginUrl']);
                     return true;
                   } else {

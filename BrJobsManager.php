@@ -11,7 +11,6 @@ class BrJobsManager {
   function run() {
 
     if (!br()->isConsoleMode()) { br()->panic('Console mode only'); }
-    br()->log('[...] Trying to acquire lock for this script to avoid conflict with running instance');
     $handle = br()->OS()->lockIfRunning(br()->callerScript());
 
     br()->log('[...] Jobs folder: ' . $this->jobsFolder);

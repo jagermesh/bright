@@ -292,7 +292,7 @@ div.br-sort-index {
   font-weight: normal;
 }
 
-.blured {
+.blured, .muted {
   color: #999;
 }
 

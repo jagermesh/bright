@@ -119,7 +119,7 @@ qq.toElement = (function(){
  * Fixes opacity in IE6-8.
  */
 qq.css = function(element, styles){
-    if (styles.opacity != null){
+    if (styles.opacity !== null){
         if (typeof element.style.opacity != 'string' && typeof(element.filters) != 'undefined'){
             styles.filter = 'alpha(opacity=' + Math.round(100 * styles.opacity) + ')';
         }
@@ -373,7 +373,7 @@ qq.FileUploaderBasic.prototype = {
     },
     _onComplete: function(id, fileName, result){
         this._filesInProgress--;
-        if (this._filesInProgress == 0) {
+        if (this._filesInProgress === 0) {
            var spinner = this._find(this._element, 'spinner');
            spinner.style.display = 'none';
         }
@@ -385,32 +385,29 @@ qq.FileUploaderBasic.prototype = {
     },
     _onCancel: function(id, fileName){
         this._filesInProgress--;
-        if (this._filesInProgress == 0) {
+        if (this._filesInProgress === 0) {
            var spinner = this._find(this._element, 'spinner');
            spinner.style.display = 'none';
         }
     },
     _onInputChange: function(input){
-        if (this._handler instanceof qq.UploadHandlerXhr){
-            this._uploadFileList(input.files);
-        } else {
-            if (this._validateFile(input)){
-                this._uploadFile(input);
-            }
-        }
-        this._button.reset();
+      if (this._handler instanceof qq.UploadHandlerXhr){
+          this._uploadFileList(input.files);
+      } else {
+          var $this = this;
+          this._validateFile(input, function(file) {
+            $this._uploadFile(file);
+          });
+      }
+      this._button.reset();
     },
     _uploadFileList: function(files){
-        for (var i=0; i<files.length; i++){
-            if ( this._validateFile(files[i])){
-                this._uploadFile(files[i]);
-                //return;
-            }
-        }
-
-        // for (var i=0; i<files.length; i++){
-        //     this._uploadFile(files[i]);
-        // }
+      var $this = this;
+      for (var i=0; i < files.length; i++) {
+        $this._validateFile(files[i], function(file) {
+          $this._uploadFile(file);
+        });
+      }
     },
     _uploadFile: function(fileContainer){
         var id = this._handler.add(fileContainer);
@@ -421,7 +418,7 @@ qq.FileUploaderBasic.prototype = {
             this._handler.upload(id, this._options.params);
         }
     },
-    _validateFile: function(file){
+    _validateFile: function(file, callback) {
         var name, size;
 
         if (file.value){
@@ -430,25 +427,36 @@ qq.FileUploaderBasic.prototype = {
             name = file.value.replace(/.*(\/|\\)/, "");
         } else {
             // fix missing properties in Safari
-            name = file.fileName != null ? file.fileName : file.name;
-            size = file.fileSize != null ? file.fileSize : file.size;
+            name = file.fileName ? file.fileName : file.name;
+            size = file.fileSize ? file.fileSize : file.size;
         }
 
         if (! this._isAllowedExtension(name)){
             this._error('typeError', name);
             return false;
 
-        } else if (size === 0){
+        } else
+        if (size === 0){
             this._error('emptyError', name);
             return false;
 
-        } else if (size && this._options.sizeLimit && size > this._options.sizeLimit){
+        } else
+        if (size && this._options.sizeLimit && size > this._options.sizeLimit){
             this._error('sizeError', name);
             return false;
 
-        } else if (size && size < this._options.minSizeLimit){
+        } else
+        if (size && size < this._options.minSizeLimit){
             this._error('minSizeError', name);
             return false;
+        }
+
+        if (this._options.onValidateFile) {
+          this._options.onValidateFile(function() {
+            callback(file);
+          });
+        } else {
+          callback(file);
         }
 
         return true;

@@ -88,7 +88,7 @@ class BrSFTP extends BrObject {
 
   function connectWithKey($hostName, $userName, $keyFileName, $port = 22, $keyFilePassword = '') {
 
-    $key = new Crypt_RSA();
+    $key = new \phpseclib\Crypt\RSA();
     if ($keyFilePassword) {
       $key->setPassword($keyFilePassword);
     }
@@ -106,7 +106,7 @@ class BrSFTP extends BrObject {
     $this->currentPort     = $port;
 
     try {
-      if ($this->connection = new Net_SFTP($hostName, $port)) {
+      if ($this->connection = new \phpseclib\Net\SFTP($hostName, $port)) {
         if ($this->connection->login($userName, $password)) {
           $this->currentDirectory = $this->getServerDir();
         } else {
@@ -239,7 +239,7 @@ class BrSFTP extends BrObject {
 
     $targetFileNamePartial = $targetFileName . '.partial';
 
-    if ($this->connection->put($this->currentDirectory . $targetFileNamePartial, $sourceFilePath, NET_SFTP_LOCAL_FILE)) {
+    if ($this->connection->put($this->currentDirectory . $targetFileNamePartial, $sourceFilePath, \phpseclib\Net\SFTP::SOURCE_LOCAL_FILE)) {
       if ($this->renameFile($this->currentDirectory . $targetFileNamePartial, $this->currentDirectory . $targetFileName)) {
         return true;
       } else

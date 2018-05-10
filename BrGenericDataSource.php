@@ -99,6 +99,8 @@ class BrGenericDataSource extends BrObject {
   protected $rowidFieldName        = null;
   protected $rerunIterations       = 20;
 
+  private $__transactionalDML      = true;
+
   function __construct($options = array()) {
 
     $this->defaultOrder          = br($options, 'defaultOrder');
@@ -108,6 +110,16 @@ class BrGenericDataSource extends BrObject {
     $this->selectAdjancedRecords = br($options, 'selectAdjancedRecords');
     $this->rowidFieldName        = br($options, 'rowidFieldName');
     $this->lastSelectAmount      = 0;
+
+  }
+
+  function transactionalDML($value = null) {
+
+    if ($value !== null) {
+      $this->__transactionalDML = $value;
+    }
+
+    return $this->__transactionalDML;
 
   }
 
@@ -300,7 +312,7 @@ class BrGenericDataSource extends BrObject {
 
   function invokeMethodExists($method) {
 
-    return br($this->events, $method);
+    return isset($this->events[$method]);
 
   }
 
@@ -311,13 +323,13 @@ class BrGenericDataSource extends BrObject {
     }
 
     $method = trim($method);
-
     switch($method) {
       case 'select':
       case 'selectOne':
       case 'insert':
       case 'update':
       case 'remove':
+      case 'prepareCalcFields':
       case 'calcFields':
         throw new Exception('Method [' . $method . '] not supported');
         break;
@@ -325,21 +337,39 @@ class BrGenericDataSource extends BrObject {
         if (!$this->invokeMethodExists($method)) {
           throw new Exception('Method [' . $method . '] not supported');
         } else {
+          $options               = $optionsParam;
+          $options['operation']  = $method;
+          $options['dataSets']   = br(br($options, 'dataSets'))->split();
+          $options['clientUID']  = br($options, 'clientUID');
+
           try {
-            br()->db()->startTransaction();
-            $this->callEvent('before:' . $method, $params, $transientData);
-            $data = $this->callEvent($method, $params, $transientData);
+            if (br()->db()) {
+              if ($this->transactionalDML()) {
+                br()->db()->startTransaction();
+              }
+            }
+            $this->callEvent('before:' . $method, $params, $transientData, $options);
+            $data = $this->callEvent($method, $params, $transientData, $options);
             $result = true;
-            $this->callEvent('after:' . $method, $result, $data, $params, $transientData);
-            br()->db()->commitTransaction();
+            $this->callEvent('after:' . $method, $result, $data, $params, $transientData, $options);
+            if (br()->db()) {
+              if ($this->transactionalDML()) {
+                br()->db()->commitTransaction();
+              }
+              $this->callEvent('after:commit', $params, $transientData, $data, $options);
+            }
             return $data;
           } catch (BrDBRecoverableException $e) {
             br()->log('Repeating invoke of ' . $method . '... (' . $iteration . ') because of ' . $e->getMessage());
             usleep(250000);
-            return $this->invoke($method, $params, $transientData, $optionsParam);
+            return $this->invoke($method, $params, $transientData, $options);
           } catch (Exception $e) {
             try {
-              br()->db()->rollbackTransaction();
+              if (br()->db()) {
+                if ($this->transactionalDML()) {
+                  br()->db()->rollbackTransaction();
+                }
+              }
             } catch (Exception $e2) {
 
             }
@@ -349,7 +379,7 @@ class BrGenericDataSource extends BrObject {
             if (is_null($result)) {
               $result = false;
               $data = null;
-              $this->callEvent('after:' . $method, $result, $data, $params, $transientData);
+              $this->callEvent('after:' . $method, $result, $data, $params, $transientData, $options);
               throw $e;
             } else {
               throw $result;

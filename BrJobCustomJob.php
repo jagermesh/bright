@@ -10,7 +10,7 @@ class BrJobCustomJob {
   private $checkJobCommand;
 
   private $coresAmount;
-  private $maxProcessesAmountMultiplier = 8;
+  private $maxProcessesAmountMultiplier = 16;
   private $maxProcessesAmount;
 
   protected $lastRunFile;
@@ -29,10 +29,38 @@ class BrJobCustomJob {
 
   function waitForProcessor() {
 
-    while (br()->OS()->getProcessesAmount(array($this->runJobScript, $this->checkJobScript)) > $this->maxProcessesAmount) {
+    while (br()->OS()->findProcesses(array($this->runJobScript))->count() > $this->maxProcessesAmount) {
       br()->log('[...] Too many processes started, maximum is ' . $this->maxProcessesAmount . '. Waiting to continue');
       sleep(10);
     }
+
+  }
+
+  private function getCommand($check, $withPath = true, $arguments = '') {
+
+    if ($check) {
+      $cmd = trim($this->checkJobCommand . ' ' . $arguments);
+    } else {
+      $cmd = trim($this->runJobCommand . ' ' . $arguments);
+    }
+
+    if ($withPath) {
+      $cmd = br()->basePath() . $cmd;
+    }
+
+    return $cmd;
+
+  }
+
+  function getCheckCommand($withPath = true, $arguments = '') {
+
+    return $this->getCommand(true, $withPath, $arguments);
+
+  }
+
+  function getRunCommand($withPath = true, $arguments = '') {
+
+    return $this->getCommand(false, $withPath, $arguments);
 
   }
 
@@ -40,13 +68,11 @@ class BrJobCustomJob {
 
     $this->waitForProcessor();
 
-    if ($check) {
-      $runCommand = trim($this->checkJobCommand . ' ' . $arguments);
-    } else {
-      $runCommand = trim($this->runJobCommand . ' ' . $arguments);
-    }
-    br()->log('[CHK] Checking is it running ' . $runCommand);
-    if (br()->OS()->getProcessesAmount($runCommand) == 0) {
+    $runCommand = $this->getCommand($check, false, $arguments);
+    $runCommandWithPath = $this->getCommand($check, true, $arguments);
+
+    br()->log('[CHK] Checking ' . $runCommandWithPath);
+    if (br()->OS()->findProcesses($runCommandWithPath)->count() == 0) {
       $logFileName = br()->basePath() . '_logs';
       if (is_writable($logFileName)) {
         $logFileName .= '/' . date('Y-m-d') . '/' . br()->fs()->normalizeFileName(trim($runCommand));
@@ -58,7 +84,7 @@ class BrJobCustomJob {
       } else {
         $logFileName = '/dev/null';
       }
-      $command = $this->shellScript . ' ' . br()->basePath() . $runCommand . ' >> ' . $logFileName . ' 2>&1 & echo $!';
+      $command = $this->shellScript . ' ' . $runCommandWithPath . ' >> ' . $logFileName . ' 2>&1 & echo $!';
       br()->log('[PRC] Starting ' . $command);
       $output = '';
       exec($command, $output);
@@ -101,6 +127,23 @@ class BrJobCustomJob {
   function run($params) {
 
     $this->done();
+
+  }
+
+  static function generateJobScript($name, $path) {
+
+    $name     = ucfirst($name);
+    $fileName = $path . '/jobs/Job' . $name . '.php';
+
+    if (file_exists($fileName)) {
+      throw new BrAppException('Such job already exists - ' . $fileName);
+    } else {
+      br()->fs()->saveToFile( $fileName
+                            , br()->renderer()->fetchString( br()->fs()->loadFromFile(__DIR__ . '/templates/Job.tpl')
+                                                           , array( 'guid' => br()->guid()
+                                                                  , 'name' => $name
+                                                                  )));
+    }
 
   }
 

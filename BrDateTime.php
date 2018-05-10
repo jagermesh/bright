@@ -30,6 +30,9 @@ class BrDateTime extends BrObject {
 
     if (!$date) {
       $date = time();
+    } else
+    if (!is_numeric($date)) {
+      $date = strtotime($date);
     }
 
     $date_parts = explode('-', date('d-m-Y-N-H-i-s-D', $date));

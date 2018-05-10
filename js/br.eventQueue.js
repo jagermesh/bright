@@ -1,9 +1,9 @@
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -16,11 +16,20 @@
     this.subscribers = {};
     this.connections = [];
     this.obj = obj || this;
+    this.enabled = true;
+
+    this.enable = function() {
+      this.enabled = true;
+    };
+
+    this.disable = function() {
+      this.enabled = false;
+    };
 
     this.before = function(events, callback) {
       events = events.split(',');
       for(var i = 0; i < events.length; i++) {
-        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], before: [], after: [] };
+        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], pause: [], before: [], after: [] };
         _this.subscribers[events[i]].before.push(callback);
       }
     };
@@ -28,25 +37,49 @@
     this.on = function(events, callback) {
       events = events.split(',');
       for(var i = 0; i < events.length; i++) {
-        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], before: [], after: [] };
+        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], pause: [], before: [], after: [] };
         _this.subscribers[events[i]].on.push(callback);
+      }
+    };
+
+    this.pause = function(events, callback) {
+      events = events.split(',');
+      for(var i = 0; i < events.length; i++) {
+        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], pause: [], before: [], after: [] };
+        _this.subscribers[events[i]].pause.push(callback);
       }
     };
 
     this.after = function(events, callback) {
       events = events.split(',');
       for(var i = 0; i < events.length; i++) {
-        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], before: [], after: [] };
+        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], pause: [], before: [], after: [] };
         _this.subscribers[events[i]].after.push(callback);
       }
     };
 
-    this.has = function(eventName) {
-      return _this.subscribers.hasOwnProperty(eventName);
+    this.has = function(eventName, pos) {
+      if (this.subscribers[eventName]) {
+        if (!pos) {
+          return true;
+        } else {
+          return this.subscribers[eventName][pos].length > 0;
+        }
+      } else {
+        return false;
+      }
     };
 
     this.connectTo = function(eventQueue) {
       _this.connections.push(eventQueue);
+    };
+
+    this.getEvents = function() {
+      var res = [];
+      for(var name in _this.subscribers) {
+        res[res.length] = name;
+      }
+      return res;
     };
 
     function trigger(event, pos, args) {
@@ -67,6 +100,11 @@
               result = eventSubscribers.on[i].apply(_this.obj, args);
             }
             break;
+          case 'pause':
+            for (i = 0; i < eventSubscribers.on.length; i++) {
+              result = eventSubscribers.pause[i].apply(_this.obj, args);
+            }
+            break;
           case 'after':
             for (i = 0; i < eventSubscribers.after.length; i++) {
               eventSubscribers.after[i].apply(_this.obj, args);
@@ -81,26 +119,30 @@
 
     this.triggerEx = function(event, pos, largs) {
 
-      var args = [];
-      var i;
+      if (this.enabled) {
 
-      for(i = 0; i < largs.length; i++) {
-        args.push(largs[i]);
+        var args = [];
+        var i;
+
+        for(i = 0; i < largs.length; i++) {
+          args.push(largs[i]);
+        }
+
+        if (event != '*') {
+          trigger('*', pos, args);
+        }
+
+        args.splice(0,1);
+
+        var result = trigger(event, pos, args);
+
+        for (i = 0; i < _this.connections.length; i++) {
+          _this.connections[i].triggerEx(event, pos, largs);
+        }
+
+        return result;
+
       }
-
-      if (event != '*') {
-        trigger('*', pos, args);
-      }
-
-      args.splice(0,1);
-
-      var result = trigger(event, pos, args);
-
-      for (i = 0; i < _this.connections.length; i++) {
-        _this.connections[i].triggerEx(event, pos, largs);
-      }
-
-      return result;
 
     };
 
@@ -109,11 +151,15 @@
     };
 
     this.trigger = function(event) {
-      return this.triggerEx(event, 'on',     arguments);
+      return this.triggerEx(event, 'on', arguments);
+    };
+
+    this.triggerPause = function(event) {
+      return this.triggerEx(event, 'pause', arguments);
     };
 
     this.triggerAfter = function(event) {
-      return this.triggerEx(event, 'after',  arguments);
+      return this.triggerEx(event, 'after', arguments);
     };
 
   }

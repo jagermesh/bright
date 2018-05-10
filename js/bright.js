@@ -1,9 +1,9 @@
 /* jshint ignore:start *//*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -28,6 +28,7 @@
   window.br.isEmpty = function(value) {
     return (
              br.isNull(value) ||
+             (br.isString(value) && (value.trim().length === 0)) ||
              ((typeof value.length != 'undefined') && (value.length === 0)) // Array, String
            );
   };
@@ -114,11 +115,11 @@
 
 })(window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -387,11 +388,11 @@
 
 })(window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -404,11 +405,20 @@
     this.subscribers = {};
     this.connections = [];
     this.obj = obj || this;
+    this.enabled = true;
+
+    this.enable = function() {
+      this.enabled = true;
+    };
+
+    this.disable = function() {
+      this.enabled = false;
+    };
 
     this.before = function(events, callback) {
       events = events.split(',');
       for(var i = 0; i < events.length; i++) {
-        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], before: [], after: [] };
+        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], pause: [], before: [], after: [] };
         _this.subscribers[events[i]].before.push(callback);
       }
     };
@@ -416,25 +426,49 @@
     this.on = function(events, callback) {
       events = events.split(',');
       for(var i = 0; i < events.length; i++) {
-        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], before: [], after: [] };
+        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], pause: [], before: [], after: [] };
         _this.subscribers[events[i]].on.push(callback);
+      }
+    };
+
+    this.pause = function(events, callback) {
+      events = events.split(',');
+      for(var i = 0; i < events.length; i++) {
+        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], pause: [], before: [], after: [] };
+        _this.subscribers[events[i]].pause.push(callback);
       }
     };
 
     this.after = function(events, callback) {
       events = events.split(',');
       for(var i = 0; i < events.length; i++) {
-        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], before: [], after: [] };
+        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], pause: [], before: [], after: [] };
         _this.subscribers[events[i]].after.push(callback);
       }
     };
 
-    this.has = function(eventName) {
-      return _this.subscribers.hasOwnProperty(eventName);
+    this.has = function(eventName, pos) {
+      if (this.subscribers[eventName]) {
+        if (!pos) {
+          return true;
+        } else {
+          return this.subscribers[eventName][pos].length > 0;
+        }
+      } else {
+        return false;
+      }
     };
 
     this.connectTo = function(eventQueue) {
       _this.connections.push(eventQueue);
+    };
+
+    this.getEvents = function() {
+      var res = [];
+      for(var name in _this.subscribers) {
+        res[res.length] = name;
+      }
+      return res;
     };
 
     function trigger(event, pos, args) {
@@ -455,6 +489,11 @@
               result = eventSubscribers.on[i].apply(_this.obj, args);
             }
             break;
+          case 'pause':
+            for (i = 0; i < eventSubscribers.on.length; i++) {
+              result = eventSubscribers.pause[i].apply(_this.obj, args);
+            }
+            break;
           case 'after':
             for (i = 0; i < eventSubscribers.after.length; i++) {
               eventSubscribers.after[i].apply(_this.obj, args);
@@ -469,26 +508,30 @@
 
     this.triggerEx = function(event, pos, largs) {
 
-      var args = [];
-      var i;
+      if (this.enabled) {
 
-      for(i = 0; i < largs.length; i++) {
-        args.push(largs[i]);
+        var args = [];
+        var i;
+
+        for(i = 0; i < largs.length; i++) {
+          args.push(largs[i]);
+        }
+
+        if (event != '*') {
+          trigger('*', pos, args);
+        }
+
+        args.splice(0,1);
+
+        var result = trigger(event, pos, args);
+
+        for (i = 0; i < _this.connections.length; i++) {
+          _this.connections[i].triggerEx(event, pos, largs);
+        }
+
+        return result;
+
       }
-
-      if (event != '*') {
-        trigger('*', pos, args);
-      }
-
-      args.splice(0,1);
-
-      var result = trigger(event, pos, args);
-
-      for (i = 0; i < _this.connections.length; i++) {
-        _this.connections[i].triggerEx(event, pos, largs);
-      }
-
-      return result;
 
     };
 
@@ -497,11 +540,15 @@
     };
 
     this.trigger = function(event) {
-      return this.triggerEx(event, 'on',     arguments);
+      return this.triggerEx(event, 'on', arguments);
+    };
+
+    this.triggerPause = function(event) {
+      return this.triggerEx(event, 'pause', arguments);
     };
 
     this.triggerAfter = function(event) {
-      return this.triggerEx(event, 'after',  arguments);
+      return this.triggerEx(event, 'after', arguments);
     };
 
   }
@@ -514,11 +561,11 @@
 
 })(window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -534,6 +581,32 @@
 
     this.get = function(name, defaultValue) {
       var vars = document.location.search.replace('?', '').split('&');
+      var vals = {};
+      var i;
+      for (i = 0; i < vars.length; i++) {
+        var pair = vars[i].split("=");
+        if (pair[0].indexOf('[') != -1) {
+          var n = pair[0].substr(0, pair[0].indexOf('['));
+          vals[n] = vals[n] || [];
+          vals[n].push(window.unescape(pair[1]));
+        } else {
+          vals[pair[0]] = window.unescape(pair[1]);
+        }
+      }
+      if (name) {
+        for (i in vals) {
+          if (i == name) {
+            return vals[i];
+          }
+        }
+        return defaultValue;
+      } else {
+        return vals;
+      }
+    };
+
+    this.hash = function(name, defaultValue) {
+      var vars = document.location.hash.replace('#', '').split('&');
       var vals = {};
       var i;
       for (i = 0; i < vars.length; i++) {
@@ -587,11 +660,11 @@
 
 })(window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -643,16 +716,344 @@
   var executionThread = br.thread(true);
 
 })(window);
-/*
- * Bright 0.0.5
+/*!
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://brightfw.com
+ *
+ */
+
+/* global Int32Array */
+
+;(function (window) {
+
+  function BrProfiler() {
+
+    function stopwatch() {
+
+      this.start_time = 0;
+      this.stop_time = 0;
+      this.run_time = 0;
+      this.running = false;
+
+      this.start = function() {
+        this.start_time = new Date().getTime();
+        this.running = true;
+      };
+
+      this.stop = function() {
+        this.stop_time = new Date().getTime();
+        this.run_time = (this.stop_time - this.start_time);
+        this.running = false;
+      };
+
+      this.get_runtime = function() {
+        return this.run_time;
+      };
+
+      this.reset = function() {
+        this.run_time = 0;
+      };
+
+      return this;
+
+    }
+
+    function buffer(size) {
+
+      this.arr = new Int32Array(size);
+      this.begin = 0;
+      this.end = -1;
+      this.num_el = 0;
+      this.arr_size = size;
+
+      this.push_back = function(elem) {
+        if (this.num_el<this.arr_size) {
+          this.end++;
+          this.arr[this.end] = elem;
+          this.num_el++;
+        } else {
+          this.end = (this.end+1)%this.arr_size;
+          this.begin = (this.begin+1)%this.arr_size;
+          this.arr[this.end] = elem;
+        }
+      };
+
+      this.get = function(i) {
+        return this.arr[(this.begin+i)%this.arr_size];
+      };
+
+      this.size = function() {
+        return this.num_el;
+      };
+
+      return this;
+
+    }
+
+    var count_frames = 0;
+    var ringbuff = new buffer(20);
+
+    this.fps = 0.0;
+    this.timers = [];
+    this.frame_timer = new stopwatch();
+
+    this.add = function(subj) {
+      this.timers.push([subj, new stopwatch()]);
+    };
+
+    this.new_frame = function() {
+      ++count_frames;
+      var i = 0;
+      var n = this.timers.length | 0;
+      for(i = 0; i < n; ++i) {
+          var sw = this.timers[i][1];
+          sw.reset();
+      }
+
+      if(count_frames >= 1) {
+          this.frame_timer.stop();
+          ringbuff.push_back(this.frame_timer.get_runtime());
+          var size = ringbuff.size();
+          var sum = 0;
+          for(i = 0; i < size; ++i) {
+              sum += ringbuff.get(i);
+          }
+          this.fps = size / sum * 1000;
+          this.frame_timer.start();
+      }
+    };
+
+    this.find_task = function(subj) {
+      var n = this.timers.length | 0;
+      var i = 0;
+      for(i = 0; i < n; ++i) {
+          var pair = this.timers[i];
+          if(pair[0] === subj) {
+              return pair;
+          }
+      }
+      this.add(subj);
+      return this.find_task(subj);
+    };
+
+    this.start = function(subj) {
+      var task = this.find_task(subj);
+      task[1].start();
+    };
+
+    this.stop = function(subj, printToConsole) {
+      var task = this.find_task(subj);
+      task[1].stop();
+      if (printToConsole) {
+        br.log(task[0] + ": " + task[1].get_runtime() + "ms");
+      }
+    };
+
+    this.log = function(printToConsole) {
+      var n = this.timers.length | 0;
+      var i = 0;
+      var str = "<strong>FPS: " + this.fps.toFixed(2) + "</strong>";
+      var str2 = "FPS: " + this.fps.toFixed(2);
+      for(i = 0; i < n; ++i) {
+          var pair = this.timers[i];
+          str += "<br/>" + pair[0] + ": " + pair[1].get_runtime() + "ms";
+          str2 += ", " + pair[0] + ": " + pair[1].get_runtime() + "ms";
+      }
+      if (printToConsole) {
+        br.log(str2);
+      }
+      return str;
+    };
+
+    return this;
+
+  }
+
+  window.br = window.br || {};
+
+  var profiler;
+
+  window.br.profiler = function(create) {
+    if (create) {
+      return new BrProfiler();
+    } else
+    if (!profiler) {
+      profiler = new BrProfiler();
+    }
+    return profiler;
+  };
+
+})(window);
+/*!
+ * Bright 1.0
+ *
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://brightfw.com
+ *
+ */
+
+  ;(function (window) {
+
+    function BrWebCamera() {
+
+      var _this = this;
+
+      _this.events = br.eventQueue(this);
+      _this.before = function(event, callback) { _this.events.before(event, callback); };
+      _this.on     = function(event, callback) { _this.events.on(event, callback); };
+      _this.after  = function(event, callback) { _this.events.after(event, callback); };
+
+      var lastTime = 0;
+
+      _this.requestAnimationFrame = function(callback, element) {
+
+        var requestAnimationFrame =
+          window.requestAnimationFrame        ||
+          window.webkitRequestAnimationFrame  ||
+          window.mozRequestAnimationFrame     ||
+          window.oRequestAnimationFrame       ||
+          window.msRequestAnimationFrame      ||
+          function(callback, element) {
+            var currTime = new Date().getTime();
+            var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+            var id = window.setTimeout(function() {
+              callback(currTime + timeToCall);
+            }, timeToCall);
+            lastTime = currTime + timeToCall;
+            return id;
+          };
+
+        return requestAnimationFrame.call(window, callback, element);
+
+      };
+
+      _this.getUserMedia = function(options, success, error) {
+
+        var getUserMedia =
+          window.navigator.getUserMedia       ||
+          window.navigator.mozGetUserMedia    ||
+          window.navigator.webkitGetUserMedia ||
+          window.navigator.msGetUserMedia     ||
+          function(options, success, error) {
+              error();
+          };
+
+        return getUserMedia.call(window.navigator, options, success, error);
+
+      };
+
+      var elem = document.createElement('canvas');
+      var canvasSupported = !!(elem.getContext && elem.getContext('2d'));
+      elem.remove();
+
+      _this.isSupported = function() {
+
+        if (canvasSupported && (navigator.userAgent.search(/Chrome/) > -1 || navigator.userAgent.search(/Firefox/) > -1)) {
+          return true;
+        } else {
+          return false;
+        }
+
+      };
+
+      _this.connect = function(webCam) {
+
+        if (_this.isSupported()) {
+          try {
+            var attempts = 0;
+
+            var requestFrame = function () {
+              if (webCam.readyState === webCam.HAVE_ENOUGH_DATA) {
+                try {
+                  _this.events.trigger('frame', webCam);
+                } catch (Error) {
+
+                }
+              }
+              _this.requestAnimationFrame(requestFrame);
+            };
+
+            var findVideoSize = function() {
+              if (webCam.videoWidth > 0 && webCam.videoHeight > 0) {
+                webCam.removeEventListener('loadeddata', readyListener);
+                _this.events.trigger('connected', { width: webCam.videoWidth, height: webCam.videoWidth });
+                _this.requestAnimationFrame(requestFrame);
+              } else {
+                if (attempts < 10) {
+                  attempts++;
+                  window.setTimeout(findVideoSize, 200);
+                } else {
+                  _this.events.trigger('connected', { width: 640, height: 480 });
+                  _this.requestAnimationFrame(requestFrame);
+                }
+              }
+            };
+
+            var readyListener = function(event) {
+              findVideoSize();
+            };
+
+            webCam.addEventListener('loadeddata', readyListener);
+
+            $(window).on('unload', function() {
+              webCam.pause();
+              webCam.src = null;
+            });
+
+            _this.getUserMedia( { video: true }
+                              , function(stream) {
+                                  try {
+                                    webCam.src = br.URL.createObjectURL(stream);
+                                  } catch (error) {
+                                    webCam.src = stream;
+                                  }
+                                  window.setTimeout(function() {
+                                    webCam.play();
+                                  }, 500);
+                                }
+                              , function (error) {
+                                  _this.events.trigger('error', error);
+                                }
+                              );
+          } catch (error) {
+            _this.events.trigger('error', error);
+          }
+        } else {
+          _this.events.trigger('error', 'Web Camera or Canvas is not supported in your browser');
+        }
+
+      };
+
+    }
+
+    window.br = window.br || {};
+
+    var webCamera;
+
+    window.br.webCamera = function(params) {
+      if (!webCamera) {
+        webCamera = new BrWebCamera(params);
+      }
+      return webCamera;
+    };
+
+  })(window);
+/*!
+ * Bright 1.0
+ *
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
  */
 
 /* global console */
+/* global ArrayBuffer */
+/* global Uint32Array */
 
 ;(function ($, window) {
 
@@ -759,6 +1160,41 @@
     document.location.reload();
   };
 
+  window.br.processArray = function(array, processRowCallback, processCompleteCallback, params) {
+
+    function processQueued(processRowCallback, processCompleteCallback, params) {
+
+      if (array.length > 0) {
+        var rowid = array.shift();
+        processRowCallback(rowid, function() {
+          if (params.showProgress) {
+            br.stepProgress();
+          }
+          processQueued(processRowCallback, processCompleteCallback, params);
+        });
+      } else {
+        if (params.showProgress) {
+          br.hideProgress();
+        }
+        if (processCompleteCallback) {
+          processCompleteCallback();
+        }
+      }
+
+    }
+
+    params = params || {};
+    if (array.length > 0) {
+      if (params.showProgress) {
+        br.startProgress(array.length, params.title || '');
+      }
+      processQueued(processRowCallback, processCompleteCallback, params);
+    } else {
+      br.growlError('Please select at least one record');
+    }
+
+  };
+
   function BrTrn() {
     var trn = [];
     this.get = function (phrase) { if (trn[phrase]) { return trn[phrase]; } else { return phrase; } };
@@ -813,11 +1249,21 @@
     Child.superclass = Parent.prototype;
   };
 
-  function openUrl(url) {
+  function openUrl(url, options) {
+
+    options = options || { };
+
+    var s;
+
+    if (options.urlTitle) {
+      s = '<p>Click below to open link manually</p>'
+        + '<p><a target="_blank" class="action-open-link" href="' + url + '" style="word-wrap: break-word">' + options.urlTitle + '</a></p>';
+    } else {
+      s = '<p>Click a <a target="_blank" class="action-open-link" href="' + url + '" style="word-wrap: break-word">here</a> to open link manually</p>';
+    }
 
     var dialog = br.inform( 'You browser is currently blocking popups'
-                          , '<p>Click the link below to open this manually:</p>'
-                          + '<p><a target="_blank" class="action-open-link" href="' + url + '" style="word-wrap: break-word">' + url + '</a></p>'
+                          , s
                           + '<p>To eliminate this extra step, we recommend you modify your settings to disable the popup blocker.</p>'
                           );
 
@@ -843,42 +1289,57 @@
 
   };
 
-  window.br.openPopup = function(url, target) {
+  window.br.openPopup = function(url, options) {
+
+    if (br.isString(options)) {
+      options = { target: options };
+    } else {
+      options = options || { };
+    }
+
+    options.target = options.target || '_blank';
 
     if (window.br.popupBlocker == 'active') {
-      openUrl(url);
+      openUrl(url, options);
     } else {
-      target = target || '_blank';
       var w, h;
       if (screen.width) {
-        if (screen.width >= 1280) {
-          w = 1000;
-        } else
-        if (screen.width >= 1024) {
-          w = 800;
+        if (options.fullScreen) {
+          w = screen.width;
         } else {
-          w = 600;
+          if (screen.width >= 1280) {
+            w = 1000;
+          } else
+          if (screen.width >= 1024) {
+            w = 800;
+          } else {
+            w = 600;
+          }
         }
       }
       if (screen.height) {
-        if (screen.height >= 900) {
-          h = 700;
-        } else
-        if (screen.height >= 800) {
-          h = 600;
+        if (options.fullScreen) {
+          h = screen.height;
         } else {
-          h = 500;
+          if (screen.height >= 900) {
+            h = 700;
+          } else
+          if (screen.height >= 800) {
+            h = 600;
+          } else {
+            h = 500;
+          }
         }
       }
       var left = (screen.width) ? (screen.width-w)/2 : 0;
       var settings = 'height='+h+',width='+w+',top=20,left='+left+',menubar=0,scrollbars=1,resizable=1';
-      var win = window.open(url, target, settings);
+      var win = window.open(url, options.target, settings);
       if (win) {
         window.br.popupBlocker = 'inactive';
         win.focus();
       } else {
         window.br.popupBlocker = 'active';
-        openUrl(url);
+        openUrl(url, options);
       }
     }
 
@@ -1010,6 +1471,9 @@
   };
 
   window.br.events = br.eventQueue();
+  window.br.before = function(event, callback) { window.br.events.before(event, callback); };
+  window.br.on     = function(event, callback) { window.br.events.on(event,     callback); };
+  window.br.after  = function(event, callback) { window.br.events.after(event,  callback); };
 
   window.br.backToCaller = function(href, refresh) {
 
@@ -1125,13 +1589,82 @@
     a,b,e){i("css",c,a,b,e)},js:function(c,a,b,e){i("js",c,a,b,e)}}}(document);
   /* jshint ignore:end */
 
+  window.br.URL = window.URL || window.webkitURL;
+
+  var lastTime = 0;
+
+  window.br.requestAnimationFrame = function(callback, element) {
+
+    var requestAnimationFrame =
+      window.requestAnimationFrame        ||
+      window.webkitRequestAnimationFrame  ||
+      window.mozRequestAnimationFrame     ||
+      window.oRequestAnimationFrame       ||
+      window.msRequestAnimationFrame      ||
+      function(callback, element) {
+        var currTime = new Date().getTime();
+        var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+        var id = window.setTimeout(function() {
+          callback(currTime + timeToCall);
+        }, timeToCall);
+        lastTime = currTime + timeToCall;
+        return id;
+      };
+
+    return requestAnimationFrame.call(window, callback, element);
+
+  };
+
+  window.br.cancelAnimationFrame = function(id) {
+
+    var cancelAnimationFrame =
+      window.cancelAnimationFrame ||
+      function(id) {
+        window.clearTimeout(id);
+      };
+
+    return cancelAnimationFrame.call(window, id);
+
+  };
+
+  window.br.getUserMedia = function(options, success, error) {
+
+    var getUserMedia =
+      window.navigator.getUserMedia ||
+      window.navigator.mozGetUserMedia ||
+      window.navigator.webkitGetUserMedia ||
+      window.navigator.msGetUserMedia ||
+      function(options, success, error) {
+          error();
+      };
+
+    return getUserMedia.call(window.navigator, options, success, error);
+
+  };
+
+  var isLittleEndian = true;
+
+  window.br.detectEndian = function() {
+
+    var buf = new ArrayBuffer(8);
+    var data = new Uint32Array(buf);
+    data[0] = 0xff000000;
+    isLittleEndian = true;
+    if (buf[0] === 0xff) {
+      isLittleEndian = false;
+    }
+
+    return isLittleEndian;
+
+  };
+
 })(jQuery, window);
-/*
- * Bright 0.0.5
+/*!
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -1201,15 +1734,13 @@
 
 })(window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
-
-/* global TAFFY */
 
 ;(function ($, window) {
 
@@ -1230,6 +1761,21 @@
     this.before = function(event, callback) { this.events.before(event, callback); };
     this.on     = function(event, callback) { this.events.on(event, callback); };
     this.after  = function(event, callback) { this.events.after(event, callback); };
+
+    this.clientUID = null;
+
+    var selectOperationCounter = 0;
+
+    this.getClientUID = function() {
+      if (!this.clientUID) {
+        this.clientUID = Math.round(Math.random() * 100000);
+      }
+      return this.clientUID;
+    };
+
+    this.setClientUID = function(clientUID) {
+      this.clientUID = clientUID;
+    };
 
     this.insert = function(item, callback, options) {
 
@@ -1276,7 +1822,11 @@
 
       try {
 
-        _this.events.triggerBefore('insert', request, options);
+        if (!disableEvents) {
+          _this.events.triggerBefore('request', request, options);
+          _this.events.triggerBefore('insert', request, options);
+          disableEvents = options && options.disableEvents;
+        }
 
         if (this.options.crossdomain) {
           request.crossdomain = 'put';
@@ -1284,6 +1834,20 @@
 
         if (options && options.dataSets) {
           request.__dataSets = options.dataSets;
+        }
+
+        if (_this.clientUID) {
+          request.__clientUID = _this.clientUID;
+        }
+
+        if (options && options.clientUID) {
+          request.__clientUID = options.clientUID;
+        }
+
+        for(var paramName in request) {
+          if (request[paramName] === null) {
+            request[paramName] = 'null';
+          }
         }
 
         $.ajax({ type: this.options.crossdomain ? 'GET' : 'PUT'
@@ -1307,13 +1871,13 @@
                  }
                });
 
-      } catch (error) {
-        br.log(error);
+      } catch (errorMessage) {
+        br.log(errorMessage);
         if (!disableEvents) {
-          _this.events.trigger('error', 'insert', error);
-          _this.events.triggerAfter('insert', false, error, request);
+          _this.events.trigger('error', 'insert', errorMessage);
+          _this.events.triggerAfter('insert', false, errorMessage, request);
         }
-        if (typeof callback == 'function') { callback.call(_this, false, error, request); }
+        if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
       }
 
       return this;
@@ -1322,9 +1886,9 @@
 
     this.update = function(rowid, item, callback, options) {
 
-      var disableEvents = options && options.disableEvents;
-
       options = options || { };
+
+      var disableEvents = options && options.disableEvents;
 
       function returnUpdate(data) {
         var operation = 'update';
@@ -1350,70 +1914,146 @@
 
       var request = item;
 
-      if (!disableEvents) {
-        _this.events.triggerBefore('update', request, options, rowid);
-      }
+      try {
 
-      if (options && options.dataSets) {
-        request.__dataSets = options.dataSets;
-      }
+        if (!disableEvents) {
+          _this.events.triggerBefore('request', request, options);
+          _this.events.triggerBefore('update', request, options, rowid);
+          disableEvents = options && options.disableEvents;
+        }
 
-      $.ajax({ type: 'POST'
-             , data: request
-             , dataType: 'json'
-             , url: this.options.restServiceUrl + rowid + (this.options.authToken ? '?token=' + this.options.authToken : '')
-             , success: function(response) {
-                 returnUpdate(response);
-               }
-             , error: function(jqXHR, textStatus, errorThrown) {
-                 if (br.isUnloading()) {
+        if (this.options.crossdomain) {
+          request.crossdomain = 'post';
+        }
 
-                 } else {
-                   var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                   if (!disableEvents) {
-                     _this.events.trigger('error', 'update', errorMessage);
-                     _this.events.triggerAfter('update', false, errorMessage, request);
-                   }
-                   if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
+        if (options && options.dataSets) {
+          request.__dataSets = options.dataSets;
+        }
+
+        if (_this.clientUID) {
+          request.__clientUID = _this.clientUID;
+        }
+
+        if (options && options.clientUID) {
+          request.__clientUID = options.clientUID;
+        }
+
+        for(var paramName in request) {
+          if (request[paramName] === null) {
+            request[paramName] = 'null';
+          }
+        }
+
+        $.ajax({ type: this.options.crossdomain ? 'GET' : 'POST'
+               , data: request
+               , dataType: this.options.crossdomain ? 'jsonp' : 'json'
+               , url: this.options.restServiceUrl + rowid + (this.options.authToken ? '?token=' + this.options.authToken : '')
+               , success: function(response) {
+                   returnUpdate(response);
                  }
-               }
-             });
+               , error: function(jqXHR, textStatus, errorThrown) {
+                   if (br.isUnloading()) {
+
+                   } else {
+                     var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                     if (!disableEvents) {
+                       _this.events.trigger('error', 'update', errorMessage);
+                       _this.events.triggerAfter('update', false, errorMessage, request);
+                     }
+                     if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
+                   }
+                 }
+               });
+
+      } catch (errorMessage) {
+        br.log(errorMessage);
+        if (!disableEvents) {
+          _this.events.trigger('error', 'update', errorMessage);
+          _this.events.triggerAfter('update', false, errorMessage, request);
+        }
+        if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
+      }
 
       return this;
 
     };
 
-    this.remove = function(rowid, callback) {
+    this.remove = function(rowid, callback, options) {
+
+      options = options || { };
+
+      var disableEvents = options && options.disableEvents;
 
       function returnRemove(data) {
-        _this.events.trigger('remove', rowid);
-        _this.events.triggerAfter('remove', true, data, request);
-        _this.events.trigger('change', 'remove', data);
+        if (!disableEvents) {
+          _this.events.trigger('remove', rowid);
+          _this.events.triggerAfter('remove', true, data, request);
+          _this.events.trigger('change', 'remove', data);
+        }
         if (typeof callback == 'function') { callback.call(_this, true, data, request); }
       }
 
       var request = {};
 
-      _this.events.triggerBefore('remove', rowid);
+      try {
 
-      $.ajax({ type: 'DELETE'
-             , data: request
-             , dataType: 'json'
-             , url: this.options.restServiceUrl + rowid + (this.options.authToken ? '?token=' + this.options.authToken : '')
-             , success: function(response) {
-                 returnRemove(response);
-               }
-             , error: function(jqXHR, textStatus, errorThrown) {
-                 if (br.isUnloading()) {
+        if (!disableEvents) {
+          _this.events.triggerBefore('request', request, options, rowid);
+          _this.events.triggerBefore('remove', request, options, rowid);
+          disableEvents = options && options.disableEvents;
+        }
 
-                 } else {
-                   var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                   _this.events.trigger('error', 'remove', errorMessage);
-                   _this.events.triggerAfter('remove', false, errorMessage, request);
-                   if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
+        if (this.options.crossdomain) {
+          request.crossdomain = 'delete';
+        }
+
+        if (options && options.dataSets) {
+          request.__dataSets = options.dataSets;
+        }
+
+        if (_this.clientUID) {
+          request.__clientUID = _this.clientUID;
+        }
+
+        if (options && options.clientUID) {
+          request.__clientUID = options.clientUID;
+        }
+
+        for(var paramName in request) {
+          if (request[paramName] === null) {
+            request[paramName] = 'null';
+          }
+        }
+
+        $.ajax({ type: this.options.crossdomain ? 'GET' : 'DELETE'
+               , data: request
+               , dataType: this.options.crossdomain ? 'jsonp' : 'json'
+               , url: this.options.restServiceUrl + rowid + (this.options.authToken ? '?token=' + this.options.authToken : '')
+               , success: function(response) {
+                   returnRemove(response);
                  }
-               }
-             });
+               , error: function(jqXHR, textStatus, errorThrown) {
+                   if (br.isUnloading()) {
+
+                   } else {
+                     var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                     if (!disableEvents) {
+                       _this.events.trigger('error', 'remove', errorMessage);
+                       _this.events.triggerAfter('remove', false, errorMessage, request);
+                     }
+                     if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
+                   }
+                 }
+               });
+
+      } catch (errorMessage) {
+        br.log(errorMessage);
+        if (!disableEvents) {
+          _this.events.trigger('error', 'remove', errorMessage);
+          _this.events.triggerAfter('remove', false, errorMessage, request);
+        }
+        if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
+      }
 
       return this;
 
@@ -1513,7 +2153,13 @@
 
     };
 
-    this.select = function(filter, callback, options) {
+    this.doingSelect = function() {
+
+      return selectOperationCounter > 0;
+
+    };
+
+    this.load = this.select = function(filter, callback, options) {
 
       var request = {};
       var requestRowid;
@@ -1560,11 +2206,18 @@
 
       if (!disableEvents) {
         try {
+          _this.events.triggerBefore('request', request, options);
+        } catch(e) {
+          br.log(e);
+          proceed = false;
+        }
+        try {
           _this.events.triggerBefore('select', request, options);
         } catch(e) {
           br.log(e);
           proceed = false;
         }
+        disableEvents = options && options.disableEvents;
       }
 
       if (proceed) {
@@ -1588,8 +2241,24 @@
           request.__dataSets = options.dataSets;
         }
 
+        if (_this.clientUID) {
+          request.__clientUID = _this.clientUID;
+        }
+
+        if (options && options.clientUID) {
+          request.__clientUID = options.clientUID;
+        }
+
+        if (options && options.excludeFields) {
+          request.__excludeFields = options.excludeFields;
+        }
+
         if (options && options.renderMode) {
           request.__renderMode = options.renderMode;
+        }
+
+        if (options && options.noCalcFields) {
+          request.__noCalcFields = options.noCalcFields;
         }
 
         if (options && options.order) {
@@ -1604,28 +2273,44 @@
           request.crossdomain = 'get';
         }
 
+        selectOperationCounter++;
+
+        for(var paramName in request) {
+          if (request[paramName] === null) {
+            request[paramName] = 'null';
+          }
+        }
+
         this.ajaxRequest = $.ajax({ type: 'GET'
                                   , data: request
                                   , dataType: this.options.crossdomain ? 'jsonp' : 'json'
                                   , url: url + (this.options.authToken ? '?token=' + this.options.authToken : '')
                                   , success: function(response) {
-                                      _this.ajaxRequest = null;
-                                      if (_this.options.crossdomain && (typeof response == 'string')) {
-                                        handleSelectError('Unknown error', request, callback, options);
-                                      } else
-                                      if (br.isNull(response)) {
-                                        handleSelectError('Unknown error', request, callback, options);
-                                      } else {
-                                        handleSelectSuccess(response, request, callback, options);
+                                      try {
+                                        _this.ajaxRequest = null;
+                                        if (_this.options.crossdomain && (typeof response == 'string')) {
+                                          handleSelectError('Unknown error', request, callback, options);
+                                        } else
+                                        if (br.isNull(response)) {
+                                          handleSelectError('Unknown error', request, callback, options);
+                                        } else {
+                                          handleSelectSuccess(response, request, callback, options);
+                                        }
+                                      } finally {
+                                        selectOperationCounter--;
                                       }
                                     }
                                   , error: function(jqXHR, textStatus, errorThrown) {
-                                      if (br.isUnloading()) {
+                                      try {
+                                        if (br.isUnloading()) {
 
-                                      } else {
-                                        _this.ajaxRequest = null;
-                                        var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                                        handleSelectError(errorMessage, request, callback, options);
+                                        } else {
+                                          _this.ajaxRequest = null;
+                                          var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                                          handleSelectError(errorMessage, request, callback, options);
+                                        }
+                                      } finally {
+                                        selectOperationCounter--;
                                       }
                                     }
                                   });
@@ -1652,20 +2337,52 @@
 
     };
 
-    this.invoke = function(method, params, callback) {
+    this.invoke = function(method, params, callback, options) {
 
-      var request = { };
-
-      if (typeof params == 'function') {
+      if (br.isFunction(params)) {
+        options  = callback;
         callback = params;
-      } else {
-        request = params;
+        params   = {};
       }
 
-      _this.events.triggerBefore(method, request);
+      if (callback && !br.isFunction(callback)) {
+        options  = callback;
+        callback = undefined;
+      }
+
+      var request = params || { };
+
+      options = options || { };
+
+      var disableEvents = options && options.disableEvents;
+
+      if (!disableEvents) {
+        _this.events.triggerBefore('request', request, options);
+        _this.events.triggerBefore('invoke', request, options);
+        _this.events.triggerBefore(method, request, options);
+        disableEvents = options && options.disableEvents;
+      }
 
       if (this.options.crossdomain) {
         request.crossdomain = 'post';
+      }
+
+      if (options && options.dataSets) {
+        request.__dataSets = options.dataSets;
+      }
+
+      if (_this.clientUID) {
+        request.__clientUID = _this.clientUID;
+      }
+
+      if (options && options.clientUID) {
+        request.__clientUID = options.clientUID;
+      }
+
+      for(var paramName in request) {
+        if (request[paramName] === null) {
+          request[paramName] = 'null';
+        }
       }
 
       $.ajax({ type: this.options.crossdomain ? 'GET' : 'POST'
@@ -1766,11 +2483,172 @@
 
 })(jQuery, window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
+ *
+ */
+
+;(function ($, window) {
+
+  function BrTable(selector, options) {
+
+    var _this = this;
+    var table = $(selector);
+
+    _this.options = options || { };
+
+    $('thead', table).css('display', 'block');
+    $('tbody', table).css('display', 'block').css('overflow', 'auto');
+
+    $(table).css('border-bottom', '0px');
+
+    var headerCols = $(table).find('thead tr:first th');
+    var headerWidths = {};
+
+    var widthsSaved = false;
+
+    function getTableDmensions() {
+
+      var widestCellByInnerWidth = 0;
+      var widestCellByOuterWidth = 0;
+      var maxInnerWidth = 0;
+      var maxOuterWidth = 0;
+      var totalInnerWidth = 0;
+      var totalOuterWidth = 0;
+
+      table.find('tbody tr:first td').each(function(idx) {
+        var innerWidth = $(this).innerWidth();
+        var outerWidth = $(this).outerWidth();
+        totalInnerWidth += outerWidth;
+        totalOuterWidth += outerWidth;
+        if (innerWidth > maxInnerWidth) {
+          maxInnerWidth = innerWidth;
+          widestCellByInnerWidth = idx;
+        }
+        if (outerWidth > maxOuterWidth) {
+          maxOuterWidth = outerWidth;
+          widestCellByOuterWidth = idx;
+        }
+      });
+
+      var tableInnerWidth = $(table).innerWidth();
+      var tableOuterWidth = $(table).outerWidth();
+
+      var suggestedInnerWidth = totalInnerWidth - (totalInnerWidth - maxInnerWidth);
+      var suggestedOuterWidth = tableOuterWidth - (totalOuterWidth - maxOuterWidth);
+
+      return { widestCellByInnerWidth: widestCellByInnerWidth
+             , widestCellByOuterWidth: widestCellByInnerWidth
+             , suggestedInnerWidth: suggestedInnerWidth
+             , suggestedOuterWidth: suggestedOuterWidth
+             };
+
+    }
+
+    function update() {
+
+      var headerCols = $(table).find('thead tr:first th');
+
+      if (_this.options.autoHeight) {
+        var windowHeight = $(window).height();
+        var tbody        = $('tbody', table);
+        var thead        = $('thead', table);
+        var tbodyTop     = tbody.offset().top;
+        var tbodyHeight  = windowHeight - tbodyTop - 24;
+        $(tbody).height(tbodyHeight);
+      }
+
+      var bodyCols = $(table).find('tbody tr:first td');
+
+      if (bodyCols.length > 0) {
+
+        if (widthsSaved) {
+          headerCols.each(function(idx) {
+            $(this).outerWidth(headerWidths[idx]);
+          });
+        } else {
+          headerCols.each(function(idx) {
+            headerWidths[idx] = $(this).outerWidth();
+          });
+          widthsSaved = true;
+        }
+
+        var dimensinos = getTableDmensions();
+
+        $(bodyCols[dimensinos.widestCellByOuterWidth]).outerWidth(0);
+
+        bodyCols.each(function(idx) {
+          if (idx != dimensinos.widestCellByOuterWidth) {
+            var headerCol  = $(headerCols[idx]);
+            var outerWidth = $(this).outerWidth();
+            var width = Math.max(outerWidth, headerWidths[idx]);
+            $(this).outerWidth(width);
+            outerWidth = $(this).outerWidth();
+            width = Math.max(outerWidth, headerWidths[idx]);
+            headerCol.outerWidth(width);
+          }
+        });
+
+        dimensinos = getTableDmensions();
+
+        $(bodyCols[dimensinos.widestCellByOuterWidth]).outerWidth(dimensinos.suggestedOuterWidth);
+
+        bodyCols.each(function(idx) {
+          var headerCol  = $(headerCols[idx]);
+          var outerWidth = $(this).outerWidth();
+          headerCol.outerWidth(outerWidth);
+        });
+
+        $(table).find('img').on('load', function() {
+          if (!$(this).data('bright-fixed-table-loaded')) {
+            $(this).data('bright-fixed-table-loaded', true);
+            _this.update();
+          }
+        });
+
+      }
+
+    }
+
+    var updateTimer;
+
+    this.update = function() {
+      window.clearTimeout(updateTimer);
+      updateTimer = window.setTimeout(function() {
+        update();
+      }, 100);
+    };
+
+    $(window).on('resize', function() {
+      _this.update();
+    });
+
+    $(window).on('scroll', function() {
+      _this.update();
+    });
+
+    _this.update();
+
+    return this;
+
+  }
+
+  window.br = window.br || {};
+
+  window.br.table = function(selector, options) {
+    return new BrTable($(selector), options);
+  };
+
+})(jQuery, window);
+/*!
+ * Bright 1.0
+ *
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://brightfw.com
  *
  */
 
@@ -1781,18 +2659,40 @@
     var _this = this;
 
     this.selector = selector;
+
     this.options = options || {};
-    this.options.templates = this.options.templates || {};
-    this.options.templates.row = $(rowTemplate).html();
+
+    this.options.templates          = this.options.templates || {};
+
+    this.options.templates.noData   = this.options.templates.noData || '.data-empty-template';
+
+    this.options.templates.row      = $(rowTemplate).html();
     this.options.templates.groupRow = this.options.templates.groupRow ? $(this.options.templates.groupRow).html() : '';
-    this.options.templates.header = this.options.templates.header ? $(this.options.templates.header).html() : '';
-    this.options.templates.footer = this.options.templates.footer ? $(this.options.templates.footer).html() : '';
-    this.options.templates.noData = this.options.templates.noData ? $(this.options.templates.noData).html() : '';
+    this.options.templates.header   = this.options.templates.header   ? $(this.options.templates.header).html() : '';
+    this.options.templates.footer   = this.options.templates.footer   ? $(this.options.templates.footer).html() : '';
+    this.options.templates.noData   = this.options.templates.noData   ? $(this.options.templates.noData).html() : '';
+
+    this.options.templates.row      = this.options.templates.row      || '';
+    this.options.templates.groupRow = this.options.templates.groupRow || '';
+    this.options.templates.header   = this.options.templates.header   || '';
+    this.options.templates.footer   = this.options.templates.footer   || '';
+    this.options.templates.noData   = this.options.templates.noData   || '';
+
+    this.templates = {};
+
+    this.templates.row      = this.options.templates.row.length > 0      ? br.compile(this.options.templates.row)      : function() { return ''; };
+    this.templates.groupRow = this.options.templates.groupRow.length > 0 ? br.compile(this.options.templates.groupRow) : function() { return ''; };
+    this.templates.header   = this.options.templates.header.length > 0   ? br.compile(this.options.templates.header)   : function() { return ''; };
+    this.templates.footer   = this.options.templates.footer.length > 0   ? br.compile(this.options.templates.footer)   : function() { return ''; };
+    this.templates.noData   = this.options.templates.noData.length > 0   ? br.compile(this.options.templates.noData)   : function() { return ''; };
+
+    this.options.selectors          = this.options.selectors || {};
+
+    this.options.selectors.header   = this.options.selectors.header || this.options.headersSelector || this.selector;
+    this.options.selectors.footer   = this.options.selectors.footer || this.options.footersSelector || this.selector;
+    this.options.selectors.remove   = this.options.selectors.remove || this.options.deleteSelector  || '.action-delete';
+
     this.options.dataSource = dataSource;
-    this.options.selectors = this.options.selectors || {};
-    this.options.selectors.header = this.options.selectors.header || this.options.headersSelector || this.selector;
-    this.options.selectors.footer = this.options.selectors.footer || this.options.footersSelector || this.selector;
-    this.options.selectors.remove = this.options.selectors.remove || this.options.deleteSelector  || '.action-delete';
 
     this.dataSource = this.options.dataSource;
     this.storageTag = this.options.storageTag ? this.options.storageTag : document.location.pathname + ':' + this.dataSource.options.restServiceUrl;
@@ -1801,6 +2701,10 @@
     this.before = function(event, callback) { this.events.before(event, callback); };
     this.on     = function(event, callback) { this.events.on(event, callback); };
     this.after  = function(event, callback) { this.events.after(event, callback); };
+
+    if (this.options.fixedHeader) {
+      this.table = br.table($(this.selector).closest('table'), options);
+    }
 
     var noMoreData = false;
 
@@ -1821,6 +2725,12 @@
       _this.events.triggerAfter('change', data, 'remove');
     });
 
+    this.after('change', function() {
+      if (this.table) {
+        this.table.update();
+      }
+    });
+
     var disconnected = false;
 
     this.setStored = function(name, value) {
@@ -1831,6 +2741,10 @@
       return br.storage.get(this.storageTag + 'stored:' + name, defaultValue);
     };
 
+    this.isDisconnected = function() {
+      return disconnected;
+    };
+
     this.disconnectFromDataSource = function() {
       disconnected = true;
     };
@@ -1839,20 +2753,12 @@
       disconnected = false;
     };
 
-    this.renderHeader = function(data) {
+    this.renderHeader = function(data, asString) {
       data = _this.events.trigger('renderHeader', data) || data;
-      return $(br.fetch(_this.options.templates.header, data));
-    };
-
-    this.renderFooter = function(data) {
-      data = _this.events.trigger('renderFooter', data) || data;
-      return $(br.fetch(_this.options.templates.footer, data));
-    };
-
-    this.renderRow = function(data) {
-      data = _this.events.trigger('renderRow', data) || data;
-      var s = br.fetch(_this.options.templates.row, data);
-      s = s.trim();
+      var s = _this.templates.header(data);
+      if (asString) {
+        return s;
+      } else
       if (s.length > 0) {
         var result = $(s);
         result.data('data-row', data);
@@ -1862,11 +2768,49 @@
       }
     };
 
-    this.renderGroupRow = function(data) {
+    this.renderFooter = function(data, asString) {
+      data = _this.events.trigger('renderFooter', data) || data;
+      var s =  _this.templates.footer(data);
+      if (asString) {
+        return s;
+      } else
+      if (s.length > 0) {
+        var result = $(s);
+        result.data('data-row', data);
+        return result;
+      } else {
+        return null;
+      }
+    };
+
+    this.renderRow = function(data, asString) {
+      data = _this.events.trigger('renderRow', data) || data;
+      var s = _this.templates.row(data).trim();
+      if (asString) {
+        return s;
+      } else
+      if (s.length > 0) {
+        var result = $(s);
+        result.data('data-row', data);
+        return result;
+      } else {
+        return null;
+      }
+    };
+
+    this.renderGroupRow = function(data, asString) {
       data = _this.events.trigger('renderGroupRow', data) || data;
-      var result = $(br.fetch(_this.options.templates.groupRow, data));
-      result.data('data-row', data);
-      return result;
+      var s = _this.templates.groupRow(data).trim();
+      if (asString) {
+        return s;
+      } else
+      if (s.length > 0) {
+        var result = $(s);
+        result.data('data-row', data);
+        return result;
+      } else {
+        return null;
+      }
     };
 
     this.prepend = function(row) {
@@ -1885,7 +2829,7 @@
       return tableRow;
     };
 
-    this.addDataRow = function(row) {
+    this.addDataRow = function(row, disableEvents) {
       var tableRow = _this.renderRow(row);
       if (tableRow) {
         _this.events.triggerBefore('insert', row, tableRow);
@@ -1895,8 +2839,10 @@
         } else {
           _this.prepend(tableRow);
         }
-        _this.events.triggerAfter('renderRow', row, tableRow);
-        _this.events.triggerAfter('insert', row, tableRow);
+        if (!disableEvents) {
+          _this.events.triggerAfter('renderRow', row, tableRow);
+          _this.events.triggerAfter('insert', row, tableRow);
+        }
       }
       return tableRow;
     };
@@ -1915,8 +2861,18 @@
       }
       options = options || { };
       options.disableEvents = true;
-      _this.dataSource.selectOne(rowid, function(result, response) {
-        if (result) {
+      options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
+      var filter;
+      if (br.isObject(rowid)) {
+        filter = rowid;
+      } else {
+        filter = { rowid: rowid };
+      }
+      _this.dataSource.select(filter, function(result, response) {
+        if (!result || (response.length === 0)) {
+          _this.refresh(callback);
+        } else {
+          response = response[0];
           if (_this.refreshRow(response, options)) {
 
           } else {
@@ -1933,47 +2889,54 @@
     function checkForEmptyGrid() {
       if (_this.isEmpty()) {
         _this.events.triggerBefore('nodata');
-        $(_this.selector).html(_this.options.templates.noData);
+        $(_this.selector).html(_this.templates.noData());
         _this.events.trigger('nodata');
         _this.events.triggerAfter('nodata');
       }
     }
 
-    this.removeRow = function(rowid) {
-      var row = $(_this.selector).find('[data-rowid=' + rowid + ']');
+    this.removeRow = function(rowid, options) {
+      var filter = '[data-rowid=' + rowid + ']';
+      options = options || {};
+      options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
+      if (options.refreshSelector) {
+        filter = options.refreshSelector + filter;
+      }
+      var row = $(_this.selector).find(filter);
       if (row.length > 0) {
         _this.events.triggerBefore('remove', rowid);
         _this.events.trigger('remove', rowid, row);
         row.remove();
         checkForEmptyGrid();
         _this.events.triggerAfter('remove', rowid, row);
-      } else {
+      } else
+      if (!_this.options.singleRowMode) {
         _this.dataSource.select();
       }
     };
 
-    this.refresh = function(callback) {
-      _this.dataSource.select(function() {
-        if (callback) {
-          callback();
-        }
+    this.load = this.refresh = function(callback) {
+      _this.dataSource.select(function(result, response) {
+        if (typeof callback == 'function') { callback.call(_this, result, response); }
       });
     };
 
     this.refreshRow = function(data, options) {
       var filter = '[data-rowid=' + data.rowid + ']';
-      if (options && options.refreshSelector) {
+      options = options || {};
+      options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
+      if (options.refreshSelector) {
         filter = options.refreshSelector + filter;
       }
       var row = $(_this.selector).find(filter);
       if (row.length > 0) {
         var tableRow = _this.renderRow(data);
         if (tableRow) {
+          tableRow.data('data-row', data);
           _this.events.triggerBefore('update', data);
-          var $row0 = $(row[0]);
-          _this.events.trigger('update', data, $row0);
-          $row0.replaceWith(tableRow);
-          $row0.data('data-row', data);
+          _this.events.trigger('update', data, row);
+          $(row[0]).before(tableRow);
+          row.remove();
           _this.events.triggerAfter('renderRow', data, tableRow);
           _this.events.triggerAfter('update', data, tableRow);
           return true;
@@ -1983,47 +2946,6 @@
       } else {
         return false;
       }
-    };
-
-    this.getOrder = function() {
-      var order = _this.getOrderAndGroup();
-      var result = {};
-      if (br.isArray(order)) {
-        for(var i = 0; i < order.length; i++) {
-          if (order[i].asc) {
-            result[order[i].fieldName] = 1;
-          } else {
-            result[order[i].fieldName] = -1;
-          }
-        }
-      }
-      return result;
-    };
-
-    this.setOrder = function(order) {
-      var orderAndGroup = [];
-      for(var name in order) {
-        orderAndGroup.push({ fieldName: name, asc: order[name] > 0, group: false, index: orderAndGroup.length });
-      }
-      return order;
-    };
-
-    this.setOrderAndGroup = function(order) {
-      br.storage.set(this.storageTag + 'orderAndGroup', order);
-      return order;
-    };
-
-    this.getOrderAndGroup = function() {
-      var result = br.storage.get(this.storageTag + 'orderAndGroup', []);
-      if (br.isEmpty(result) || !br.isArray(result)) {
-        result = [];
-      }
-      return result;
-    };
-
-    this.isOrderConfigured = function() {
-      var orderAndGroup = _this.getOrderAndGroup();
-      return br.isArray(orderAndGroup) && (orderAndGroup.length > 0);
     };
 
     this.loadMore = function(callback) {
@@ -2053,43 +2975,93 @@
       return result;
     };
 
-    this.init = function() {
+    this.isOrderConfigured = function() {
+      var orderAndGroup = _this.getOrderAndGroup();
+      return br.isArray(orderAndGroup) && (orderAndGroup.length > 0);
+    };
 
-      var savedOrder = _this.getOrderAndGroup();
-      if (!br.isArray(savedOrder) || (savedOrder.length === 0)) {
-        if (_this.options.defaultOrderAndGroup) {
-          _this.setOrderAndGroup(_this.options.defaultOrderAndGroup);
-        }
-      }
+    function saveOrderAndGroup(orderAndGroup) {
+      br.storage.set(_this.storageTag + 'orderAndGroup', orderAndGroup);
+      return orderAndGroup;
+    }
 
-      function showOrder(orderAndGroup) {
-        for(var i = 0; i < orderAndGroup.length; i++) {
-          var ctrl = $('.sortable[data-field="' + orderAndGroup[i].fieldName + '"].' + (orderAndGroup[i].asc ? 'order-asc' : 'order-desc'), $(_this.options.selectors.header));
-          ctrl.addClass('icon-white').addClass('icon-border');
-          var idx = ctrl.parent().find('div.br-sort-index');
-          if (orderAndGroup.length > 1) {
-            if (idx.length > 0) {
-              idx.text(i + 1);
-            } else {
-              ctrl.parent().append($('<div class="br-sort-index">' + (i + 1) + '</div>'));
-            }
+    function showOrder(orderAndGroup) {
+      for(var i = 0; i < orderAndGroup.length; i++) {
+        var ctrl = $('.sortable[data-field="' + orderAndGroup[i].fieldName + '"].' + (orderAndGroup[i].asc ? 'order-asc' : 'order-desc'), $(_this.options.selectors.header));
+        ctrl.addClass('icon-white').addClass('icon-border').addClass('fa-border');
+        var idx = ctrl.parent().find('div.br-sort-index');
+        if (orderAndGroup.length > 1) {
+          if (idx.length > 0) {
+            idx.text(i + 1);
+          } else {
+            ctrl.parent().append($('<div class="br-sort-index">' + (i + 1) + '</div>'));
           }
         }
       }
+    }
+
+    this.getOrder = function() {
+      var order = _this.getOrderAndGroup();
+      var result = {};
+      if (br.isArray(order)) {
+        for(var i = 0; i < order.length; i++) {
+          if (order[i].asc) {
+            result[order[i].fieldName] = 1;
+          } else {
+            result[order[i].fieldName] = -1;
+          }
+        }
+      }
+      return result;
+    };
+
+    this.setOrder = function(order, callback) {
+      var orderAndGroup = [];
+      for(var name in order) {
+        orderAndGroup.push({ fieldName: name, asc: order[name] > 0, group: false, index: orderAndGroup.length });
+      }
+      _this.setOrderAndGroup(orderAndGroup, callback);
+    };
+
+    this.getOrderAndGroup = function() {
+      var result = br.storage.get(this.storageTag + 'orderAndGroup', []);
+      if (br.isEmpty(result) || !br.isArray(result) || (result.length === 0)) {
+        if (_this.options.defaultOrderAndGroup) {
+          result = _this.options.defaultOrderAndGroup;
+        } else {
+          result = [];
+        }
+      }
+      return result;
+    };
+
+    this.setOrderAndGroup = function(orderAndGroup, callback) {
+      saveOrderAndGroup(orderAndGroup);
+      showOrder(orderAndGroup);
+      _this.events.triggerBefore('changeOrder', orderAndGroup);
+      if (callback) {
+        _this.dataSource.select(function(result, response) {
+          if (typeof callback == 'function') { callback.call(_this, result, response); }
+        });
+      }
+      return orderAndGroup;
+    };
+
+    this.init = function() {
 
       showOrder(_this.getOrderAndGroup());
 
       $(this.options.selectors.header).on('click', '.sortable', function(event) {
-        var sorted = ($(this).hasClass('icon-white') || $(this).hasClass('icon-border'));
+        var sorted = ($(this).hasClass('icon-white') || $(this).hasClass('icon-border') || $(this).hasClass('fa-border'));
         if (!event.metaKey) {
-          $('.sortable', $(_this.options.selectors.header)).removeClass('icon-white').removeClass('icon-border');
+          $('.sortable', $(_this.options.selectors.header)).removeClass('icon-white').removeClass('icon-border').removeClass('fa-border');
           $('.br-sort-index', $(_this.options.selectors.header)).remove();
         }
         if (sorted) {
-          $(this).removeClass('icon-white').removeClass('icon-border');
+          $(this).removeClass('icon-white').removeClass('icon-border').removeClass('fa-border');
         } else {
-          $(this).siblings('i').removeClass('icon-white').removeClass('icon-border');
-          $(this).addClass('icon-white').addClass('icon-border');
+          $(this).siblings('i').removeClass('icon-white').removeClass('icon-border').removeClass('fa-border');
+          $(this).addClass('icon-white').addClass('icon-border').addClass('fa-border');
         }
         var orderAndGroup;
         var fieldName = $(this).attr('data-field');
@@ -2109,10 +3081,7 @@
         if (!sorted) {
           orderAndGroup.push(newOrder);
         }
-        showOrder(orderAndGroup);
-        _this.setOrderAndGroup(orderAndGroup);
-        _this.events.triggerBefore('changeOrder', orderAndGroup);
-        _this.dataSource.select();
+        _this.setOrderAndGroup(orderAndGroup, true);
       });
 
       if (_this.dataSource) {
@@ -2145,15 +3114,16 @@
         });
 
         _this.dataSource.on('update', function(data) {
-          if (_this.refreshRow(data)) {
+          if (_this.refreshRow(data, _this.options)) {
 
-          } else {
+          } else
+          if (!_this.options.singleRowMode) {
             _this.dataSource.select();
           }
         });
 
         _this.dataSource.on('remove', function(rowid) {
-          _this.removeRow(rowid);
+          _this.removeRow(rowid, _this.options);
         });
 
         if (this.options.selectors.remove) {
@@ -2169,6 +3139,26 @@
                             }
                           );
               }
+            }
+          });
+        }
+
+        if (br.isString(_this.selector)) {
+          br.editable(_this.selector + ' .editable', function(content) {
+            var $this = $(this);
+            var rowid = $this.closest('[data-rowid]').attr('data-rowid');
+            var dataField = $this.attr('data-field');
+            if (!br.isEmpty(rowid) && !br.isEmpty(dataField)) {
+              var data = {};
+              data[dataField] = content;
+              _this.dataSource.update( rowid
+                                     , data
+                                     , function(result, response) {
+                                         if (result) {
+                                           _this.events.trigger('editable.update', $this, content);
+                                         }
+                                       }
+                                     );
             }
           });
         }
@@ -2191,14 +3181,20 @@
           if (data.headers) {
             for (i in data.headers) {
               if (data.headers[i]) {
-                $(_this.options.selectors.header).append(_this.renderHeader(data.headers[i]));
+                tableRow = _this.renderHeader(data.headers[i]);
+                if (tableRow) {
+                  $(_this.options.selectors.header).append(tableRow);
+                }
               }
             }
           }
           if (data.footers) {
             for (i in data.footers) {
               if (data.footers[i]) {
-                $(_this.options.selectors.footer).append(_this.renderFooter(data.headers[i]));
+                tableRow = _this.renderFooter(data.headers[i]);
+                if (tableRow) {
+                  $(_this.options.selectors.footer).append(tableRow);
+                }
               }
             }
           }
@@ -2206,7 +3202,7 @@
           $(_this.options.selectors.footer).html('');
           if (data.rows) {
             if (data.rows.length === 0) {
-              $selector.html(this.options.templates.noData);
+              $selector.html(_this.templates.noData());
             } else {
               for (i in data.rows) {
                 if (data.rows[i]) {
@@ -2217,16 +3213,22 @@
                     }
                   }
                   if (data.rows[i].header) {
-                    $(_this.options.selectors.header).append(_this.renderHeader(data.rows[i].header));
+                    tableRow = _this.renderHeader(data.rows[i].header);
+                    if (tableRow) {
+                      $(_this.options.selectors.header).append(tableRow);
+                    }
                   }
                   if (data.rows[i].footer) {
-                    $(_this.options.selectors.footer).append(_this.renderFooter(data.rows[i].footer));
+                    tableRow = _this.renderFooter(data.rows[i].footer);
+                    if (tableRow) {
+                      $(_this.options.selectors.footer).append(tableRow);
+                    }
                   }
                 }
               }
             }
           } else {
-            $selector.html(this.options.templates.noData);
+            $selector.html(_this.templates.noData());
           }
         } else {
           if (data && (data.length > 0)) {
@@ -2255,7 +3257,11 @@
                       tmp.__groupBy.__field = groupFieldName;
                       tmp.__groupBy.__value = data[i][groupFieldName];
                       tmp.__groupBy[groupFieldName] = true;
-                      $selector.append(_this.renderGroupRow(tmp));
+                      tableRow = _this.renderGroupRow(tmp);
+                      if (tableRow) {
+                        $selector.append(tableRow);
+                        _this.events.triggerAfter('renderGroupRow', data[i], tableRow);
+                      }
                     }
                   }
                 }
@@ -2268,11 +3274,11 @@
             }
           } else
           if (!loadingMoreData) {
-            $selector.html(this.options.templates.noData);
+            $selector.html(_this.templates.noData());
           }
         }
       } else {
-        $selector.html(this.options.templates.noData);
+        $selector.html(_this.templates.noData());
       }
       _this.events.trigger('change', data, 'render');
       _this.events.triggerAfter('change', data, 'render');
@@ -2290,11 +3296,11 @@
 
 })(jQuery, window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -2325,8 +3331,7 @@
     this.options.fields                    = this.options.fields || {};
     this.options.saveSelection             = this.options.saveSelection || false;
     this.options.saveToSessionStorage      = this.options.saveToSessionStorage || false;
-    this.options.selectedValueField        = this.options.selectedValueField || null;
-    this.options.lookup_minimumInputLength = this.options.lookup_minimumInputLength || 0;
+    this.options.lookup_minimumInputLength = this.options.lookup_minimumInputLength || 1;
 
     if (this.options.skipTranslate) {
       this.selector.addClass('skiptranslate');
@@ -2400,6 +3405,8 @@
       }
     }
 
+    var requestTimer;
+
     function switchToSelect2() {
       var selectLimit = 50;
 
@@ -2408,6 +3415,9 @@
           return;
         } else {
           var params = {};
+          if (_this.options.hideSearchBox) {
+            params.minimumResultsForSearch = -1;
+          }
           if (_this.options.skipTranslate) {
             params.dropdownCssClass = 'skiptranslate';
           }
@@ -2422,22 +3432,27 @@
             params.allowClear  = true;
             params.placeholder = _this.options.emptyName;
             params.query = function (query) {
+              window.clearTimeout(requestTimer);
               var request = { };
               request.keyword = query.term;
-              _this.dataSource.select(request, function(result, response) {
-                if (result) {
-                  var data = { results: [] };
-                  for(var i = 0; i < response.length; i++) {
-                    data.results.push({ id:   response[i][_this.options.valueField]
-                                      , text: getName(response[i])
-                                      });
-                  }
-                  query.callback(data);
+              requestTimer = window.setTimeout(function() {
+                if (query.term) {
+                  _this.dataSource.select(request, function(result, response) {
+                    if (result) {
+                      var data = { results: [] };
+                      for(var i = 0; i < response.length; i++) {
+                        data.results.push({ id:   response[i][_this.options.valueField]
+                                          , text: getName(response[i])
+                                          });
+                      }
+                      query.callback(data);
+                    }
+                  }, { limit: selectLimit
+                     , skip: (query.page - 1) * selectLimit
+                     }
+                  );
                 }
-              }, { limit: selectLimit
-                 , skip: (query.page - 1) * selectLimit
-                 }
-              );
+              }, 300);
             };
           }
           _this.selector.select2(params);
@@ -2465,7 +3480,7 @@
       }
     };
 
-    this.val = function(value) {
+    this.val = function(value, callback) {
       if (value !== undefined) {
         if (_this.options.saveSelection) {
           if (_this.options.saveToSessionStorage) {
@@ -2478,21 +3493,41 @@
           _this.selector.val(value);
           switchToSelect2();
           if (_this.options.lookupMode) {
-            var data = { id: value, text: value };
-            _this.selector.select2('data', data);
-            _this.dataSource.selectOne(value, function(result, response) {
-              if (result) {
-                data = { id: response[_this.options.valueField]
-                       , text: getName(response)
-                       };
-                _this.selector.select2('data', data);
+            if (value) {
+              var data = { id: value, text: value };
+              var request = { rowid: value };
+              _this.selector.select2('data', data);
+              var options = { disableEvents: true };
+              _this.dataSource.events.triggerBefore('selectByRowid', request, options);
+              _this.dataSource.select(request, function(result, response) {
+                if (result) {
+                  if (response.length > 0) {
+                    response = response[0];
+                    data = { id: response[_this.options.valueField]
+                           , text: getName(response)
+                           };
+                    _this.selector.select2('data', data);
+                  }
+                }
+                if (callback) {
+                  callback.call(_this.selector, result, response);
+                }
+              }, options);
+            } else {
+              _this.selector.select2('data', null);
+              if (callback) {
+                callback.call(_this.selector, true, value);
               }
-            });
+            }
+          } else {
+            if (callback) {
+              callback.call(_this.selector, true, value);
+            }
           }
         }
       }
       if (_this.isValid()) {
-        var val =_this.selector.val();
+        var val = _this.selector.val();
         if (val !== null) {
           return val;
         } else {
@@ -2560,6 +3595,7 @@
 
       currentData = data;
 
+
       if (!_this.options.lookupMode) {
 
         if (_this.options.saveSelection) {
@@ -2624,8 +3660,6 @@
 
         });
 
-        switchToSelect2();
-
       }
 
     }
@@ -2646,6 +3680,8 @@
               callback.call(_this.selector, result, response);
             }
             switchToSelect2();
+            _this.loaded = true;
+            _this.events.trigger('load', []);
           } else {
             _this.dataSource.select(filter, function(result, response) {
               if (result) {
@@ -2674,6 +3710,7 @@
           if (!_this.options.lookupMode) {
             render(data);
           }
+          switchToSelect2();
         }
         _this.events.trigger('load', data);
       });
@@ -2682,8 +3719,8 @@
         if (result && _this.isValid()) {
           if (!_this.options.lookupMode) {
             _this.selector.append($(renderRow(data)));
-            switchToSelect2();
           }
+          switchToSelect2();
         }
         _this.events.trigger('change');
       });
@@ -2693,9 +3730,9 @@
           if (!_this.options.lookupMode) {
             if (data[_this.options.valueField]) {
               _this.selector.find('option[value=' + data[_this.options.valueField] +']').text(getName(data));
-              switchToSelect2();
             }
           }
+          switchToSelect2();
         }
         _this.events.trigger('change');
       });
@@ -2705,31 +3742,32 @@
           if (!_this.options.lookupMode) {
             if (data[_this.options.valueField]) {
               _this.selector.find('option[value=' + data[_this.options.valueField] +']').remove();
-              switchToSelect2();
             }
           }
+          switchToSelect2();
         }
         _this.events.trigger('change');
       });
 
-    } else {
+    }
 
-      if (_this.options.saveSelection) {
-        if (_this.options.saveToSessionStorage) {
-          _this.options.selectedValue = br.session.get(storageTag(_this.selector));
-        } else {
-          _this.options.selectedValue = br.storage.get(storageTag(_this.selector));
-        }
-        if (!br.isEmpty(_this.options.selectedValue)) {
-          _this.val(_this.options.selectedValue);
-        }
+    if (_this.options.saveSelection && (!_this.dataSource || _this.options.lookupMode)) {
+
+      if (_this.options.saveToSessionStorage) {
+        _this.options.selectedValue = br.session.get(storageTag(_this.selector));
+      } else {
+        _this.options.selectedValue = br.storage.get(storageTag(_this.selector));
       }
 
-      switchToSelect2();
+      if (!br.isEmpty(_this.options.selectedValue)) {
+        _this.val(_this.options.selectedValue);
+      }
 
     }
 
-    _this.selector.change(function() {
+    switchToSelect2();
+
+    _this.selector.on('change', function() {
       if (_this.options.saveSelection) {
         if (_this.options.saveToSessionStorage) {
           br.session.set(storageTag(this), $(this).val());
@@ -2749,32 +3787,15 @@
 
   window.br.dataCombo = function (selector, dataSource, options) {
     return new BrDataCombo(selector, dataSource, options);
-    // var result = [];
-    // $(selector).each(function() {
-    //   var obj = $(this).data('BrDataCombo');
-    //   if (obj) {
-    //     result.push(obj);
-    //   } else {
-    //     result.push(new BrDataCombo($(this), dataSource, options));
-    //   }
-    // });
-    // switch(result.length) {
-    //   case 0:
-    //     return new BrDataCombo(selector, dataSource, options);
-    //   case 1:
-    //     return result[0];
-    //   default:
-    //     return result[0];
-    // }
   };
 
 })(jQuery, window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -2787,9 +3808,7 @@
     if (br.isFunction(options)) {
       options = { onSave: options };
     }
-    options = options || {};
-    _this.options = options;
-    _this.options.popover_placement = _this.ctrl.attr('data-popover-placement') || 'bottom';
+    _this.options = options || {};
     _this.editor = null;
     _this.savedWidth = '';
     _this.click = function(element, e) {
@@ -2802,11 +3821,15 @@
         }
         _this.ctrl.data('brEditable-original-html', _this.ctrl.html());
         _this.ctrl.data('brEditable-original-width', _this.ctrl.css('width'));
-        var width = _this.ctrl.innerWidth();
-        var height = _this.ctrl.innerHeight();
         _this.ctrl.text('');
-        _this.editor = $('<input type="text" />');
+        var isTextarea = (_this.ctrl.attr('data-editable-type') == 'textarea');
+        if (isTextarea) {
+          _this.editor = $('<textarea rows="3"></textarea>');
+        } else {
+          _this.editor = $('<input type="text" />');
+        }
         _this.editor.addClass('form-control');
+        _this.editor.addClass('br-editable-control');
         _this.editor.css('width', '100%');
         _this.editor.css('height', '100%');
         _this.editor.css('min-height', '30px');
@@ -2826,46 +3849,22 @@
           content = _this.options.onGetContent.call(_this.ctrl, _this.editor, content);
         }
         _this.editor.val(content);
-        _this.ctrl.css('width', width - 10);
-        _this.editor.focus();
-        $('div.popover').remove();
-        if (!_this.options.hideHint) {
-          if (_this.options.saveOnLoosingFocus) {
-            _this.editor.popover({placement: _this.options.popover_placement, animation: false, trigger: 'manual', content: 'WARNING!!! Changes will be saved after leaving input box, by pressing [Enter], or by pressing [Tab]. Press [Esc] to cancel changes.'});
-          } else {
-            _this.editor.popover({placement: _this.options.popover_placement, animation: false, trigger: 'manual', content: 'Press [Enter] to save changes, [Esc] to cancel changes.'});
-          }
-        }
-        _this.editor.popover('show');
-        if (_this.options.saveOnLoosingFocus) {
-          $(_this.editor).on('keydown', function(e) {
-            if (e.keyCode == 9) {
-              var content = $(this).val();
-              $('div.popover').remove();
-              if (_this.options.onSave) {
-                _this.options.onSave.call(_this.ctrl, content, 'keyup');
-              } else {
-                _this.apply(content);
-              }
-              e.stopPropagation();
-              e.preventDefault();
-            }
-          });
-          $(_this.editor).on('blur', function(e) {
-            $('div.popover').remove();
-            var content = $(this).val();
+        _this.editor.on('keydown', function(e) {
+          if (e.keyCode == 9) {
+            var content = _this.editor.val();
             if (_this.options.onSave) {
-              _this.options.onSave.call(_this.ctrl, content, 'blur');
+              _this.options.onSave.call(_this.ctrl, content, 'keyup');
             } else {
               _this.apply(content);
             }
-          });
-        }
-        $(_this.editor).on('keyup', function(e) {
-          var content = $(this).val();
+            e.stopPropagation();
+            e.preventDefault();
+          }
+        });
+        _this.editor.on('keyup', function(e) {
+          var content = _this.editor.val();
           switch (e.keyCode) {
             case 13:
-              $('div.popover').remove();
               if (_this.options.onSave) {
                 _this.options.onSave.call(_this.ctrl, content, 'keyup');
               } else {
@@ -2874,36 +3873,72 @@
               e.stopPropagation();
               break;
             case 27:
-              $('div.popover').remove();
               _this.cancel();
               e.stopPropagation();
               break;
           }
         });
+        _this.editor.on('blur', function(e) {
+          var ok = true;
+          if (_this.options.onBlur) {
+            ok = _this.options.onBlur.call(_this.ctrl, e);
+          }
+          if (ok) {
+            var content = _this.editor.val();
+            if (_this.options.onSave) {
+              _this.options.onSave.call(_this.ctrl, content, 'blur');
+            } else {
+              _this.apply(content);
+            }
+          }
+        });
+        _this.editor.focus();
       }
+    };
+
+    _this.get = function() {
+      return _this;
     };
 
     _this.activated = function() {
       return _this.editor !== null;
     };
 
-    _this.apply = function(content) {
-      $('div.popover').remove();
-      _this.editor.remove();
-      _this.editor = null;
-      _this.ctrl.html(content);
-      if (typeof _this.ctrl.attr('data-editable') != 'undefined') {
-        _this.ctrl.attr('data-editable', content);
+    _this.save = function(content) {
+      if (_this.editor) {
+        if (content === undefined) {
+          content = _this.editor.val();
+        }
+        if (_this.options.onSave) {
+          _this.options.onSave.call(_this.ctrl, content, 'blur');
+        } else {
+          _this.apply(content);
+        }
       }
-      _this.ctrl.css('width', '');
+    };
+
+    _this.apply = function(content) {
+      if (_this.editor) {
+        if (content === undefined) {
+          content = _this.editor.val();
+        }
+        _this.editor.remove();
+        _this.editor = null;
+        _this.ctrl.html(content);
+        if (typeof _this.ctrl.attr('data-editable') != 'undefined') {
+          _this.ctrl.attr('data-editable', content);
+        }
+        _this.ctrl.css('width', '');
+      }
     };
 
     _this.cancel = function() {
-      $('div.popover').remove();
-      _this.editor.remove();
-      _this.editor = null;
-      _this.ctrl.html(_this.ctrl.data('brEditable-original-html'));
-      _this.ctrl.css('width', '');
+      if (_this.editor) {
+        _this.editor.remove();
+        _this.editor = null;
+        _this.ctrl.html(_this.ctrl.data('brEditable-original-html'));
+        _this.ctrl.css('width', '');
+      }
     };
 
   }
@@ -2911,16 +3946,31 @@
   window.br = window.br || {};
 
   window.br.editable = function(selector, callback, value) {
-    if ($('#br_editablePopover').length === 0) {
-      $('body').append($('<div id="br_editablePopover"></div>'));
-    }
     if (typeof callback == 'string') {
-      var data = $(selector).data('brEditable-editable');
-      if (!data) {
-        $(selector).data('brEditable-editable', (data = new BrEditable($(selector), callback)));
+      if ($(selector).hasClass('br-editable-control')) {
+        selector = $(selector).parent();
       }
-      if (data) {
-        data[callback](value);
+      var data = $(selector).data('brEditable-editable');
+      switch (callback) {
+        case 'exists':
+          if (data) {
+            return true;
+          } else {
+            return false;
+          }
+          break;
+        case 'get':
+        case 'apply':
+        case 'save':
+        case 'cancel':
+        case 'click':
+          if (!data) {
+            $(selector).data('brEditable-editable', (data = new BrEditable($(selector), callback)));
+          }
+          if (data) {
+            return data[callback](value);
+          }
+          break;
       }
     } else {
       $(document).on('click', selector, function(e) {
@@ -2935,13 +3985,15 @@
 
 })(jQuery, window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
+
+/* jshint scripturl:true */
 
 ;(function ($, window) {
 
@@ -3057,8 +4109,10 @@
               '</label>';
     }
     if (br.isEmpty(buttons)) {
-      var yesTitle = options.yesTitle || br.trn('Yes');
-      s = s + '<a href="javascript:;" class="btn btn-sm btn-primary action-confirm-close" rel="confirm">&nbsp;' + yesTitle + '&nbsp;</a>';
+      var yesTitle    = options.yesTitle || br.trn('Yes');
+      var yesLink     = options.yesLink || 'javascript:;';
+      var targetBlank = options.yesLink && !options.targetSamePage;
+      s = s + '<a href="' + yesLink + '" ' + (targetBlank ? 'target="_blank"' : '') + ' class="btn btn-sm btn-primary action-confirm-close" rel="confirm">&nbsp;' + yesTitle + '&nbsp;</a>';
     } else {
       for(i in buttons) {
         s = s + '<a href="javascript:;" class="btn btn-sm btn-default action-confirm-close" rel="' + i + '">&nbsp;' + buttons[i] + '&nbsp;</a>';
@@ -3150,9 +4204,30 @@
 
   };
 
-  window.br.error = function(title, message, callback) {
+  window.br.error = function(title, message, callback, options) {
 
-    var s = '<div class="modal modal-autosize" id="br_modalError"';
+    if (callback) {
+      if (typeof callback != 'function') {
+        options  = callback;
+        callback = null;
+      }
+    }
+
+    options = options || {};
+
+    var buttonTitle = options.buttonTitle || 'Dismiss';
+
+    if ($('#br_modalError').length > 0) {
+      var currentMessage = $('#br_modalError .modal-body').html();
+      if (currentMessage.indexOf(message) == -1) {
+        message = message + '<br /><br />' + currentMessage;
+      }
+      $('#br_modalError').off('hide.bs.modal');
+      $('#br_modalError').modal('hide');
+      $('#br_modalError').remove();
+    }
+
+    var s = '<div class="modal modal-autosize" id="br_modalError" data-backdrop="static"';
     if (br.bootstrapVersion == 2) {
       s = s + ' style="top:20px;margin-top:0px;"';
     }
@@ -3164,7 +4239,7 @@
     }
     s = s + '<div class="modal-body" style="overflow-y:auto;">' + message + '</div>' +
             '<div class="modal-footer" style="background-color:red;">';
-    s = s + '<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn('Dismiss') + '&nbsp;</a><';
+    s = s + '<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn(buttonTitle) + '&nbsp;</a><';
     s = s + '/div></div></div></div>';
     var dialog = $(s);
 
@@ -3204,9 +4279,20 @@
     }
 
     options = options || {};
+
     var buttonTitle = options.buttonTitle || 'Dismiss';
 
-    var s = '<div class="modal modal-autosize" id="br_modalInform"';
+    if ($('#br_modalInform').length > 0) {
+      var currentMessage = $('#br_modalInform .modal-body').html();
+      if (currentMessage.indexOf(message) == -1) {
+        message = message + '<br /><br />' + currentMessage;
+      }
+      $('#br_modalInform').off('hide.bs.modal');
+      $('#br_modalInform').modal('hide');
+      $('#br_modalInform').remove();
+    }
+
+    var s = '<div class="modal modal-autosize" id="br_modalInform" data-backdrop="static"';
     if (br.bootstrapVersion == 2) {
       s = s + ' style="top:20px;margin-top:0px;"';
     }
@@ -3272,14 +4358,16 @@
       options.onHide = options.onhide;
     }
 
-    var s = '<div class="modal modal-autosize" id="br_modalPrompt"';
+    // $('#br_modalPrompt').remove();
+
+    var s = '<div class="modal modal-autosize" id="br_modalPrompt" data-backdrop="static"';
     if (br.bootstrapVersion == 2) {
       s = s + ' style="top:20px;margin-top:0px;"';
     }
     s = s + '>' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">' +
-            '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>' + title + '</h3></div>' +
+            '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>' +
             '<div class="modal-body" style="overflow-y:auto;">';
     for(var i in inputs) {
       if (br.isObject(inputs[i])) {
@@ -3308,7 +4396,6 @@
 
     var onShown = function(e) {
       $(this).find('input[type=text]')[0].focus();
-      br.log($(this).find('input[type=text]')[0]);
     };
 
     var onShow = function(e) {
@@ -3381,15 +4468,28 @@
 
   var noTemplateEngine = false;
 
+  window.br.compile = function(template) {
+    if (template) {
+      if (typeof window.Mustache == 'undefined') {
+        if (typeof window.Handlebars == 'undefined') {
+          throw 'Template engine not linked';
+        } else {
+          return Handlebars.compile(template);
+        }
+      } else {
+        return function(data) { return Mustache.render(template, data); };
+      }
+    } else {
+      throw 'Empty template';
+    }
+  };
+
   window.br.fetch = function(template, data, tags) {
     data = data || {};
     if (template) {
       if (typeof window.Mustache == 'undefined') {
         if (typeof window.Handlebars == 'undefined') {
-          if (!noTemplateEngine) {
-            noTemplateEngine = true;
-            this.showError('Template engine not found. Please link bright/3rdparty/mustache.js or bright/3rdparty/handlebars.js.');
-          }
+          throw 'Template engine not linked';
         } else {
           var t = Handlebars.compile(template);
           return t(data);
@@ -3456,14 +4556,27 @@
                             '  </div>' +
                             '</div>';
 
+
+  function fileSize(size) {
+    var i = Math.floor(Math.log(size) / Math.log(1024));
+    return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' '+['B', 'kB', 'MB', 'GB', 'TB'][i];
+  }
+
+  var currentProgressType;
+
   function renderProgress() {
     var p = Math.round(progressBar_Progress * 100 / progressBar_Total);
     $('#br_progressBar_Bar').css('width', p + '%');
     $('#br_progressMessage').text(progressBar_Message);
-    $('#br_progressStage').text(progressBar_Progress + ' of ' + progressBar_Total);
+    if (currentProgressType == 'upload') {
+      $('#br_progressStage').text(fileSize(progressBar_Progress) + ' of ' + fileSize(progressBar_Total));
+    } else {
+      $('#br_progressStage').text(progressBar_Progress + ' of ' + progressBar_Total);
+    }
   }
 
-  window.br.startProgress = function(value, message) {
+  window.br.startProgress = function(value, message, progressType) {
+    currentProgressType = progressType;
     if (!br.isNumber(value)) {
       message = value;
       value = 0;
@@ -3684,9 +4797,20 @@
 
   };
 
+  if (typeof window.Handlebars == 'object') {
+    Handlebars.registerHelper('if_eq', function(a, b, opts) {
+      if (a === b) {
+        return opts.fn(this);
+      } else {
+        return opts.inverse(this);
+      }
+    });
+  }
+
   $(document).ready(function() {
 
     var notAuthorized = false;
+
 
     if ($.fn['modal']) {
       if ($.fn['modal'].toString().indexOf('bs.modal') == -1) {
@@ -3696,6 +4820,10 @@
       }
     } else {
       br.bootstrapVersion = 0;
+    }
+
+    if (br.bootstrapVersion == 2) {
+      $.fn.modal.Constructor.prototype.enforceFocus = function () {};
     }
 
     $(document).ajaxStart(function() {
@@ -3748,11 +4876,11 @@
 
 })(jQuery, window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -3760,7 +4888,11 @@
 
   window.br = window.br || {};
 
-  var callbacks = [];
+  var clipboardCallbacks = [];
+
+  window.br.onPaste = function(callback) {
+    clipboardCallbacks.push(callback);
+  };
 
   $(document).ready(function() {
     $('body').on('paste', function(evt) {
@@ -3768,7 +4900,14 @@
       var result = { data: { }, dataType: '', dataSubType: '', dataValue: '' };
       evt = evt.originalEvent;
 
-      function loadFile(result, file) {
+      function notify(evt, result) {
+        br.events.trigger('paste', evt, result);
+        for(var i = 0; i < clipboardCallbacks.length; i++) {
+          clipboardCallbacks[i].call(evt, result);
+        }
+      }
+
+      function loadFile(result, file, originalEvt, onerror) {
         var reader = new FileReader();
         reader.onload = function(evt) {
           var parts = /^data[:](.+?)\/(.+?);/.exec(evt.target.result);
@@ -3783,8 +4922,11 @@
           result.dataValue   = evt.target.result;
           result.data[result_dataType] = result.data[result_dataType] || { };
           result.data[result_dataType][result_dataSubType] = evt.target.result;
-          for(var i = 0; i < callbacks.length; i++) {
-            callbacks[i].call(evt, result);
+          notify(originalEvt, result);
+        };
+        reader.onerror = function(evt) {
+          if (onerror) {
+            onerror();
           }
         };
         reader.readAsDataURL(file);
@@ -3815,6 +4957,17 @@
         return false;
       }
 
+      var items = [];
+
+      function processItems() {
+        if (items.length > 0) {
+          var item = items.shift();
+          loadFile(result, item, evt, function() {
+            processItems();
+          });
+        }
+      }
+
       if (evt.clipboardData) {
         var i;
         for(i = 0; i < evt.clipboardData.types.length; i++) {
@@ -3830,8 +4983,7 @@
           result.data[result_dataType][result_dataSubType] = evt.clipboardData.getData(dataType);
         }
 
-        var completed = true;
-
+        var complete = true;
         if (loadData(result, evt.clipboardData, 'public.url', true)) {
 
         } else
@@ -3846,42 +4998,38 @@
           if (evt.clipboardData.items && (evt.clipboardData.items.length > 0)) {
             for(i = 0; i < evt.clipboardData.items.length; i++) {
               if (evt.clipboardData.items[i].type.match('image.*')) {
-                completed = false;
-                loadFile(result, evt.clipboardData.items[i].getAsFile());
+                items.push(evt.clipboardData.items[i].getAsFile());
               }
             }
           }
           if (evt.clipboardData.files && (evt.clipboardData.files.length > 0)) {
             for(i = 0; i < evt.clipboardData.files.length; i++) {
               if (evt.clipboardData.files[i].type.match('image.*')) {
-                completed = false;
-                loadFile(result, evt.clipboardData.files[0]);
+                items.push(evt.clipboardData.files[0]);
               }
             }
           }
+          if (items.length > 0) {
+            complete = false;
+            processItems();
+          }
         }
 
-        if (completed) {
-          for(i in callbacks) {
-            callbacks[i].call(evt, result);
-          }
+        if (complete) {
+          notify(evt, result);
         }
 
       }
     });
   });
 
-  window.br.onPaste = function(callback) {
-    callbacks.push(callback);
-  };
-
 })(jQuery, window);
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -3984,3 +5132,1625 @@
   };
 
 })(window);
+/*!
+ * Bright 1.0
+ *
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://brightfw.com
+ *
+ */
+
+;(function ($, window) {
+
+  function BrDataEditor(selector, dataSource, options) {
+
+    var _this = this;
+
+    var editorRowid = null;
+    var editorRowData = null;
+    var active = false;
+    var cancelled = false;
+
+    _this.options = options || {};
+    _this.options.noun = _this.options.noun || '';
+    _this.options.selectors = _this.options.selectors || {};
+    _this.options.selectors.save = _this.options.selectors.save || '.action-save';
+    _this.options.selectors.cancel = _this.options.selectors.cancel || '.action-cancel';
+    _this.options.selectors.errorMessage = _this.options.selectors.errorMessage || '.editor-error-message';
+    _this.container = $(selector);
+    if (_this.options.inputsContainer) {
+      _this.inputsContainer = $(_this.options.inputsContainer);
+    } else {
+      _this.inputsContainer = _this.container;
+    }
+
+    _this.dataSource = dataSource;
+
+    _this.events = br.eventQueue(_this);
+    _this.before = function(event, callback) { _this.events.before(event, callback); };
+    _this.on     = function(event, callback) { _this.events.on(event, callback); };
+    _this.pause  = function(event, callback) { _this.events.pause(event, callback); };
+    _this.after  = function(event, callback) { _this.events.after(event, callback); };
+
+    _this.rowid = function() {
+      return editorRowid;
+    };
+
+    _this.rowData = function() {
+      return editorRowData;
+    };
+
+    _this.isActive = function() {
+      return _this.container.is(':visible');
+    };
+
+    _this.isEditMode = function() {
+      return !br.isNull(editorRowid);
+    };
+
+    _this.isInsertMode = function() {
+      return br.isNull(editorRowid);
+    };
+
+    _this.lock = function() {
+      $(_this.options.selectors.save, _this.container).addClass('disabled');
+    };
+
+    _this.unlock = function() {
+      $(_this.options.selectors.save, _this.container).removeClass('disabled');
+    };
+
+    _this.showError = function(message) {
+      var ctrl = $(_this.options.selectors.errorMessage, _this.container);
+      if (ctrl.length > 0) {
+        ctrl.html(message).show();
+      } else {
+        br.growlError(message);
+      }
+    };
+
+    _this.editorConfigure = function(isCopy) {
+      var s = '';
+      if (_this.options.title) {
+        s = _this.options.title;
+      } else
+      if (editorRowid) {
+        if (isCopy) {
+          s = 'Copy ' + _this.options.noun;
+        } else {
+          s = 'Edit ' + _this.options.noun;
+          if (!_this.options.hideRowid) {
+            s = s + ' (#' + editorRowid + ')';
+          }
+        }
+      } else {
+        s = 'Create ' + _this.options.noun;
+      }
+      _this.container.find('.operation').text(s);
+    };
+
+    function modalShown(form) {
+      var focusedInput = $('input.focus[type!=hidden]:visible,select.focus:visible,textarea.focus:visible', form);
+      if (focusedInput.length > 0) {
+        try { focusedInput[0].focus(); } catch (e) { }
+      } else {
+        focusedInput = $('input[type!=hidden]:visible,select:visible,textarea:visible', form);
+        if (focusedInput.length > 0) {
+          try { focusedInput[0].focus(); } catch (e) { }
+        }
+      }
+      _this.events.trigger('editor.shown');
+    }
+
+    var closeConfirmationTmp;
+
+    _this.init = function() {
+
+      if (_this.container.hasClass('modal')) {
+        _this.container.attr('data-backdrop', 'static');
+        _this.container.on('shown.bs.modal', function() {
+          modalShown($(this));
+        });
+        _this.container.on('hide.bs.modal', function() {
+          if (cancelled) {
+            cancelled = false;
+          } else {
+            if (!closeConfirmationTmp) {
+              br.resetCloseConfirmation();
+            }
+            _this.events.trigger('editor.cancel', false, editorRowid);
+          }
+          _this.events.trigger('editor.hide', false, editorRowid);
+        });
+        _this.container.on('hidden.bs.modal', function() { _this.events.trigger('editor.hidden', false, editorRowid); });
+      }
+
+      $(_this.options.selectors.cancel, _this.container).removeAttr('data-dismiss');
+
+      $(_this.options.selectors.cancel, _this.container).click(function() {
+        _this.cancel();
+      });
+
+      $(_this.options.selectors.save, _this.container).click(function() {
+        var btn = $(this);
+        if (!btn.hasClass('disabled') && !saving) {
+          var andClose = btn.hasClass('action-close') || _this.container.hasClass('modal');
+          btn.addClass('disabled');
+          internalSave( andClose
+                      , function() { btn.removeClass('disabled'); }
+                      , function() { btn.removeClass('disabled'); }
+                      );
+        }
+      });
+
+      $(_this.inputsContainer).on('click', 'div.data-field[data-toggle=buttons-radio],input.data-field[type=checkbox],input.data-field[type=radio]', function() {
+        br.confirmClose();
+      });
+
+      $(_this.inputsContainer).on('change', 'select.data-field', function() {
+        br.confirmClose();
+      });
+
+      $(_this.inputsContainer).on('keypress', 'input.data-field,textarea.data-field', function() {
+        br.confirmClose();
+      });
+
+      return _this;
+
+    };
+
+    _this.fillControls = function(data) {
+      if (data) {
+        for(var i in data) {
+          _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio][name=' + i + '],input.data-field[name=' + i + '],select.data-field[name=' + i + '],textarea.data-field[name=' + i + ']').each(function() {
+            var input = $(this);
+            if (input.attr('data-toggle') == 'buttons-radio') {
+              var val = br.isNull(data[i]) ? '' : data[i];
+              input.find('button[value="' + val + '"]').addClass('active');
+            } else
+            if (input.attr('type') == 'checkbox') {
+              if (br.toInt(data[i]) == 1) {
+                input.prop('checked', 'checked');
+              } else {
+                input.removeAttr('checked');
+              }
+            } else
+            if (input.attr('type') == 'radio') {
+              if (br.toInt(data[i]) == br.toInt(input.val())) {
+                input.prop('checked', 'checked');
+              }
+            } else {
+              var ckeditorInstance = input.data('ckeditorInstance');
+              if (ckeditorInstance) {
+                ckeditorInstance.setData(data[i], {noSnapshot: true});
+              } else {
+                var dataComboInstance = input.data('BrDataCombo');
+                if (dataComboInstance) {
+                  dataComboInstance.val(data[i]);
+                } else {
+                  input.val(data[i]);
+                }
+              }
+            }
+          });
+        }
+      }
+      if (window.Select2) {
+        _this.inputsContainer.find('select.data-field').each(function() {
+          $(this).select2();
+        });
+      }
+    };
+
+    _this.show = function(rowid, isCopy) {
+      closeConfirmationTmp = br.isCloseConfirmationRequired();
+      editorRowid = null;
+      editorRowData = null;
+      var defaultValues = null;
+      if (br.isNumber(rowid)) {
+        editorRowid = rowid;
+      } else
+      if (br.isObject(rowid)) {
+        defaultValues = rowid;
+      }
+      _this.inputsContainer.find('input.data-field[type!=radio],select.data-field,textarea.data-field').each(function() {
+        var dataComboInstance = $(this).data('BrDataCombo');
+        if (dataComboInstance) {
+          dataComboInstance.val('');
+        } else {
+          $(this).val('');
+        }
+      });
+      _this.inputsContainer.find('input.data-field[type=checkbox]').val('1');
+      _this.inputsContainer.find('input.data-field[type=checkbox]').removeAttr('checked');
+      _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio]').find('button').removeClass('active');
+
+      var ctrl = $(_this.options.selectors.errorMessage, _this.container);
+      if (ctrl.length > 0) {
+        ctrl.html('').hide();
+      }
+
+      if (editorRowid) {
+        var request = { rowid: editorRowid };
+        var options = { disableEvents: true };
+        _this.events.triggerBefore('editor.loadData', request, options);
+        _this.dataSource.selectOne(request, function(result, data) {
+          if (result) {
+            editorRowData = data;
+            _this.events.triggerBefore('editor.show', data, isCopy);
+            _this.editorConfigure(isCopy);
+            _this.fillControls(data);
+            if (isCopy) {
+              editorRowid = null;
+            }
+            _this.events.trigger('editor.show', data, isCopy);
+            br.attachDatePickers(_this.inputsContainer);
+            if (_this.container.hasClass('modal')) {
+              _this.container.modal('show');
+            }
+          } else {
+            if (_this.container.hasClass('modal')) {
+              _this.showError(data);
+            } else {
+              br.backToCaller(_this.options.returnUrl, true);
+            }
+          }
+        }, options);
+      } else {
+        _this.events.triggerBefore('editor.show');
+        _this.editorConfigure(isCopy);
+
+        _this.inputsContainer.find('input.data-field[type=checkbox]').each(function() {
+          if ($(this).attr('data-default-checked')) {
+            $(this).prop('checked', 'checked');
+          }
+        });
+
+        _this.fillControls(defaultValues);
+        _this.events.trigger('editor.show', defaultValues);
+        br.attachDatePickers(_this.inputsContainer);
+        if (_this.container.hasClass('modal')) {
+          _this.container.modal('show');
+        }
+      }
+      return _this.container;
+    };
+
+    _this.hide = _this.cancel = function() {
+      cancelled = true;
+      if (!closeConfirmationTmp) {
+        br.resetCloseConfirmation();
+      }
+      _this.events.trigger('editor.cancel', false, editorRowid);
+      if (_this.container.hasClass('modal')) {
+        _this.container.modal('hide');
+      } else {
+        _this.events.trigger('editor.hidden', false, editorRowid);
+        _this.events.trigger('editor.hide', false, editorRowid);
+        br.backToCaller(_this.options.returnUrl, false);
+      }
+    };
+
+    var saving = false;
+    var savingAndClosing = false;
+
+    _this.isSaving = function() {
+      return saving;
+    };
+
+    _this.isSavingAndClosing = function() {
+      return saving && savingAndClosing;
+    };
+
+    _this.save = function(andClose, successCallback, errorCallback, silent) {
+      if (br.isFunction(andClose)) {
+        errorCallback   = successCallback;
+        successCallback = andClose;
+        andClose        = false;
+        // if function invoked with callabacks I'll consider that it msut save silently
+        silent          = true;
+      }
+      if (!br.isFunction(successCallback)) {
+        successCallback = null;
+      }
+      if (!br.isFunction(errorCallback)) {
+        errorCallback = null;
+      }
+      return internalSave(andClose, successCallback, errorCallback, silent);
+    };
+
+    function saveContinue(andClose, successCallback, errorCallback, silent, data) {
+
+      savingAndClosing = andClose;
+
+      var op = '';
+      var ok = true;
+      if (editorRowid) {
+        op = 'update';
+      } else {
+        op = 'insert';
+      }
+      try {
+        var options = {  };
+        _this.events.trigger('editor.save', op, data, options);
+        if (editorRowid) {
+          _this.events.triggerBefore('editor.update', data, options);
+          _this.dataSource.update(editorRowid, data, function(result, response) {
+            try {
+              if (result) {
+                if (!closeConfirmationTmp) {
+                  br.resetCloseConfirmation();
+                }
+                _this.events.triggerAfter('editor.update', true, response);
+                _this.events.triggerAfter('editor.save', true, response);
+                if (andClose) {
+                  if (_this.container.hasClass('modal')) {
+                    // _this.events.trigger('editor.hidden', true, response);
+                    _this.container.modal('hide');
+                    editorRowid = null;
+                    editorRowData = null;
+                  } else {
+                    _this.events.trigger('editor.hidden', true, response);
+                    var callResponse = { refresh: true };
+                    _this.events.trigger('editor.hide', true, response, callResponse);
+                    br.backToCaller(_this.options.returnUrl, callResponse.refresh);
+                  }
+                } else {
+                  if (!_this.options.hideSaveNotification && !silent) {
+                    br.growlMessage('Changes saved', 'Success');
+                  }
+                }
+                if (successCallback) {
+                  successCallback.call(_this, response);
+                }
+              } else {
+                _this.events.triggerAfter('editor.update', false, response);
+                _this.events.triggerAfter('editor.save', false, response, op);
+                if (!_this.dataSource.events.has('error')) {
+                  _this.showError(response);
+                }
+                if (errorCallback) {
+                  errorCallback.call(_this, data, response);
+                }
+              }
+            } finally {
+              saving = false;
+            }
+          }, options);
+        } else {
+          _this.events.triggerBefore('editor.insert', data, options);
+          _this.dataSource.insert(data, function(result, response) {
+            try {
+              if (result) {
+                if (!closeConfirmationTmp) {
+                  br.resetCloseConfirmation();
+                }
+                editorRowid = response.rowid;
+                editorRowData = response;
+                _this.editorConfigure(false);
+                _this.events.triggerAfter('editor.insert', true, response);
+                _this.events.triggerAfter('editor.save', true, response);
+                if (andClose) {
+                  if (_this.container.hasClass('modal')) {
+                    // _this.events.trigger('editor.hidden', true, response);
+                    _this.container.modal('hide');
+                    editorRowid = null;
+                    editorRowData = null;
+                  } else {
+                    _this.events.trigger('editor.hidden', true, response);
+                    var callResponse = { refresh: true };
+                    _this.events.trigger('editor.hide', true, response, callResponse);
+                    br.backToCaller(_this.options.returnUrl, callResponse.refresh);
+                  }
+                } else {
+                  if (!_this.options.hideSaveNotification && !silent) {
+                    br.growlMessage('Changes saved', 'Success');
+                  }
+                }
+                if (successCallback) {
+                  successCallback.call(_this, response);
+                }
+              } else {
+                _this.events.triggerAfter('editor.insert', false, response);
+                _this.events.triggerAfter('editor.save', false, response, op);
+                if (!_this.dataSource.events.has('error')) {
+                  _this.showError(response);
+                }
+                if (errorCallback) {
+                  errorCallback.call(_this, data, response);
+                }
+              }
+            } finally {
+              saving = false;
+            }
+          }, options);
+        }
+      } catch (e) {
+        _this.showError(e.message);
+        if (errorCallback) {
+          errorCallback.call(_this, data, e.message);
+        }
+        saving = false;
+      }
+    }
+
+    function internalSave(andClose, successCallback, errorCallback, silent) {
+
+      if (saving) {
+        window.setTimeout(function() {
+          internalSave(andClose, successCallback, errorCallback, silent);
+        }, 100);
+        return;
+      } else {
+        saving = true;
+      }
+
+      var data = { };
+      var errors = [];
+      try {
+        $(_this.options.selectors.errorMessage, _this.container).hide();
+        _this.events.triggerBefore('editor.save');
+        _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio],input.data-field,select.data-field,textarea.data-field').each(function() {
+          var val;
+          var skip = false;
+          var input = $(this);
+          if ((input.attr('readonly') != 'readonly') && (input.attr('disabled') != 'disabled')) {
+            if (input.attr('data-toggle') == 'buttons-radio') {
+              val = input.find('button.active').val();
+            } else
+            if (input.attr('type') == 'checkbox') {
+              if (input.is(':checked')) {
+                val = 1;
+              } else {
+                val = 0;
+              }
+            } else
+            if (input.attr('type') == 'radio') {
+              if (input.is(':checked')) {
+                val = input.val();
+              } else {
+                skip = true;
+              }
+            } else {
+              val = input.val();
+            }
+            if (!skip) {
+              if (input.hasClass('required') && br.isEmpty(val) && (!input.hasClass('required-edit-only') || _this.isEditMode()) && (!input.hasClass('required-insert-only') || _this.isInsertMode())) {
+                var title = input.attr('title');
+                if (br.isEmpty(title)) {
+                  title = input.prev('label').text();
+                }
+                if (errors.length === 0) {
+                  this.focus();
+                }
+                errors.push(br.trn('%s must be filled').replace('%s', title));
+                ok = false;
+              } else
+              if (br.isEmpty(val)) {
+                data[input.attr('name')] = '';
+              } else {
+                data[input.attr('name')] = val;
+              }
+            }
+          }
+        });
+        if (errors.length > 0) {
+          var tmpl;
+          if (errors.length == 1) {
+            tmpl = '{{#errors}}{{.}}{{/errors}}';
+          } else {
+            tmpl = br.trn('Please check the following:') + '<br /><ul>{{#errors}}<li>{{.}}</li>{{/errors}}</ul>';
+          }
+          var error = br.fetch(tmpl, { errors: errors });
+          _this.showError(error);
+          if (errorCallback) {
+            errorCallback.call(_this, data, error);
+          }
+          saving = false;
+        } else {
+          var op = '';
+          var ok = true;
+          if (editorRowid) {
+            op = 'update';
+          } else {
+            op = 'insert';
+          }
+          if (_this.events.has('editor.save', 'pause')) {
+            _this.events.triggerPause( 'editor.save'
+                                     , { continue: function(data) {
+                                           saveContinue(andClose, successCallback, errorCallback, silent, data);
+                                         }
+                                       , cancel: function(error) {
+                                           if (errorCallback) {
+                                             errorCallback.call(_this, data, error);
+                                           }
+                                           saving = false;
+                                         }
+                                       }
+                                     , op
+                                     , data
+                                     );
+          } else {
+            saveContinue(andClose, successCallback, errorCallback, silent, data);
+          }
+        }
+      } catch (e) {
+        if (errorCallback) {
+          errorCallback.call(_this, data, e.message);
+        }
+        saving = false;
+        throw e;
+      }
+    }
+
+    return _this.init();
+
+  }
+
+  window.br = window.br || {};
+
+  window.br.dataEditor = function (selector, dataSource, options) {
+    return new BrDataEditor(selector, dataSource, options);
+  };
+
+})(jQuery, window);
+/*!
+ * Bright 1.0
+ *
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://brightfw.com
+ *
+ */
+
+;(function ($, window) {
+
+  function BrDataBrowser(entity, options) {
+
+    var _this = this;
+
+    var pagerSetUp = false;
+
+    this.options = options || {};
+    this.options.autoLoad = this.options.autoLoad || false;
+    this.options.defaults = this.options.defaults || {};
+    this.options.defaults.filtersHidden = this.options.defaults.filtersHidden || false;
+    this.options.entity = entity;
+    this.options.features = this.options.features || { editor: true };
+    this.options.noun = this.options.noun || '';
+    this.options.selectors = this.options.selectors || {};
+    this.options.selectors.container = this.options.selectors.container || '';
+    this.options.selectors.scrollContainer = this.options.selectors.scrollContainer || '';
+    this.options.pageSizes = this.options.pageSizes || [20, 50, 100, 200];
+
+    function c(selector) {
+      if (_this.options.selectors.container !== '') {
+        return _this.options.selectors.container + ' ' + selector;
+      } else {
+        return selector;
+      }
+    }
+
+    this.scrollContainer = function() {
+      if (_this.options.selectors.container !== '') {
+        if (_this.options.selectors.scrollContainer !== '') {
+          if (this.options.selectors.scrollContainer.indexOf('#') === 0) {
+             return _this.options.selectors.scrollContainer;
+          } else {
+            return _this.options.selectors.container + ' ' + _this.options.selectors.scrollContainer;
+          }
+        } else {
+          return _this.options.selectors.container;
+        }
+      } else {
+        return _this.options.selectors.scrollContainer;
+      }
+    };
+
+    this.options.selectors.dataTable = c(this.options.selectors.dataTable || '.data-table');
+    this.options.selectors.editForm = this.options.selectors.editForm || '';
+    if (this.options.selectors.editForm === '') {
+      if (this.options.selectors.container === '') {
+        this.options.selectors.editForm = '.data-edit-form';
+      } else {
+        this.options.selectors.editForm = _this.options.selectors.container + ' .data-edit-form';
+      }
+    }
+
+    this.options.templates = this.options.templates || {};
+    this.options.templates.row = this.options.templates.row || this.options.templates.rowTemplate || '.data-row-template';
+    this.options.templates.groupRow = this.options.templates.groupRow || '.data-group-row-template';
+    this.options.templates.noData = this.options.templates.noData || '.data-empty-template';
+
+    var selActionCRUD = c('.action-edit') + ',' + c('.action-create') + ',' + c('.action-copy');
+
+    if (typeof entity == 'string') {
+      if (this.options.entity.indexOf('/') == -1) {
+        this.dataSource = br.dataSource(br.baseUrl + 'api/' + this.options.entity + '/');
+      } else {
+        this.dataSource = br.dataSource(br.baseUrl + this.options.entity);
+      }
+      this.dataSource.on('error', function(operation, error) {
+        br.growlError(error);
+      });
+    } else {
+      this.dataSource = entity;
+    }
+
+    this.storageTag = this.options.storageTag ? this.options.storageTag : document.location.pathname + ':' + this.dataSource.options.restServiceUrl;
+
+    this.setStored = function(name, value) {
+      br.storage.set(this.storageTag + 'stored:' + name, value);
+    };
+
+    this.getStored = function(name, defaultValue) {
+      return br.storage.get(this.storageTag + 'stored:' + name, defaultValue);
+    };
+
+    this.defaultLimit = this.options.limit || 20;
+    this.limit = _this.getStored('pager_PageSize', this.defaultLimit);
+    this.skip = 0;
+    this.recordsAmount = 0;
+
+    this.selection = br.flagsHolder();
+
+    this.countDataSource = br.dataSource(this.dataSource.options.restServiceUrl);
+
+    var headerContainer = 'body';
+
+    if (this.options.selectors.container !== '') {
+      headerContainer = this.options.selectors.container;
+    }
+
+    this.dataGrid = br.dataGrid( this.options.selectors.dataTable
+                               , this.options.templates.row
+                               , this.dataSource
+                               , { templates: { noData: this.options.templates.noData, groupRow: this.options.templates.groupRow }
+                                 , selectors: { header: headerContainer, remove: '.action-delete', refreshRow: this.options.selectors.refreshRow }
+                                 , appendInInsert: this.options.appendInInsert
+                                 , defaultOrderAndGroup: this.options.defaultOrderAndGroup
+                                 , fixedHeader: this.options.fixedHeader
+                                 , autoHeight: this.options.autoHeight
+                                 , storageTag: this.options.storageTag
+                                 }
+                               );
+
+    this.events = br.eventQueue(this);
+    this.before = function(event, callback) { this.events.before(event, callback); };
+    this.on     = function(event, callback) { this.events.on(event, callback); };
+    this.after  = function(event, callback) { this.events.after(event, callback); };
+
+    this.before = function(operation, callback) {
+      this.dataSource.before(operation, callback);
+      this.countDataSource.before(operation, callback);
+    };
+
+    this.isOrderConfigured = function() {
+      return _this.dataGrid.isOrderConfigured();
+    };
+
+    this.getOrder = function() {
+      return _this.dataGrid.getOrder();
+    };
+
+    this.setOrder = function(order, callback) {
+      return _this.dataGrid.setOrder(order, callback);
+    };
+
+    this.getOrderAndGroup = function() {
+      return _this.dataGrid.getOrderAndGroup();
+    };
+
+    this.setOrderAndGroup = function(orderAndGroup, callback) {
+      return _this.dataGrid.setOrderAndGroup(orderAndGroup, callback);
+    };
+
+    this.setFilter = function(name, value) {
+      var filter = br.storage.get(this.storageTag + 'filter');
+      filter = filter || { };
+      filter[name] = value;
+      br.storage.set(this.storageTag + 'filter', filter);
+    };
+
+    this.getFilter = function(name, defaultValue) {
+      var filter = br.storage.get(this.storageTag + 'filter', defaultValue);
+      filter = filter || { };
+      return filter[name];
+    };
+
+    this.reloadRow = function(rowid, callback, options) {
+      _this.dataGrid.reloadRow(rowid, callback, options);
+    };
+
+    this.hasRow = function(rowid) {
+      return _this.dataGrid.hasRow(rowid);
+    };
+
+    this.removeRow = function(rowid) {
+      return _this.dataGrid.removeRow(rowid);
+    };
+
+    var selectionQueue = [];
+
+    function deleteQueued() {
+
+      if (selectionQueue.length > 0) {
+        var rowid = selectionQueue.shift();
+        _this.dataSource.remove(rowid, function(result, response) {
+          if (result) {
+            _this.unSelectRow(rowid);
+          }
+          br.stepProgress();
+          deleteQueued();
+        });
+      } else {
+        // if (_this.dataGrid.isEmpty()) {
+          // _this.refresh();
+        // }
+        br.hideProgress();
+      }
+
+    }
+
+    this.deleteSelection = function() {
+      selectionQueue = _this.selection.get().slice(0);
+      if (selectionQueue.length > 0) {
+        br.confirm( 'Delete confirmation'
+                  , 'Are you sure you want do delete ' + selectionQueue.length + ' record(s)?'
+                  , function() {
+                      br.startProgress(selectionQueue.length, 'Deleting...');
+                      deleteQueued();
+                    }
+                  );
+      } else {
+        br.growlError('Please select at least one record');
+      }
+    };
+
+    function updateQueued(func) {
+
+      if (selectionQueue.length > 0) {
+        var rowid = selectionQueue.shift();
+        var data = {};
+        func(data);
+        _this.dataSource.update(rowid, data, function(result, response) {
+          if (result) {
+            _this.unSelectRow(rowid);
+          }
+          br.stepProgress();
+          updateQueued(func);
+        });
+      } else {
+        br.hideProgress();
+      }
+
+    }
+
+    this.updateSelection = function(func) {
+      selectionQueue = _this.selection.get().slice(0);
+      if (selectionQueue.length > 0) {
+        br.startProgress(selectionQueue.length, 'Updating...');
+        updateQueued(func);
+      } else {
+        br.growlError('Please select at least one record');
+      }
+    };
+
+    function processQueued(processRowCallback, processCompleteCallback, params) {
+
+      if (selectionQueue.length > 0) {
+        var rowid = selectionQueue.shift();
+        processRowCallback(rowid, function() {
+          if (params.showProgress) {
+            br.stepProgress();
+          }
+          processQueued(processRowCallback, processCompleteCallback, params);
+        });
+      } else {
+        if (params.showProgress) {
+          br.hideProgress();
+        }
+        if (processCompleteCallback) {
+          processCompleteCallback();
+        }
+      }
+
+    }
+
+    this.processSelection = function(processRowCallback, processCompleteCallback, params) {
+      params = params || {};
+      params.showProgress = params.showProgress || false;
+      selectionQueue = _this.selection.get();
+      if (selectionQueue.length > 0) {
+        if (params.showProgress) {
+          br.startProgress(selectionQueue.length, params.title || '');
+        }
+        processQueued(processRowCallback, processCompleteCallback, params);
+      } else {
+        br.growlError('Please select at least one record');
+      }
+    };
+
+    this.init = function() {
+      // nav
+      $('.nav-item[rel=' + _this.options.nav + ']').addClass('active');
+
+      _this.dataSource.before('select', function(request, options) {
+        request = request || {};
+        if ($(c('input.data-filter[name=keyword]')).length > 0) {
+          request.keyword = $(c('input.data-filter[name=keyword]')).val();
+          _this.setFilter('keyword', request.keyword);
+        }
+        options       = options || {};
+        options.skip  = _this.skip;
+        options.limit = _this.limit || _this.defaultLimit;
+      });
+
+      _this.dataSource.after('remove', function(request, options) {
+        if (selectionQueue.length === 0) {
+          _this.resetPager();
+          _this.updatePager();
+        }
+        if (_this.dataGrid.isEmpty()) {
+          _this.refresh();
+        }
+      });
+
+      _this.dataSource.after('insert', function(request, options) {
+        _this.resetPager();
+        _this.updatePager();
+      });
+
+      _this.countDataSource.before('select', function(request) {
+        if ($(c('input.data-filter[name=keyword]')).length > 0) {
+          request.keyword = $(c('input.data-filter[name=keyword]')).val();
+        }
+      });
+
+      _this.dataSource.after('select', function(result, response) {
+        if (result) {
+          if (_this.options.autoLoad) {
+            _this.skip = _this.skip + response.length;
+          }
+        }
+        _this.updatePager(true);
+        showFiltersDesc();
+      });
+
+      // search
+      br.modified(c('input.data-filter[name=keyword]'), function() {
+        var _val = $(this).val();
+        $(c('input.data-filter[name=keyword]')).each(function() {
+          if ($(this).val() != _val) {
+            $(this).val(_val);
+          }
+        });
+        if ($(this).hasClass('instant-search')) {
+          _this.refreshDeferred();
+        }
+      });
+
+      br.modified(c('input.data-filter') + ',' + c('select.data-filter'), function() {
+        _this.resetPager();
+      });
+
+      br.attachDatePickers();
+
+      if (_this.options.features.editor) {
+        var editorOptions = _this.options.editor || { noun: _this.options.noun };
+        _this.editor = br.dataEditor(_this.options.selectors.editForm, _this.dataSource, editorOptions);
+        _this.editor.events.connectTo(_this.events);
+
+        $(c('.action-create')).show();
+
+        $(document).on('click', selActionCRUD, function() {
+          var isCopy = $(this).hasClass('action-copy');
+          var rowid = $(this).closest('[data-rowid]').attr('data-rowid');
+          _this.editor.show(rowid, isCopy);
+        });
+      }
+
+      // pager
+      $(c('a.action-next') + ',' + c('a.pager-action-next')).on('click', function() {
+        _this.skip += _this.limit;
+        _this.refresh({}, null, true);
+      });
+
+      $(c('a.action-prior') + ',' + c('a.pager-action-prior')).on('click', function() {
+        _this.skip -= _this.limit;
+        if (_this.skip < 0) {
+          _this.skip = 0;
+        }
+        _this.refresh({}, null, true);
+      });
+
+      $(c('.pager-page-navigation')).on('click', 'a.pager-action-navigate', function() {
+        var value = br.toInt($(this).attr('data-page'));
+        if (value > 0) {
+          var newSkip = _this.limit * (value - 1);
+          if (newSkip != _this.skip) {
+            _this.skip = _this.limit * (value - 1);
+            _this.setStored('pager_PageNo', _this.skip);
+            _this.refresh({}, null, true);
+          }
+        }
+      });
+
+      $(c('.pager-page-size-navigation')).on('click', 'a.pager-action-page-size', function() {
+        var value = br.toInt($(this).attr('data-size'));
+        _this.limit = value;
+        _this.setStored('pager_PageSize', _this.limit);
+        _this.refresh({}, null, true);
+      });
+
+      $(c('.action-refresh')).click(function() {
+        _this.refresh();
+      });
+
+      $(c('.action-clear-one-filter')).click(function() {
+        $(c('.data-filter' + '[name=' + $(this).attr('rel') + ']')).val('');
+        _this.refresh();
+      });
+
+      $(c('input.data-filter[name=keyword]')).val(_this.getFilter('keyword'));
+
+      function showFiltersDesc() {
+
+        if ($(c('.filters-panel')).is(':visible')) {
+          $(c('.action-show-hide-filters')).find('span').text('Hide filters');
+          $(c('.filter-description')).text('');
+        } else {
+          $(c('.action-show-hide-filters')).find('span').text('Show filters');
+          var s = '';
+          $(c('.data-filter')).each(function() {
+            var val = $(this).val();
+            var title = $(this).attr('title');
+            if (val &&title) {
+              s = s + '/ <strong>' + title + '</strong> ';
+              if ($(this).is('select')) {
+                s = s + $(this).find('option[value=' + val + ']').text() + ' ';
+              } else {
+                s = s + val + ' ';
+              }
+
+            }
+          });
+          $(c('.filter-description')).html(s);
+        }
+
+      }
+
+      function setupFilters(initial) {
+
+        function showHideFilters(initial) {
+
+          if ($(c('.filters-panel')).is(':visible')) {
+            _this.setStored('filters-hidden', true);
+            $(c('.filters-panel')).css('display', 'none');
+            showFiltersDesc();
+            _this.events.trigger('hideFilters');
+          } else {
+            _this.setStored('filters-hidden', false);
+            $(c('.filters-panel')).show();
+            showFiltersDesc();
+            _this.events.trigger('showFilters');
+          }
+
+          if (_this.dataGrid.table) {
+            _this.dataGrid.table.update();
+          }
+
+        }
+
+        $(c('.action-show-hide-filters')).on('click', function() {
+          showHideFilters();
+        });
+
+        $(c('.action-reset-filters')).on('click', function () {
+          _this.resetFilters();
+        });
+
+        if (br.isNull(_this.getStored('filters-hidden'))) {
+          _this.setStored('filters-hidden', _this.options.defaults.filtersHidden);
+        }
+
+        if (_this.getStored('filters-hidden')) {
+          showFiltersDesc();
+        } else {
+          showHideFilters(initial);
+        }
+
+      }
+
+      setupFilters(true);
+
+      function checkAutoLoad() {
+        var docsHeight = $(_this.options.selectors.dataTable).height();
+        var docsContainerHeight = $(_this.scrollContainer()).height();
+        var scrollTop = $(_this.scrollContainer()).scrollTop();
+        if (scrollTop + docsContainerHeight > docsHeight) {
+          _this.dataGrid.loadMore();
+        }
+      }
+
+      if (_this.options.autoLoad) {
+        $(_this.scrollContainer()).on('scroll', function() {
+          checkAutoLoad();
+        });
+      }
+
+      $(document).on('click', c('.action-select-all'), function() {
+        var checked = $(this).is(':checked');
+        _this.selectAll(checked);
+      });
+
+      $(document).on('click', c('.action-select-row'), function() {
+        var row = $(this).closest('[data-rowid]');
+        var rowid = row.attr('data-rowid');
+        var checked = $(this).is(':checked');
+        if (checked) {
+          _this.selectRow(rowid);
+        } else {
+          _this.unSelectRow(rowid);
+        }
+      });
+
+      $(document).on('click', c('.action-clear-selection'), function() {
+        _this.clearSelection();
+      });
+
+      $(document).on('click', c('.action-delete-selected'), function() {
+        _this.deleteSelection();
+      });
+
+      _this.dataGrid.before('changeOrder', function() {
+        _this.resetPager();
+      });
+
+      _this.dataGrid.on('change', function() {
+        $(c('.action-select-all')).removeAttr('checked');
+        var selection = _this.selection.get();
+        if (selection.length > 0) {
+          _this.restoreSelection();
+        } else {
+          _this.clearSelection();
+        }
+        _this.events.trigger('change');
+        _this.events.triggerAfter('change');
+      });
+
+      _this.events.on('selectionChanged', function(count) {
+        if (count > 0) {
+          $(c('.selection-stat')).text(count + ' record(s) selected');
+          $(c('.selection-stat')).show();
+          $(c('.action-clear-selection')).show();
+        } else {
+          $(c('.selection-stat')).css('display', 'none');
+          $(c('.action-clear-selection')).css('display', 'none');
+        }
+      });
+
+      return this;
+    };
+
+    var pageNavIsSlider = false, pageSizeIsSlider = false, pagerInitialized = false;
+
+    function initPager() {
+
+      if (pagerInitialized) {
+        return;
+      }
+
+      if ($.fn.slider) {
+        $(c('.pager-page-slider')).each(function() {
+          pageNavIsSlider = true;
+          $(this).slider({
+              min: 1
+            , value: 1
+            , change: function(event, ui) {
+                var value = $(c('.pager-page-slider')).slider('option', 'value');
+                if (value > 0) {
+                  var newSkip = _this.limit * (value - 1);
+                  if (newSkip != _this.skip) {
+                    _this.skip = _this.limit * (value - 1);
+                    _this.setStored('pager_PageNo', _this.skip);
+                    _this.refresh({}, null, true);
+                  }
+                }
+              }
+          });
+        });
+
+        $(c('.pager-page-size-slider')).each(function() {
+          pageSizeIsSlider = true;
+          $(this).slider({
+              min: _this.defaultLimit
+            , value: _this.limit
+            , max: _this.defaultLimit * 20
+            , step: _this.defaultLimit
+            , change: function(event, ui) {
+                var value = $(c('.pager-page-size-slider')).slider('option', 'value');
+                _this.limit = value;
+                _this.setStored('pager_PageSize', _this.limit);
+                $(c('.pager-page-slider')).slider('option', 'value', 1);
+                $(c('.pager-page-slider')).slider('option', 'max', Math.ceil(_this.recordsAmount / _this.limit));
+                _this.refresh({}, null, true);
+              }
+          });
+        });
+      }
+
+      pagerInitialized = true;
+
+    }
+
+    function internalUpdatePager() {
+
+      initPager();
+
+      var totalPages = Math.ceil(_this.recordsAmount / _this.limit);
+      var currentPage = Math.ceil(_this.skip / _this.limit) + 1;
+      var $pc, s, i;
+
+      if (pageNavIsSlider) {
+        $(c('.pager-page-slider')).slider('option', 'max', totalPages);
+        $(c('.pager-page-slider')).slider('option', 'value', currentPage);
+      } else {
+        $pc = $(c('.pager-page-navigation'));
+        $pc.html('');
+        s = '';
+        var f1 = false, f2 = false, r = 5, el = false;
+        for (i = 1; i <= totalPages; i++) {
+          if ((i <= r) || ((i > currentPage - r) && (i < currentPage + r)) || (i > (totalPages - r))) {
+            if (i == currentPage) {
+              s = s + '<strong class="pager-nav-element">' + i+ '</strong>';
+            } else {
+              el = true;
+              s = s + '<a href="javascript:;" class="pager-action-navigate pager-nav-element" data-page="'+ i + '">' + i+ '</a>';
+            }
+          } else
+          if (!f1 && i < currentPage) {
+            s = s + '...';
+            f1 = true;
+          } else
+          if (!f2 && i > currentPage) {
+            s = s + '...';
+            f2 = true;
+          }
+        }
+        if (el) {
+          $pc.html(s);
+          $(c('.pager-nav-element')).show();
+        } else {
+          $(c('.pager-nav-element')).css('display', 'none');
+        }
+      }
+
+      if (pageSizeIsSlider) {
+
+      } else {
+        $pc = $(c('.pager-page-size-navigation'));
+        $pc.html('');
+        s = '';
+        var sizes = _this.options.pageSizes;
+        for (i = 0; i < sizes.length; i++) {
+          var size = sizes[i];
+          var dsize = size;
+          if (size >= _this.recordsAmount) {
+            dsize = _this.recordsAmount;
+          }
+          if (size == _this.limit) {
+            s = s + '<strong class="pager-nav-element">' + dsize + '</strong>';
+          } else {
+            s = s + '<a href="javascript:;" class="pager-action-page-size pager-size-element" data-size="' + size + '">' + dsize + '</a>';
+          }
+          if (size >= _this.recordsAmount) {
+            break;
+          }
+        }
+        if (s.length > 0) {
+          $pc.html(s);
+          $(c('.pager-page-size-container')).show();
+        } else {
+          $(c('.pager-page-size-container')).css('display', 'none');
+        }
+      }
+
+      var min = (_this.skip + 1);
+      var max = Math.min(_this.skip + _this.limit, _this.recordsAmount);
+      if (_this.recordsAmount > 0) {
+        if (_this.recordsAmount > max) {
+          $(c('.action-next')).show();
+          $(c('.pager-action-next')).show();
+        } else {
+          $(c('.action-next')).css('display', 'none');
+          $(c('.pager-action-next')).css('display', 'none');
+        }
+        if (_this.skip > 0) {
+          $(c('.action-prior')).show();
+          $(c('.pager-action-prior')).show();
+        } else {
+          $(c('.action-prior')).css('display', 'none');
+          $(c('.pager-action-prior')).css('display', 'none');
+        }
+        $(c('.pager-control')).show();
+        _this.events.triggerAfter('pager.show');
+      } else {
+        $(c('.pager-control')).css('display', 'none');
+        _this.events.triggerAfter('pager.hide');
+      }
+      $(c('.pager-stat')).text('Records ' + min + '-' + max + ' of ' + _this.recordsAmount);
+      $(c('.pager-page-size')).text(_this.limit + ' records per page');
+
+      pagerSetUp = true;
+
+      if (_this.dataGrid.table) {
+        _this.dataGrid.table.update();
+      }
+
+    }
+
+    this.restoreSelection = function(selection) {
+      if (!selection) {
+        selection = _this.selection.get();
+      }
+      for (var i = 0; i < selection.length; i++) {
+        _this.selectRow(selection[i], true);
+      }
+      _this.events.trigger('selectionChanged', _this.selection.get().length);
+    };
+
+    this.clearSelection = function() {
+      _this.selection.clear();
+      $(c('.action-select-row')).removeAttr('checked');
+      $(c('tr.row-selected')).removeClass('row-selected');
+      $(c('.action-select-all')).removeAttr('checked');
+      _this.events.trigger('selectionChanged', _this.selection.get().length);
+    };
+
+    this.getSelection = function() {
+      return _this.selection.get();
+    };
+
+    this.setSelection = function(selection) {
+      if (selection) {
+        for (var i = 0; i < selection.length; i++) {
+          _this.selectRow(selection[i], true);
+          _this.selection.append(selection[i]);
+        }
+        _this.events.trigger('selectionChanged', _this.selection.get().length);
+      }
+    };
+
+    var updatePagerTimer;
+
+    function doUpdatePager() {
+      if (_this.dataSource.doingSelect() || _this.countDataSource.doingSelect()) {
+        window.clearTimeout(updatePagerTimer);
+        updatePagerTimer = window.setTimeout(function() {
+          doUpdatePager();
+        }, 300);
+      } else {
+        _this.countDataSource.selectCount(function(success, result) {
+          if (success) {
+            _this.recordsAmount = result;
+            internalUpdatePager();
+            _this.events.triggerAfter('recordsCountRetrieved', result);
+          } else {
+            $(c('.pager-control')).css('display', 'none');
+            _this.events.triggerAfter('pager.hide');
+          }
+        });
+      }
+    }
+
+    this.updatePager = function(force) {
+      if (!pagerSetUp || force) {
+        window.clearTimeout(updatePagerTimer);
+        updatePagerTimer = window.setTimeout(function() {
+          doUpdatePager();
+        }, 300);
+      } else {
+        internalUpdatePager();
+      }
+    };
+
+    var refreshTimer;
+
+    function internalRefresh(deferred, filter, callback) {
+
+      if (deferred) {
+        _this.dataSource.deferredSelect(filter, function(result, response) {
+          if (typeof callback == 'function') {
+            callback.call(this, result, response);
+          }
+        });
+      } else {
+        if (_this.dataSource.doingSelect() || _this.countDataSource.doingSelect()) {
+          window.clearTimeout(refreshTimer);
+          refreshTimer = window.setTimeout(function() {
+            internalRefresh(deferred, filter, callback);
+          }, 300);
+        } else {
+          _this.dataSource.select(filter, function(result, response) {
+            if (typeof callback == 'function') {
+              callback.call(this, result, response);
+            }
+          });
+        }
+      }
+
+    }
+
+    this.unSelectRow = function(rowid, multiple) {
+      var chk = $(_this.options.selectors.dataTable).find('input.action-select-row[value=' + rowid + ']');
+      var row;
+      if (chk.length > 0) {
+        row = $(chk).closest('[data-rowid]');
+      } else {
+        row = $(_this.options.selectors.dataTable).find('tr[data-rowid=' + rowid + ']');
+      }
+      if (row.length > 0) {
+        row.find('.action-select-row').removeAttr('checked');
+        row.removeClass('row-selected');
+      }
+      _this.selection.remove(rowid);
+      if (!multiple) {
+        _this.events.trigger('selectionChanged', _this.selection.get().length);
+      }
+    };
+
+    this.selectRow = function(rowid, multiple) {
+      var chk = $(_this.options.selectors.dataTable).find('input.action-select-row[value=' + rowid + ']');
+      var row;
+      if (chk.length > 0) {
+        row = $(chk).closest('[data-rowid]');
+      } else {
+        row = $(_this.options.selectors.dataTable).find('tr[data-rowid=' + rowid + ']');
+      }
+      if (row.length > 0) {
+        row.find('.action-select-row').prop('checked', 'checked');
+        row.addClass('row-selected');
+        _this.selection.append(rowid);
+        if (!multiple) {
+          _this.events.trigger('selectionChanged', _this.selection.get().length);
+        }
+      }
+    };
+
+    this.selectAll = function(checked) {
+      if (checked) {
+        $(c('.action-select-all')).prop('checked', 'checked');
+      } else {
+        $(c('.action-select-all')).removeAttr('checked');
+      }
+      $(c('.action-select-row')).each(function() {
+        var row = $(this).closest('[data-rowid]');
+        var rowid = row.attr('data-rowid');
+        if (checked) {
+          _this.selectRow(rowid, true);
+        } else {
+          _this.unSelectRow(rowid, true);
+        }
+      });
+      _this.events.trigger('selectionChanged', _this.selection.get().length);
+    };
+
+    this.isFiltersVisible = function() {
+      return $(c('.filters-panel')).is(':visible');
+    };
+
+    this.resetPager = function() {
+      pagerSetUp = false;
+      _this.skip = 0;
+    };
+
+    this.resetFilters = function() {
+      $(c('input.data-filter')).val('');
+      $(c('select.data-filter')).val('');
+      $(c('select.data-filter')).trigger('reset');
+      br.storage.remove(this.storageTag + 'filter');
+      _this.events.trigger('resetFilters');
+      br.refresh();
+    };
+
+    this.refreshDeferred = function(filter, callback, doNotResetPager) {
+      if (typeof filter == 'function') {
+        doNotResetPager = callback;
+        callback = filter;
+        filter = {};
+      }
+      if (!doNotResetPager) {
+        _this.resetPager();
+      }
+      internalRefresh(true, filter, callback);
+    };
+
+    this.load = this.refresh = function(filter, callback, doNotResetPager) {
+      if (typeof filter == 'function') {
+        doNotResetPager = callback;
+        callback = filter;
+        filter = {};
+      }
+      if (!doNotResetPager) {
+        _this.resetPager();
+      }
+      internalRefresh(false, filter, callback);
+    };
+
+    return this.init();
+
+  }
+
+  window.br = window.br || {};
+
+  window.br.dataBrowser = function (entity, options) {
+    return new BrDataBrowser(entity, options);
+  };
+
+})(jQuery, window);
+/*!
+ * Bright 1.0
+ *
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://brightfw.com
+ *
+ */
+
+;(function ($, window) {
+
+  var invokerTemplate = '<div class="dropdown br-ajax-dropdown"><span href="javascript:;" class="br-ex-action-change-menu-menu" style="cursor:pointer;"><span class="br-ex-current-value">{{&value}}</span> <b class="caret"></b></a></div>';
+
+  function showDropDownMenu(invoker, response, rowid, menuElement, dataSource, fieldName, options) {
+    var menuItemTemplate = '<li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>';
+    var dropDown = $('<div class="dropdown br-ajax-dropdown" style="position:absolute;z-index:1050;"><a style="display:none;" href="javascript:;" role="button" data-toggle="dropdown" class="dropdown-toggle br-ex-action-change-menu-menu" style="cursor:pointer;"><span>{{value}}</span> <b class="caret"></b></a><ul class="dropdown-menu" role="menu" style="overflow:auto;"></ul></div>');
+    var dropDownList = dropDown.find('ul');
+    var dropDownMenu = dropDown.find('.br-ex-action-change-menu-menu');
+    dropDown.on('click', '.br-ex-action-change-menu', function() {
+      var value = $(this).attr('data-value');
+      var data = {};
+      data[fieldName] = value;
+      if (options.onClick) {
+        options.onClick.call($(this), dataSource, rowid, data, menuElement);
+      } else {
+        dataSource.update(rowid, data, function(result, response) {
+          if (result) {
+            if (options.onUpdate) {
+              options.onUpdate.call(invoker, response, menuElement);
+            }
+          }
+        });
+      }
+    });
+    $(document).on('click.dropdown.data-api', function() {
+      dropDown.remove();
+    });
+    dropDownList.html('');
+    if (options.allowClear) {
+      dropDownList.append(br.fetch(menuItemTemplate, { id: '', name: (options.clearLabel ? options.clearLabel : '-- сlear --') }));
+    }
+    if (options.onBeforeRenderMenu) {
+      options.onBeforeRenderMenu.call(dropDownList, menuItemTemplate);
+    }
+    for(var i in response) {
+      dropDownList.append(br.fetch(menuItemTemplate, { id: response[i][options.keyField], name: response[i][options.nameField] }));
+    }
+    dropDown.css('left', invoker.offset().left + 'px');
+    var invokerItem = invoker.find('.br-ex-action-change-menu-menu');
+    var t = (invokerItem.offset().top + invokerItem.height());
+    var scr = $(window).scrollTop();
+    dropDown.css('top', t + 'px');
+    t = t - scr;
+    var h = Math.max($(window).height() - t - 20, 100);
+    dropDownList.css('max-height', h + 'px');
+    $('body').append(dropDown);
+    dropDownMenu.dropdown('toggle');
+  }
+
+  function handleClick(el, invoker, choicesDataSource, dataSource, fieldName, options) {
+    var rowid = el.closest('[data-rowid]').attr('data-rowid');
+    var menuElement = invoker.find('span.br-ex-current-value');
+    var filter = { __targetRowid: rowid };
+    if (options.onSelect) {
+      options.onSelect.call(choicesDataSource, filter, rowid, $(el));
+    }
+    choicesDataSource.select(filter, function(result, response) {
+      if (result && (response.length > 0)) {
+        showDropDownMenu(invoker, response, rowid, menuElement, dataSource, fieldName, options);
+      }
+    });
+  }
+
+  function setupControl(el, doClick, choicesDataSource, dataSource, fieldName, options) {
+
+    var $this = el;
+    if ($this.data('BrExChangeMenu')) {
+
+    } else {
+      $this.data('BrExChangeMenu', true);
+      var value = $this.text().trim();
+      if ((value.length === 0) || (value == '(click to change)')) {
+        value = '<span style="color:#AAA;">(click to change)</span>';
+      }
+      var invoker = $(br.fetch(invokerTemplate, { value: value }));
+      if (options.onSetupInvoker) {
+        options.onSetupInvoker.call(invoker);
+      }
+      $this.html(invoker);
+      $this.on('click', '.br-ex-action-change-menu-menu', function() {
+        handleClick($(this), $this, choicesDataSource, dataSource, fieldName, options);
+      });
+      if (doClick) {
+        handleClick($this.find('.br-ex-action-change-menu-menu'), $this, choicesDataSource, dataSource, fieldName, options);
+      }
+    }
+  }
+
+  function BrExChangeMenu(selector, choicesDataSource, dataSource, fieldName, options) {
+
+    options = options || {};
+    options.keyField = options.keyField || 'id';
+    options.nameField = options.nameField || 'name';
+
+    $(selector).each(function() {
+      setupControl($(this), false, choicesDataSource, dataSource, fieldName, options);
+    });
+
+    $(document).on('click', selector, function() {
+      setupControl($(this), true, choicesDataSource, dataSource, fieldName, options);
+    });
+
+  }
+
+  window.br = window.br || {};
+
+  window.br.exChangeMenu = function (selector, choicesDataSource, dataSource, fieldName, options) {
+    return new BrExChangeMenu(selector, choicesDataSource, dataSource, fieldName, options);
+  };
+
+})(jQuery, window);
+/*!
+ * Bright 1.0
+ *
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://brightfw.com
+ *
+ */
+
+/* global Promise */
+
+;(function ($, window) {
+
+  window.br = window.br || {};
+
+  window.br.dataHelpers = window.br.dataHelpers || {};
+
+  window.br.dataHelpers.load = window.br.dataHelpers.select = function(dataControls, callback) {
+
+    var promises = [];
+
+    for(var i = 0; i < dataControls.length; i++) {
+      (function(dc) {
+        promises.push(
+          new Promise(function(resolve, reject) {
+            dc.load(function(result, response) {
+              if (result) {
+                resolve({ dataCombo: dc, response: response });
+              } else {
+                reject({ dataCombo: dc, response: response });
+              }
+            });
+          })
+        );
+      })(dataControls[i]);
+    }
+
+    Promise.all(promises).then(function(response, ds) { callback(true, response, ds); })
+                         .catch(function(response, ds) { callback(false, response, ds); });
+
+  };
+
+})(jQuery, window);

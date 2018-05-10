@@ -12,24 +12,22 @@ require_once(__DIR__.'/BrGenericLogAdapter.php');
 
 class BrRMQLogAdapter extends BrGenericLogAdapter {
 
-  var $exchangeName = 'logger';
-  var $rmq;
+  private $exchangeName;
+  private $routingKey;
+  private $rmq;
 
-  function __construct($exchangeName = 'logger') {
+  function __construct($params = array()) {
 
     parent::__construct();
 
-    if ($exchangeName) {
-      $this->exchangeName = $exchangeName;
-    }
+    $this->exchangeName = br($params, 'exchangeName', 'logger');
+    $this->routingKey   = br($params, 'routingKey');
 
     try {
-      $this->rmq = br()->rabbitMQ()->connect( array( 'host'     => br()->config()->get('RMQ/Host')
-                                                   , 'port'     => br()->config()->get('RMQ/Port')
-                                                   , 'login'    => br()->config()->get('RMQ/Login')
-                                                   , 'password' => br()->config()->get('RMQ/Password')
-                                                   , 'vhost'    => br()->config()->get('RMQ/VirtualHost')
-                                                   ) );
+      $this->rmq = new BrRabbitMQ();
+      $this->rmq->connect($params);
+
+      $this->rmq->createExchange($this->exchangeName, br($params, 'exchangeType', 'topic'), br($params, 'exchangePassive'));
     } catch (Exception $e) {
       $this->disable();
     }
@@ -74,8 +72,8 @@ class BrRMQLogAdapter extends BrGenericLogAdapter {
             unset($data['password']);
             $requestData = @json_encode($data);
             if ($requestData) {
-              if (strlen($requestData) > 1023*16) {
-                $requestData = substr($requestData, 0, 1023*16) . '...';
+              if (strlen($requestData) > 1024*16) {
+                $requestData = substr($requestData, 0, 1024*16) . '...';
               }
               $envelope['RequestDataGET'] = $requestData;
             }
@@ -84,8 +82,8 @@ class BrRMQLogAdapter extends BrGenericLogAdapter {
             unset($data['password']);
             $requestData = @json_encode($data);
             if ($requestData) {
-              if (strlen($requestData) > 1023*16) {
-                $requestData = substr($requestData, 0, 1023*16) . '...';
+              if (strlen($requestData) > 1024*16) {
+                $requestData = substr($requestData, 0, 1024*16) . '...';
               }
               $envelope['RequestDataPOST'] = $requestData;
             }
@@ -94,17 +92,15 @@ class BrRMQLogAdapter extends BrGenericLogAdapter {
             unset($data['password']);
             $requestData = @json_encode($data);
             if ($requestData) {
-              if (strlen($requestData) > 1023*16) {
-                $requestData = substr($requestData, 0, 1023*16) . '...';
+              if (strlen($requestData) > 1024*16) {
+                $requestData = substr($requestData, 0, 1024*16) . '...';
               }
               $envelope['RequestDataPUT'] = $requestData;
             }
           }
         }
 
-        $this->rmq->sendMessage( $this->exchangeName
-                               , $envelope
-                               );
+        $this->rmq->sendMessage($this->exchangeName, $envelope, $this->routingKey);
       } catch (Exception $e) {
         $this->disable();
       }
@@ -112,7 +108,7 @@ class BrRMQLogAdapter extends BrGenericLogAdapter {
 
   }
 
-  function writeMessage($message, $group = 'MSG') {
+  function writeMessage($message, $group = 'MSG', $tagline = '') {
 
     $this->write($message, $group);
 
@@ -124,7 +120,7 @@ class BrRMQLogAdapter extends BrGenericLogAdapter {
 
   }
 
-  function writeError($message) {
+  function writeError($message, $tagline = '') {
 
     $this->write($message, 'ERR');
 

@@ -9,3 +9,7 @@ tests/_logs
 
 node_modules
 composer.lock
+package-lock.json
+
+vendor/
+yarn.lock

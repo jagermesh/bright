@@ -12,27 +12,65 @@ require_once(__DIR__.'/BrObject.php');
 
 class BrGenericDBProvider extends BrObject {
 
-  function now() {
+  private $dataBaseName;
+
+  public function setDataBaseName($name) {
+
+    $this->dataBaseName = $name;
+
+  }
+
+  public function getDataBaseName() {
+
+    $this->connection();
+
+    return $this->dataBaseName;
+
+  }
+
+  public function now() {
 
     return $this->toDateTime(time());
 
   }
 
-  function today() {
+  public function today() {
 
     return $this->toDate(time());
 
   }
 
-  function startTransaction() {
+  public function connection() {
 
   }
 
-  function commitTransaction() {
+  public function startTransaction() {
 
   }
 
-  function rollbackTransaction() {
+  public function commitTransaction() {
+
+  }
+
+  public function rollbackTransaction() {
+
+  }
+
+  public function validate($tableName, $row) {
+
+    $dataBaseDictionaryFile = br()->basePath() . 'database/schema/UserDefinedDataBaseDictionary.php';
+    if (file_exists($dataBaseDictionaryFile)) {
+      require_once($dataBaseDictionaryFile);
+      $dataBaseDictionary = UserDefinedDataBaseDictionary::getInstance();
+      $dataBaseDictionary->validate($tableName, $row);
+    } else {
+      $dataBaseDictionaryFile = br()->basePath() . 'database/schema/DataBaseDictionary.php';
+      if (file_exists($dataBaseDictionaryFile)) {
+        require_once($dataBaseDictionaryFile);
+        $dataBaseDictionary = DataBaseDictionary::getInstance();
+        $dataBaseDictionary->validate($tableName, $row);
+      }
+    }
 
   }
 

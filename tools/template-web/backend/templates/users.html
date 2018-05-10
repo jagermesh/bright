@@ -6,12 +6,12 @@
 
   <script class="data-row-template" type="text/template">
     <tr data-rowid="{{rowid}}">
-      <td width="10"><input type="checkbox" class="action-select-row" value="{{rowid}}" /></td>
-      <td width="10">{{#if __permissions.canUpdate}}<a class="action-edit btn btn-default btn-xs" title="Edit"><i class="icon-pencil"></i></a>{{/if}}</td>
+      <td class="optimal-width"><input type="checkbox" class="action-select-row" value="{{rowid}}" /></td>
+      <td class="optimal-width">{{#if __permissions.canUpdate}}<a class="action-edit btn btn-default btn-xs" title="Edit"><i class="icon-pencil"></i></a>{{/if}}</td>
       <td class="editable" data-field="login">{{login}}</td>
       <td class="editable" data-field="name">{{name}}</td>
       <td class="editable" data-field="email">{{email}}</td>
-      <td width="10">{{#if __permissions.canUpdate}}<a class="action-delete btn btn-default btn-xs" title="Delete"><i class="icon-trash"></i></a>{{/if}}</td>
+      <td class="optimal-width">{{#if __permissions.canUpdate}}<a class="action-delete btn btn-default btn-xs" title="Delete"><i class="icon-trash"></i></a>{{/if}}</td>
     </tr>
   </script>
 
@@ -68,12 +68,14 @@
         <div class="col-md-12">
           <table class="table table-bordered table-condensed table-striped table-hover">
             <thead>
-              <th width="10"><input type="checkbox" class="action-select-all" name="checkAll" id="checkAll" title="Check All"/> </th>
-              <th></th>
-              <th>Name&nbsp;<i class="sortable icon-sort-by-alphabet order-asc" data-field="name"></i> <i class="sortable icon-sort-by-alphabet-alt order-desc" data-field="name"></i></th>
-              <th>Login&nbsp;<i class="sortable icon-sort-by-alphabet order-asc" data-field="login"></i> <i class="sortable icon-sort-by-alphabet-alt order-desc" data-field="login"></i></th>
-              <th>Email&nbsp;<i class="sortable icon-sort-by-alphabet order-asc" data-field="email"></i> <i class="sortable icon-sort-by-alphabet-alt order-desc" data-field="email"></i></th>
-              <th width="10"><a class="action-delete-selected btn btn-default btn-xs" title="Delete"><i class="icon-trash"></i></a></th>
+              <tr>
+                <th class="optimal-width"><input type="checkbox" class="action-select-all" name="checkAll" id="checkAll" title="Check All"/> </th>
+                <th class="optimal-width"></th>
+                <th>Name&nbsp;<i class="sortable icon-sort-by-alphabet order-asc" data-field="name"></i> <i class="sortable icon-sort-by-alphabet-alt order-desc" data-field="name"></i></th>
+                <th>Login&nbsp;<i class="sortable icon-sort-by-alphabet order-asc" data-field="login"></i> <i class="sortable icon-sort-by-alphabet-alt order-desc" data-field="login"></i></th>
+                <th>Email&nbsp;<i class="sortable icon-sort-by-alphabet order-asc" data-field="email"></i> <i class="sortable icon-sort-by-alphabet-alt order-desc" data-field="email"></i></th>
+                <th class="optimal-width"><a class="action-delete-selected btn btn-default btn-xs" title="Delete"><i class="icon-trash"></i></a></th>
+              </tr>
             </thead>
             <tbody class="data-table">
             </tbody>

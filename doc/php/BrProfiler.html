@@ -8,14 +8,14 @@
 
       <div class="row">
 
-{@sidebar.html}        
+{@sidebar.html}
 
         <div class="span9">
 
           <div class="row">
             <div class="span12">
               <h1>BrProfiler <small>helper to profile your code</small></h1>
-              <h3><code>extends</code> <a href="{/}php/BrObject.html">BrObject</a></h3>
+              <h3><code>extends</code> <a href="[[/]]php/BrObject.html">BrObject</a></h3>
 
               <p>Profiler is a great tool for making code profiling and call time measurements.</p>
               <p>There is one global config object (singleton) accessible via <code>br()->profiler()</code>. You can still create own profiler by <code>$profiler = new BrProfiler();</code></p>
@@ -49,11 +49,11 @@ echo('Operation1 took ' . $microseconds . ' msecs'));
                   </tr>
                   <tr>
                     <td>logStart(operationName)</td>
-                    <td>Same as start() but with writing operation start timestamp into log file. Check <a href="{/}php/BrLog.html">BrLog</a> section for details about logging.</td>
+                    <td>Same as start() but with writing operation start timestamp into log file. Check <a href="[[/]]php/BrLog.html">BrLog</a> section for details about logging.</td>
                   </tr>
                   <tr>
                     <td>logFinish(operationName)</td>
-                    <td>Same as finish() but with writing operation duration into log file. Check <a href="{/}php/BrLog.html">BrLog</a> section for details about logging.</td>
+                    <td>Same as finish() but with writing operation duration into log file. Check <a href="[[/]]php/BrLog.html">BrLog</a> section for details about logging.</td>
                   </tr>
                 </tbody>
               </table>

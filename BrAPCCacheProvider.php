@@ -34,33 +34,64 @@ class BrAPCCacheProvider extends BrGenericCacheProvider {
 
   }
 
+  public function exists($name) {
+
+    return apc_exists($name);
+
+  }
+
   public function get($name, $default = null, $saveDefault = false) {
 
     $name = $this->safeName($name);
 
-    $value = apc_fetch($name);
-    if ($value === FALSE) {
-      $value = $default;
+    $result = apc_fetch($name);
+
+    if ($result === FALSE) {
+      $result = $default;
       if ($saveDefault) {
-        $this->set($name, $value);
+        $this->set($name, $result);
       }
+    } else {
+      $result = unserialize($result);
     }
 
-    return $value;
+    return $result;
+
+  }
+
+  public function getEx($name) {
+
+    $name = $this->safeName($name);
+
+    $result = apc_fetch($name);
+
+    if ($result === FALSE) {
+      $result = array('success' => false);
+    } else {
+      $result = array('success' => true, 'value' => unserialize($result));
+    }
+
+    return $result;
 
   }
 
   public function set($name, $value, $cacheLifeTime = null) {
 
-    if (!$cacheLifeTime) { $cacheLifeTime = $this->getCacheLifeTime(); }
+    if (!$cacheLifeTime) {
+      $cacheLifeTime = $this->getCacheLifeTime();
+    }
 
     $name = $this->safeName($name);
 
-    return apc_store($name, $value, $cacheLifeTime);
+    if (apc_store($name, serialize($value), $cacheLifeTime)) {
+      return $value;
+    } else {
+      return false;
+    }
 
   }
 
-  function remove($name) {
+  public function remove($name) {
 
     $name = $this->safeName($name);
 

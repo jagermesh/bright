@@ -19,14 +19,18 @@ class BrRenderer extends BrObject {
 
   static $instances = array();
 
-  public static function getInstance($name = 'default') {
+  public static function getInstance($name = 'mustache') {
 
     $instance = null;
 
     if (!isset(self::$instances[$name])) {
 
-      require_once(__DIR__.'/BrFileRenderer.php');
-  		$instance = new BrFileRenderer();
+      switch($name) {
+        case 'mustache':
+          require_once(__DIR__ . '/BrMustacheRenderer.php');
+          $instance = new BrMustacheRenderer();
+          break;
+      }
 
 	    self::$instances[$name] = $instance;
 
@@ -37,12 +41,6 @@ class BrRenderer extends BrObject {
     }
 
     return $instance;
-
-  }
-
-  function __construct() {
-
-    parent::__construct();
 
   }
 

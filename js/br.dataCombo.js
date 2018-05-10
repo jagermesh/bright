@@ -1,9 +1,9 @@
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
-  * http://brightfw.com
+ * http://brightfw.com
  *
  */
 
@@ -34,8 +34,7 @@
     this.options.fields                    = this.options.fields || {};
     this.options.saveSelection             = this.options.saveSelection || false;
     this.options.saveToSessionStorage      = this.options.saveToSessionStorage || false;
-    this.options.selectedValueField        = this.options.selectedValueField || null;
-    this.options.lookup_minimumInputLength = this.options.lookup_minimumInputLength || 0;
+    this.options.lookup_minimumInputLength = this.options.lookup_minimumInputLength || 1;
 
     if (this.options.skipTranslate) {
       this.selector.addClass('skiptranslate');
@@ -109,6 +108,8 @@
       }
     }
 
+    var requestTimer;
+
     function switchToSelect2() {
       var selectLimit = 50;
 
@@ -117,6 +118,9 @@
           return;
         } else {
           var params = {};
+          if (_this.options.hideSearchBox) {
+            params.minimumResultsForSearch = -1;
+          }
           if (_this.options.skipTranslate) {
             params.dropdownCssClass = 'skiptranslate';
           }
@@ -131,22 +135,27 @@
             params.allowClear  = true;
             params.placeholder = _this.options.emptyName;
             params.query = function (query) {
+              window.clearTimeout(requestTimer);
               var request = { };
               request.keyword = query.term;
-              _this.dataSource.select(request, function(result, response) {
-                if (result) {
-                  var data = { results: [] };
-                  for(var i = 0; i < response.length; i++) {
-                    data.results.push({ id:   response[i][_this.options.valueField]
-                                      , text: getName(response[i])
-                                      });
-                  }
-                  query.callback(data);
+              requestTimer = window.setTimeout(function() {
+                if (query.term) {
+                  _this.dataSource.select(request, function(result, response) {
+                    if (result) {
+                      var data = { results: [] };
+                      for(var i = 0; i < response.length; i++) {
+                        data.results.push({ id:   response[i][_this.options.valueField]
+                                          , text: getName(response[i])
+                                          });
+                      }
+                      query.callback(data);
+                    }
+                  }, { limit: selectLimit
+                     , skip: (query.page - 1) * selectLimit
+                     }
+                  );
                 }
-              }, { limit: selectLimit
-                 , skip: (query.page - 1) * selectLimit
-                 }
-              );
+              }, 300);
             };
           }
           _this.selector.select2(params);
@@ -174,7 +183,7 @@
       }
     };
 
-    this.val = function(value) {
+    this.val = function(value, callback) {
       if (value !== undefined) {
         if (_this.options.saveSelection) {
           if (_this.options.saveToSessionStorage) {
@@ -187,21 +196,41 @@
           _this.selector.val(value);
           switchToSelect2();
           if (_this.options.lookupMode) {
-            var data = { id: value, text: value };
-            _this.selector.select2('data', data);
-            _this.dataSource.selectOne(value, function(result, response) {
-              if (result) {
-                data = { id: response[_this.options.valueField]
-                       , text: getName(response)
-                       };
-                _this.selector.select2('data', data);
+            if (value) {
+              var data = { id: value, text: value };
+              var request = { rowid: value };
+              _this.selector.select2('data', data);
+              var options = { disableEvents: true };
+              _this.dataSource.events.triggerBefore('selectByRowid', request, options);
+              _this.dataSource.select(request, function(result, response) {
+                if (result) {
+                  if (response.length > 0) {
+                    response = response[0];
+                    data = { id: response[_this.options.valueField]
+                           , text: getName(response)
+                           };
+                    _this.selector.select2('data', data);
+                  }
+                }
+                if (callback) {
+                  callback.call(_this.selector, result, response);
+                }
+              }, options);
+            } else {
+              _this.selector.select2('data', null);
+              if (callback) {
+                callback.call(_this.selector, true, value);
               }
-            });
+            }
+          } else {
+            if (callback) {
+              callback.call(_this.selector, true, value);
+            }
           }
         }
       }
       if (_this.isValid()) {
-        var val =_this.selector.val();
+        var val = _this.selector.val();
         if (val !== null) {
           return val;
         } else {
@@ -269,6 +298,7 @@
 
       currentData = data;
 
+
       if (!_this.options.lookupMode) {
 
         if (_this.options.saveSelection) {
@@ -333,8 +363,6 @@
 
         });
 
-        switchToSelect2();
-
       }
 
     }
@@ -355,6 +383,8 @@
               callback.call(_this.selector, result, response);
             }
             switchToSelect2();
+            _this.loaded = true;
+            _this.events.trigger('load', []);
           } else {
             _this.dataSource.select(filter, function(result, response) {
               if (result) {
@@ -383,6 +413,7 @@
           if (!_this.options.lookupMode) {
             render(data);
           }
+          switchToSelect2();
         }
         _this.events.trigger('load', data);
       });
@@ -391,8 +422,8 @@
         if (result && _this.isValid()) {
           if (!_this.options.lookupMode) {
             _this.selector.append($(renderRow(data)));
-            switchToSelect2();
           }
+          switchToSelect2();
         }
         _this.events.trigger('change');
       });
@@ -402,9 +433,9 @@
           if (!_this.options.lookupMode) {
             if (data[_this.options.valueField]) {
               _this.selector.find('option[value=' + data[_this.options.valueField] +']').text(getName(data));
-              switchToSelect2();
             }
           }
+          switchToSelect2();
         }
         _this.events.trigger('change');
       });
@@ -414,31 +445,32 @@
           if (!_this.options.lookupMode) {
             if (data[_this.options.valueField]) {
               _this.selector.find('option[value=' + data[_this.options.valueField] +']').remove();
-              switchToSelect2();
             }
           }
+          switchToSelect2();
         }
         _this.events.trigger('change');
       });
 
-    } else {
+    }
 
-      if (_this.options.saveSelection) {
-        if (_this.options.saveToSessionStorage) {
-          _this.options.selectedValue = br.session.get(storageTag(_this.selector));
-        } else {
-          _this.options.selectedValue = br.storage.get(storageTag(_this.selector));
-        }
-        if (!br.isEmpty(_this.options.selectedValue)) {
-          _this.val(_this.options.selectedValue);
-        }
+    if (_this.options.saveSelection && (!_this.dataSource || _this.options.lookupMode)) {
+
+      if (_this.options.saveToSessionStorage) {
+        _this.options.selectedValue = br.session.get(storageTag(_this.selector));
+      } else {
+        _this.options.selectedValue = br.storage.get(storageTag(_this.selector));
       }
 
-      switchToSelect2();
+      if (!br.isEmpty(_this.options.selectedValue)) {
+        _this.val(_this.options.selectedValue);
+      }
 
     }
 
-    _this.selector.change(function() {
+    switchToSelect2();
+
+    _this.selector.on('change', function() {
       if (_this.options.saveSelection) {
         if (_this.options.saveToSessionStorage) {
           br.session.set(storageTag(this), $(this).val());
@@ -458,23 +490,6 @@
 
   window.br.dataCombo = function (selector, dataSource, options) {
     return new BrDataCombo(selector, dataSource, options);
-    // var result = [];
-    // $(selector).each(function() {
-    //   var obj = $(this).data('BrDataCombo');
-    //   if (obj) {
-    //     result.push(obj);
-    //   } else {
-    //     result.push(new BrDataCombo($(this), dataSource, options));
-    //   }
-    // });
-    // switch(result.length) {
-    //   case 0:
-    //     return new BrDataCombo(selector, dataSource, options);
-    //   case 1:
-    //     return result[0];
-    //   default:
-    //     return result[0];
-    // }
   };
 
 })(jQuery, window);

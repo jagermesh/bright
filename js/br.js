@@ -1,13 +1,15 @@
-/*
- * Bright 0.0.5
+/*!
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
  */
 
 /* global console */
+/* global ArrayBuffer */
+/* global Uint32Array */
 
 ;(function ($, window) {
 
@@ -114,6 +116,41 @@
     document.location.reload();
   };
 
+  window.br.processArray = function(array, processRowCallback, processCompleteCallback, params) {
+
+    function processQueued(processRowCallback, processCompleteCallback, params) {
+
+      if (array.length > 0) {
+        var rowid = array.shift();
+        processRowCallback(rowid, function() {
+          if (params.showProgress) {
+            br.stepProgress();
+          }
+          processQueued(processRowCallback, processCompleteCallback, params);
+        });
+      } else {
+        if (params.showProgress) {
+          br.hideProgress();
+        }
+        if (processCompleteCallback) {
+          processCompleteCallback();
+        }
+      }
+
+    }
+
+    params = params || {};
+    if (array.length > 0) {
+      if (params.showProgress) {
+        br.startProgress(array.length, params.title || '');
+      }
+      processQueued(processRowCallback, processCompleteCallback, params);
+    } else {
+      br.growlError('Please select at least one record');
+    }
+
+  };
+
   function BrTrn() {
     var trn = [];
     this.get = function (phrase) { if (trn[phrase]) { return trn[phrase]; } else { return phrase; } };
@@ -168,11 +205,21 @@
     Child.superclass = Parent.prototype;
   };
 
-  function openUrl(url) {
+  function openUrl(url, options) {
+
+    options = options || { };
+
+    var s;
+
+    if (options.urlTitle) {
+      s = '<p>Click below to open link manually</p>'
+        + '<p><a target="_blank" class="action-open-link" href="' + url + '" style="word-wrap: break-word">' + options.urlTitle + '</a></p>';
+    } else {
+      s = '<p>Click a <a target="_blank" class="action-open-link" href="' + url + '" style="word-wrap: break-word">here</a> to open link manually</p>';
+    }
 
     var dialog = br.inform( 'You browser is currently blocking popups'
-                          , '<p>Click the link below to open this manually:</p>'
-                          + '<p><a target="_blank" class="action-open-link" href="' + url + '" style="word-wrap: break-word">' + url + '</a></p>'
+                          , s
                           + '<p>To eliminate this extra step, we recommend you modify your settings to disable the popup blocker.</p>'
                           );
 
@@ -198,42 +245,57 @@
 
   };
 
-  window.br.openPopup = function(url, target) {
+  window.br.openPopup = function(url, options) {
+
+    if (br.isString(options)) {
+      options = { target: options };
+    } else {
+      options = options || { };
+    }
+
+    options.target = options.target || '_blank';
 
     if (window.br.popupBlocker == 'active') {
-      openUrl(url);
+      openUrl(url, options);
     } else {
-      target = target || '_blank';
       var w, h;
       if (screen.width) {
-        if (screen.width >= 1280) {
-          w = 1000;
-        } else
-        if (screen.width >= 1024) {
-          w = 800;
+        if (options.fullScreen) {
+          w = screen.width;
         } else {
-          w = 600;
+          if (screen.width >= 1280) {
+            w = 1000;
+          } else
+          if (screen.width >= 1024) {
+            w = 800;
+          } else {
+            w = 600;
+          }
         }
       }
       if (screen.height) {
-        if (screen.height >= 900) {
-          h = 700;
-        } else
-        if (screen.height >= 800) {
-          h = 600;
+        if (options.fullScreen) {
+          h = screen.height;
         } else {
-          h = 500;
+          if (screen.height >= 900) {
+            h = 700;
+          } else
+          if (screen.height >= 800) {
+            h = 600;
+          } else {
+            h = 500;
+          }
         }
       }
       var left = (screen.width) ? (screen.width-w)/2 : 0;
       var settings = 'height='+h+',width='+w+',top=20,left='+left+',menubar=0,scrollbars=1,resizable=1';
-      var win = window.open(url, target, settings);
+      var win = window.open(url, options.target, settings);
       if (win) {
         window.br.popupBlocker = 'inactive';
         win.focus();
       } else {
         window.br.popupBlocker = 'active';
-        openUrl(url);
+        openUrl(url, options);
       }
     }
 
@@ -365,6 +427,9 @@
   };
 
   window.br.events = br.eventQueue();
+  window.br.before = function(event, callback) { window.br.events.before(event, callback); };
+  window.br.on     = function(event, callback) { window.br.events.on(event,     callback); };
+  window.br.after  = function(event, callback) { window.br.events.after(event,  callback); };
 
   window.br.backToCaller = function(href, refresh) {
 
@@ -479,5 +544,74 @@
     "lazyload",d.setAttribute("charset","utf-8"),b.ie&&!o?d.onreadystatechange=function(){if(/loaded|complete/.test(d.readyState))d.onreadystatechange=null,i()}:o&&(b.gecko||b.webkit)?b.webkit?(q.urls[f]=d.href,s()):(d.innerHTML='@import "'+g+'";',m("css")):d.onload=d.onerror=i,r.appendChild(d)}}function s(){var c=k.css,a;if(c){for(a=t.length;--a>=0;)if(t[a].href===c.urls[0]){m("css");break}h+=1;c&&(h<200?setTimeout(s,50):m("css"))}}var b,r,k={},h=0,n={css:[],js:[]},t=j.styleSheets;return{css:function(c,
     a,b,e){i("css",c,a,b,e)},js:function(c,a,b,e){i("js",c,a,b,e)}}}(document);
   /* jshint ignore:end */
+
+  window.br.URL = window.URL || window.webkitURL;
+
+  var lastTime = 0;
+
+  window.br.requestAnimationFrame = function(callback, element) {
+
+    var requestAnimationFrame =
+      window.requestAnimationFrame        ||
+      window.webkitRequestAnimationFrame  ||
+      window.mozRequestAnimationFrame     ||
+      window.oRequestAnimationFrame       ||
+      window.msRequestAnimationFrame      ||
+      function(callback, element) {
+        var currTime = new Date().getTime();
+        var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+        var id = window.setTimeout(function() {
+          callback(currTime + timeToCall);
+        }, timeToCall);
+        lastTime = currTime + timeToCall;
+        return id;
+      };
+
+    return requestAnimationFrame.call(window, callback, element);
+
+  };
+
+  window.br.cancelAnimationFrame = function(id) {
+
+    var cancelAnimationFrame =
+      window.cancelAnimationFrame ||
+      function(id) {
+        window.clearTimeout(id);
+      };
+
+    return cancelAnimationFrame.call(window, id);
+
+  };
+
+  window.br.getUserMedia = function(options, success, error) {
+
+    var getUserMedia =
+      window.navigator.getUserMedia ||
+      window.navigator.mozGetUserMedia ||
+      window.navigator.webkitGetUserMedia ||
+      window.navigator.msGetUserMedia ||
+      function(options, success, error) {
+          error();
+      };
+
+    return getUserMedia.call(window.navigator, options, success, error);
+
+  };
+
+  var isLittleEndian = true;
+
+  window.br.detectEndian = function() {
+
+    var buf = new ArrayBuffer(8);
+    var data = new Uint32Array(buf);
+    data[0] = 0xff000000;
+    isLittleEndian = true;
+    if (buf[0] === 0xff) {
+      isLittleEndian = false;
+    }
+
+    return isLittleEndian;
+
+  };
 
 })(jQuery, window);

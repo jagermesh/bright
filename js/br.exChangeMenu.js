@@ -1,7 +1,7 @@
 /*!
- * Bright 0.0.5
+ * Bright 1.0
  *
- * Copyright 2012, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
@@ -37,7 +37,7 @@
     });
     dropDownList.html('');
     if (options.allowClear) {
-      dropDownList.append(br.fetch(menuItemTemplate, { id: '', name: (options.clearLabel ? options.clearLabel : '--Clear--') }));
+      dropDownList.append(br.fetch(menuItemTemplate, { id: '', name: (options.clearLabel ? options.clearLabel : '-- сlear --') }));
     }
     if (options.onBeforeRenderMenu) {
       options.onBeforeRenderMenu.call(dropDownList, menuItemTemplate);

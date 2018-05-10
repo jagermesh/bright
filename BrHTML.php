@@ -8,13 +8,49 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrSingleton.php');
+require_once(__DIR__ . '/BrSingleton.php');
+require_once(__DIR__ . '/3rdparty/phpQuery/phpQuery.php');
 
 class BrHTML extends BrSingleton {
 
   function isHtml($text) {
 
     return preg_match('/<[a-z]+[^>]*?>/i', $text) || preg_match('/&[a-z#0-9]+;/i', $text);
+
+  }
+
+  function XSSCleanUp($html, $callback = null) {
+
+    return br()->XSS()->cleanUp($html, $callback);
+
+  }
+
+  function tidyUp($html) {
+
+    try {
+      $doc = phpQuery::newDocument($html);
+      $html = $doc->html();
+      phpQuery::unloadDocuments();
+    } catch (Exception $e) {
+      phpQuery::unloadDocuments();
+    }
+
+    return trim($html);
+
+  }
+
+  function cleanUpEndOfText($html) {
+
+    $s = $html;
+    while (true) {
+      $html = preg_replace('|<br[ /]*>$|i', '', $s);
+      if ($html == $s) {
+        break;
+      }
+      $s = $html;
+    }
+
+    return $html;
 
   }
 
@@ -97,16 +133,24 @@ class BrHTML extends BrSingleton {
   function toText($html, $smart = false) {
 
     if ($smart) {
-      $html = preg_replace('/<div[^>]*?>/ism', "\n", $html);
+      $html = preg_replace('~<div[^>]*?>~ism', "\n", $html);
     }
-    $html = preg_replace('/&nbsp;/ism', ' ', $html);
-    $html = preg_replace("/(\n\n|\r\n\r\n|\r\r)/ism", '', $html);
-    $html = preg_replace("/<br[^>]*>[\n]+/ism", "\n", $html);
-    $html = preg_replace("/<br[^>]*>/ism", "\n", $html);
-    $html = preg_replace('/<[A-Z][^>]*?>/ism', '', $html);
-    $html = preg_replace('/<\/[A-Z][^>]*?>/ism', '', $html);
-    $html = preg_replace('/<!DOCTYPE[^>]*?>/ism', '', $html);
-    $html = preg_replace('/<!--[^>]*?>/ism', '', $html);
+    $html = preg_replace('~<!DOCTYPE[^>]*?>~ism', '', $html);
+    $html = preg_replace('~<head[^>]*?>.*?</head>~ism', '', $html);
+    $html = preg_replace('~<style[^>]*?>.*?</style>~ism', '', $html);
+    $html = preg_replace('~<script[^>]*?>.*?</script>~ism', '', $html);
+    $html = preg_replace('~&nbsp;~ism', ' ', $html);
+    $html = preg_replace("~<br[^>]*>[\n]+~ism", "\n", $html);
+    $html = preg_replace("~<br[^>]*>~ism", "\n", $html);
+    $html = preg_replace('~<[A-Z][^>]*?>~ism', '', $html);
+    $html = preg_replace('~<\/[A-Z][^>]*?>~ism', '', $html);
+    $html = preg_replace('~<!--.*?-->~ism', ' ', $html);
+    $html = preg_replace('~^[ ]+$~ism', '', $html);
+    $html = preg_replace('~^[ ]+~ism', '', $html);
+    $html = preg_replace("~^(\n\r){2,}~ism", "\n", $html);
+    $html = preg_replace("~^(\r\n){2,}~ism", "\n", $html);
+    $html = preg_replace("~^(\n){2,}~ism", "\n", $html);
+    $html = preg_replace("~^(\r){2,}~ism", "\n", $html);
 
     $flags = ENT_COMPAT;
     if (defined('ENT_HTML401')) {
@@ -141,32 +185,38 @@ class BrHTML extends BrSingleton {
   }
 
   function unicodeToNamedEntities($html) {
-    $html = json_encode($html);
-    $html = preg_replace('/\\\u([0-9a-z]{4})/', '&#x$1;', $html );
-    $html = json_decode($html);
-    $xmlErrors = libxml_use_internal_errors(true);
-    try {
-      $doc = new DOMDocument();
-      if ($doc->loadHTML($html)) {
-        $search = new DOMXPath($doc);
-        $results = $search->evaluate('//*[@style]');
-        foreach ($results as $result) {
-          $result->removeAttribute('style');
-        }
-        $html = $doc->saveHTML();
-      }
-    } catch (Exception $e) {
 
+    if (strlen($html) > 0) {
+      $html = json_encode($html);
+      $html = preg_replace('/\\\u([0-9a-z]{4})/', '&#x$1;', $html );
+      $html = json_decode($html);
+      $html = trim($html);
+      if (strlen($html) > 0) {
+        $xmlErrors = libxml_use_internal_errors(true);
+        try {
+          $doc = new DOMDocument();
+          if ($doc->loadHTML($html)) {
+            $search = new DOMXPath($doc);
+            $results = $search->evaluate('//*[@style]');
+            foreach ($results as $result) {
+              $result->removeAttribute('style');
+            }
+            $html = $doc->saveHTML();
+          }
+        } catch (Exception $e) {
+
+        }
+        libxml_clear_errors();
+        libxml_use_internal_errors($xmlErrors);
+      }
+      $html = preg_replace("/&nbsp;/ism", ' ', $html);
+      $html = preg_replace("/(\n\n|\r\n\r\n|\r\r)/ism", '', $html);
+      $html = preg_replace('/<br[^>]*>/ism', "\n", $html);
+      $html = preg_replace('/<[A-Z][^>]*?>/ism', '', $html);
+      $html = preg_replace('/<\/[A-Z][^>]*?>/ism', '', $html);
+      $html = preg_replace('/<!DOCTYPE[^>]*?>/ism', '', $html);
+      $html = preg_replace('/<!--[^>]*?>/ism', '', $html);
     }
-    libxml_clear_errors();
-    libxml_use_internal_errors($xmlErrors);
-    $html = preg_replace("/&nbsp;/ism", ' ', $html);
-    $html = preg_replace("/(\n\n|\r\n\r\n|\r\r)/ism", '', $html);
-    $html = preg_replace('/<br[^>]*>/ism', "\n", $html);
-    $html = preg_replace('/<[A-Z][^>]*?>/ism', '', $html);
-    $html = preg_replace('/<\/[A-Z][^>]*?>/ism', '', $html);
-    $html = preg_replace('/<!DOCTYPE[^>]*?>/ism', '', $html);
-    $html = preg_replace('/<!--[^>]*?>/ism', '', $html);
 
     return trim($html);
   }
