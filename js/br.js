@@ -16,27 +16,24 @@
   window.br = window.br || {};
 
   var baseUrl = '';
-  var lookFor = ['vendor/jagermesh/bright/js/bright.min.js', 'vendor/jagermesh/bright/js/bright.js', 'bright/js/bright.min.js', 'bright/js/bright.js'];
 
-  if (typeof(window.br.frameworkUrl) == 'undefined') {
+  var scripts = $('script');
 
-  } else {
-    lookFor.push(window.br.frameworkUrl);
-  }
-
-  $('script').each(function() {
-    if (baseUrl === '') {
-      var src = $(this).attr('src');
-      if (!br.isEmpty(src)) {
-        for(var i in lookFor) {
-          var idx = src.indexOf(lookFor[i]);
-          if (idx != -1) {
-            baseUrl = src.substring(0, idx);
-          }
+  for(var i = 0; i < scripts.length; i++) {
+    var src = $(scripts[i]).attr('src');
+    if (!br.isEmpty(src)) {
+      if (/bright[^.]*?[.]js/i.test(src)) {
+        var idx = src.indexOf('vendor/');
+        if (idx == -1) {
+          idx = src.indexOf('bright/');
+        }
+        if (idx != -1) {
+          baseUrl = src.substring(0, idx);
+          break;
         }
       }
     }
-  });
+  }
 
   window.br.baseUrl = baseUrl;
   window.br.popupBlocker = 'unknown';

@@ -35,8 +35,8 @@
       })(dataControls[i]);
     }
 
-    Promise.all(promises).then(function(response, ds) { callback(true, response, ds); })
-                         .catch(function(response, ds) { callback(false, response, ds); });
+    Promise.all(promises).then(function(response, ds) { if (callback) { callback(true, response, ds); } })
+                         .catch(function(response, ds) { if (callback) { callback(false, response, ds); } });
 
   };
 
