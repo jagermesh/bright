@@ -383,6 +383,8 @@
       $(c('.pager-page-size-navigation')).on('click', 'a.pager-action-page-size', function() {
         var value = br.toInt($(this).attr('data-size'));
         _this.limit = value;
+        _this.skip = 0;
+        _this.setStored('pager_PageNo', _this.skip);
         _this.setStored('pager_PageSize', _this.limit);
         _this.refresh({}, null, true);
       });
