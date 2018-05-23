@@ -17,6 +17,32 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
   protected $cache;
   protected $cacheInitialized = false;
 
+  private $email;
+
+  function __construct($email = null) {
+
+    $this->email = $email;
+
+    parent::__construct();
+
+  }
+
+  function setEMail($email) {
+
+    $this->email = $email;
+
+  }
+
+  function getEMail() {
+
+    if ($this->email) {
+      return $this->email;
+    } else {
+      return br()->config()->get('br/mail/support');
+    }
+
+  }
+
   function initCache() {
 
     if (!$this->cacheInitialized) {
@@ -115,11 +141,10 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
 
   function writeError($message, $tagline = '') {
 
-    if (br()->request()->isLocalHost() && !br()->isConsoleMode()) {
+    // if (br()->request()->isLocalHost() && !br()->isConsoleMode()) {
 
-    } else {
-      $email = br()->config()->get('br/mail/support', br()->config()->get('br/BrErrorHandler/exceptionHandler/sendErrorsTo', br()->config()->get('br/mail/tech-support')));
-      if ($email) {
+    // } else {
+      if ($email = $this->getEMail()) {
         try {
           $this->initCache();
 
@@ -148,7 +173,7 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
 
         }
       }
-    }
+    // }
 
   }
 
@@ -157,8 +182,7 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
     if (br()->request()->isLocalHost() || br()->isConsoleMode()) {
 
     } else {
-      $email = br()->config()->get('br/mail/support', br()->config()->get('br/BrErrorHandler/exceptionHandler/sendErrorsTo', br()->config()->get('br/mail/tech-support')));
-      if ($email) {
+      if ($email = $this->getEMail()) {
         try {
           $subject = 'Debug message';
           if ($tagline) {

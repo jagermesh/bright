@@ -12,12 +12,6 @@ require_once(__DIR__.'/BrObject.php');
 
 class BrGenericLogAdapter extends BrObject {
 
-  function __construct() {
-
-    parent::__construct();
-
-  }
-
   function writeMessage($message, $group = 'MSG', $tagline = '') {
 
   }
