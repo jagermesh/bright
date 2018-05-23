@@ -11,6 +11,9 @@
 require_once(__DIR__ . '/BrSingleton.php');
 require_once(__DIR__ . '/BrException.php');
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
 function br($array = null, $name = null, $default = null) {
 
   if (func_num_args() === 0) {
@@ -798,10 +801,6 @@ class Br extends BrSingleton {
   }
 
   function sendMail($emails, $subject, $body, $params = array(), $callback = null) {
-
-    if (!class_exists('PHPMailer')) {
-      require_once(__DIR__ . '/3rdparty/phpmailer/class.phpmailer.php');
-    }
 
     if (is_callable($params)) {
       $callback = $params;
