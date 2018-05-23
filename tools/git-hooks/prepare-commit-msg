@@ -1,0 +1,27 @@
+#!/usr/bin/php
+<?php
+
+class GitPrepareCommitMsgHook {
+
+  function run() {
+
+    global $argv;
+
+    $files  = array();
+    $output = array();
+    $retval = 0;
+
+    exec('git symbolic-ref --short HEAD', $output, $retval);
+
+    if ($output) {
+      $message = file_get_contents($argv[1]);
+      $message = '[' . $output[0] . "]\n\n" . $message;
+      file_put_contents($argv[1], $message);
+    }
+
+  }
+
+}
+
+$gitPrepareCommitMsgHook = new GitPrepareCommitMsgHook();
+$gitPrepareCommitMsgHook->run();
