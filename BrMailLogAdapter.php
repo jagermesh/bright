@@ -141,9 +141,9 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
 
   function writeError($message, $tagline = '') {
 
-    // if (br()->request()->isLocalHost() && !br()->isConsoleMode()) {
+    if (br()->request()->isLocalHost() && !br()->isConsoleMode()) {
 
-    // } else {
+    } else {
       if ($email = $this->getEMail()) {
         try {
           $this->initCache();
@@ -173,7 +173,7 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
 
         }
       }
-    // }
+    }
 
   }
 
