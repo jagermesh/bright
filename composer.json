@@ -1,7 +1,8 @@
 {
   "name": "jagermesh/bright",
   "require": {
-        "php": ">=5.3.0"
+        "php": ">=5.3.0",
+    "phpmailer/phpmailer": "^6.0"
   },
   "scripts": {
     "post-update-cmd": ["rm -rf .git/hooks", "ln -s ../tools/git-hooks .git/hooks", "chmod +x .git/hooks/pre-commit"]
