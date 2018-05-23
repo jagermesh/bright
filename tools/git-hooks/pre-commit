@@ -1,7 +1,7 @@
 #!/usr/bin/php
 <?php
 
-class Linter {
+class GitPreCommitHook {
 
   private function log($s) {
     echo($s . "\n");
@@ -32,8 +32,8 @@ class Linter {
       $this->log('Running ' . $toolName . ' validation');
       foreach($files as $file) {
         $this->log('Checking: ' . $file);
-        $command = $command . ' "' . $file . '"';
-        exec($command . ' 2> /dev/null', $output, $retval);
+        $runCommand = $command . ' "' . $file . '"';
+        exec($runCommand . ' 2> /dev/null', $output, $retval);
         if ($retval !== 0) {
           $this->beginError();
           if ($output) {
@@ -43,7 +43,7 @@ class Linter {
               }
             }
           } else {
-            $this->log('Can not run "' . $command . '", probably ' . $toolName . ' not installed');
+            $this->log('Can not run "' . $runCommand . '", probably ' . $toolName . ' not installed');
             $this->log('Please refer to this link about how to install ' . $toolName . ': ' . $installUrl);
           }
           $this->endError();
@@ -68,5 +68,5 @@ class Linter {
 
 }
 
-$linter = new Linter();
-$linter->run();
+$gitPreCommitHook = new GitPreCommitHook();
+$gitPreCommitHook->run();
