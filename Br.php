@@ -11,9 +11,6 @@
 require_once(__DIR__ . '/BrSingleton.php');
 require_once(__DIR__ . '/BrException.php');
 
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
-
 function br($array = null, $name = null, $default = null) {
 
   if (func_num_args() === 0) {
@@ -807,7 +804,7 @@ class Br extends BrSingleton {
       $params = array();
     }
 
-    $mail = new PHPMailer(true);
+    $mail = new PHPMailer\PHPMailer\PHPMailer(true);
     $mail->CharSet = 'UTF-8';
 
     $emails = br($emails)->split();
