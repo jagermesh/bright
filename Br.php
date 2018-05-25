@@ -799,16 +799,12 @@ class Br extends BrSingleton {
 
   function sendMail($emails, $subject, $body, $params = array(), $callback = null) {
 
-    if (!class_exists('PHPMailer')) {
-      require_once(__DIR__ . '/3rdparty/phpmailer/class.phpmailer.php');
-    }
-
     if (is_callable($params)) {
       $callback = $params;
       $params = array();
     }
 
-    $mail = new PHPMailer(true);
+    $mail = new PHPMailer\PHPMailer\PHPMailer(true);
     $mail->CharSet = 'UTF-8';
 
     $emails = br($emails)->split();
