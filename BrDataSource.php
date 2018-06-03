@@ -52,6 +52,8 @@ class BrDataSourceCursor {
 
     if ($row = $this->cursor->next()) {
       $row['rowid'] = br()->db()->rowidValue($row, $this->dataSource->rowidFieldName());
+      $resultsArr = [$row];
+      $this->dataSource->callEvent('prepareCalcFields', $resultsArr, $this->transientData, $this->options);
       $this->dataSource->callEvent('calcFields', $row, $this->transientData, $this->options);
     }
     return $row;
@@ -376,6 +378,8 @@ class BrDataSource extends BrGenericDataSource {
           $this->callEvent('after:insert', $result, $transientData, $old, $options);
           $result['rowid'] = br()->db()->rowidValue($result);
           if (!br($options, 'noCalcFields')) {
+            $resultsArr = [$result];
+            $this->callEvent('prepareCalcFields', $resultsArr, $transientData, $options);
             $this->callEvent('calcFields', $result, $transientData, $options);
           }
           if ($this->transactionalDML()) {
@@ -471,6 +475,8 @@ class BrDataSource extends BrGenericDataSource {
           $this->callEvent('after:update', $result, $transientData, $old, $options);
           $result['rowid'] = br()->db()->rowidValue($result);
           if (!br($options, 'noCalcFields')) {
+            $resultsArr = [$result];
+            $this->callEvent('prepareCalcFields', $resultsArr, $transientData, $options);
             $this->callEvent('calcFields', $result, $transientData, $options);
           }
         }
@@ -548,6 +554,8 @@ class BrDataSource extends BrGenericDataSource {
             $this->callEvent('after:remove', $result, $transientData, $options);
             $result['rowid'] = br()->db()->rowidValue($result);
             if (!br($options, 'noCalcFields')) {
+              $resultsArr = [$result];
+              $this->callEvent('prepareCalcFields', $resultsArr, $transientData, $options);
               $this->callEvent('calcFields', $result, $transientData, $options);
             }
           }
