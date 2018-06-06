@@ -70,7 +70,7 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
         $this->set($name, $result);
       }
     } else {
-      $result = json_decode($result);
+      $result = json_decode($result, true);
     }
 
     return $result;
