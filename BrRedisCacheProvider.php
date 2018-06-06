@@ -70,7 +70,7 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
         $this->set($name, $result);
       }
     } else {
-      $result = unserialize($result);
+      $result = json_decode($result);
     }
 
     return $result;
@@ -84,7 +84,7 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
     if ($result === false) {
       $result = array('success' => false);
     } else {
-      $result = array('success' => true, 'value' => unserialize($result));
+      $result = array('success' => true, 'value' => json_decode($result, true));
     }
 
     return $result;
@@ -109,7 +109,7 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
       $cacheLifeTime = $this->getCacheLifeTime();
     }
 
-    if ($this->redis->set($name, serialize($value), $cacheLifeTime)) {
+    if ($this->redis->set($name, json_encode($value), $cacheLifeTime)) {
       return $value;
     } else {
       return false;
