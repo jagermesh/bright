@@ -28,12 +28,12 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
 
     $this->redis = new Redis();
 
-    if (!$this->redis->connect($hostname, $port)) {
+    if (!@$this->redis->connect($hostname, $port)) {
       throw new Exception('Can not connect to Redis server ' . $hostname . ':' . $port);
     }
 
     if (br($cfg, 'password')) {
-      if (!$this->redis->auth($cfg['password'])) {
+      if (!@$this->redis->auth($cfg['password'])) {
         throw new Exception('Can not authenticate with Redis server ' . $hostname . ':' . $port);
       }
     }
