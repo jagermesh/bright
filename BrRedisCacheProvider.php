@@ -62,36 +62,45 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
 
   public function get($name, $default = null, $saveDefault = false) {
 
-    $result = $this->redis->get($name);
+    try {
+      $result = $this->redis->get($name);
 
-    if ($result === false) {
-      $result = $default;
-      if ($saveDefault) {
-        $this->set($name, $result);
-      }
-    } else {
-      if (function_exists('msgpack_unpack')) {
-        $result = msgpack_unpack($result);
+      if ($result === false) {
+        $result = $default;
+        if ($saveDefault) {
+          $this->set($name, $result);
+        }
       } else {
-        $result = json_decode($result, true);
+        if (function_exists('msgpack_unpack')) {
+          $result = msgpack_unpack($result);
+        } else {
+          $result = json_decode($result, true);
+        }
       }
+
+      return $result;
+    } catch (Exception $e) {
+      return br()->cache()->get($name, $default, $saveDefault);
     }
 
-    return $result;
 
   }
 
-  public function getEx($name) {
+  public function getEx($name, $default = null, $saveDefault = false) {
 
-    $result = $this->redis->get($name);
+    try {
+      $result = $this->redis->get($name);
 
-    if ($result === false) {
-      $result = array('success' => false);
-    } else {
-      $result = array('success' => true, 'value' => json_decode($result, true));
+      if ($result === false) {
+        $result = array('success' => false);
+      } else {
+        $result = array('success' => true, 'value' => json_decode($result, true));
+      }
+
+      return $result;
+    } catch (Exception $e) {
+      return br()->cache()->getEx($name, $default, $saveDefault);
     }
-
-    return $result;
 
   }
 
