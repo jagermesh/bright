@@ -38,10 +38,12 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
       }
     }
 
-    if ($this->getDefaultNamePrefix()) {
-      if (!@$this->redis->setOption(Redis::OPT_PREFIX, $this->getDefaultNamePrefix())) {
-        throw new Exception('Can not change Redis prefix');
-      }
+    if (br($cfg, 'namePrefix')) {
+      $this->setDefaultNamePrefix($cfg['namePrefix'] . ':');
+    }
+
+    if (!@$this->redis->setOption(Redis::OPT_PREFIX, $this->getDefaultNamePrefix())) {
+      throw new Exception('Can not change Redis prefix');
     }
 
   }

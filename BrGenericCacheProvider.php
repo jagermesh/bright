@@ -18,11 +18,7 @@ class BrGenericCacheProvider extends BrObject {
   function __construct($cfg = array()) {
 
     if ($this->isSupported()) {
-      if (br($cfg, 'namePrefix')) {
-        $this->defaultNamePrefix = $cfg['namePrefix'] . ':';
-      } else {
-        $this->defaultNamePrefix = md5(__FILE__) . ':';
-      }
+      $this->setDefaultNamePrefix(md5(__FILE__) . ':');
     } else {
       throw new BrException(get_class($this).' is not supported.');
     }
@@ -86,6 +82,12 @@ class BrGenericCacheProvider extends BrObject {
   public function safeName($name) {
 
     return $this->defaultNamePrefix . $name;
+
+  }
+
+  protected function setDefaultNamePrefix($value) {
+
+    $this->defaultNamePrefix = $value;
 
   }
 
