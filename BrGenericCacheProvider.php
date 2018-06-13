@@ -19,7 +19,7 @@ class BrGenericCacheProvider extends BrObject {
 
     if ($this->isSupported()) {
       if (br($cfg, 'namePrefix')) {
-        $this->defaultNamePrefix = md5(__FILE__ . ':' . $cfg['namePrefix']) . ':';
+        $this->defaultNamePrefix = $cfg['namePrefix'] . ':';
       } else {
         $this->defaultNamePrefix = md5(__FILE__) . ':';
       }
