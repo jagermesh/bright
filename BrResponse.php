@@ -14,24 +14,10 @@ class BrResponse extends BrSingleton {
 
   function sendJSON($response, $alreadyPacked = false, $andExit = true) {
 
-    if (!$alreadyPacked) {
-      $response = @json_encode($response);
-      if ($response === FALSE) {
-        switch (json_last_error()) {
-          case JSON_ERROR_DEPTH:
-            throw new Exception('Maximum stack depth exceeded');
-          case JSON_ERROR_STATE_MISMATCH:
-            throw new Exception('Underflow or the modes mismatch');
-          case JSON_ERROR_CTRL_CHAR:
-            throw new Exception('Unexpected control character found');
-          case JSON_ERROR_SYNTAX:
-            throw new Exception('Syntax error, malformed JSON');
-          case JSON_ERROR_UTF8:
-            throw new Exception('Malformed UTF-8 characters, possibly incorrectly encoded');
-          default:
-            throw new Exception('Unknown error');
-        }
-      }
+    if ($alreadyPacked) {
+      $responseJSON = $response;
+    } else {
+      $responseJSON = br($response)->toJSON();
     }
 
     if (!headers_sent()) {
@@ -40,8 +26,7 @@ class BrResponse extends BrSingleton {
       header('Content-type: application/json');
     }
 
-
-    echo($response);
+    echo($responseJSON);
 
     if ($andExit) {
       exit();
@@ -51,25 +36,11 @@ class BrResponse extends BrSingleton {
 
   function sendJSONP($response, $callback = null) {
 
-    $callback = $callback?$callback:br()->request()->get('callback');
-    $response = @json_encode($response);
-    if ($response === FALSE) {
-      switch (json_last_error()) {
-        case JSON_ERROR_DEPTH:
-          throw new Exception('Maximum stack depth exceeded');
-        case JSON_ERROR_STATE_MISMATCH:
-          throw new Exception('Underflow or the modes mismatch');
-        case JSON_ERROR_CTRL_CHAR:
-          throw new Exception('Unexpected control character found');
-        case JSON_ERROR_SYNTAX:
-          throw new Exception('Syntax error, malformed JSON');
-        case JSON_ERROR_UTF8:
-          throw new Exception('Malformed UTF-8 characters, possibly incorrectly encoded');
-        default:
-          throw new Exception('Unknown error');
-      }
-    }
-    $response = $callback . '(' . $response . ')';
+    $callback = $callback ? $callback : br()->request()->get('callback');
+
+    $responseJSON = br($response)->toJSON();
+
+    $responseFull = $callback . '(' . $responseJSON . ')';
 
     if (!headers_sent()) {
       header('Cache-Control: no-cache, must-revalidate');
@@ -77,7 +48,7 @@ class BrResponse extends BrSingleton {
       header('Content-type: application/jsonp');
     }
 
-    echo($response);
+    echo($responseFull);
 
     exit();
 

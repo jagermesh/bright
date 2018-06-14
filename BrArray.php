@@ -8,16 +8,14 @@
  * @package Bright Core
  */
 
-class BrArray {
+require_once(__DIR__ . '/BrGenericDataType.php');
 
-  private $value;
+class BrArray extends BrGenericDataType {
 
-  function __construct($value) {
-    $this->value = $value;
-  }
+  public function length() {
 
-  function length() {
     return count($this->value);
+
   }
 
   function contain($value, $ignoreCase = false) {
@@ -102,12 +100,6 @@ class BrArray {
     }
 
     return $result;
-
-  }
-
-  function toJSON() {
-
-    return json_encode($this->value);
 
   }
 
