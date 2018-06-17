@@ -22,15 +22,7 @@
     for(var i = 0; i < dataControls.length; i++) {
       (function(dc) {
         promises.push(
-          new Promise(function(resolve, reject) {
-            dc.load(function(result, response) {
-              if (result) {
-                resolve({ dataCombo: dc, response: response });
-              } else {
-                reject({ dataCombo: dc, response: response });
-              }
-            });
-          })
+          dc.load()
         );
       })(dataControls[i]);
     }

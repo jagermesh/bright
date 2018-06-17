@@ -369,41 +369,47 @@
 
     _this.load = _this.reload = function(filter, callback) {
 
-      if (typeof filter == 'function') {
-        callback = filter;
-        filter = {};
-      }
+      return new Promise(function(resolve, reject) {
 
-      if (_this.dataSource) {
-        if (_this.isValid()) {
-          if (_this.options.lookupMode) {
-            if (callback) {
-              var result = true;
-              var response = [];
-              callback.call(_this.selector, result, response);
+        if (typeof filter == 'function') {
+          callback = filter;
+          filter = {};
+        }
+
+        if (_this.dataSource) {
+          if (_this.isValid()) {
+            if (_this.options.lookupMode) {
+              if (callback) {
+                callback.call(_this.selector, true, []);
+                resolve([]);
+              }
+              switchToSelect2();
+              _this.loaded = true;
+              _this.events.trigger('load', []);
+            } else {
+              _this.dataSource.select(filter, function(result, response) {
+                if (result) {
+                  if (callback) {
+                    callback.call(_this.selector, result, response);
+                  }
+                  resolve(response);
+                  switchToSelect2();
+                  _this.loaded = true;
+                }
+              }, { fields: _this.options.fields });
             }
-            switchToSelect2();
+          } else {
+            if (callback) {
+              callback.call(_this.selector, true, []);
+            }
+            resolve([]);
             _this.loaded = true;
             _this.events.trigger('load', []);
-          } else {
-            _this.dataSource.select(filter, function(result, response) {
-              if (result) {
-                if (callback) {
-                  callback.call(_this.selector, result, response);
-                }
-                switchToSelect2();
-                _this.loaded = true;
-              }
-            }, { fields: _this.options.fields });
           }
-        } else {
-          if (callback) {
-            callback.call(_this.selector, true, []);
-          }
-          _this.loaded = true;
-          _this.events.trigger('load', []);
         }
-      }
+
+      });
+
     };
 
     if (_this.dataSource) {
