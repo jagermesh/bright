@@ -20,15 +20,28 @@
     var promises = [];
 
     for(var i = 0; i < dataControls.length; i++) {
-      (function(dc) {
+      (function(dataObject) {
         promises.push(
-          dc.load()
+          new Promise(function(resolve, reject) {
+            dataObject.load().then(function(response) {
+              resolve({ dataObject: dataObject, response: response });
+            }).catch(function(error) {
+              reject({ dataObject: dataObject, error: error });
+            });
+          })
         );
       })(dataControls[i]);
     }
 
-    Promise.all(promises).then(function(response, ds) { if (callback) { callback(true, response, ds); } })
-                         .catch(function(response, ds) { if (callback) { callback(false, response, ds); } });
+    Promise.all(promises).then(function(response) {
+      if (typeof callback == 'function') {
+        callback(true, response);
+      }
+    }).catch(function(response) {
+      if (typeof callback == 'function') {
+        callback(false, response);
+      }
+    });
 
   };
 
