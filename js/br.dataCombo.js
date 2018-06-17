@@ -369,45 +369,48 @@
 
     _this.load = _this.reload = function(filter, callback) {
 
-      return new Promise(function(resolve, reject) {
+      if (typeof filter == 'function') {
+        callback = filter;
+        filter = {};
+      }
 
-        if (typeof filter == 'function') {
-          callback = filter;
-          filter = {};
-        }
+      return new Promise(function(resolve, reject) {
 
         if (_this.dataSource) {
           if (_this.isValid()) {
             if (_this.options.lookupMode) {
-              if (callback) {
-                callback.call(_this.selector, true, []);
-                resolve([]);
-              }
+              resolve([]);
               switchToSelect2();
               _this.loaded = true;
               _this.events.trigger('load', []);
             } else {
               _this.dataSource.select(filter, function(result, response) {
                 if (result) {
-                  if (callback) {
-                    callback.call(_this.selector, result, response);
-                  }
                   resolve(response);
                   switchToSelect2();
                   _this.loaded = true;
+                } else {
+                  reject(response);
                 }
               }, { fields: _this.options.fields });
             }
           } else {
-            if (callback) {
-              callback.call(_this.selector, true, []);
-            }
             resolve([]);
             _this.loaded = true;
             _this.events.trigger('load', []);
           }
         }
 
+      }).then(function(response) {
+        if (typeof callback == 'function') {
+          callback.call(_this, true, response);
+        }
+        return response;
+      }).catch(function(errorMessage) {
+        if (typeof callback == 'function') {
+          callback.call(_this, false, errorMessage);
+        }
+        throw errorMessage;
       });
 
     };

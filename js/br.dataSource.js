@@ -73,11 +73,11 @@
 
     _this.insert = function(item, callback, options) {
 
+      options = options || { };
+
+      var disableEvents = options && options.disableEvents;
+
       return new Promise(function(resolve, reject) {
-
-        options = options || { };
-
-        var disableEvents = options && options.disableEvents;
 
         var request = item;
 
@@ -122,40 +122,15 @@
                        if (typeof response == 'string') {
                          result = false;
                          errorMessage = response.length > 0 ? response : 'Empty response. Was expecting new created records with ROWID.';
-                         _this.events.trigger('error', 'insert', errorMessage);
                        } else {
                          result = true;
-                         if (!disableEvents) {
-                           _this.events.trigger('insert', response);
-                         }
                        }
                      } else {
                        if (response) {
                          result = true;
-                         if (!disableEvents) {
-                           _this.events.trigger('insert', response);
-                         }
                        } else {
                          result = false;
                          errorMessage = 'Empty response. Was expecting new created records with ROWID.';
-                         _this.events.trigger('error', 'insert', errorMessage);
-                       }
-                     }
-                     if (!disableEvents) {
-                       if (result) {
-                         _this.events.triggerAfter('insert', result, response, request);
-                       } else {
-                         _this.events.triggerAfter('insert', result, errorMessage, request);
-                       }
-                       if (result) {
-                         _this.events.trigger('change', 'insert', response);
-                       }
-                     }
-                     if (typeof callback == 'function') {
-                       if (result) {
-                         callback.call(_this, result, response, request);
-                       } else {
-                         callback.call(_this, result, errorMessage, request);
                        }
                      }
                      if (result) {
@@ -165,18 +140,8 @@
                      }
                    }
                  , error: function(jqXHR, textStatus, errorThrown) {
-                     if (br.isUnloading()) {
-
-                     } else {
-                       var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                       if (!disableEvents) {
-                         _this.events.trigger('error', 'insert', errorMessage);
-                         _this.events.triggerAfter('insert', false, errorMessage, request);
-                       }
-                       if (typeof callback == 'function') {
-                         callback.call(_this, false, errorMessage, request);
-                       }
-                       reject(errorMessage);
+                     if (!br.isUnloading()) {
+                       reject((br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText));
                      }
                    }
                  });
@@ -186,23 +151,40 @@
             _this.events.trigger('error', 'insert', errorMessage);
             _this.events.triggerAfter('insert', false, errorMessage, request);
           }
-          if (typeof callback == 'function') {
-            callback.call(_this, false, errorMessage, request);
-          }
           reject(errorMessage);
         }
 
+      }).then(function(response) {
+        if (!disableEvents) {
+          _this.events.trigger('insert', response);
+          _this.events.triggerAfter('insert', true, response);
+          _this.events.trigger('change', 'insert', response);
+        }
+        if (typeof callback == 'function') {
+          callback.call(_this, true, response);
+        }
+        return response;
+      }).catch(function(errorMessage) {
+        if (!disableEvents) {
+          _this.events.trigger('error', 'insert', errorMessage);
+          _this.events.triggerAfter('insert', false, errorMessage);
+        }
+        if (typeof callback == 'function') {
+          callback.call(_this, false, errorMessage);
+        }
+        throw errorMessage;
       });
 
     };
 
     _this.update = function(rowid, item, callback, options) {
 
+      options = options || { };
+
+      var disableEvents = options && options.disableEvents;
+      var operation;
+
       return new Promise(function(resolve, reject) {
-
-        options = options || { };
-
-        var disableEvents = options && options.disableEvents;
 
         var request = item;
 
@@ -241,68 +223,60 @@
                  , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
                  , url: _this.options.restServiceUrl + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
                  , success: function(response) {
-                     var operation = 'update';
+                     operation = 'update';
                      if (response) {
                        var res = _this.events.trigger('removeAfterUpdate', item, response);
                        if ((res !== null) && res) {
                          operation = 'remove';
-                         if (!disableEvents) {
-                           _this.events.trigger('remove', rowid);
-                         }
-                       } else {
-                         if (!disableEvents) {
-                           _this.events.trigger('update', response, rowid);
-                         }
                        }
-                     }
-                     if (!disableEvents) {
-                       _this.events.triggerAfter(operation, true, response, request);
-                       _this.events.trigger('change', operation, response);
-                     }
-                     if (typeof callback == 'function') {
-                       callback.call(_this, true, response, request);
                      }
                      resolve(response);
                    }
                  , error: function(jqXHR, textStatus, errorThrown) {
-                     if (br.isUnloading()) {
-
-                     } else {
-                       var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                       if (!disableEvents) {
-                         _this.events.trigger('error', 'update', errorMessage);
-                         _this.events.triggerAfter('update', false, errorMessage, request);
-                       }
-                       if (typeof callback == 'function') {
-                         callback.call(_this, false, errorMessage, request);
-                       }
-                       reject(errorMessage);
+                     if (!br.isUnloading()) {
+                       reject((br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText));
                      }
                    }
                  });
 
         } catch (errorMessage) {
-          if (!disableEvents) {
-            _this.events.trigger('error', 'update', errorMessage);
-            _this.events.triggerAfter('update', false, errorMessage, request);
-          }
-          if (typeof callback == 'function') {
-            callback.call(_this, false, errorMessage, request);
-          }
           reject(errorMessage);
         }
 
+      }).then(function(response) {
+        if (!disableEvents) {
+          if (operation == 'remove') {
+            _this.events.trigger('remove', rowid);
+          } else {
+             _this.events.trigger('update', response, rowid);
+          }
+          _this.events.triggerAfter(operation, true, response);
+          _this.events.trigger('change', operation, response);
+        }
+        if (typeof callback == 'function') {
+          callback.call(_this, true, response);
+        }
+        return response;
+      }).catch(function(errorMessage) {
+        if (!disableEvents) {
+          _this.events.trigger('error', 'update', errorMessage);
+          _this.events.triggerAfter('update', false, errorMessage);
+        }
+        if (typeof callback == 'function') {
+          callback.call(_this, false, errorMessage);
+        }
+        throw errorMessage;
       });
 
     };
 
     _this.remove = function(rowid, callback, options) {
 
+      options = options || { };
+
+      var disableEvents = options && options.disableEvents;
+
       return new Promise(function(resolve, reject) {
-
-        options = options || { };
-
-        var disableEvents = options && options.disableEvents;
 
         var request = {};
 
@@ -341,29 +315,11 @@
                  , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
                  , url: _this.options.restServiceUrl + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
                  , success: function(response) {
-                     if (!disableEvents) {
-                       _this.events.trigger('remove', rowid);
-                       _this.events.triggerAfter('remove', true, response, request);
-                       _this.events.trigger('change', 'remove', response);
-                     }
-                     if (typeof callback == 'function') {
-                       callback.call(_this, true, response, request);
-                     }
                      resolve(response);
                    }
                  , error: function(jqXHR, textStatus, errorThrown) {
-                     if (br.isUnloading()) {
-
-                     } else {
-                       var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                       if (!disableEvents) {
-                         _this.events.trigger('error', 'remove', errorMessage);
-                         _this.events.triggerAfter('remove', false, errorMessage, request);
-                       }
-                       if (typeof callback == 'function') {
-                         callback.call(_this, false, errorMessage, request);
-                       }
-                       reject(errorMessage);
+                     if (!br.isUnloading()) {
+                       reject((br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText));
                      }
                    }
                  });
@@ -374,69 +330,31 @@
             _this.events.trigger('error', 'remove', errorMessage);
             _this.events.triggerAfter('remove', false, errorMessage, request);
           }
-          if (typeof callback == 'function') {
-            callback.call(_this, false, errorMessage, request);
-          }
           reject(errorMessage);
         }
 
+      }).then(function(response) {
+        if (!disableEvents) {
+          _this.events.trigger('remove', rowid);
+          _this.events.triggerAfter('remove', true, response);
+          _this.events.trigger('change', 'remove', response);
+        }
+        if (typeof callback == 'function') {
+          callback.call(_this, true, response);
+        }
+        return response;
+      }).catch(function(errorMessage) {
+        if (!disableEvents) {
+          _this.events.trigger('error', 'remove', errorMessage);
+          _this.events.triggerAfter('remove', false, errorMessage);
+        }
+        if (typeof callback == 'function') {
+          callback.call(_this, false, errorMessage);
+        }
+        throw errorMessage;
       });
 
     };
-
-    function handleSelectError(error, request, callback, options, resolve, reject) {
-
-      options = options || { };
-
-      var disableEvents = options && options.disableEvents;
-      var selectOne = options && options.selectOne;
-
-      if (!disableEvents) {
-        _this.events.trigger('error', 'select', error);
-        _this.events.triggerAfter('select', false, error, request);
-      }
-
-      if (typeof callback == 'function') {
-        callback.call(_this, false, error, request);
-      }
-
-      reject(error);
-
-    }
-
-    function handleSelectSuccess(response, request, callback, options, resolve, reject) {
-
-      options = options || { };
-
-      var disableEvents = options && options.disableEvents;
-      var selectCount = options && options.selectCount;
-      var selectOne = options && (options.selectOne || options.selectCount);
-
-      if (selectOne && br.isArray(response)) {
-        if (response.length > 0) {
-          response = response[0];
-        } else {
-          handleSelectError('Record not found', request, callback, options, resolve, reject);
-          return;
-        }
-      } else
-      if (!selectOne && !br.isArray(response)) {
-        response = [response];
-      }
-      if (selectCount) {
-        response = parseInt(response);
-      }
-      if (!disableEvents) {
-        _this.events.trigger('select', response);
-        _this.events.triggerAfter('select', true, response, request);
-      }
-      if (typeof callback == 'function') {
-        callback.call(_this, true, response, request);
-      }
-
-      resolve(response);
-
-    }
 
     _this.selectCount = function(filter, callback, options) {
 
@@ -494,39 +412,43 @@
         }
         window.clearTimeout(refreshTimeout);
         refreshTimeout = window.setTimeout(function() {
-          _this.select(savedFilter, function(result, response) {
-            if (typeof callback == 'function') {
-              callback.call(this, result, response);
-            }
-            if (result) {
-              resolve(response);
-            } else {
-              reject(response);
-            }
-          });
+          _this.select(savedFilter).then(resolve, reject);
         }, msec);
 
+      }).then(function(response) {
+        if (typeof callback == 'function') {
+          callback.call(_this, true, response);
+        }
+        return response;
+      }).catch(function(errorMessage) {
+        if (typeof callback == 'function') {
+          callback.call(_this, false, errorMessage);
+        }
+        throw errorMessage;
       });
 
     };
 
     _this.load = _this.select = function(filter, callback, options) {
 
+      if (typeof filter == 'function') {
+        options = callback;
+        callback = filter;
+        filter = { };
+      }
+
+      options = options || { };
+
+      var disableEvents = options && options.disableEvents;
+
       return new Promise(function(resolve, reject) {
 
         var request = {};
         var requestRowid;
 
-        if (typeof filter == 'function') {
-          options = callback;
-          callback = filter;
-          filter = { };
-        }
-
-        options = options || { };
-
-        var disableEvents = options && options.disableEvents;
         var selectOne = options && options.selectOne;
+        var selectCount = options && options.selectCount;
+        var singleRespone = selectOne || selectCount;
 
         if (selectOne) {
           options.limit = 1;
@@ -534,7 +456,7 @@
 
         if (!br.isEmpty(filter)) {
           if (!br.isNumber(filter) && !br.isObject(filter)) {
-            handleSelectError('Unacceptable filter parameters', filter, callback, options, resolve, reject);
+            reject('Unacceptable filter parameters');
             return _this;
           } else {
             if (br.isNumber(filter)) {
@@ -641,13 +563,24 @@
                                     , success: function(response) {
                                         try {
                                           _this.ajaxRequest = null;
-                                          if (_this.options.crossdomain && (typeof response == 'string')) {
-                                            handleSelectError('Unknown error', request, callback, options, resolve, reject);
-                                          } else
-                                          if (br.isNull(response)) {
-                                            handleSelectError('Unknown error', request, callback, options, resolve, reject);
+                                          if ((_this.options.crossdomain && (typeof response == 'string')) || br.isNull(response)) {
+                                            reject('Unknown error');
                                           } else {
-                                            handleSelectSuccess(response, request, callback, options, resolve, reject);
+                                            if (singleRespone && br.isArray(response)) {
+                                              if (response.length > 0) {
+                                                response = response[0];
+                                              } else {
+                                                reject('Record not found');
+                                                return;
+                                              }
+                                            } else
+                                            if (!singleRespone && !br.isArray(response)) {
+                                              response = [response];
+                                            }
+                                            if (selectCount) {
+                                              response = parseInt(response);
+                                            }
+                                            resolve(response);
                                           }
                                         } finally {
                                           selectOperationCounter--;
@@ -655,48 +588,59 @@
                                       }
                                     , error: function(jqXHR, textStatus, errorThrown) {
                                         try {
-                                          if (br.isUnloading()) {
-
-                                          } else {
-                                            _this.ajaxRequest = null;
-                                            var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                                            handleSelectError(errorMessage, request, callback, options, resolve, reject);
+                                          _this.ajaxRequest = null;
+                                          if (!br.isUnloading()) {
+                                            reject((br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText));
                                           }
                                         } finally {
                                           selectOperationCounter--;
                                         }
                                       }
                                     });
-        } else {
-
         }
 
+      }).then(function(response) {
+        if (!disableEvents) {
+          _this.events.trigger('select', response);
+          _this.events.triggerAfter('select', true, response);
+        }
+        if (typeof callback == 'function') {
+          callback.call(_this, true, response);
+        }
+        return response;
+      }).catch(function(errorMessage) {
+        if (!disableEvents) {
+          _this.events.trigger('error', 'select', errorMessage);
+          _this.events.triggerAfter('select', false, errorMessage);
+        }
+        if (typeof callback == 'function') {
+          callback.call(_this, false, errorMessage);
+        }
+        throw errorMessage;
       });
-
-      // return this;
 
     };
 
     _this.invoke = function(method, params, callback, options) {
 
+      if (typeof params == 'function') {
+        options  = callback;
+        callback = params;
+        params   = {};
+      }
+
+      if (callback && (typeof callback != 'function')) {
+        options  = callback;
+        callback = undefined;
+      }
+
+      options = options || { };
+
+      var disableEvents = options && options.disableEvents;
+
       return new Promise(function(resolve, reject) {
 
-        if (typeof params == 'function') {
-          options  = callback;
-          callback = params;
-          params   = {};
-        }
-
-        if (callback && (typeof callback != 'function')) {
-          options  = callback;
-          callback = undefined;
-        }
-
         var request = params || { };
-
-        options = options || { };
-
-        var disableEvents = options && options.disableEvents;
 
         if (!disableEvents) {
           _this.events.triggerBefore('request', request, options);
@@ -733,36 +677,36 @@
                , url: _this.options.restServiceUrl + method + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
                , success: function(response) {
                    if (_this.options.crossdomain && (typeof response == 'string')) {
-                     _this.events.trigger('error', method, response);
-                     _this.events.triggerAfter(method, false, response, request);
-                     if (typeof callback == 'function') {
-                       callback.call(_this, false, response, request);
-                     }
                      reject(response);
                    } else {
-                     _this.events.trigger(method, response, params);
-                     _this.events.triggerAfter(method, true, response, request);
-                     if (typeof callback == 'function') {
-                       callback.call(_this, true, response, request);
-                     }
                      resolve(response);
                    }
                  }
                , error: function(jqXHR, textStatus, errorThrown) {
-                   if (br.isUnloading()) {
-
-                   } else {
-                     var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                     _this.events.trigger('error', method, errorMessage);
-                     _this.events.triggerAfter(method, false, errorMessage, request);
-                     if (typeof callback == 'function') {
-                       callback.call(_this, false, errorMessage, request);
-                     }
-                     reject(errorMessage);
+                   if (!br.isUnloading()) {
+                     reject((br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText));
                    }
                  }
                });
 
+      }).then(function(response) {
+        // if (!disableEvents) {
+          _this.events.trigger(method, response, params);
+          _this.events.triggerAfter(method, true, response);
+        // }
+        if (typeof callback == 'function') {
+          callback.call(_this, true, response);
+        }
+        return response;
+      }).catch(function(errorMessage) {
+        // if (!disableEvents) {
+          _this.events.trigger('error', method, errorMessage);
+          _this.events.triggerAfter(method, false, errorMessage);
+        // }
+        if (typeof callback == 'function') {
+          callback.call(_this, false, errorMessage);
+        }
+        throw errorMessage;
       });
 
     };

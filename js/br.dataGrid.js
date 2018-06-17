@@ -277,9 +277,6 @@
       return new Promise(function(resolve, reject) {
 
         _this.dataSource.select(function(result, response) {
-          if (typeof callback == 'function') {
-            callback.call(_this, result, response);
-          }
           if (result) {
             resolve(response);
           } else {
@@ -287,6 +284,16 @@
           }
         });
 
+      }).then(function(response) {
+        if (typeof callback == 'function') {
+          callback.call(_this, true, response);
+        }
+        return response;
+      }).catch(function(errorMessage) {
+        if (typeof callback == 'function') {
+          callback.call(_this, false, errorMessage);
+        }
+        throw errorMessage;
       });
 
     };

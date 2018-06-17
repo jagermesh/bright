@@ -859,20 +859,18 @@
 
     _this.refreshDeferred = function(filter, callback, doNotResetPager) {
 
+      if (typeof filter == 'function') {
+        doNotResetPager = callback;
+        callback = filter;
+        filter = {};
+      }
+
       return new Promise(function(resolve, reject) {
 
-        if (typeof filter == 'function') {
-          doNotResetPager = callback;
-          callback = filter;
-          filter = {};
-        }
         if (!doNotResetPager) {
           _this.resetPager();
         }
         internalRefresh(true, filter, function(result, response) {
-          if (typeof callback == 'function') {
-            callback.call(this, result, response);
-          }
           if (result) {
             resolve(response);
           } else {
@@ -880,26 +878,34 @@
           }
         });
 
+      }).then(function(response) {
+        if (typeof callback == 'function') {
+          callback.call(_this, true, response);
+        }
+        return response;
+      }).catch(function(errorMessage) {
+        if (typeof callback == 'function') {
+          callback.call(_this, false, errorMessage);
+        }
+        throw errorMessage;
       });
 
     };
 
     _this.load = _this.refresh = function(filter, callback, doNotResetPager) {
 
+      if (typeof filter == 'function') {
+        doNotResetPager = callback;
+        callback = filter;
+        filter = {};
+      }
+
       return new Promise(function(resolve, reject) {
 
-        if (typeof filter == 'function') {
-          doNotResetPager = callback;
-          callback = filter;
-          filter = {};
-        }
         if (!doNotResetPager) {
           _this.resetPager();
         }
         internalRefresh(false, filter, function(result, response) {
-          if (typeof callback == 'function') {
-            callback.call(this, result, response);
-          }
           if (result) {
             resolve(response);
           } else {
@@ -907,6 +913,16 @@
           }
         });
 
+      }).then(function(response) {
+        if (typeof callback == 'function') {
+          callback.call(_this, true, response);
+        }
+        return response;
+      }).catch(function(errorMessage) {
+        if (typeof callback == 'function') {
+          callback.call(_this, false, errorMessage);
+        }
+        throw errorMessage;
       });
 
     };
