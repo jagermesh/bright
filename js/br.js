@@ -52,6 +52,18 @@
     }
   };
 
+  window.br.logError = function(msg) {
+    if (typeof(console) != 'undefined') {
+      if (!logStarted) {
+        console.log('*********************** LOG STARTED ***********************');
+        logStarted = true;
+      }
+      for(var i in arguments) {
+        console.error(arguments[i]);
+      }
+    }
+  };
+
   window.br.isTouchScreen = function() {
     var ua = navigator.userAgent;
     return ((/iPad/i.test(ua)) || (/iPhone/i.test(ua)) || (/Android/i.test(ua)));

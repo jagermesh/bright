@@ -151,13 +151,17 @@
         }
 
       }).then(function(data) {
-        if (!disableEvents) {
-          _this.events.trigger('insert', data.response, data.request, data.options);
-          _this.events.triggerAfter('insert', true, data.response, data.request, data.options);
-          _this.events.trigger('change', 'insert', data.response, data.request, data.options);
-        }
-        if (typeof callback == 'function') {
-          callback.call(_this, true, data.response, data.request, data.options);
+        try {
+          if (!disableEvents) {
+            _this.events.trigger('insert', data.response, data.request, data.options);
+            _this.events.triggerAfter('insert', true, data.response, data.request, data.options);
+            _this.events.trigger('change', 'insert', data.response, data.request, data.options);
+          }
+          if (typeof callback == 'function') {
+            callback.call(_this, true, data.response, data.request, data.options);
+          }
+        } catch (error) {
+          br.logError('Error: ' + error);
         }
         return data;
       }).catch(function(data) {
@@ -240,13 +244,17 @@
         }
 
       }).then(function(data) {
-        if (!disableEvents) {
-          _this.events.trigger(data.operation, data.response, data.request, data.options);
-          _this.events.triggerAfter(data.operation, true, data.response, data.request, data.options);
-          _this.events.trigger('change', data.operation, data.response, data.request, data.options);
-        }
-        if (typeof callback == 'function') {
-          callback.call(_this, true, data.response, data.request, data.options);
+        try {
+          if (!disableEvents) {
+            _this.events.trigger(data.operation, data.response, data.request, data.options);
+            _this.events.triggerAfter(data.operation, true, data.response, data.request, data.options);
+            _this.events.trigger('change', data.operation, data.response, data.request, data.options);
+          }
+          if (typeof callback == 'function') {
+            callback.call(_this, true, data.response, data.request, data.options);
+          }
+        } catch (error) {
+          br.logError('Error: ' + error);
         }
         return data;
       }).catch(function(data) {
@@ -322,13 +330,17 @@
         }
 
       }).then(function(data) {
-        if (!disableEvents) {
-          _this.events.trigger('remove', data.rowid, data.response, data.request, data.options);
-          _this.events.triggerAfter('remove', true, data.response, data.request, data.options);
-          _this.events.trigger('change', 'remove', data.response, data.request, data.options);
-        }
-        if (typeof callback == 'function') {
-          callback.call(_this, true, data.response, data.request, data.options);
+        try {
+          if (!disableEvents) {
+            _this.events.trigger('remove', data.rowid, data.response, data.request, data.options);
+            _this.events.triggerAfter('remove', true, data.response, data.request, data.options);
+            _this.events.trigger('change', 'remove', data.response, data.request, data.options);
+          }
+          if (typeof callback == 'function') {
+            callback.call(_this, true, data.response, data.request, data.options);
+          }
+        } catch (error) {
+          br.logError('Error: ' + error);
         }
         return data;
       }).catch(function(data) {
@@ -404,8 +416,12 @@
         }, msec);
 
       }).then(function(data) {
-        if (typeof callback == 'function') {
-          callback.call(_this, true, data.response, data.request, data.options);
+        try {
+          if (typeof callback == 'function') {
+            callback.call(_this, true, data.response, data.request, data.options);
+          }
+        } catch (error) {
+          br.logError('Error: ' + error);
         }
         return data;
       }).catch(function(data) {
@@ -589,12 +605,16 @@
         }
 
       }).then(function(data) {
-        if (!disableEvents) {
-          _this.events.trigger('select', data.response, data.request, data.options);
-          _this.events.triggerAfter('select', true, data.response, data.request, data.options);
-        }
-        if (typeof callback == 'function') {
-          callback.call(_this, true, data.response, data.request, data.options);
+        try {
+          if (!disableEvents) {
+            _this.events.trigger('select', data.response, data.request, data.options);
+            _this.events.triggerAfter('select', true, data.response, data.request, data.options);
+          }
+          if (typeof callback == 'function') {
+            callback.call(_this, true, data.response, data.request, data.options);
+          }
+        } catch (error) {
+          br.logError('Error: ' + error);
         }
         return data;
       }).catch(function(data) {
@@ -680,12 +700,16 @@
                });
 
       }).then(function(data) {
-        if (!disableEvents) {
-          _this.events.trigger(data.method, data.response, data.request, data.options);
-          _this.events.triggerAfter(data.method, true, data.response, data.request, data.options);
-        }
-        if (typeof callback == 'function') {
-          callback.call(_this, true, data.response, data.request, data.options);
+        try {
+          if (!disableEvents) {
+            _this.events.trigger(data.method, data.response, data.request, data.options);
+            _this.events.triggerAfter(data.method, true, data.response, data.request, data.options);
+          }
+          if (typeof callback == 'function') {
+            callback.call(_this, true, data.response, data.request, data.options);
+          }
+        } catch (error) {
+          br.logError('Error: ' + error);
         }
         return data;
       }).catch(function(data) {

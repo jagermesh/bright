@@ -879,8 +879,12 @@
         });
 
       }).then(function(response) {
-        if (typeof callback == 'function') {
-          callback.call(_this, true, response);
+        try {
+          if (typeof callback == 'function') {
+            callback.call(_this, true, response);
+          }
+        } catch (error) {
+          br.logError('Error: ' + error);
         }
         return response;
       }).catch(function(errorMessage) {
@@ -914,8 +918,12 @@
         });
 
       }).then(function(response) {
-        if (typeof callback == 'function') {
-          callback.call(_this, true, response);
+        try {
+          if (typeof callback == 'function') {
+            callback.call(_this, true, response);
+          }
+        } catch (error) {
+          br.logError('Error: ' + error);
         }
         return response;
       }).catch(function(errorMessage) {
