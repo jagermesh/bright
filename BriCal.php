@@ -21,6 +21,7 @@ class BriCalEvent extends BrObject {
   private $description;
   private $HTMLDescription;
   private $url;
+  private $color;
   private $organizer;
   private $priority;
   private $class;
@@ -81,6 +82,12 @@ class BriCalEvent extends BrObject {
   function setUrl($value) {
 
     $this->url = $value;
+
+  }
+
+  function setColor($value) {
+
+    $this->color = $value;
 
   }
 
@@ -192,6 +199,12 @@ class BriCalEvent extends BrObject {
   function getUrl() {
 
     return $this->url;
+
+  }
+
+  function getColor() {
+
+    return $this->color;
 
   }
 
@@ -409,6 +422,9 @@ class BriCal extends BrObject {
       }
       if ($event->getUrl()) {
         $result .= "URL;VALUE=URI:".$event->getUrl()."\r\n";
+      }
+      if ($event->getColor()) {
+        $result .= "COLOR:".$event->getColor()."\r\n";
       }
       if ($attachments) {
         $result .= $attachments;
