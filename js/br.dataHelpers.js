@@ -23,23 +23,23 @@
       (function(dataObject) {
         promises.push(
           new Promise(function(resolve, reject) {
-            dataObject.load().then(function(response) {
-              resolve({ dataObject: dataObject, response: response });
-            }).catch(function(error) {
-              reject({ dataObject: dataObject, error: error });
+            dataObject.load().then(function(data) {
+              resolve({ dataObject: dataObject, data: data });
+            }).catch(function(data) {
+              reject({ dataObject: dataObject, data: data });
             });
           })
         );
       })(dataControls[i]);
     }
 
-    Promise.all(promises).then(function(response) {
+    Promise.all(promises).then(function(data) {
       if (typeof callback == 'function') {
-        callback(true, response);
+        callback(true, data.response);
       }
-    }).catch(function(response) {
+    }).catch(function(data) {
       if (typeof callback == 'function') {
-        callback(false, response);
+        callback(false, data.errorMessage);
       }
     });
 

@@ -117,7 +117,6 @@
                  , url: _this.options.restServiceUrl + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
                  , success: function(response) {
                      var result, errorMessage;
-
                      if (_this.options.crossdomain) {
                        if (typeof response == 'string') {
                          result = false;
@@ -134,45 +133,42 @@
                        }
                      }
                      if (result) {
-                       resolve(response);
+                       resolve({request: request, options: options, response: response});
                      } else {
-                       reject(errorMessage);
+                       reject({request: request, options: options, errorMessage: errorMessage});
                      }
                    }
                  , error: function(jqXHR, textStatus, errorThrown) {
                      if (!br.isUnloading()) {
-                       reject((br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText));
+                       var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                       reject({request: request, options: options, errorMessage: errorMessage});
                      }
                    }
                  });
 
         } catch (errorMessage) {
-          if (!disableEvents) {
-            _this.events.trigger('error', 'insert', errorMessage);
-            _this.events.triggerAfter('insert', false, errorMessage, request);
-          }
-          reject(errorMessage);
+          reject({request: request, options: options, errorMessage: errorMessage});
         }
 
-      }).then(function(response) {
+      }).then(function(data) {
         if (!disableEvents) {
-          _this.events.trigger('insert', response);
-          _this.events.triggerAfter('insert', true, response);
-          _this.events.trigger('change', 'insert', response);
+          _this.events.trigger('insert', data.response, data.request, data.options);
+          _this.events.triggerAfter('insert', true, data.response, data.request, data.options);
+          _this.events.trigger('change', 'insert', data.response, data.request, data.options);
         }
         if (typeof callback == 'function') {
-          callback.call(_this, true, response);
+          callback.call(_this, true, data.response, data.request, data.options);
         }
-        return response;
-      }).catch(function(errorMessage) {
+        return data;
+      }).catch(function(data) {
         if (!disableEvents) {
-          _this.events.trigger('error', 'insert', errorMessage);
-          _this.events.triggerAfter('insert', false, errorMessage);
+          _this.events.trigger('error', 'insert', data.errorMessage, data.request, data.options);
+          _this.events.triggerAfter('insert', false, data.errorMessage, data.request, data.options);
         }
         if (typeof callback == 'function') {
-          callback.call(_this, false, errorMessage);
+          callback.call(_this, false, data.errorMessage, data.request, data.options);
         }
-        throw errorMessage;
+        throw data;
       });
 
     };
@@ -182,7 +178,6 @@
       options = options || { };
 
       var disableEvents = options && options.disableEvents;
-      var operation;
 
       return new Promise(function(resolve, reject) {
 
@@ -223,49 +218,46 @@
                  , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
                  , url: _this.options.restServiceUrl + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
                  , success: function(response) {
-                     operation = 'update';
+                     var operation = 'update';
                      if (response) {
                        var res = _this.events.trigger('removeAfterUpdate', item, response);
                        if ((res !== null) && res) {
                          operation = 'remove';
                        }
                      }
-                     resolve(response);
+                     resolve({operation: operation, request: request, options: options, response: response});
                    }
                  , error: function(jqXHR, textStatus, errorThrown) {
                      if (!br.isUnloading()) {
-                       reject((br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText));
+                       var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                       reject({request: request, options: options, errorMessage: errorMessage});
                      }
                    }
                  });
 
         } catch (errorMessage) {
-          reject(errorMessage);
+          reject({request: request, options: options, errorMessage: errorMessage});
         }
 
-      }).then(function(response) {
+      }).then(function(data) {
         if (!disableEvents) {
-          if (operation == 'remove') {
-            _this.events.trigger('remove', rowid);
-          } else {
-             _this.events.trigger('update', response, rowid);
-          }
-          _this.events.triggerAfter(operation, true, response);
-          _this.events.trigger('change', operation, response);
+          _this.events.trigger(data.operation, data.response, data.request, data.options);
+          _this.events.triggerAfter(data.operation, true, data.response, data.request, data.options);
+          _this.events.trigger('change', data.operation, data.response, data.request, data.options);
         }
         if (typeof callback == 'function') {
-          callback.call(_this, true, response);
+          callback.call(_this, true, data.response, data.request, data.options);
         }
-        return response;
-      }).catch(function(errorMessage) {
+        return data;
+      }).catch(function(data) {
         if (!disableEvents) {
-          _this.events.trigger('error', 'update', errorMessage);
-          _this.events.triggerAfter('update', false, errorMessage);
+          _this.events.trigger('error', 'update', data.errorMessage, data.request, data.options);
+          _this.events.triggerAfter('update', false, data.errorMessage, data.request, data.options);
         }
         if (typeof callback == 'function') {
-          callback.call(_this, false, errorMessage);
+          callback.call(_this, false, data.errorMessage, data.request, data.options);
         }
-        throw errorMessage;
+        throw data;
       });
 
     };
@@ -315,43 +307,39 @@
                  , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
                  , url: _this.options.restServiceUrl + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
                  , success: function(response) {
-                     resolve(response);
+                     resolve({rowid: rowid, request: request, options: options, response: response});
                    }
                  , error: function(jqXHR, textStatus, errorThrown) {
                      if (!br.isUnloading()) {
-                       reject((br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText));
+                       var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                       reject({rowid: rowid, request: request, options: options, errorMessage: errorMessage});
                      }
                    }
                  });
 
         } catch (errorMessage) {
-          br.log(errorMessage);
-          if (!disableEvents) {
-            _this.events.trigger('error', 'remove', errorMessage);
-            _this.events.triggerAfter('remove', false, errorMessage, request);
-          }
-          reject(errorMessage);
+          reject({rowid: rowid, request: request, options: options, errorMessage: errorMessage});
         }
 
-      }).then(function(response) {
+      }).then(function(data) {
         if (!disableEvents) {
-          _this.events.trigger('remove', rowid);
-          _this.events.triggerAfter('remove', true, response);
-          _this.events.trigger('change', 'remove', response);
+          _this.events.trigger('remove', data.rowid, data.response, data.request, data.options);
+          _this.events.triggerAfter('remove', true, data.response, data.request, data.options);
+          _this.events.trigger('change', 'remove', data.response, data.request, data.options);
         }
         if (typeof callback == 'function') {
-          callback.call(_this, true, response);
+          callback.call(_this, true, data.response, data.request, data.options);
         }
-        return response;
-      }).catch(function(errorMessage) {
+        return data;
+      }).catch(function(data) {
         if (!disableEvents) {
-          _this.events.trigger('error', 'remove', errorMessage);
-          _this.events.triggerAfter('remove', false, errorMessage);
+          _this.events.trigger('error', 'remove', data.errorMessage, data.request, data.options);
+          _this.events.triggerAfter('remove', false, data.errorMessage, data.request, data.options);
         }
         if (typeof callback == 'function') {
-          callback.call(_this, false, errorMessage);
+          callback.call(_this, false, data.errorMessage, data.request, data.options);
         }
-        throw errorMessage;
+        throw data;
       });
 
     };
@@ -415,16 +403,16 @@
           _this.select(savedFilter).then(resolve, reject);
         }, msec);
 
-      }).then(function(response) {
+      }).then(function(data) {
         if (typeof callback == 'function') {
-          callback.call(_this, true, response);
+          callback.call(_this, true, data.response, data.request, data.options);
         }
-        return response;
-      }).catch(function(errorMessage) {
+        return data;
+      }).catch(function(data) {
         if (typeof callback == 'function') {
-          callback.call(_this, false, errorMessage);
+          callback.call(_this, false, data.errorMessage, data.request, data.options);
         }
-        throw errorMessage;
+        throw data;
       });
 
     };
@@ -456,7 +444,7 @@
 
         if (!br.isEmpty(filter)) {
           if (!br.isNumber(filter) && !br.isObject(filter)) {
-            reject('Unacceptable filter parameters');
+            reject({request: request, options: options, errorMessage: 'Unacceptable filter parameters'});
             return _this;
           } else {
             if (br.isNumber(filter)) {
@@ -564,13 +552,13 @@
                                         try {
                                           _this.ajaxRequest = null;
                                           if ((_this.options.crossdomain && (typeof response == 'string')) || br.isNull(response)) {
-                                            reject('Unknown error');
+                                            reject({request: request, options: options, errorMessage: 'Unknown error'});
                                           } else {
                                             if (singleRespone && br.isArray(response)) {
                                               if (response.length > 0) {
                                                 response = response[0];
                                               } else {
-                                                reject('Record not found');
+                                                reject({request: request, options: options, errorMessage: 'Record not found'});
                                                 return;
                                               }
                                             } else
@@ -580,7 +568,7 @@
                                             if (selectCount) {
                                               response = parseInt(response);
                                             }
-                                            resolve(response);
+                                            resolve({request: request, options: options, response: response});
                                           }
                                         } finally {
                                           selectOperationCounter--;
@@ -590,7 +578,8 @@
                                         try {
                                           _this.ajaxRequest = null;
                                           if (!br.isUnloading()) {
-                                            reject((br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText));
+                                            var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                                            reject({request: request, options: options, errorMessage: errorMessage});
                                           }
                                         } finally {
                                           selectOperationCounter--;
@@ -599,24 +588,24 @@
                                     });
         }
 
-      }).then(function(response) {
+      }).then(function(data) {
         if (!disableEvents) {
-          _this.events.trigger('select', response);
-          _this.events.triggerAfter('select', true, response);
+          _this.events.trigger('select', data.response, data.request, data.options);
+          _this.events.triggerAfter('select', true, data.response, data.request, data.options);
         }
         if (typeof callback == 'function') {
-          callback.call(_this, true, response);
+          callback.call(_this, true, data.response, data.request, data.options);
         }
-        return response;
-      }).catch(function(errorMessage) {
+        return data;
+      }).catch(function(data) {
         if (!disableEvents) {
-          _this.events.trigger('error', 'select', errorMessage);
-          _this.events.triggerAfter('select', false, errorMessage);
+          _this.events.trigger('error', 'select', data.errorMessage, data.request, data.options);
+          _this.events.triggerAfter('select', false, data.errorMessage, data.request, data.options);
         }
         if (typeof callback == 'function') {
-          callback.call(_this, false, errorMessage);
+          callback.call(_this, false, data.errorMessage, data.request, data.options);
         }
-        throw errorMessage;
+        throw data;
       });
 
     };
@@ -677,36 +666,37 @@
                , url: _this.options.restServiceUrl + method + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
                , success: function(response) {
                    if (_this.options.crossdomain && (typeof response == 'string')) {
-                     reject(response);
+                     reject({method: method, request: request, options: options, errorMessage: response});
                    } else {
-                     resolve(response);
+                     resolve({method: method, request: request, options: options, response: response});
                    }
                  }
                , error: function(jqXHR, textStatus, errorThrown) {
                    if (!br.isUnloading()) {
-                     reject((br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText));
+                     var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                     reject({method: method, request: request, options: options, errorMessage: errorMessage});
                    }
                  }
                });
 
-      }).then(function(response) {
-        // if (!disableEvents) {
-          _this.events.trigger(method, response, params);
-          _this.events.triggerAfter(method, true, response);
-        // }
-        if (typeof callback == 'function') {
-          callback.call(_this, true, response);
+      }).then(function(data) {
+        if (!disableEvents) {
+          _this.events.trigger(data.method, data.response, data.request, data.options);
+          _this.events.triggerAfter(data.method, true, data.response, data.request, data.options);
         }
-        return response;
-      }).catch(function(errorMessage) {
-        // if (!disableEvents) {
-          _this.events.trigger('error', method, errorMessage);
-          _this.events.triggerAfter(method, false, errorMessage);
-        // }
         if (typeof callback == 'function') {
-          callback.call(_this, false, errorMessage);
+          callback.call(_this, true, data.response, data.request, data.options);
         }
-        throw errorMessage;
+        return data;
+      }).catch(function(data) {
+        if (!disableEvents) {
+          _this.events.trigger('error', data.method, data.errorMessage, data.request, data.options);
+          _this.events.triggerAfter(data.method, false, data.errorMessage, data.request, data.options);
+        }
+        if (typeof callback == 'function') {
+          callback.call(_this, false, data.errorMessage, data.request, data.options);
+        }
+        throw data;
       });
 
     };
