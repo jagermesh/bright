@@ -28,17 +28,23 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
 
     $this->redis = new Redis();
 
-    if (!$this->redis->connect($hostname, $port)) {
+    if (!@$this->redis->connect($hostname, $port)) {
       throw new Exception('Can not connect to Redis server ' . $hostname . ':' . $port);
     }
 
     if (br($cfg, 'password')) {
-      if (!$this->redis->auth($cfg['password'])) {
+      if (!@$this->redis->auth($cfg['password'])) {
         throw new Exception('Can not authenticate with Redis server ' . $hostname . ':' . $port);
       }
     }
 
-    $this->redis->setOption(Redis::OPT_PREFIX, $this->getDefaultNamePrefix());
+    if (br($cfg, 'namePrefix')) {
+      $this->setDefaultNamePrefix($cfg['namePrefix'] . ':');
+    }
+
+    if (!@$this->redis->setOption(Redis::OPT_PREFIX, $this->getDefaultNamePrefix())) {
+      throw new Exception('Can not change Redis prefix');
+    }
 
   }
 
@@ -50,68 +56,95 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
 
   public function reset() {
 
-    return $this->redis->flushAll();
+    try {
+      return @$this->redis->flushAll();
+    } catch (Exception $e) {
+      return null;
+    }
 
   }
 
   public function exists($name) {
 
-    return $this->redis->exists($name);
+    try {
+      return @$this->redis->exists($name);
+    } catch (Exception $e) {
+      return false;
+    }
 
   }
 
   public function get($name, $default = null, $saveDefault = false) {
 
-    $result = $this->redis->get($name);
+    try {
+      $result = @$this->redis->get($name);
 
-    if ($result === false) {
-      $result = $default;
-      if ($saveDefault) {
-        $this->set($name, $result);
+      if ($result === false) {
+        $result = $default;
+        if ($saveDefault) {
+          $this->set($name, $result);
+        }
+      } else {
+        $result = json_decode($result, true);
       }
-    } else {
-      $result = json_decode($result, true);
+
+      return $result;
+    } catch (Exception $e) {
+      return null;
     }
 
-    return $result;
 
   }
 
-  public function getEx($name) {
+  public function getEx($name, $default = null, $saveDefault = false) {
 
-    $result = $this->redis->get($name);
+    try {
+      $result = @$this->redis->get($name);
 
-    if ($result === false) {
+      if ($result === false) {
+        $result = array('success' => false);
+      } else {
+        $result = array('success' => true, 'value' => json_decode($result, true));
+      }
+
+      return $result;
+    } catch (Exception $e) {
       $result = array('success' => false);
-    } else {
-      $result = array('success' => true, 'value' => json_decode($result, true));
     }
-
-    return $result;
 
   }
 
   public function getKeys($pattern) {
 
-    $result = $this->redis->keys($pattern);
+    try {
+      if ($result = @$this->redis->keys($pattern)) {
+        foreach ($result as &$res) {
+          $res = str_replace($this->getDefaultNamePrefix(), '', $res);
+        }
+      } else {
+        $result = [];
+      }
 
-    foreach ($result as &$res) {
-      $res = str_replace($this->getDefaultNamePrefix(), '', $res);
+      return $result;
+    } catch (Exception $e) {
+      return null;
     }
-
-    return $result;
 
   }
 
   public function set($name, $value, $cacheLifeTime = null) {
 
-    if (!$cacheLifeTime) {
-      $cacheLifeTime = $this->getCacheLifeTime();
-    }
+    try {
+      $cacheLifeTime = $cacheLifeTime ? $cacheLifeTime : $this->getCacheLifeTime();
 
-    if ($this->redis->set($name, json_encode($value), $cacheLifeTime)) {
-      return $value;
-    } else {
+      $packed = json_encode($value);
+
+      if (@$this->redis->set($name, $packed, $cacheLifeTime)) {
+        return $value;
+      } else {
+        return false;
+      }
+    } catch (Exception $e) {
       return false;
     }
 
@@ -119,7 +152,11 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
 
   public function remove($name) {
 
-    return $this->redis->del($name);
+    try {
+      return @$this->redis->del($name);
+    } catch (Exception $e) {
+      return false;
+    }
 
   }
 

@@ -25,7 +25,7 @@
 		fade_in_speed: 'medium', // how fast notifications fade in
 		fade_out_speed: 1000, // how fast the notices fade out
 		time: 6000 // hang on the screen for...
-	}
+	};
 
 	/**
 	* Add a gritter notification to the screen
@@ -37,14 +37,9 @@
 			return Gritter.add(params || {});
 		} catch(e) {
 
-			var err = 'Gritter Error: ' + e;
-			(typeof(console) != 'undefined' && console.error) ?
-				console.error(err, params) :
-				alert(err);
-
 		}
 
-	}
+	};
 
 	/**
 	* Remove a gritter notification from the screen
@@ -52,7 +47,7 @@
 	*/
 	$.gritter.remove = function(id, params){
 		Gritter.removeSpecific(id, params || {});
-	}
+	};
 
 	/**
 	* Remove all notifications
@@ -60,7 +55,7 @@
 	*/
 	$.gritter.removeAll = function(params){
 		Gritter.stop(params || {});
-	}
+	};
 
 	/**
 	* Big fat Gritter object
@@ -78,7 +73,7 @@
 		_custom_timer: 0,
 		_item_count: 0,
 		_is_setup: 0,
-		_tpl_close: '<a class="gritter-close" href="#" tabindex="1"></a>',
+		_tpl_close: '<a class="gritter-close"href="#" tabindex="1">hide</a>',
 		_tpl_title: '<span class="gritter-title">[[title]]</span>',
 		_tpl_item: '<div id="gritter-item-[[number]]" class="gritter-item-wrapper [[item_class]]" style="display:none" role="alert"><div class="gritter-top"></div><div class="gritter-item">[[close]][[image]]<div class="[[class_name]]">[[title]]<p>[[text]]</p></div><div style="clear:both"></div></div><div class="gritter-bottom"></div></div>',
 		_tpl_wrap: '<div id="gritter-notice-wrapper"></div>',
@@ -121,7 +116,7 @@
 
 			// Assign callbacks
 			$(['before_open', 'after_open', 'before_close', 'after_close']).each(function(i, val){
-				Gritter['_' + val + '_' + number] = ($.isFunction(params[val])) ? params[val] : function(){}
+				Gritter['_' + val + '_' + number] = ($.isFunction(params[val])) ? params[val] : function(){};
 			});
 
 			// Reset
@@ -219,8 +214,8 @@
 		*/
 		_fade: function(e, unique_id, params, unbind_events){
 
-			var params = params || {},
-				fade = (typeof(params.fade) != 'undefined') ? params.fade : true,
+			params = params || {};
+			var fade = (typeof(params.fade) != 'undefined') ? params.fade : true,
 				fade_out_speed = params.speed || this.fade_out_speed,
 				manual_close = unbind_events;
 
@@ -239,8 +234,8 @@
 				}, fade_out_speed, function(){
 					e.animate({ height: 0 }, 300, function(){
 						Gritter._countRemoveWrapper(unique_id, e, manual_close);
-					})
-				})
+					});
+				});
 
 			}
 			else {
@@ -290,7 +285,7 @@
 		removeSpecific: function(unique_id, params, e, unbind_events){
 
 			if(!e){
-				var e = $('#gritter-item-' + unique_id);
+				e = $('#gritter-item-' + unique_id);
 			}
 
 			// We set the fourth param to let the _fade function know to
@@ -307,7 +302,7 @@
 		*/
 		_restoreItemIfFading: function(e, unique_id){
 
-			clearTimeout(this['_int_id_' + unique_id]);
+			window.clearTimeout(this['_int_id_' + unique_id]);
 			e.stop().css({ opacity: '', height: '' });
 
 		},
@@ -318,7 +313,7 @@
 		*/
 		_runSetup: function(){
 
-			for(opt in $.gritter.options){
+			for(var opt in $.gritter.options){
 				this[opt] = $.gritter.options[opt];
 			}
 			this._is_setup = 1;
@@ -334,7 +329,7 @@
 		_setFadeTimer: function(e, unique_id){
 
 			var timer_str = (this._custom_timer) ? this._custom_timer : this.time;
-			this['_int_id_' + unique_id] = setTimeout(function(){
+			this['_int_id_' + unique_id] = window.setTimeout(function(){
 				Gritter._fade(e, unique_id);
 			}, timer_str);
 
@@ -414,6 +409,6 @@
 
 		}
 
-	}
+	};
 
 })(jQuery);

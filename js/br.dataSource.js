@@ -13,181 +13,643 @@
 
     var _this = this;
 
-    this.ajaxRequest = null;
-    this.name = '-';
-    this.options = options || {};
-    this.options.restServiceUrl = restServiceUrl;
-    this.options.refreshDelay = this.options.refreshDelay || 1500;
-    if (this.options.restServiceUrl.charAt(this.options.restServiceUrl.length-1) != '/') {
-      this.options.restServiceUrl = this.options.restServiceUrl + '/';
+    _this.ajaxRequest = null;
+    _this.name = '-';
+    _this.options = options || {};
+    _this.options.restServiceUrl = restServiceUrl;
+    _this.options.refreshDelay = _this.options.refreshDelay || 1500;
+    if (_this.options.restServiceUrl.charAt(_this.options.restServiceUrl.length-1) != '/') {
+      _this.options.restServiceUrl = _this.options.restServiceUrl + '/';
     }
 
-    this.events = br.eventQueue(this);
-    this.before = function(event, callback) { this.events.before(event, callback); };
-    this.on     = function(event, callback) { this.events.on(event, callback); };
-    this.after  = function(event, callback) { this.events.after(event, callback); };
+    _this.events = br.eventQueue(_this);
+    _this.before = function(event, callback) { _this.events.before(event, callback); };
+    _this.on     = function(event, callback) { _this.events.on(event, callback); };
+    _this.after  = function(event, callback) { _this.events.after(event, callback); };
 
-    this.clientUID = null;
+    _this.clientUID = null;
 
     var selectOperationCounter = 0;
+    var refreshTimeout;
 
-    this.getClientUID = function() {
-      if (!this.clientUID) {
-        this.clientUID = Math.round(Math.random() * 100000);
-      }
-      return this.clientUID;
-    };
+    _this.getClientUID = function() {
 
-    this.setClientUID = function(clientUID) {
-      this.clientUID = clientUID;
-    };
-
-    this.insert = function(item, callback, options) {
-
-      options = options || { };
-
-      var disableEvents = options && options.disableEvents;
-
-      function returnInsert(data) {
-
-        var result;
-
-        if (_this.options.crossdomain) {
-          if (typeof data == 'string') {
-            result = false;
-            _this.events.trigger('error', 'insert', data.length > 0 ? data : 'Empty response. Was expecting new created records with ROWID.');
-          } else {
-            result = true;
-            if (!disableEvents) {
-              _this.events.trigger('insert', data);
-            }
-          }
-        } else {
-          if (data) {
-            result = true;
-            if (!disableEvents) {
-              _this.events.trigger('insert', data);
-            }
-          } else {
-            result = false;
-            _this.events.trigger('error', 'insert', 'Empty response. Was expecting new created records with ROWID.');
-          }
-        }
-        if (!disableEvents) {
-          _this.events.triggerAfter('insert', result, data, request);
-          if (result) {
-            _this.events.trigger('change', 'insert', data);
-          }
-        }
-        if (typeof callback == 'function') { callback.call(_this, result, data, request); }
-
+      if (!_this.clientUID) {
+        _this.clientUID = Math.round(Math.random() * 100000);
       }
 
-      var request = item;
+      return _this.clientUID;
 
-      try {
+    };
 
-        if (!disableEvents) {
-          _this.events.triggerBefore('request', request, options);
-          _this.events.triggerBefore('insert', request, options);
-          disableEvents = options && options.disableEvents;
-        }
+    _this.setClientUID = function(clientUID) {
 
-        if (this.options.crossdomain) {
-          request.crossdomain = 'put';
-        }
+      _this.clientUID = clientUID;
 
-        if (options && options.dataSets) {
-          request.__dataSets = options.dataSets;
-        }
+    };
 
-        if (_this.clientUID) {
-          request.__clientUID = _this.clientUID;
-        }
 
-        if (options && options.clientUID) {
-          request.__clientUID = options.clientUID;
-        }
+    _this.doingSelect = function() {
 
-        for(var paramName in request) {
-          if (request[paramName] === null) {
-            request[paramName] = 'null';
-          }
-        }
+      return selectOperationCounter > 0;
 
-        $.ajax({ type: this.options.crossdomain ? 'GET' : 'PUT'
-               , data: request
-               , dataType: this.options.crossdomain ? 'jsonp' : 'json'
-               , url: this.options.restServiceUrl + (this.options.authToken ? '?token=' + this.options.authToken : '')
-               , success: function(response) {
-                   returnInsert(response);
-                 }
-               , error: function(jqXHR, textStatus, errorThrown) {
-                   if (br.isUnloading()) {
+    };
 
-                   } else {
-                     var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                     if (!disableEvents) {
-                       _this.events.trigger('error', 'insert', errorMessage);
-                       _this.events.triggerAfter('insert', false, errorMessage, request);
-                     }
-                     if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
-                   }
-                 }
-               });
+    _this.requestInProgress = function() {
 
-      } catch (errorMessage) {
-        br.log(errorMessage);
-        if (!disableEvents) {
-          _this.events.trigger('error', 'insert', errorMessage);
-          _this.events.triggerAfter('insert', false, errorMessage, request);
-        }
-        if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
+      return (_this.ajaxRequest !== null);
+
+    };
+
+    _this.abortRequest = function() {
+
+      if (_this.ajaxRequest !== null) {
+        _this.ajaxRequest.abort();
       }
 
       return this;
 
     };
 
-    this.update = function(rowid, item, callback, options) {
+    _this.insert = function(item, callback, options) {
 
       options = options || { };
 
       var disableEvents = options && options.disableEvents;
 
-      function returnUpdate(data) {
-        var operation = 'update';
-        if (data) {
-          var res = _this.events.trigger('removeAfterUpdate', item, data);
-          if ((res !== null) && res) {
-            operation = 'remove';
-            if (!disableEvents) {
-              _this.events.trigger('remove', rowid);
+      return new Promise(function(resolve, reject) {
+
+        var request = item;
+
+        try {
+
+          if (!disableEvents) {
+            _this.events.triggerBefore('request', request, options);
+            _this.events.triggerBefore('insert', request, options);
+            disableEvents = options && options.disableEvents;
+          }
+
+          if (_this.options.crossdomain) {
+            request.crossdomain = 'put';
+          }
+
+          if (options && options.dataSets) {
+            request.__dataSets = options.dataSets;
+          }
+
+          if (_this.clientUID) {
+            request.__clientUID = _this.clientUID;
+          }
+
+          if (options && options.clientUID) {
+            request.__clientUID = options.clientUID;
+          }
+
+          for(var paramName in request) {
+            if (request[paramName] === null) {
+              request[paramName] = 'null';
             }
+          }
+
+          $.ajax({ type: _this.options.crossdomain ? 'GET' : 'PUT'
+                 , data: request
+                 , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
+                 , url: _this.options.restServiceUrl + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
+                 , success: function(response) {
+                     var result, errorMessage;
+
+                     if (_this.options.crossdomain) {
+                       if (typeof response == 'string') {
+                         result = false;
+                         errorMessage = response.length > 0 ? response : 'Empty response. Was expecting new created records with ROWID.';
+                       } else {
+                         result = true;
+                       }
+                     } else {
+                       if (response) {
+                         result = true;
+                       } else {
+                         result = false;
+                         errorMessage = 'Empty response. Was expecting new created records with ROWID.';
+                       }
+                     }
+                     if (result) {
+                       resolve(response);
+                     } else {
+                       reject(errorMessage);
+                     }
+                   }
+                 , error: function(jqXHR, textStatus, errorThrown) {
+                     if (!br.isUnloading()) {
+                       reject((br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText));
+                     }
+                   }
+                 });
+
+        } catch (errorMessage) {
+          if (!disableEvents) {
+            _this.events.trigger('error', 'insert', errorMessage);
+            _this.events.triggerAfter('insert', false, errorMessage, request);
+          }
+          reject(errorMessage);
+        }
+
+      }).then(function(response) {
+        if (!disableEvents) {
+          _this.events.trigger('insert', response);
+          _this.events.triggerAfter('insert', true, response);
+          _this.events.trigger('change', 'insert', response);
+        }
+        if (typeof callback == 'function') {
+          callback.call(_this, true, response);
+        }
+        return response;
+      }).catch(function(errorMessage) {
+        if (!disableEvents) {
+          _this.events.trigger('error', 'insert', errorMessage);
+          _this.events.triggerAfter('insert', false, errorMessage);
+        }
+        if (typeof callback == 'function') {
+          callback.call(_this, false, errorMessage);
+        }
+        throw errorMessage;
+      });
+
+    };
+
+    _this.update = function(rowid, item, callback, options) {
+
+      options = options || { };
+
+      var disableEvents = options && options.disableEvents;
+      var operation;
+
+      return new Promise(function(resolve, reject) {
+
+        var request = item;
+
+        try {
+
+          if (!disableEvents) {
+            _this.events.triggerBefore('request', request, options);
+            _this.events.triggerBefore('update', request, options, rowid);
+            disableEvents = options && options.disableEvents;
+          }
+
+          if (_this.options.crossdomain) {
+            request.crossdomain = 'post';
+          }
+
+          if (options && options.dataSets) {
+            request.__dataSets = options.dataSets;
+          }
+
+          if (_this.clientUID) {
+            request.__clientUID = _this.clientUID;
+          }
+
+          if (options && options.clientUID) {
+            request.__clientUID = options.clientUID;
+          }
+
+          for(var paramName in request) {
+            if (request[paramName] === null) {
+              request[paramName] = 'null';
+            }
+          }
+
+          $.ajax({ type: _this.options.crossdomain ? 'GET' : 'POST'
+                 , data: request
+                 , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
+                 , url: _this.options.restServiceUrl + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
+                 , success: function(response) {
+                     operation = 'update';
+                     if (response) {
+                       var res = _this.events.trigger('removeAfterUpdate', item, response);
+                       if ((res !== null) && res) {
+                         operation = 'remove';
+                       }
+                     }
+                     resolve(response);
+                   }
+                 , error: function(jqXHR, textStatus, errorThrown) {
+                     if (!br.isUnloading()) {
+                       reject((br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText));
+                     }
+                   }
+                 });
+
+        } catch (errorMessage) {
+          reject(errorMessage);
+        }
+
+      }).then(function(response) {
+        if (!disableEvents) {
+          if (operation == 'remove') {
+            _this.events.trigger('remove', rowid);
           } else {
-            if (!disableEvents) {
-              _this.events.trigger('update', data, rowid);
+             _this.events.trigger('update', response, rowid);
+          }
+          _this.events.triggerAfter(operation, true, response);
+          _this.events.trigger('change', operation, response);
+        }
+        if (typeof callback == 'function') {
+          callback.call(_this, true, response);
+        }
+        return response;
+      }).catch(function(errorMessage) {
+        if (!disableEvents) {
+          _this.events.trigger('error', 'update', errorMessage);
+          _this.events.triggerAfter('update', false, errorMessage);
+        }
+        if (typeof callback == 'function') {
+          callback.call(_this, false, errorMessage);
+        }
+        throw errorMessage;
+      });
+
+    };
+
+    _this.remove = function(rowid, callback, options) {
+
+      options = options || { };
+
+      var disableEvents = options && options.disableEvents;
+
+      return new Promise(function(resolve, reject) {
+
+        var request = {};
+
+        try {
+
+          if (!disableEvents) {
+            _this.events.triggerBefore('request', request, options, rowid);
+            _this.events.triggerBefore('remove', request, options, rowid);
+            disableEvents = options && options.disableEvents;
+          }
+
+          if (_this.options.crossdomain) {
+            request.crossdomain = 'delete';
+          }
+
+          if (options && options.dataSets) {
+            request.__dataSets = options.dataSets;
+          }
+
+          if (_this.clientUID) {
+            request.__clientUID = _this.clientUID;
+          }
+
+          if (options && options.clientUID) {
+            request.__clientUID = options.clientUID;
+          }
+
+          for(var paramName in request) {
+            if (request[paramName] === null) {
+              request[paramName] = 'null';
+            }
+          }
+
+          $.ajax({ type: _this.options.crossdomain ? 'GET' : 'DELETE'
+                 , data: request
+                 , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
+                 , url: _this.options.restServiceUrl + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
+                 , success: function(response) {
+                     resolve(response);
+                   }
+                 , error: function(jqXHR, textStatus, errorThrown) {
+                     if (!br.isUnloading()) {
+                       reject((br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText));
+                     }
+                   }
+                 });
+
+        } catch (errorMessage) {
+          br.log(errorMessage);
+          if (!disableEvents) {
+            _this.events.trigger('error', 'remove', errorMessage);
+            _this.events.triggerAfter('remove', false, errorMessage, request);
+          }
+          reject(errorMessage);
+        }
+
+      }).then(function(response) {
+        if (!disableEvents) {
+          _this.events.trigger('remove', rowid);
+          _this.events.triggerAfter('remove', true, response);
+          _this.events.trigger('change', 'remove', response);
+        }
+        if (typeof callback == 'function') {
+          callback.call(_this, true, response);
+        }
+        return response;
+      }).catch(function(errorMessage) {
+        if (!disableEvents) {
+          _this.events.trigger('error', 'remove', errorMessage);
+          _this.events.triggerAfter('remove', false, errorMessage);
+        }
+        if (typeof callback == 'function') {
+          callback.call(_this, false, errorMessage);
+        }
+        throw errorMessage;
+      });
+
+    };
+
+    _this.selectCount = function(filter, callback, options) {
+
+      if (typeof filter == 'function') {
+        options = callback;
+        callback = filter;
+        filter = { };
+      }
+
+      var newFilter = {};
+      for(var i in filter) {
+        newFilter[i] = filter[i];
+      }
+      newFilter.__result = 'count';
+
+      options = options || {};
+      options.selectCount = true;
+
+      return _this.select(newFilter, callback, options);
+
+    };
+
+    _this.selectOne = function(filter, callback, options) {
+
+      if (typeof filter == 'function') {
+        options = callback;
+        callback = filter;
+        filter = { };
+      }
+
+      options = options || { };
+      options.selectOne = true;
+      options.limit = 1;
+
+      if (!br.isEmpty(filter)) {
+        if (br.isNumber(filter)) {
+          return _this.select({ rowid: filter }, callback, options);
+        } else {
+          return _this.select(filter, callback, options);
+        }
+      } else {
+        return _this.select(filter, callback, options);
+      }
+
+    };
+
+    _this.selectDeferred = _this.deferredSelect = function(filter, callback, msec) {
+
+      return new Promise(function(resolve, reject) {
+
+        msec = msec || _this.options.refreshDelay;
+        var savedFilter = {};
+        for(var i in filter) {
+          savedFilter[i] = filter[i];
+        }
+        window.clearTimeout(refreshTimeout);
+        refreshTimeout = window.setTimeout(function() {
+          _this.select(savedFilter).then(resolve, reject);
+        }, msec);
+
+      }).then(function(response) {
+        if (typeof callback == 'function') {
+          callback.call(_this, true, response);
+        }
+        return response;
+      }).catch(function(errorMessage) {
+        if (typeof callback == 'function') {
+          callback.call(_this, false, errorMessage);
+        }
+        throw errorMessage;
+      });
+
+    };
+
+    _this.load = _this.select = function(filter, callback, options) {
+
+      if (typeof filter == 'function') {
+        options = callback;
+        callback = filter;
+        filter = { };
+      }
+
+      options = options || { };
+
+      var disableEvents = options && options.disableEvents;
+
+      return new Promise(function(resolve, reject) {
+
+        var request = {};
+        var requestRowid;
+
+        var selectOne = options && options.selectOne;
+        var selectCount = options && options.selectCount;
+        var singleRespone = selectOne || selectCount;
+
+        if (selectOne) {
+          options.limit = 1;
+        }
+
+        if (!br.isEmpty(filter)) {
+          if (!br.isNumber(filter) && !br.isObject(filter)) {
+            reject('Unacceptable filter parameters');
+            return _this;
+          } else {
+            if (br.isNumber(filter)) {
+              filter = { rowid: filter };
+            }
+            for(var name in filter) {
+              if ((name == 'rowid') && selectOne) {
+                requestRowid = filter[name];
+              } else {
+                request[name] = filter[name];
+              }
             }
           }
         }
-        if (!disableEvents) {
-          _this.events.triggerAfter(operation, true, data, request);
-          _this.events.trigger('change', operation, data);
+
+        var url = _this.options.restServiceUrl;
+        if (selectOne && requestRowid) {
+          url = url + requestRowid;
         }
-        if (typeof callback == 'function') { callback.call(_this, true, data, request); }
-      }
 
-      var request = item;
-
-      try {
+        var proceed = true;
 
         if (!disableEvents) {
-          _this.events.triggerBefore('request', request, options);
-          _this.events.triggerBefore('update', request, options, rowid);
+          try {
+            _this.events.triggerBefore('request', request, options);
+          } catch(e) {
+            br.log(e);
+            proceed = false;
+          }
+          try {
+            _this.events.triggerBefore('select', request, options);
+          } catch(e) {
+            br.log(e);
+            proceed = false;
+          }
           disableEvents = options && options.disableEvents;
         }
 
-        if (this.options.crossdomain) {
+        if (proceed) {
+          if (!br.isEmpty(_this.options.limit)) {
+            request.__limit = _this.options.limit;
+          }
+
+          if (options && !br.isEmpty(options.skip)) {
+            request.__skip = options.skip;
+          }
+
+          if (options && !br.isEmpty(options.limit)) {
+            request.__limit = options.limit;
+          }
+
+          if (options && options.fields) {
+            request.__fields = options.fields;
+          }
+
+          if (options && options.dataSets) {
+            request.__dataSets = options.dataSets;
+          }
+
+          if (_this.clientUID) {
+            request.__clientUID = _this.clientUID;
+          }
+
+          if (options && options.clientUID) {
+            request.__clientUID = options.clientUID;
+          }
+
+          if (options && options.excludeFields) {
+            request.__excludeFields = options.excludeFields;
+          }
+
+          if (options && options.renderMode) {
+            request.__renderMode = options.renderMode;
+          }
+
+          if (options && options.noCalcFields) {
+            request.__noCalcFields = options.noCalcFields;
+          }
+
+          if (options && options.order) {
+            request.__order = options.order;
+          }
+
+          if (options && options.page) {
+            request.__page = options.page;
+          }
+
+          if (_this.options.crossdomain) {
+            request.crossdomain = 'get';
+          }
+
+          selectOperationCounter++;
+
+          for(var paramName in request) {
+            if (request[paramName] === null) {
+              request[paramName] = 'null';
+            }
+          }
+
+          _this.ajaxRequest = $.ajax({ type: 'GET'
+                                    , data: request
+                                    , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
+                                    , url: url + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
+                                    , success: function(response) {
+                                        try {
+                                          _this.ajaxRequest = null;
+                                          if ((_this.options.crossdomain && (typeof response == 'string')) || br.isNull(response)) {
+                                            reject('Unknown error');
+                                          } else {
+                                            if (singleRespone && br.isArray(response)) {
+                                              if (response.length > 0) {
+                                                response = response[0];
+                                              } else {
+                                                reject('Record not found');
+                                                return;
+                                              }
+                                            } else
+                                            if (!singleRespone && !br.isArray(response)) {
+                                              response = [response];
+                                            }
+                                            if (selectCount) {
+                                              response = parseInt(response);
+                                            }
+                                            resolve(response);
+                                          }
+                                        } finally {
+                                          selectOperationCounter--;
+                                        }
+                                      }
+                                    , error: function(jqXHR, textStatus, errorThrown) {
+                                        try {
+                                          _this.ajaxRequest = null;
+                                          if (!br.isUnloading()) {
+                                            reject((br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText));
+                                          }
+                                        } finally {
+                                          selectOperationCounter--;
+                                        }
+                                      }
+                                    });
+        }
+
+      }).then(function(response) {
+        if (!disableEvents) {
+          _this.events.trigger('select', response);
+          _this.events.triggerAfter('select', true, response);
+        }
+        if (typeof callback == 'function') {
+          callback.call(_this, true, response);
+        }
+        return response;
+      }).catch(function(errorMessage) {
+        if (!disableEvents) {
+          _this.events.trigger('error', 'select', errorMessage);
+          _this.events.triggerAfter('select', false, errorMessage);
+        }
+        if (typeof callback == 'function') {
+          callback.call(_this, false, errorMessage);
+        }
+        throw errorMessage;
+      });
+
+    };
+
+    _this.invoke = function(method, params, callback, options) {
+
+      if (typeof params == 'function') {
+        options  = callback;
+        callback = params;
+        params   = {};
+      }
+
+      if (callback && (typeof callback != 'function')) {
+        options  = callback;
+        callback = undefined;
+      }
+
+      options = options || { };
+
+      var disableEvents = options && options.disableEvents;
+
+      return new Promise(function(resolve, reject) {
+
+        var request = params || { };
+
+        if (!disableEvents) {
+          _this.events.triggerBefore('request', request, options);
+          _this.events.triggerBefore('invoke', request, options);
+          _this.events.triggerBefore(method, request, options);
+          disableEvents = options && options.disableEvents;
+        }
+
+        if (_this.options.crossdomain) {
           request.crossdomain = 'post';
         }
 
@@ -209,479 +671,47 @@
           }
         }
 
-        $.ajax({ type: this.options.crossdomain ? 'GET' : 'POST'
+        $.ajax({ type: _this.options.crossdomain ? 'GET' : 'POST'
                , data: request
-               , dataType: this.options.crossdomain ? 'jsonp' : 'json'
-               , url: this.options.restServiceUrl + rowid + (this.options.authToken ? '?token=' + this.options.authToken : '')
+               , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
+               , url: _this.options.restServiceUrl + method + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
                , success: function(response) {
-                   returnUpdate(response);
+                   if (_this.options.crossdomain && (typeof response == 'string')) {
+                     reject(response);
+                   } else {
+                     resolve(response);
+                   }
                  }
                , error: function(jqXHR, textStatus, errorThrown) {
-                   if (br.isUnloading()) {
-
-                   } else {
-                     var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                     if (!disableEvents) {
-                       _this.events.trigger('error', 'update', errorMessage);
-                       _this.events.triggerAfter('update', false, errorMessage, request);
-                     }
-                     if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
+                   if (!br.isUnloading()) {
+                     reject((br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText));
                    }
                  }
                });
 
-      } catch (errorMessage) {
-        br.log(errorMessage);
-        if (!disableEvents) {
-          _this.events.trigger('error', 'update', errorMessage);
-          _this.events.triggerAfter('update', false, errorMessage, request);
+      }).then(function(response) {
+        // if (!disableEvents) {
+          _this.events.trigger(method, response, params);
+          _this.events.triggerAfter(method, true, response);
+        // }
+        if (typeof callback == 'function') {
+          callback.call(_this, true, response);
         }
-        if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
-      }
-
-      return this;
+        return response;
+      }).catch(function(errorMessage) {
+        // if (!disableEvents) {
+          _this.events.trigger('error', method, errorMessage);
+          _this.events.triggerAfter(method, false, errorMessage);
+        // }
+        if (typeof callback == 'function') {
+          callback.call(_this, false, errorMessage);
+        }
+        throw errorMessage;
+      });
 
     };
 
-    this.remove = function(rowid, callback, options) {
-
-      options = options || { };
-
-      var disableEvents = options && options.disableEvents;
-
-      function returnRemove(data) {
-        if (!disableEvents) {
-          _this.events.trigger('remove', rowid);
-          _this.events.triggerAfter('remove', true, data, request);
-          _this.events.trigger('change', 'remove', data);
-        }
-        if (typeof callback == 'function') { callback.call(_this, true, data, request); }
-      }
-
-      var request = {};
-
-      try {
-
-        if (!disableEvents) {
-          _this.events.triggerBefore('request', request, options, rowid);
-          _this.events.triggerBefore('remove', request, options, rowid);
-          disableEvents = options && options.disableEvents;
-        }
-
-        if (this.options.crossdomain) {
-          request.crossdomain = 'delete';
-        }
-
-        if (options && options.dataSets) {
-          request.__dataSets = options.dataSets;
-        }
-
-        if (_this.clientUID) {
-          request.__clientUID = _this.clientUID;
-        }
-
-        if (options && options.clientUID) {
-          request.__clientUID = options.clientUID;
-        }
-
-        for(var paramName in request) {
-          if (request[paramName] === null) {
-            request[paramName] = 'null';
-          }
-        }
-
-        $.ajax({ type: this.options.crossdomain ? 'GET' : 'DELETE'
-               , data: request
-               , dataType: this.options.crossdomain ? 'jsonp' : 'json'
-               , url: this.options.restServiceUrl + rowid + (this.options.authToken ? '?token=' + this.options.authToken : '')
-               , success: function(response) {
-                   returnRemove(response);
-                 }
-               , error: function(jqXHR, textStatus, errorThrown) {
-                   if (br.isUnloading()) {
-
-                   } else {
-                     var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                     if (!disableEvents) {
-                       _this.events.trigger('error', 'remove', errorMessage);
-                       _this.events.triggerAfter('remove', false, errorMessage, request);
-                     }
-                     if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
-                   }
-                 }
-               });
-
-      } catch (errorMessage) {
-        br.log(errorMessage);
-        if (!disableEvents) {
-          _this.events.trigger('error', 'remove', errorMessage);
-          _this.events.triggerAfter('remove', false, errorMessage, request);
-        }
-        if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
-      }
-
-      return this;
-
-    };
-
-    this.selectCount = function(filter, callback, options) {
-
-      if (typeof filter == 'function') {
-        options = callback;
-        callback = filter;
-      }
-
-      var newFilter = {};
-      for(var i in filter) {
-        newFilter[i] = filter[i];
-      }
-      newFilter.__result = 'count';
-
-      options = options || {};
-      options.selectCount = true;
-
-      this.select(newFilter, callback, options);
-
-      return this;
-
-    };
-
-    function handleSelectError(error, request, callback, options) {
-
-      options = options || { };
-
-      var disableEvents = options && options.disableEvents;
-      var selectOne = options && options.selectOne;
-
-      if (!disableEvents) {
-        _this.events.trigger('error', 'select', error);
-        _this.events.triggerAfter('select', false, error, request);
-      }
-      if (typeof callback == 'function') { callback.call(_this, false, error, request); }
-    }
-
-    function handleSelectSuccess(response, request, callback, options) {
-
-      options = options || { };
-
-      var disableEvents = options && options.disableEvents;
-      var selectCount = options && options.selectCount;
-      var selectOne = options && (options.selectOne || options.selectCount);
-
-      if (selectOne && br.isArray(response)) {
-        if (response.length > 0) {
-          response = response[0];
-        } else {
-          handleSelectError('Record not found', request, callback, options);
-          return;
-        }
-      } else
-      if (!selectOne && !br.isArray(response)) {
-        response = [response];
-      }
-      if (selectCount) {
-        response = parseInt(response);
-      }
-      if (!disableEvents) {
-        _this.events.trigger('select', response);
-        _this.events.triggerAfter('select', true, response, request);
-      }
-      if (typeof callback == 'function') { callback.call(_this, true, response, request); }
-    }
-
-    this.selectOne = function(filter, callback, options) {
-
-      if (br.isFunction(filter)) {
-        options = callback;
-        callback = filter;
-        filter = { };
-      }
-
-      options = options || { };
-      options.selectOne = true;
-      options.limit = 1;
-
-      if (!br.isEmpty(filter)) {
-        if (!br.isNumber(filter) && !br.isObject(filter)) {
-          handleSelectError('Unacceptable filter parameters', filter, callback, options);
-          return this;
-        } else {
-          if (br.isNumber(filter)) {
-            return this.select({ rowid: filter }, callback, options);
-          } else {
-            return this.select(filter, callback, options);
-          }
-        }
-      } else {
-        return this.select(filter, callback, options);
-      }
-
-    };
-
-    this.doingSelect = function() {
-
-      return selectOperationCounter > 0;
-
-    };
-
-    this.load = this.select = function(filter, callback, options) {
-
-      var request = {};
-      var requestRowid;
-
-      if (br.isFunction(filter)) {
-        options = callback;
-        callback = filter;
-        filter = { };
-      }
-
-      options = options || { };
-
-      var disableEvents = options && options.disableEvents;
-      var selectOne = options && options.selectOne;
-
-      if (selectOne) {
-        options.limit = 1;
-      }
-
-      if (!br.isEmpty(filter)) {
-        if (!br.isNumber(filter) && !br.isObject(filter)) {
-          handleSelectError('Unacceptable filter parameters', filter, callback, options);
-          return this;
-        } else {
-          if (br.isNumber(filter)) {
-            filter = { rowid: filter };
-          }
-          for(var name in filter) {
-            if ((name == 'rowid') && selectOne) {
-              requestRowid = filter[name];
-            } else {
-              request[name] = filter[name];
-            }
-          }
-        }
-      }
-
-      var url = this.options.restServiceUrl;
-      if (selectOne && requestRowid) {
-        url = url + requestRowid;
-      }
-
-      var proceed = true;
-
-      if (!disableEvents) {
-        try {
-          _this.events.triggerBefore('request', request, options);
-        } catch(e) {
-          br.log(e);
-          proceed = false;
-        }
-        try {
-          _this.events.triggerBefore('select', request, options);
-        } catch(e) {
-          br.log(e);
-          proceed = false;
-        }
-        disableEvents = options && options.disableEvents;
-      }
-
-      if (proceed) {
-        if (!br.isEmpty(this.options.limit)) {
-          request.__limit = this.options.limit;
-        }
-
-        if (options && !br.isEmpty(options.skip)) {
-          request.__skip = options.skip;
-        }
-
-        if (options && !br.isEmpty(options.limit)) {
-          request.__limit = options.limit;
-        }
-
-        if (options && options.fields) {
-          request.__fields = options.fields;
-        }
-
-        if (options && options.dataSets) {
-          request.__dataSets = options.dataSets;
-        }
-
-        if (_this.clientUID) {
-          request.__clientUID = _this.clientUID;
-        }
-
-        if (options && options.clientUID) {
-          request.__clientUID = options.clientUID;
-        }
-
-        if (options && options.excludeFields) {
-          request.__excludeFields = options.excludeFields;
-        }
-
-        if (options && options.renderMode) {
-          request.__renderMode = options.renderMode;
-        }
-
-        if (options && options.noCalcFields) {
-          request.__noCalcFields = options.noCalcFields;
-        }
-
-        if (options && options.order) {
-          request.__order = options.order;
-        }
-
-        if (options && options.page) {
-          request.__page = options.page;
-        }
-
-        if (this.options.crossdomain) {
-          request.crossdomain = 'get';
-        }
-
-        selectOperationCounter++;
-
-        for(var paramName in request) {
-          if (request[paramName] === null) {
-            request[paramName] = 'null';
-          }
-        }
-
-        this.ajaxRequest = $.ajax({ type: 'GET'
-                                  , data: request
-                                  , dataType: this.options.crossdomain ? 'jsonp' : 'json'
-                                  , url: url + (this.options.authToken ? '?token=' + this.options.authToken : '')
-                                  , success: function(response) {
-                                      try {
-                                        _this.ajaxRequest = null;
-                                        if (_this.options.crossdomain && (typeof response == 'string')) {
-                                          handleSelectError('Unknown error', request, callback, options);
-                                        } else
-                                        if (br.isNull(response)) {
-                                          handleSelectError('Unknown error', request, callback, options);
-                                        } else {
-                                          handleSelectSuccess(response, request, callback, options);
-                                        }
-                                      } finally {
-                                        selectOperationCounter--;
-                                      }
-                                    }
-                                  , error: function(jqXHR, textStatus, errorThrown) {
-                                      try {
-                                        if (br.isUnloading()) {
-
-                                        } else {
-                                          _this.ajaxRequest = null;
-                                          var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                                          handleSelectError(errorMessage, request, callback, options);
-                                        }
-                                      } finally {
-                                        selectOperationCounter--;
-                                      }
-                                    }
-                                  });
-      } else {
-
-      }
-
-      return this;
-
-    };
-
-    this.requestInProgress = function() {
-
-      return (this.ajaxRequest !== null);
-
-    };
-
-    this.abortRequest = function() {
-
-      if (this.ajaxRequest !== null) {
-        this.ajaxRequest.abort();
-      }
-      return this;
-
-    };
-
-    this.invoke = function(method, params, callback, options) {
-
-      if (br.isFunction(params)) {
-        options  = callback;
-        callback = params;
-        params   = {};
-      }
-
-      if (callback && !br.isFunction(callback)) {
-        options  = callback;
-        callback = undefined;
-      }
-
-      var request = params || { };
-
-      options = options || { };
-
-      var disableEvents = options && options.disableEvents;
-
-      if (!disableEvents) {
-        _this.events.triggerBefore('request', request, options);
-        _this.events.triggerBefore('invoke', request, options);
-        _this.events.triggerBefore(method, request, options);
-        disableEvents = options && options.disableEvents;
-      }
-
-      if (this.options.crossdomain) {
-        request.crossdomain = 'post';
-      }
-
-      if (options && options.dataSets) {
-        request.__dataSets = options.dataSets;
-      }
-
-      if (_this.clientUID) {
-        request.__clientUID = _this.clientUID;
-      }
-
-      if (options && options.clientUID) {
-        request.__clientUID = options.clientUID;
-      }
-
-      for(var paramName in request) {
-        if (request[paramName] === null) {
-          request[paramName] = 'null';
-        }
-      }
-
-      $.ajax({ type: this.options.crossdomain ? 'GET' : 'POST'
-             , data: request
-             , dataType: this.options.crossdomain ? 'jsonp' : 'json'
-             , url: this.options.restServiceUrl + method + (this.options.authToken ? '?token=' + this.options.authToken : '')
-             , success: function(response) {
-                 if (_this.options.crossdomain && (typeof response == 'string')) {
-                   _this.events.trigger('error', method, response);
-                   _this.events.triggerAfter(method, false, response, request);
-                   if (typeof callback == 'function') { callback.call(_this, false, response, request); }
-                 } else {
-                   _this.events.trigger(method, response, params);
-                   _this.events.triggerAfter(method, true, response, request);
-                   if (typeof callback == 'function') { callback.call(_this, true, response, request); }
-                 }
-               }
-             , error: function(jqXHR, textStatus, errorThrown) {
-                 if (br.isUnloading()) {
-
-                 } else {
-                   var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                   _this.events.trigger('error', method, errorMessage);
-                   _this.events.triggerAfter(method, false, errorMessage, request);
-                   if (typeof callback == 'function') { callback.call(_this, false, errorMessage, request); }
-                 }
-               }
-             });
-
-      return this;
-
-    };
-
-    this.fillCombo = function(selector, data, options) {
+    _this.fillCombo = function(selector, data, options) {
 
       options = options || { };
 
@@ -719,22 +749,6 @@
           $(this).find('option[value=' + val +']').attr('selected', 'selected');
         }
       });
-
-    };
-
-    var refreshTimeout;
-
-    this.deferredSelect = function(filter, callback, msec) {
-
-      msec = msec || this.options.refreshDelay;
-      var savedFilter = {};
-      for(var i in filter) {
-        savedFilter[i] = filter[i];
-      }
-      window.clearTimeout(refreshTimeout);
-      refreshTimeout = window.setTimeout(function() {
-        _this.select(savedFilter, callback);
-      }, msec);
 
     };
 

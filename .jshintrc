@@ -4,6 +4,7 @@
   "laxbreak": true,
   "sub": true,
   "undef": true,
+  "esversion": 6,
   "globals": {
     "jQuery": true,
     "module": true,

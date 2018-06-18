@@ -188,9 +188,6 @@
           deleteQueued();
         });
       } else {
-        // if (_this.dataGrid.isEmpty()) {
-          // _this.refresh();
-        // }
         br.hideProgress();
       }
 
@@ -766,7 +763,7 @@
     function internalRefresh(deferred, filter, callback) {
 
       if (deferred) {
-        _this.dataSource.deferredSelect(filter, function(result, response) {
+        _this.dataSource.selectDeferred(filter, function(result, response) {
           if (typeof callback == 'function') {
             callback.call(this, result, response);
           }
@@ -860,28 +857,74 @@
       br.refresh();
     };
 
-    this.refreshDeferred = function(filter, callback, doNotResetPager) {
+    _this.refreshDeferred = function(filter, callback, doNotResetPager) {
+
       if (typeof filter == 'function') {
         doNotResetPager = callback;
         callback = filter;
         filter = {};
       }
-      if (!doNotResetPager) {
-        _this.resetPager();
-      }
-      internalRefresh(true, filter, callback);
+
+      return new Promise(function(resolve, reject) {
+
+        if (!doNotResetPager) {
+          _this.resetPager();
+        }
+        internalRefresh(true, filter, function(result, response) {
+          if (result) {
+            resolve(response);
+          } else {
+            reject(response);
+          }
+        });
+
+      }).then(function(response) {
+        if (typeof callback == 'function') {
+          callback.call(_this, true, response);
+        }
+        return response;
+      }).catch(function(errorMessage) {
+        if (typeof callback == 'function') {
+          callback.call(_this, false, errorMessage);
+        }
+        throw errorMessage;
+      });
+
     };
 
-    this.load = this.refresh = function(filter, callback, doNotResetPager) {
+    _this.load = _this.refresh = function(filter, callback, doNotResetPager) {
+
       if (typeof filter == 'function') {
         doNotResetPager = callback;
         callback = filter;
         filter = {};
       }
-      if (!doNotResetPager) {
-        _this.resetPager();
-      }
-      internalRefresh(false, filter, callback);
+
+      return new Promise(function(resolve, reject) {
+
+        if (!doNotResetPager) {
+          _this.resetPager();
+        }
+        internalRefresh(false, filter, function(result, response) {
+          if (result) {
+            resolve(response);
+          } else {
+            reject(response);
+          }
+        });
+
+      }).then(function(response) {
+        if (typeof callback == 'function') {
+          callback.call(_this, true, response);
+        }
+        return response;
+      }).catch(function(errorMessage) {
+        if (typeof callback == 'function') {
+          callback.call(_this, false, errorMessage);
+        }
+        throw errorMessage;
+      });
+
     };
 
     return this.init();

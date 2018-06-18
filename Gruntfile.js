@@ -33,6 +33,27 @@ module.exports = function(grunt) {
             , dest: 'js/bright.js'
             , nonull: true
           }
+        , bright_css: {
+              src: [ '3rdparty/gritter/css/jquery.gritter.css'
+                   , 'css/bright-src.css'
+                   ]
+            , dest: 'css/bright.css'
+            , nonull: true
+          }
+        , bright_css_bs2: {
+              src: [ '3rdparty/gritter/css/jquery.gritter.css'
+                   , 'css/bright-src-bootstrap2.css'
+                   ]
+            , dest: 'css/bright-bootstrap2.css'
+            , nonull: true
+          }
+        , bright_css_bs3: {
+              src: [ '3rdparty/gritter/css/jquery.gritter.css'
+                   , 'css/bright-src-bootstrap3.css'
+                   ]
+            , dest: 'css/bright-bootstrap3.css'
+            , nonull: true
+          }
         , bright_core_js_1_0: {
               src: [ '3rdparty/handlebars/js/4.0.11/handlebars.min.js'
                    , '3rdparty/gritter/js/jquery.gritter.min.js'
@@ -69,17 +90,18 @@ module.exports = function(grunt) {
           options: {
               banner: '/* jshint ignore:start */'
           }
-        , bright_js: {
-              files: {
-                  'js/bright.min.js': [ 'js/bright.js' ]
-              }
+        , bright: {
+              files: { 'js/bright.min.js': [ 'js/bright.js' ]
+                     , '3rdparty/gritter/js/jquery.gritter.min.js': ['3rdparty/gritter/js/jquery.gritter.js']
+                     }
           }
+        , nonull: true
       }
     , jshint: {
           files: ['Gruntfile.js', 'js/*.js']
         , options: {
               ignores: ['js/bright.js', 'js/bright.min.js']
-            ,jshintrc: true
+            , jshintrc: true
           }
       }
     , phplint: {
@@ -95,6 +117,6 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks("grunt-phplint");
 
-  grunt.registerTask('default', ['jshint', 'phplint:all', 'concat:bright_js', 'uglify:bright_js', 'concat:bright_core_js_1_0', 'concat:bright_nojq_js_1_0', 'concat:bright_nobs_js_1_0', 'concat:bright_js_1_0']);
+  grunt.registerTask('default', ['jshint', 'phplint:all', 'concat:bright_js', 'uglify:bright', 'concat:bright_css', 'concat:bright_css_bs2', 'concat:bright_css_bs3', 'concat:bright_core_js_1_0', 'concat:bright_nojq_js_1_0', 'concat:bright_nobs_js_1_0', 'concat:bright_js_1_0']);
 
 };

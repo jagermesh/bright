@@ -209,7 +209,7 @@
 
     this.reloadRow = function(rowid, callback, options) {
       if (!br.isEmpty(callback)) {
-        if (!br.isFunction(callback)) {
+        if (typeof callback != 'function') {
           options = callback;
           callback = null;
         }
@@ -236,7 +236,9 @@
             }
             _this.addDataRow(response);
           }
-          if (typeof callback == 'function') { callback.call(_this, response); }
+          if (typeof callback == 'function') {
+            callback.call(_this, response);
+          }
         }
       }, options);
     };
@@ -270,13 +272,33 @@
       }
     };
 
-    this.load = this.refresh = function(callback) {
-      _this.dataSource.select(function(result, response) {
-        if (typeof callback == 'function') { callback.call(_this, result, response); }
+    _this.load = _this.refresh = function(callback) {
+
+      return new Promise(function(resolve, reject) {
+
+        _this.dataSource.select(function(result, response) {
+          if (result) {
+            resolve(response);
+          } else {
+            reject(response);
+          }
+        });
+
+      }).then(function(response) {
+        if (typeof callback == 'function') {
+          callback.call(_this, true, response);
+        }
+        return response;
+      }).catch(function(errorMessage) {
+        if (typeof callback == 'function') {
+          callback.call(_this, false, errorMessage);
+        }
+        throw errorMessage;
       });
+
     };
 
-    this.refreshRow = function(data, options) {
+    _this.refreshRow = function(data, options) {
       var filter = '[data-rowid=' + data.rowid + ']';
       options = options || {};
       options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
@@ -303,7 +325,7 @@
       }
     };
 
-    this.loadMore = function(callback) {
+    _this.loadMore = function(callback) {
       if (noMoreData || _this.loadingMoreData) {
 
       } else {
@@ -315,11 +337,11 @@
       }
     };
 
-    this.isEmpty = function() {
+    _this.isEmpty = function() {
       return ($(_this.selector).find('[data-rowid]').length === 0);
     };
 
-    this.getKeys = function(attrName) {
+    _this.getKeys = function(attrName) {
       var result = [];
       if (!attrName) {
         attrName = 'data-rowid';
@@ -330,7 +352,7 @@
       return result;
     };
 
-    this.isOrderConfigured = function() {
+    _this.isOrderConfigured = function() {
       var orderAndGroup = _this.getOrderAndGroup();
       return br.isArray(orderAndGroup) && (orderAndGroup.length > 0);
     };
@@ -355,7 +377,7 @@
       }
     }
 
-    this.getOrder = function() {
+    _this.getOrder = function() {
       var order = _this.getOrderAndGroup();
       var result = {};
       if (br.isArray(order)) {
@@ -370,7 +392,7 @@
       return result;
     };
 
-    this.setOrder = function(order, callback) {
+    _this.setOrder = function(order, callback) {
       var orderAndGroup = [];
       for(var name in order) {
         orderAndGroup.push({ fieldName: name, asc: order[name] > 0, group: false, index: orderAndGroup.length });
@@ -378,8 +400,8 @@
       _this.setOrderAndGroup(orderAndGroup, callback);
     };
 
-    this.getOrderAndGroup = function() {
-      var result = br.storage.get(this.storageTag + 'orderAndGroup', []);
+    _this.getOrderAndGroup = function() {
+      var result = br.storage.get(_this.storageTag + 'orderAndGroup', []);
       if (br.isEmpty(result) || !br.isArray(result) || (result.length === 0)) {
         if (_this.options.defaultOrderAndGroup) {
           result = _this.options.defaultOrderAndGroup;
@@ -390,19 +412,21 @@
       return result;
     };
 
-    this.setOrderAndGroup = function(orderAndGroup, callback) {
+    _this.setOrderAndGroup = function(orderAndGroup, callback) {
       saveOrderAndGroup(orderAndGroup);
       showOrder(orderAndGroup);
       _this.events.triggerBefore('changeOrder', orderAndGroup);
       if (callback) {
         _this.dataSource.select(function(result, response) {
-          if (typeof callback == 'function') { callback.call(_this, result, response); }
+          if (typeof callback == 'function') {
+            callback.call(_this, result, response);
+          }
         });
       }
       return orderAndGroup;
     };
 
-    this.init = function() {
+    _this.init = function() {
 
       showOrder(_this.getOrderAndGroup());
 
