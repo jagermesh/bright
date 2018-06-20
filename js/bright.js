@@ -2177,12 +2177,21 @@
 
     };
 
+
     _this.load = _this.select = function(filter, callback, options) {
 
       if (typeof filter == 'function') {
+        // .select(callback, options);
         options = callback;
         callback = filter;
         filter = { };
+      } else
+      if ((callback != undefined) && (callback != null) && (typeof callback != 'function')) {
+        // .select(filter, options);
+        options = callback;
+        callback = null;
+      } else {
+        // .select(filter, callback, options);
       }
 
       options = options || { };
@@ -2957,29 +2966,21 @@
     _this.load = _this.refresh = function(callback) {
 
       return new Promise(function(resolve, reject) {
-
-        _this.dataSource.select(function(result, response) {
-          if (result) {
-            resolve(response);
-          } else {
-            reject(response);
-          }
-        });
-
-      }).then(function(response) {
+        _this.dataSource.select().then(resolve, reject);
+      }).then(function(data) {
         try {
           if (typeof callback == 'function') {
-            callback.call(_this, true, response);
+            callback.call(_this, true, data.response, data.request, data.options);
           }
         } catch (error) {
           br.logError('Error: ' + error);
         }
-        return response;
-      }).catch(function(errorMessage) {
+        return data;
+      }).catch(function(data) {
         if (typeof callback == 'function') {
-          callback.call(_this, false, errorMessage);
+          callback.call(_this, false, data.errorMessage, data.request, data.options);
         }
-        throw errorMessage;
+        throw data;
       });
 
     };
@@ -3738,45 +3739,45 @@
 
       return new Promise(function(resolve, reject) {
 
+        var options = { fields: _this.options.fields };
+
         if (_this.dataSource) {
           if (_this.isValid()) {
             if (_this.options.lookupMode) {
-              resolve([]);
+              resolve({ request: {}, options: options, response: []});
               switchToSelect2();
               _this.loaded = true;
               _this.events.trigger('load', []);
             } else {
-              _this.dataSource.select(filter, function(result, response) {
-                if (result) {
-                  resolve(response);
-                  switchToSelect2();
-                  _this.loaded = true;
-                } else {
-                  reject(response);
-                }
-              }, { fields: _this.options.fields });
+              _this.dataSource.select(filter, options).then(function(data) {
+                resolve(data);
+                switchToSelect2();
+                _this.loaded = true;
+              }).catch(function(data) {
+                reject(data);
+              });
             }
           } else {
-            resolve([]);
+            resolve({ request: {}, options: options, response: []});
             _this.loaded = true;
             _this.events.trigger('load', []);
           }
         }
 
-      }).then(function(response) {
+      }).then(function(data) {
         try {
           if (typeof callback == 'function') {
-            callback.call(_this, true, response);
+            callback.call(_this, true, data.response, data.request, data.options);
           }
         } catch (error) {
           br.logError('Error: ' + error);
         }
-        return response;
-      }).catch(function(errorMessage) {
+        return data;
+      }).catch(function(data) {
         if (typeof callback == 'function') {
-          callback.call(_this, false, errorMessage);
+          callback.call(_this, false, data.errorMessage, data.request, data.options);
         }
-        throw errorMessage;
+        throw data;
       });
 
     };
@@ -6538,23 +6539,15 @@
     function internalRefresh(deferred, filter, callback) {
 
       if (deferred) {
-        _this.dataSource.selectDeferred(filter, function(result, response) {
-          if (typeof callback == 'function') {
-            callback.call(this, result, response);
-          }
-        });
+        _this.dataSource.selectDeferred(filter, callback);
       } else {
         if (_this.dataSource.doingSelect() || _this.countDataSource.doingSelect()) {
           window.clearTimeout(refreshTimer);
           refreshTimer = window.setTimeout(function() {
-            internalRefresh(deferred, filter, callback);
+            internalRefresh(false, filter, callback);
           }, 300);
         } else {
-          _this.dataSource.select(filter, function(result, response) {
-            if (typeof callback == 'function') {
-              callback.call(this, result, response);
-            }
-          });
+          _this.dataSource.select(filter, callback);
         }
       }
 
@@ -6640,33 +6633,34 @@
         filter = {};
       }
 
+      if (!doNotResetPager) {
+        _this.resetPager();
+      }
+
       return new Promise(function(resolve, reject) {
 
-        if (!doNotResetPager) {
-          _this.resetPager();
-        }
-        internalRefresh(true, filter, function(result, response) {
+        internalRefresh(true, filter, function(result, response, request, options) {
           if (result) {
-            resolve(response);
+            resolve({ request: request, options: options, response: response });
           } else {
-            reject(response);
+            reject({ request: request, options: options, errorMessage: response });
           }
         });
 
-      }).then(function(response) {
+      }).then(function(data) {
         try {
           if (typeof callback == 'function') {
-            callback.call(_this, true, response);
+            callback.call(_this, true, data.response, data.request, data.options);
           }
         } catch (error) {
           br.logError('Error: ' + error);
         }
-        return response;
-      }).catch(function(errorMessage) {
+        return data;
+      }).catch(function(data) {
         if (typeof callback == 'function') {
-          callback.call(_this, false, errorMessage);
+          callback.call(_this, false, data.errorMessage, data.request, data.options);
         }
-        throw errorMessage;
+        throw data;
       });
 
     };
@@ -6679,33 +6673,34 @@
         filter = {};
       }
 
+      if (!doNotResetPager) {
+        _this.resetPager();
+      }
+
       return new Promise(function(resolve, reject) {
 
-        if (!doNotResetPager) {
-          _this.resetPager();
-        }
-        internalRefresh(false, filter, function(result, response) {
+        internalRefresh(false, filter, function(result, response, request, options) {
           if (result) {
-            resolve(response);
+            resolve({ request: request, options: options, response: response });
           } else {
-            reject(response);
+            reject({ request: request, options: options, errorMessage: response });
           }
         });
 
-      }).then(function(response) {
+      }).then(function(data) {
         try {
           if (typeof callback == 'function') {
-            callback.call(_this, true, response);
+            callback.call(_this, true, data.response, data.request, data.options);
           }
         } catch (error) {
           br.logError('Error: ' + error);
         }
-        return response;
-      }).catch(function(errorMessage) {
+        return data;
+      }).catch(function(data) {
         if (typeof callback == 'function') {
-          callback.call(_this, false, errorMessage);
+          callback.call(_this, false, data.errorMessage, data.request, data.options);
         }
-        throw errorMessage;
+        throw data;
       });
 
     };
@@ -6877,14 +6872,24 @@
       })(dataControls[i]);
     }
 
-    Promise.all(promises).then(function(data) {
-      if (typeof callback == 'function') {
-        callback(true, data.response);
+    return Promise.all(promises).then(function(data) {
+      try {
+        if (typeof callback == 'function') {
+          callback(true, data);
+        }
+      } catch (error) {
+        br.logError('Error: ' + error);
       }
+      return data;
     }).catch(function(data) {
-      if (typeof callback == 'function') {
-        callback(false, data.errorMessage);
+      try {
+        if (typeof callback == 'function') {
+          callback(false, data);
+        }
+      } catch (error) {
+        br.logError('Error: ' + error);
       }
+      throw data;
     });
 
   };

@@ -33,14 +33,24 @@
       })(dataControls[i]);
     }
 
-    Promise.all(promises).then(function(data) {
-      if (typeof callback == 'function') {
-        callback(true, data.response);
+    return Promise.all(promises).then(function(data) {
+      try {
+        if (typeof callback == 'function') {
+          callback(true, data);
+        }
+      } catch (error) {
+        br.logError('Error: ' + error);
       }
+      return data;
     }).catch(function(data) {
-      if (typeof callback == 'function') {
-        callback(false, data.errorMessage);
+      try {
+        if (typeof callback == 'function') {
+          callback(false, data);
+        }
+      } catch (error) {
+        br.logError('Error: ' + error);
       }
+      throw data;
     });
 
   };

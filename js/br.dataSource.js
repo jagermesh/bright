@@ -433,12 +433,21 @@
 
     };
 
+
     _this.load = _this.select = function(filter, callback, options) {
 
       if (typeof filter == 'function') {
+        // .select(callback, options);
         options = callback;
         callback = filter;
         filter = { };
+      } else
+      if ((callback != undefined) && (callback != null) && (typeof callback != 'function')) {
+        // .select(filter, options);
+        options = callback;
+        callback = null;
+      } else {
+        // .select(filter, callback, options);
       }
 
       options = options || { };

@@ -763,23 +763,15 @@
     function internalRefresh(deferred, filter, callback) {
 
       if (deferred) {
-        _this.dataSource.selectDeferred(filter, function(result, response) {
-          if (typeof callback == 'function') {
-            callback.call(this, result, response);
-          }
-        });
+        _this.dataSource.selectDeferred(filter, callback);
       } else {
         if (_this.dataSource.doingSelect() || _this.countDataSource.doingSelect()) {
           window.clearTimeout(refreshTimer);
           refreshTimer = window.setTimeout(function() {
-            internalRefresh(deferred, filter, callback);
+            internalRefresh(false, filter, callback);
           }, 300);
         } else {
-          _this.dataSource.select(filter, function(result, response) {
-            if (typeof callback == 'function') {
-              callback.call(this, result, response);
-            }
-          });
+          _this.dataSource.select(filter, callback);
         }
       }
 
@@ -865,33 +857,34 @@
         filter = {};
       }
 
+      if (!doNotResetPager) {
+        _this.resetPager();
+      }
+
       return new Promise(function(resolve, reject) {
 
-        if (!doNotResetPager) {
-          _this.resetPager();
-        }
-        internalRefresh(true, filter, function(result, response) {
+        internalRefresh(true, filter, function(result, response, request, options) {
           if (result) {
-            resolve(response);
+            resolve({ request: request, options: options, response: response });
           } else {
-            reject(response);
+            reject({ request: request, options: options, errorMessage: response });
           }
         });
 
-      }).then(function(response) {
+      }).then(function(data) {
         try {
           if (typeof callback == 'function') {
-            callback.call(_this, true, response);
+            callback.call(_this, true, data.response, data.request, data.options);
           }
         } catch (error) {
           br.logError('Error: ' + error);
         }
-        return response;
-      }).catch(function(errorMessage) {
+        return data;
+      }).catch(function(data) {
         if (typeof callback == 'function') {
-          callback.call(_this, false, errorMessage);
+          callback.call(_this, false, data.errorMessage, data.request, data.options);
         }
-        throw errorMessage;
+        throw data;
       });
 
     };
@@ -904,33 +897,34 @@
         filter = {};
       }
 
+      if (!doNotResetPager) {
+        _this.resetPager();
+      }
+
       return new Promise(function(resolve, reject) {
 
-        if (!doNotResetPager) {
-          _this.resetPager();
-        }
-        internalRefresh(false, filter, function(result, response) {
+        internalRefresh(false, filter, function(result, response, request, options) {
           if (result) {
-            resolve(response);
+            resolve({ request: request, options: options, response: response });
           } else {
-            reject(response);
+            reject({ request: request, options: options, errorMessage: response });
           }
         });
 
-      }).then(function(response) {
+      }).then(function(data) {
         try {
           if (typeof callback == 'function') {
-            callback.call(_this, true, response);
+            callback.call(_this, true, data.response, data.request, data.options);
           }
         } catch (error) {
           br.logError('Error: ' + error);
         }
-        return response;
-      }).catch(function(errorMessage) {
+        return data;
+      }).catch(function(data) {
         if (typeof callback == 'function') {
-          callback.call(_this, false, errorMessage);
+          callback.call(_this, false, data.errorMessage, data.request, data.options);
         }
-        throw errorMessage;
+        throw data;
       });
 
     };

@@ -376,45 +376,45 @@
 
       return new Promise(function(resolve, reject) {
 
+        var options = { fields: _this.options.fields };
+
         if (_this.dataSource) {
           if (_this.isValid()) {
             if (_this.options.lookupMode) {
-              resolve([]);
+              resolve({ request: {}, options: options, response: []});
               switchToSelect2();
               _this.loaded = true;
               _this.events.trigger('load', []);
             } else {
-              _this.dataSource.select(filter, function(result, response) {
-                if (result) {
-                  resolve(response);
-                  switchToSelect2();
-                  _this.loaded = true;
-                } else {
-                  reject(response);
-                }
-              }, { fields: _this.options.fields });
+              _this.dataSource.select(filter, options).then(function(data) {
+                resolve(data);
+                switchToSelect2();
+                _this.loaded = true;
+              }).catch(function(data) {
+                reject(data);
+              });
             }
           } else {
-            resolve([]);
+            resolve({ request: {}, options: options, response: []});
             _this.loaded = true;
             _this.events.trigger('load', []);
           }
         }
 
-      }).then(function(response) {
+      }).then(function(data) {
         try {
           if (typeof callback == 'function') {
-            callback.call(_this, true, response);
+            callback.call(_this, true, data.response, data.request, data.options);
           }
         } catch (error) {
           br.logError('Error: ' + error);
         }
-        return response;
-      }).catch(function(errorMessage) {
+        return data;
+      }).catch(function(data) {
         if (typeof callback == 'function') {
-          callback.call(_this, false, errorMessage);
+          callback.call(_this, false, data.errorMessage, data.request, data.options);
         }
-        throw errorMessage;
+        throw data;
       });
 
     };

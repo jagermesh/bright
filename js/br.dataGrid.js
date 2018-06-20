@@ -275,29 +275,21 @@
     _this.load = _this.refresh = function(callback) {
 
       return new Promise(function(resolve, reject) {
-
-        _this.dataSource.select(function(result, response) {
-          if (result) {
-            resolve(response);
-          } else {
-            reject(response);
-          }
-        });
-
-      }).then(function(response) {
+        _this.dataSource.select().then(resolve, reject);
+      }).then(function(data) {
         try {
           if (typeof callback == 'function') {
-            callback.call(_this, true, response);
+            callback.call(_this, true, data.response, data.request, data.options);
           }
         } catch (error) {
           br.logError('Error: ' + error);
         }
-        return response;
-      }).catch(function(errorMessage) {
+        return data;
+      }).catch(function(data) {
         if (typeof callback == 'function') {
-          callback.call(_this, false, errorMessage);
+          callback.call(_this, false, data.errorMessage, data.request, data.options);
         }
-        throw errorMessage;
+        throw data;
       });
 
     };
