@@ -4618,7 +4618,7 @@
                             '      <div class="modal-body">' +
                             '        <table style="width:100%;font-size:18px;font-weight:300;margin-bottom:10px;">'+
                             '          <tr>'+
-                            '            <td id="br_progressMessage"></td>' +
+                            '            <td><div id="br_progressMessage" style="max-width:440px;max-height:40px;overflow:hidden;text-overflow:ellipsis;"></div></td>' +
                             '            <td align="right" id="br_progressStage" style="font-size:14px;font-weight:300;"></td>' +
                             '          </tr>' +
                             '        </table>' +
