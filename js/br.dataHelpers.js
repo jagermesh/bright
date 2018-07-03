@@ -15,6 +15,22 @@
 
   window.br.dataHelpers = window.br.dataHelpers || {};
 
+  window.br.dataHelpers.before = function(event, dataControls, callback) {
+
+    for(var i = 0; i < dataControls.length; i++) {
+      dataControls[i].before(event, callback);
+    }
+
+  };
+
+  window.br.dataHelpers.on = function(event, dataControls, callback) {
+
+    for(var i = 0; i < dataControls.length; i++) {
+      dataControls[i].on(event, callback);
+    }
+
+  };
+
   window.br.dataHelpers.load = window.br.dataHelpers.select = function(dataControls, callback) {
 
     var promises = [];
