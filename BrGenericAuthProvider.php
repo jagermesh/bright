@@ -91,7 +91,7 @@ class BrGenericAuthProvider extends BrSingleton {
 
   }
 
-  function clearLogin() {
+  function clear() {
 
     if (!br()->isConsoleMode()) {
       setcookie( $this->getAuthTag()
@@ -107,6 +107,12 @@ class BrGenericAuthProvider extends BrSingleton {
     }
 
     return br()->session()->clear('login');
+
+  }
+
+  function clearLogin() {
+
+    return $this->clear();
 
   }
 

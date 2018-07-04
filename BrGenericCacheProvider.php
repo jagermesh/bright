@@ -35,6 +35,12 @@ class BrGenericCacheProvider extends BrObject {
 
   }
 
+  public function clear() {
+
+    $this->reset();
+
+  }
+
   public function exists($name) {
 
     return false;
