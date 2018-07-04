@@ -4,8 +4,8 @@
 # MAC files
 .DS_Store
 
-tools/_logs
-tests/_logs
+_logs
+_tmp
 
 node_modules
 composer.lock
