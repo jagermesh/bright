@@ -601,14 +601,13 @@
     if ($('#br_progressBar').length === 0) {
       var pbr = $(progressBarTemplate);
       if (br.bootstrapVersion == 2) {
-        // if (br.isMobileDevice()) {
-          // pbr.css('top', '20px');
-        // } else {
-          pbr.css('top', '20px');
-          pbr.css('margin-top', '0px');
-        // }
+        pbr.css('top', '20px');
+        pbr.css('margin-top', '0px');
       }
       $('body').append(pbr);
+    }
+    if ($('#br_modalBackDrop').length === 0) {
+      $('body').append('<div id="br_modalBackDrop" class="modal-backdrop" style="z-index:9999;"></div>');
     }
     if (progressBar_Total > 1) {
       $('#br_progressBar_Section').show();
@@ -617,16 +616,19 @@
       $('#br_progressBar_Section').hide();
       $('#br_progressStage').hide();
     }
+    $('#br_modalBackDrop').show();
     $('#br_progressBar').modal('show');
     renderProgress();
   };
 
   window.br.showProgress = function() {
     $('#br_progressBar').modal('show');
+    $('#br_modalBackDrop').hide();
   };
 
   window.br.hideProgress = function() {
     $('#br_progressBar').modal('hide');
+    $('#br_modalBackDrop').hide();
   };
 
   window.br.incProgress = function(value) {

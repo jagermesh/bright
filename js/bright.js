@@ -4666,14 +4666,13 @@
     if ($('#br_progressBar').length === 0) {
       var pbr = $(progressBarTemplate);
       if (br.bootstrapVersion == 2) {
-        // if (br.isMobileDevice()) {
-          // pbr.css('top', '20px');
-        // } else {
-          pbr.css('top', '20px');
-          pbr.css('margin-top', '0px');
-        // }
+        pbr.css('top', '20px');
+        pbr.css('margin-top', '0px');
       }
       $('body').append(pbr);
+    }
+    if ($('#br_modalBackDrop').length === 0) {
+      $('body').append('<div id="br_modalBackDrop" class="modal-backdrop" style="z-index:9999;"></div>');
     }
     if (progressBar_Total > 1) {
       $('#br_progressBar_Section').show();
@@ -4682,16 +4681,19 @@
       $('#br_progressBar_Section').hide();
       $('#br_progressStage').hide();
     }
+    $('#br_modalBackDrop').show();
     $('#br_progressBar').modal('show');
     renderProgress();
   };
 
   window.br.showProgress = function() {
     $('#br_progressBar').modal('show');
+    $('#br_modalBackDrop').hide();
   };
 
   window.br.hideProgress = function() {
     $('#br_progressBar').modal('hide');
+    $('#br_modalBackDrop').hide();
   };
 
   window.br.incProgress = function(value) {
@@ -6867,6 +6869,43 @@
     for(var i = 0; i < dataControls.length; i++) {
       dataControls[i].on(event, callback);
     }
+
+  };
+
+  window.br.dataHelpers.execute = function(funcToRun, funcToGetTotal, funcToGetParams, params) {
+
+    return new Promise(function(resolve, reject) {
+      var functionsForExecute = [];
+      br.startProgress(funcToGetTotal(), params.title);
+      window.setTimeout(function() {
+        var params;
+
+        while (!!(params = funcToGetParams())) {
+          functionsForExecute.push(funcToRun(params).then(function(data) {
+            br.stepProgress();
+            resolve(data);
+          }).catch(function(data) {
+            br.stepProgress();
+            throw data;
+          }));
+        }
+
+        if (functionsForExecute.length === 0 && params.errorMessage) {
+          reject({errorMessage: params.errorMessage});
+        }
+
+        Promise.all(functionsForExecute)
+               .then(function(data) {
+                 br.hideProgress();
+                 resolve(data);
+               })
+               .catch(function(data) {
+                 br.hideProgress();
+                 reject(data);
+               });
+
+      });
+    });
 
   };
 

@@ -31,6 +31,43 @@
 
   };
 
+  window.br.dataHelpers.execute = function(funcToRun, funcToGetTotal, funcToGetParams, params) {
+
+    return new Promise(function(resolve, reject) {
+      var functionsForExecute = [];
+      br.startProgress(funcToGetTotal(), params.title);
+      window.setTimeout(function() {
+        var params;
+
+        while (!!(params = funcToGetParams())) {
+          functionsForExecute.push(funcToRun(params).then(function(data) {
+            br.stepProgress();
+            resolve(data);
+          }).catch(function(data) {
+            br.stepProgress();
+            throw data;
+          }));
+        }
+
+        if (functionsForExecute.length === 0 && params.errorMessage) {
+          reject({errorMessage: params.errorMessage});
+        }
+
+        Promise.all(functionsForExecute)
+               .then(function(data) {
+                 br.hideProgress();
+                 resolve(data);
+               })
+               .catch(function(data) {
+                 br.hideProgress();
+                 reject(data);
+               });
+
+      });
+    });
+
+  };
+
   window.br.dataHelpers.load = window.br.dataHelpers.select = function(dataControls, callback) {
 
     var promises = [];
