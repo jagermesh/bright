@@ -6872,26 +6872,23 @@
 
   };
 
-  window.br.dataHelpers.execute = function(funcToRun, funcToGetTotal, funcToGetParams, params) {
+  window.br.dataHelpers.execute = function(funcToRun, funcToGetTotal, funcToGetParams, extraParams) {
+
+    extraParams = extraParams || {};
+    extraParams.title = extraParams.title || '';
 
     return new Promise(function(resolve, reject) {
       var functionsForExecute = [];
-      br.startProgress(funcToGetTotal(), params.title);
+      br.startProgress(funcToGetTotal(), extraParams.title);
       window.setTimeout(function() {
         var params;
 
         while (!!(params = funcToGetParams())) {
-          functionsForExecute.push(funcToRun(params).then(function(data) {
-            br.stepProgress();
-            resolve(data);
-          }).catch(function(data) {
-            br.stepProgress();
-            throw data;
-          }));
+          functionsForExecute.push(funcToRun(params));
         }
 
-        if (functionsForExecute.length === 0 && params.errorMessage) {
-          reject({errorMessage: params.errorMessage});
+        if ((functionsForExecute.length === 0) && extraParams.errorMessage) {
+          reject({errorMessage: extraParams.errorMessage});
         }
 
         Promise.all(functionsForExecute)
