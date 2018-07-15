@@ -589,6 +589,23 @@
     }
   }
 
+  var backDropCounter = 0;
+
+  function initBackDrop() {
+    if ($('#br_modalBackDrop').length === 0) {
+      $('body').append('<div id="br_modalBackDrop" class="modal-backdrop" style="z-index:9999;"></div>');
+    }
+  }
+
+  function showBackDrop(className) {
+    initBackDrop();
+    $('#br_modalBackDrop').show();
+  }
+
+  function hideBackDrop(className) {
+    $('#br_modalBackDrop').hide();
+  }
+
   window.br.startProgress = function(value, message, progressType) {
     currentProgressType = progressType;
     if (!br.isNumber(value)) {
@@ -606,9 +623,6 @@
       }
       $('body').append(pbr);
     }
-    if ($('#br_modalBackDrop').length === 0) {
-      $('body').append('<div id="br_modalBackDrop" class="modal-backdrop" style="z-index:9999;"></div>');
-    }
     if (progressBar_Total > 1) {
       $('#br_progressBar_Section').show();
       $('#br_progressStage').show();
@@ -616,19 +630,18 @@
       $('#br_progressBar_Section').hide();
       $('#br_progressStage').hide();
     }
-    $('#br_modalBackDrop').show();
+    window.br.showProgress();
+  };
+
+  window.br.showProgress = function() {
+    showBackDrop('progress');
     $('#br_progressBar').modal('show');
     renderProgress();
   };
 
-  window.br.showProgress = function() {
-    $('#br_progressBar').modal('show');
-    $('#br_modalBackDrop').hide();
-  };
-
   window.br.hideProgress = function() {
     $('#br_progressBar').modal('hide');
-    $('#br_modalBackDrop').hide();
+    hideBackDrop('progress');
   };
 
   window.br.incProgress = function(value) {

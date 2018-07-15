@@ -31,35 +31,57 @@
 
   };
 
-  window.br.dataHelpers.execute = function(funcToRun, funcToGetTotal, funcToGetParams, extraParams) {
 
-    extraParams = extraParams || {};
-    extraParams.title = extraParams.title || '';
+  function execute(funcToExecute, paramsQueue, extraParams, resolve, reject) {
+
+    var functionsQueue = [];
+
+    while ((functionsQueue.length <= extraParams.workers) && (paramsQueue.length > 0)) {
+      functionsQueue.push(funcToExecute(paramsQueue.pop()).then(function() {
+        br.stepProgress();
+      }));
+    }
+
+    Promise.all(functionsQueue)
+           .then(function(data) {
+             if (paramsQueue.length > 0) {
+               execute(funcToExecute, paramsQueue, extraParams, resolve, reject);
+             } else {
+               br.stepProgress();
+               if (!extraParams.doNotHideProgress) {
+                 br.hideProgress();
+               }
+               resolve(data);
+             }
+           })
+           .catch(function(data) {
+             br.hideProgress();
+             reject(data);
+           });
+
+  }
+
+  window.br.dataHelpers.execute = function(funcToExecute, funcToGetTotal, funcToGetParams, extraParams) {
+
+    extraParams         = extraParams         || {};
+    extraParams.title   = extraParams.title   || '';
+    extraParams.workers = extraParams.workers || 10;
 
     return new Promise(function(resolve, reject) {
+      var params = [];
       var functionsForExecute = [];
       br.startProgress(funcToGetTotal(), extraParams.title);
       window.setTimeout(function() {
-        var params;
-
-        while (!!(params = funcToGetParams())) {
-          functionsForExecute.push(funcToRun(params));
+        var paramsQueue = [];
+        while (true) {
+          var params = funcToGetParams();
+          if (params) {
+            paramsQueue.push(params);
+          } else {
+            break;
+          }
         }
-
-        if ((functionsForExecute.length === 0) && extraParams.errorMessage) {
-          reject({errorMessage: extraParams.errorMessage});
-        }
-
-        Promise.all(functionsForExecute)
-               .then(function(data) {
-                 br.hideProgress();
-                 resolve(data);
-               })
-               .catch(function(data) {
-                 br.hideProgress();
-                 reject(data);
-               });
-
+        execute(funcToExecute, paramsQueue, extraParams, resolve, reject);
       });
     });
 
