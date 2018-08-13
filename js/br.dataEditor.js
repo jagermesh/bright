@@ -43,8 +43,8 @@
       return editorRowid;
     };
 
-    _this.rowData = function() {
-      return editorRowData;
+    _this.rowData = function(name) {
+      return name ? (editorRowData ? editorRowData[name] : undefined) : editorRowData;
     };
 
     _this.isActive = function() {
@@ -348,6 +348,8 @@
                 if (!closeConfirmationTmp) {
                   br.resetCloseConfirmation();
                 }
+                editorRowid = response.rowid;
+                editorRowData = response;
                 _this.events.triggerAfter('editor.update', true, response);
                 _this.events.triggerAfter('editor.save', true, response);
                 if (andClose) {
