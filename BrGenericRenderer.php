@@ -203,7 +203,7 @@ class BrGenericRenderer extends BrObject {
       if (preg_match_all('/[{][$]([^}]*?)[}](.+?)[{][$][}]/sm', $body, $matches, PREG_SET_ORDER)) {
         foreach($matches as $match) {
           if ($condition = trim($match[1])) {
-            if (preg_match('/login[.]([^!= ]+)[ ]?(==|!=|in)(.*)/sm', $condition, $subMatch)) {
+            if (preg_match('/login[.]([^!= ]+)[ ]?(==|!=|in|!in)(.*)/sm', $condition, $subMatch)) {
               $field = $subMatch[1];
               $condition = $subMatch[2];
               $value = rtrim(ltrim(trim($subMatch[3]), '('), ')');
