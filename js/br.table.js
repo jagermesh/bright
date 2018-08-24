@@ -13,119 +13,114 @@
 
     var _this = this;
     var table = $(selector);
+    var thead = $('thead', table);
+    var tbody = $('tbody', table);
+    var initialized = false;
+    var calcDiv;
+
+    if (options.debug) {
+      calcDiv = $('<div />');
+    } else {
+      calcDiv = $('<div style="height:0px;overflow:hidden;"/>');
+    }
+    table.parent().append(calcDiv);
 
     _this.options = options || { };
 
-    $('thead', table).css('display', 'block');
-    $('tbody', table).css('display', 'block').css('overflow', 'auto');
-
     $(table).css('border-bottom', '0px');
 
-    var headerCols = $(table).find('thead tr:first th');
-    var headerWidths = {};
+    if (_this.options.autoHeight) {
+      table.css('margin-bottom', '0px');
+    }
 
-    var widthsSaved = false;
-
-    function getTableDmensions() {
-
-      var widestCellByInnerWidth = 0;
-      var widestCellByOuterWidth = 0;
-      var maxInnerWidth = 0;
-      var maxOuterWidth = 0;
-      var totalInnerWidth = 0;
-      var totalOuterWidth = 0;
-
-      table.find('tbody tr:first td').each(function(idx) {
-        var innerWidth = $(this).innerWidth();
-        var outerWidth = $(this).outerWidth();
-        totalInnerWidth += outerWidth;
-        totalOuterWidth += outerWidth;
-        if (innerWidth > maxInnerWidth) {
-          maxInnerWidth = innerWidth;
-          widestCellByInnerWidth = idx;
-        }
-        if (outerWidth > maxOuterWidth) {
-          maxOuterWidth = outerWidth;
-          widestCellByOuterWidth = idx;
-        }
+    if (_this.options.autoWidth) {
+      thead.on('scroll', function() {
+        tbody[0].scrollLeft = thead[0].scrollLeft;
       });
+      tbody.on('scroll', function() {
+        thead[0].scrollLeft = tbody[0].scrollLeft;
+      });
+    }
 
-      var tableInnerWidth = $(table).innerWidth();
-      var tableOuterWidth = $(table).outerWidth();
+    function autosize() {
 
-      var suggestedInnerWidth = totalInnerWidth - (totalInnerWidth - maxInnerWidth);
-      var suggestedOuterWidth = tableOuterWidth - (totalOuterWidth - maxOuterWidth);
+      if (_this.options.autoHeight) {
+        var windowHeight = $(window).height();
+        var tableTop     = table.offset().top;
+        var tbodyHeight  = windowHeight - tableTop - thead.height();
+        if (options.debug) {
+          tbodyHeight -= 200;
+        } else {
+          tbodyHeight -= 10;
+        }
+        tbody.height(tbodyHeight);
+      }
 
-      return { widestCellByInnerWidth: widestCellByInnerWidth
-             , widestCellByOuterWidth: widestCellByInnerWidth
-             , suggestedInnerWidth: suggestedInnerWidth
-             , suggestedOuterWidth: suggestedOuterWidth
-             };
+      if (_this.options.autoWidth) {
+        thead.width(table.width());
+        tbody.width(table.width());
+      }
 
     }
 
     function update() {
 
       var headerCols = $(table).find('thead tr:first th');
+      var bodyCols   = $(table).find('tbody tr:first td');
 
-      if (_this.options.autoHeight) {
-        var windowHeight = $(window).height();
-        var tbody        = $('tbody', table);
-        var thead        = $('thead', table);
-        var tbodyTop     = tbody.offset().top;
-        var tbodyHeight  = windowHeight - tbodyTop - 24;
-        $(tbody).height(tbodyHeight);
+      var widths = {};
+
+      var tableCopy = table.clone();
+      var theadCopy = $('thead', tableCopy);
+      var tbodyCopy = $('tbody', tableCopy);
+      theadCopy.css('display', '').css('overflow', '');
+      tbodyCopy.css('display', '').css('overflow', '');
+      var theadColsCopy = theadCopy.find('tr:first th');
+      theadColsCopy.each(function(idx) {
+        $(this).css('min-width', '');
+        $(this).css('max-width', '');
+      });
+      var tbodyColsCopy = tbodyCopy.find('tr:first td');
+      tbodyColsCopy.each(function(idx) {
+        $(this).css('min-width', '');
+        $(this).css('max-width', '');
+      });
+
+      calcDiv.html('');
+      calcDiv.append(tableCopy);
+
+      theadColsCopy.each(function(idx) {
+        widths[idx] = { h: $(this).outerWidth(), b: 0, m: 0 };
+      });
+
+      tbodyColsCopy.each(function(idx) {
+        widths[idx].b = $(this).outerWidth();
+        widths[idx].m = Math.max(widths[idx].h, widths[idx].b);
+      });
+
+      calcDiv.html('');
+
+      headerCols.each(function(idx) {
+        var padding = br.toInt($(this).css('padding-left').replace('px', '')) + br.toInt($(this).css('padding-right').replace('px', ''));
+        var border = br.toInt($(this).css('border-left').replace('px', '')) + br.toInt($(this).css('border-right').replace('px', ''));
+        br.log(border);
+        $(this).css('min-width', widths[idx].h - padding - border);
+        $(this).css('max-width', widths[idx].h - padding - border);
+      });
+      bodyCols.each(function(idx) {
+        var padding = br.toInt($(this).css('padding-left').replace('px', '')) + br.toInt($(this).css('padding-right').replace('px', ''));
+        var border = br.toInt($(this).css('border-left').replace('px', '')) + br.toInt($(this).css('border-right').replace('px', ''));
+        $(this).css('min-width', widths[idx].b - padding - border);
+        $(this).css('max-width', widths[idx].b - padding - border);
+      });
+
+      if (!initialized) {
+        thead.css('display', 'block').css('overflow', 'hidden');
+        tbody.css('display', 'block').css('overflow', 'auto');
+        initialized = true;
       }
 
-      var bodyCols = $(table).find('tbody tr:first td');
-
-      if (bodyCols.length > 0) {
-
-        if (widthsSaved) {
-          headerCols.each(function(idx) {
-            $(this).outerWidth(headerWidths[idx]);
-          });
-        } else {
-          headerCols.each(function(idx) {
-            headerWidths[idx] = $(this).outerWidth();
-          });
-          widthsSaved = true;
-        }
-
-        var dimensinos = getTableDmensions();
-
-        $(bodyCols[dimensinos.widestCellByOuterWidth]).outerWidth(0);
-
-        bodyCols.each(function(idx) {
-          if (idx != dimensinos.widestCellByOuterWidth) {
-            var headerCol  = $(headerCols[idx]);
-            var outerWidth = $(this).outerWidth();
-            var width = Math.max(outerWidth, headerWidths[idx]);
-            $(this).outerWidth(width);
-            outerWidth = $(this).outerWidth();
-            width = Math.max(outerWidth, headerWidths[idx]);
-            headerCol.outerWidth(width);
-          }
-        });
-
-        dimensinos = getTableDmensions();
-
-        $(bodyCols[dimensinos.widestCellByOuterWidth]).outerWidth(dimensinos.suggestedOuterWidth);
-
-        bodyCols.each(function(idx) {
-          var headerCol  = $(headerCols[idx]);
-          var outerWidth = $(this).outerWidth();
-          headerCol.outerWidth(outerWidth);
-        });
-
-        $(table).find('img').on('load', function() {
-          if (!$(this).data('bright-fixed-table-loaded')) {
-            $(this).data('bright-fixed-table-loaded', true);
-            _this.update();
-          }
-        });
-
-      }
+      autosize();
 
     }
 
@@ -143,7 +138,7 @@
     });
 
     $(window).on('scroll', function() {
-      _this.update();
+      autosize();
     });
 
     _this.update();
