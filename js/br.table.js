@@ -18,14 +18,14 @@
     var initialized = false;
     var calcDiv;
 
+    _this.options = options || { };
+
     if (options.debug) {
       calcDiv = $('<div />');
     } else {
       calcDiv = $('<div style="height:0px;overflow:hidden;"/>');
     }
     table.parent().append(calcDiv);
-
-    _this.options = options || { };
 
     $(table).css('border-bottom', '0px');
 
