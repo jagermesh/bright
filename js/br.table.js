@@ -20,7 +20,7 @@
 
     _this.options = options || { };
 
-    if (options.debug) {
+    if (_this.options.debug) {
       calcDiv = $('<div />');
     } else {
       calcDiv = $('<div style="height:0px;overflow:hidden;"/>');
@@ -48,7 +48,7 @@
         var windowHeight = $(window).height();
         var tableTop     = table.offset().top;
         var tbodyHeight  = windowHeight - tableTop - thead.height();
-        if (options.debug) {
+        if (_this.options.debug) {
           tbodyHeight -= 200;
         } else {
           tbodyHeight -= 10;
