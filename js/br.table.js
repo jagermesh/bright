@@ -66,11 +66,11 @@
     function getBorderWidth(el) {
 
       var result = 0;
-      if ($(this).css('border-left-width')) {
-        result += br.toInt($(this).css('border-left-width').replace('px', ''));
+      if ($(el).css('border-left-width')) {
+        result += br.toInt($(el).css('border-left-width').replace('px', ''));
       }
-      if ($(this).css('border-right-width')) {
-        result += br.toInt($(this).css('border-right-width').replace('px', ''));
+      if ($(el).css('border-right-width')) {
+        result += br.toInt($(el).css('border-right-width').replace('px', ''));
       }
       return result;
 
@@ -79,11 +79,11 @@
     function getPadding(el) {
 
       var result = 0;
-      if ($(this).css('padding-left')) {
-        result += br.toInt($(this).css('padding-left').replace('px', ''));
+      if ($(el).css('padding-left')) {
+        result += br.toInt($(el).css('padding-left').replace('px', ''));
       }
-      if ($(this).css('padding-right')) {
-        result += br.toInt($(this).css('padding-right').replace('px', ''));
+      if ($(el).css('padding-right')) {
+        result += br.toInt($(el).css('padding-right').replace('px', ''));
       }
       return result;
 
