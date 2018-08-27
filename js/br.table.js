@@ -63,6 +63,32 @@
 
     }
 
+    function getBorderWidth(el) {
+
+      var result = 0;
+      if ($(this).css('border-left-width')) {
+        result += br.toInt($(this).css('border-left-width').replace('px', ''));
+      }
+      if ($(this).css('border-right-width')) {
+        result += br.toInt($(this).css('border-right-width').replace('px', ''));
+      }
+      return result;
+
+    }
+
+    function getPadding(el) {
+
+      var result = 0;
+      if ($(this).css('padding-left')) {
+        result += br.toInt($(this).css('padding-left').replace('px', ''));
+      }
+      if ($(this).css('padding-right')) {
+        result += br.toInt($(this).css('padding-right').replace('px', ''));
+      }
+      return result;
+
+    }
+
     function update() {
 
       var headerCols = $(table).find('thead tr:first th');
@@ -101,17 +127,12 @@
       calcDiv.html('');
 
       headerCols.each(function(idx) {
-        var padding = br.toInt($(this).css('padding-left').replace('px', '')) + br.toInt($(this).css('padding-right').replace('px', ''));
-        var border = br.toInt($(this).css('border-left').replace('px', '')) + br.toInt($(this).css('border-right').replace('px', ''));
-        br.log(border);
-        $(this).css('min-width', widths[idx].h - padding - border);
-        $(this).css('max-width', widths[idx].h - padding - border);
+        $(this).css('min-width', widths[idx].h - getPadding(this) - getBorderWidth(this));
+        $(this).css('max-width', widths[idx].h - getPadding(this) - getBorderWidth(this));
       });
       bodyCols.each(function(idx) {
-        var padding = br.toInt($(this).css('padding-left').replace('px', '')) + br.toInt($(this).css('padding-right').replace('px', ''));
-        var border = br.toInt($(this).css('border-left').replace('px', '')) + br.toInt($(this).css('border-right').replace('px', ''));
-        $(this).css('min-width', widths[idx].b - padding - border);
-        $(this).css('max-width', widths[idx].b - padding - border);
+        $(this).css('min-width', widths[idx].b - getPadding(this) - getBorderWidth(this));
+        $(this).css('max-width', widths[idx].b - getPadding(this) - getBorderWidth(this));
       });
 
       if (!initialized) {
