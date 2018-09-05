@@ -5924,6 +5924,7 @@
                                  , defaultOrderAndGroup: this.options.defaultOrderAndGroup
                                  , fixedHeader: this.options.fixedHeader
                                  , autoHeight: this.options.autoHeight
+                                 , autoWidth: this.options.autoWidth
                                  , storageTag: this.options.storageTag
                                  }
                                );
