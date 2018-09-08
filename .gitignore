@@ -1,15 +1,5 @@
-# SVN
 .svn
-
-# MAC files
 .DS_Store
-
 _logs
 _tmp
-
 node_modules
-composer.lock
-package-lock.json
-
-# vendor/
-yarn.lock
