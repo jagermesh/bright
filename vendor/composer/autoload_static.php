@@ -6,17 +6,21 @@ namespace Composer\Autoload;
 
 class ComposerStaticInit1b17ecc4388caa2ce9de01d092ce85b7
 {
+    public static $files = array (
+        '2c102faa651ef8ea5874edb585946bce' => __DIR__ . '/..' . '/swiftmailer/swiftmailer/lib/swift_required.php',
+    );
+
     public static $prefixLengthsPsr4 = array (
-        'P' => 
+        'E' => 
         array (
-            'PHPMailer\\PHPMailer\\' => 20,
+            'Egulias\\EmailValidator\\' => 23,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'PHPMailer\\PHPMailer\\' => 
+        'Egulias\\EmailValidator\\' => 
         array (
-            0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
+            0 => __DIR__ . '/..' . '/egulias/email-validator/EmailValidator',
         ),
     );
 
@@ -26,6 +30,13 @@ class ComposerStaticInit1b17ecc4388caa2ce9de01d092ce85b7
             'Mustache' => 
             array (
                 0 => __DIR__ . '/..' . '/mustache/mustache/src',
+            ),
+        ),
+        'D' => 
+        array (
+            'Doctrine\\Common\\Lexer\\' => 
+            array (
+                0 => __DIR__ . '/..' . '/doctrine/lexer/lib',
             ),
         ),
     );

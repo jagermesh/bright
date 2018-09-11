@@ -804,97 +804,102 @@ class Br extends BrSingleton {
       $params = array();
     }
 
-    $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-    $mail->CharSet = 'UTF-8';
+    br()->log()->write('Sending mail to ' . br($emails)->join());
 
-    $emails = br($emails)->split();
+    $message = new Swift_Message();
 
-    foreach($emails as $email) {
-      try {
+    if ($emails = br($emails)->split()) {
+
+      foreach($emails as $email) {
         $emailsArray = br(trim($email))->split();
         foreach($emailsArray as $oneEMail) {
-          $mail->AddAddress($oneEMail);
+          $message->addTo($oneEMail);
         }
-      } catch (Exception $e) {
-        br()->log('Error in br()->sendMail() line 794: ' . $e->getMessage());
       }
-    }
 
-    $fromName = br($params, 'senderName', br()->config()->get('br/mail/fromName'));
+      $fromName = br($params, 'senderName', br()->config()->get('br/mail/fromName'));
 
-    if ($from = br($params, 'sender', br()->config()->get('br/mail/from'))) {
-      if ($from = br($from)->split()) {
-        $mail->AddReplyTo($from[0], $fromName);
-        $mail->SetFrom($from[0], $fromName);
+      if ($from = br($params, 'sender', br()->config()->get('br/mail/from', $emails[0]))) {
+        $message->addFrom($from, $fromName);
+        $message->addReplyTo($from, $fromName);
       }
-    }
 
-    if (($mailer = br($params, 'mailer', br()->config()->get('br/mail/mailer'))) == 'smtp') {
-      $mail->Mailer = $mailer;
-      $mail->Host   = br($params, 'hostname', br()->config()->get('br/mail/SMTP/hostname'));
-      if ($port = br($params, 'port', br()->config()->get('br/mail/SMTP/port'))) {
-        $mail->Port = $port;
-      }
-      if ($username = br($params, 'username', br()->config()->get('br/mail/SMTP/username'))) {
-        $mail->Username = $username;
-        $mail->Password = br($params, 'password', br()->config()->get('br/mail/SMTP/password'));
-        $mail->SMTPAuth = true;
-      }
-      if ($secure = br($params, 'secure', br()->config()->get('br/mail/SMTP/secure'))) {
-        $mail->SMTPSecure = $secure;
-      }
-    } else {
-      $mail->Mailer     = 'mail';
-      $mail->SMTPSecure = '';
     }
 
     if (br($params, 'cc')) {
       $cc = br($params['cc'])->split();
       foreach($cc as $email) {
-        $mail->AddCC($email);
+        $message->addCc($email);
       }
     }
 
     if (br($params, 'bcc')) {
       $bcc = br($params['bcc'])->split();
       foreach($bcc as $email) {
-        $mail->AddBCC($email);
+        $message->addBCC($email);
       }
     }
 
+    $headers = $message->getHeaders();
+
     if (br($params, 'customHeaders')) {
       foreach($params['customHeaders'] as $customHeader) {
-        $mail->AddCustomHeader($customHeader);
+        $headers->addTextHeader($customHeader);
       }
     }
 
     if (br($params, 'attachments')) {
       foreach($params['attachments'] as $attachment) {
-        $mail->AddAttachment($attachment['path'], $attachment['name']);
+        $message->attach(Swift_Attachment::fromPath($attachment['path'])->setFilename($attachment['name']));
       }
     }
 
-    $mail->Subject = $subject;
+    $message->setSubject($subject);
+    $message->setBody($body);
 
-    $mail->Body = $body;
-
-    if (preg_match('/<a|<html|<span|<a|<br|<p/ism', $mail->Body)) {
-      $mail->ContentType = 'text/html';
-      $mail->AltBody = br($mail->Body)->htmlToText();
+    if (preg_match('/<a|<html|<span|<a|<br|<p/ism', $message->getBody())) {
+      $message->setContentType('text/html');
+      $message->addPart(br($message->getBody())->htmlToText(), 'text/plain');
     } else {
-      $mail->ContentType = 'text/plain';
+      $message->setContentType('text/plain');
     }
-
-    br()->log()->write('Sending mail to ' . br($emails)->join());
 
     if (is_callable($callback)) {
-      $callback($mail);
+      $callback($message);
     }
 
-    if ($mail->Send()) {
-      br()->log()->write('Sent');
-    } else {
-      throw new Exception('Mail was not sent because of unknown error');
+    switch(br($params, 'mailer', br()->config()->get('br/mail/mailer'))) {
+      case 'smtp':
+        $transport = new Swift_SmtpTransport();
+        if ($hostname = br($params, 'hostname', br()->config()->get('br/mail/SMTP/hostname'))) {
+          $transport->setHost($hostname);
+        }
+        if ($port = br($params, 'port', br()->config()->get('br/mail/SMTP/port'))) {
+          $transport->setPort($port);
+        }
+        if (($username = br($params, 'username', br()->config()->get('br/mail/SMTP/username'))) &&
+            ($password = br($params, 'password', br()->config()->get('br/mail/SMTP/password')))) {
+          $transport->setUsername($username);
+          $transport->setPassword($password);
+        }
+        if ($secure = br($params, 'secure', br()->config()->get('br/mail/SMTP/secure'))) {
+          $transport->setEncryption('ssl');
+        }
+        if ($encryption = br($params, 'secure', br()->config()->get('br/mail/SMTP/encryption'))) {
+          $transport->setEncryption($encryption);
+        }
+        break;
+      default:
+        $transport = new Swift_SendmailTransport('/usr/sbin/sendmail -bs');
+        break;
+    }
+
+    $mailer = new Swift_Mailer($transport);
+
+    $status = $mailer->send($message);
+
+    if ($status === 0) {
+      throw new BrAppException('No Recipients specified');
     }
 
     return true;
