@@ -63,7 +63,7 @@
 
       _this.isSupported = function() {
 
-        if (canvasSupported && (navigator.userAgent.search(/Chrome/) > -1 || navigator.userAgent.search(/Firefox/) > -1)) {
+        if (canvasSupported && (navigator.userAgent.search(/Chrome/) > -1 || navigator.userAgent.search(/Firefox/) > -1 || navigator.userAgent.search(/Safari/) > -1)) {
           return true;
         } else {
           return false;
@@ -117,11 +117,8 @@
 
             _this.getUserMedia( { video: true }
                               , function(stream) {
-                                  try {
-                                    webCam.src = br.URL.createObjectURL(stream);
-                                  } catch (error) {
-                                    webCam.src = stream;
-                                  }
+                                  webCam.srcObject = stream;
+                                  webCam.setAttribute('playsinline', true);
                                   window.setTimeout(function() {
                                     webCam.play();
                                   }, 500);
