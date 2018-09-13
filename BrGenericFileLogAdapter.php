@@ -95,6 +95,7 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter {
         $requestData = '';
         if ($data = br()->request()->get()) {
           unset($data['password']);
+          unset($data['paswd']);
           $requestData = @json_encode($data);
           if ($requestData) {
             if (strlen($requestData) > 1024*16) {
@@ -105,6 +106,7 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter {
         }
         if ($data = br()->request()->post()) {
           unset($data['password']);
+          unset($data['paswd']);
           $requestData = @json_encode($data);
           if ($requestData) {
             if (strlen($requestData) > 1024*16) {
@@ -115,6 +117,7 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter {
         } else
         if ($data = br()->request()->put()) {
           unset($data['password']);
+          unset($data['paswd']);
           $requestData = @json_encode($data);
           if ($requestData) {
             if (strlen($requestData) > 1024*16) {
