@@ -1,11 +1,17 @@
 {
   "name": "bright",
+  "description": "Reactive PHP/JavaScript framework",
   "version": "1.1.0",
   "dependencies": {
-    "grunt": "^1.0.3",
-    "grunt-contrib-concat": "^1.0.1",
-    "grunt-contrib-jshint": "^1.1.0",
-    "grunt-contrib-uglify": "^3.3.0",
-    "grunt-phplint": "^0.1.0"
-  }
+    "grunt": "*",
+    "grunt-contrib-concat": "*",
+    "grunt-contrib-jshint": "*",
+    "grunt-contrib-uglify": "^4.0.0",
+    "grunt-phplint": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/jagermesh/bright.git"
+  },
+  "license": "MIT"
 }
