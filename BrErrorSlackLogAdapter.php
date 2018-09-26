@@ -86,6 +86,7 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
       $body .= '_Request type:_ ' . br()->request()->method() . "\n";
       if ($data = br()->request()->get()) {
         unset($data['password']);
+        unset($data['paswd']);
         $requestData = @json_encode($data);
         if ($requestData) {
           if (strlen($requestData) > 1024*16) {
@@ -96,6 +97,7 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
       }
       if ($data = br()->request()->post()) {
         unset($data['password']);
+        unset($data['paswd']);
         $requestData = @json_encode($data);
         if ($requestData) {
           if (strlen($requestData) > 1024*16) {
@@ -106,6 +108,7 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
       } else
       if ($data = br()->request()->put()) {
         unset($data['password']);
+        unset($data['paswd']);
         $requestData = @json_encode($data);
         if ($requestData) {
           if (strlen($requestData) > 1024*16) {

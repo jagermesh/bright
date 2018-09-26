@@ -1759,9 +1759,6 @@
     _this.options = options || {};
     _this.options.restServiceUrl = restServiceUrl;
     _this.options.refreshDelay = _this.options.refreshDelay || 1500;
-    if (_this.options.restServiceUrl.charAt(_this.options.restServiceUrl.length-1) != '/') {
-      _this.options.restServiceUrl = _this.options.restServiceUrl + '/';
-    }
 
     _this.events = br.eventQueue(_this);
     _this.before = function(event, callback) { _this.events.before(event, callback); };

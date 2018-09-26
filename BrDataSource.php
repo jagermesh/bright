@@ -209,7 +209,17 @@ class BrDataSource extends BrGenericDataSource {
 
           if (!$countOnly && $sortOrder && is_array($sortOrder)) {
             foreach($sortOrder as $fieldName => $direction) {
-              $sortOrder[$fieldName] = (int)$direction;
+              switch(strtolower($direction)) {
+                case 'asc':
+                  $sortOrder[$fieldName] = 1;
+                  break;
+                case 'desc':
+                  $sortOrder[$fieldName] = -1;
+                  break;
+                default:
+                  $sortOrder[$fieldName] = (int)$direction;
+                  break;
+              }
             }
             $cursor = $cursor->sort($sortOrder);
           }
