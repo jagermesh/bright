@@ -1758,6 +1758,11 @@
     _this.name = '-';
     _this.options = options || {};
     _this.options.restServiceUrl = restServiceUrl;
+    if (_this.options.restServiceUrl.charAt(_this.options.restServiceUrl.length-1) != '/') {
+      _this.options.restServiceUrlNormalized = _this.options.restServiceUrl + '/';
+    } else {
+      _this.options.restServiceUrlNormalized = _this.options.restServiceUrl;
+    }
     _this.options.refreshDelay = _this.options.refreshDelay || 1500;
 
     _this.events = br.eventQueue(_this);
@@ -1958,7 +1963,7 @@
           $.ajax({ type: _this.options.crossdomain ? 'GET' : 'POST'
                  , data: request
                  , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
-                 , url: _this.options.restServiceUrl + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
+                 , url: _this.options.restServiceUrlNormalized + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
                  , success: function(response) {
                      var operation = 'update';
                      if (response) {
@@ -2051,7 +2056,7 @@
           $.ajax({ type: _this.options.crossdomain ? 'GET' : 'DELETE'
                  , data: request
                  , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
-                 , url: _this.options.restServiceUrl + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
+                 , url: _this.options.restServiceUrlNormalized + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
                  , success: function(response) {
                      resolve({rowid: rowid, request: request, options: options, response: response});
                    }
@@ -2223,9 +2228,12 @@
           }
         }
 
-        var url = _this.options.restServiceUrl;
+        var url;
+
         if (selectOne && requestRowid) {
-          url = url + requestRowid;
+          url = _this.options.restServiceUrlNormalized + requestRowid;
+        } else {
+          url = _this.options.restServiceUrl;
         }
 
         var proceed = true;
@@ -2308,47 +2316,47 @@
           }
 
           _this.ajaxRequest = $.ajax({ type: 'GET'
-                                    , data: request
-                                    , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
-                                    , url: url + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-                                    , success: function(response) {
-                                        try {
-                                          _this.ajaxRequest = null;
-                                          if ((_this.options.crossdomain && (typeof response == 'string')) || br.isNull(response)) {
-                                            reject({request: request, options: options, errorMessage: 'Unknown error'});
-                                          } else {
-                                            if (singleRespone && br.isArray(response)) {
-                                              if (response.length > 0) {
-                                                response = response[0];
-                                              } else {
-                                                reject({request: request, options: options, errorMessage: 'Record not found'});
-                                                return;
-                                              }
-                                            } else
-                                            if (!singleRespone && !br.isArray(response)) {
-                                              response = [response];
-                                            }
-                                            if (selectCount) {
-                                              response = parseInt(response);
-                                            }
-                                            resolve({request: request, options: options, response: response});
-                                          }
-                                        } finally {
-                                          selectOperationCounter--;
-                                        }
-                                      }
-                                    , error: function(jqXHR, textStatus, errorThrown) {
-                                        try {
-                                          _this.ajaxRequest = null;
-                                          if (!br.isUnloading()) {
-                                            var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                                            reject({request: request, options: options, errorMessage: errorMessage});
-                                          }
-                                        } finally {
-                                          selectOperationCounter--;
-                                        }
-                                      }
-                                    });
+                                     , data: request
+                                     , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
+                                     , url: url + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
+                                     , success: function(response) {
+                                         try {
+                                           _this.ajaxRequest = null;
+                                           if ((_this.options.crossdomain && (typeof response == 'string')) || br.isNull(response)) {
+                                             reject({request: request, options: options, errorMessage: 'Unknown error'});
+                                           } else {
+                                             if (singleRespone && br.isArray(response)) {
+                                               if (response.length > 0) {
+                                                 response = response[0];
+                                               } else {
+                                                 reject({request: request, options: options, errorMessage: 'Record not found'});
+                                                 return;
+                                               }
+                                             } else
+                                             if (!singleRespone && !br.isArray(response)) {
+                                               response = [response];
+                                             }
+                                             if (selectCount) {
+                                               response = parseInt(response);
+                                             }
+                                             resolve({request: request, options: options, response: response});
+                                           }
+                                         } finally {
+                                           selectOperationCounter--;
+                                         }
+                                       }
+                                     , error: function(jqXHR, textStatus, errorThrown) {
+                                         try {
+                                           _this.ajaxRequest = null;
+                                           if (!br.isUnloading()) {
+                                             var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                                             reject({request: request, options: options, errorMessage: errorMessage});
+                                           }
+                                         } finally {
+                                           selectOperationCounter--;
+                                         }
+                                       }
+                                     });
         }
 
       }).then(function(data) {
@@ -2430,7 +2438,7 @@
         $.ajax({ type: _this.options.crossdomain ? 'GET' : 'POST'
                , data: request
                , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
-               , url: _this.options.restServiceUrl + method + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
+               , url: _this.options.restServiceUrlNormalized + method + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
                , success: function(response) {
                    if (_this.options.crossdomain && (typeof response == 'string')) {
                      reject({method: method, request: request, options: options, errorMessage: response});
@@ -3407,7 +3415,7 @@
     this.options.fields                    = this.options.fields || {};
     this.options.saveSelection             = this.options.saveSelection || false;
     this.options.saveToSessionStorage      = this.options.saveToSessionStorage || false;
-    this.options.lookup_minimumInputLength = this.options.lookup_minimumInputLength || 1;
+    this.options.lookup_minimumInputLength = this.options.lookup_minimumInputLength >= 0 ? this.options.lookup_minimumInputLength: 1;
 
     if (this.options.skipTranslate) {
       this.selector.addClass('skiptranslate');
@@ -3512,7 +3520,7 @@
               var request = { };
               request.keyword = query.term;
               requestTimer = window.setTimeout(function() {
-                if (query.term) {
+                if (query.term || _this.options.lookup_minimumInputLength === 0) {
                   _this.dataSource.select(request, function(result, response) {
                     if (result) {
                       var data = { results: [] };
@@ -3520,6 +3528,9 @@
                         data.results.push({ id:   response[i][_this.options.valueField]
                                           , text: getName(response[i])
                                           });
+                      }
+                      if (response.length == selectLimit) {
+                        data.more = true;
                       }
                       query.callback(data);
                     }
