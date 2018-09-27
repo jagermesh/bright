@@ -16,5 +16,10 @@ br()->auth()->setAttr('usersAPI.insert', 'anyone');
 br()->auth()->setAttr('usersAPI.remove', 'anyone');
 br()->auth()->setAttr('usersAPI.update', 'anyone');
 
-br()->config()->set('br/tempPath', dirname(__DIR__) . '/_tmp/' . strtolower(br()->config()->get('db')['name']) . '/');
-br()->config()->set('Logger/File/LogsFolder', dirname(__DIR__) . '/' . strtolower(br()->config()->get('db')['name']) . '/');
+if (br()->isConsoleMode()) {
+  br()->config()->set('br/tempPath', __DIR__ . '/_tmp/console/');
+  br()->config()->set('Logger/File/LogsFolder', __DIR__ . '/_logs/console/' . strtolower(br()->config()->get('Global/Domain')) . '/');
+} else {
+  br()->config()->set('br/tempPath', __DIR__ . '/_tmp/web/');
+  br()->config()->set('Logger/File/LogsFolder', __DIR__ . '/_logs/web/' . strtolower(br()->config()->get('Global/Domain')) . '/');
+}
