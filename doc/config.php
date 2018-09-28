@@ -1,3 +1,5 @@
 <?php
 
-br()->request()->setFrameworkUrl(dirname(br()->request()->baseUrl()) . '/');
+br()->setBasePath(__DIR__);
+
+br()->request()->setBrightUrl(dirname(br()->request()->baseUrl()) . '/');

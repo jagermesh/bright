@@ -78,6 +78,7 @@ class Br extends BrSingleton {
 
   private $processId      = null;
   private $basePath       = null;
+  private $basePathEx     = null;
   private $scriptBasePath = null;
   private $brightPath     = null;
   private $relativePath   = null;
@@ -105,8 +106,6 @@ class Br extends BrSingleton {
     } else {
       $this->basePath = rtrim(dirname(__DIR__), '/') . '/';
     }
-
-    $this->relativePath = (stripos($this->getBrightPath(), $this->getBasePath()) === 0 ? substr($this->getBrightPath(), strlen($this->getBasePath())) : 'bright/');
 
     $this->processId = null;
 
@@ -145,12 +144,6 @@ class Br extends BrSingleton {
 
   }
 
-  public function getBasePath() {
-
-    return $this->basePath;
-
-  }
-
   public function getScriptBasePath() {
 
     return $this->scriptBasePath;
@@ -169,15 +162,51 @@ class Br extends BrSingleton {
 
   }
 
+  public function getBasePath() {
+
+    if ($this->basePathEx) {
+      $result = $this->basePathEx;
+    } else {
+      $result = $this->basePath;
+    }
+
+    return $result;
+
+  }
+
+  function setBasePath($value) {
+
+    $this->basePathEx = rtrim($value, '/') . '/';
+
+  }
+
+  private function removePrefix($s1, $s2) {
+
+    if (strpos($s1, $s2) === 0) {
+      $result = substr($s1, strlen($s2));
+    } else {
+      $result = '';
+      for($i = 0; $i < min(strlen($s1), strlen($s2)); $i++) {
+        if ($s1[$i] != $s2[$i]) {
+          $result = substr($s1, $i);
+          break;
+        }
+      }
+    }
+
+    return $result;
+
+  }
+
   public function getRelativePath() {
 
-    return $this->relativePath;
+    return $this->removePrefix($this->getBrightPath(), $this->getBasePath());
 
   }
 
   function setApiPath($value) {
 
-    $this->apiPath = $value;
+    $this->apiPath = rtrim($value, '/') . '/';
 
   }
 
@@ -213,7 +242,7 @@ class Br extends BrSingleton {
 
   function setDataSourcesPath($value) {
 
-    $this->dataSourcesPath = $value;
+    $this->dataSourcesPath = rtrim($value, '/') . '/';
 
   }
 
@@ -231,7 +260,7 @@ class Br extends BrSingleton {
 
   function setTemplatesPath($value) {
 
-    $this->templatesPath = $value;
+    $this->templatesPath = rtrim($value, '/') . '/';
 
   }
 
@@ -318,6 +347,12 @@ class Br extends BrSingleton {
   public function atBasePath($path) {
 
     return $this->getBasePath() . ltrim($path, '/');
+
+  }
+
+  public function atScriptBasePath($path) {
+
+    return $this->getScriptBasePath() . ltrim($path, '/');
 
   }
 

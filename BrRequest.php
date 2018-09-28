@@ -18,7 +18,7 @@ class BrRequest extends BrSingleton {
   private $pathname = null;
   private $relativeUrl = null;
   private $baseUrl = null;
-  private $frameworkUrl = null;
+  private $brightUrl = null;
   private $clientIP = null;
   private $scriptName = null;
   private $continueRoute = true;
@@ -91,7 +91,6 @@ class BrRequest extends BrSingleton {
       $this->host = $host;
       $this->relativeUrl = $relativeUrl;
       $this->baseUrl = $baseUrl;
-      $this->frameworkUrl = $this->baseUrl() . br()->getRelativePath();
       $this->scriptName = $scriptName;
       $this->contentType = br($_SERVER, 'CONTENT_TYPE');
 
@@ -315,15 +314,25 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function frameworkUrl() {
+  function getBrightUrl() {
 
-    return $this->frameworkUrl;
+    if ($this->brightUrl) {
+      return $this->brightUrl;
+    } else {
+      return $this->baseUrl() . br()->getRelativePath();
+    }
 
   }
 
-  function setFrameworkUrl($url) {
+  function brightUrl() {
 
-    return ($this->frameworkUrl = $url);
+    return $this->getBrightUrl();
+
+  }
+
+  function setBrightUrl($value) {
+
+    return $this->brightUrl = $value;
 
   }
 

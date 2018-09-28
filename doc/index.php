@@ -1,4 +1,4 @@
 <?php
 
-require_once(dirname(dirname(__DIR__)).'/bright/Bright.php');
+require_once(dirname(dirname(__DIR__)) . '/bright/Bright.php');
 

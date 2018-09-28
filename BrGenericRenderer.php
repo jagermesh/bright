@@ -133,13 +133,13 @@ class BrGenericRenderer extends BrObject {
                                                 , 'url'         => br()->request()->url()
                                                 , 'get'         => br()->request()->get()
                                                 , 'post'        => br()->request()->post()
-                                                , 'brightUrl'   => br()->request()->frameworkUrl()
+                                                , 'brightUrl'   => br()->request()->brightUrl()
                                                 , 'baseUrl'     => br()->request()->baseUrl()
                                                 )
                             , 'config'  => br()->config()->get()
                             , 'login'   => br()->auth()->getLogin()
-                            , 'core'    => array('v1' => br()->request()->frameworkUrl() . 'dist/1.0/bright.core.js')
-                            , 'lib'     => array('v1' => br()->request()->frameworkUrl() . 'dist/1.0/bright.js')
+                            , 'core'    => array('v1' => br()->request()->brightUrl() . 'dist/1.0/bright.core.js')
+                            , 'lib'     => array('v1' => br()->request()->brightUrl() . 'dist/1.0/bright.js')
                             );
 
     if ($localVars['br']['login']) {
