@@ -17,7 +17,7 @@ class BrJobCustomJob {
 
   function __construct() {
 
-    $this->lastRunFile = br()->tempPath() . get_class($this) . '.timestamp';
+    $this->lastRunFile = br()->getTempPath() . get_class($this) . '.timestamp';
 
     $this->checkJobCommand = $this->checkJobScript . ' ' . get_class($this);
     $this->runJobCommand   = $this->runJobScript   . ' ' . get_class($this);
@@ -45,7 +45,7 @@ class BrJobCustomJob {
     }
 
     if ($withPath) {
-      $cmd = br()->basePath() . $cmd;
+      $cmd = br()->getScriptBasePath() . $cmd;
     }
 
     return $cmd;
@@ -73,9 +73,9 @@ class BrJobCustomJob {
 
     br()->log('[CHK] Checking ' . $runCommandWithPath);
     if (br()->OS()->findProcesses($runCommandWithPath)->count() == 0) {
-      $logFileName = br()->basePath() . '_logs';
+      $logFileName = br()->getLogsPath();
       if (is_writable($logFileName)) {
-        $logFileName .= '/' . date('Y-m-d') . '/' . br()->fs()->normalizeFileName(trim($runCommand));
+        $logFileName .= date('Y-m-d') . '/' . br()->fs()->normalizeFileName(trim($runCommand));
         if (br()->fs()->makeDir($logFileName)) {
           $logFileName .= '/' . date('Y-m-d-H') . '.console.log';
         } else {

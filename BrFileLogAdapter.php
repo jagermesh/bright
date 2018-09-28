@@ -33,7 +33,7 @@ class BrFileLogAdapter extends BrGenericFileLogAdapter {
     $filePath = $tmp;
 
     if (br()->isConsoleMode()) {
-      $filePath .= br()->scriptName();
+      $filePath .= br()->getScriptName();
       if ($arguments = br()->getCommandLineArguments()) {
         if ($arguments = br()->fs()->normalizeFileName(br($arguments)->join('_'))) {
           $filePath .= '_' . $arguments;

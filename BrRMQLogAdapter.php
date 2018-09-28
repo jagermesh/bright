@@ -45,7 +45,7 @@ class BrRMQLogAdapter extends BrGenericLogAdapter {
         $envelope['Message'] = $message;
         $envelope['DateTime'] = time();
         $envelope['PID'] = br()->getProcessID();
-        $envelope['ScriptName'] = br()->scriptName();
+        $envelope['ScriptName'] = br()->getScriptName();
         if (br()->isConsoleMode()) {
           $envelope['CommandLine'] = br(br()->getCommandLineArguments())->join(' ');
         } else {

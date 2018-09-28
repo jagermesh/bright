@@ -42,7 +42,8 @@ if (strtolower(basename($traces[0]['file'])) == 'bright.php') {
 }
 
 // Loading application settings
-br()->importAtBasePath('config.php');
+br()->require(br()->getScriptBasePath()  . 'config.php');
+br()->require(br()->getBasePath()  . 'config.php');
 
 // Core PHP settings - Secondary
 require_once(__DIR__.'/BrSession.php');
@@ -52,7 +53,7 @@ BrSession::configure();
 // Base Logging
 if (!br()->log()->isAdapterExists('BrErrorFileLogAdapter')) {
   br()->importLib('ErrorFileLogAdapter');
-  br()->log()->addAdapter(new BrErrorFileLogAdapter(br()->config()->get('Logger/File/LogsFolder', br()->atBasePath(br()->config()->get('Logger/File/LogsSubFolder', '_logs')))));
+  br()->log()->addAdapter(new BrErrorFileLogAdapter(br()->config()->get('Logger/File/LogsFolder', br()->getLogsPath())));
 }
 
 if (!br()->log()->isAdapterExists('BrMailLogAdapter')) {
@@ -63,7 +64,7 @@ if (!br()->log()->isAdapterExists('BrMailLogAdapter')) {
 if (br()->config()->get('Logger/File/Active')) {
   if (!br()->log()->isAdapterExists('BrFileLogAdapter')) {
     br()->importLib('FileLogAdapter');
-    br()->log()->addAdapter(new BrFileLogAdapter(br()->config()->get('Logger/File/LogsFolder', br()->atBasePath(br()->config()->get('Logger/File/LogsSubFolder', '_logs')))));
+    br()->log()->addAdapter(new BrFileLogAdapter(br()->config()->get('Logger/File/LogsFolder', br()->getLogsPath())));
   }
 }
 

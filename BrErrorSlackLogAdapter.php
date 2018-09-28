@@ -57,7 +57,7 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
     $result = array();
 
     $body  = '_Timestamp:_ ' . date('r') . "\n";
-    $body .= '_Script name:_ ' . br()->scriptName() . "\n";
+    $body .= '_Script name:_ ' . br()->getScriptName() . "\n";
     $body .= '_PHP Version:_ ' . phpversion() . "\n";
     if (br()->isConsoleMode()) {
       $body .= '_Comand line:_ ' . br(br()->getCommandLineArguments())->join(' ') . "\n";

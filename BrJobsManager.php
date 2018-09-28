@@ -4,14 +4,14 @@ class BrJobsManager {
 
   function __construct() {
 
-    $this->jobsFolder = br()->basePath() . 'jobs/';
+    $this->jobsFolder = br()->getScriptBasePath() . 'jobs/';
 
   }
 
   function run() {
 
     if (!br()->isConsoleMode()) { br()->panic('Console mode only'); }
-    $handle = br()->OS()->lockIfRunning(br()->callerScript());
+    $handle = br()->OS()->lockIfRunning(br()->getScriptPath());
 
     br()->log('[...] Jobs folder: ' . $this->jobsFolder);
 

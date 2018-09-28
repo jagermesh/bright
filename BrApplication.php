@@ -35,7 +35,7 @@ class BrApplication extends BrSingleton {
     br()->request()->checkUrlRestrictions();
 
     $request = br()->request();
-    $scriptName = $request->scriptName();
+    $scriptName = $request->getScriptName();
 
     $asis = br()->atBasePath($request->relativeUrl().$scriptName);
 

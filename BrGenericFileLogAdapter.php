@@ -65,7 +65,7 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter {
       $this->writeMessage('***************************************************************', $group);
 
       $this->writeMessage('PID:           ' . br()->getProcessID(),          $group);
-      $this->writeMessage('Script Name:   ' . br()->scriptName(),            $group);
+      $this->writeMessage('Script Name:   ' . br()->getScriptName(),            $group);
       $this->writeMessage('PHP Version:   ' . phpversion(),                  $group);
       if (br()->isConsoleMode()) {
         $this->writeMessage('Comand line:   ' . br(br()->getCommandLineArguments())->join(' '),      $group);

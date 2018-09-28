@@ -325,7 +325,7 @@ class BrAWS extends BrObject {
                       );
         }
 
-        $filesFolder = br()->tempPath() . br()->guid();
+        $filesFolder = br()->getTempPath() . br()->guid();
         br()->fs()->createDir($filesFolder);
         try {
           $filesList = array();

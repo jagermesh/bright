@@ -909,7 +909,7 @@ class BrDataBaseManager {
       $patches      = array();
       $patchObjects = array();
 
-      br()->fs()->iterateDir(br()->basePath() . 'patches/', '^' . $patchName . '$', function($patchFile) use (&$patches) {
+      br()->fs()->iterateDir(br()->getScriptBasePath() . 'patches/', '^' . $patchName . '$', function($patchFile) use (&$patches) {
         $patches[] = array( 'classFile' => $patchFile->nameWithPath()
                           , 'className' => br()->fs()->fileNameOnly($patchFile->name())
                           );

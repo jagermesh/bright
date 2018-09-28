@@ -76,23 +76,40 @@ if (!function_exists('logme')) {
 
 class Br extends BrSingleton {
 
-  private $processId = null;
-  private $templatesPath = null;
-  private $tempPath = null;
-  private $frameWorkPath = null;
-  private $scriptName = null;
-  private $basePath = null;
-  private $appPath = null;
-  private $APIPath = null;
-  private $relativePath = null;
-  private $application = null;
-  private $threadMode = false;
-  private $tempFiles = array();
+  private $processId      = null;
+  private $basePath       = null;
+  private $scriptBasePath = null;
+  private $brightPath     = null;
+  private $relativePath   = null;
+  private $scriptName     = null;
+  private $threadMode     = false;
+  private $tempFiles      = array();
+
+  // reconfigured paths
+
+  private $templatesPath   = null;
+  private $tempPath        = null;
+  private $appPath         = null;
+  private $apiPath         = null;
+  private $logsPath        = null;
+  private $cachePath       = null;
+  private $dataSourcesPath = null;
 
   function __construct() {
 
-    $this->frameWorkPath = str_replace('\\', '/', rtrim(__DIR__, '/').'/');
+    $this->brightPath = rtrim(__DIR__, '/') . '/';
+
+    if (strpos(__FILE__, '/vendor/jagermesh/bright/')) {
+      // composer version
+      $this->basePath = rtrim(dirname(dirname(dirname(__DIR__))), '/') . '/';
+    } else {
+      $this->basePath = rtrim(dirname(__DIR__), '/') . '/';
+    }
+
+    $this->relativePath = (stripos($this->getBrightPath(), $this->getBasePath()) === 0 ? substr($this->getBrightPath(), strlen($this->getBasePath())) : 'bright/');
+
     $this->processId = null;
+
     parent::__construct();
 
     register_shutdown_function(array(&$this, 'captureShutdown'));
@@ -100,6 +117,7 @@ class Br extends BrSingleton {
   }
 
   public function __call($name, $arguments) {
+
     $className = 'Br' . ucwords($name);
     if (!class_exists($className)) {
       $classFile = __DIR__ . '/' . $className . '.php';
@@ -109,8 +127,260 @@ class Br extends BrSingleton {
       require_once($classFile);
     }
 
-    return call_user_func_array(array($className, "getInstance"), $arguments);
+    return call_user_func_array(array($className, 'getInstance'), $arguments);
+
   }
+
+  function saveCallerScript($value) {
+
+    $this->scriptPath     = $value;
+    $this->scriptBasePath = rtrim(dirname($value), '/') . '/';
+    $this->scriptName     = $this->fs()->fileName($value);
+
+  }
+
+  public function getScriptPath() {
+
+    return $this->scriptPath;
+
+  }
+
+  public function getBasePath() {
+
+    return $this->basePath;
+
+  }
+
+  public function getScriptBasePath() {
+
+    return $this->scriptBasePath;
+
+  }
+
+  public function getBrightPath() {
+
+    return $this->brightPath;
+
+  }
+
+  public function getScriptName() {
+
+    return $this->scriptName;
+
+  }
+
+  public function getRelativePath() {
+
+    return $this->relativePath;
+
+  }
+
+  function setApiPath($value) {
+
+    $this->apiPath = $value;
+
+  }
+
+  function getApiPath() {
+
+    if ($this->apiPath) {
+      $result = $this->apiPath;
+    } else {
+      $result = $this->getBasePath() . 'api/';
+    }
+
+    return $result;
+
+  }
+
+  function setAppPath($value) {
+
+    $this->appPath = $value;
+
+  }
+
+  function getAppPath() {
+
+    if ($this->appPath) {
+      $result = $this->appPath;
+    } else {
+      $result = $this->getBasePath() . 'app/';
+    }
+
+    return $result;
+
+  }
+
+  function setDataSourcesPath($value) {
+
+    $this->dataSourcesPath = $value;
+
+  }
+
+  function getDataSourcesPath() {
+
+    if ($this->dataSourcesPath) {
+      $result = $this->dataSourcesPath;
+    } else {
+      $result = $this->getBasePath() . 'datasources/';
+    }
+
+    return $result;
+
+  }
+
+  function setTemplatesPath($value) {
+
+    $this->templatesPath = $value;
+
+  }
+
+  function getTemplatesPath() {
+
+    if ($this->templatesPath) {
+      $result = $this->templatesPath;
+    } else {
+      $result = $this->getBasePath() . 'templates/';
+    }
+
+    return $result;
+
+  }
+
+  function setTempPath($value) {
+
+    $this->tempPath = rtrim($value, '/') . '/';
+
+    br()->fs()->makeDir($this->getTempPath(), 0777);
+
+  }
+
+  function getTempPath() {
+
+    if ($this->tempPath) {
+      $result = $this->tempPath;
+    } else {
+      $result = $this->getBasePath() . '_tmp/' . ($this->isConsoleMode() ? 'console/' : 'web/');
+    }
+
+    br()->fs()->makeDir($result, 0777);
+
+    return $result;
+
+  }
+
+  function setLogsPath($value) {
+
+    $this->logsPath = rtrim($value, '/') . '/';
+
+    br()->fs()->makeDir($this->getLogsPath(), 0777);
+
+  }
+
+  function getLogsPath() {
+
+    if ($this->logsPath) {
+      $result = $this->logsPath;
+    } else {
+      $result = $this->getBasePath() . '_logs/' . ($this->isConsoleMode() ? 'console/' : 'web/');
+    }
+
+    br()->fs()->makeDir($result, 0777);
+
+    return $result;
+
+  }
+
+  function setCachePath($value) {
+
+    $this->cachePath = rtrim($value, '/') . '/';
+
+    br()->fs()->makeDir($this->getCachePath(), 0777);
+
+  }
+
+  function getCachePath() {
+
+    if ($this->cachePath) {
+      $result = $this->cachePath;
+    } else {
+      $result = $this->getBasePath() . '_tmp/' . ($this->isConsoleMode() ? 'console/' : 'web/') . '_cache/';
+    }
+
+    br()->fs()->makeDir($result, 0777);
+
+    return $result;
+
+  }
+
+  // at
+
+  public function atBasePath($path) {
+
+    return $this->getBasePath() . ltrim($path, '/');
+
+  }
+
+  public function atAppPath($path) {
+
+    return $this->getAppPath() . ltrim($path, '/');
+
+  }
+
+  public function atAPIPath($path) {
+
+    return $this->getApiPath() . ltrim($path, '/');
+
+  }
+
+
+  function atTemplatesPath($path) {
+
+    return $this->getTemplatesPath() . ltrim($path, '/');
+
+  }
+
+  function importLib($className) {
+
+    $fileName = 'Br' . $className . '.php';
+
+    require_once(__DIR__ . '/' . $fileName);
+
+  }
+
+  function importDataSource($name) {
+
+    require_once(__DIR__ . '/datasources/' . $name. '.php');
+
+  }
+
+  function import($fileName) {
+
+    if (!preg_match('/[.]php$/', $fileName)) {
+      $fileName = $fileName . '.php';
+    }
+
+    if (file_exists($fileName)) {
+      require_once($fileName);
+      return true;
+    } else {
+      return false;
+    }
+
+  }
+
+  function require($path) {
+
+    if (file_exists($path)) {
+      require_once($path);
+      return true;
+    } else {
+      return false;
+    }
+
+  }
+
+  // statics
 
   function log() {
 
@@ -145,7 +415,7 @@ class Br extends BrSingleton {
 
   function config($name = null, $defaultValue = null) {
 
-    require_once(__DIR__.'/BrConfig.php');
+    require_once(__DIR__ . '/BrConfig.php');
     $config = BrConfig::getInstance();
 
     if ($name) {
@@ -168,107 +438,7 @@ class Br extends BrSingleton {
 
   }
 
-  function saveCallerScript($scriptPath) {
-
-    $this->callerScript = $scriptPath;
-    $this->basePath = $this->fs()->filePath($scriptPath);
-    $this->scriptName = $this->fs()->fileName($scriptPath);
-    $this->appPath = $this->basePath . 'app/';
-    $this->APIPath = $this->basePath . 'api/';
-    $this->setTemplatesPath($this->basePath . 'templates/');
-
-    if (stripos($this->frameWorkPath, $this->basePath) === 0) {
-      $this->relativePath = substr($this->frameWorkPath, strlen($this->basePath));
-    } else {
-      $this->relativePath = 'bright/';
-    }
-
-  }
-
-  function callerScript() {
-
-    return $this->callerScript;
-
-  }
-
-  function relativePath() {
-
-    return $this->relativePath;
-
-  }
-
-  function scriptName() {
-
-    return $this->scriptName;
-
-  }
-
-  function atBasePath($path) {
-
-    return $this->basePath . ltrim($path, '/');
-
-  }
-
-  function basePath() {
-
-    return $this->basePath;
-
-  }
-
-  function atAppPath($path) {
-
-    return $this->appPath.ltrim($path, '/');
-
-  }
-
-  function atAPIPath($path) {
-
-    return $this->APIPath.ltrim($path, '/');
-
-  }
-
-  function setTemplatesPath($templatesPath) {
-
-    $this->templatesPath = $templatesPath;
-
-  }
-
-  function templatesPath() {
-
-    return $this->templatesPath;
-
-  }
-
-  function setTempPath($tempPath) {
-
-    $this->tempPath = $tempPath;
-
-    br()->fs()->makeDir($this->tempPath(), 0777);
-
-  }
-
-  function tempPath() {
-
-    if (!$this->tempPath) {
-      $this->setTempPath(br()->config()->get('br/tempPath', $this->basePath . '_tmp/'));
-    }
-
-    return $this->tempPath;
-
-  }
-
-
-  function atTemplatesPath($path) {
-
-    return $this->templatesPath.ltrim($path, '/');
-
-  }
-
-  function atFrameWorkPath($path) {
-
-    return $this->frameWorkPath.$path;
-
-  }
+  // tools
 
   function removeEmptyValues($array) {
 
@@ -292,6 +462,7 @@ class Br extends BrSingleton {
   function isMultiArray($array) {
 
     $rv = array_filter($array, 'is_array');
+
     return (count($rv) > 0);
 
   }
@@ -303,7 +474,6 @@ class Br extends BrSingleton {
     } else {
       $prior = -1;
       foreach($array as $idx => $value) {
-        // if (!is_numeric($idx) || (abs($idx - $prior) != 1)) {
         if (!is_numeric($idx)) {
           return false;
         }
@@ -372,41 +542,6 @@ class Br extends BrSingleton {
 
     if (!$value) {
       throw new BrAppException($error ? $error : 'Assertion error');
-    }
-
-  }
-
-  function importAtBasePath($fileName) {
-
-    $this->import($this->atBasePath($fileName));
-
-  }
-
-  function importLib($className) {
-
-    $fileName = 'Br'.$className.'.php';
-
-    require_once(__DIR__ . '/' . $fileName);
-
-  }
-
-  function importDataSource($name) {
-
-    require_once(__DIR__ . '/datasources/' . $name. '.php');
-
-  }
-
-  function import($fileName) {
-
-    if (!preg_match('/[.]php$/', $fileName)) {
-      $fileName = $fileName . '.php';
-    }
-
-    if (file_exists($fileName)) {
-      require_once($fileName);
-      return true;
-    } else {
-      return false;
     }
 
   }
@@ -991,20 +1126,26 @@ class Br extends BrSingleton {
   // utils
 
   function formatBytes($size) {
+
     if ($size > 0) {
       $unit = array('b', 'kb', 'mb', 'gb', 'tb', 'pb');
       return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
     } else {
       return '0 b';
     }
+
   }
 
   function formatTraffic($size) {
+
     return $this->formatBytes($size);
+
   }
 
   function getMemoryUsage() {
+
     return $this->formatTraffic(memory_get_usage(true));
+
   }
 
   function getProcessId() {
@@ -1040,15 +1181,15 @@ class Br extends BrSingleton {
 
   function getTempFile($fileName) {
 
-    $this->tempFiles[] = $this->tempPath() . $fileName;
+    $this->tempFiles[] = $this->getTempPath() . $fileName;
 
-    return $this->tempPath() . $fileName;
+    return $this->getTempPath() . $fileName;
 
   }
 
   function createTempFile($prefix, $extension = '', $register = true) {
 
-    $fileName = @tempnam($this->tempPath(), $prefix);
+    $fileName = @tempnam($this->getTempPath(), $prefix);
 
     if ($extension) {
       rename($fileName, $fileName . $extension);
@@ -1104,5 +1245,26 @@ class Br extends BrSingleton {
     }, $string);
 
   }
+
+  // needs to be removed
+
+  public function callerScript() {
+
+    return $this->getScriptPath();
+
+  }
+
+  public function scriptName() {
+
+    return $this->getScriptName();
+
+  }
+
+  public function relativePath() {
+
+    return $this->getRelativePath();
+
+  }
+
 
 }

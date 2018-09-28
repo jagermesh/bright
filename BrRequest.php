@@ -91,7 +91,7 @@ class BrRequest extends BrSingleton {
       $this->host = $host;
       $this->relativeUrl = $relativeUrl;
       $this->baseUrl = $baseUrl;
-      $this->frameworkUrl = $this->baseUrl() . br()->relativePath();
+      $this->frameworkUrl = $this->baseUrl() . br()->getRelativePath();
       $this->scriptName = $scriptName;
       $this->contentType = br($_SERVER, 'CONTENT_TYPE');
 
@@ -277,7 +277,7 @@ class BrRequest extends BrSingleton {
       $result = $url;
     } else {
       $params = $url;
-      $result = $this->baseUrl() . $this->relativeUrl() . $this->scriptName();
+      $result = $this->baseUrl() . $this->relativeUrl() . $this->getScriptName();
     }
     $first = true;
     foreach($params as $name => $value) {
@@ -408,7 +408,7 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function scriptName() {
+  function getScriptName() {
 
     return $this->scriptName;
 
@@ -752,8 +752,7 @@ class BrRequest extends BrSingleton {
   function routeDefault() {
 
     if (!$this->routeComplete()) {
-
-      $asis = br()->atTemplatesPath(br()->request()->relativeUrl().br()->request()->scriptName());
+      $asis = br()->atTemplatesPath(br()->request()->relativeUrl() . br()->request()->getScriptName());
       if (preg_match('/[.]htm[l]?$/', $asis)) {
         if (file_exists($asis)) {
           br()->renderer()->display($asis);
@@ -763,6 +762,14 @@ class BrRequest extends BrSingleton {
 
       br()->response()->send404();
     }
+
+  }
+
+  // needs to be removed
+
+  function scriptName() {
+
+    return $this->scriptName;
 
   }
 

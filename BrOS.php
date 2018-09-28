@@ -159,7 +159,7 @@ class BrOS extends BrObject {
     if ($scriptCommand) {
       return sys_get_temp_dir() . '/' . md5($scriptCommand) . '.lock';
     } else {
-      return sys_get_temp_dir() . '/' . md5(br()->callerScript()) . '.lock';
+      return sys_get_temp_dir() . '/' . md5(br()->getScriptPath()) . '.lock';
     }
 
   }

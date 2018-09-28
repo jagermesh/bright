@@ -72,7 +72,7 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
   function buildBody($message) {
 
     $body  = '<strong>Timestamp:</strong>     ' . date('r') . '<br />';
-    $body .= '<strong>Script name:</strong>   ' . br()->scriptName() . '<br />';
+    $body .= '<strong>Script name:</strong>   ' . br()->getScriptName() . '<br />';
     $body .= '<strong>PHP Version:</strong>   ' . phpversion() . '<br />';
     if (br()->isConsoleMode()) {
       $body .= '<strong>Comand line:</strong>   ' . br(br()->getCommandLineArguments())->join(' ') . '<br />';

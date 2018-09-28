@@ -19,10 +19,11 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
     parent::__construct($cfg);
 
     if (br($cfg, 'cachePath')) {
-      $this->setCachePath($cfg['cachePath']);
+      $this->setCachePath(rtrim($cfg['cachePath'], '/') . '/');
     } else {
-      $this->setCachePath(br()->basePath() . '_tmp/_cache/');
+      $this->setCachePath(br()->getTempPath() . '_cache/');
     }
+
     if (br($cfg, 'lifeTime')) {
       $this->setCacheLifeTime($cfg['lifeTime']);
     }

@@ -4,7 +4,7 @@ class BrJobStarter {
 
   function __construct() {
 
-    $this->jobsFolder = br()->basePath() . 'jobs/';
+    $this->jobsFolder = br()->getScriptBasePath() . 'jobs/';
 
   }
 
