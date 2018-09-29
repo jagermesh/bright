@@ -157,9 +157,9 @@ class BrOS extends BrObject {
   function lockFileName($scriptCommand = null) {
 
     if ($scriptCommand) {
-      return sys_get_temp_dir() . '/' . md5($scriptCommand) . '.lock';
+      return rtrim(sys_get_temp_dir(), '/') . '/' . md5($scriptCommand) . '.lock';
     } else {
-      return sys_get_temp_dir() . '/' . md5(br()->getScriptPath()) . '.lock';
+      return rtrim(sys_get_temp_dir(), '/') . '/' . md5(br()->getScriptPath()) . '.lock';
     }
 
   }
@@ -169,13 +169,13 @@ class BrOS extends BrObject {
     $lockFile = $this->lockFileName($scriptCommand);
 
     if (file_exists($lockFile)) {
-      @chmod($lockFile, 0777);
+      @chmod($lockFile, 0666);
     }
 
     if ($handle = @fopen($lockFile, 'w+')) {
       if (@flock($handle, LOCK_EX | LOCK_NB)) {
         @fwrite($handle, $scriptCommand);
-        @chmod($lockFile, 0777);
+        @chmod($lockFile, 0666);
         return $handle;
       } else {
         throw new BrAppException('Can not acquire script lock, trying to lock ' . $lockFile);

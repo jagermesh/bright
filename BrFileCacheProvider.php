@@ -20,8 +20,6 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
 
     if (br($cfg, 'cachePath')) {
       $this->setCachePath(rtrim($cfg['cachePath'], '/') . '/');
-    } else {
-      $this->setCachePath(br()->getTempPath() . '_cache/');
     }
 
     if (br($cfg, 'lifeTime')) {
@@ -129,19 +127,39 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
 
   }
 
-  private function getCacheFilePath($name) {
+  public function setCachePath($value) {
 
-    $filePath = $this->cachePath . br()->fs()->getCharsPath(md5($name) . '.cache');
-
-    return $filePath;
+    $this->cachePath = rtrim($value, '/') . '/';
 
   }
 
-  public function setCachePath($path) {
+  public function getCachePath() {
 
-    $this->cachePath = $path;
+    if ($this->cachePath) {
+      $result = $this->cachePath;
+    } else {
+      $result = sys_get_temp_dir();
+    }
 
-    br()->fs()->makeDir($this->cachePath);
+    if (!is_dir($result)) {
+      br()->fs()->makeDir($result, 0777);
+    }
+
+    if (!is_dir($result) || !is_writable($result)) {
+      $result = rtrim(sys_get_temp_dir(), '/') . '/';
+      if ($this->cachePath) {
+        $result .= md5($this->cachePath) . '/';
+      }
+    }
+
+    return $result;
+
+  }
+
+
+  private function getCacheFilePath($name) {
+
+    return $this->getCachePath() . br()->fs()->getCharsPath(md5($name) . '.cache');
 
   }
 

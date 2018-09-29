@@ -280,8 +280,6 @@ class Br extends BrSingleton {
 
     $this->tempPath = rtrim($value, '/') . '/';
 
-    br()->fs()->makeDir($this->getTempPath(), 0777);
-
   }
 
   function getTempPath() {
@@ -292,7 +290,16 @@ class Br extends BrSingleton {
       $result = $this->getBasePath() . '_tmp/' . ($this->isConsoleMode() ? 'console/' : 'web/');
     }
 
-    br()->fs()->makeDir($result, 0777);
+    if (!is_dir($result)) {
+      br()->fs()->makeDir($result, 0777);
+    }
+
+    if (!is_dir($result) || !is_writable($result)) {
+      $result = rtrim(sys_get_temp_dir(), '/') . '/';
+      if ($this->tempPath) {
+        $result .= md5($this->tempPath) . '/';
+      }
+    }
 
     return $result;
 
@@ -301,8 +308,6 @@ class Br extends BrSingleton {
   function setLogsPath($value) {
 
     $this->logsPath = rtrim($value, '/') . '/';
-
-    br()->fs()->makeDir($this->getLogsPath(), 0777);
 
   }
 
@@ -314,29 +319,16 @@ class Br extends BrSingleton {
       $result = $this->getBasePath() . '_logs/' . ($this->isConsoleMode() ? 'console/' : 'web/');
     }
 
-    br()->fs()->makeDir($result, 0777);
-
-    return $result;
-
-  }
-
-  function setCachePath($value) {
-
-    $this->cachePath = rtrim($value, '/') . '/';
-
-    br()->fs()->makeDir($this->getCachePath(), 0777);
-
-  }
-
-  function getCachePath() {
-
-    if ($this->cachePath) {
-      $result = $this->cachePath;
-    } else {
-      $result = $this->getBasePath() . '_tmp/' . ($this->isConsoleMode() ? 'console/' : 'web/') . '_cache/';
+    if (!is_dir($result)) {
+      br()->fs()->makeDir($result, 0777);
     }
 
-    br()->fs()->makeDir($result, 0777);
+    if (!is_dir($result) || !is_writable($result)) {
+      $result = rtrim(sys_get_temp_dir(), '/') . '/';
+      if ($this->logsPath) {
+        $result .= md5($this->logsPath) . '/';
+      }
+    }
 
     return $result;
 
@@ -1300,6 +1292,5 @@ class Br extends BrSingleton {
     return $this->getRelativePath();
 
   }
-
 
 }
