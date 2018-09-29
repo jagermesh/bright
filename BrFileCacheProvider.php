@@ -152,6 +152,10 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
       }
     }
 
+    if (!is_dir($result) || !is_writable($result)) {
+      $result = rtrim(sys_get_temp_dir(), '/') . '/';
+    }
+
     return $result;
 
   }

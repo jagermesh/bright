@@ -301,6 +301,10 @@ class Br extends BrSingleton {
       }
     }
 
+    if (!is_dir($result) || !is_writable($result)) {
+      $result = rtrim(sys_get_temp_dir(), '/') . '/';
+    }
+
     return $result;
 
   }
@@ -328,6 +332,10 @@ class Br extends BrSingleton {
       if ($this->logsPath) {
         $result .= md5($this->logsPath) . '/';
       }
+    }
+
+    if (!is_dir($result) || !is_writable($result)) {
+      $result = rtrim(sys_get_temp_dir(), '/') . '/';
     }
 
     return $result;
