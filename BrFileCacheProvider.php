@@ -138,7 +138,7 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
     if ($this->cachePath) {
       $result = $this->cachePath;
     } else {
-      $result = sys_get_temp_dir();
+      $result = br()->getTempPath() . '_cache/';
     }
 
     if (!is_dir($result)) {
