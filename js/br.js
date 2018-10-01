@@ -16,6 +16,7 @@
   window.br = window.br || {};
 
   var baseUrl = '';
+  var brightUrl = '';
 
   var scripts = $('script');
 
@@ -29,6 +30,8 @@
         }
         if (idx != -1) {
           baseUrl = src.substring(0, idx);
+          idx = src.indexOf('bright/');
+          brightUrl = src.substring(0, idx) + 'bright/';
           break;
         }
       }
@@ -36,6 +39,7 @@
   }
 
   window.br.baseUrl = baseUrl;
+  window.br.brightUrl = brightUrl;
   window.br.popupBlocker = 'unknown';
 
   var logStarted = false;

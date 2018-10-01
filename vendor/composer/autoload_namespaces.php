@@ -8,4 +8,5 @@ $baseDir = dirname($vendorDir);
 return array(
     'Mustache' => array($vendorDir . '/mustache/mustache/src'),
     'Doctrine\\Common\\Lexer\\' => array($vendorDir . '/doctrine/lexer/lib'),
+    'Bright' => array($baseDir . '/'),
 );

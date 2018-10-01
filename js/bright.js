@@ -1057,6 +1057,7 @@
   window.br = window.br || {};
 
   var baseUrl = '';
+  var brightUrl = '';
 
   var scripts = $('script');
 
@@ -1070,6 +1071,8 @@
         }
         if (idx != -1) {
           baseUrl = src.substring(0, idx);
+          idx = src.indexOf('bright/');
+          brightUrl = src.substring(0, idx) + 'bright/';
           break;
         }
       }
@@ -1077,6 +1080,7 @@
   }
 
   window.br.baseUrl = baseUrl;
+  window.br.brightUrl = brightUrl;
   window.br.popupBlocker = 'unknown';
 
   var logStarted = false;
@@ -4649,7 +4653,7 @@
                             '          </div>' +
                             '        </div>' +
                             '        <div id="br_progressBarAnimation" style="display1:none;padding-top:10px;">' +
-                            '          <center><img src="' + br.baseUrl + 'bright/images/progress-h.gif" /></center>' +
+                            '          <center><img src="' + br.brightUrl + 'images/progress-h.gif" /></center>' +
                             '        </div>' +
                             '      </div>' +
                             '    </div>' +

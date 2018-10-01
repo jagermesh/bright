@@ -563,7 +563,7 @@
                             '          </div>' +
                             '        </div>' +
                             '        <div id="br_progressBarAnimation" style="display1:none;padding-top:10px;">' +
-                            '          <center><img src="' + br.baseUrl + 'bright/images/progress-h.gif" /></center>' +
+                            '          <center><img src="' + br.brightUrl + 'images/progress-h.gif" /></center>' +
                             '        </div>' +
                             '      </div>' +
                             '    </div>' +
