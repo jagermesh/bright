@@ -25,7 +25,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
   }
 
-  function connection() {
+  public function connection() {
 
     if ($this->__connection) {
       return $this->__connection;
@@ -35,15 +35,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
   }
 
-  function captureShutdown() {
-
-    if ($this->__connection) {
-      @mysqli_close($this->__connection);
-    }
-
-  }
-
-  function connect($iteration = 0, $rerunError = null) {
+  public function connect($iteration = 0, $rerunError = null) {
 
     if ($iteration > $this->reconnectIterations) {
       $e = new BrDBConnectionError($rerunError);
@@ -56,6 +48,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
     $dataBaseNames = br(br($this->config, 'name'))->split();
     $userName      = br($this->config, 'username');
     $password      = br($this->config, 'password');
+
     if (preg_match('/(.+?)[:]([0-9]+)$/', $hostName, $matches)) {
       $hostName    = $matches[1];
       $port        = $matches[2];
@@ -98,7 +91,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
   }
 
-  function startTransaction($force = false) {
+  public function startTransaction($force = false) {
 
     $this->runQuery('START TRANSACTION');
 
@@ -106,7 +99,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
   }
 
-  function commitTransaction($force = false) {
+  public function commitTransaction($force = false) {
 
     $this->runQuery('COMMIT');
 
@@ -114,7 +107,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
   }
 
-  function rollbackTransaction($force = false) {
+  public function rollbackTransaction($force = false) {
 
     $this->runQuery('ROLLBACK');
 
@@ -122,17 +115,91 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
   }
 
-  function selectNext($query) {
+  public function selectNext($query, $options = array()) {
 
     $result = mysqli_fetch_assoc($query);
-    if (is_array($result)) {
-      $result = array_change_key_case($result, CASE_LOWER);
+    if (!br($options, 'doNotChangeCase')) {
+      if (is_array($result)) {
+        $result = array_change_key_case($result, CASE_LOWER);
+      }
     }
     return $result;
 
   }
 
-  function internalRunQuery($sql, $args = array(), $iteration = 0, $rerunError = null) {
+  public function isEmptyDate($date) {
+
+    return (($date == "0000-00-00") or ($date == "0000-00-00 00:00:00") or !$date);
+
+  }
+
+  public function toDateTime($date) {
+
+    return date('Y-m-d H:i:s', $date);
+
+  }
+
+  public function toDate($date) {
+
+    return date('Y-m-d', $date);
+
+  }
+
+  public function getLastError() {
+
+    if ($this->__connection) {
+      if (mysqli_errno($this->__connection)) {
+        return mysqli_errno($this->__connection) . ': ' . mysqli_error($this->__connection);
+      }
+    } else {
+      return 'MySQL server has gone away';
+    }
+
+  }
+
+  public function getLastId() {
+
+    if ($this->__connection) {
+      return mysqli_insert_id($this->__connection);
+    } else {
+      throw new BrDBServerGoneAwayException('MySQL server has gone away');
+    }
+
+  }
+
+  public function getAffectedRowsAmount() {
+
+    if ($this->__connection) {
+      return mysqli_affected_rows($this->__connection);
+    } else {
+      throw new BrDBServerGoneAwayException('MySQL server has gone away');
+    }
+
+  }
+
+  public function getTableStructure($tableName) {
+
+    $field_defs = array();
+    if ($query = $this->runQueryEx('SELECT * FROM '. $tableName .' LIMIT 1')) {
+      while ($finfo = mysqli_fetch_field($query)) {
+        $field_defs[strtolower($finfo->name)] = array( "length" => $finfo->max_length
+                                                     , "type"   => $finfo->type
+                                                     , "flags"  => $finfo->flags
+                                                     );
+      }
+      mysqli_free_result($query);
+    }
+
+    $field_defs = array_change_key_case($field_defs, CASE_LOWER);
+    foreach($field_defs as $field => $defs) {
+      $field_defs[$field]['genericType'] = $this->toGenericDataType($field_defs[$field]['type']);
+    }
+
+    return $field_defs;
+
+  }
+
+  public function runQueryEx($sql, $args = array(), $iteration = 0, $rerunError = null) {
 
     // check connection
     $this->connection();
@@ -195,7 +262,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
             usleep(250000);
             $this->rollbackTransaction();
             $this->startTransaction();
-            $query = $this->internalRunQuery($sql, $args, $iteration + 1, $e->getMessage());
+            $query = $this->runQueryEx($sql, $args, $iteration + 1, $e->getMessage());
           } else {
             $error  = $e->getMessage();
             $error .= '. Automatic retrying was not possible - ' . $this->transactionBufferLength() . ' statement(s) in transaction buffer: ';
@@ -226,7 +293,7 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
         } else {
           br()->log()->write('Some error occured, but we are not in transaction. Trying repeat query', 'SEP');
           usleep(250000);
-          $query = $this->internalRunQuery($sql, $args, $iteration + 1, $e->getMessage());
+          $query = $this->runQueryEx($sql, $args, $iteration + 1, $e->getMessage());
         }
       } else
       if (preg_match('/1329: No data/', $e->getMessage())) {
@@ -249,91 +316,27 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
   }
 
-  function internalGetRowsAmount($sql, $args) {
+  public function getRowsAmountEx($sql, $args) {
 
     $countSQL = $this->getCountSQL($sql);
     try {
-      $query = $this->internalRunQuery($countSQL, $args);
+      $query = $this->runQueryEx($countSQL, $args);
       if ($row = $this->selectNext($query)) {
         return array_shift($row);
       } else  {
-        return mysqli_num_rows($this->internalRunQuery($sql, $args));
+        return mysqli_num_rows($this->runQueryEx($sql, $args));
       }
     } catch (Exception $e) {
-      return mysqli_num_rows($this->internalRunQuery($sql, $args));
+      return mysqli_num_rows($this->runQueryEx($sql, $args));
     }
 
   }
 
-  function isEmptyDate($date) {
-
-    return (($date == "0000-00-00") or ($date == "0000-00-00 00:00:00") or !$date);
-
-  }
-
-  function toDateTime($date) {
-
-    return date('Y-m-d H:i:s', $date);
-
-  }
-
-  function toDate($date) {
-
-    return date('Y-m-d', $date);
-
-  }
-
-  function getLastError() {
+  public function captureShutdown() {
 
     if ($this->__connection) {
-      if (mysqli_errno($this->__connection)) {
-        return mysqli_errno($this->__connection) . ': ' . mysqli_error($this->__connection);
-      }
-    } else {
-      return 'MySQL server has gone away';
+      @mysqli_close($this->__connection);
     }
-
-  }
-
-  function getLastId() {
-
-    if ($this->__connection) {
-      return mysqli_insert_id($this->__connection);
-    } else {
-      throw new BrDBServerGoneAwayException('MySQL server has gone away');
-    }
-
-  }
-
-  function getAffectedRowsAmount() {
-
-    if ($this->__connection) {
-      return mysqli_affected_rows($this->__connection);
-    } else {
-      throw new BrDBServerGoneAwayException('MySQL server has gone away');
-    }
-
-  }
-
-  function getTableStructure($tableName) {
-
-    $field_defs = array();
-    if ($query = $this->internalRunQuery('SELECT * FROM '.$tableName.' WHERE 1=1')) {
-      while ($finfo = mysqli_fetch_field($query)) {
-        $field_defs[strtolower($finfo->name)] = array( "length" => $finfo->max_length
-                                                     , "type"   => $finfo->type
-                                                     , "flags"  => $finfo->flags
-                                                     );
-      }
-      mysqli_free_result($query);
-    }
-
-    $field_defs = array_change_key_case($field_defs, CASE_LOWER);
-    foreach($field_defs as $field => $defs) {
-      $field_defs[$field]['genericType'] = $this->toGenericDataType($field_defs[$field]['type']);
-    }
-
-    return $field_defs;
 
   }
 
