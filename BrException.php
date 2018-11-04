@@ -85,11 +85,31 @@ class BrAppException extends BrException {
 
 }
 
+class BrDataSourceReferencesExists extends BrAppException {
+
+  function __construct() {
+
+    parent::__construct('Cannot delete this record - there are references to it in the system');
+
+  }
+
+}
+
 class BrFileNotFoundException extends BrException {
 
 }
 
 class BrDBException extends BrException {
+
+}
+
+class BrDataSourceNotFound extends BrDBException {
+
+  function __construct() {
+
+    parent::__construct('Record not found');
+
+  }
 
 }
 

@@ -78,7 +78,7 @@ class BrSFTP extends BrObject {
   private $currentPassword;
   private $currentPort;
   private $sftp;
-  private $reconnectsAmount = 10;
+  private $reconnectsAmount = 25;
 
   function __construct() {
 

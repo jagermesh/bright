@@ -98,6 +98,7 @@ class BrGenericDataSource extends BrObject {
   protected $nextAdjancedRecord    = null;
   protected $rowidFieldName        = null;
   protected $rerunIterations       = 20;
+  protected $db                    = null;
 
   private $__transactionalDML      = true;
 
@@ -110,6 +111,22 @@ class BrGenericDataSource extends BrObject {
     $this->selectAdjancedRecords = br($options, 'selectAdjancedRecords');
     $this->rowidFieldName        = br($options, 'rowidFieldName');
     $this->lastSelectAmount      = 0;
+
+    $this->setDb(br($options, 'db', br()->db()));
+
+  }
+
+  function getDb() {
+
+    return $this->db;
+
+  }
+
+  function setDb($db) {
+
+    $this->db = $db;
+
+    return $this->db;
 
   }
 
@@ -158,7 +175,7 @@ class BrGenericDataSource extends BrObject {
   function selectOneCached($filter = array(), $fields = array(), $order = array(), $options = array()) {
 
     if (!is_array($filter)) {
-      $filter = array(br()->db()->rowidField() => br()->db()->rowid($filter));
+      $filter = array($this->getDb()->rowidField() => $this->getDb()->rowid($filter));
     }
 
     $options['limit'] = 1;
@@ -214,7 +231,7 @@ class BrGenericDataSource extends BrObject {
   function selectOne($filter = array(), $fields = array(), $order = array(), $options = array()) {
 
     if (!is_array($filter)) {
-      $filter = array(br()->db()->rowidField() => br()->db()->rowid($filter));
+      $filter = array($this->getDb()->rowidField() => $this->getDb()->rowid($filter));
     }
 
     $options['limit'] = 1;
@@ -343,18 +360,18 @@ class BrGenericDataSource extends BrObject {
           $options['clientUID']  = br($options, 'clientUID');
 
           try {
-            if (br()->db()) {
+            if ($this->getDb()) {
               if ($this->transactionalDML()) {
-                br()->db()->startTransaction();
+                $this->getDb()->startTransaction();
               }
             }
             $this->callEvent('before:' . $method, $params, $transientData, $options);
             $data = $this->callEvent($method, $params, $transientData, $options);
             $result = true;
             $this->callEvent('after:' . $method, $result, $data, $params, $transientData, $options);
-            if (br()->db()) {
+            if ($this->getDb()) {
               if ($this->transactionalDML()) {
-                br()->db()->commitTransaction();
+                $this->getDb()->commitTransaction();
               }
               $this->callEvent('after:commit', $params, $transientData, $data, $options);
             }
@@ -365,9 +382,9 @@ class BrGenericDataSource extends BrObject {
             return $this->invoke($method, $params, $transientData, $options);
           } catch (Exception $e) {
             try {
-              if (br()->db()) {
+              if ($this->getDb()) {
                 if ($this->transactionalDML()) {
-                  br()->db()->rollbackTransaction();
+                  $this->getDb()->rollbackTransaction();
                 }
               }
             } catch (Exception $e2) {

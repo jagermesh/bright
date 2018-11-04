@@ -13,34 +13,44 @@ require_once(__DIR__.'/BrException.php');
 
 class BrDataBase extends BrObject {
 
-  static $instanceInitialized = false;
-  static $instance = null;
+  static $instances = [];
 
-  public static function getInstance() {
+  public static function getInstance($name = null) {
 
-    if (!self::$instanceInitialized) {
-      self::$instanceInitialized = true;
-      if ($config = br()->config()->get('db')) {
+    $name = $name ? $name : 'db';
+
+    if (is_array($name)) {
+      $config = $name;
+    } else {
+      $config = br()->config()->get($name);
+    }
+
+    if ($config && br($config, 'engine')) {
+      $hash = md5(serialize($config));
+      if (!array_key_exists($hash, self::$instances)) {
+        self::$instances[$hash]['initialized'] = true;
+        self::$instances[$hash]['provider']    = null;
         switch($config['engine']) {
           case 'mysql':
             require_once(__DIR__.'/BrMySQLDBProvider.php');
-            self::$instance = new BrMySQLDBProvider($config);
+            self::$instances[$hash]['provider'] = new BrMySQLDBProvider($config);
             break;
           case 'mysqli':
             require_once(__DIR__.'/BrMySQLiDBProvider.php');
-            self::$instance = new BrMySQLiDBProvider($config);
+            self::$instances[$hash]['provider'] = new BrMySQLiDBProvider($config);
             break;
           case 'mongodb':
             require_once(__DIR__.'/BrMongoDBProvider.php');
-            self::$instance = new BrMongoDBProvider($config);
+            self::$instances[$hash]['provider'] = new BrMongoDBProvider($config);
             break;
         }
       }
-    }
 
-    return self::$instance;
+      return self::$instances[$hash]['provider'];
+    } else {
+      return null;
+    }
 
   }
 
 }
-

@@ -1100,6 +1100,18 @@ class BrCore extends BrSingleton {
 
   }
 
+  function smartRound($value, $precision = 2) {
+
+    $value = round($value, $precision);
+
+    if (strpos($value, '.') !== false) {
+      return rtrim(rtrim($value, '0'), '.');
+    } else {
+      return $value;
+    }
+
+  }
+
   function formatTraffic($size) {
 
     return $this->formatBytes($size);

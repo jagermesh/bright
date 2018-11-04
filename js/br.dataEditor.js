@@ -189,7 +189,17 @@
             } else {
               var ckeditorInstance = input.data('ckeditorInstance');
               if (ckeditorInstance) {
-                ckeditorInstance.setData(data[i], {noSnapshot: true});
+                (function(input, ckeditorInstance, data) {
+                  ckeditorInstance.setData(data
+                    , { noSnapshot: true
+                      , callback: function(aa) {
+                          if (ckeditorInstance.getData() != data) {
+                            // not sure why but setData is not wroking sometimes, so need to run again :(
+                            ckeditorInstance.setData(data, { noSnapshot: true });
+                          }
+                        }
+                      });
+                })(input, ckeditorInstance, data[i]);
               } else {
                 var dataComboInstance = input.data('BrDataCombo');
                 if (dataComboInstance) {

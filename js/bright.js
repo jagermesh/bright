@@ -1091,9 +1091,7 @@
         console.log('*********************** LOG STARTED ***********************');
         logStarted = true;
       }
-      for(var i in arguments) {
-        console.log(arguments[i]);
-      }
+      console.log.apply(this, arguments);
     }
   };
 
@@ -1103,9 +1101,17 @@
         console.log('*********************** LOG STARTED ***********************');
         logStarted = true;
       }
-      for(var i in arguments) {
-        console.error(arguments[i]);
+      console.error.apply(this, arguments);
+    }
+  };
+
+  window.br.logWarning = function(msg) {
+    if (typeof(console) != 'undefined') {
+      if (!logStarted) {
+        console.log('*********************** LOG STARTED ***********************');
+        logStarted = true;
       }
+      console.warn.apply(this, arguments);
     }
   };
 
@@ -1224,13 +1230,13 @@
 
   window.br.preloadImages = function(images) {
     try {
-      var div = document.createElement("div");
+      var div = document.createElement('div');
       var s = div.style;
-      s.position = "absolute";
+      s.position = 'absolute';
       s.top = s.left = 0;
-      s.visibility = "hidden";
+      s.visibility = 'hidden';
       document.body.appendChild(div);
-      div.innerHTML = "<img src=\"" + images.join("\" /><img src=\"") + "\" />";
+      div.innerHTML = '<img src="' + images.join('" /><img src="') + '" />';
     } catch(e) {
         // Error. Do nothing.
     }
@@ -1467,23 +1473,23 @@
     return closeConfirmationRequired;
   };
 
+  window.br.events = br.eventQueue();
+  window.br.before = function(event, callback) { window.br.events.before(event, callback); };
+  window.br.on     = function(event, callback) { window.br.events.on(event,     callback); };
+  window.br.after  = function(event, callback) { window.br.events.after(event,  callback); };
+
   window.br.confirmClose = function(message) {
     if (message) {
       br.closeConfirmationMessage = message;
     }
     closeConfirmationRequired = true;
-    br.events.trigger('closeConfirmationRequested');
+    window.br.events.trigger('closeConfirmationRequested');
   };
 
   window.br.resetCloseConfirmation = function(message) {
     closeConfirmationRequired = false;
-    br.events.trigger('closeConfirmationReset');
+    window.br.events.trigger('closeConfirmationReset');
   };
-
-  window.br.events = br.eventQueue();
-  window.br.before = function(event, callback) { window.br.events.before(event, callback); };
-  window.br.on     = function(event, callback) { window.br.events.on(event,     callback); };
-  window.br.after  = function(event, callback) { window.br.events.after(event,  callback); };
 
   window.br.backToCaller = function(href, refresh) {
 
@@ -1530,29 +1536,34 @@
 
     resize();
 
-    $(window).resize(function() {
+    $(window).on('resize', function() {
       resize();
     });
 
   };
 
   window.br.getSelection = function() {
-    var html = "";
-    if (typeof window.getSelection != "undefined") {
+
+    var html = '';
+
+    if (typeof window.getSelection != 'undefined') {
       var sel = window.getSelection();
       if (sel.rangeCount) {
-          var container = document.createElement("div");
-          for (var i = 0, len = sel.rangeCount; i < len; ++i) {
-              container.appendChild(sel.getRangeAt(i).cloneContents());
-          }
-          html = container.innerHTML;
+        var container = document.createElement('div');
+        for (var i = 0, len = sel.rangeCount; i < len; ++i) {
+          container.appendChild(sel.getRangeAt(i).cloneContents());
+        }
+        html = container.innerHTML;
       }
-    } else if (typeof document.selection != "undefined") {
-      if (document.selection.type == "Text") {
-          html = document.selection.createRange().htmlText;
+    } else
+    if (typeof document.selection != 'undefined') {
+      if (document.selection.type == 'Text') {
+        html = document.selection.createRange().htmlText;
       }
     }
+
     return html;
+
   };
 
   var ctx;
@@ -1561,7 +1572,7 @@
 
     try {
       var duration = 0.1;
-      window.AudioContext = window.AudioContext||window.webkitAudioContext;
+      window.AudioContext = window.AudioContext || window.webkitAudioContext;
       if (!ctx) {
         ctx = new AudioContext();
       }
@@ -1667,6 +1678,63 @@
     return isLittleEndian;
 
   };
+
+  if (window.addEventListener) {
+
+    window.addEventListener('error', function(event) {
+      var data = {
+          message: event.message
+        , data: null
+        , filename: event.filename
+        , lineno: event.lineno
+        , colno: event.colno
+        , stack: event.error ? (event.error.stack || event.error.backtrace || event.error.stacktrace) : null
+        , location: document.location.toString()
+      };
+
+      var result = false;
+
+      try {
+        result = window.br.events.trigger('error', data);
+      } catch (error) {
+
+      }
+
+      if (result) {
+        event.preventDefault();
+      }
+    });
+
+    window.addEventListener('unhandledrejection', function(event) {
+      var data = {
+          message: typeof event.reason == 'string' ? event.reason : null
+        , data: typeof event.reason == 'string' ?  null : event.reason
+        , filename: null
+        , lineno: null
+        , colno: null
+        , stack: null
+        , location: document.location.toString()
+      };
+
+      var result = false;
+
+      try {
+        result = window.br.events.trigger('error', data);
+      } catch (error) {
+
+      }
+
+      window.br.logWarning('Unhandled Promise Rejection:' + (typeof event.reason == 'string' ? ' ' + event.reason : ''));
+      if (typeof event.reason != 'string') {
+        window.br.logWarning(event.reason);
+      }
+
+      // if (result) {
+        event.preventDefault();
+      // }
+    });
+
+  }
 
 })(jQuery, window);
 /*!
@@ -5442,7 +5510,17 @@
             } else {
               var ckeditorInstance = input.data('ckeditorInstance');
               if (ckeditorInstance) {
-                ckeditorInstance.setData(data[i], {noSnapshot: true});
+                (function(input, ckeditorInstance, data) {
+                  ckeditorInstance.setData(data
+                    , { noSnapshot: true
+                      , callback: function(aa) {
+                          if (ckeditorInstance.getData() != data) {
+                            // not sure why but setData is not wroking sometimes, so need to run again :(
+                            ckeditorInstance.setData(data, { noSnapshot: true });
+                          }
+                        }
+                      });
+                })(input, ckeditorInstance, data[i]);
               } else {
                 var dataComboInstance = input.data('BrDataCombo');
                 if (dataComboInstance) {

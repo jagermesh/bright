@@ -250,7 +250,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
           preg_match('/MySQL server has gone away/', $e->getMessage()) ||
           preg_match('/Packets out of order/', $e->getMessage()) ||
           preg_match('/Lock wait timeout exceeded/', $e->getMessage()) ||
-          preg_match('/Duplicate entry \'[0-9]+\' for key \'PRIMARY\'/', $e->getMessage()) ||
+          // preg_match('/Duplicate entry \'[0-9]+\' for key \'PRIMARY\'/', $e->getMessage()) ||
           preg_match('/Deadlock found when trying to get lock/', $e->getMessage())) {
         if ($this->inTransaction()) {
           if ($this->isTransactionBufferEmpty()) {
@@ -267,9 +267,9 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
             if (preg_match('/Deadlock found when trying to get lock/', $error)) {
               throw new BrDBDeadLockException($error);
             } else
-            if (preg_match('/Duplicate entry \'[0-9]+\' for key \'PRIMARY\'/', $error)) {
-              throw new BrDBUniqueKeyException($error);
-            } else
+            // if (preg_match('/Duplicate entry \'[0-9]+\' for key \'PRIMARY\'/', $error)) {
+            //   throw new BrDBUniqueKeyException($error);
+            // } else
             if (preg_match('/Lock wait timeout exceeded/', $error)) {
               throw new BrDBLockException($error);
             } else

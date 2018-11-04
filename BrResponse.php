@@ -111,6 +111,22 @@ class BrResponse extends BrSingleton {
 
   }
 
+  function sendBadRequest($message = null) {
+
+    if (!headers_sent()) {
+      header('HTTP/1.0 400 Bad Request');
+    }
+
+    if ($message) {
+      echo($message);
+    } else {
+      echo('<h1>400 Bad Request</h1>');
+    }
+
+    exit();
+
+  }
+
   function sendNotAuthorized($error = null) {
 
     if (!headers_sent()) {
@@ -246,6 +262,26 @@ class BrResponse extends BrSingleton {
     echo($data);
 
     exit();
+
+  }
+
+  function sendCacheHeaders($ageMin = 30) {
+
+    $etag = md5(@$_SERVER['QUERY_STRING']);
+    $if_none_match = (isset($_SERVER['HTTP_IF_NONE_MATCH']) ? $_SERVER['HTTP_IF_NONE_MATCH'] : false);
+
+    if ($if_none_match == $etag) {
+      header("HTTP/1.1 304 Not Modified");
+      exit;
+    }
+
+    header('Etag: "' . $etag . '"');
+
+    $ageSec = $ageMin * 60;
+    $expires = gmdate('D, d M Y H:i:s', time() + $ageSec) . ' GMT';
+
+    header('Expires: ' . $expires);
+    header('Cache-Control: public, max-age=' . $ageSec . ', no-transform');
 
   }
 
