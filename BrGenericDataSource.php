@@ -99,10 +99,13 @@ class BrGenericDataSource extends BrObject {
   protected $rowidFieldName        = null;
   protected $rerunIterations       = 20;
   protected $db                    = null;
+  protected $lastSelectAmount      = null;
 
   private $__transactionalDML      = true;
 
   function __construct($options = array()) {
+
+    parent::__construct();
 
     $this->defaultOrder          = br($options, 'defaultOrder');
     $this->skip                  = br($options, 'skip');
@@ -110,15 +113,12 @@ class BrGenericDataSource extends BrObject {
     $this->checkTraversing       = br($options, 'checkTraversing');
     $this->selectAdjancedRecords = br($options, 'selectAdjancedRecords');
     $this->rowidFieldName        = br($options, 'rowidFieldName');
-    $this->lastSelectAmount      = 0;
-
-    $this->setDb(br($options, 'db', br()->db()));
 
   }
 
   function getDb() {
 
-    return $this->db;
+    return $this->db ? $this->db : br()->db();
 
   }
 
