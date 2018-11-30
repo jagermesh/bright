@@ -58,6 +58,13 @@
       }
     };
 
+    this.off = function(events) {
+      events = events.split(',');
+      for(var i = 0; i < events.length; i++) {
+        delete _this.subscribers[events[i]];
+      }
+    };
+
     this.has = function(eventName, pos) {
       if (this.subscribers[eventName]) {
         if (!pos) {

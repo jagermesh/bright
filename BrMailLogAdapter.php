@@ -101,6 +101,7 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
       $body .= '<strong>Request type:</strong> ' . br()->request()->method() . '<br />';
       if ($data = br()->request()->get()) {
         unset($data['password']);
+        unset($data['paswd']);
         $requestData = @json_encode($data);
         if ($requestData) {
           if (strlen($requestData) > 1024*16) {
@@ -111,6 +112,7 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
       }
       if ($data = br()->request()->post()) {
         unset($data['password']);
+        unset($data['paswd']);
         $requestData = @json_encode($data);
         if ($requestData) {
           if (strlen($requestData) > 1024*16) {
@@ -121,6 +123,7 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
       } else
       if ($data = br()->request()->put()) {
         unset($data['password']);
+        unset($data['paswd']);
         $requestData = @json_encode($data);
         if ($requestData) {
           if (strlen($requestData) > 1024*16) {

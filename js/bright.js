@@ -447,6 +447,13 @@
       }
     };
 
+    this.off = function(events) {
+      events = events.split(',');
+      for(var i = 0; i < events.length; i++) {
+        delete _this.subscribers[events[i]];
+      }
+    };
+
     this.has = function(eventName, pos) {
       if (this.subscribers[eventName]) {
         if (!pos) {
@@ -3706,6 +3713,22 @@
       }
     };
 
+    this.disableOption = function(value) {
+      _this.selector.find('option[value=' + value + ']').attr('disabled', 'disabled');
+    };
+
+    this.disableAllOptions = function(value) {
+      _this.selector.find('option').attr('disabled', 'disabled');
+    };
+
+    this.enableOption = function(value) {
+      _this.selector.find('option[value=' + value + ']').removeAttr('disabled');
+    };
+
+    this.enableAllOptions = function(value) {
+      _this.selector.find('option').removeAttr('disabled');
+    };
+
     this.reset = function(triggerChange) {
       br.storage.remove(storageTag(this.selector));
       br.session.remove(storageTag(this.selector));
@@ -3875,6 +3898,12 @@
 
     };
 
+    var prevValue = _this.val();
+
+    _this.getPrevValue = function() {
+      return prevValue;
+    };
+
     if (_this.dataSource) {
 
       _this.dataSource.on('select', function(data) {
@@ -3949,6 +3978,15 @@
       }
       _this.events.trigger('change');
       switchToSelect2();
+    });
+
+    _this.selector.on('click', function() {
+      prevValue = _this.val();
+      _this.events.trigger('click');
+    });
+    _this.selector.on('select2-opening', function() {
+      prevValue = _this.val();
+      _this.events.trigger('click');
     });
 
     this.selector.data('BrDataCombo', _this);
