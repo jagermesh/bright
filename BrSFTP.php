@@ -8,67 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrObject.php');
-require_once(__DIR__.'/BrFileSystem.php');
-require_once(__DIR__.'/BrException.php');
-
-class BrSFTPFileObject {
-
-  private $name;
-  private $extension;
-  private $size;
-  private $isDirectory;
-
-  function __construct($name, $params) {
-
-    $pathinfo = pathinfo($name);
-
-    $this->isDirectory = (br($params, 'type') == 2);
-    $this->size = br($params, 'size');
-    $this->name = $name;
-    $this->extension = br($pathinfo, 'extension');
-    $this->date = br($params, 'mtime') ? date('m/d/Y H:i', $params['mtime']) : '';
-
-  }
-
-  function isFile() {
-
-    return !$this->isDir();
-
-  }
-
-  function isDir() {
-
-    return $this->isDirectory;
-
-  }
-
-  function name() {
-
-    return $this->name;
-
-  }
-
-  function extension() {
-
-    return $this->extension;
-
-  }
-
-  function size() {
-
-    return $this->size;
-
-  }
-
-  function date() {
-
-    return $this->date;
-
-  }
-
-}
-
 class BrSFTP extends BrObject {
 
   private $connection;
@@ -105,23 +44,19 @@ class BrSFTP extends BrObject {
     $this->currentPassword = $password;
     $this->currentPort     = $port;
 
+    $_this = $this;
+
     try {
-      if ($this->connection = new \phpseclib\Net\SFTP($hostName, $port)) {
-        if ($this->connection->login($userName, $password)) {
-          $this->currentDirectory = $this->getServerDir();
+      $this->retry(function() use ($_this, $hostName, $userName, $password, $port) {
+        $_this->connection = new \phpseclib\Net\SFTP($hostName, $port);
+        if ($_this->connection->login($userName, $password)) {
+          $_this->currentDirectory = $_this->getServerDir();
         } else {
-          throw new Exception('Can not connect to ' . $hostName . ' as ' . $userName);
+          throw new Exception($userName . '@' . $hostName . ': Permission denied (publickey,password)');
         }
-      } else {
-        throw new Exception('Can not connect to ' . $hostName);
-      }
+      });
     } catch (Exception $e) {
-      if ($attempt < $this->reconnectsAmount) {
-        usleep(250000);
-        $this->connect($hostName, $userName, $password, $port, $attempt + 1);
-      } else {
-        throw new Exception('Can not connect to ' . $hostName . ' as ' . $userName);
-      }
+      throw new Exception($e->getMessage());
     }
 
   }

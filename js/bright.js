@@ -940,16 +940,20 @@
 
       _this.getUserMedia = function(options, success, error) {
 
-        var getUserMedia =
-          window.navigator.getUserMedia       ||
-          window.navigator.mozGetUserMedia    ||
-          window.navigator.webkitGetUserMedia ||
-          window.navigator.msGetUserMedia     ||
-          function(options, success, error) {
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          navigator.mediaDevices.getUserMedia(options).then(success).catch(error);
+        } else {
+          var getUserMedia =
+            navigator.getUserMedia       ||
+            navigator.mozGetUserMedia    ||
+            navigator.webkitGetUserMedia ||
+            navigator.msGetUserMedia     ||
+            function(options, success, error) {
               error();
-          };
+            };
 
-        return getUserMedia.call(window.navigator, options, success, error);
+          return getUserMedia.call(window, options, success, error);
+        }
 
       };
 
@@ -1058,6 +1062,7 @@
 /* global console */
 /* global ArrayBuffer */
 /* global Uint32Array */
+/* global FormData */
 
 ;(function ($, window) {
 
@@ -1280,9 +1285,9 @@
 
     if (options.urlTitle) {
       s = '<p>Click below to open link manually</p>'
-        + '<p><a target="_blank" class="action-open-link" href="' + url + '" style="word-wrap: break-word">' + options.urlTitle + '</a></p>';
+        + '<p><a target="' + (options.target ? options.target : '_blank') + '" class="action-open-link" href="' + url + '" style="word-wrap: break-word">' + options.urlTitle + '</a></p>';
     } else {
-      s = '<p>Click a <a target="_blank" class="action-open-link" href="' + url + '" style="word-wrap: break-word">here</a> to open link manually</p>';
+      s = '<p>Click a <a target="' + (options.target ? options.target : '_blank') + '" class="action-open-link" href="' + url + '" style="word-wrap: break-word">here</a> to open link manually</p>';
     }
 
     var dialog = br.inform( 'You browser is currently blocking popups'
@@ -1297,14 +1302,16 @@
 
   }
 
-  window.br.openPage = function(url) {
+  window.br.openPage = function(url, options) {
+
+    options = options || { };
 
     if (br.isSafari()) {
-      br.openPopup(url);
+      br.openPopup(url, options);
     } else {
       var a = document.createElement('a');
       a.href = url;
-      a.target = '_blank';
+      a.target = options.target ? options.target : '_blank';
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -1360,6 +1367,7 @@
       if (win) {
         window.br.popupBlocker = 'inactive';
         win.focus();
+        return win;
       } else {
         window.br.popupBlocker = 'active';
         openUrl(url, options);
@@ -1742,6 +1750,47 @@
     });
 
   }
+
+  function printObject(obj, eol) {
+
+    var result = '';
+
+    for(var name in obj) {
+      if (br.isObject(obj[name])) {
+        result += printObject(obj[name], eol);
+      } else {
+        result += name + ': ' + obj[name] + eol;
+      }
+    }
+
+    return result;
+
+  }
+
+  window.br.setErrorsBeacon = function(url, format) {
+
+    if (navigator.sendBeacon) {
+      format = format || 'json';
+      br.on('error', function(error) {
+        var message = '', suffix;
+        switch(format) {
+          case 'html':
+            message = printObject(error, '<br />');
+            break;
+          case 'text':
+            message = printObject(error, '\n');
+            break;
+          default:
+            message = JSON.stringify(error);
+            break;
+        }
+        var data = new FormData();
+        data.append('error', message);
+        navigator.sendBeacon(url, data);
+      });
+    }
+
+  };
 
 })(jQuery, window);
 /*!

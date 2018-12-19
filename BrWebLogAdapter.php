@@ -8,12 +8,9 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrGenericLogAdapter.php');
-
 class BrWebLogAdapter extends BrGenericLogAdapter {
 
   function writeMessage($message, $group = 'MSG', $tagline = '') {
-
 
   }
 
@@ -29,10 +26,6 @@ class BrWebLogAdapter extends BrGenericLogAdapter {
   }
 
   function writeError($message, $tagline = '') {
-
-    // if (!br()->isConsoleMode() && br()->request()->isLocalHost()) {
-    //   include(__DIR__.'/templates/DebugMessage.html');
-    // }
 
   }
 

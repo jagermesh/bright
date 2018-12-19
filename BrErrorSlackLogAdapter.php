@@ -8,10 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrGenericLogAdapter.php');
-require_once(__DIR__.'/BrMemCacheCacheProvider.php');
-require_once(__DIR__.'/BrFileCacheProvider.php');
-
 class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
 
   private $cache;

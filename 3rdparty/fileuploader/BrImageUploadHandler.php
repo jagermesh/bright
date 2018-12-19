@@ -1,7 +1,5 @@
 <?php
 
-require_once(__DIR__.'/BrGenericUploadHandler.php');
-
 /**
  * Handle file uploads via XMLHttpRequest
  */
@@ -45,8 +43,6 @@ class qqUploadedFileXhr {
 
     $dstFilePath = '';
     $dstFileName = '';
-
-    br()->importLib('Image');
 
     $image = new BrImage($srcFilePath);
     $md = md5_file($srcFilePath);
@@ -121,8 +117,6 @@ class qqUploadedFileForm {
    * @return boolean TRUE on success
    */
   function save($path) {
-
-    br()->importLib('Image');
 
     $dstFileName = '';
     $dstFilePath = '';

@@ -8,12 +8,10 @@
  * @package Bright Core
  */
 
+require_once(__DIR__ . '/BrightAutoload.php');
+
 if (file_exists(__DIR__ . '/vendor/autoload.php')) {
   require_once(__DIR__ . '/vendor/autoload.php');
-}
-
-if (file_exists(dirname(dirname(dirname(__DIR__))) . '/vendor/autoload.php')) {
-  require_once(dirname(dirname(dirname(__DIR__))) . '/vendor/autoload.php');
 }
 
 if (file_exists(dirname(__DIR__) . '/vendor/autoload.php')) {
@@ -23,15 +21,12 @@ if (file_exists(dirname(__DIR__) . '/vendor/autoload.php')) {
 function br($array = null, $name = null, $default = null) {
 
   if (func_num_args() === 0) {
-    require_once(__DIR__ . '/BrCore.php');
     return BrCore::getInstance();
   } else
   if (func_num_args() === 1) {
     if (is_array($array)) {
-      require_once(__DIR__ . '/BrArray.php');
       return new BrArray($array);
     } else {
-      require_once(__DIR__ . '/BrString.php');
       return new BrString($array);
     }
   } else

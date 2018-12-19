@@ -8,8 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrSingleton.php');
-
 class BrResponse extends BrSingleton {
 
   function sendJSON($response, $alreadyPacked = false, $andExit = true) {

@@ -8,7 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__ . '/BrSingleton.php');
 require_once(__DIR__ . '/3rdparty/phpQuery/phpQuery.php');
 
 class BrHTML extends BrSingleton {

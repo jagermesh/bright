@@ -8,9 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrSingleton.php');
-require_once(__DIR__.'/BrException.php');
-
 class BrApplication extends BrSingleton {
 
   private $renderer;
@@ -72,18 +69,12 @@ class BrApplication extends BrSingleton {
       $targetScripts[] = br()->atAppPath('index.php');
     }
 
-    $controllerFile = null;
     foreach($targetScripts as $script) {
       if (br()->fs()->fileExists($script)) {
-        $controllerFile = $script;
-        break;
+        br()->log()->write('Controller: ' . $script);
+        require_once($script);
+        exit();
       }
-    }
-
-    if ($controllerFile) {
-      br()->log()->write('Controller: '.$controllerFile);
-      br()->import($controllerFile);
-      exit();
     }
 
   }

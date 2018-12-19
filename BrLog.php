@@ -8,9 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/Br.php');
-require_once(__DIR__.'/BrSingleton.php');
-
 interface BrLoggable {
 
   public function log($message = '', $group = 'MSG', $tagline = '');

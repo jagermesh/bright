@@ -8,8 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrGenericCacheProvider.php');
-
 class BrMemCacheCacheProvider extends BrGenericCacheProvider {
 
   const DEFAULT_HOST_NAME = 'localhost';

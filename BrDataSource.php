@@ -8,11 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrObject.php');
-require_once(__DIR__.'/BrException.php');
-require_once(__DIR__.'/BrDataSourceCursor.php');
-require_once(__DIR__.'/BrGenericDataSource.php');
-
 class BrDataSource extends BrGenericDataSource {
 
   private $dbEntity;
@@ -469,7 +464,7 @@ class BrDataSource extends BrGenericDataSource {
       }
       return $result;
     } else {
-      throw new BrDataSourceNotFound();
+      throw new BrDBNotFoundException();
     }
 
   }
@@ -530,7 +525,7 @@ class BrDataSource extends BrGenericDataSource {
         } catch (Exception $e) {
           // TODO: Move to the DB layer
           if (preg_match('/1451: Cannot delete or update a parent row/', $e->getMessage())) {
-            throw new BrDataSourceReferencesExists();
+            throw new BrDBForeignKeyException();
           } else {
             throw new BrAppException($e->getMessage());
           }

@@ -1,6 +1,6 @@
 <?php
 
-require_once(dirname(__DIR__).'/Bright.php');
+require_once(dirname(__DIR__) . '/Bright.php');
 
 $scriptsPath = dirname(dirname(__DIR__)) . '/js/';
 $templatesPath = dirname(dirname(__DIR__)) . '/templates/';

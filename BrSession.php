@@ -8,25 +8,30 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrSingleton.php');
-
 class BrSession extends BrSingleton {
 
   private $tag = '';
 
   function __construct() {
 
+    $this->tag = md5(__FILE__);
+
     if (!isset($_SESSION)) {
       self::configure();
-      if (!@session_start()) {
-        if (br()->isConsoleMode()) {
-          global $_SESSION;
-          $_SESSION = array();
-        }
+
+      try {
+        $this->retry(function() {
+          if (!@session_start()) {
+            if (br()->isConsoleMode()) {
+              global $_SESSION;
+              $_SESSION = array();
+            }
+          }
+        });
+      } catch (Exception $e) {
+        throw new BrSessionException($e->getMessage());
       }
     }
-
-    $this->tag = md5(__FILE__);
 
     parent::__construct();
 

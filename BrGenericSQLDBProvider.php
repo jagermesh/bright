@@ -8,11 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__ . '/BrGenericDBProvider.php');
-require_once(__DIR__ . '/BrGenericSQLRegExp.php');
-require_once(__DIR__ . '/BrGenericSQLProviderTable.php');
-require_once(__DIR__ . '/BrGenericSQLProviderCursor.php');
-
 class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   private $__inTransaction = 0;
@@ -417,7 +412,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
     } else {
       $count = number_format($count, 0, '', '');
     }
-    return $sql.br()->placeholder(' LIMIT ?, ?', $from, $count);
+    return $sql . br()->placeholder("\n" . ' LIMIT ?, ?', $from, $count);
 
   }
 

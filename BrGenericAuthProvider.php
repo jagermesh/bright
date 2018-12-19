@@ -8,8 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrSingleton.php');
-
 class BrGenericAuthProvider extends BrSingleton {
 
   function __construct($config = array()) {

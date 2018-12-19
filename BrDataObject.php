@@ -8,14 +8,6 @@
  * @package Bright Core
  */
 
-
-require_once(__DIR__.'/BrObject.php');
-require_once(__DIR__.'/BrException.php');
-
-class BrExceptionDataObject extends BrException {
-
-}
-
 class BrDataObject extends BrObject {
 
   private $tableName = '';
@@ -34,7 +26,7 @@ class BrDataObject extends BrObject {
     if ($this->primaryKey) {
       return $this->get($this->primaryKey);
     } else {
-      throw new BrExceptionDataObject('Primary key not defined');
+      throw new BrDataObjectException('Primary key not defined');
     }
 
   }
@@ -64,7 +56,7 @@ class BrDataObject extends BrObject {
         if ($ignoreErrors) {
           $this->load($row); // reload without saving, TODO: check new/modified fiels, modify only modified ones
         } else {
-          throw new BrExceptionDataObject('Unique key violation');
+          throw new BrDataObjectException('Unique key violation');
         }
       } else {
         $doInsert = true;

@@ -8,11 +8,12 @@
  * @package Bright Core
  */
 
+require_once(__DIR__ . '/BrightAutoload.php');
+
 // br() helper function
-require_once(__DIR__.'/Br.php');
+require_once(__DIR__ . '/Br.php');
 
 // Installing custom error handler
-require_once(__DIR__.'/BrErrorHandler.php');
 BrErrorHandler::getInstance();
 
 // Core PHP settings
@@ -46,43 +47,36 @@ br()->require(br()->getScriptBasePath()  . 'config.php');
 br()->require(br()->getBasePath()  . 'config.php');
 
 // Core PHP settings - Secondary
-require_once(__DIR__.'/BrSession.php');
 BrSession::configure();
 // Core PHP settings - Secondary - End
 
 // Base Logging
 if (!br()->log()->isAdapterExists('BrErrorFileLogAdapter')) {
-  br()->importLib('ErrorFileLogAdapter');
   br()->log()->addAdapter(new BrErrorFileLogAdapter(br()->config()->get('Logger/File/LogsFolder', br()->getLogsPath())));
 }
 
 if (!br()->log()->isAdapterExists('BrMailLogAdapter')) {
-  br()->importLib('MailLogAdapter');
   br()->log()->addAdapter(new BrMailLogAdapter());
 }
 
 if (br()->config()->get('Logger/File/Active')) {
   if (!br()->log()->isAdapterExists('BrFileLogAdapter')) {
-    br()->importLib('FileLogAdapter');
     br()->log()->addAdapter(new BrFileLogAdapter(br()->config()->get('Logger/File/LogsFolder', br()->getLogsPath())));
   }
 }
 
 if (br()->isConsoleMode()) {
   if (!br()->log()->isAdapterExists('BrConsoleLogAdapter')) {
-    br()->importLib('ConsoleLogAdapter');
     br()->log()->addAdapter(new BrConsoleLogAdapter());
   }
 } else {
   if (!br()->log()->isAdapterExists('BrWebLogAdapter')) {
-    br()->importLib('WebLogAdapter');
     br()->log()->addAdapter(new BrWebLogAdapter());
   }
 }
 
 if (br()->config()->get('Logger/RMQ/Active') && br()->config()->get('Logger/RMQ/Host') && br()->config()->get('Logger/RMQ/Port')) {
   if (!br()->log()->isAdapterExists('BrRMQLogAdapter')) {
-    br()->importLib('RMQLogAdapter');
     br()->log()->addAdapter(new BrRMQLogAdapter( array( 'host'            => br()->config()->get('Logger/RMQ/Host')
                                                       , 'port'            => br()->config()->get('Logger/RMQ/Port')
                                                       , 'login'           => br()->config()->get('Logger/RMQ/Login')
@@ -99,14 +93,12 @@ if (br()->config()->get('Logger/RMQ/Active') && br()->config()->get('Logger/RMQ/
 
 if (br()->config()->get('Logger/Slack/Active') && br()->config()->get('Logger/Slack/WebHookUrl')) {
   if (!br()->log()->isAdapterExists('BrErrorSlackLogAdapter')) {
-    br()->importLib('ErrorSlackLogAdapter');
     br()->log()->addAdapter(new BrErrorSlackLogAdapter(br()->config()->get('Logger/Slack/WebHookUrl')));
   }
 }
 
 if (br()->config()->get('Logger/Telegram/Active') && br()->config()->get('Logger/Telegram/Bot/ApiKey') && br()->config()->get('Logger/Telegram/Bot/Name') && br()->config()->get('Logger/Telegram/ChatIds')) {
   if (!br()->log()->isAdapterExists('BrErrorTelegramLogAdapter')) {
-    br()->importLib('ErrorTelegramLogAdapter');
     br()->log()->addAdapter(new BrErrorTelegramLogAdapter(br()->config()->get('Logger/Telegram/Bot/ApiKey'), br()->config()->get('Logger/Telegram/Bot/Name'), br()->config()->get('Logger/Telegram/ChatIds')));
   }
 }

@@ -8,9 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__ . '/BrObject.php');
-require_once(__DIR__ . '/BrException.php');
-
 class BrRESTBinder extends BrObject {
 
   private $continueRoute = true;
@@ -324,7 +321,6 @@ class BrRESTBinder extends BrObject {
                   break;
                 case "date:month":
                   $startMonth = new MongoDate(strtotime($value.'-01'));
-                  br()->importLib('DateTime');
                   $dateTime = new BrDateTime($startMonth->sec);
                   $dateTime->incMonth();
                   $endMonth = new MongoDate($dateTime->asDate());
@@ -552,7 +548,7 @@ class BrRESTBinder extends BrObject {
             } else {
               br()->response()->sendJSON($result);
             }
-          } catch (BrDataSourceNotFound $e) {
+          } catch (BrDBNotFoundException $e) {
             br()->log()->logException($e);
             if (br()->request()->get('crossdomain')) {
               br()->response()->sendJSONP('Record not found');
@@ -676,7 +672,7 @@ class BrRESTBinder extends BrObject {
             } else {
               br()->response()->sendJSON($result);
             }
-          } catch (BrDataSourceNotFound $e) {
+          } catch (BrDBNotFoundException $e) {
             br()->log()->logException($e);
             if (br()->request()->get('crossdomain')) {
               br()->response()->sendJSONP('Record not found');

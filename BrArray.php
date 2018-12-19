@@ -8,8 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__ . '/BrGenericDataType.php');
-
 class BrArray extends BrGenericDataType {
 
   public function length() {

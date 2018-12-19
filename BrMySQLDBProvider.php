@@ -8,8 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrGenericSQLDBProvider.php');
-
 class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   private $__connection;
@@ -38,7 +36,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
   public function connect($iteration = 0, $rerunError = null) {
 
     if ($iteration > $this->reconnectIterations) {
-      $e = new BrDBConnectionError($rerunError);
+      $e = new BrDBConnectionErrorException($rerunError);
       br()->triggerSticky('db.connectionError', $e);
       br()->triggerSticky('br.db.connect.error', $e);
       throw $e;
@@ -76,7 +74,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
           preg_match('/Access denied/', $e->getMessage())) {
         br()->triggerSticky('db.connectionError', $e);
         br()->triggerSticky('br.db.connect.error', $e);
-        throw new BrDBConnectionError($e->getMessage());
+        throw new BrDBConnectionErrorException($e->getMessage());
       } else {
         $this->__connection = null;
         usleep(250000);

@@ -8,8 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrObject.php');
-
 class BrGenericCacheProvider extends BrObject {
 
   private $defaultNamePrefix = null;

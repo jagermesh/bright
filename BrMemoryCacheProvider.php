@@ -8,8 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrGenericCacheProvider.php');
-
 class BrMemoryCacheProvider extends BrGenericCacheProvider {
 
   function __construct($cfg = array()) {

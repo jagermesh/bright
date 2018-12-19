@@ -34,6 +34,28 @@ class BrObject {
 
   }
 
+  public function retry($func, $iterationsLimit = 50, $sleepTimeout = 250000) {
+
+    $iteration = $iterationsLimit;
+
+    while (true) {
+      try {
+        $func();
+        break;
+      } catch (BrNonRecoverableException $e) {
+        throw $e;
+      } catch (Exception $e) {
+        $iteration--;
+        if ($iteration === 0) {
+          throw $e;
+        } else {
+          usleep(250000);
+        }
+      }
+    }
+
+  }
+
   public function getAttr($name, $default = null, $saveDefault = false) {
 
     if ($this->isAttrExists($name)) {
@@ -187,6 +209,4 @@ class BrObject {
 
   }
 
-
 }
-

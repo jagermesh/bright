@@ -8,8 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrSingleton.php');
-
 class BrProfiler extends BrSingleton {
 
   private $completedMetricsDuration = array();

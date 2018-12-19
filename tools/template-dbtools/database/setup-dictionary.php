@@ -9,7 +9,5 @@ if (file_exists(dirname(__DIR__) . '/vendor/jagermesh/bright/Bright.php')) {
 if (!br()->isConsoleMode()) { br()->panic('Console mode only'); }
 $handle = br()->OS()->lockIfRunning(br()->getScriptPath());
 
-br()->importLib('DataBaseDictionary');
-
 $dataBaseDictionary = new BrDataBaseDictionary();
 $dataBaseDictionary->generateDictionaryScript(__FILE__);

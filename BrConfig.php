@@ -8,8 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrSingleton.php');
-
 class BrConfig extends BrSingleton {
 
   public function set($name, $value) {

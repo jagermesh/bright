@@ -1,8 +1,12 @@
 <?php
 
-require_once(__DIR__ . '/BrGenericUploadHandler.php');
-
-require_once(__DIR__ . '/BrAWS.php');
+/**
+ * Project:     Bright framework
+ * Author:      Jager Mesh (jagermesh@gmail.com)
+ *
+ * @version 1.1.0.0
+ * @package Bright Core
+ */
 
 class BrS3FileUploadHandler extends BrGenericUploadHandler {
 

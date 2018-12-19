@@ -8,9 +8,6 @@
  * @package Bright Core
  */
 
-
-require_once(__DIR__.'/BrImage.php');
-
 class BrImages extends BrSingleton {
 
   function isValid($path) {

@@ -1,6 +1,6 @@
 <?php
 
-require_once(dirname(__DIR__).'/Bright.php');
+require_once(dirname(__DIR__) . '/Bright.php');
 
 $templateName = $argv[1];
 

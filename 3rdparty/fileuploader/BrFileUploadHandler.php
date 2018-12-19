@@ -1,7 +1,5 @@
 <?php
 
-require_once(__DIR__.'/BrGenericUploadHandler.php');
-
 /**
  * Handle file uploads via XMLHttpRequest
  */

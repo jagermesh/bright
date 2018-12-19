@@ -1,7 +1,12 @@
 <?php
 
-require_once(__DIR__ . '/BrSingleton.php');
-require_once(__DIR__ . '/BrException.php');
+/**
+ * Project:     Bright framework
+ * Author:      Jager Mesh (jagermesh@gmail.com)
+ *
+ * @version 1.1.0.0
+ * @package Bright Core
+ */
 
 class BrCore extends BrSingleton {
 
@@ -306,15 +311,15 @@ class BrCore extends BrSingleton {
 
   function importLib($className) {
 
-    $fileName = 'Br' . $className . '.php';
+    // $fileName = 'Br' . $className . '.php';
 
-    require_once(__DIR__ . '/' . $fileName);
+    // require_once(__DIR__ . '/' . $fileName);
 
   }
 
   function importDataSource($name) {
 
-    require_once(__DIR__ . '/datasources/' . $name. '.php');
+    // require_once(__DIR__ . '/datasources/' . $name. '.php');
 
   }
 

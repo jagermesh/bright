@@ -8,8 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrGenericCacheProvider.php');
-
 class BrFileCacheProvider extends BrGenericCacheProvider {
 
   private $cachePath;

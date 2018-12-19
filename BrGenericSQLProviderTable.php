@@ -1,7 +1,12 @@
 <?php
 
-require_once(__DIR__ . '/BrGenericSQLProviderCursor.php');
-require_once(__DIR__ . '/BrGenericSQLRegExp.php');
+/**
+ * Project:     Bright framework
+ * Author:      Jager Mesh (jagermesh@gmail.com)
+ *
+ * @version 1.1.0.0
+ * @package Bright Core
+ */
 
 class BrGenericSQLProviderTable {
 
@@ -43,24 +48,30 @@ class BrGenericSQLProviderTable {
     if ($fields) {
       foreach($fields as $name => $rule) {
         if (is_numeric($name)) {
-          $sql .= $tableName.'.'.$rule.',';
+          $sql .= $tableName . '.' . $rule . ',';
         } else {
-          $sql .= str_replace('$', $tableName, $rule).' '.$name.',';
+          $sql .= str_replace('$', $tableName, $rule) . ' ' . $name . ',';
         }
       }
-      $sql = rtrim($sql, ',').' ';
+      $sql = rtrim($sql, ',') . ' ';
     } else {
-      $sql = 'SELECT '.$tableName.'.* ';
+      $sql .= $tableName . '.* ';
     }
 
-    $sql .= ' FROM '.$this->tableName;
+    $sql .= "\n" . '  FROM '.$this->tableName;
     if ($this->tableAlias) {
       $sql .= ' ' . $this->tableAlias;
     }
     if ($this->indexHint) {
       $sql .= ' FORCE INDEX (' . $this->indexHint . ')';
     }
-    $sql .= $joins.' WHERE 1=1 '.$where;
+    if ($joins) {
+      $sql .= $joins;
+    }
+    $sql .= "\n" . ' WHERE 1=1';
+    if ($where) {
+      $sql .= "\n" . $where;
+    }
 
     return new BrGenericSQLProviderCursor($sql, $args, $this->provider);
 
@@ -350,15 +361,15 @@ class BrGenericSQLProviderTable {
           }
           if (is_array($joinField)) {
             if (br($joinField, '$sql')) {
-              $joins .= ' ' . $joinType . ' JOIN ' . $joinTableName . ' ' . $joinTableAlias . ' ON ' . $joinField['$sql'];
+              $joins .= "\n" . ' ' . $joinType . ' JOIN ' . $joinTableName . ' ' . $joinTableAlias . ' ON ' . $joinField['$sql'];
             } else {
               throw new Exception('Wrong join format');
             }
           } else {
             if (strpos($fieldName, '.') === false) {
-              $joins .= ' ' . $joinType . ' JOIN ' . $joinTableName . ' ' . $joinTableAlias . ' ON ' . $tableName . '.' . $fieldName . ' = ' . $joinTableAlias . '.' . $joinField;
+              $joins .= "\n" . ' ' . $joinType . ' JOIN ' . $joinTableName . ' ' . $joinTableAlias . ' ON ' . $tableName . '.' . $fieldName . ' = ' . $joinTableAlias . '.' . $joinField;
             } else {
-              $joins .= ' ' . $joinType . ' JOIN ' . $joinTableName . ' ' . $joinTableAlias . ' ON ' . $fieldName . ' = ' . $joinTableAlias . '.' . $joinField;
+              $joins .= "\n" . ' ' . $joinType . ' JOIN ' . $joinTableName . ' ' . $joinTableAlias . ' ON ' . $fieldName . ' = ' . $joinTableAlias . '.' . $joinField;
             }
           }
         }
@@ -714,16 +725,16 @@ class BrGenericSQLProviderTable {
             } else {
               if (strlen($filterValue) > 0) {
                 if (is_numeric($currentFieldName)) {
-                  $where .= $link.$fname2.' = ?';
+                  $where .= $link.$fname2 . ' = ?';
                 } else {
-                  $where .= $link.$fname.' = ?';
+                  $where .= $link.$fname . ' = ?';
                 }
                 $args[] = $filterValue;
               } else {
                 if (is_numeric($currentFieldName)) {
-                  $where .= $link.$fname2.' IS NULL';
+                  $where .= $link.$fname2 . ' IS NULL';
                 } else {
-                  $where .= $link.$fname.' IS NULL';
+                  $where .= $link.$fname . ' IS NULL';
                 }
               }
             }

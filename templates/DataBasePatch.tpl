@@ -1,6 +1,6 @@
 <?php
 
-class Patch[[name]] extends BrDatabasePatch {
+class Patch[[name]] extends BrDataBasePatch {
 
   function init() {
 

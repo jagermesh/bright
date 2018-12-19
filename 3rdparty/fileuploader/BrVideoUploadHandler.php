@@ -1,7 +1,5 @@
 <?php
 
-require_once(__DIR__.'/BrFileUploadHandler.php');
-
 class BrVideoUploadHandler extends BrFileUploadHandler {
 
   function __construct($params = array()) {

@@ -8,9 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrObject.php');
-require_once(__DIR__.'/BrLog.php');
-
 class BrCmd extends BrObject implements BrLoggable {
 
   private $logPrefix = '';

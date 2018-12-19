@@ -44,16 +44,20 @@
 
       _this.getUserMedia = function(options, success, error) {
 
-        var getUserMedia =
-          window.navigator.getUserMedia       ||
-          window.navigator.mozGetUserMedia    ||
-          window.navigator.webkitGetUserMedia ||
-          window.navigator.msGetUserMedia     ||
-          function(options, success, error) {
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          navigator.mediaDevices.getUserMedia(options).then(success).catch(error);
+        } else {
+          var getUserMedia =
+            navigator.getUserMedia       ||
+            navigator.mozGetUserMedia    ||
+            navigator.webkitGetUserMedia ||
+            navigator.msGetUserMedia     ||
+            function(options, success, error) {
               error();
-          };
+            };
 
-        return getUserMedia.call(window.navigator, options, success, error);
+          return getUserMedia.call(window, options, success, error);
+        }
 
       };
 

@@ -51,6 +51,10 @@ class BrException extends Exception {
 
 }
 
+class BrSessionException extends Exception {
+
+}
+
 class BrStackTraceException extends BrException {
 
   function __construct() {
@@ -61,7 +65,7 @@ class BrStackTraceException extends BrException {
 
 }
 
-class BrExceptionNotImplemented extends BrException {
+class BrNotImplementedException extends BrException {
 
   function __construct() {
 
@@ -85,13 +89,7 @@ class BrAppException extends BrException {
 
 }
 
-class BrDataSourceReferencesExists extends BrAppException {
-
-  function __construct() {
-
-    parent::__construct('Cannot delete this record - there are references to it in the system');
-
-  }
+class BrNonRecoverableException extends BrException {
 
 }
 
@@ -103,7 +101,21 @@ class BrDBException extends BrException {
 
 }
 
-class BrDataSourceNotFound extends BrDBException {
+class BrDataObjectException extends BrException {
+
+}
+
+class BrDBForeignKeyException extends BrDBException {
+
+  function __construct() {
+
+    parent::__construct('Cannot delete this record - there are references to it in the system');
+
+  }
+
+}
+
+class BrDBNotFoundException extends BrDBException {
 
   function __construct() {
 
@@ -141,6 +153,6 @@ class BrDBEngineException extends BrDBRecoverableException {
 
 }
 
-class BrDBConnectionError extends BrDBException {
+class BrDBConnectionErrorException extends BrDBException {
 
 }

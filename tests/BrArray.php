@@ -1,7 +1,6 @@
 <?php
 
-require_once(dirname(__DIR__).'/Bright.php');
-require_once(dirname(dirname(__DIR__)).'/config.db.php');
+require_once(dirname(__DIR__) . '/Bright.php');
 
 $array = array('apple', 'bananas', 'raspberry');
 $array2 = array(0, 1);

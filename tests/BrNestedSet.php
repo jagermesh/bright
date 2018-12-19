@@ -1,9 +1,7 @@
 <?php
 
-require_once(dirname(__DIR__).'/Bright.php');
-require_once(dirname(dirname(__DIR__)).'/config.db.php');
-
-br()->importLib('NestedSet');
+require_once(dirname(__DIR__) . '/Bright.php');
+require_once(dirname(dirname(__DIR__)) . '/config.db.php');
 
 $nestedSet = new BrNestedSet('br_nested_set', array('rangeField' => 'range_id', 'orderField' => 'name'));
 

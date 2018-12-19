@@ -8,9 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrObject.php');
-require_once(__DIR__.'/BrException.php');
-
 class BrErrorHandler extends BrObject {
 
   function __construct() {
@@ -34,6 +31,8 @@ class BrErrorHandler extends BrObject {
 
         switch ($errno) {
           case E_ERROR:
+          case E_USER_NOTICE:
+          case E_USER_WARNING:
           case E_USER_ERROR:
             if ($shutdown) {
               br()->log()->logException(new BrErrorException($errmsg, 0, $errno, $errfile, $errline));
@@ -85,12 +84,10 @@ class BrErrorHandler extends BrObject {
         }
         if (br()->isConsoleMode()) {
           if (!br()->log()->isAdapterExists('BrConsoleLogAdapter')) {
-            br()->importLib('ConsoleLogAdapter');
             br()->log()->addAdapter(new BrConsoleLogAdapter());
           }
         } else {
           if (!br()->log()->isAdapterExists('BrWebLogAdapter')) {
-            br()->importLib('WebLogAdapter');
             br()->log()->addAdapter(new BrWebLogAdapter());
           }
         }
@@ -99,7 +96,6 @@ class BrErrorHandler extends BrObject {
             if (br()->isConsoleMode()) {
               br()->log()->write($e->getMessage(), 'RED');
             } else {
-              br()->importLib('WebLogAdapter');
               $webLogAdapter = new BrWebLogAdapter();
               $webLogAdapter->writeException($e, true);
             }
@@ -110,7 +106,7 @@ class BrErrorHandler extends BrObject {
 
         }
         if (br()->isConsoleMode()) {
-          die(1);
+          exit(1);
         }
       } catch (Exception $e2) {
 

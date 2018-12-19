@@ -8,8 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrGenericAuthProvider.php');
-
 class BrDBUsersAuthProvider extends BrGenericAuthProvider {
 
   private $isDbSynced = false;

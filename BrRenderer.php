@@ -8,13 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrObject.php');
-require_once(__DIR__.'/BrException.php');
-
-class BrRendererException extends BrException {
-
-}
-
 class BrRenderer extends BrObject {
 
   static $instances = array();
@@ -27,7 +20,6 @@ class BrRenderer extends BrObject {
 
       switch($name) {
         case 'mustache':
-          require_once(__DIR__ . '/BrMustacheRenderer.php');
           $instance = new BrMustacheRenderer();
           break;
       }

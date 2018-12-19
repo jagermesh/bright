@@ -8,8 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrObject.php');
-
 class BrCSVParser extends BrObject {
 
   private $delimiter = ',';

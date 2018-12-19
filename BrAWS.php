@@ -4,10 +4,8 @@ use Aws\Sqs\SqsClient;
 use Aws\S3\S3Client;
 use Aws\Polly\PollyClient;
 
-require_once(__DIR__ . '/BrObject.php');
-require_once(__DIR__ . '/BrException.php');
-
 class BrAWS extends BrObject {
+
   const AMAZON_POLLY_MAX_CHARACTERS = 1500;
 
   private $S3Client;

@@ -1,12 +1,9 @@
 <?php
 
-br()->importLib('RESTBinder');
-br()->importDataSource('users');
-
 spl_autoload_register(function($className) {
 
   if (preg_match('#DataSource$#', $className)) {
-    $fileName = dirname(__DIR__).'/datasources/'.$className.'.php';
+    $fileName = dirname(__DIR__) . '/datasources/' . $className . '.php';
     if (file_exists($fileName)) {
       require_once($fileName);
     }
@@ -16,7 +13,7 @@ spl_autoload_register(function($className) {
 
 $rest = new BrRESTBinder();
 $rest
-  ->route(new BrRESTUsersBinder(new BrDataSourceUsers()))
+  ->route(new BrRESTUsersBinder(new BrUsersDataSource()))
   ->route( '/api/some'
          , 'SomeDataSource'
          , array( 'security'       => 'login'

@@ -8,8 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrObject.php');
-
 class BrAuth extends BrObject {
 
   static $instances = array();
@@ -20,48 +18,30 @@ class BrAuth extends BrObject {
     $instance = null;
 
     if (self::$reconsider || !isset(self::$instances[$name])) {
-
       if ($authList = br()->config()->get('auth')) {
-
         self::$reconsider = false;
-
         $authConfig = br($authList, $name, $authList);
-
         br()->assert($authConfig, 'Auth [' . $name . '] not configured');
-
         switch($authConfig['type']) {
           case "DBUsers":
-            require_once(__DIR__.'/BrDBUsersAuthProvider.php');
             $instance = new BrDBUsersAuthProvider($authConfig);
             break;
           default:
             throw new BrException('Unknown auth provider requested: ' . $name);
             break;
         }
-
       } else {
-
         if (isset(self::$instances[$name])) {
-
           $instance  = self::$instances[$name];
-
         } else {
-
           $authConfig = array();
-
-          require_once(__DIR__.'/BrDBUsersAuthProvider.php');
           $instance = new BrDBUsersAuthProvider($authConfig);
-
         }
-
       }
 
       self::$instances[$name] = $instance;
-
     } else {
-
       $instance = self::$instances[$name];
-
     }
 
     return $instance;

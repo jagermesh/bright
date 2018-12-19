@@ -8,8 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrGenericLogAdapter.php');
-
 class BrRMQLogAdapter extends BrGenericLogAdapter {
 
   private $exchangeName;

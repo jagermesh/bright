@@ -1,7 +1,5 @@
 <?php
 
-br()->importLib('DataSource');
-
 class SomeDataSource extends BrDataSource {
 
   function __construct() {

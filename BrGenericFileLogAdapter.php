@@ -8,8 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrGenericLogAdapter.php');
-
 class BrGenericFileLogAdapter extends BrGenericLogAdapter {
 
   private $filePointer = null;

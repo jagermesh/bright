@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Project:     Bright framework
+ * Author:      Jager Mesh (jagermesh@gmail.com)
+ *
+ * @version 1.1.0.0
+ * @package Bright Core
+ */
+
 class BrGenericSQLProviderCursor implements Iterator {
 
   private $sql, $args, $provider, $position = -1, $query, $row, $limit, $skip;
@@ -72,38 +80,31 @@ class BrGenericSQLProviderCursor implements Iterator {
   public function sort($order) {
 
     if ($order) {
-      $sql = ' ORDER BY ';
+      $fields = array();
       foreach($order as $field => $direction) {
-        $sql .= $field . ' ' . ($direction == 1?'ASC':'DESC') .', ';
+        $fields[] = $field . ' ' . ($direction == 1 ? 'ASC' : 'DESC');
       }
-      $sql = rtrim($sql, ', ');
-      $this->sql .= $sql;
+      $this->sql .= "\n" . ' ORDER BY ' . br($fields)->join(', ');
     }
 
     return $this;
 
   }
 
-  public function group($order) {
+  public function group($fields) {
 
-    if ($order) {
-      $sql = ' GROUP BY ';
-      foreach($order as $field) {
-        $sql .= $field . ', ';
-      }
-      $sql = rtrim($sql, ', ');
-      $this->sql .= $sql;
+    if ($fields) {
+      $this->sql .= "\n" . ' GROUP BY ' . br($fields)->join(', ');
     }
 
     return $this;
 
   }
 
-  public function having($having) {
+  public function having($conditions) {
 
-    if ($having) {
-      $sql = ' HAVING ' . br($having)->join(' AND ');
-      $this->sql .= $sql;
+    if ($conditions) {
+      $this->sql .= "\n" . ' HAVING ' . br($conditions)->join(' AND ');
     }
 
     return $this;

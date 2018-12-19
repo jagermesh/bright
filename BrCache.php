@@ -8,8 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrObject.php');
-
 class BrCache extends BrObject {
 
   static $instances = array();
@@ -64,23 +62,17 @@ class BrCache extends BrObject {
 
     switch($engine) {
       case "memcache":
-        require_once(__DIR__.'/BrMemCacheCacheProvider.php');
         return new BrMemCacheCacheProvider($cacheConfig);
       case "file":
-        require_once(__DIR__.'/BrFileCacheProvider.php');
         return new BrFileCacheProvider($cacheConfig);
       case "apc":
-        require_once(__DIR__.'/BrAPCCacheProvider.php');
         return new BrAPCCacheProvider($cacheConfig);
       case "xcache":
-        require_once(__DIR__.'/BrXCacheCacheProvider.php');
         return new BrXCacheCacheProvider($cacheConfig);
       case "redis":
-        require_once(__DIR__.'/BrRedisCacheProvider.php');
         return new BrRedisCacheProvider($cacheConfig);
       case "memory":
       default:
-        require_once(__DIR__.'/BrMemoryCacheProvider.php');
         return new BrMemoryCacheProvider($cacheConfig);
     }
 
@@ -92,16 +84,12 @@ class BrCache extends BrObject {
 
     switch ($engine) {
       case "memcache":
-        require_once(__DIR__.'/BrMemCacheCacheProvider.php');
         return BrMemCacheCacheProvider::isSupported();
       case "apc":
-        require_once(__DIR__.'/BrAPCCacheProvider.php');
         return BrAPCCacheProvider::isSupported();
       case "xcache":
-        require_once(__DIR__.'/BrXCacheCacheProvider.php');
         return BrXCacheCacheProvider::isSupported();
       case "redis":
-        require_once(__DIR__.'/BrRedisCacheProvider.php');
         return BrRedisCacheProvider::isSupported();
       default:
         return true;

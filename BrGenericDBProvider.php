@@ -8,8 +8,6 @@
  * @package Bright Core
  */
 
-require_once(__DIR__.'/BrObject.php');
-
 class BrGenericDBProvider extends BrObject {
 
   private $dataBaseName;
