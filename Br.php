@@ -10,14 +10,6 @@
 
 require_once(__DIR__ . '/BrightAutoload.php');
 
-if (file_exists(__DIR__ . '/vendor/autoload.php')) {
-  require_once(__DIR__ . '/vendor/autoload.php');
-}
-
-if (file_exists(dirname(__DIR__) . '/vendor/autoload.php')) {
-  require_once(dirname(__DIR__) . '/vendor/autoload.php');
-}
-
 function br($array = null, $name = null, $default = null) {
 
   if (func_num_args() === 0) {

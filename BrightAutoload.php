@@ -34,3 +34,17 @@ spl_autoload_register(function($className) {
   }
 
 });
+
+if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+  require_once(__DIR__ . '/vendor/autoload.php');
+}
+
+if (stripos(__FILE__, 'vendor/jagermesh/bright/BrightAutoload.php') !== false) {
+  if (file_exists(dirname(dirname(dirname(__DIR__))) . '/vendor/autoload.php')) {
+    require_once(dirname(dirname(dirname(__DIR__))) . '/vendor/autoload.php');
+  }
+} else {
+  if (file_exists(dirname(__DIR__) . '/vendor/autoload.php')) {
+    require_once(dirname(__DIR__) . '/vendor/autoload.php');
+  }
+}
