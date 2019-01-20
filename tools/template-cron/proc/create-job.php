@@ -7,8 +7,7 @@ if (file_exists(dirname(__DIR__) . '/vendor/jagermesh/bright/Bright.php')) {
 }
 
 if ($patchName = @$argv[1]) {
-  BrJobCustomJob::generateJobScript($patchName, __DIR__);
+  \Bright\BrJobCustomJob::generateJobScript($patchName, __DIR__);
 } else {
   br()->log('Usage: php ' . basename(__FILE__) . ' JobName');
 }
-

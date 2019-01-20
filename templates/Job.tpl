@@ -1,6 +1,6 @@
 <?php
 
-class Job[[name]] extends BrJobCustomJob {
+class Job[[name]] extends \Bright\BrJobCustomJob {
 
   function timeToStart($period = 5) {
 

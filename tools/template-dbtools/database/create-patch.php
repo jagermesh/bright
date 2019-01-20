@@ -7,8 +7,7 @@ if (file_exists(dirname(__DIR__) . '/vendor/jagermesh/bright/Bright.php')) {
 }
 
 if ($patchName = @$argv[1]) {
-  BrDataBasePatch::generatePatchScript($patchName, __DIR__);
+  \Bright\BrDataBasePatch::generatePatchScript($patchName, __DIR__);
 } else {
   br()->log('Usage: php ' . basename(__FILE__) . ' PatchName');
 }
-

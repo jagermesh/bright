@@ -18,7 +18,7 @@ try {
     }
     if ($file->isFile() && ($file->name() != '.DS_Store') && ($file->name() != '.description')) {
       if (file_exists($dst)) {
-        throw new BrAppException('Error: Project already initialized - ' . $file->name() . ' found at root path.');
+        throw new \Bright\BrAppException('Error: Project already initialized - ' . $file->name() . ' found at root path.');
       }
     }
 

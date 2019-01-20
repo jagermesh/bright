@@ -15,6 +15,6 @@ if (br()->isConsoleMode()) {
   // If we are in console mode - Bright is just a set of useful functions
 } else {
   // Running application
-  $app = new BrApplication();
+  $app = new \Bright\BrApplication();
   $app->main();
 }

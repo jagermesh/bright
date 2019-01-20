@@ -30,8 +30,6 @@ $value = br()->cache('file')->get('cacheValueKey');
 
               <p>If required you can create separate instance for file based cache. For example with different life time or different cache files location:</p>
 <pre>
-require_once(__DIR__ . '/bright/BrFileCacheProvider.php');
-
 $fileCache = new BrFileCacheProvider();
 
 $fileCache->setCacheLifeTime(5);
@@ -60,8 +58,6 @@ $fileCache->set('someName', 'someValue');
 
 <pre>
 &lt;?php
-
-require_once(dirname(__DIR__) . '/bright/BrFileCacheProvider.php');
 
 $fileCache = br()->cache('file');
 $fileCache = new BrFileCacheProvider();

@@ -11,9 +11,9 @@ spl_autoload_register(function($className) {
 
 });
 
-$rest = new BrRESTBinder();
+$rest = new \Bright\BrRESTBinder();
 $rest
-  ->route(new BrRESTUsersBinder(new BrUsersDataSource()))
+  ->route(new \Bright\BrRESTUsersBinder(new \Bright\BrUsersDataSource()))
   ->route( '/api/some'
          , 'SomeDataSource'
          , array( 'security'       => 'login'

@@ -3062,7 +3062,13 @@
       }
       _this.dataSource.select(filter, function(result, response) {
         if (!result || (response.length === 0)) {
-          _this.refresh(callback);
+          if (!options.reloadOnlyRow) {
+            _this.refresh(function(result, response) {
+              if (typeof callback == 'function') {
+                callback.call(_this, result, response, false);
+              }
+            });
+          }
         } else {
           response = response[0];
           if (_this.refreshRow(response, options)) {
@@ -3074,7 +3080,7 @@
             _this.addDataRow(response);
           }
           if (typeof callback == 'function') {
-            callback.call(_this, response);
+            callback.call(_this, result, response, true);
           }
         }
       }, options);
@@ -7102,7 +7108,9 @@
              }
            })
            .catch(function(data) {
-             br.hideProgress();
+             if (!extraParams.doNotHideProgressOnError) {
+               br.hideProgress();
+             }
              reject(data);
            });
 

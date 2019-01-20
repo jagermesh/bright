@@ -1,4 +1,4 @@
 <?php
 
-$handler = new BrImageUploadHandler();
+$handler = new \Bright\BrImageUploadHandler();
 $handler->handle();

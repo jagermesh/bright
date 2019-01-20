@@ -1,6 +1,6 @@
 <?php
 
-$dbConfig = __DIR__.'/config.db.php';
+$dbConfig = __DIR__ . '/config.db.php';
 
 br()->halt( file_exists($dbConfig)
           , 'Almost ready. Just one step for the great new application - please rename <b>/config.db.php.example</b> to <b>/config.db.php</b> and configure database connection.'

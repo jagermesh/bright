@@ -1,9 +1,10 @@
 <?php
 
 require_once(dirname(__DIR__) . '/Bright.php');
+
 require_once(dirname(dirname(__DIR__)) . '/config.db.php');
 
-$nestedSet = new BrNestedSet('br_nested_set', array('rangeField' => 'range_id', 'orderField' => 'name'));
+$nestedSet = new \Bright\BrNestedSet('br_nested_set', array('rangeField' => 'range_id', 'orderField' => 'name'));
 
 // create test table
 br()->db()->runQuery('DROP TABLE IF EXISTS br_nested_set');

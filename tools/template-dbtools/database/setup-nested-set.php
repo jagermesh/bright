@@ -54,11 +54,11 @@ br()->cmd()->run(function($cmd) use ($scriptFile) {
     }
   }
 
-  $nestedSet = new BrNestedSet($tableName, $params);
+  $nestedSet = new \Bright\BrNestedSet($tableName, $params);
 
   try {
     $nestedSet->setup();
-  } catch (Exception $e) {
+  } catch (\Exception $e) {
     $cmd->logException('Error');
     br()->log()->logException($e);
     exit();

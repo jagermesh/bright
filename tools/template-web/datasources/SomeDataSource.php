@@ -1,6 +1,6 @@
 <?php
 
-class SomeDataSource extends BrDataSource {
+class SomeDataSource extends \Bright\BrDataSource {
 
   function __construct() {
 

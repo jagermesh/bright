@@ -55,7 +55,9 @@
              }
            })
            .catch(function(data) {
-             br.hideProgress();
+             if (!extraParams.doNotHideProgressOnError) {
+               br.hideProgress();
+             }
              reject(data);
            });
 

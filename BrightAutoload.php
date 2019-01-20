@@ -10,20 +10,15 @@
 
 spl_autoload_register(function($className) {
 
-  // echo($className);
-
   $files = [];
 
-  if (preg_match('#^Br\\\(.+)$#', $className, $matches)) {
-    $files[] = __DIR__ . DIRECTORY_SEPARATOR . $matches[1] . '.php';
+  // echo($className . "<br/>");
+
+  if (preg_match('#^Bright\\\Br.*Exception$#', $className, $matches)) {
+    $files[] = __DIR__ . DIRECTORY_SEPARATOR . 'classes' . DIRECTORY_SEPARATOR . 'BrException.php';
   } else
-  if (preg_match('#^Br.*Exception$#', $className)) {
-    $files[] = __DIR__ . DIRECTORY_SEPARATOR . 'BrException.php';
-  } else {
-    if (preg_match('#^Br.+$#', $className)) {
-      $files[] = __DIR__ . DIRECTORY_SEPARATOR . $className . '.php';
-      $files[] = __DIR__ . DIRECTORY_SEPARATOR . 'datasources/' . $className . '.php';
-    }
+  if (preg_match('#^Bright\\\(.+)$#', $className, $matches)) {
+    $files[] = __DIR__ . DIRECTORY_SEPARATOR . 'classes' . DIRECTORY_SEPARATOR . $matches[1] . '.php';
   }
 
   foreach ($files as $file) {

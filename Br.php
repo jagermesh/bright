@@ -13,13 +13,13 @@ require_once(__DIR__ . '/BrightAutoload.php');
 function br($array = null, $name = null, $default = null) {
 
   if (func_num_args() === 0) {
-    return BrCore::getInstance();
+    return \Bright\BrCore::getInstance();
   } else
   if (func_num_args() === 1) {
     if (is_array($array)) {
-      return new BrArray($array);
+      return new \Bright\BrArray($array);
     } else {
-      return new BrString($array);
+      return new \Bright\BrString($array);
     }
   } else
   if (is_array($array) && is_array($name)) {

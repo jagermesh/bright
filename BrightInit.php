@@ -14,7 +14,7 @@ require_once(__DIR__ . '/BrightAutoload.php');
 require_once(__DIR__ . '/Br.php');
 
 // Installing custom error handler
-BrErrorHandler::getInstance();
+\Bright\BrErrorHandler::getInstance();
 
 // Core PHP settings
 if (function_exists('set_magic_quotes_runtime')) {
@@ -47,37 +47,37 @@ br()->require(br()->getScriptBasePath()  . 'config.php');
 br()->require(br()->getBasePath()  . 'config.php');
 
 // Core PHP settings - Secondary
-BrSession::configure();
+\Bright\BrSession::configure();
 // Core PHP settings - Secondary - End
 
 // Base Logging
-if (!br()->log()->isAdapterExists('BrErrorFileLogAdapter')) {
-  br()->log()->addAdapter(new BrErrorFileLogAdapter(br()->config()->get('Logger/File/LogsFolder', br()->getLogsPath())));
+if (!br()->log()->isAdapterExists('Bright\\BrErrorFileLogAdapter')) {
+  br()->log()->addAdapter(new \Bright\BrErrorFileLogAdapter(br()->config()->get('Logger/File/LogsFolder', br()->getLogsPath())));
 }
 
-if (!br()->log()->isAdapterExists('BrMailLogAdapter')) {
-  br()->log()->addAdapter(new BrMailLogAdapter());
+if (!br()->log()->isAdapterExists('Bright\\BrMailLogAdapter')) {
+  br()->log()->addAdapter(new \Bright\BrMailLogAdapter());
 }
 
 if (br()->config()->get('Logger/File/Active')) {
-  if (!br()->log()->isAdapterExists('BrFileLogAdapter')) {
-    br()->log()->addAdapter(new BrFileLogAdapter(br()->config()->get('Logger/File/LogsFolder', br()->getLogsPath())));
+  if (!br()->log()->isAdapterExists('Bright\\BrFileLogAdapter')) {
+    br()->log()->addAdapter(new \Bright\BrFileLogAdapter(br()->config()->get('Logger/File/LogsFolder', br()->getLogsPath())));
   }
 }
 
 if (br()->isConsoleMode()) {
-  if (!br()->log()->isAdapterExists('BrConsoleLogAdapter')) {
-    br()->log()->addAdapter(new BrConsoleLogAdapter());
+  if (!br()->log()->isAdapterExists('Bright\\BrConsoleLogAdapter')) {
+    br()->log()->addAdapter(new \Bright\BrConsoleLogAdapter());
   }
 } else {
-  if (!br()->log()->isAdapterExists('BrWebLogAdapter')) {
-    br()->log()->addAdapter(new BrWebLogAdapter());
+  if (!br()->log()->isAdapterExists('Bright\\BrWebLogAdapter')) {
+    br()->log()->addAdapter(new \Bright\BrWebLogAdapter());
   }
 }
 
 if (br()->config()->get('Logger/RMQ/Active') && br()->config()->get('Logger/RMQ/Host') && br()->config()->get('Logger/RMQ/Port')) {
-  if (!br()->log()->isAdapterExists('BrRMQLogAdapter')) {
-    br()->log()->addAdapter(new BrRMQLogAdapter( array( 'host'            => br()->config()->get('Logger/RMQ/Host')
+  if (!br()->log()->isAdapterExists('Bright\\BrRMQLogAdapter')) {
+    br()->log()->addAdapter(new \Bright\BrRMQLogAdapter( array( 'host'            => br()->config()->get('Logger/RMQ/Host')
                                                       , 'port'            => br()->config()->get('Logger/RMQ/Port')
                                                       , 'login'           => br()->config()->get('Logger/RMQ/Login')
                                                       , 'password'        => br()->config()->get('Logger/RMQ/Password')
@@ -92,14 +92,14 @@ if (br()->config()->get('Logger/RMQ/Active') && br()->config()->get('Logger/RMQ/
 }
 
 if (br()->config()->get('Logger/Slack/Active') && br()->config()->get('Logger/Slack/WebHookUrl')) {
-  if (!br()->log()->isAdapterExists('BrErrorSlackLogAdapter')) {
-    br()->log()->addAdapter(new BrErrorSlackLogAdapter(br()->config()->get('Logger/Slack/WebHookUrl')));
+  if (!br()->log()->isAdapterExists('Bright\\BrErrorSlackLogAdapter')) {
+    br()->log()->addAdapter(new \Bright\BrErrorSlackLogAdapter(br()->config()->get('Logger/Slack/WebHookUrl')));
   }
 }
 
 if (br()->config()->get('Logger/Telegram/Active') && br()->config()->get('Logger/Telegram/Bot/ApiKey') && br()->config()->get('Logger/Telegram/Bot/Name') && br()->config()->get('Logger/Telegram/ChatIds')) {
-  if (!br()->log()->isAdapterExists('BrErrorTelegramLogAdapter')) {
-    br()->log()->addAdapter(new BrErrorTelegramLogAdapter(br()->config()->get('Logger/Telegram/Bot/ApiKey'), br()->config()->get('Logger/Telegram/Bot/Name'), br()->config()->get('Logger/Telegram/ChatIds')));
+  if (!br()->log()->isAdapterExists('Bright\\BrErrorTelegramLogAdapter')) {
+    br()->log()->addAdapter(new \Bright\BrErrorTelegramLogAdapter(br()->config()->get('Logger/Telegram/Bot/ApiKey'), br()->config()->get('Logger/Telegram/Bot/Name'), br()->config()->get('Logger/Telegram/ChatIds')));
   }
 }
 

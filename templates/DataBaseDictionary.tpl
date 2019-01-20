@@ -1,6 +1,6 @@
 <?php
 
-class DataBaseDictionary extends BrDataBaseDictionary {
+class DataBaseDictionary extends \Bright\BrDataBaseDictionary {
 
   public $schema = array(
 [[#schema]]
