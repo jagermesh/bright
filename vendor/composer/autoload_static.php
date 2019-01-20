@@ -39,13 +39,6 @@ class ComposerStaticInit1b17ecc4388caa2ce9de01d092ce85b7
                 0 => __DIR__ . '/..' . '/doctrine/lexer/lib',
             ),
         ),
-        'B' => 
-        array (
-            'Bright' => 
-            array (
-                0 => __DIR__ . '/../..' . '/',
-            ),
-        ),
     );
 
     public static function getInitializer(ClassLoader $loader)
