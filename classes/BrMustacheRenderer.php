@@ -14,7 +14,7 @@ class BrMustacheRenderer extends BrGenericRenderer {
 
   private $mustache;
 
-  function __construct() {
+  public function __construct() {
 
     parent::__construct();
 
@@ -25,6 +25,14 @@ class BrMustacheRenderer extends BrGenericRenderer {
   protected function render($template, $variables) {
 
     return $this->mustache->render($template, $variables);
+
+  }
+
+  public function resetEngine() {
+
+    $this->mustache = null;
+
+    $this->mustache = new \Mustache_Engine(array('delimiters' => br($this->params, 'delimiters', '[[ ]]')));
 
   }
 

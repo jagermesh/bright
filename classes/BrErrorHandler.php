@@ -12,7 +12,7 @@ namespace Bright;
 
 class BrErrorHandler extends BrObject {
 
-  function __construct() {
+  public function __construct() {
 
     error_reporting(E_ALL);
 
@@ -22,7 +22,7 @@ class BrErrorHandler extends BrObject {
 
   }
 
-  function checkLoggers() {
+  public function checkLoggers() {
 
     if (br()->isConsoleMode()) {
       if (!br()->log()->isAdapterExists('Bright\\BrConsoleLogAdapter')) {
@@ -36,7 +36,7 @@ class BrErrorHandler extends BrObject {
 
   }
 
-  function handleError($errno, $errmsg, $errfile, $errline, $shutdown = false) {
+  public function handleError($errno, $errmsg, $errfile, $errline, $shutdown = false) {
 
     if ($this->isEnabled()) {
       if ((error_reporting() & $errno) == $errno) {
@@ -72,7 +72,7 @@ class BrErrorHandler extends BrObject {
 
   }
 
-  function captureShutdown() {
+  public function captureShutdown() {
 
     if ($error = error_get_last()) {
       if ($this->isEnabled()) {
@@ -90,7 +90,7 @@ class BrErrorHandler extends BrObject {
 
   }
 
-  function exceptionHandler($e) {
+  public function exceptionHandler($e) {
 
     if ($this->isEnabled()) {
       try {
@@ -124,7 +124,7 @@ class BrErrorHandler extends BrObject {
 
   }
 
-  function errorHandler($errno, $errmsg, $errfile, $errline, $vars) {
+  public function errorHandler($errno, $errmsg, $errfile, $errline, $vars) {
 
     $this->handleError($errno, $errmsg, $errfile, $errline, false);
 

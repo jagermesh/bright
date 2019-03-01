@@ -21,13 +21,13 @@ class BrSFTP extends BrObject {
   private $sftp;
   private $reconnectsAmount = 25;
 
-  function __construct() {
+  public function __construct() {
 
     parent::__construct();
 
   }
 
-  function connectWithKey($hostName, $userName, $keyFileName, $port = 22, $keyFilePassword = '') {
+  public function connectWithKey($hostName, $userName, $keyFileName, $port = 22, $keyFilePassword = '') {
 
     $key = new \phpseclib\Crypt\RSA();
     if ($keyFilePassword) {
@@ -39,7 +39,7 @@ class BrSFTP extends BrObject {
 
   }
 
-  function connect($hostName, $userName, $password, $port = 22, $attempt = 0) {
+  public function connect($hostName, $userName, $password, $port = 22, $attempt = 0) {
 
     $this->currentHostName = $hostName;
     $this->currentUserName = $userName;

@@ -12,7 +12,7 @@ namespace Bright;
 
 class BrVideoUploadHandler extends BrFileUploadHandler {
 
-  function __construct($options = array()) {
+  public function __construct($options = array()) {
 
     $options['allowedExtensions'] = array('flv', 'avi', 'mp4', 'mov');
 

@@ -14,7 +14,7 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
 
   private $cachePath;
 
-  function __construct($cfg = array()) {
+  public function __construct($cfg = array()) {
 
     parent::__construct($cfg);
 

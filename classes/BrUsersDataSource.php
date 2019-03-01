@@ -53,7 +53,7 @@ class BrUsersDataSource extends BrDataSource {
           br()->log()->write('Signup mail was not sent - mail template not found or empty');
         }
 
-        br()->auth()->setLogin($row);
+        br()->auth()->login($row);
 
         $row = $dataSource->selectOne(br()->db()->rowidValue($row));
 
@@ -117,7 +117,7 @@ class BrUsersDataSource extends BrDataSource {
 
     $this->on('logout', function($dataSource, $params) {
 
-      br()->auth()->clearLogin();
+      br()->auth()->logout();
 
       return true;
 
@@ -402,7 +402,7 @@ class BrUsersDataSource extends BrDataSource {
     if (!$denied) {
       $passwordField = br()->auth()->getAttr('usersTable.passwordField');
       if ($row = $this->selectOne(br()->db()->rowidValue($row))) {
-        if ($row = br()->auth()->setLogin($row, br($params, 'remember'))) {
+        if ($row = br()->auth()->login($row, br($params, 'remember'))) {
           unset($row[$passwordField]);
           br()->auth()->trigger('after:login', $row);
           return $row;

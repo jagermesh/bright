@@ -16,20 +16,20 @@ class BriCal extends BrObject {
   private $calendarUID;
   private $calendarEvents = array();
 
-  function __construct($calendarName = 'GENERIC', $calendarUID = null) {
+  public function __construct($calendarName = 'GENERIC', $calendarUID = null) {
 
     $this->calendarName = $calendarName;
     $this->calendarUID = $calendarUID ? $calendarUID : preg_replace('/[^A-Z0-9]/i', '', $this->calendarName);
 
   }
 
-  function addEvent($event) {
+  public function addEvent($event) {
 
     $this->calendarEvents[] = $event;
 
   }
 
-  function display($fileName = 'calendar.ics') {
+  public function display($fileName = 'calendar.ics') {
 
     $ics = $this->render();
 
@@ -47,7 +47,7 @@ class BriCal extends BrObject {
 
   }
 
-  function formatOffset($offset) {
+  public function formatOffset($offset) {
 
     $offset = $offset/60/60;
     $neg = preg_match('/^[-]/', $offset);
@@ -74,7 +74,7 @@ class BriCal extends BrObject {
 
   }
 
-  function render() {
+  public function render() {
 
     $timeZone = date_default_timezone_get();
 

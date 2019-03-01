@@ -12,25 +12,25 @@ namespace Bright;
 
 class BrJobStarter {
 
-  function __construct() {
+  public function __construct() {
 
     $this->jobsFolder = br()->getScriptBasePath() . 'jobs/';
 
   }
 
-  function check() {
+  public function check() {
 
     $this->doit(true);
 
   }
 
-  function run() {
+  public function run() {
 
     $this->doit(false);
 
   }
 
-  function doit($check) {
+  public function doit($check) {
 
     if (!br()->isConsoleMode()) { br()->panic('Console mode only'); }
 

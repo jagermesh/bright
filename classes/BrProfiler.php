@@ -16,7 +16,7 @@ class BrProfiler extends BrSingleton {
   private $completedMetricsMemory = array();
   private $activeMetrics = array();
 
-  function start($name) {
+  public function start($name) {
 
     $this->activeMetrics[$name] = array( 'time'   => br()->getMicrotime()
                                        , 'memory' => memory_get_usage(true)
@@ -26,14 +26,14 @@ class BrProfiler extends BrSingleton {
 
   }
 
-  function logStart($name) {
+  public function logStart($name) {
 
     $s = $this->start($name);
     br()->log()->write($name. ', ' . br()->formatTraffic($s['memory']) , '+++');
 
   }
 
-  function finish($name) {
+  public function finish($name) {
 
     $duration = (br()->getMicroTime()   - $this->activeMetrics[$name]['time']);
     $memory   = (memory_get_usage(true) - $this->activeMetrics[$name]['memory']);
@@ -65,7 +65,7 @@ class BrProfiler extends BrSingleton {
 
   }
 
-  function logFinish($name, $comment = null) {
+  public function logFinish($name, $comment = null) {
 
     $f = $this->finish($name);
     $s = $name. ': ' . br()->durationToString($f['duration']);

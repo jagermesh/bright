@@ -12,7 +12,7 @@ namespace Bright;
 
 class BrResponse extends BrSingleton {
 
-  function sendJSON($response, $alreadyPacked = false, $andExit = true) {
+  public function sendJSON($response, $alreadyPacked = false, $andExit = true) {
 
     if ($alreadyPacked) {
       $responseJSON = $response;
@@ -34,7 +34,7 @@ class BrResponse extends BrSingleton {
 
   }
 
-  function sendJSONP($response, $callback = null) {
+  public function sendJSONP($response, $callback = null) {
 
     $callback = $callback ? $callback : br()->request()->get('callback');
 
@@ -82,19 +82,19 @@ class BrResponse extends BrSingleton {
 
   }
 
-  function redirect($url, $saveCaller = false, $timedOut = false) {
+  public function redirect($url, $saveCaller = false, $timedOut = false) {
 
     $this->internalRedirect($url, false, $saveCaller, $timedOut);
 
   }
 
-  function redirectPermanent($url) {
+  public function redirectPermanent($url) {
 
     $this->internalRedirect($url, true);
 
   }
 
-  function send404($message = null) {
+  public function send404($message = null) {
 
     if (!headers_sent()) {
       header('HTTP/1.0 404 Not Found');
@@ -111,7 +111,7 @@ class BrResponse extends BrSingleton {
 
   }
 
-  function sendBadRequest($message = null) {
+  public function sendBadRequest($message = null) {
 
     if (!headers_sent()) {
       header('HTTP/1.0 400 Bad Request');
@@ -127,7 +127,7 @@ class BrResponse extends BrSingleton {
 
   }
 
-  function sendNotAuthorized($error = null) {
+  public function sendNotAuthorized($error = null) {
 
     if (!headers_sent()) {
       header('HTTP/1.0 401 Not Authorized');
@@ -143,7 +143,7 @@ class BrResponse extends BrSingleton {
 
   }
 
-  function sendNoContent($error = null) {
+  public function sendNoContent($error = null) {
 
     if (!headers_sent()) {
       header('HTTP/1.0 204 No Content');
@@ -157,7 +157,7 @@ class BrResponse extends BrSingleton {
 
   }
 
-  function sendForbidden($error = null) {
+  public function sendForbidden($error = null) {
 
     if (!headers_sent()) {
       header('HTTP/1.0 403 Forbidden');
@@ -171,7 +171,7 @@ class BrResponse extends BrSingleton {
 
   }
 
-  function sendMethodNotAllowed($error = null) {
+  public function sendMethodNotAllowed($error = null) {
 
     if (!headers_sent()) {
       header('HTTP/1.0 405 Method Not Allowed');
@@ -185,7 +185,7 @@ class BrResponse extends BrSingleton {
 
   }
 
-  function sendCreated() {
+  public function sendCreated() {
 
     if (!headers_sent()) {
       header('HTTP/1.0 201 Created');
@@ -193,7 +193,7 @@ class BrResponse extends BrSingleton {
 
   }
 
-  function sendNotModified() {
+  public function sendNotModified() {
 
     if (!headers_sent()) {
       header('HTTP/1.0 304 Not Modified');
@@ -201,7 +201,7 @@ class BrResponse extends BrSingleton {
 
   }
 
-  function sendInternalServerError() {
+  public function sendInternalServerError() {
 
     if (!headers_sent()) {
       header('HTTP/1.0 500 Internal Server Error');
@@ -209,7 +209,7 @@ class BrResponse extends BrSingleton {
 
   }
 
-  function sendServiceUnavailable() {
+  public function sendServiceUnavailable() {
 
     if (!headers_sent()) {
       header('HTTP/1.0 503 Service unavailable');
@@ -217,7 +217,7 @@ class BrResponse extends BrSingleton {
 
   }
 
-  function sendConflict($error) {
+  public function sendConflict($error) {
 
     if (!headers_sent()) {
       header('HTTP/1.0 409 Conflict');
@@ -231,13 +231,13 @@ class BrResponse extends BrSingleton {
 
   }
 
-  function send($body = null) {
+  public function send($body = null) {
 
     $this->sendSuccess($body);
 
   }
 
-  function sendSuccess($body = null) {
+  public function sendSuccess($body = null) {
 
     if (!headers_sent()) {
       header('HTTP/1.0 200 OK');
@@ -251,7 +251,7 @@ class BrResponse extends BrSingleton {
 
   }
 
-  function sendXML($data) {
+  public function sendXML($data) {
 
     if (!headers_sent()) {
       header('Cache-Control: no-cache, must-revalidate');
@@ -265,7 +265,7 @@ class BrResponse extends BrSingleton {
 
   }
 
-  function sendCacheHeaders($ageMin = 30) {
+  public function sendCacheHeaders($ageMin = 30) {
 
     $etag = md5(@$_SERVER['QUERY_STRING']);
     $if_none_match = (isset($_SERVER['HTTP_IF_NONE_MATCH']) ? $_SERVER['HTTP_IF_NONE_MATCH'] : false);

@@ -12,9 +12,6 @@ namespace Bright;
 
 class BrDBUsersAuthProvider extends BrGenericAuthProvider {
 
-  private $isDbSynced = false;
-  private $syncTried = false;
-
   function __construct($config = array()) {
 
     parent::__construct($config);
@@ -104,18 +101,20 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
     $loginField      = br()->auth()->getAttr('usersTable.loginField');
     $passwordField   = br()->auth()->getAttr('usersTable.passwordField');
 
-    $login = $this->getLogin();
-    if (!$login) {
+    if ($login = $this->getSessionLogin()) {
+      $this->login($login);
+    } else {
       if ($cookie = @json_decode(br($_COOKIE, $this->getAuthTag()), true)) {
         if (br()->db() && br($cookie, 'login') && br($cookie, 'token')) {
-          if ($users = br()->db()->getCachedRows('SELECT * FROM ' . $usersTable . ' WHERE ' . $loginField . ' = ?', $cookie['login'])) {
-            foreach($users as $user) {
-              if (($password = br($user, $passwordField)) && ($rowid = br()->db()->rowidValue($user))) {
-                $token = sha1(md5(sha1($password) . sha1($rowid)));
-                if ($token == $cookie['token']) {
-                  $this->isDbSynced = true;
-                  $this->setLogin($user);
-                  return $user;
+          if (br($cookie, 'login') != '%') {
+            if ($users = br()->db()->getCachedRows('SELECT * FROM ' . $usersTable . ' WHERE ' . $loginField . ' = ?', $cookie['login'])) {
+              foreach($users as $user) {
+                if (($password = br($user, $passwordField)) && ($rowid = br()->db()->rowidValue($user))) {
+                  $token = sha1(md5(sha1($password) . sha1($rowid)));
+                  if ($token == $cookie['token']) {
+                    $this->login($user);
+                    return $user;
+                  }
                 }
               }
             }
@@ -124,7 +123,6 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
       }
       if ($this->trigger('findLogin', $options)) {
         if ($login = br()->auth()->getLogin()) {
-          $this->isDbSynced = true;
           return $login;
         }
       }
@@ -132,30 +130,25 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
         br()->response()->sendNotAuthorized();
       }
     }
+
     return $login;
 
   }
 
-  function setLogin($login, $remember = false) {
-
-    $this->trigger('checkLoginPrivilege', $login);
+  function login($login, $remember = false) {
 
     $usersTable    = br()->auth()->getAttr('usersTable.name');
     $loginField    = br()->auth()->getAttr('usersTable.loginField');
     $passwordField = br()->auth()->getAttr('usersTable.passwordField');
 
-    if (is_array($login)) {
+    try {
       $rowid = br()->db()->rowidValue($login);
-      if ($remember) {
-        $password = br($login, $passwordField);
-        if (!$password) {
-          if ($loginRow = br()->db()->getCachedRow('SELECT * FROM ' . $usersTable . ' WHERE ' . br()->db()->rowidField() . ' = ?', $rowid)) {
-            $password = br($loginRow, $passwordField);
-          }
-        }
-        if ($password && br($login, $loginField)) {
-          $token = sha1(md5(sha1($password) . sha1($rowid)));
-          $cookie = array( 'login' => $login[$loginField]
+      if ($login = br()->db()->getCachedRow('SELECT * FROM ' . $usersTable . ' WHERE id = ?', $rowid)) {
+        $login['rowid'] = $rowid;
+        $this->trigger('checkLoginPrivilege', $login);
+        if ($remember && ($password = br($login, $passwordField)) && ($username = br($login, $loginField))) {
+          $token  = sha1(md5(sha1($password) . sha1($rowid)));
+          $cookie = array( 'login' => $username
                          , 'token' => $token
                          );
           setcookie( $this->getAuthTag()
@@ -165,60 +158,15 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
                    , br()->request()->domain() == 'localhost' ? false : br()->request()->domain()
                    );
         }
-      }
-      $loginObj = $login;
-      $loginObj['rowid'] = br()->db()->rowidValue($login);
-      if (!$loginObj['rowid']) {
-        throw new BrException('setLogin: login object must contain ID field');
-      }
-
-      try {
         $this->trigger('setLogin', $login);
-      } catch (\Exception $e) {
-        br()->auth()->clearLogin();
-        throw $e;
-      }
-      return br()->session()->set('login', $login);
-    } else
-    if ($login) {
-      $data = $this->getLogin();
-      $data[$login] = $remember;
-      return br()->session()->set('login', $data);
-    }
-
-  }
-
-  function getLogin($param = null, $default = null) {
-
-    $usersTable = br()->auth()->getAttr('usersTable.name');
-
-    if ($login = br()->session()->get('login')) {
-      if (!$this->isDbSynced && !$this->syncTried && br()->db()) {
-        $this->syncTried = true;
-        $users = br()->db()->table($usersTable);
-        if ($login = $users->findOne(array(br()->db()->rowidField() => br()->db()->rowid($login)))) {
-          $this->isDbSynced = true;
-          br()->auth()->setLogin($login);
-        } else {
-          br()->auth()->clearLogin();
-        }
-      }
-    }
-    if ($login = br()->session()->get('login')) {
-      $loginObj = $login;
-      if (br()->db()) {
-        $loginObj['rowid'] = br()->db()->rowidValue($login);
-      }
-      if ($param) {
-        return br($loginObj, $param, $default);
+        return br()->session()->set('login', $login);
       } else {
-        return $loginObj;
+        throw new \Exception('Login error: user ' . $rowid . ' unknown');
       }
-    } else
-    if ($param) {
-      return $default;
+    } catch (\Exception $e) {
+      br()->auth()->logout();
+      throw $e;
     }
-    return null;
 
   }
 

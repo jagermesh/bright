@@ -20,10 +20,6 @@ class BrObject {
 
   static $instances = array();
 
-  function __construct() {
-
-  }
-
   public static function getInstance() {
 
     $className = get_called_class();
@@ -36,14 +32,17 @@ class BrObject {
 
   }
 
+  public function __construct() {
+
+  }
+
   public function retry($func, $iterationsLimit = 50, $sleepTimeout = 250000) {
 
     $iteration = $iterationsLimit;
 
     while (true) {
       try {
-        $func();
-        break;
+        return $func();
       } catch (BrNonRecoverableException $e) {
         throw $e;
       } catch (\Exception $e) {

@@ -25,7 +25,7 @@ class BrLog extends BrSingleton implements BrLoggable {
   private $logLevel = 0;
   private $adapters = array();
 
-  function __construct() {
+  public function __construct() {
 
     parent::__construct();
 
@@ -39,25 +39,25 @@ class BrLog extends BrSingleton implements BrLoggable {
     }
   }
 
-  function addAdapter($adapter) {
+  public function addAdapter($adapter) {
 
     $this->adapters[] = $adapter;
 
   }
 
-  function getInitMicroTime() {
+  public function getInitMicroTime() {
 
     return $this->initMicroTime;
 
   }
 
-  function getAdapters() {
+  public function getAdapters() {
 
     return $this->adapter;
 
   }
 
-  function getAdapter($className) {
+  public function getAdapter($className) {
 
     foreach($this->adapters as $adapter) {
       if (get_class($adapter) == $className) {
@@ -69,13 +69,13 @@ class BrLog extends BrSingleton implements BrLoggable {
 
   }
 
-  function adaptersCount() {
+  public function adaptersCount() {
 
     return count($this->adapters);
 
   }
 
-  function isAdapterExists($name) {
+  public function isAdapterExists($name) {
 
     foreach($this->adapters as $adapter) {
       if (get_class($adapter) == $name) {
@@ -87,49 +87,49 @@ class BrLog extends BrSingleton implements BrLoggable {
 
   }
 
-  function saveTime() {
+  public function saveTime() {
 
     return $this->savedMicroTime = br()->getMicrotime();
 
   }
 
-  function getInitTime() {
+  public function getInitTime() {
 
     return $this->initTime;
 
   }
 
-  function getTimeOffset() {
+  public function getTimeOffset() {
 
     return br()->getMicrotime() - $this->initMicroTime;
 
   }
 
-  function getSavedTimeOffset() {
+  public function getSavedTimeOffset() {
 
     return br()->getMicrotime() - $this->savedMicroTime;
 
   }
 
-  function getFormattedTimeOffset() {
+  public function getFormattedTimeOffset() {
 
     return br()->formatDuration($this->getTimeOffset());
 
   }
 
-  function getFormattedSavedTimeOffset() {
+  public function getFormattedSavedTimeOffset() {
 
     return br()->formatDuration($this->getSavedTimeOffset());
 
   }
 
-  function incLevel() {
+  public function incLevel() {
 
     $this->logLevel++;
 
   }
 
-  function decLevel() {
+  public function decLevel() {
 
     $this->logLevel--;
     if ($this->logLevel < 0) {
@@ -138,19 +138,19 @@ class BrLog extends BrSingleton implements BrLoggable {
 
   }
 
-  function resetLevel() {
+  public function resetLevel() {
 
     $this->logLevel = 0;
 
   }
 
-  function getLevel() {
+  public function getLevel() {
 
     return $this->logLevel >= 0 ? $this->logLevel : 0;
 
   }
 
-  function formatCallParams($params, $level = 0) {
+  private function formatCallParams($params, $level = 0) {
 
     $result = '';
     foreach($params as $idx => $arg) {
@@ -192,7 +192,7 @@ class BrLog extends BrSingleton implements BrLoggable {
 
   }
 
-  function formatStackTraceCall($trace) {
+  private function formatStackTraceCall($trace) {
 
     $result = '';
     if (br($trace, 'class')) {
@@ -212,7 +212,7 @@ class BrLog extends BrSingleton implements BrLoggable {
 
   }
 
-  function formatStackTraceSource($trace) {
+  private function formatStackTraceSource($trace) {
 
     $result = '';
     if (br($trace, 'file')) {
@@ -258,7 +258,7 @@ class BrLog extends BrSingleton implements BrLoggable {
               $adapter->writeException($message, $sendOutput, $printCallStack);
               break;
             default:
-              $adapter->writeMessage($logText, $group, $tagline);
+              $adapter->write($logText, $group, $tagline);
               break;
           }
         }
@@ -308,12 +308,6 @@ class BrLog extends BrSingleton implements BrLoggable {
 
   }
 
-  public function logException($messageOrException, $sendOutput = false, $printCallStack = true) {
-
-    $this->writeToAdapters($messageOrException, 'EXC', '', $sendOutput, $printCallStack);
-
-  }
-
   public function error($message, $object = null) {
 
     if ($object) {
@@ -333,13 +327,7 @@ class BrLog extends BrSingleton implements BrLoggable {
 
   }
 
-  public function write($message = '', $group = 'MSG', $tagline = '') {
-
-    $this->writeToAdapters($message, $group, $tagline);
-
-  }
-
-  public function log($message = '', $group = 'MSG', $tagline = '') {
+  public function write($message = '', $group = 'MSG', $tagline = null) {
 
     $this->writeToAdapters($message, $group, $tagline);
 
@@ -350,6 +338,18 @@ class BrLog extends BrSingleton implements BrLoggable {
   public function writeLn($message = '', $group = 'MSG', $tagline = '') {
 
     $this->writeToAdapters($message, $group, $tagline);
+
+  }
+
+  public function log($message = '', $group = 'MSG', $tagline = null) {
+
+    $this->writeToAdapters($message, $group, $tagline);
+
+  }
+
+  public function logException($messageOrException, $sendOutput = false, $printCallStack = true) {
+
+    $this->writeToAdapters($messageOrException, 'EXC', '', $sendOutput, $printCallStack);
 
   }
 

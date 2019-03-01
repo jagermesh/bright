@@ -2116,13 +2116,19 @@
 
       }).then(function(data) {
         try {
-          if (!disableEvents) {
-            _this.events.trigger(data.operation, data.response, data.request, data.options);
-            _this.events.triggerAfter(data.operation, true, data.response, data.request, data.options);
-            _this.events.trigger('change', data.operation, data.response, data.request, data.options);
-          }
-          if (typeof callback == 'function') {
-            callback.call(_this, true, data.response, data.request, data.options);
+          try {
+            if (!disableEvents) {
+              _this.events.trigger(data.operation, data.response, data.request, data.options);
+              _this.events.triggerAfter(data.operation, true, data.response, data.request, data.options);
+              _this.events.trigger('change', data.operation, data.response, data.request, data.options);
+            }
+            if (typeof callback == 'function') {
+              callback.call(_this, true, data.response, data.request, data.options);
+            }
+          } catch (error) {
+            if (typeof callback == 'function') {
+              callback.call(_this, false, error, data.request, data.options);
+            }
           }
         } catch (error) {
           br.logError('Error: ' + error);

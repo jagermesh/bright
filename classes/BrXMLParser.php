@@ -20,7 +20,7 @@ class BrXMLParser extends BrObject {
 
   public $result;
 
-  function parse($xml) {
+  public function parse($xml) {
 
     $this->result       = array();
 
@@ -62,7 +62,7 @@ class BrXMLParser extends BrObject {
 
   }
 
-  function printState() {
+  public function printState() {
 
     br()->log('===========================================================================');
     br()->log('Current XML tag: ' . $this->currentTag);
@@ -71,7 +71,7 @@ class BrXMLParser extends BrObject {
 
   }
 
-  function raiseError($error) {
+  public function raiseError($error) {
 
     $this->printState();
 
@@ -85,25 +85,25 @@ class BrXMLParser extends BrObject {
 
   }
 
-  function getArchiveName() {
+  public function getArchiveName() {
 
     return $this->archiveName;
 
   }
 
-  function getCurrentTag() {
+  public function getCurrentTag() {
 
     return $this->currentTag;
 
   }
 
-  function setCurrentTag($value) {
+  public function setCurrentTag($value) {
 
     return ($this->currentTag = $value);
 
   }
 
-  function getCurrentState() {
+  public function getCurrentState() {
 
     $result = array_pop($this->currentState);
     $this->currentState[] = $result;
@@ -111,31 +111,31 @@ class BrXMLParser extends BrObject {
 
   }
 
-  function getCurrentPath() {
+  public function getCurrentPath() {
 
     return implode('/', $this->currentState);
 
   }
 
-  function isAt($path) {
+  public function isAt($path) {
 
     return (strtolower($this->getCurrentPath()) == strtolower($path));
 
   }
 
-  function clearCurrentState() {
+  public function clearCurrentState() {
 
     $result = array_pop($this->currentState);
 
   }
 
-  function setCurrentState($value) {
+  public function setCurrentState($value) {
 
     $this->currentState[] = $value;
 
   }
 
-  function startElement($parser, $name, $attrs = array()) {
+  public function startElement($parser, $name, $attrs = array()) {
 
     $this->setCurrentTag($name);
     $this->setCurrentState($name);
@@ -144,13 +144,13 @@ class BrXMLParser extends BrObject {
 
   }
 
-  function content($parser, $data) {
+  public function content($parser, $data) {
 
     $this->trigger('content', $data);
 
   }
 
-  function endElement($parser, $name) {
+  public function endElement($parser, $name) {
 
     $this->trigger('endElement', $name);
 

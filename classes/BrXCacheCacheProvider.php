@@ -12,7 +12,7 @@ namespace Bright;
 
 class BrXCacheCacheProvider extends BrGenericCacheProvider {
 
-  function __construct($cfg = array()) {
+  public function __construct($cfg = array()) {
 
     parent::__construct($cfg);
 
@@ -92,7 +92,7 @@ class BrXCacheCacheProvider extends BrGenericCacheProvider {
 
   }
 
-  function remove($name) {
+  public function remove($name) {
 
     $name = $this->safeName($name);
 

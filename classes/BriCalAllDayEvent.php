@@ -16,7 +16,7 @@ class BriCalAllDayEvent extends BriCalEvent {
   private $dateStart;
   private $dateEnd;
 
-  function __construct($title, $dateStart, $dateEnd = null) {
+  public function __construct($title, $dateStart, $dateEnd = null) {
 
     parent::__construct($title, $dateStart, $dateEnd);
 

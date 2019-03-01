@@ -28,7 +28,7 @@ class BriCalEvent extends BrObject {
   private $attachments = array();
   private $allDayEvent = false;
 
-  function __construct($title, $dateStart, $dateEnd = null) {
+  public function __construct($title, $dateStart, $dateEnd = null) {
 
     if (!$dateEnd)   { $dateEnd   = $dateStart; }
     if (!$dateStart) { $dateStart = $dateEnd;   }
@@ -42,85 +42,85 @@ class BriCalEvent extends BrObject {
 
   }
 
-  function setAllDayEvent($value) {
+  public function setAllDayEvent($value) {
 
     $this->allDayEvent = $value;
 
   }
 
-  function setId($value) {
+  public function setId($value) {
 
     $this->uid = $value;
 
   }
 
-  function setUID($value) {
+  public function setUID($value) {
 
     $this->uid = $value;
 
   }
 
-  function setDescription($value) {
+  public function setDescription($value) {
 
     $this->description = $value;
 
   }
 
-  function setCreatedAt($value) {
+  public function setCreatedAt($value) {
 
     $this->createdAt = $value;
 
   }
 
-  function setHTMLDescription($value) {
+  public function setHTMLDescription($value) {
 
     $this->HTMLDescription = $value;
 
   }
 
-  function setUrl($value) {
+  public function setUrl($value) {
 
     $this->url = $value;
 
   }
 
-  function setColor($value) {
+  public function setColor($value) {
 
     $this->color = $value;
 
   }
 
-  function setOrganizer($value) {
+  public function setOrganizer($value) {
 
     $this->organizer = $value;
 
   }
 
-  function setPriority($value) {
+  public function setPriority($value) {
 
     $this->priority = $value;
 
   }
 
-  function setClass($value) {
+  public function setClass($value) {
 
     $this->class = $value;
 
   }
 
-  function setAlart($value) {
+  public function setAlart($value) {
 
     $this->alarm = $value;
 
   }
 
-  function setAlarm($value) {
+  public function setAlarm($value) {
 
     $this->alarm = $value;
 
   }
 
-  function addAttachment($name, $url) {
+  public function addAttachment($name, $url) {
 
     $this->attachments[] = array( 'name' => $name
                                 , 'url'  => $url
@@ -128,104 +128,104 @@ class BriCalEvent extends BrObject {
 
   }
 
-  function hasAttachments() {
+  public function hasAttachments() {
 
     return (count($this->attachments) > 0);
 
   }
 
-  function getAttachments() {
+  public function getAttachments() {
 
     return $this->attachments;
 
   }
 
 
-  function isAllDayEvent() {
+  public function isAllDayEvent() {
 
     return $this->allDayEvent;
 
   }
 
-  function getDateStart() {
+  public function getDateStart() {
 
     return $this->dateStart;
 
   }
 
-  function getDateEnd() {
+  public function getDateEnd() {
 
     return $this->dateEnd;
 
   }
 
-  function getCreatedAt() {
+  public function getCreatedAt() {
 
     return $this->createdAt;
 
   }
 
-  function getDescription() {
+  public function getDescription() {
 
     return $this->description;
 
   }
 
-  function getHTMLDescription() {
+  public function getHTMLDescription() {
 
     return $this->HTMLDescription;
 
   }
 
-  function getTitle() {
+  public function getTitle() {
 
     return $this->title;
 
   }
 
-  function getId() {
+  public function getId() {
 
     return $this->uid;
 
   }
 
-  function getUID() {
+  public function getUID() {
 
     return $this->uid;
 
   }
 
-  function getUrl() {
+  public function getUrl() {
 
     return $this->url;
 
   }
 
-  function getColor() {
+  public function getColor() {
 
     return $this->color;
 
   }
 
-  function getOrganizer() {
+  public function getOrganizer() {
 
     return $this->organizer;
 
   }
 
-  function getPriority() {
+  public function getPriority() {
 
     return $this->priority;
 
   }
 
-  function getClass() {
+  public function getClass() {
 
     return $this->class;
 
   }
 
-  function hasAlarm() {
+  public function hasAlarm() {
 
     return $this->alarm;
 

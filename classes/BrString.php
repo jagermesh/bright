@@ -18,7 +18,7 @@ class BrString extends BrGenericDataType {
 
   }
 
-  function like($pattern) {
+  public function like($pattern) {
 
     $pattern = str_replace(array('%', '.*?'), array('_', '.'), $pattern);
 
@@ -26,37 +26,37 @@ class BrString extends BrGenericDataType {
 
   }
 
-  function contain($pattern) {
+  public function contain($pattern) {
 
     return (strpos($this->value, $pattern) !== FALSE);
 
   }
 
-  function inArray($array) {
+  public function inArray($array) {
 
     return in_array($this->value, $array);
 
   }
 
-  function trim($charlist = " \t\n\r\0\x0B") {
+  public function trim($charlist = " \t\n\r\0\x0B") {
 
     return trim($this->s, $charlist);
 
   }
 
-  function trimLeft($charlist = " \t\n\r\0\x0B") {
+  public function trimLeft($charlist = " \t\n\r\0\x0B") {
 
     return ltrim($this->value, $charlist);
 
   }
 
-  function trimRight($charlist = " \t\n\r\0\x0B") {
+  public function trimRight($charlist = " \t\n\r\0\x0B") {
 
     return rtrim($this->value, $charlist);
 
   }
 
-  function toBytes() {
+  public function toBytes() {
 
     if (preg_match('/([0-9]+)(g|m|k|)/ism', trim($this->value), $matches)) {
       $val = $matches[1];
@@ -79,7 +79,7 @@ class BrString extends BrGenericDataType {
 
   }
 
-  function exists($value, $ignoreCase = false) {
+  public function exists($value, $ignoreCase = false) {
 
     if (is_array($value)) {
       foreach($value as $val) {
@@ -97,19 +97,19 @@ class BrString extends BrGenericDataType {
 
   }
 
-  function toLowerCase() {
+  public function toLowerCase() {
 
     return mb_strtolower($this->value);
 
   }
 
-  function toUpperCase() {
+  public function toUpperCase() {
 
     return mb_strtoupper($this->value);
 
   }
 
-  function trimByLength($length, $addPoints = false, $aligned = false) {
+  public function trimByLength($length, $addPoints = false, $aligned = false) {
 
     $s = $this->substring(0, $length);
     if ($aligned) {
@@ -122,25 +122,25 @@ class BrString extends BrGenericDataType {
 
   }
 
-  function substring($start = 0, $length = 0xFFFFFFF) {
+  public function substring($start = 0, $length = 0xFFFFFFF) {
 
     return mb_substr($this->value, $start, $length);
 
   }
 
-  function replace($search, $replace, &$count = NULL) {
+  public function replace($search, $replace, &$count = NULL) {
 
     return str_replace($search, $replace, $this->value, $count);
 
   }
 
-  function replaceIgnoreCase($search, $replace, &$count = NULL) {
+  public function replaceIgnoreCase($search, $replace, &$count = NULL) {
 
     return str_ireplace($search, $replace, $this->value, $count);
 
   }
 
-  function match($pattern, &$matches = NULL, $flags = 0, $offset = 0) {
+  public function match($pattern, &$matches = NULL, $flags = 0, $offset = 0) {
 
     if (!is_array($matches)) {
       $matches = array();
@@ -150,32 +150,32 @@ class BrString extends BrGenericDataType {
 
   }
 
-  function matchAll($pattern, &$matches = NULL, $flags = PREG_PATTERN_ORDER, $offset = 0) {
+  public function matchAll($pattern, &$matches = NULL, $flags = PREG_PATTERN_ORDER, $offset = 0) {
 
     if (!is_array($matches)) $matches = array();
     return preg_match_all($pattern, $this->value, $matches, $flags, $offset);
 
   }
 
-  function replaceRegExp($pattern, $replacement , $limit = -1, &$count = NULL) {
+  public function replaceRegExp($pattern, $replacement , $limit = -1, &$count = NULL) {
 
     return preg_replace($pattern, $replacement, $this->value, $limit, $count);
 
   }
 
-  function charAt($index) {
+  public function charAt($index) {
 
     return $this->substr($index, 1);
 
   }
 
-  function indexOf($search, $start = 0) {
+  public function indexOf($search, $start = 0) {
 
     return mb_strpos($this->value, $search);
 
   }
 
-  function subst($pattern) {
+  public function subst($pattern) {
 
     $args = func_get_args();
     $result = br()->placeholderEx($this->value, $args, $error);
@@ -187,7 +187,7 @@ class BrString extends BrGenericDataType {
 
   }
 
-  function split($delimiters = ',;', $removeEmpty = true) {
+  public function split($delimiters = ',;', $removeEmpty = true) {
 
     $delimiters = str_replace('/', '\/', $delimiters);
     $result = preg_split('/[' . $delimiters . ']/', $this->value);
@@ -202,7 +202,7 @@ class BrString extends BrGenericDataType {
 
   }
 
-  function toCharPath() {
+  public function toCharPath() {
 
     $charPath = '';
     for($i = 0; $i < strlen($this->value); $i++) {
@@ -213,13 +213,13 @@ class BrString extends BrGenericDataType {
 
   }
 
-  function inc($var, $glue = ', ') {
+  public function inc($var, $glue = ', ') {
 
     return $this->value . ($this->value ? $glue : '') . $var;
 
   }
 
-  function repeat($amount) {
+  public function repeat($amount) {
 
     $result = '';
     for ($i = 0; $i < $amount; $i++) {
@@ -230,7 +230,7 @@ class BrString extends BrGenericDataType {
 
   }
 
-  function padLeft($amount, $glue = ' ') {
+  public function padLeft($amount, $glue = ' ') {
 
     if ($amount > strlen($this->value)) {
       return str_pad($this->value, $amount * strlen($glue), $glue, STR_PAD_LEFT);
@@ -240,55 +240,55 @@ class BrString extends BrGenericDataType {
 
   }
 
-  function floor($precision = 0) {
+  public function floor($precision = 0) {
 
     return floor($this->value * pow(10, $precision))/pow(10,$precision);
 
   }
 
-  function join() {
+  public function join() {
 
     return $this->value;
 
   }
 
-  function fromJSON() {
+  public function fromJSON() {
 
     return json_decode($this->value, true);
 
   }
 
-  function textToHtml() {
+  public function textToHtml() {
 
     return br()->HTML()->fromText($this->value);
 
   }
 
-  function isHtml() {
+  public function isHtml() {
 
     return br()->HTML()->isHtml($this->value);
 
   }
 
-  function htmlToText($smart = false) {
+  public function htmlToText($smart = false) {
 
     return br()->HTML()->toText($this->value, $smart);
 
   }
 
-  function decodeNumHtmlEntities() {
+  public function decodeNumHtmlEntities() {
 
     return br()->HTML()->decodeNumEntities($this->value);
 
   }
 
-  function toSingleLine() {
+  public function toSingleLine() {
 
     return preg_replace('#[\n\r]#', ' ', $this->value);
 
   }
 
-  function crc16() {
+  public function crc16() {
 
     $crc = 0xFFFF;
     for ($x = 0; $x < strlen($this->value); $x++) {
@@ -306,7 +306,7 @@ class BrString extends BrGenericDataType {
 
   }
 
-  function in($value) {
+  public function in($value) {
 
     if (is_array($value)) {
       return in_array($this->value, $value);
@@ -425,7 +425,7 @@ class BrString extends BrGenericDataType {
 
   }
 
-  function logDifference($newText, $logObject = null, $console = true) {
+  public function logDifference($newText, $logObject = null, $console = true) {
 
     if (!$logObject) {
       $logObject = br()->log();

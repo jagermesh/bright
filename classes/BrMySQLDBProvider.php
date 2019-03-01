@@ -18,7 +18,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
   private $reconnectIterations = 10;
   private $rerunIterations = 10;
 
-  function __construct($config) {
+  public function __construct($config) {
 
     $this->config = $config;
     register_shutdown_function(array(&$this, "captureShutdown"));

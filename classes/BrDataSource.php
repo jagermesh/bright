@@ -17,7 +17,7 @@ class BrDataSource extends BrGenericDataSource {
   private $dbIndexHint;
   private $DMLType;
 
-  function __construct($dbEntity, $options = array()) {
+  public function __construct($dbEntity, $options = array()) {
 
     $this->dbEntity = $dbEntity;
 
@@ -25,7 +25,7 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
-  function dbEntity($newValue = null) {
+  public function dbEntity($newValue = null) {
 
     if ($newValue) {
       $this->dbEntity = $newValue;
@@ -35,7 +35,7 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
-  function dbEntityAlias($newValue = null) {
+  public function dbEntityAlias($newValue = null) {
 
     if ($newValue) {
       $this->dbEntityAlias = $newValue;
@@ -45,7 +45,7 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
-  function dbIndexHint($newValue = null) {
+  public function dbIndexHint($newValue = null) {
 
     if ($newValue) {
       $this->dbIndexHint = $newValue;
@@ -55,7 +55,7 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
-  function getDMLType() {
+  public function getDMLType() {
 
     return $this->DMLType;
 
@@ -269,7 +269,7 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
-  function getCursor($filter = array(), $fields = array(), $order = array(), $options = array()) {
+  public function getCursor($filter = array(), $fields = array(), $order = array(), $options = array()) {
 
     $options['result'] = 'cursor';
 
@@ -277,7 +277,7 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
-  function getStatement($filter = array(), $fields = array(), $order = array(), $options = array()) {
+  public function getStatement($filter = array(), $fields = array(), $order = array(), $options = array()) {
 
     $options['result'] = 'statement';
 
@@ -285,7 +285,7 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
-  function getSQL($filter = array(), $fields = array(), $order = array(), $options = array()) {
+  public function getSQL($filter = array(), $fields = array(), $order = array(), $options = array()) {
 
     $options['result'] = 'sql';
 
@@ -293,7 +293,7 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
-  function insert($rowParam = array(), &$transientData = array(), $optionsParam = array(), $iteration = 0, $rerunError = null) {
+  public function insert($rowParam = array(), &$transientData = array(), $optionsParam = array(), $iteration = 0, $rerunError = null) {
 
     if ($iteration > $this->rerunIterations) {
       throw new BrDBException($rerunError);
@@ -374,7 +374,7 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
-  function update($rowid, $rowParam, &$transientData = array(), $optionsParam = array(), $iteration = 0, $rerunError = null) {
+  public function update($rowid, $rowParam, &$transientData = array(), $optionsParam = array(), $iteration = 0, $rerunError = null) {
 
     if ($iteration > $this->rerunIterations) {
       throw new BrDBException($rerunError);
@@ -471,7 +471,7 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
-  function remove($rowid, &$transientData = array(), $optionsParam = array(), $iteration = 0, $rerunError = null) {
+  public function remove($rowid, &$transientData = array(), $optionsParam = array(), $iteration = 0, $rerunError = null) {
 
     if ($iteration > $this->rerunIterations) {
       throw new BrDBException($rerunError);

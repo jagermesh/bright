@@ -8,7 +8,7 @@ class BrOAuthV1 {
   private $OAuthSecret;
   private $signatureMethod = 'SHA1';
 
-  function __construct($key, $secret, $signatureMethod = 'SHA1') {
+  public function __construct($key, $secret, $signatureMethod = 'SHA1') {
 
     $this->OAuthKey = $key;
     $this->OAuthSecret = $secret;
@@ -18,6 +18,7 @@ class BrOAuthV1 {
   }
 
   private function generateBaseString($method, $url, $params) {
+
     $url = parse_url($url);
     if (isset($url['query'])) {
       parse_str($url['query'], $params2);
@@ -31,7 +32,9 @@ class BrOAuthV1 {
         rawurlencode($key) . '=' . rawurlencode($value) . '&'
       );
     }
+
     return substr($baseStr, 0, -3);
+
   }
 
   public function setSignatureMethod($setMethod = 'SHA1') {
@@ -40,7 +43,7 @@ class BrOAuthV1 {
 
   }
 
-  function sign($method, $url, $params = array(), $content = '') {
+  public function sign($method, $url, $params = array(), $content = '') {
 
     $oauth = array( 'oauth_consumer_key'     => $this->OAuthKey
                   , 'oauth_signature_method' => 'HMAC-' . $this->signatureMethod
@@ -64,7 +67,7 @@ class BrOAuthV1 {
 
   }
 
-  function sendSignedRequest($method, $url, $params = array(), $content = '') {
+  public function sendSignedRequest($method, $url, $params = array(), $content = '', array $additionalHeaders = array()) {
 
     $checkurl = parse_url($url);
     $curl     = curl_init();
@@ -91,6 +94,10 @@ class BrOAuthV1 {
       $headers[] = 'Cache-Control: no-cache';
       $headers[] = 'Authorization: ' . $this->sign($method, $url, $params, $content);
       $headers[] = 'Content-type: application/json;charset=UTF-8';
+
+      foreach ($additionalHeaders as $additionalHeader) {
+        $headers[] = $additionalHeader;
+      }
 
       curl_setopt($curl, CURLOPT_HTTPHEADER,     $headers);
       curl_setopt($curl, CURLOPT_URL,            $url);

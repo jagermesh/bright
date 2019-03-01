@@ -121,15 +121,15 @@ class BrFileSystem extends BrSingleton {
 
   public function makeDir($path, $access = 0777) {
 
-    if (is_dir($path)) {
+    if (file_exists($path)) {
       return true;
     }
 
-    br()->errorHandler()->disable();
-    $result = @mkdir($path, $access, true);
-    br()->errorHandler()->enable();
-
-    return $result;
+    try {
+      return @mkdir($path, $access, true);
+    } catch (\Exception $e) {
+      return false;
+    }
 
   }
 

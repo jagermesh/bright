@@ -16,7 +16,7 @@ class BrRMQLogAdapter extends BrGenericLogAdapter {
   private $routingKey;
   private $rmq;
 
-  function __construct($params = array()) {
+  public function __construct($params = array()) {
 
     parent::__construct();
 
@@ -34,7 +34,7 @@ class BrRMQLogAdapter extends BrGenericLogAdapter {
 
   }
 
-  function write($message, $group = 'MSG') {
+  public function write($message, $group = 'MSG', $tagline = null) {
 
     if ($this->isEnabled() && br()->log()->isEnabled()) {
       try {
@@ -105,24 +105,6 @@ class BrRMQLogAdapter extends BrGenericLogAdapter {
         $this->disable();
       }
     }
-
-  }
-
-  function writeMessage($message, $group = 'MSG', $tagline = '') {
-
-    $this->write($message, $group);
-
-  }
-
-  function writeDebug($message) {
-
-    $this->write($message, 'DBG');
-
-  }
-
-  function writeError($message, $tagline = '') {
-
-    $this->write($message, 'ERR');
 
   }
 

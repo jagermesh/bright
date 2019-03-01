@@ -21,13 +21,13 @@ class BrFTP extends BrObject {
   private $currentPassiveMode;
   private $reconnectsAmount = 10;
 
-  function __construct() {
+  public function __construct() {
 
     parent::__construct();
 
   }
 
-  function connect($hostName, $userName, $password, $port = 21, $passiveMode = true, $attempt = 0) {
+  public function connect($hostName, $userName, $password, $port = 21, $passiveMode = true, $attempt = 0) {
 
     $this->currentHostName    = $hostName;
     $this->currentUserName    = $userName;

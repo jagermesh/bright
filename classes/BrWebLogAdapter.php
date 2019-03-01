@@ -12,26 +12,7 @@ namespace Bright;
 
 class BrWebLogAdapter extends BrGenericLogAdapter {
 
-  function writeMessage($message, $group = 'MSG', $tagline = '') {
-
-  }
-
-  function writeDebug($message) {
-
-    if (br()->isConsoleMode()) {
-
-    } else
-    if (br()->request()->isLocalHost()) {
-      include(dirname(__DIR__) . '/templates/DebugMessage.html');
-    }
-
-  }
-
-  function writeError($message, $tagline = '') {
-
-  }
-
-  function writeException($e, $sendOutput = false, $printCallStack = true) {
+  public function writeException($e, $sendOutput = false, $printCallStack = true) {
 
     if (!br()->isConsoleMode() && $sendOutput) {
       $errorMessage  = (($e instanceof BrErrorException) ? $e->getType() : 'Error');
@@ -60,6 +41,19 @@ class BrWebLogAdapter extends BrGenericLogAdapter {
       }
 
       include(dirname(__DIR__) . '/templates/ErrorMessage.html');
+    }
+
+  }
+
+  public function write($message, $group = 'MSG', $tagline = null) {
+
+    if ($group == 'DBG') {
+      if (br()->isConsoleMode()) {
+
+      } else
+      if (br()->request()->isLocalHost()) {
+        include(dirname(__DIR__) . '/templates/DebugMessage.html');
+      }
     }
 
   }

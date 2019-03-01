@@ -25,7 +25,7 @@ class BrDataBasePatch {
   const DO_CONTINUE = 1;
   const DO_RETRY    = 2;
 
-  function __construct($patchFile, $dbManager, $logObject) {
+  public function __construct($patchFile, $dbManager, $logObject) {
 
     $this->patchFile = $patchFile;
     $this->className = get_called_class();
@@ -35,25 +35,25 @@ class BrDataBasePatch {
 
   }
 
-  function setGuid($value) {
+  public function setGuid($value) {
 
     $this->guid = $value;
 
   }
 
-  function logPrefix() {
+  public function logPrefix() {
 
     return '[' . br()->db()->getDataBaseName() . '] [' . $this->className . ']';
 
   }
 
-  function addDependency($value) {
+  public function addDependency($value) {
 
     $this->dependencies[] = $value;
 
   }
 
-  function checkDependencies() {
+  public function checkDependencies() {
 
     foreach($this->dependencies as $dependency) {
       if (br()->db()->getValue('SELECT id FROM br_db_patch WHERE guid = ?', $dependency)) {
@@ -67,7 +67,7 @@ class BrDataBasePatch {
 
   }
 
-  function checkRequirements($regularRun = true, $command = 'run') {
+  public function checkRequirements($regularRun = true, $command = 'run') {
 
     br()->assert($this->guid, 'Please generate GUID for this patch');
 
@@ -120,7 +120,7 @@ class BrDataBasePatch {
 
   }
 
-  function run() {
+  public function run() {
 
     br()->log('');
     $this->logObject->log('Apply');
@@ -139,7 +139,7 @@ class BrDataBasePatch {
 
   }
 
-  function registerTableForAuditing($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $excludeFields = null) {
+  public function registerTableForAuditing($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $excludeFields = null) {
 
     $this->logObject->log(br('=')->repeat(80));
     $this->logObject->log('registerTableForAuditing(' . $tableName . ', ' . $isInsertAudited . ', ' . $isUpdateAudited . ', ' . $isDeleteAudited . ', "' . $excludeFields . '")');
@@ -148,13 +148,13 @@ class BrDataBasePatch {
 
   }
 
-  function refreshTableSupport($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $excludeFields = null) {
+  public function refreshTableSupport($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $excludeFields = null) {
 
     return $this->dbManager->refreshTableSupport($tableName, $isInsertAudited, $isUpdateAudited, $isDeleteAudited, $excludeFields);
 
   }
 
-  function setupTableSupport($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $excludeFields = null) {
+  public function setupTableSupport($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $excludeFields = null) {
 
     $this->logObject->log(br('=')->repeat(80));
     $this->logObject->log('setupTableSupport(' . $tableName . ', ' . $isInsertAudited . ', ' . $isUpdateAudited . ', ' . $isDeleteAudited . ', "' . $excludeFields . '")');
@@ -163,7 +163,7 @@ class BrDataBasePatch {
 
   }
 
-  function execute($sql, $stepName = null) {
+  public function execute($sql, $stepName = null) {
 
     $this->stepNo++;
     $stepName = $stepName ? $stepName : $this->stepNo;
@@ -172,7 +172,7 @@ class BrDataBasePatch {
 
   }
 
-  function parseScript($script) {
+  public function parseScript($script) {
 
     $result = array();
     $delimiter = ';';

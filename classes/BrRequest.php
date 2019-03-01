@@ -29,7 +29,7 @@ class BrRequest extends BrSingleton {
   private $urlRestrictions = array();
   private $restrictionsLoaded = false;
 
-  function __construct() {
+  public function __construct() {
 
     if (br()->isConsoleMode()) {
 
@@ -167,7 +167,7 @@ class BrRequest extends BrSingleton {
    * Get referer
    * @return String
    */
-  function referer($default = null) {
+  public function referer($default = null) {
 
     return br($_SERVER, 'HTTP_REFERER', $default);
 
@@ -177,7 +177,7 @@ class BrRequest extends BrSingleton {
    * Check if request referer is this site
    * @return boolean
    */
-  function isSelfReferer() {
+  public function isSelfReferer() {
 
     return strpos($this->referer(), $this->host() . $this->baseUrl()) !== false;
 
@@ -188,7 +188,7 @@ class BrRequest extends BrSingleton {
    * @param  String $url Urls to check
    * @return boolean
    */
-  function isAt($url) {
+  public function isAt($url) {
 
     if (@preg_match('~'.$url.'~', $this->url, $matches)) {
       return $matches;
@@ -198,7 +198,7 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function isRefererAt($url) {
+  public function isRefererAt($url) {
 
     if (@preg_match('~'.$url.'~', $this->referer(), $matches)) {
       return $matches;
@@ -208,13 +208,13 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function isAtBaseUrl() {
+  public function isAtBaseUrl() {
 
     return $this->isAt($this->baseUrl() . '$');
 
   }
 
-  function path() {
+  public function path() {
 
     return $this->path;
 
@@ -224,7 +224,7 @@ class BrRequest extends BrSingleton {
    * Get client IP
    * @return String
    */
-  function clientIP() {
+  public function clientIP() {
 
     return $this->clientIP;
 
@@ -234,25 +234,25 @@ class BrRequest extends BrSingleton {
    * Get current url
    * @return String
    */
-  function url() {
+  public function url() {
 
     return $this->url;
 
   }
 
-  function relativeUrl() {
+  public function relativeUrl() {
 
     return $this->relativeUrl;
 
   }
 
-  function setBaseUrl($value) {
+  public function setBaseUrl($value) {
 
     $this->baseUrl = $value;
 
   }
 
-  function baseUrl($dec = 0) {
+  public function baseUrl($dec = 0) {
 
     if (br()->isConsoleMode()) {
       $result = br()->config()->get('br/request/consoleModeBaseUrl', '/');
@@ -270,7 +270,7 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function build($url = array(), $params = array()) {
+  public function build($url = array(), $params = array()) {
 
     if ($params) {
       $result = $url;
@@ -314,7 +314,7 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function getBrightUrl() {
+  public function getBrightUrl() {
 
     if ($this->brightUrl) {
       return $this->brightUrl;
@@ -324,19 +324,19 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function brightUrl() {
+  public function brightUrl() {
 
     return $this->getBrightUrl();
 
   }
 
-  function setBrightUrl($value) {
+  public function setBrightUrl($value) {
 
     return $this->brightUrl = $value;
 
   }
 
-  function domain() {
+  public function domain() {
 
     if (br()->isConsoleMode()) {
       return br()->config()->get('br/request/consoleModeBaseDomain', 'localhost');
@@ -346,7 +346,7 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function serverAddr() {
+  public function serverAddr() {
 
     if (br()->isConsoleMode()) {
       return br()->config()->get('br/request/consoleModeServerAddr', '127.0.0.1');
@@ -356,7 +356,7 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function isLocalHost() {
+  public function isLocalHost() {
 
     $whitelist = array('localhost', '127.0.0.1');
     if (in_array($this->domain(), $whitelist)) {
@@ -376,7 +376,7 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function isDevHost() {
+  public function isDevHost() {
 
     if ($this->isLocalHost()) {
       return true;
@@ -391,7 +391,7 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function protocol() {
+  public function protocol() {
 
     if (br()->isConsoleMode()) {
       return br()->config()->get('br/request/consoleModeWebProtocol', 'http://');
@@ -401,7 +401,7 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function host() {
+  public function host() {
 
     if (br()->isConsoleMode()) {
       return br()->config()->get('br/request/consoleModeBaseHost', $this->protocol() . $this->domain());
@@ -411,25 +411,25 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function origin() {
+  public function origin() {
 
     return $this->host();
 
   }
 
-  function getScriptName() {
+  public function getScriptName() {
 
     return $this->scriptName;
 
   }
 
-  function method() {
+  public function method() {
 
     return br($_SERVER, 'REQUEST_METHOD');
 
   }
 
-  function ifModifidSince() {
+  public function ifModifidSince() {
 
     if ($d = br($_SERVER, 'HTTP_IF_MODIFIED_SINCE')) {
       return strtotime($d);
@@ -438,73 +438,73 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function isMethod($method) {
+  public function isMethod($method) {
 
     return (br($_SERVER, 'REQUEST_METHOD') == $method);
 
   }
 
-  function isGET() {
+  public function isGET() {
 
     return (br($_SERVER, 'REQUEST_METHOD') == 'GET');
 
   }
 
-  function isPOST() {
+  public function isPOST() {
 
     return (br($_SERVER, 'REQUEST_METHOD') == 'POST');
 
   }
 
-  function isDELETE() {
+  public function isDELETE() {
 
     return (br($_SERVER, 'REQUEST_METHOD') == 'DELETE');
 
   }
 
-  function isPUT() {
+  public function isPUT() {
 
     return (br($_SERVER, 'REQUEST_METHOD') == 'PUT');
 
   }
 
-  function isRedirect() {
+  public function isRedirect() {
 
     return (br($_SERVER, 'REDIRECT_STATUS') != 200);
 
   }
 
-  function isTemporaryRedirect() {
+  public function isTemporaryRedirect() {
 
     return (br($_SERVER, 'REDIRECT_STATUS') == 302);
 
   }
 
-  function isPermanentRedirect() {
+  public function isPermanentRedirect() {
 
     return (br($_SERVER, 'REDIRECT_STATUS') == 301);
 
   }
 
-  function userAgent() {
+  public function userAgent() {
 
     return br($_SERVER, 'HTTP_USER_AGENT');
 
   }
 
-  function isMobile() {
+  public function isMobile() {
 
     return preg_match('/iPad|iPhone|iOS|Android/i', br($_SERVER, 'HTTP_USER_AGENT'));
 
   }
 
-  function rawInput() {
+  public function rawInput() {
 
     return file_get_contents('php://input');
 
   }
 
-  function get($name = null, $default = null) {
+  public function get($name = null, $default = null) {
 
     if ($name) {
       return br($_GET, $name, $default);
@@ -514,7 +514,7 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function post($name = null, $default = null) {
+  public function post($name = null, $default = null) {
 
     if ($name) {
       return br($_POST, $name, $default);
@@ -524,7 +524,7 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function put($name = null, $default = null) {
+  public function put($name = null, $default = null) {
 
     if ($name) {
       return br($this->putVars, $name, $default);
@@ -534,32 +534,32 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function cookie($name, $default = null) {
+  public function cookie($name, $default = null) {
 
     return br($_COOKIE, $name, $default);
 
   }
 
-  function param($name, $default = null) {
+  public function param($name, $default = null) {
 
     return $this->get($name, $this->post($name, $this->put($name, $default)));
 
   }
 
-  function isFilesUploaded() {
+  public function isFilesUploaded() {
 
     return count($_FILES);
 
   }
 
-  function file($name) {
+  public function file($name) {
 
     $result = br($_FILES, $name);
     return $result;
 
   }
 
-  function fileTmp($name) {
+  public function fileTmp($name) {
 
     if ($this->isFileUploaded($name)) {
       return br($this->file($name), 'tmp_name');
@@ -567,7 +567,7 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function fileName($name) {
+  public function fileName($name) {
 
     if ($this->isFileUploaded($name)) {
       return br($this->file($name), 'name');
@@ -575,7 +575,7 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function fileSize($name) {
+  public function fileSize($name) {
 
     if ($this->isFileUploaded($name)) {
       return br($this->file($name), 'size');
@@ -583,7 +583,7 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function fileError($name) {
+  public function fileError($name) {
 
     if ($_FILES) {
       if ($result = br($_FILES, $name)) {
@@ -593,7 +593,7 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function isFileUploaded($name) {
+  public function isFileUploaded($name) {
 
     if ($this->isFilesUploaded()) {
       if ($result = $this->file($name)) {
@@ -607,7 +607,7 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function moveUploadedFile($name, $destFolder) {
+  public function moveUploadedFile($name, $destFolder) {
 
     if ($this->isFileUploaded($name)) {
       $destFolder = br()->fs()->normalizePath($destFolder);
@@ -622,19 +622,19 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function continueRoute($value = true) {
+  public function continueRoute($value = true) {
 
     $this->continueRoute = $value;
 
   }
 
-  function routeComplete() {
+  public function routeComplete() {
 
     return !$this->continueRoute;
 
   }
 
-  function checkUrlRestrictions() {
+  public function checkUrlRestrictions() {
 
     $this->trigger('checkUrlRestrictions');
 
@@ -654,7 +654,7 @@ class BrRequest extends BrSingleton {
           $restriction['rule'] = ltrim(rtrim($restriction['rule'], '|'), '|');
           if (!$this->isAt($restriction['rule'])) {
             if (br($restriction, 'redirect')) {
-              br()->auth()->clearLogin();
+              br()->auth()->logout();
               br()->response()->redirect($restriction['redirect']);
             } else {
               br()->response()->sendNotAuthorized();
@@ -666,7 +666,7 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function setUrlRestrictions($restriction) {
+  public function setUrlRestrictions($restriction) {
 
     $this->urlRestrictions = $restriction;
     br()->session()->set('urlRestrictions', $this->urlRestrictions);
@@ -674,7 +674,7 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function addUrlRestriction($restriction) {
+  public function addUrlRestriction($restriction) {
 
     $this->urlRestrictions[] = $restriction;
     br()->session()->set('urlRestrictions', $this->urlRestrictions);
@@ -682,14 +682,14 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function clearUrlRestrictions() {
+  public function clearUrlRestrictions() {
 
     $this->urlRestrictions[] = array();
     br()->session()->clear('urlRestrictions');
 
   }
 
-  function route($methods, $path, $func = null) {
+  public function route($methods, $path, $func = null) {
 
     if ($func) {
 
@@ -715,7 +715,7 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function check($condition, $func) {
+  public function check($condition, $func) {
 
     if (!$this->routeComplete()) {
       if ($condition) {
@@ -728,37 +728,37 @@ class BrRequest extends BrSingleton {
 
   }
 
-  function routeGET($path, $func) {
+  public function routeGET($path, $func) {
 
     return $this->route($path, $func);
 
   }
 
-  function routePOST($path, $func) {
+  public function routePOST($path, $func) {
 
     return $this->route('POST', $path, $func);
 
   }
 
-  function routePUT($path, $func) {
+  public function routePUT($path, $func) {
 
     return $this->route('PUT', $path, $func);
 
   }
 
-  function routeDELETE($path, $func) {
+  public function routeDELETE($path, $func) {
 
     return $this->route('DELETE', $path, $func);
 
   }
 
-  function routeIndex($func) {
+  public function routeIndex($func) {
 
     return $this->route(br()->request()->host().br()->request()->baseUrl().'($|index[.]html|[?])', $func);
 
   }
 
-  function routeDefault() {
+  public function routeDefault() {
 
     if (!$this->routeComplete()) {
       $asis = br()->atTemplatesPath(br()->request()->relativeUrl() . br()->request()->getScriptName());
@@ -776,7 +776,7 @@ class BrRequest extends BrSingleton {
 
   // needs to be removed
 
-  function scriptName() {
+  public function scriptName() {
 
     return $this->scriptName;
 

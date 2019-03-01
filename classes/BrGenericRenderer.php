@@ -87,6 +87,10 @@ class BrGenericRenderer extends BrObject {
 
   }
 
+  public function resetEngine() {
+
+  }
+
   public function fetch($templateName, $subst = array()) {
 
     $template = $this->fetchFile($templateName);

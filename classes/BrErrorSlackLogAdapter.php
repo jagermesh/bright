@@ -16,7 +16,7 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
   private $cacheInitialized = false;
   private $webHookUrl;
 
-  function __construct($webHookUrl) {
+  public function __construct($webHookUrl) {
 
     $this->webHookUrl = $webHookUrl;
 
@@ -24,7 +24,53 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
 
   }
 
-  function initCache() {
+  public function write($message, $group = 'MSG', $tagline = null) {
+
+    if (br()->request()->isLocalHost() && !br()->isConsoleMode()) {
+
+    } else {
+      try {
+        switch($group) {
+          case 'ERR':
+            $this->initCache();
+            $isCached = false;
+            $cacheTag = '';
+            $subject = 'Error report';
+            if ($tagline) {
+              $subject .= ': ' . $tagline;
+              $cacheTag = get_class($this) . '|' . md5($subject);
+              if ($this->cache) {
+                $isCached = $this->cache->get($cacheTag);
+                $this->cache->set($cacheTag, true);
+              }
+            }
+            if ($isCached) {
+              return;
+            }
+            break;
+          case 'DBG':
+            $subject = 'Debug message';
+            if ($tagline) {
+              $subject .= ': ' . $tagline;
+            }
+            break;
+          default:
+            return;
+            break;
+        }
+        $message = array( 'text'        => '*' . $subject . '*' . "\n\n" . $this->getHeader()
+                        , 'username'    => br()->request()->domain()
+                        , 'attachments' => array(array('text' => $message))
+                        );
+        br()->browser()->postJSON($this->webHookUrl, $message);
+      } catch (\Exception $e) {
+
+      }
+    }
+
+  }
+
+  private function initCache() {
 
     if (!$this->cacheInitialized) {
       try {
@@ -38,19 +84,7 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
 
   }
 
-  function packBody($message) {
-
-    $body  = '<html>';
-    $body .= '<body>';
-    $body .= $message;
-    $body .= '</body>';
-    $body .= '</html>';
-
-    return $body;
-
-  }
-
-  function getHeader() {
+  private function getHeader() {
 
     $result = array();
 
@@ -121,78 +155,5 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
     return $body;
 
   }
-
-  function writeError($message, $tagline = '') {
-
-    if (br()->request()->isLocalHost() && !br()->isConsoleMode()) {
-
-    } else {
-      try {
-        $this->initCache();
-
-        $isCached = false;
-        $cacheTag = '';
-        $subject = 'Error report';
-        if ($tagline) {
-          $subject .= ': ' . $tagline;
-          $cacheTag = get_class($this) . '|' . md5($subject);
-          if ($this->cache) {
-            $isCached = $this->cache->get($cacheTag);
-          }
-        }
-        if ($isCached) {
-
-        } else {
-          $message = array( 'text'        => '*' . $subject . '*' . "\n\n" . $this->getHeader()
-                          , 'username'    => br()->request()->domain()
-                          , 'attachments' => array(array( 'text' => $message ))
-                          );
-          br()->browser()->postJSON($this->webHookUrl, $message);
-          if ($this->cache) {
-            $this->cache->set($cacheTag, true);
-          }
-        }
-      } catch (\Exception $e) {
-
-      }
-    }
-
-  }
-
-  function writeDebug($message, $tagline = '') {
-
-    if (br()->request()->isLocalHost() || br()->isConsoleMode()) {
-
-    } else {
-      try {
-        $subject = 'Debug message';
-        if ($tagline) {
-          $subject .= ': ' . $tagline;
-        }
-        $message = array( 'text'        => '*' . $subject . '*' . "\n\n" . $this->getHeader()
-                        , 'username'    => br()->request()->domain()
-                        , 'attachments' => array(array('text' => $message))
-                        );
-        br()->browser()->postJSON($this->webHookUrl, $message);
-      } catch (\Exception $e) {
-
-      }
-    }
-
-  }
-
-  function writeMessage($message, $group = 'MSG', $tagline = '') {
-
-    switch($group) {
-      case 'ERR':
-        $this->writeError($message, $tagline);
-        break;
-      case 'DBG':
-        $this->writeDebug($message, $tagline);
-        break;
-    }
-
-  }
-
 
 }

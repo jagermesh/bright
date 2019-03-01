@@ -17,7 +17,7 @@ class BrFTPFileObject {
   private $date;
   private $isDirectory;
 
-  function __construct($line) {
+  public function __construct($line) {
 
     if (preg_match('#([-d]).* ([0-9]+) ([a-zA-Z]{3}) ([ 0-9]?[0-9]) (([0-9]{2}):([0-9]{2})| [0-9]{4}) (.+)#', $line, $matches)) {
       $this->isDirectory = ($matches[1] == 'd');
@@ -34,31 +34,31 @@ class BrFTPFileObject {
 
   }
 
-  function isFile() {
+  public function isFile() {
 
     return !$this->isDir();
 
   }
 
-  function isDir() {
+  public function isDir() {
 
     return $this->isDirectory;
 
   }
 
-  function name() {
+  public function name() {
 
     return $this->name;
 
   }
 
-  function size() {
+  public function size() {
 
     return $this->size;
 
   }
 
-  function date() {
+  public function date() {
 
     return $this->date;
 

@@ -21,7 +21,7 @@ class BrRSSFeed extends BrObject {
   private $InsideData = false;
   private $InsideArticle = false;
 
-  function parseUrl($Url) {
+  public function parseUrl($Url) {
 
     if ($Content = @get_file_contents($Url)) {
 
@@ -31,7 +31,7 @@ class BrRSSFeed extends BrObject {
 
   }
 
-  function parse($Content) {
+  public function parse($Content) {
 
     $this->Articles = array();
 
@@ -57,7 +57,7 @@ class BrRSSFeed extends BrObject {
 
   }
 
-  function start_element($parser, $name, $attrs = array()) {
+  public function start_element($parser, $name, $attrs = array()) {
 
     if ($this->InsideArticle) {
       $this->CurrentTag = $name;
@@ -72,7 +72,7 @@ class BrRSSFeed extends BrObject {
 
   }
 
-  function content($parser, $data) {
+  public function content($parser, $data) {
 
     if ($this->InsideArticle) {
       switch ($this->CurrentTag) {
@@ -107,7 +107,7 @@ class BrRSSFeed extends BrObject {
 
   }
 
-  function end_element($parser, $name) {
+  public function end_element($parser, $name) {
 
     switch ($name) {
       case 'ITEM':

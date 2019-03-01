@@ -17,7 +17,7 @@ class BrGenericSQLProviderTable {
   private $indexHint;
   private $provider;
 
-  function __construct(&$provider, $tableName, $params = array()) {
+  public function __construct(&$provider, $tableName, $params = array()) {
 
     $this->tableName  = $tableName;
     $this->tableAlias = br($params, 'tableAlias');
@@ -389,7 +389,7 @@ class BrGenericSQLProviderTable {
           $joinLeftPart = $joinTableName;
         }
         if (is_array($joinField)) {
-          if (br()->isRegularArray($joinField)) {
+          if (br($joinField)->isRegularArray()) {
             $joins .= br()->placeholder(' AND ' . $joinLeftPart . ' IN (?@)', $joinField);
           } else {
             foreach($joinField as $operation => $joinFieldNameOrValue) {
@@ -413,7 +413,7 @@ class BrGenericSQLProviderTable {
                   break;
                 case '$in':
                   if (is_array($joinFieldNameOrValue)) {
-                    $joinFieldNameOrValue = br()->removeEmptyValues($joinFieldNameOrValue);
+                    $joinFieldNameOrValue = br($joinFieldNameOrValue)->removeEmptyValues();
                     if ($joinFieldNameOrValue) {
                       $joins .= br()->placeholder(' AND ' . $joinLeftPart . ' IN (?@)', $joinFieldNameOrValue);
                     } else {
@@ -428,7 +428,7 @@ class BrGenericSQLProviderTable {
                   break;
                 case '$nin':
                   if (is_array($joinFieldNameOrValue)) {
-                    $joinFieldNameOrValue = br()->removeEmptyValues($joinFieldNameOrValue);
+                    $joinFieldNameOrValue = br($joinFieldNameOrValue)->removeEmptyValues();
                     if ($joinFieldNameOrValue) {
                       $joins .= br()->placeholder(' AND ' . $joinLeftPart . ' NOT IN (?@)', $joinFieldNameOrValue);
                     } else {
@@ -444,7 +444,7 @@ class BrGenericSQLProviderTable {
                 case '$eq':
                 case '=':
                   if (is_array($joinFieldNameOrValue)) {
-                    $joinFieldNameOrValue = br()->removeEmptyValues($joinFieldNameOrValue);
+                    $joinFieldNameOrValue = br($joinFieldNameOrValue)->removeEmptyValues();
                     if ($joinFieldNameOrValue) {
                       $joins .= br()->placeholder(' AND ' . $joinLeftPart . ' IN (?@)', $joinFieldNameOrValue);
                     } else {
@@ -460,7 +460,7 @@ class BrGenericSQLProviderTable {
                 case '$ne':
                 case '!=':
                   if (is_array($joinFieldNameOrValue)) {
-                    $joinFieldNameOrValue = br()->removeEmptyValues($joinFieldNameOrValue);
+                    $joinFieldNameOrValue = br($joinFieldNameOrValue)->removeEmptyValues();
                     if ($joinFieldNameOrValue) {
                       $joins .= br()->placeholder(' AND ' . $joinLeftPart . ' NOT IN (?@)', $joinFieldNameOrValue);
                     } else {
@@ -561,7 +561,7 @@ class BrGenericSQLProviderTable {
           break;
         case '$in':
           if (is_array($filterValue)) {
-            $filterValue = br()->removeEmptyValues($filterValue);
+            $filterValue = br($filterValue)->removeEmptyValues();
             if ($filterValue) {
               $where .= $link . $fname2 . ' IN (?@)';
               $args[] = $filterValue;
@@ -578,7 +578,7 @@ class BrGenericSQLProviderTable {
           break;
         case '$nin':
           if (is_array($filterValue)) {
-            $filterValue = br()->removeEmptyValues($filterValue);
+            $filterValue = br($filterValue)->removeEmptyValues();
             if ($filterValue) {
               $where .= $link . $fname2 . ' NOT IN (?@)';
               $args[] = $filterValue;
@@ -596,7 +596,7 @@ class BrGenericSQLProviderTable {
         case '$eq':
         case '=':
           if (is_array($filterValue)) {
-            $filterValue = br()->removeEmptyValues($filterValue);
+            $filterValue = br($filterValue)->removeEmptyValues();
             if ($filterValue) {
               $where .= $link . $fname2 . ' IN (?@)';
               $args[] = $filterValue;
@@ -614,7 +614,7 @@ class BrGenericSQLProviderTable {
         case '$ne':
         case '!=':
           if (is_array($filterValue)) {
-            $filterValue = br()->removeEmptyValues($filterValue);
+            $filterValue = br($filterValue)->removeEmptyValues();
             if ($filterValue) {
               $where .= $link . $fname2 . ' NOT IN (?@)';
               $args[] = $filterValue;
@@ -709,8 +709,8 @@ class BrGenericSQLProviderTable {
           break;
         default:
           if (is_array($filterValue)) {
-            if ($currentFieldName && br()->isRegularArray($filterValue)) {
-              $filterValue = br()->removeEmptyValues($filterValue);
+            if ($currentFieldName && br($filterValue)->isRegularArray()) {
+              $filterValue = br($filterValue)->removeEmptyValues();
               if ($filterValue) {
                 $where .= $link . $fname . ' IN (?@)';
                 $args[] = $filterValue;

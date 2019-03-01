@@ -12,7 +12,7 @@ namespace Bright;
 
 class BrImageUploadHandler extends BrFileUploadHandler {
 
-  function __construct($options = array()) {
+  public function __construct($options = array()) {
 
     $options['allowedExtensions'] = array('jpeg', 'jpg', 'gif', 'png');
 
@@ -24,7 +24,7 @@ class BrImageUploadHandler extends BrFileUploadHandler {
    * Save the file to the specified path
    * @return boolean TRUE on success
    */
-  function save($srcFilePath, $path) {
+  public function save($srcFilePath, $path) {
 
     if ($result = parent::save($srcFilePath, $path)) {
       if (br()->request()->get('tw') && br()->request()->get('th')) {

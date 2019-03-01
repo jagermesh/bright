@@ -14,7 +14,7 @@ class BrSession extends BrSingleton {
 
   private $tag = '';
 
-  function __construct() {
+  public function __construct() {
 
     $this->tag = md5(__FILE__);
 

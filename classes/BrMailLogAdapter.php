@@ -17,7 +17,7 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
 
   private $email;
 
-  function __construct($email = null) {
+  public function __construct($email = null) {
 
     $this->email = $email;
 
@@ -25,13 +25,13 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
 
   }
 
-  function setEMail($email) {
+  public function setEMail($email) {
 
     $this->email = $email;
 
   }
 
-  function getEMail() {
+  public function getEMail() {
 
     if ($this->email) {
       return $this->email;
@@ -41,7 +41,54 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
 
   }
 
-  function initCache() {
+  public function write($message, $group = 'MSG', $tagline = null) {
+
+    if (br()->request()->isLocalHost() || br()->isConsoleMode()) {
+
+    } else {
+      if ($email = $this->getEMail()) {
+        try {
+          switch($group) {
+            case 'ERR':
+              $this->initCache();
+
+              $isCached = false;
+              $cacheTag = '';
+              $subject = 'Error report';
+              if ($tagline) {
+                $subject .= ': ' . $tagline;
+                $cacheTag = get_class($this) . '|' . md5($subject);
+                if ($this->cache) {
+                  $isCached = $this->cache->get($cacheTag);
+                  $this->cache->set($cacheTag, true);
+                }
+              }
+              if ($isCached) {
+                return;
+              }
+              break;
+            case 'DBG':
+              $subject = 'Debug message';
+              if ($tagline) {
+                $subject .= ': ' . $tagline;
+              }
+              break;
+            default:
+              return;
+              break;
+          }
+          $body = $this->buildBody($message);
+          $body = $this->packBody($body);
+          br()->sendMail($email, $subject, $body);
+        } catch (\Exception $e) {
+
+        }
+      }
+    }
+
+  }
+
+  private function initCache() {
 
     if (!$this->cacheInitialized) {
       try {
@@ -55,7 +102,7 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
 
   }
 
-  function packBody($message) {
+  private function packBody($message) {
 
     $body  = '<html>';
     $body .= '<body>';
@@ -67,7 +114,7 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
 
   }
 
-  function buildBody($message) {
+  private function buildBody($message) {
 
     $body  = '<strong>Timestamp:</strong>     ' . date('r') . '<br />';
     $body .= '<strong>Script name:</strong>   ' . br()->getScriptName() . '<br />';
@@ -140,79 +187,5 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
     return $body;
 
   }
-
-  function writeError($message, $tagline = '') {
-
-    if (br()->request()->isLocalHost() && !br()->isConsoleMode()) {
-
-    } else {
-      if ($email = $this->getEMail()) {
-        try {
-          $this->initCache();
-
-          $isCached = false;
-          $cacheTag = '';
-          $body = $this->buildBody($message);
-          $subject = 'Error report';
-          if ($tagline) {
-            $subject .= ': ' . $tagline;
-            $cacheTag = get_class($this) . '|' . md5($subject);
-            if ($this->cache) {
-              $isCached = $this->cache->get($cacheTag);
-            }
-          }
-          if ($isCached) {
-
-          } else {
-            $body = $this->packBody($body);
-            if (br()->sendMail($email, $subject, $body)) {
-              if ($this->cache) {
-                $this->cache->set($cacheTag, $body);
-              }
-            }
-          }
-        } catch (\Exception $e) {
-
-        }
-      }
-    }
-
-  }
-
-  function writeDebug($message, $tagline = '') {
-
-    if (br()->request()->isLocalHost() || br()->isConsoleMode()) {
-
-    } else {
-      if ($email = $this->getEMail()) {
-        try {
-          $subject = 'Debug message';
-          if ($tagline) {
-            $subject .= ': ' . $tagline;
-          }
-          $body = $this->buildBody($message);
-          $body = $this->packBody($body);
-          br()->sendMail($email, $subject, $body);
-        } catch (\Exception $e) {
-
-        }
-      }
-    }
-
-  }
-
-  function writeMessage($message, $group = 'MSG', $tagline = '') {
-
-    switch($group) {
-      case 'ERR':
-        $this->writeError($message, $tagline);
-        break;
-      case 'DBG':
-        $this->writeDebug($message, $tagline);
-        break;
-    }
-
-  }
-
 
 }

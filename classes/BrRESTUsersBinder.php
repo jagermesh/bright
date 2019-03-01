@@ -15,7 +15,7 @@ class BrRESTUsersBinder extends BrRESTBinder {
   private $params;
   private $usersDataSource;
 
-  function __construct($usersDataSource, $params = array()) {
+  public function __construct($usersDataSource, $params = array()) {
 
     $this->usersDataSource = $usersDataSource;
     $this->params = $params;
@@ -24,7 +24,7 @@ class BrRESTUsersBinder extends BrRESTBinder {
 
   }
 
-  function doRouting() {
+  public function doRouting() {
 
     $loginField = br()->auth()->getAttr('usersTable.loginField');
 

@@ -19,7 +19,7 @@ class BrErrorTelegramLogAdapter extends BrGenericLogAdapter {
   private $chatIds;
   private $telegram;
 
-  function __construct($apiKey, $username, $chatIds) {
+  public function __construct($apiKey, $username, $chatIds) {
 
     $this->apiKey   = $apiKey;
     $this->username = $username;
@@ -31,64 +31,40 @@ class BrErrorTelegramLogAdapter extends BrGenericLogAdapter {
 
   }
 
-  function initCache() {
-
-    if (!$this->cacheInitialized) {
-      try {
-        $this->cache = new BrFileCacheProvider();
-        $this->cache->setCacheLifeTime(60);
-      } catch (\Exception $e) {
-
-      }
-      $this->cacheInitialized = true;
-    }
-
-  }
-
-  function writeError($message, $tagline = '') {
-
-    if (br()->request()->isLocalHost() && !br()->isConsoleMode()) {
-
-    } else {
-      try {
-        $this->initCache();
-
-        $isCached = false;
-        $cacheTag = '';
-        $subject  = 'Error report';
-        if ($tagline) {
-          $subject .= ': ' . $tagline;
-          $cacheTag = get_class($this) . '|' . md5($subject);
-          if ($this->cache) {
-            $isCached = $this->cache->get($cacheTag);
-          }
-        }
-        if ($isCached) {
-
-        } else {
-          foreach($this->chatIds as $chatId) {
-            \Longman\TelegramBot\Request::sendMessage(['chat_id' => $chatId, 'text' => $message]);
-          }
-          if ($this->cache) {
-            $this->cache->set($cacheTag, true);
-          }
-        }
-      } catch (\Exception $e) {
-
-      }
-    }
-
-  }
-
-  function writeDebug($message, $tagline = '') {
+  public function write($message, $group = 'MSG', $tagline = null) {
 
     if (br()->request()->isLocalHost() || br()->isConsoleMode()) {
 
     } else {
       try {
-        $subject = 'Debug message';
-        if ($tagline) {
-          $subject .= ': ' . $tagline;
+        switch($group) {
+          case 'ERR':
+            $this->initCache();
+
+            $isCached = false;
+            $cacheTag = '';
+            $subject  = 'Error report';
+            if ($tagline) {
+              $subject .= ': ' . $tagline;
+              $cacheTag = get_class($this) . '|' . md5($subject);
+              if ($this->cache) {
+                $isCached = $this->cache->get($cacheTag);
+                $this->cache->set($cacheTag, true);
+              }
+            }
+            if ($isCached) {
+              return;
+            }
+            break;
+          case 'DBG':
+            $subject = 'Debug message';
+            if ($tagline) {
+              $subject .= ': ' . $tagline;
+            }
+            break;
+          default:
+            return;
+            break;
         }
         foreach($this->chatIds as $chatId) {
           \Longman\TelegramBot\Request::sendMessage(['chat_id' => $chatId, 'text' => $message]);
@@ -100,15 +76,16 @@ class BrErrorTelegramLogAdapter extends BrGenericLogAdapter {
 
   }
 
-  function writeMessage($message, $group = 'MSG', $tagline = '') {
+  private function initCache() {
 
-    switch($group) {
-      case 'ERR':
-        $this->writeError($message, $tagline);
-        break;
-      case 'DBG':
-        $this->writeDebug($message, $tagline);
-        break;
+    if (!$this->cacheInitialized) {
+      try {
+        $this->cache = new BrFileCacheProvider();
+        $this->cache->setCacheLifeTime(60);
+      } catch (\Exception $e) {
+
+      }
+      $this->cacheInitialized = true;
     }
 
   }

@@ -25,13 +25,13 @@ class BrDataBaseManager {
 
   private $logObject;
 
-  function setLogObject($logObject) {
+  public function setLogObject($logObject) {
 
     $this->logObject = $logObject;
 
   }
 
-  function initAuditSubsystem() {
+  public function initAuditSubsystem() {
 
     if ($this->auditSubsystemInitialized) {
       return true;
@@ -325,7 +325,7 @@ class BrDataBaseManager {
 
   }
 
-  function initMigrationsSubsystem() {
+  public function initMigrationsSubsystem() {
 
     if ($this->migrationSubsystemInitialized) {
       return true;
@@ -355,7 +355,7 @@ class BrDataBaseManager {
 
   }
 
-  function log($message, $group = 'MSG') {
+  public function log($message, $group = 'MSG') {
 
     if ($this->logObject) {
       $this->logObject->log($message, $group);
@@ -365,7 +365,7 @@ class BrDataBaseManager {
 
   }
 
-  function logException($message) {
+  public function logException($message) {
 
     if ($this->logObject) {
       $this->logObject->logException(new \Exception($message), true, false);
@@ -577,7 +577,7 @@ class BrDataBaseManager {
 
   }
 
-  function createInsertAuditTrigger($tableName) {
+  public function createInsertAuditTrigger($tableName) {
 
     $this->initAuditSubsystem();
 
@@ -606,7 +606,7 @@ class BrDataBaseManager {
 
   }
 
-  function createUpdateAuditTrigger($tableName) {
+  public function createUpdateAuditTrigger($tableName) {
 
     $this->initAuditSubsystem();
 
@@ -635,7 +635,7 @@ class BrDataBaseManager {
 
   }
 
-  function createDeleteAuditTrigger($tableName) {
+  public function createDeleteAuditTrigger($tableName) {
 
     $this->initAuditSubsystem();
 
@@ -664,7 +664,7 @@ class BrDataBaseManager {
 
   }
 
-  function createCascadeAuditTrigger($tableName) {
+  public function createCascadeAuditTrigger($tableName) {
 
     $this->initAuditSubsystem();
 
@@ -697,7 +697,7 @@ class BrDataBaseManager {
 
   }
 
-  function createAuditTriggers($tableName) {
+  public function createAuditTriggers($tableName) {
 
     $this->initAuditSubsystem();
 
@@ -720,7 +720,7 @@ class BrDataBaseManager {
 
   }
 
-  function deleteAuditTriggers($tableName, $log = true) {
+  public function deleteAuditTriggers($tableName, $log = true) {
 
     $this->initAuditSubsystem();
 
@@ -731,7 +731,7 @@ class BrDataBaseManager {
 
   }
 
-  function printAuditTriggers($tableName) {
+  public function printAuditTriggers($tableName) {
 
     $this->initAuditSubsystem();
 
@@ -744,7 +744,7 @@ class BrDataBaseManager {
 
   }
 
-  function registerTableForAuditing($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $isCascadeAudited = 1, $excludeFields = null) {
+  public function registerTableForAuditing($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $isCascadeAudited = 1, $excludeFields = null) {
 
     $this->initAuditSubsystem();
 
@@ -768,7 +768,7 @@ class BrDataBaseManager {
 
   }
 
-  function refreshTableSupport($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $isCascadeAudited = 1, $excludeFields = null) {
+  public function refreshTableSupport($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $isCascadeAudited = 1, $excludeFields = null) {
 
     $this->initAuditSubsystem();
 
@@ -786,7 +786,7 @@ class BrDataBaseManager {
 
   }
 
-  function setupTableSupport($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $isCascadeAudited = 1, $excludeFields = null) {
+  public function setupTableSupport($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $isCascadeAudited = 1, $excludeFields = null) {
 
     $this->initAuditSubsystem();
 
@@ -808,7 +808,7 @@ class BrDataBaseManager {
 
   }
 
-  function runAuditCommand($scriptFile) {
+  public function runAuditCommand($scriptFile) {
 
     $dbManager = $this;
 
@@ -885,7 +885,7 @@ class BrDataBaseManager {
 
   }
 
-  function runMigrationCommand($scriptFile, $results = array()) {
+  public function runMigrationCommand($scriptFile, $results = array()) {
 
     $dbManager = $this;
 
@@ -1030,9 +1030,9 @@ class BrDataBaseManager {
 
         foreach($results as $result) {
           if ($result['is_error']) {
-            br()->log()->write($result['message'], 'RED');
+            br()->log()->write(br()->console()->red($result['message']));
           } else {
-            br()->log()->write($result['message'], 'GREEN');
+            br()->log()->write(br()->console()->green($result['message']));
           }
         }
 

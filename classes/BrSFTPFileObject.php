@@ -17,7 +17,7 @@ class BrSFTPFileObject {
   private $size;
   private $isDirectory;
 
-  function __construct($name, $params) {
+  public function __construct($name, $params) {
 
     $pathinfo = pathinfo($name);
 
@@ -29,37 +29,37 @@ class BrSFTPFileObject {
 
   }
 
-  function isFile() {
+  public function isFile() {
 
     return !$this->isDir();
 
   }
 
-  function isDir() {
+  public function isDir() {
 
     return $this->isDirectory;
 
   }
 
-  function name() {
+  public function name() {
 
     return $this->name;
 
   }
 
-  function extension() {
+  public function extension() {
 
     return $this->extension;
 
   }
 
-  function size() {
+  public function size() {
 
     return $this->size;
 
   }
 
-  function date() {
+  public function date() {
 
     return $this->date;
 

@@ -12,22 +12,36 @@ namespace Bright;
 
 class BrGenericLogAdapter extends BrObject {
 
-  function writeMessage($message, $group = 'MSG', $tagline = '') {
+  public function writeMessage($message, $tagline = null) {
+
+    $this->write($message, 'MSG', $tagline);
 
   }
 
-  function writeDebug($message) {
+  public function writeDebug($message, $tagline = null) {
+
+    $this->write($message, 'DBG', $tagline);
 
   }
 
-  function writeError($message, $tagline = null) {
+  public function writeError($message, $tagline = null) {
+
+    $this->write($message, 'ERR', $tagline);
 
   }
 
-  function writeException($e, $sendOutput = false, $printCallStack = true) {
+  public function writeException($exception, $sendOutput = false, $printCallStack = true) {
 
-  	$formatted = br()->log()->formatExceptionInfo($e);
-  	$this->writeError($formatted['errorLog'], $formatted['shortErrorMessage']);
+    if ($printCallStack) {
+      $formatted = br()->log()->formatExceptionInfo($exception);
+      $this->writeError($formatted['errorLog'], $formatted['shortErrorMessage']);
+    } else {
+      $this->writeError($exception->getMessage());
+    }
+
+  }
+
+  public function write($message, $group = 'MSG', $tagline = null) {
 
   }
 

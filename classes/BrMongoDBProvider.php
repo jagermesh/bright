@@ -12,30 +12,30 @@ namespace Bright;
 
 class BrMongoDBProvider extends BrGenericDBProvider {
 
-  function __construct($cfg) {
+  public function __construct($cfg) {
 
     $this->connection = new \Mongo();
     $this->database = $this->connection->{$cfg['name']};
 
   }
 
-  function connect($iteration = 0, $rerunError = null) {
+  public function connect($iteration = 0, $rerunError = null) {
 
   }
 
-  function table($name) {
+  public function table($name) {
 
     return new BrMongoProviderTable($this, $name);
 
   }
 
-  function command($command) {
+  public function command($command) {
 
     return $this->database->command($command);
 
   }
 
-  function rowidValue($row) {
+  public function rowidValue($row) {
 
     if (is_array($row)) {
       return (string)$row['_id'];
@@ -45,7 +45,7 @@ class BrMongoDBProvider extends BrGenericDBProvider {
 
   }
 
-  function rowid($row) {
+  public function rowid($row) {
 
     if (is_array($row)) {
       return $row['_id'];
@@ -59,19 +59,19 @@ class BrMongoDBProvider extends BrGenericDBProvider {
 
   }
 
-  function rowidField() {
+  public function rowidField() {
 
     return '_id';
 
   }
 
-  function regexpCondition($value) {
+  public function regexpCondition($value) {
 
     return new \MongoRegex("/.*".$value.".*/i");
 
   }
 
-  function toDateTime($date) {
+  public function toDateTime($date) {
 
     return new \MongoDate($date);
 

@@ -26,7 +26,7 @@ class BrGenericAuthProvider extends BrSingleton {
 
   function isLoggedIn() {
 
-    return br()->session()->get('login');
+    return !!br()->session()->get('login');
 
   }
 
@@ -38,60 +38,73 @@ class BrGenericAuthProvider extends BrSingleton {
 
   function checkLogin($returnNotAuthorized = true) {
 
-    throw new \Exception('Abstract error');
-
-  }
-
-  function setLogin($login, $remember = false) {
-
-    $this->trigger('checkLoginPrivilege', $login);
-
-    if (is_array($login)) {
-      if ($remember) {
-        $password = $login['password'];
-        $token    = sha1(md5(sha1($password)));
-        $cookie   = array( 'login'    => $login['login']
-                         , 'token'    => $token
-                         );
-        if (!br()->isConsoleMode()) {
-          setcookie( $this->getAuthTag()
-                   , json_encode($cookie)
-                   , time() + 60*60*24*30
-                   , br()->request()->baseUrl()
-                   , br()->request()->domain() == 'localhost' ? false : br()->request()->domain()
-                   );
-        }
-      }
-      $this->trigger('setLogin', $login);
-      return br()->session()->set('login', $login);
-    } else
-    if ($login) {
-      $data = $this->getLogin();
-      $data[$login] = $remember;
-      return br()->session()->set('login', $data);
+    if ($login = $this->getSessionLogin()) {
+      $this->login($login);
     }
 
+    return $login;
+
   }
 
-  function getLogin($param = null, $default = null) {
+  function setLogin($attributeName, $value) {
 
-    if ($login = br()->session()->get('login')) {
-      if ($param) {
-        return br($login, $param, $default);
+    $data = $this->getLogin();
+
+    $data[$attributeName] = $value;
+
+    return br()->session()->set('login', $data);
+
+  }
+
+  function getLogin($attributeName = null, $default = null) {
+
+    if ($login = $this->getSessionLogin()) {
+      if ($attributeName) {
+        return br($login, $attributeName, $default);
       } else {
         return $login;
       }
-    } else {
-      if ($param) {
-        return $default;
-      }
+    } else
+    if ($attributeName) {
+      return $default;
     }
 
     return null;
 
   }
 
-  function clear() {
+  function login($login, $remember = false) {
+
+    $this->trigger('checkLoginPrivilege', $login);
+
+    if ($remember) {
+      $password = $login['password'];
+      $token    = sha1(md5(sha1($password)));
+      $cookie   = array( 'login'    => $login['login']
+                       , 'token'    => $token
+                       );
+      if (!br()->isConsoleMode()) {
+        setcookie( $this->getAuthTag()
+                 , json_encode($cookie)
+                 , time() + 60*60*24*30
+                 , br()->request()->baseUrl()
+                 , br()->request()->domain() == 'localhost' ? false : br()->request()->domain()
+                 );
+      }
+    }
+
+    try {
+      $this->trigger('setLogin', $login);
+    } catch (\Exception $e) {
+      br()->auth()->logout();
+      throw $e;
+    }
+
+    return br()->session()->set('login', $login);
+
+  }
+
+  function logout() {
 
     if (!br()->isConsoleMode()) {
       setcookie( $this->getAuthTag()
@@ -103,16 +116,10 @@ class BrGenericAuthProvider extends BrSingleton {
     }
 
     if ($login = br()->auth()->getLogin()) {
-      $this->trigger('clearLogin', $login);
+      $this->trigger('logout', $login);
     }
 
     return br()->session()->clear('login');
-
-  }
-
-  function clearLogin() {
-
-    return $this->clear();
 
   }
 

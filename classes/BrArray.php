@@ -18,19 +18,19 @@ class BrArray extends BrGenericDataType {
 
   }
 
-  function contain($value, $ignoreCase = false) {
+  public function contain($value, $ignoreCase = false) {
 
     return $this->exists($value, $ignoreCase);
 
   }
 
-  function has($value, $ignoreCase = false) {
+  public function has($value, $ignoreCase = false) {
 
     return $this->exists($value, $ignoreCase);
 
   }
 
-  function exists($value, $ignoreCase = false) {
+  public function exists($value, $ignoreCase = false) {
 
     if (is_array($value)) {
       foreach($value as $val) {
@@ -50,35 +50,36 @@ class BrArray extends BrGenericDataType {
         }
       }
     }
+
     return false;
 
   }
 
-  function indexOf($value) {
+  public function indexOf($value) {
 
     return array_search($value, $this->value);
 
   }
 
-  function copy() {
+  public function copy() {
 
     return json_decode(json_encode($this->value), true);
 
   }
 
-  function split() {
+  public function split() {
 
     return $this->value;
 
   }
 
-  function join($glue = ', ') {
+  public function join($glue = ', ') {
 
     return implode($this->value, $glue);
 
   }
 
-  function removeEmptyValues($assoc = true) {
+  public function removeEmptyValues($assoc = true) {
 
     $result = array();
 
@@ -103,7 +104,7 @@ class BrArray extends BrGenericDataType {
 
   }
 
-  function compare($arr2) {
+  public function compare($arr2) {
 
     $result = array();
 
@@ -122,7 +123,7 @@ class BrArray extends BrGenericDataType {
 
   }
 
-  function hasOnlyNames($arr2) {
+  public function hasOnlyNames($arr2) {
 
     foreach($this->value as $name => $value) {
       if (!in_array($name, $arr2)) {
@@ -134,7 +135,7 @@ class BrArray extends BrGenericDataType {
 
   }
 
-  function valuesOf($index) {
+  public function valuesOf($index) {
 
     $result = array();
     foreach($this->value as $row) {
@@ -146,7 +147,7 @@ class BrArray extends BrGenericDataType {
 
   }
 
-  function extract($fields) {
+  public function extract($fields) {
 
     $fields = br($fields)->split();
 
@@ -166,7 +167,7 @@ class BrArray extends BrGenericDataType {
 
   }
 
-  function in($value) {
+  public function in($value) {
 
     if (is_array($value)) {
       $cnt = 0;
@@ -182,17 +183,7 @@ class BrArray extends BrGenericDataType {
 
   }
 
-  private function canMoveElement($element, $blockShufflingCheck) {
-
-    if (is_callable($blockShufflingCheck)) {
-      return !$blockShufflingCheck($element);
-    } else {
-      return true;
-    }
-
-  }
-
-  function shuffle($blockShufflingCheck = null) {
+  public function shuffle($blockShufflingCheck = null) {
 
     $result = $this->value;
     $moved = array();
@@ -216,6 +207,41 @@ class BrArray extends BrGenericDataType {
     }
 
     return $result;
+
+  }
+
+  public function isRegularArray() {
+
+    if (br($this->value)->isMultiArray()) {
+      return false;
+    } else {
+      $prior = -1;
+      foreach($this->value as $idx => $value) {
+        if (!is_numeric($idx)) {
+          return false;
+        }
+        $prior = $idx;
+      }
+      return true;
+    }
+
+  }
+
+  public function isMultiArray() {
+
+    $rv = array_filter($this->value, 'is_array');
+
+    return (count($rv) > 0);
+
+  }
+
+  private function canMoveElement($element, $blockShufflingCheck) {
+
+    if (is_callable($blockShufflingCheck)) {
+      return !$blockShufflingCheck($element);
+    } else {
+      return true;
+    }
 
   }
 

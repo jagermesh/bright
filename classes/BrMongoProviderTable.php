@@ -14,7 +14,7 @@ class BrMongoProviderTable extends MongoCollection {
 
   private $provider;
 
-  function __construct(&$provider, $tableName) {
+  public function __construct(&$provider, $tableName) {
 
     $this->provider = $provider;
 
@@ -22,7 +22,7 @@ class BrMongoProviderTable extends MongoCollection {
 
   }
 
-  function find($query = array(), $fields = array()) {
+  public function find($query = array(), $fields = array()) {
 
     br()->log()->write('MONGO->FIND', "QRY");
     br()->log()->write($query,  "FLT");
@@ -36,7 +36,7 @@ class BrMongoProviderTable extends MongoCollection {
 
   }
 
-  function findOne($query = array(), $fields = array()) {
+  public function findOne($query = array(), $fields = array()) {
 
     br()->log()->write('MONGO->FIND', "QRY");
     br()->log()->write($query,  "FLT");
@@ -50,7 +50,7 @@ class BrMongoProviderTable extends MongoCollection {
 
   }
 
-  function remove($filter, $options = array()) {
+  public function remove($filter, $options = array()) {
 
     br()->log()->write('MONGO->REMOVE', "QRY");
     br()->log()->write($filter,  "FLT");
@@ -64,7 +64,7 @@ class BrMongoProviderTable extends MongoCollection {
 
   }
 
-  function insert($filter, $options = array()) {
+  public function insert($filter, $options = array()) {
 
     br()->log()->write('MONGO->INSERT', "QRY");
     br()->log()->write($filter,  "FLT");
@@ -78,7 +78,7 @@ class BrMongoProviderTable extends MongoCollection {
 
   }
 
-  function update($values, $filter, $options = array()) {
+  public function update($values, $filter, $options = array()) {
 
     if (is_array($filter)) {
 
@@ -101,7 +101,7 @@ class BrMongoProviderTable extends MongoCollection {
 
   }
 
-  function save($values, $options = array()) {
+  public function save($values, $options = array()) {
 
     br()->log()->write('MONGO->SAVE', "QRY");
     br()->log()->write($values,  "DAT");

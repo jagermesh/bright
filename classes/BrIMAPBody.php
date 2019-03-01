@@ -16,7 +16,7 @@ class BrIMAPBody extends BrObject {
 
   private $message, $parts, $inlines, $charset, $isHTML, $body = null;
 
-  function __construct($message, $isHTML) {
+  public function __construct($message, $isHTML) {
 
     parent::__construct();
 
@@ -27,7 +27,7 @@ class BrIMAPBody extends BrObject {
 
   }
 
-  function configure($partNo, $structure) {
+  public function configure($partNo, $structure) {
 
     $encoding = $structure->encoding;
     $charset = '';
@@ -47,7 +47,7 @@ class BrIMAPBody extends BrObject {
 
   }
 
-  function getBody() {
+  public function getBody() {
 
     if ($this->parts && ($this->body === null)) {
       foreach($this->parts as $part) {
@@ -94,13 +94,13 @@ class BrIMAPBody extends BrObject {
 
   }
 
-  function addInline($inline) {
+  public function addInline($inline) {
 
     $this->inlines[] = $inline;
 
   }
 
-  function getInlines() {
+  public function getInlines() {
 
     return $this->inlines;
 

@@ -12,7 +12,7 @@ namespace Bright;
 
 class BrMemoryCacheProvider extends BrGenericCacheProvider {
 
-  function __construct($cfg = array()) {
+  public function __construct($cfg = array()) {
 
     parent::__construct($cfg);
 

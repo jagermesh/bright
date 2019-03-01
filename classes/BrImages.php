@@ -12,7 +12,7 @@ namespace Bright;
 
 class BrImages extends BrSingleton {
 
-  function isValid($path) {
+  public function isValid($path) {
 
     try {
       new BrImage($path);
@@ -23,7 +23,7 @@ class BrImages extends BrSingleton {
 
   }
 
-  function getFormat($path) {
+  public function getFormat($path) {
 
     try {
       $image = new BrImage($path);
@@ -34,7 +34,7 @@ class BrImages extends BrSingleton {
 
   }
 
-  function getHeight($path) {
+  public function getHeight($path) {
 
     try {
       $image = new BrImage($path);
@@ -45,7 +45,7 @@ class BrImages extends BrSingleton {
 
   }
 
-  function getWidth($path) {
+  public function getWidth($path) {
 
     try {
       $image = new BrImage($path);
@@ -56,7 +56,7 @@ class BrImages extends BrSingleton {
 
   }
 
-  function generateThumbnails($src, $thumbnails = null) {
+  public function generateThumbnails($src, $thumbnails = null) {
 
     $result = array();
 
@@ -84,7 +84,7 @@ class BrImages extends BrSingleton {
 
   }
 
-  function generateThumbnail($src, $w, $h, $relativePath = null) {
+  public function generateThumbnail($src, $w, $h, $relativePath = null) {
 
     $path = $src;
 

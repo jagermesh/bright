@@ -14,19 +14,19 @@ require_once(dirname(__DIR__) . '/3rdparty/phpQuery/phpQuery.php');
 
 class BrHTML extends BrSingleton {
 
-  function isHtml($text) {
+  public function isHtml($text) {
 
     return preg_match('/<[a-z]+[^>]*?>/i', $text) || preg_match('/&[a-z#0-9]+;/i', $text);
 
   }
 
-  function XSSCleanUp($html, $callback = null) {
+  public function XSSCleanUp($html, $callback = null) {
 
     return br()->XSS()->cleanUp($html, $callback);
 
   }
 
-  function tidyUp($html) {
+  public function tidyUp($html) {
 
     try {
       try {
@@ -43,7 +43,7 @@ class BrHTML extends BrSingleton {
 
   }
 
-  function cleanUpEndOfText($html) {
+  public function cleanUpEndOfText($html) {
 
     $s = $html;
     while (true) {
@@ -58,7 +58,7 @@ class BrHTML extends BrSingleton {
 
   }
 
-  function cleanUp($html) {
+  public function cleanUp($html) {
 
     $html = str_replace('{cke_protected}{C}', '', $html);
 
@@ -86,7 +86,7 @@ class BrHTML extends BrSingleton {
 
   }
 
-  function cleanUpSpaces($html) {
+  public function cleanUpSpaces($html) {
 
     $result = '';
 
@@ -122,7 +122,7 @@ class BrHTML extends BrSingleton {
 
   }
 
-  function toOutput($html) {
+  public function toOutput($html) {
 
     $flags = ENT_COMPAT;
     if (defined('ENT_HTML401')) {
@@ -134,7 +134,7 @@ class BrHTML extends BrSingleton {
 
   }
 
-  function toText($html, $smart = false) {
+  public function toText($html, $smart = false) {
 
     if ($smart) {
       $html = preg_replace('~<div[^>]*?>~ism', "\n", $html);
@@ -166,7 +166,7 @@ class BrHTML extends BrSingleton {
 
   }
 
-  function fromText($html) {
+  public function fromText($html) {
 
     $flags = ENT_COMPAT;
     if (defined('ENT_HTML401')) {
@@ -180,7 +180,7 @@ class BrHTML extends BrSingleton {
 
   }
 
-  function decodeNumEntities($html) {
+  public function decodeNumEntities($html) {
 
     $html = preg_replace_callback("/(&#[0-9]+;)/", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $html);
     $html = preg_replace_callback("/(&#x[0-9A-Z]+;)/i", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $html);
@@ -188,7 +188,7 @@ class BrHTML extends BrSingleton {
 
   }
 
-  function unicodeToNamedEntities($html) {
+  public function unicodeToNamedEntities($html) {
 
     if (strlen($html) > 0) {
       $html = json_encode($html);

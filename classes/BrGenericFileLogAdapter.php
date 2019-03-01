@@ -12,146 +12,40 @@ namespace Bright;
 
 class BrGenericFileLogAdapter extends BrGenericLogAdapter {
 
-  private $filePointer = null;
-  private $initialized = false;
-  private $initializationFailed = false;
-  private $filePath;
-  private $fileName;
+  protected $baseFilePath;
+  protected $baseFileName;
 
-  function __construct($filePath, $fileName) {
+  protected $filePath;
+  protected $writeAppInfoWithEveryMessage = false;
+
+  private $filePointer = null;
+
+  public function __construct($baseFilePath = null, $baseFileName = null) {
 
     parent::__construct();
 
-    $this->filePath = $filePath;
-    $this->fileName = $fileName;
+    $this->baseFilePath = $baseFilePath;
+    $this->baseFileName = $baseFileName;
 
   }
 
-  function init() {
+  public function write($message, $group = 'MSG', $tagline = null) {
 
-    if (!$this->initialized && !$this->initializationFailed) {
-
-      if ($this->isEnabled() && br()->log()->isEnabled()) {
-
-        $this->filePath = br()->fs()->normalizePath($this->filePath);
-
-        $this->disable();
-
-        if (br()->fs()->makeDir($this->filePath)) {
-          br()->errorHandler()->disable();
-          $fileExists = file_exists($this->filePath . $this->fileName);
-          if ($this->filePointer = @fopen($this->filePath . $this->fileName, 'a+')) {
-            @chmod($this->filePath . $this->fileName, 0666);
-            $this->enable();
-            $this->initialized = true;
-          } else {
-            $this->initializationFailed = true;
-          }
-          br()->errorHandler()->enable();
-
-          $this->triggerSticky('log.initialized', $this);
-        }
-
-      }
-
-    }
+    $this->checkFile();
+    $this->writeToFile($message, $group, $tagline);
 
   }
 
-  function writeAppInfo($group = '---') {
+  protected function writeToFile($message, $group = 'MSG', $tagline = null) {
 
     if ($this->isEnabled() && br()->log()->isEnabled()) {
-
-      $this->writeMessage('***************************************************************', $group);
-
-      $this->writeMessage('PID:           ' . br()->getProcessID(),          $group);
-      $this->writeMessage('Script Name:   ' . br()->getScriptName(),            $group);
-      $this->writeMessage('PHP Version:   ' . phpversion(),                  $group);
-      $this->writeMessage('Server IP:     ' . gethostbyname(php_uname('n')), $group);
-      if (br()->isConsoleMode()) {
-        $this->writeMessage('Comand line:   ' . br(br()->getCommandLineArguments())->join(' '),      $group);
-      } else {
-        $this->writeMessage('Request URL:   ' . br()->request()->url(),      $group);
-        $this->writeMessage('Referer URL:   ' . br()->request()->referer(),  $group);
-        $this->writeMessage('Client IP:     ' . br()->request()->clientIP(), $group);
-        $this->writeMessage('Server IP:     ' . gethostbyname(php_uname('n')), $group);
-
-        if ($login = br()->auth()->getSessionLogin()) {
-          $this->writeMessage('User ID:       ' . br($login, 'id'), $group);
-          if (br($login, 'name')) {
-            $this->writeMessage('User name:     ' . br($login, 'name'), $group);
-          }
-          if ($loginField = br()->auth()->getAttr('usersTable.loginField')) {
-            if (br($login, $loginField)) {
-              $this->writeMessage('User login:    ' . br($login, $loginField), $group);
-            }
-          }
-          if ($emailField = br()->auth()->getAttr('usersTable.emailField')) {
-            if (br($login, $loginField)) {
-              $this->writeMessage('User e-mail:   ' . br($login, $emailField), $group);
-            }
-          }
-        }
-
-        $this->writeMessage('Request type:  ' . br()->request()->method(),   $group);
-        $requestData = '';
-        if ($data = br()->request()->get()) {
-          unset($data['password']);
-          unset($data['paswd']);
-          $requestData = @json_encode($data);
-          if ($requestData) {
-            if (strlen($requestData) > 1024*16) {
-              $requestData = substr($requestData, 0, 1024*16) . '...';
-            }
-            $this->writeMessage('Request GET:   ' . $requestData,                $group);
-          }
-        }
-        if ($data = br()->request()->post()) {
-          unset($data['password']);
-          unset($data['paswd']);
-          $requestData = @json_encode($data);
-          if ($requestData) {
-            if (strlen($requestData) > 1024*16) {
-              $requestData = substr($requestData, 0, 1024*16) . '...';
-            }
-            $this->writeMessage('Request POST:  ' . $requestData,                $group);
-          }
-        } else
-        if ($data = br()->request()->put()) {
-          unset($data['password']);
-          unset($data['paswd']);
-          $requestData = @json_encode($data);
-          if ($requestData) {
-            if (strlen($requestData) > 1024*16) {
-              $requestData = substr($requestData, 0, 1024*16) . '...';
-            }
-            $this->writeMessage('Request PUT:   ' . $requestData,                $group);
-          }
-        }
-      }
-
-      $this->writeMessage('***************************************************************', $group);
-
-    }
-
-  }
-
-  function write($message, $group = 'MSG') {
-
-    $this->init();
-
-    if ($this->filePointer && $this->isEnabled() && br()->log()->isEnabled()) {
-
       if (!is_resource($message)) {
         $logMessage = '';
-
         if (strlen($message)) {
           if ($group) {
             $logMessage .= $group . ' ';
           }
-
           $logMessage .= br()->getProcessId() . ' ';
-
           if ($initTime = br()->log()->getInitTime()) {
             $logMessage .= $initTime;
             if ($time = br()->log()->getFormattedTimeOffset()) {
@@ -171,30 +65,127 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter {
 
         br()->log()->saveTime();
 
-        @fwrite($this->filePointer, $logMessage);
+        if ($this->filePointer) {
+          @fwrite($this->filePointer, $logMessage);
+        }
+        // $this->checkAndWrite($logMessage);
       }
+    }
+
+  }
+
+  protected function checkFile() {
+
+    $writeAppInfo = false;
+
+    try {
+      if (!$this->filePointer || !file_exists($this->filePath)) {
+        if ($this->filePointer) {
+          @fclose($this->filePointer);
+          $this->filePointer = null;
+        }
+        $this->generateLogFileName();
+        if (br()->fs()->makeDir(br()->fs()->filePath($this->filePath))) {
+          if ($this->filePointer = @fopen($this->filePath, 'a+')) {
+            @chmod($this->filePath, 0666);
+            $writeAppInfo = true;
+          }
+        }
+      }
+      if ($this->filePointer) {
+        if ($writeAppInfo || $this->writeAppInfoWithEveryMessage) {
+          $this->writeAppInfo();
+        }
+        // @fwrite($this->filePointer, $message);
+      }
+    } catch (\Exception $e) {
+      $this->filePointer = null;
+    }
+
+  }
+
+  protected function generateLogFileName() {
+
+    $this->filePath = $this->baseFilePath . $this->baseFileName;
+
+  }
+
+  protected function writeAppInfo($group = '---') {
+
+    if ($this->isEnabled() && br()->log()->isEnabled()) {
+
+      $this->writeToFile('***************************************************************', $group);
+
+      $this->writeToFile('PID:           ' . br()->getProcessID(),          $group);
+      $this->writeToFile('Script Name:   ' . br()->getScriptName(),         $group);
+      $this->writeToFile('PHP Version:   ' . phpversion(),                  $group);
+      $this->writeToFile('Server IP:     ' . gethostbyname(php_uname('n')), $group);
+      if (br()->isConsoleMode()) {
+        $this->writeToFile('Comand line:   ' . br(br()->getCommandLineArguments())->join(' '),      $group);
+      } else {
+        $this->writeToFile('Request URL:   ' . br()->request()->url(),      $group);
+        $this->writeToFile('Referer URL:   ' . br()->request()->referer(),  $group);
+        $this->writeToFile('Client IP:     ' . br()->request()->clientIP(), $group);
+        $this->writeToFile('Server IP:     ' . gethostbyname(php_uname('n')), $group);
+
+        if ($login = br()->auth()->getSessionLogin()) {
+          $this->writeToFile('User ID:       ' . br($login, 'id'), $group);
+          if (br($login, 'name')) {
+            $this->writeToFile('User name:     ' . br($login, 'name'), $group);
+          }
+          if ($loginField = br()->auth()->getAttr('usersTable.loginField')) {
+            if (br($login, $loginField)) {
+              $this->writeToFile('User login:    ' . br($login, $loginField), $group);
+            }
+          }
+          if ($emailField = br()->auth()->getAttr('usersTable.emailField')) {
+            if (br($login, $loginField)) {
+              $this->writeToFile('User e-mail:   ' . br($login, $emailField), $group);
+            }
+          }
+        }
+
+        $this->writeToFile('Request type:  ' . br()->request()->method(),   $group);
+        $requestData = '';
+        if ($data = br()->request()->get()) {
+          unset($data['password']);
+          unset($data['paswd']);
+          $requestData = @json_encode($data);
+          if ($requestData) {
+            if (strlen($requestData) > 1024*16) {
+              $requestData = substr($requestData, 0, 1024*16) . '...';
+            }
+            $this->writeToFile('Request GET:   ' . $requestData,                $group);
+          }
+        }
+        if ($data = br()->request()->post()) {
+          unset($data['password']);
+          unset($data['paswd']);
+          $requestData = @json_encode($data);
+          if ($requestData) {
+            if (strlen($requestData) > 1024*16) {
+              $requestData = substr($requestData, 0, 1024*16) . '...';
+            }
+            $this->writeToFile('Request POST:  ' . $requestData,                $group);
+          }
+        } else
+        if ($data = br()->request()->put()) {
+          unset($data['password']);
+          unset($data['paswd']);
+          $requestData = @json_encode($data);
+          if ($requestData) {
+            if (strlen($requestData) > 1024*16) {
+              $requestData = substr($requestData, 0, 1024*16) . '...';
+            }
+            $this->writeToFile('Request PUT:   ' . $requestData,                $group);
+          }
+        }
+      }
+
+      $this->writeToFile('***************************************************************', $group);
 
     }
 
   }
 
-  function writeMessage($message, $group = 'MSG', $tagline = '') {
-
-    $this->write($message, $group);
-
-  }
-
-  function writeDebug($message) {
-
-    $this->write($message, 'DBG');
-
-  }
-
-  function writeError($message, $tagline = '') {
-
-    $this->write($message, 'ERR');
-
-  }
-
 }
-

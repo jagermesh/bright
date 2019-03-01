@@ -329,9 +329,12 @@ class BrAWS extends BrObject {
 
     if ($marksData = br($marksData)->split(PHP_EOL)) {
       foreach ($marksData as $marks) {
-        $row = json_decode($marks, true);
-        $row['time'] += $currentTime;
-        $result[] = $row;
+        if ($marks) {
+          if ($row = json_decode($marks, true)) {
+            $row['time'] += $currentTime;
+            $result[] = $row;
+          }
+        }
       }
     }
 

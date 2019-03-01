@@ -10,21 +10,19 @@
 
 namespace Bright;
 
-class BrErrorFileLogAdapter extends BrGenericFileLogAdapter {
+class BrDebugFileLogAdapter extends BrGenericFileLogAdapter {
 
   private $writingHeader = false;
 
   public function __construct($baseFilePath = null, $baseFileName = null) {
 
-    $this->writeAppInfoWithEveryMessage = true;
-
-    parent::__construct($baseFilePath, 'errors.log');
+    parent::__construct($baseFilePath, 'debug.log');
 
   }
 
   public function write($message, $group = 'MSG', $tagline = null) {
 
-    if ($group == 'ERR') {
+    if ($group == 'DBG') {
       parent::write($message . "\n", $group, $tagline);
     }
 

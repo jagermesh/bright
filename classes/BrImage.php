@@ -17,7 +17,7 @@ class BrImage extends BrObject {
   private $format;
   private $dpi;
 
-  function imageLibSupported() {
+  public function imageLibSupported() {
 
     return ((function_exists('ImageCreateFromGIF')) &&
             (function_exists('ImageCreateFromJPEG')) &&
@@ -25,7 +25,7 @@ class BrImage extends BrObject {
 
   }
 
-  function __construct($path) {
+  public function __construct($path) {
 
     $this->image = null;
 
@@ -86,31 +86,31 @@ class BrImage extends BrObject {
 
   }
 
-  function image() {
+  public function image() {
 
     return $this->image;
 
   }
 
-  function format() {
+  public function format() {
 
     return $this->format;
 
   }
 
-  function width() {
+  public function width() {
 
     return $this->width;
 
   }
 
-  function height() {
+  public function height() {
 
     return $this->height;
 
   }
 
-  function generateThumbnail($w, $h, $dstPath) {
+  public function generateThumbnail($w, $h, $dstPath) {
 
     $cw = $this->width();
     $ch = $this->height();
@@ -148,10 +148,11 @@ class BrImage extends BrObject {
       }
     }
 
-    if (function_exists('ImageCreateTrueColor'))
+    if (function_exists('ImageCreateTrueColor')) {
       $new_image = ImageCreateTrueColor($new_width, $new_height);
-    else
+    } else {
       $new_image = ImageCreate($new_width, $new_height);
+    }
 
     if (function_exists('imagecopyresampled')) {
       if (($format == 'png') || ($format == 'gif')) {

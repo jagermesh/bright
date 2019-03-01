@@ -16,7 +16,7 @@ class BrFileUploadHandler extends BrGenericUploadHandler {
    * Save the file to the specified path
    * @return boolean TRUE on success
    */
-  function save($srcFilePath, $path) {
+  public function save($srcFilePath, $path) {
 
     if (br($this->options, 'basePath')) {
       $dstPath = rtrim($this->options['basePath'], '/') . '/' . ltrim(rtrim($path, '/'), '/') . '/';

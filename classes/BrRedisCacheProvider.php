@@ -17,7 +17,7 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
 
   private $redis;
 
-  function __construct($cfg = array()) {
+  public function __construct($cfg = array()) {
 
     parent::__construct($cfg);
 

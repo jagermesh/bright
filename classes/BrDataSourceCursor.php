@@ -28,7 +28,7 @@ class BrDataSourceCursor {
 
   }
 
-  function selectNext() {
+  public function selectNext() {
 
     if ($row = $this->cursor->next()) {
       $row['rowid'] = $this->getDb()->rowidValue($row, $this->dataSource->rowidFieldName());

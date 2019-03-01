@@ -16,19 +16,13 @@ class BrGenericUploadHandler {
   protected $allowedExtensions;
   protected $sizeLimit;
 
-  function __construct($options = array()) {
+  public function __construct($options = array()) {
 
     $this->options = $options;
 
   }
 
-  private function toBytes($str) {
-
-    return br($str)->toBytes();
-
-  }
-
-  function getFileSize() {
+  public function getFileSize() {
 
     if (isset($_GET['qqfile'])) {
       if (isset($_SERVER['CONTENT_LENGTH'])){
@@ -45,7 +39,7 @@ class BrGenericUploadHandler {
 
   }
 
-  function getFileName() {
+  public function getFileName() {
 
     if (isset($_GET['qqfile'])) {
       return $_GET['qqfile'];
@@ -58,7 +52,7 @@ class BrGenericUploadHandler {
 
   }
 
-  function getUploadedFile() {
+  public function getUploadedFile() {
 
     if (isset($_GET['qqfile'])) {
       $tempFile = br()->createTempFile('UPL');
@@ -80,15 +74,15 @@ class BrGenericUploadHandler {
 
   }
 
-  function handle() {
+  public function handle() {
 
     // list of valid extensions, ex. array("jpeg", "xml", "bmp")
     $this->allowedExtensions = br($this->options, 'allowedExtensions', array());
     $this->allowedExtensions = array_map('strtolower', $this->allowedExtensions);
 
     // max file size in bytes
-    $postSize   = $this->toBytes(ini_get('post_max_size'));
-    $uploadSize = $this->toBytes(ini_get('upload_max_filesize'));
+    $postSize   = br(ini_get('post_max_size'))->toBytes();
+    $uploadSize = br(ini_get('upload_max_filesize'))->toBytes();
 
     $this->sizeLimit = min($postSize, $uploadSize);
 

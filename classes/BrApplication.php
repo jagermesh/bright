@@ -14,7 +14,7 @@ class BrApplication extends BrSingleton {
 
   private $renderer;
 
-  function __construct() {
+  public function __construct() {
 
     parent::__construct();
 
@@ -24,10 +24,10 @@ class BrApplication extends BrSingleton {
 
   }
 
-  function main() {
+  public function main() {
 
     if ($token = br()->request()->param('__loginToken')) {
-      br()->auth()->clearLogin();
+      br()->auth()->logout();
     }
 
     br()->auth()->checkLogin(false);
@@ -81,7 +81,7 @@ class BrApplication extends BrSingleton {
 
   }
 
-  function end() {
+  public function end() {
 
     br()->profiler()->logFinish('APPLICATION');
     br()->log()->write('');

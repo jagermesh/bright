@@ -12,14 +12,14 @@ namespace Bright;
 
 class BrOS extends BrObject {
 
-  function execute($command) {
+  public function execute($command) {
 
     exec($command, $output);
     return $output;
 
   }
 
-  function killProcess($pid) {
+  public function killProcess($pid) {
 
     $this->execute('kill ' . $pid);
 
@@ -27,7 +27,7 @@ class BrOS extends BrObject {
 
   }
 
-  function getCoresAmount() {
+  public function getCoresAmount() {
 
     $result = 0;
 
@@ -54,7 +54,7 @@ class BrOS extends BrObject {
 
   }
 
-  function findProcesses($masks, $regexp = false) {
+  public function findProcesses($masks, $regexp = false) {
 
     $result = array();
 
@@ -92,7 +92,7 @@ class BrOS extends BrObject {
 
   }
 
-  function isValidProcessId($pid) {
+  public function isValidProcessId($pid) {
 
     $output = $this->execute('ps -p ' . $pid);
 
@@ -100,7 +100,7 @@ class BrOS extends BrObject {
 
   }
 
-  function nohup($command) {
+  public function nohup($command) {
 
     $output = $this->execute('nohup '.$command.' >/dev/null 2>&1 & echo $!');
 
@@ -108,7 +108,7 @@ class BrOS extends BrObject {
 
   }
 
-  function isPHPScriptRunning($scriptCommand) {
+  public function isPHPScriptRunning($scriptCommand) {
 
     $scriptCommand = trim($scriptCommand);
     exec("ps ax 2>&1", $output);
@@ -125,7 +125,7 @@ class BrOS extends BrObject {
 
   }
 
-  function lockFileName($scriptCommand = null) {
+  public function lockFileName($scriptCommand = null) {
 
     if ($scriptCommand) {
       return rtrim(sys_get_temp_dir(), '/') . '/' . md5($scriptCommand) . '.lock';
@@ -135,7 +135,7 @@ class BrOS extends BrObject {
 
   }
 
-  function lockIfRunning($scriptCommand = null) {
+  public function lockIfRunning($scriptCommand = null) {
 
     $lockFile = $this->lockFileName($scriptCommand);
 

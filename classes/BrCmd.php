@@ -14,7 +14,7 @@ class BrCmd extends BrObject implements BrLoggable {
 
   private $logPrefix = '';
 
-  function run($callable) {
+  public function run($callable) {
 
     $callable($this);
 
@@ -22,7 +22,7 @@ class BrCmd extends BrObject implements BrLoggable {
 
   }
 
-  function setLogPrefix($logPrefix) {
+  public function setLogPrefix($logPrefix) {
 
     $this->logPrefix = $logPrefix;
 
@@ -30,7 +30,7 @@ class BrCmd extends BrObject implements BrLoggable {
 
   }
 
-  function getParam($index, $default = '') {
+  public function getParam($index, $default = '') {
 
     global $argv;
 
@@ -38,7 +38,7 @@ class BrCmd extends BrObject implements BrLoggable {
 
   }
 
-  function getSwitches() {
+  public function getSwitches() {
 
     global $argv;
 
@@ -59,13 +59,13 @@ class BrCmd extends BrObject implements BrLoggable {
 
   public function log($message = '', $group = 'MSG', $tagline = '') {
 
-    br()->log()->write($this->logPrefix . ' ' . $message, $group);
+    br()->log()->write(br()->console()->yellow($this->logPrefix) . ' ' . $message, $group);
 
   }
 
   public function logException($messageOrException, $sendOutput = false, $printCallStack = true) {
 
-    br()->log()->logException(new \Exception($this->logPrefix . ' ' . $messageOrException), true, false);
+    br()->log()->logException(new \Exception(br()->console()->yellow($this->logPrefix) . ' ' . $messageOrException), true, false);
 
   }
 

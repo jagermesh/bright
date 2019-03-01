@@ -12,7 +12,7 @@ namespace Bright;
 
 class BrS3ImageUploadHandler extends BrGenericUploadHandler {
 
-  function __construct($params = array()) {
+  public function __construct($params = array()) {
 
     $params['allowedExtensions'] = array('jpeg', 'jpg', 'gif', 'png');
 
@@ -24,7 +24,7 @@ class BrS3ImageUploadHandler extends BrGenericUploadHandler {
    * Save the file to the specified path
    * @return boolean TRUE on success
    */
-  function save($srcFilePath, $path) {
+  public function save($srcFilePath, $path) {
 
     $dstFileName = br()->fs()->normalizeFileName(br()->fs()->fileName($this->getFileName()));
     $dstFilePath = '/' . rtrim(ltrim($path, '/'), '/') . '/' . md5_file($srcFilePath) . '/' . $dstFileName;

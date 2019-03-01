@@ -15,7 +15,7 @@ class BrGenericCacheProvider extends BrObject {
   private $defaultNamePrefix = null;
   private $cacheLifeTime = 300;
 
-  function __construct($cfg = array()) {
+  public function __construct($cfg = array()) {
 
     if ($this->isSupported()) {
       $this->setDefaultNamePrefix(md5(__FILE__) . ':');

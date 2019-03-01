@@ -12,13 +12,13 @@ namespace Bright;
 
 class BrJobsManager {
 
-  function __construct() {
+  public function __construct() {
 
     $this->jobsFolder = br()->getScriptBasePath() . 'jobs/';
 
   }
 
-  function run() {
+  public function run() {
 
     if (!br()->isConsoleMode()) { br()->panic('Console mode only'); }
     $handle = br()->OS()->lockIfRunning(br()->getScriptPath());

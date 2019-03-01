@@ -17,7 +17,7 @@ class BrMemCacheCacheProvider extends BrGenericCacheProvider {
 
   private $memCache = null;
 
-  function __construct($cfg = array()) {
+  public function __construct($cfg = array()) {
 
     parent::__construct($cfg);
 

@@ -28,8 +28,7 @@ class BrIMAPMailMessage extends BrObject {
   private $parsed = false;
   private $parentPart = '';
 
-
-  function __construct($mailService, $path, $overview) {
+  public function __construct($mailService, $path, $overview) {
 
     parent::__construct();
 
@@ -43,7 +42,7 @@ class BrIMAPMailMessage extends BrObject {
 
   }
 
-  function getHTMLBody() {
+  public function getHTMLBody() {
 
     $this->parse();
 
@@ -51,7 +50,7 @@ class BrIMAPMailMessage extends BrObject {
 
   }
 
-  function getTextBody() {
+  public function getTextBody() {
 
     $this->parse();
 
@@ -59,7 +58,7 @@ class BrIMAPMailMessage extends BrObject {
 
   }
 
-  function getAttachments() {
+  public function getAttachments() {
 
     $this->parse();
 
@@ -67,13 +66,13 @@ class BrIMAPMailMessage extends BrObject {
 
   }
 
-  function getOverview() {
+  public function getOverview() {
 
     return $this->overview;
 
   }
 
-  function mimeDecode($s) {
+  public function mimeDecode($s) {
 
     $r = '';
 
@@ -94,40 +93,40 @@ class BrIMAPMailMessage extends BrObject {
 
   }
 
-  function getSubject() {
+  public function getSubject() {
 
     return $this->mimeDecode(@$this->overview->subject);
 
   }
 
-  function getFromStr() {
+  public function getFromStr() {
 
     return $this->mimeDecode(@$this->overview->from);
 
   }
 
-  function getFrom() {
+  public function getFrom() {
 
     $from = imap_rfc822_parse_adrlist($this->getFromStr(), 'unknown.com');
     return $from[0];
 
   }
 
-  function getFromName() {
+  public function getFromName() {
 
     $from = $this->getFrom();
     return (@$from->personal ? $from->personal : 'unknown');
 
   }
 
-  function getFromEmail() {
+  public function getFromEmail() {
 
     $from = $this->getFrom();
     return (@$from->mailbox ? $from->mailbox : 'unknown') . '@' . (@$from->host ? $from->host : 'unknown.com');
 
   }
 
-  function getTo() {
+  public function getTo() {
 
     $headers = $this->getHeaders();
     if (@$headers->to) {
@@ -138,14 +137,14 @@ class BrIMAPMailMessage extends BrObject {
 
   }
 
-  function getToStr() {
+  public function getToStr() {
 
     $headers = $this->getHeaders();
     return @$headers->toaddress;
 
   }
 
-  function getCC() {
+  public function getCC() {
 
     $headers = $this->getHeaders();
     if (@$headers->cc) {
@@ -156,7 +155,7 @@ class BrIMAPMailMessage extends BrObject {
 
   }
 
-  function getCCStr() {
+  public function getCCStr() {
 
     $headers = $this->getHeaders();
     return @$headers->ccaddress;
@@ -164,43 +163,43 @@ class BrIMAPMailMessage extends BrObject {
   }
 
 
-  function getDate() {
+  public function getDate() {
 
     return $this->overview->date;
 
   }
 
-  function getUnixDate() {
+  public function getUnixDate() {
 
     return $this->overview->udate;
 
   }
 
-  function getUID() {
+  public function getUID() {
 
     return $this->overview->uid;
 
   }
 
-  function getMessageID() {
+  public function getMessageID() {
 
     return @$this->overview->message_id;
 
   }
 
-  function getReferences() {
+  public function getReferences() {
 
     return br(@$this->overview->references)->split(' ,;');
 
   }
 
-  function getInReplyTo() {
+  public function getInReplyTo() {
 
     return @$this->overview->in_reply_to;
 
   }
 
-  function getRawHeaders() {
+  public function getRawHeaders() {
 
     if ($this->rawHeaders === null) {
       $this->rawHeaders = imap_fetchheader($this->getMailbox(), $this->getUID(), FT_UID);
@@ -210,7 +209,7 @@ class BrIMAPMailMessage extends BrObject {
 
   }
 
-  function getHeaders() {
+  public function getHeaders() {
 
     if ($this->headers === null) {
       $this->headers = imap_rfc822_parse_headers($this->getRawHeaders());
@@ -220,7 +219,7 @@ class BrIMAPMailMessage extends BrObject {
 
   }
 
-  function getPriority() {
+  public function getPriority() {
 
     $headers = $this->getHeaders();
     if ($priority = br($headers, 'X-Priority', br($headers, 'Priority', br($headers, 'Importance')))) {
@@ -231,7 +230,7 @@ class BrIMAPMailMessage extends BrObject {
 
   }
 
-  function getMailbox() {
+  public function getMailbox() {
 
     return $this->mailService->openMailbox($this->path);
 

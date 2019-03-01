@@ -12,7 +12,7 @@ namespace Bright;
 
 class BrDataBaseDictionary extends BrObject {
 
-  function validate($tableName, $row) {
+  public function validate($tableName, $row) {
 
     if ($row) {
       if ($tableDesc = br($this->schema, $tableName)) {
@@ -75,7 +75,7 @@ class BrDataBaseDictionary extends BrObject {
 
   }
 
-  function generateDictionaryScript($scriptFile) {
+  public function generateDictionaryScript($scriptFile) {
 
     br()->log()->log('[' . br()->db()->getDataBaseName() . '] Generating dictionary file');
 

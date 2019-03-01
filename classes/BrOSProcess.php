@@ -15,14 +15,14 @@ class BrOSProcess extends BrObject {
   private $_pid;
   private $_command;
 
-  function __construct($pid, $command) {
+  public function __construct($pid, $command) {
 
     $this->_pid     = $pid;
     $this->_command = $command;
 
   }
 
-  function kill() {
+  public function kill() {
 
     br()->OS()->execute('kill ' . $this->_pid);
 
@@ -30,7 +30,7 @@ class BrOSProcess extends BrObject {
 
   }
 
-  function isValid() {
+  public function isValid() {
 
     return br()->OS()->isValidProcessId($this->_pid);
 

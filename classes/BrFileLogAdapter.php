@@ -12,74 +12,75 @@ namespace Bright;
 
 class BrFileLogAdapter extends BrGenericFileLogAdapter {
 
-  function __construct($filePath, $fileName = null) {
+  function __construct($baseFilePath = null, $baseFileName = null) {
 
-    if (!$filePath) {
-      $filePath = dirname(dirname(__DIR__)) . '/_logs/';
-    }
+    parent::__construct($baseFilePath, $baseFileName);
 
-    $filePath = rtrim($filePath, '/') . '/';
+    register_shutdown_function(array(&$this, "end"));
+
+  }
+
+  function generateLogFileName() {
+
+    $this->filePath = $this->baseFilePath ? $this->baseFilePath : br()->getLogsPath();
+
+    $this->filePath = rtrim($this->filePath, '/') . '/';
 
     $date = @strftime('%Y-%m-%d');
     $hour = @strftime('%H');
-    $filePath .= $date;
 
-    $tmp = $filePath . '/';
+    $this->filePath .= $date;
+
+    $tmp = $this->filePath . '/';
     $idx = 1;
     while (file_exists($tmp) && !is_writeable($tmp) && ($idx < 10)) {
-      $tmp = $filePath . '-' . $idx . '/';
+      $tmp = $this->filePath . '-' . $idx . '/';
       $idx++;
     }
-    $filePath = $tmp;
+    $this->filePath = $tmp;
 
     if (br()->isConsoleMode()) {
-      $filePath .= br()->getScriptName();
+      $this->filePath .= br()->getScriptName();
       if ($arguments = br()->getCommandLineArguments()) {
         if ($arguments = br()->fs()->normalizeFileName(br($arguments)->join('_'))) {
-          $filePath .= '_' . $arguments;
+          $this->filePath .= '_' . $arguments;
         }
       }
     } else {
-      $filePath .= br()->request()->clientIP();
+      $this->filePath .= br()->request()->clientIP();
       if ($login = br()->auth()->getSessionLogin()) {
         if (br($login, 'id')) {
-          $filePath .= '/' . $login['id'];
+          $this->filePath .= '/' . $login['id'];
         }
       }
     }
 
-    $tmp = $filePath . '/';
+    $tmp = $this->filePath . '/';
     $idx = 1;
     while (file_exists($tmp) && !is_writeable($tmp) && ($idx < 10)) {
-      $tmp = $filePath . '-' . $idx . '/';
+      $tmp = $this->filePath . '-' . $idx . '/';
       $idx++;
     }
-    $filePath = $tmp;
+    $this->filePath = $tmp;
 
-    if (!$fileName) {
-      $fileName = $date . '_' . $hour;
+    if ($this->baseFileName) {
+      $this->filePath .= $this->baseFileName;
+    } else {
+      $this->filePath .= $date . '_' . $hour;
       if (br()->isConsoleMode()) {
 
       } else {
-        $fileName .= '_' . br()->request()->clientIP();
+        $this->filePath .= '_' . br()->request()->clientIP();
       }
-      $fileName .= '.log';
+      $this->filePath .= '.log';
     }
-
-    parent::__construct($filePath, $fileName);
-
-    $this->on('log.initialized', function($logger) {
-      $logger->writeAppInfo();
-    });
-
-    register_shutdown_function(array(&$this, "end"));
 
   }
 
   function end() {
 
     if (function_exists('memory_get_usage')) {
-      $this->writeMessage('Memory usage:  ' . br()->formatBytes(memory_get_usage()), '---');
+      $this->write('Memory usage:  ' . br()->formatBytes(memory_get_usage()), '---');
     }
 
   }

@@ -17,11 +17,11 @@ class BrRESTBinder extends BrObject {
   private $methodRegExp  = '[_a-zA-Z]+';
   private $idCheckRegExp = '[0-9]+';
 
-  function doRouting() {
+  public function doRouting() {
 
   }
 
-  function route($path, $dataSource = null, $options = array()) {
+  public function route($path, $dataSource = null, $options = array()) {
 
     if (!br()->request()->routeComplete()) {
 
@@ -56,7 +56,7 @@ class BrRESTBinder extends BrObject {
 
   }
 
-  function routeGET($path, $dataSource, $options = array()) {
+  public function routeGET($path, $dataSource, $options = array()) {
 
     $method = strtolower(br()->request()->get('crossdomain', br()->request()->method()));
     if (!$method || ($method == 'get')) {
@@ -67,7 +67,7 @@ class BrRESTBinder extends BrObject {
 
   }
 
-  function routePOST($path, $dataSource, $options = array()) {
+  public function routePOST($path, $dataSource, $options = array()) {
 
     $method = strtolower(br()->request()->get('crossdomain', br()->request()->method()));
     if ($method == 'post') {
@@ -78,7 +78,7 @@ class BrRESTBinder extends BrObject {
 
   }
 
-  function routePUT($path, $dataSource, $options = array()) {
+  public function routePUT($path, $dataSource, $options = array()) {
 
     $method = strtolower(br()->request()->get('crossdomain', br()->request()->method()));
     if ($method == 'put') {
@@ -89,7 +89,7 @@ class BrRESTBinder extends BrObject {
 
   }
 
-  function routeDELETE($path, $dataSource, $options = array()) {
+  public function routeDELETE($path, $dataSource, $options = array()) {
 
     $method = strtolower(br()->request()->get('crossdomain', br()->request()->method()));
     if ($method == 'delete') {
@@ -102,7 +102,6 @@ class BrRESTBinder extends BrObject {
 
   private function checkPermissions($options, $methods) {
 
-    $userId        = br()->auth()->findLogin($options);
     $securityRules = br($options, 'security');
     $result        = 'login';
 
@@ -144,7 +143,7 @@ class BrRESTBinder extends BrObject {
 
     }
 
-    if ($result && !$userId) {
+    if ($result && !br()->auth()->isLoggedIn()) {
 
       if (br()->request()->get('crossdomain')) {
         br()->response()->sendJSONP('Not Authorized');
@@ -156,7 +155,7 @@ class BrRESTBinder extends BrObject {
 
   }
 
-  function routeAsGET($path, $dataSource, $options = array()) {
+  public function routeAsGET($path, $dataSource, $options = array()) {
 
     if (br()->request()->isAt($path)) {
 
@@ -219,7 +218,7 @@ class BrRESTBinder extends BrObject {
                             $subFilter[] = array('$nn' => '');
                             break;
                           case '$ne':
-                            if (is_scalar($singleValue) || br()->isRegularArray($singleValue)) {
+                            if (is_scalar($singleValue) || (is_array($singleValue) && br($singleValue)->isRegularArray())) {
                               $subFilter[] = array('$ne' => $singleValue);
                             }
                             break;
@@ -248,7 +247,7 @@ class BrRESTBinder extends BrObject {
                             }
                             break;
                           default:
-                            if (is_numeric($name) && (is_scalar($singleValue) || br()->isRegularArray($singleValue))) {
+                            if (is_numeric($name) && (is_scalar($singleValue) || (is_array($singleValue) && br($singleValue)->isRegularArray()))) {
                               $subFilter[] = $singleValue;
                             }
                             break;
@@ -444,7 +443,7 @@ class BrRESTBinder extends BrObject {
 
   }
 
-  function routeAsPOST($path, $dataSource, $options = array()) {
+  public function routeAsPOST($path, $dataSource, $options = array()) {
 
     if (br()->request()->isAt(rtrim($path, '/'))) {
 
@@ -581,7 +580,7 @@ class BrRESTBinder extends BrObject {
 
   }
 
-  function routeAsPUT($path, $dataSource, $options = array()) {
+  public function routeAsPUT($path, $dataSource, $options = array()) {
 
     if ($matches = br()->request()->isAt($path)) {
 
@@ -649,7 +648,7 @@ class BrRESTBinder extends BrObject {
 
   }
 
-  function routeAsDELETE($path, $dataSource, $options = array()) {
+  public function routeAsDELETE($path, $dataSource, $options = array()) {
 
     if ($matches = br()->request()->isAt($path)) {
 
@@ -705,7 +704,7 @@ class BrRESTBinder extends BrObject {
 
   }
 
-  function returnException($e) {
+  public function returnException($e) {
 
     $msg = $e->getMessage();
     $outputSent = false;
@@ -733,7 +732,7 @@ class BrRESTBinder extends BrObject {
 
   }
 
-  function route404($path) {
+  public function route404($path) {
 
     if (!br()->request()->routeComplete()) {
       if (br()->request()->isAt($path)) {

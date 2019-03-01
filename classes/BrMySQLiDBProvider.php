@@ -16,9 +16,9 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
   private $errorRedirect;
   private $config;
   private $reconnectIterations = 50;
-  private $rerunIterations     = 50;
+  private $rerunIterations     = 30;
 
-  function __construct($config) {
+  public function __construct($config) {
 
     $this->config = $config;
     register_shutdown_function(array(&$this, "captureShutdown"));
@@ -292,7 +292,8 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
           }
         } else {
           br()->log()->write('Some error occured, but we are not in transaction. Trying repeat query', 'SEP');
-          usleep(250000);
+          // usleep(250000);
+          sleep(1);
           $query = $this->runQueryEx($sql, $args, $iteration + 1, $e->getMessage());
         }
       } else

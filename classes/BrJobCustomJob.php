@@ -25,7 +25,7 @@ class BrJobCustomJob {
 
   protected $lastRunFile;
 
-  function __construct() {
+  public function __construct() {
 
     $this->lastRunFile = br()->getTempPath() . get_class($this) . '.timestamp';
 
@@ -34,15 +34,6 @@ class BrJobCustomJob {
 
     $this->coresAmount = br()->OS()->getCoresAmount();
     $this->maxProcessesAmount = $this->coresAmount * $this->maxProcessesAmountMultiplier;
-
-  }
-
-  function waitForProcessor() {
-
-    while (br()->OS()->findProcesses(array($this->runJobScript))->count() > $this->maxProcessesAmount) {
-      br()->log('[...] Too many processes started, maximum is ' . $this->maxProcessesAmount . '. Waiting to continue');
-      sleep(10);
-    }
 
   }
 
@@ -62,21 +53,24 @@ class BrJobCustomJob {
 
   }
 
-  function getCheckCommand($withPath = true, $arguments = '') {
+  public function getCheckCommand($withPath = true, $arguments = '') {
 
     return $this->getCommand(true, $withPath, $arguments);
 
   }
 
-  function getRunCommand($withPath = true, $arguments = '') {
+  public function getRunCommand($withPath = true, $arguments = '') {
 
     return $this->getCommand(false, $withPath, $arguments);
 
   }
 
-  function spawn($check, $arguments = '') {
+  public function spawn($check, $arguments = '') {
 
-    $this->waitForProcessor();
+    while (br()->OS()->findProcesses(array($this->runJobScript))->count() > $this->maxProcessesAmount) {
+      br()->log('[...] Too many processes started, maximum is ' . $this->maxProcessesAmount . '. Waiting to continue');
+      sleep(10);
+    }
 
     $runCommand = $this->getCommand($check, false, $arguments);
     $runCommandWithPath = $this->getCommand($check, true, $arguments);
@@ -105,7 +99,7 @@ class BrJobCustomJob {
 
   }
 
-  function check() {
+  public function check() {
 
     if ($list = $this->timeToStart()) {
       if (!is_array($list)) {
@@ -118,7 +112,7 @@ class BrJobCustomJob {
 
   }
 
-  function timeToStart($period = 5) {
+  public function timeToStart($period = 5) {
 
     if (file_exists($this->lastRunFile)) {
       return time() - filemtime($this->lastRunFile) > $period * 60;
@@ -128,13 +122,13 @@ class BrJobCustomJob {
 
   }
 
-  function done() {
+  public function done() {
 
     br()->fs()->saveToFile($this->lastRunFile, time());
 
   }
 
-  function run($params) {
+  public function run($params) {
 
     $this->done();
 

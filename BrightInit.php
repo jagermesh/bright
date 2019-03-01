@@ -51,6 +51,10 @@ br()->require(br()->getBasePath()  . 'config.php');
 // Core PHP settings - Secondary - End
 
 // Base Logging
+if (!br()->log()->isAdapterExists('Bright\\BrDebugFileLogAdapter')) {
+  br()->log()->addAdapter(new \Bright\BrDebugFileLogAdapter(br()->config()->get('Logger/File/LogsFolder', br()->getLogsPath())));
+}
+
 if (!br()->log()->isAdapterExists('Bright\\BrErrorFileLogAdapter')) {
   br()->log()->addAdapter(new \Bright\BrErrorFileLogAdapter(br()->config()->get('Logger/File/LogsFolder', br()->getLogsPath())));
 }

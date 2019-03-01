@@ -16,13 +16,13 @@ class BrRabbitMQ extends BrSingleton {
   private $channel;
   private $exchanges = array();
 
-  function __construct() {
+  public function __construct() {
 
     parent::__construct();
 
   }
 
-  function connect($params = array()) {
+  public function connect($params = array()) {
 
     if (!$this->connection) {
       $this->connection = new \PhpAmqpLib\Connection\AMQPConnection( br($params, 'host', 'localhost')
@@ -40,7 +40,7 @@ class BrRabbitMQ extends BrSingleton {
 
   }
 
-  function createExchange($exchangeName, $type = 'direct', $passive = false, $durable = false, $auto_delete = false) {
+  public function createExchange($exchangeName, $type = 'direct', $passive = false, $durable = false, $auto_delete = false) {
 
     $this->connect();
     $this->channel->exchange_declare($exchangeName, $type, $passive, $durable, $auto_delete);
@@ -51,7 +51,7 @@ class BrRabbitMQ extends BrSingleton {
 
   }
 
-  function createQueue($queueName, $a = false, $b = false, $c = true, $d = false) {
+  public function createQueue($queueName, $a = false, $b = false, $c = true, $d = false) {
 
     $this->connect();
     $this->channel->queue_declare($queueName, $a, $b, $c, $d);
@@ -60,7 +60,7 @@ class BrRabbitMQ extends BrSingleton {
 
   }
 
-  function sendMessage($exchangeName, $message, $routingKey = null) {
+  public function sendMessage($exchangeName, $message, $routingKey = null) {
 
     $this->connect();
     $msg = new \PhpAmqpLib\Message\AMQPMessage( json_encode($message)
@@ -76,7 +76,7 @@ class BrRabbitMQ extends BrSingleton {
 
   }
 
-  function receiveOneMessage($exchangeName, $bindingKey, $callback = null, $params = array()) {
+  public function receiveOneMessage($exchangeName, $bindingKey, $callback = null, $params = array()) {
 
     if (is_callable($bindingKey)) {
       $params = $callback;
@@ -111,7 +111,7 @@ class BrRabbitMQ extends BrSingleton {
 
   }
 
-  function receiveMessages($exchangeName, $bindingKey, $callback = null, $params = array()) {
+  public function receiveMessages($exchangeName, $bindingKey, $callback = null, $params = array()) {
 
     if (is_callable($bindingKey)) {
       $params = $callback;
@@ -145,7 +145,7 @@ class BrRabbitMQ extends BrSingleton {
 
   }
 
-  function close() {
+  public function close() {
 
     if ($this->channel) {
       $this->channel->close();

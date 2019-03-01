@@ -20,7 +20,7 @@ class BrNestedSet extends BrObject {
 
   private $keys = array();
 
-  function __construct($tableName, $params = array()) {
+  public function __construct($tableName, $params = array()) {
 
     $this->tableName   = $tableName;
 
@@ -31,7 +31,7 @@ class BrNestedSet extends BrObject {
 
   }
 
-  function verify() {
+  public function verify() {
 
     if (br()->db()->getRow('SELECT id FROM '.$this->tableName.' WHERE left_key >= right_key')) {
       throw new BrAppException('Nested set is broken: ' . 1);
@@ -57,7 +57,7 @@ class BrNestedSet extends BrObject {
 
   }
 
-  function internalSetup($key = null, $left = 0, $level = 0, $check_only = false) {
+  public function internalSetup($key = null, $left = 0, $level = 0, $check_only = false) {
 
     global $db;
 
@@ -101,7 +101,7 @@ class BrNestedSet extends BrObject {
 
   }
 
-  function setup() {
+  public function setup() {
 
     $this->keys = array();
 
@@ -116,7 +116,7 @@ class BrNestedSet extends BrObject {
 
   }
 
-  function getNodePosition($values) {
+  public function getNodePosition($values) {
 
     $node = array();
 
@@ -160,7 +160,7 @@ class BrNestedSet extends BrObject {
     return $node;
   }
 
-  function processInsert($values) {
+  public function processInsert($values) {
 
     $node = $this->getNodePosition($values);
 
@@ -189,7 +189,7 @@ class BrNestedSet extends BrObject {
 
   }
 
-  function processUpdate($old, $values) {
+  public function processUpdate($old, $values) {
 
     if (br($old, $this->parentField) != br($values, $this->parentField) || br($old, $this->orderField) != br($values, $this->orderField)) {
 
@@ -259,7 +259,7 @@ class BrNestedSet extends BrObject {
     }
   }
 
-  function processDelete($values) {
+  public function processDelete($values) {
 
     $left_key  = $values['left_key'];
     $right_key = $values['right_key'];

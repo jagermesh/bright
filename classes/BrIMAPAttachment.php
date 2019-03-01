@@ -14,7 +14,7 @@ class BrIMAPAttachment extends BrObject {
 
   private $message, $partNo, $encoding, $fileName, $id, $size, $body = null;
 
-  function __construct($message, $partNo, $structure) {//$encoding, $fileName, $name, $id = null) {
+  public function __construct($message, $partNo, $structure) {//$encoding, $fileName, $name, $id = null) {
 
     parent::__construct();
 
@@ -44,7 +44,7 @@ class BrIMAPAttachment extends BrObject {
 
   }
 
-  function getBody() {
+  public function getBody() {
 
     if ($this->body === null) {
       $this->body = imap_fetchbody($this->message->getMailbox(), $this->message->getUID(), $this->partNo, FT_UID);
@@ -55,25 +55,25 @@ class BrIMAPAttachment extends BrObject {
 
   }
 
-  function getFileName() {
+  public function getFileName() {
 
     return $this->message->mimeDecode($this->fileName);
 
   }
 
-  function getFileExt() {
+  public function getFileExt() {
 
     return $this->message->mimeDecode(br()->fs()->fileExt($this->getFileName()));
 
   }
 
-  function getSize() {
+  public function getSize() {
 
     return $this->size;
 
   }
 
-  function getID() {
+  public function getID() {
 
     return $this->id;
 

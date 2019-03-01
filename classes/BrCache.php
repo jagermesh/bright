@@ -46,7 +46,7 @@ class BrCache extends BrObject {
         if (br($cacheConfig, 'required')) {
           throw new \Exception('Can not initialize ' . $cacheConfig['engine'] . ' caching engine: ' . $e->getMessage());
         } else {
-          br()->log('Can not initialize ' . $cacheConfig['engine'] . ' caching engine: ' . $e->getMessage() . '. Switching to memory caching.');
+          br()->log()->write('Can not initialize ' . $cacheConfig['engine'] . ' caching engine: ' . $e->getMessage() . '. Switching to memory caching.', 'RED');
           $instance = self::createInstance('memory');
         }
       }

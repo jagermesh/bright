@@ -16,13 +16,13 @@ class BrCSVParser extends BrObject {
   private $enclosure = '"';
   private $enclosureArr = array('"',"'");
 
-  function setDelimiter($delimiter) {
+  public function setDelimiter($delimiter) {
 
     $this->delimiter = $delimiter;
 
   }
 
-  function parse($fileName) {
+  public function parse($fileName) {
 
     $result = array();
 
@@ -36,7 +36,7 @@ class BrCSVParser extends BrObject {
 
   }
 
-  function iterate($fileName, $callback) {
+  public function iterate($fileName, $callback) {
 
     ini_set('auto_detect_line_endings', true);
 

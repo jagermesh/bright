@@ -15,7 +15,7 @@ class BrFileSystemObject {
   private $name;
   private $path;
 
-  function __construct($path) {
+  public function __construct($path) {
 
     $info = pathinfo($path);
     $this->name = $info['basename'];
@@ -23,31 +23,31 @@ class BrFileSystemObject {
 
   }
 
-  function isFile() {
+  public function isFile() {
 
     return !$this->isDir();
 
   }
 
-  function isDir() {
+  public function isDir() {
 
     return is_dir($this->nameWithPath());
 
   }
 
-  function name() {
+  public function name() {
 
     return $this->name;
 
   }
 
-  function path() {
+  public function path() {
 
     return $this->path;
 
   }
 
-  function nameWithPath() {
+  public function nameWithPath() {
 
     return br()->fs()->normalizePath($this->path) . $this->name;
 

@@ -14,7 +14,7 @@ require_once(dirname(__DIR__) . '/3rdparty/phpQuery/phpQuery.php');
 
 class BrXSS extends BrSingleton {
 
-  function cleanUp($html, $callback = null) {
+  public function cleanUp($html, $callback = null) {
 
     if (is_array($html)) {
       foreach($html as $key => $value) {

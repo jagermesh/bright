@@ -20,13 +20,13 @@ class BrDateTime extends BrObject {
   var $minute;
   var $second;
 
-  function __construct($date = null) {
+  public function __construct($date = null) {
 
     $this->set($date);
 
   }
 
-  function set($date = null) {
+  public function set($date = null) {
 
     if (!$date) {
       $date = time();
@@ -48,35 +48,35 @@ class BrDateTime extends BrObject {
 
   }
 
-  function setDay($day) {
+  public function setDay($day) {
 
     $this->day = $day;
     $this->set($this->asDateTime());
 
   }
 
-  function setHour($hour) {
+  public function setHour($hour) {
 
     $this->hour = $hour;
     $this->set($this->asDateTime());
 
   }
 
-  function setMinutes($minute) {
+  public function setMinutes($minute) {
 
     $this->minute = $minute;
     $this->set($this->asDateTime());
 
   }
 
-  function setSeconds($second) {
+  public function setSeconds($second) {
 
     $this->second = $second;
     $this->set($this->asDateTime());
 
   }
 
-  function setDayToLast() {
+  public function setDayToLast() {
 
     $this->setDay(1);
     $this->incMonth(1);
@@ -84,26 +84,26 @@ class BrDateTime extends BrObject {
 
   }
 
-  function setMonth($month) {
+  public function setMonth($month) {
 
     $this->month = $month;
     $this->set($this->asDateTime());
 
   }
 
-  function asDateTime() {
+  public function asDateTime() {
 
     return mktime($this->hour, $this->minute, $this->second, $this->month, $this->day, $this->year);
 
   }
 
-  function asDate() {
+  public function asDate() {
 
     return mktime(0, 0, 0, $this->month, $this->day, $this->year);
 
   }
 
-  function incDay($increment = 1) {
+  public function incDay($increment = 1) {
 
     $this->day += $increment;
     $this->set($this->asDateTime());
@@ -111,7 +111,7 @@ class BrDateTime extends BrObject {
 
   }
 
-  function incHour($increment = 1) {
+  public function incHour($increment = 1) {
 
     $this->hour += $increment;
     $this->set($this->asDateTime());
@@ -119,7 +119,7 @@ class BrDateTime extends BrObject {
 
   }
 
-  function incMinute($increment = 1) {
+  public function incMinute($increment = 1) {
 
     $this->minute += $increment;
     $this->set($this->asDateTime());
@@ -127,7 +127,7 @@ class BrDateTime extends BrObject {
 
   }
 
-  function incSec($increment = 1) {
+  public function incSec($increment = 1) {
 
     $this->second += $increment;
     $this->set($this->asDateTime());
@@ -135,7 +135,7 @@ class BrDateTime extends BrObject {
 
   }
 
-  function incMonth($increment = 1) {
+  public function incMonth($increment = 1) {
 
     $this->month += $increment;
     $this->set($this->asDateTime());
@@ -143,7 +143,7 @@ class BrDateTime extends BrObject {
 
   }
 
-  function incYear($increment = 1) {
+  public function incYear($increment = 1) {
 
     $this->year += $increment;
     $this->set($this->asDateTime());
@@ -151,7 +151,7 @@ class BrDateTime extends BrObject {
 
   }
 
-  function decDay($decrement = 1) {
+  public function decDay($decrement = 1) {
 
     $this->day -= $decrement;
     $this->set($this->asDateTime());
@@ -159,7 +159,7 @@ class BrDateTime extends BrObject {
 
   }
 
-  function decMonth($decrement = 1) {
+  public function decMonth($decrement = 1) {
 
     $this->month -= $decrement;
     $this->set($this->asDateTime());
@@ -167,7 +167,7 @@ class BrDateTime extends BrObject {
 
   }
 
-  function daysBetween($date = null, $with_sign = false) {
+  public function daysBetween($date = null, $with_sign = false) {
 
     if (!$date) {
       $date = time();
@@ -181,7 +181,7 @@ class BrDateTime extends BrObject {
 
   }
 
-  function minutesBetween($date = null) {
+  public function minutesBetween($date = null) {
 
     if (!$date) {
       $date = time();
@@ -192,7 +192,7 @@ class BrDateTime extends BrObject {
 
   }
 
-  function secondsBetween($date = null) {
+  public function secondsBetween($date = null) {
 
     if (!$date) {
       $date = time();
@@ -203,19 +203,19 @@ class BrDateTime extends BrObject {
 
   }
 
-  function differenceToString($date = null) {
+  public function differenceToString($date = null) {
 
     return $this->secondsToString($this->secondsBetween($date));
 
   }
 
-  function daysDifferenceToString($date = null) {
+  public function daysDifferenceToString($date = null) {
 
     return $this->secondsToString($this->secondsBetween($date), 'days');
 
   }
 
-  function secondsToString($diff = null, $stopOn = '') {
+  public function secondsToString($diff = null, $stopOn = '') {
 
     $result = '';
 
@@ -243,13 +243,11 @@ class BrDateTime extends BrObject {
       }
     }
 
-    //.' часов';
-    //$custom['expiration_term'] .= ' '.date("i", mktime(0, $date_time->minutes_between(), 0)).' минут';
     return trim($result);
 
   }
 
-  function hoursBetween($date = null) {
+  public function hoursBetween($date = null) {
 
     if (!$date) {
       $date = time();
@@ -260,7 +258,7 @@ class BrDateTime extends BrObject {
 
   }
 
-  function daysTill($date = null) {
+  public function daysTill($date = null) {
 
     if (!$date) {
       $date = time();
@@ -271,7 +269,7 @@ class BrDateTime extends BrObject {
 
   }
 
-  function weeksBetween($date = null, $with_sign = false) {
+  public function weeksBetween($date = null, $with_sign = false) {
 
     $days_beetween = $this->daysBetween($date, $with_sign);
     if ($with_sign) {
@@ -288,7 +286,7 @@ class BrDateTime extends BrObject {
 
   }
 
-  function monthsBetween($date = null, $with_sign = false) {
+  public function monthsBetween($date = null, $with_sign = false) {
 
     if (!$date) {
       $date = time();
@@ -302,26 +300,26 @@ class BrDateTime extends BrObject {
 
   }
 
-  function isSameDate($date) {
+  public function isSameDate($date) {
 
     return ($date->asDate() == $this->asDate());
 
   }
 
-  function equalTo($dateTime) {
+  public function equalTo($dateTime) {
 
     return ($dateTime->asDateTime() == $this->asDateTime());
 
   }
 
-  function isToday() {
+  public function isToday() {
 
     $date = new BrDateTime();
     return $date->isSameDate($this);
 
   }
 
-  function isYesterday() {
+  public function isYesterday() {
 
     $yesterday = new BrDateTime();
     $yesterday->decDay(1);
@@ -329,7 +327,7 @@ class BrDateTime extends BrObject {
 
   }
 
-  function isTomorrow() {
+  public function isTomorrow() {
 
     $yesterday = new BrDateTime();
     $yesterday->incDay(1);
@@ -337,7 +335,7 @@ class BrDateTime extends BrObject {
 
   }
 
-  function isThisWeek() {
+  public function isThisWeek() {
 
     $today = new BrDateTime();
     $days_between = $this->daysBetween(null, true);
@@ -350,20 +348,20 @@ class BrDateTime extends BrObject {
 
   }
 
-  function isWeekend() {
+  public function isWeekend() {
 
     return $this->weekday > 5;
 
   }
 
-  function isThisMonth() {
+  public function isThisMonth() {
 
     $today = new BrDateTime();
     return ($today->year == $this->year) && ($today->month == $this->month);
 
   }
 
-  function isPastWeek() {
+  public function isPastWeek() {
 
     $today = new BrDateTime();
     $days_between = $this->daysBetween(null, true);
@@ -372,7 +370,7 @@ class BrDateTime extends BrObject {
 
   }
 
-  function isNextWeek() {
+  public function isNextWeek() {
 
     $today = new BrDateTime();
     $days_between = $this->daysBetween(null, true);
@@ -381,14 +379,14 @@ class BrDateTime extends BrObject {
 
   }
 
-  function isThisYear() {
+  public function isThisYear() {
 
     $today = new BrDateTime();
     return ($today->year == $this->year);
 
   }
 
-  function daysInCurrentMonth() {
+  public function daysInCurrentMonth() {
 
     $date = new BrDateTime($this->asDateTime());
     $date->day = 1;
@@ -398,31 +396,31 @@ class BrDateTime extends BrObject {
 
   }
 
-  function toString($format = '%H:%M, %d %B, %Y') {
+  public function toString($format = '%H:%M, %d %B, %Y') {
 
     return strftime($format, $this->asDateTime());
 
   }
 
-  function toDateString($format = '%d %B, %Y') {
+  public function toDateString($format = '%d %B, %Y') {
 
     return $this->toString($format);
 
   }
 
-  function toMySQLDateString() {
+  public function toMySQLDateString() {
 
     return $this->toString('%Y-%m-%d');
 
   }
 
-  function toMySQLDateTimeString() {
+  public function toMySQLDateTimeString() {
 
     return $this->toString('%Y-%m-%d %H:%M:%S');
 
   }
 
-  function toTimeMarker() {
+  public function toTimeMarker() {
 
     if ($this->isToday()) {
       $result = br()->trn('Today');
