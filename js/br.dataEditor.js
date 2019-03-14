@@ -65,6 +65,7 @@
 
     _this.unlock = function() {
       $(_this.options.selectors.save, _this.container).removeClass('disabled');
+      br.resetCloseConfirmation();
     };
 
     _this.showError = function(message) {
@@ -96,40 +97,52 @@
       _this.container.find('.operation').text(s);
     };
 
-    function modalShown(form) {
-      var focusedInput = $('input.focus[type!=hidden]:visible,select.focus:visible,textarea.focus:visible', form);
+    function editorShown() {
+      var focusedInput = $('input.focus[type!=hidden]:visible,select.focus:visible,textarea.focus:visible', _this.container);
       if (focusedInput.length > 0) {
         try { focusedInput[0].focus(); } catch (e) { }
       } else {
-        focusedInput = $('input[type!=hidden]:visible,select:visible,textarea:visible', form);
+        focusedInput = $('input[type!=hidden]:visible,select:visible,textarea:visible', _this.container);
         if (focusedInput.length > 0) {
           try { focusedInput[0].focus(); } catch (e) { }
         }
       }
       _this.events.trigger('editor.shown');
+      br.resetCloseConfirmation();
     }
 
     var closeConfirmationTmp;
 
+    function editorHidden(result, response) {
+      _this.events.trigger('editor.hidden', result, response);
+      br.resetCloseConfirmation();
+      if (closeConfirmationTmp) {
+        br.confirmClose();
+      }
+    }
+
     _this.init = function() {
 
       if (_this.container.hasClass('modal')) {
-        _this.container.attr('data-backdrop', 'static');
         _this.container.on('shown.bs.modal', function() {
-          modalShown($(this));
+          editorShown();
         });
         _this.container.on('hide.bs.modal', function() {
           if (cancelled) {
             cancelled = false;
           } else {
-            if (!closeConfirmationTmp) {
-              br.resetCloseConfirmation();
+            if (br.isCloseConfirmationRequired()) {
+              br.confirm('Changes detected', br.closeConfirmationMessage, function() {
+                _this.cancel();
+              });
+              return false;
             }
-            _this.events.trigger('editor.cancel', false, editorRowid);
           }
           _this.events.trigger('editor.hide', false, editorRowid);
         });
-        _this.container.on('hidden.bs.modal', function() { _this.events.trigger('editor.hidden', false, editorRowid); });
+        _this.container.on('hidden.bs.modal', function() {
+          editorHidden(false, editorRowid);
+        });
       }
 
       $(_this.options.selectors.cancel, _this.container).removeAttr('data-dismiss');
@@ -150,20 +163,30 @@
         }
       });
 
-      $(_this.inputsContainer).on('click', 'div.data-field[data-toggle=buttons-radio],input.data-field[type=checkbox],input.data-field[type=radio]', function() {
+      $(_this.inputsContainer).on('click', 'div.data-field[data-toggle=buttons-radio],input.data-field[type=checkbox],input.data-field[type=radio]', function(event) {
         br.confirmClose();
       });
 
-      $(_this.inputsContainer).on('change', 'select.data-field', function() {
+      $(_this.inputsContainer).on('change', 'select.data-field', function(event) {
         br.confirmClose();
       });
 
-      $(_this.inputsContainer).on('keypress', 'input.data-field,textarea.data-field', function() {
-        br.confirmClose();
+      $(_this.inputsContainer).on('keypress', 'input.data-field,textarea.data-field', function(event) {
+        if (event.keyCode != 27) {
+          br.confirmClose();
+        }
       });
 
       return _this;
 
+    };
+
+    _this.fillDefaults = function() {
+      _this.inputsContainer.find('input.data-field[type=checkbox]').each(function() {
+        if ($(this).attr('data-default-checked')) {
+          $(this).prop('checked', 'checked');
+        }
+      });
     };
 
     _this.fillControls = function(data) {
@@ -264,6 +287,8 @@
             br.attachDatePickers(_this.inputsContainer);
             if (_this.container.hasClass('modal')) {
               _this.container.modal('show');
+            } else {
+              editorShown();
             }
           } else {
             if (_this.container.hasClass('modal')) {
@@ -276,18 +301,14 @@
       } else {
         _this.events.triggerBefore('editor.show');
         _this.editorConfigure(isCopy);
-
-        _this.inputsContainer.find('input.data-field[type=checkbox]').each(function() {
-          if ($(this).attr('data-default-checked')) {
-            $(this).prop('checked', 'checked');
-          }
-        });
-
+        _this.fillDefaults();
         _this.fillControls(defaultValues);
         _this.events.trigger('editor.show', defaultValues);
         br.attachDatePickers(_this.inputsContainer);
         if (_this.container.hasClass('modal')) {
           _this.container.modal('show');
+        } else {
+          editorShown();
         }
       }
       return _this.container;
@@ -295,15 +316,12 @@
 
     _this.hide = _this.cancel = function() {
       cancelled = true;
-      if (!closeConfirmationTmp) {
-        br.resetCloseConfirmation();
-      }
       _this.events.trigger('editor.cancel', false, editorRowid);
       if (_this.container.hasClass('modal')) {
         _this.container.modal('hide');
       } else {
-        _this.events.trigger('editor.hidden', false, editorRowid);
         _this.events.trigger('editor.hide', false, editorRowid);
+        editorHidden(false, editorHidden);
         br.backToCaller(_this.options.returnUrl, false);
       }
     };
@@ -355,23 +373,20 @@
           _this.dataSource.update(editorRowid, data, function(result, response) {
             try {
               if (result) {
-                if (!closeConfirmationTmp) {
-                  br.resetCloseConfirmation();
-                }
+                br.resetCloseConfirmation();
                 editorRowid = response.rowid;
                 editorRowData = response;
                 _this.events.triggerAfter('editor.update', true, response);
                 _this.events.triggerAfter('editor.save', true, response);
                 if (andClose) {
                   if (_this.container.hasClass('modal')) {
-                    // _this.events.trigger('editor.hidden', true, response);
                     _this.container.modal('hide');
                     editorRowid = null;
                     editorRowData = null;
                   } else {
-                    _this.events.trigger('editor.hidden', true, response);
                     var callResponse = { refresh: true };
                     _this.events.trigger('editor.hide', true, response, callResponse);
+                    editorHidden(true, response);
                     br.backToCaller(_this.options.returnUrl, callResponse.refresh);
                   }
                 } else {
@@ -401,9 +416,7 @@
           _this.dataSource.insert(data, function(result, response) {
             try {
               if (result) {
-                if (!closeConfirmationTmp) {
-                  br.resetCloseConfirmation();
-                }
+                br.resetCloseConfirmation();
                 editorRowid = response.rowid;
                 editorRowData = response;
                 _this.editorConfigure(false);
@@ -411,14 +424,13 @@
                 _this.events.triggerAfter('editor.save', true, response);
                 if (andClose) {
                   if (_this.container.hasClass('modal')) {
-                    // _this.events.trigger('editor.hidden', true, response);
                     _this.container.modal('hide');
                     editorRowid = null;
                     editorRowData = null;
                   } else {
-                    _this.events.trigger('editor.hidden', true, response);
                     var callResponse = { refresh: true };
                     _this.events.trigger('editor.hide', true, response, callResponse);
+                    editorHidden(true, response);
                     br.backToCaller(_this.options.returnUrl, callResponse.refresh);
                   }
                 } else {

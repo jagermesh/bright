@@ -12,11 +12,21 @@
   function BrTable(selector, options) {
 
     var _this = this;
+
+    var initialized = false;
+
     var table = $(selector);
     var thead = $('thead', table);
     var tbody = $('tbody', table);
-    var initialized = false;
+
+    var tableCopy;
+    var theadCopy;
+    var tbodyCopy;
+    var theadColsCopy;
+    var tbodyColsCopy;
+
     var calcDiv;
+    var imagesCounter = 0;
 
     _this.options = options || { };
 
@@ -25,9 +35,8 @@
     } else {
       calcDiv = $('<div style="height:0px;overflow:hidden;"/>');
     }
-    table.parent().append(calcDiv);
 
-    $(table).css('border-bottom', '0px');
+    table.parent().append(calcDiv);
 
     if (_this.options.autoHeight) {
       table.css('margin-bottom', '0px');
@@ -63,94 +72,134 @@
 
     }
 
-    function getBorderWidth(el) {
+    function debugValue(container, value) {
 
-      var result = 0;
-      if ($(el).css('border-left-width')) {
-        result += br.toInt($(el).css('border-left-width').replace('px', ''));
+      if (_this.options.debug) {
+        var c = $(container);
+        var v = Math.round(value);
+        var e = c.find('span.br-table-debug');
+        if (e.length == 0) {
+          c.append('<br /><span class="br-table-debug">' + v + '</span>');
+        } else {
+          e.text(v);
+        }
       }
-      if ($(el).css('border-right-width')) {
-        result += br.toInt($(el).css('border-right-width').replace('px', ''));
-      }
-      return result;
 
     }
 
-    function getPadding(el) {
-
-      var result = 0;
-      if ($(el).css('padding-left')) {
-        result += br.toInt($(el).css('padding-left').replace('px', ''));
-      }
-      if ($(el).css('padding-right')) {
-        result += br.toInt($(el).css('padding-right').replace('px', ''));
-      }
-      return result;
-
-    }
-
-    function update() {
-
-      var headerCols = $(table).find('thead tr:first th');
-      var bodyCols   = $(table).find('tbody tr:first td');
+    function getWidths() {
 
       var widths = {};
 
-      var tableCopy = table.clone();
-      var theadCopy = $('thead', tableCopy);
-      var tbodyCopy = $('tbody', tableCopy);
+      theadColsCopy.each(function(idx) {
+        var w = $(this)[0].getBoundingClientRect().width;
+        debugValue(this, w);
+        widths[idx] = { h: w, b: 0, m: 0 };
+      });
+
+      tbodyColsCopy.each(function(idx) {
+        var w = $(this)[0].getBoundingClientRect().width;
+        debugValue(this, w);
+        widths[idx] = { h: w, b: 0, m: 0 };
+      });
+
+      return widths;
+
+    }
+
+    function createCopy() {
+
+      tableCopy = table.clone();
+      theadCopy = $('thead', tableCopy);
+      tbodyCopy = $('tbody', tableCopy);
+      theadColsCopy = theadCopy.find('tr:first th');
+      tbodyColsCopy = tbodyCopy.find('tr:first td');
+
       theadCopy.css('display', '').css('overflow', '');
       tbodyCopy.css('display', '').css('overflow', '');
-      var theadColsCopy = theadCopy.find('tr:first th');
+
       theadColsCopy.each(function(idx) {
-        $(this).css('min-width', '');
-        $(this).css('max-width', '');
+        var c = $(this);
+        c.css('min-width', '').css('max-width', '');
       });
-      var tbodyColsCopy = tbodyCopy.find('tr:first td');
+
       tbodyColsCopy.each(function(idx) {
-        $(this).css('min-width', '');
-        $(this).css('max-width', '');
+        var c = $(this);
+        c.css('min-width', '').css('max-width', '');
       });
 
       calcDiv.html('');
       calcDiv.append(tableCopy);
 
-      theadColsCopy.each(function(idx) {
-        widths[idx] = { h: $(this).outerWidth(), b: 0, m: 0 };
+      imagesCounter = 0;
+
+      $('img', calcDiv).each(function() {
+        imagesCounter++;
+        this.onload = function() {
+          imagesCounter--;
+          _this.update(true);
+        };
+        this.onerror = function() {
+          imagesCounter--;
+          _this.update(true);
+        };
       });
 
-      tbodyColsCopy.each(function(idx) {
-        widths[idx].b = $(this).outerWidth();
-        widths[idx].m = Math.max(widths[idx].h, widths[idx].b);
-      });
+    }
 
-      calcDiv.html('');
-
-      headerCols.each(function(idx) {
-        $(this).css('min-width', widths[idx].h - getPadding(this) - getBorderWidth(this));
-        $(this).css('max-width', widths[idx].h - getPadding(this) - getBorderWidth(this));
-      });
-      bodyCols.each(function(idx) {
-        $(this).css('min-width', widths[idx].b - getPadding(this) - getBorderWidth(this));
-        $(this).css('max-width', widths[idx].b - getPadding(this) - getBorderWidth(this));
-      });
+    function update(skipCalcDivReloading) {
 
       if (!initialized) {
-        thead.css('display', 'block').css('overflow', 'hidden');
-        tbody.css('display', 'block').css('overflow', 'auto');
+        thead.css({ 'display': 'block', 'overflow': 'hidden' });
+        tbody.css({ 'display': 'block', 'overflow': 'auto' });
+        table.css({ 'border-bottom': '0px', 'border-left': '0px', 'border-right': '0px' });
         initialized = true;
       }
 
-      autosize();
+      if (!tableCopy || !skipCalcDivReloading) {
+        createCopy();
+      }
+
+      window.setTimeout(function() {
+
+        var widths = getWidths();
+
+        var headerCols = table.find('thead tr:first th');
+
+        headerCols.each(function(idx) {
+          var w = widths[idx].h;
+          var c = $(this);
+          debugValue(c, w);
+          c.css({ 'min-width': w, 'max-width': w });
+        });
+
+        var bodyCols   = table.find('tbody tr:first td');
+
+        bodyCols.each(function(idx) {
+          var w = widths[idx].h;
+          var c = $(this);
+          debugValue(c, w);
+          c.css({ 'min-width': w, 'max-width': w });
+        });
+
+        autosize();
+
+        if (imagesCounter == 0) {
+          calcDiv.html('');
+          tableCopy.remove();
+          tableCopy = null;
+        }
+
+      });
 
     }
 
     var updateTimer;
 
-    this.update = function() {
+    _this.update = function(skipCalcDivReloading) {
       window.clearTimeout(updateTimer);
       updateTimer = window.setTimeout(function() {
-        update();
+        update(skipCalcDivReloading);
       }, 100);
     };
 
