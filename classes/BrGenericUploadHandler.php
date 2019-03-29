@@ -74,7 +74,7 @@ class BrGenericUploadHandler {
 
   }
 
-  public function handle() {
+  public function handle($callback = null) {
 
     // list of valid extensions, ex. array("jpeg", "xml", "bmp")
     $this->allowedExtensions = br($this->options, 'allowedExtensions', array());
@@ -140,6 +140,10 @@ class BrGenericUploadHandler {
       $result = array( 'success' => false
                      , 'error'   => $e->getMessage()
                      );
+    }
+
+    if ($callback) {
+      $callback($result);
     }
 
     br()->response()->sendJSON($result);

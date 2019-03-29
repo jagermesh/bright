@@ -12,24 +12,43 @@ namespace Bright;
 
 class BrArray extends BrGenericDataType {
 
+  /**
+   * Return length of the array
+   * @return integer
+   */
   public function length() {
 
     return count($this->value);
 
   }
 
+  /**
+   * @param  alpha-numeric|array
+   * @param  boolean
+   * @return boolean
+   */
   public function contain($value, $ignoreCase = false) {
 
     return $this->exists($value, $ignoreCase);
 
   }
 
+  /**
+   * @param  alpha-numeric|array
+   * @param  boolean
+   * @return boolean
+   */
   public function has($value, $ignoreCase = false) {
 
     return $this->exists($value, $ignoreCase);
 
   }
 
+  /**
+   * @param  alpha-numeric|array
+   * @param  boolean
+   * @return boolean
+   */
   public function exists($value, $ignoreCase = false) {
 
     if (is_array($value)) {
@@ -55,30 +74,48 @@ class BrArray extends BrGenericDataType {
 
   }
 
+  /**
+   * @param  alpha-numeric
+   * @return integer
+   */
   public function indexOf($value) {
 
     return array_search($value, $this->value);
 
   }
 
+  /**
+   * @return array
+   */
   public function copy() {
 
     return json_decode(json_encode($this->value), true);
 
   }
 
+  /**
+   * @return array
+   */
   public function split() {
 
     return $this->value;
 
   }
 
+  /**
+   * @param  string
+   * @return string
+   */
   public function join($glue = ', ') {
 
-    return implode($this->value, $glue);
+    return implode($glue, $this->value);
 
   }
 
+  /**
+   * @param  boolean
+   * @return array
+   */
   public function removeEmptyValues($assoc = true) {
 
     $result = array();
@@ -104,6 +141,10 @@ class BrArray extends BrGenericDataType {
 
   }
 
+  /**
+   * @param  array
+   * @return array
+   */
   public function compare($arr2) {
 
     $result = array();
@@ -123,6 +164,10 @@ class BrArray extends BrGenericDataType {
 
   }
 
+  /**
+   * @param  array
+   * @return boolean
+   */
   public function hasOnlyNames($arr2) {
 
     foreach($this->value as $name => $value) {
@@ -135,6 +180,10 @@ class BrArray extends BrGenericDataType {
 
   }
 
+  /**
+   * @param  alpha-numeric
+   * @return array
+   */
   public function valuesOf($index) {
 
     $result = array();
@@ -147,6 +196,10 @@ class BrArray extends BrGenericDataType {
 
   }
 
+  /**
+   * @param  string|array
+   * @return array
+   */
   public function extract($fields) {
 
     $fields = br($fields)->split();
@@ -167,6 +220,10 @@ class BrArray extends BrGenericDataType {
 
   }
 
+  /**
+   * @param  array
+   * @return boolean
+   */
   public function in($value) {
 
     if (is_array($value)) {

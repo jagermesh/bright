@@ -45,7 +45,7 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter {
           if ($group) {
             $logMessage .= $group . ' ';
           }
-          $logMessage .= br()->getProcessId() . ' ';
+          $logMessage .= br()->getProcessId() . ' ' . @strftime('%H:%M:%S') . ' ';
           if ($initTime = br()->log()->getInitTime()) {
             $logMessage .= $initTime;
             if ($time = br()->log()->getFormattedTimeOffset()) {

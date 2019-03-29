@@ -62,7 +62,7 @@ class BrErrorHandler extends BrObject {
             if (br()->request()->isDevHost() || br()->isConsoleMode()) {
               throw new BrErrorException($errmsg, 0, $errno, $errfile, $errline);
             } else {
-              br()->log()->logException(new BrErrorException($errmsg, 0, $errno, $errfile, $errline), true);
+              br()->log()->logException(new BrErrorException($errmsg, 0, $errno, $errfile, $errline));
             }
             break;
         }

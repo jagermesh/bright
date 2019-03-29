@@ -5059,15 +5059,62 @@
     }
   }
 
+  function attachTabContros(modal) {
+
+    var tabbableElements = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, *[tabindex], *[contenteditable]';
+
+    function disableTabbingOnPage(except) {
+      $.each($(tabbableElements), function (idx, item) {
+        var el = $(item);
+        if (!el.closest(except).length) {
+          var tabindex = el.attr('tabindex');
+          if (tabindex) {
+            el.attr('data-prev-tabindex', tabindex);
+          }
+          el.attr('tabindex', '-1');
+        }
+      });
+    }
+
+    function reEnableTabbingOnPage(except) {
+      $.each($(tabbableElements), function (idx, item) {
+        var el = $(item);
+        if (!el.closest(except).length) {
+          var prevTabindex = el.attr('data-prev-tabindex');
+          if (prevTabindex) {
+            el.attr('tabindex', prevTabindex);
+          } else {
+            el.removeAttr('tabindex');
+          }
+          el.removeAttr('data-prev-tabindex');
+        }
+      });
+    }
+
+    $(modal).on('show.bs.modal', function() {
+      disableTabbingOnPage($(this));
+    });
+    $(modal).on('hide.bs.modal', function() {
+      reEnableTabbingOnPage($(this));
+    });
+
+  }
+
   window.br.enchanceBootstrap = function(el) {
 
     if (el) {
       if ($(el).hasClass('modal-autosize')) {
         configureAutosize($(el));
       }
+      if ($(el).hasClass('modal')) {
+        attachTabContros($(el));
+      }
     } else {
       $('div.modal.modal-autosize').each(function() {
         configureAutosize($(this));
+      });
+      $('div.modal').each(function() {
+        attachTabContros($(this));
       });
     }
 
@@ -5181,6 +5228,7 @@
     $(document).on('keypress', 'input[data-click-on-enter]', function(e) {
       if (e.keyCode == 13) { $($(this).attr('data-click-on-enter')).trigger('click'); }
     });
+
 
     br.enchanceBootstrap();
     br.attachDatePickers();
