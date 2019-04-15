@@ -84,7 +84,7 @@
 
     var i;
 
-    var s = '<div class="modal modal-autosize';
+    var s = '<div class="br-modal-confirm modal modal-autosize';
     if (options.cssClass) {
       s = s + ' ' + options.cssClass;
     }
@@ -144,7 +144,7 @@
     var remove = true;
 
     $(dialog).on('show.bs.modal', function(event) {
-      if (event.namespace == 'bs.modal') {
+      if ($(event.target).is(dialog)) {
         if (options.onShow) {
           options.onShow.call(dialog);
         }
@@ -182,7 +182,7 @@
     });
 
     $(dialog).on('hide.bs.modal', function(event) {
-      if (event.namespace == 'bs.modal') {
+      if ($(event.target).is(dialog)) {
         if (options.onHide) {
           options.onHide.call(this);
         }
@@ -201,7 +201,7 @@
     });
 
     $(dialog).on('shown.bs.modal', function(event) {
-      if (event.namespace == 'bs.modal') {
+      if ($(event.target).is(dialog)) {
         if (options.defaultButton) {
           var btn = $(this).find('.modal-footer a.btn[rel=' + options.defaultButton + ']');
           if (btn.length > 0) {
@@ -265,7 +265,7 @@
     }
 
     $(dialog).on('hide.bs.modal', function(event) {
-      if (event.namespace == 'bs.modal') {
+      if ($(event.target).is(dialog)) {
         if (callback) {
           callback.call(this);
         }
@@ -336,7 +336,7 @@
     }
 
     $(dialog).on('hide.bs.modal', function(event) {
-      if (event.namespace == 'bs.modal') {
+      if ($(event.target).is(dialog)) {
         var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');
         if (callback) {
           callback.call(this, dontAsk);
@@ -415,7 +415,7 @@
     });
 
     $(dialog).on('show.bs.modal', function(event) {
-      if (event.namespace == 'bs.modal') {
+      if ($(event.target).is(dialog)) {
         $(this).find('.action-confirm-close').on('click', function() {
           var results = [];
           var ok = true, notOkField;
@@ -460,7 +460,7 @@
     });
 
     $(dialog).on('hide.bs.modal', function(event) {
-      if (event.namespace == 'bs.modal') {
+      if ($(event.target).is(dialog)) {
         if (options.onHide) {
           options.onHide.call(this);
         }
@@ -474,7 +474,7 @@
     });
 
     $(dialog).on('shown.bs.modal', function(event) {
-      if (event.namespace == 'bs.modal') {
+      if ($(event.target).is(dialog)) {
         $(this).find('input[type=text]')[0].focus();
       }
     });
@@ -747,7 +747,7 @@
           control.css('margin-top', '0px');
         }
         control.on('shown.bs.modal', function(event) {
-          if (event.namespace == 'bs.modal') {
+          if ($(event.target).is(control)) {
             br.resizeModalPopup(control);
           }
         });
@@ -792,13 +792,13 @@
     }
 
     $(modal).on('show.bs.modal', function(event) {
-      if (event.namespace == 'bs.modal') {
+      if ($(event.target).is(modal)) {
         disableTabbingOnPage($(this));
       }
     });
 
     $(modal).on('hide.bs.modal', function(event) {
-      if (event.namespace == 'bs.modal') {
+      if ($(event.target).is(modal)) {
         reEnableTabbingOnPage($(this));
       }
     });
