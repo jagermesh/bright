@@ -374,7 +374,7 @@
       options.onHide = options.onhide;
     }
 
-    var s = '<div class="modal modal-autosize" data-backdrop="static"';
+    var s = '<div class="br-modal-prompt modal modal-autosize" data-backdrop="static"';
     if (br.bootstrapVersion == 2) {
       s = s + ' style="top:20px;margin-top:0px;"';
     }
