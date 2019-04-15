@@ -4401,7 +4401,7 @@
     if (options.cssClass) {
       s = s + ' ' + options.cssClass;
     }
-    s = s + '" id="br_modalConfirm"';
+    s += '"';
     if (br.bootstrapVersion == 2) {
       s = s + ' style="top:20px;margin-top:0px;"';
     }
@@ -4456,71 +4456,73 @@
 
     var remove = true;
 
-    var onShown = function(e) {
-      if (options.defaultButton) {
-        var btn = $(this).find('.modal-footer a.btn[rel=' + options.defaultButton + ']');
-        if (btn.length > 0) {
-          btn[0].focus();
+    $(dialog).on('show.bs.modal', function(event) {
+      if (event.namespace == 'bs.modal') {
+        if (options.onShow) {
+          options.onShow.call(dialog);
         }
-      }
-    };
-
-    var onShow = function(e) {
-      if (options.onShow) {
-        options.onShow.call(dialog);
-      }
-      $(this).find('.action-confirm-close').click(function() {
-        var button = $(this).attr('rel');
-        var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');
-        var checks = {};
-        $('input.confirm-checkbox').each(function(){
-          checks[$(this).attr('name')] = $(this).is(':checked');
+        $(this).find('.action-confirm-close').on('click', function() {
+          var button = $(this).attr('rel');
+          var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');
+          var checks = {};
+          $('input.confirm-checkbox').each(function(){
+            checks[$(this).attr('name')] = $(this).is(':checked');
+          });
+          remove = false;
+          dialog.modal('hide');
+          if (options.onConfirm) {
+            options.onConfirm.call(this, button, dontAsk, checks);
+          }
+          dialog.remove();
+          if (oldActiveElement) {
+            oldActiveElement.focus();
+          }
         });
-        remove = false;
-        dialog.modal('hide');
-        if (options.onConfirm) {
-          options.onConfirm.call(this, button, dontAsk, checks);
-        }
-        dialog.remove();
-        if (oldActiveElement) {
-          oldActiveElement.focus();
-        }
-      });
-      $(this).find('.action-confirm-cancel').click(function() {
-        var button = 'cancel';
-        var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');
-        remove = false;
-        dialog.modal('hide');
-        if (options.onCancel) {
-          options.onCancel(button, dontAsk);
-        }
-        dialog.remove();
-        if (oldActiveElement) {
-          oldActiveElement.focus();
-        }
-      });
-    };
-
-    var onHide = function(e) {
-      if (options.onHide) {
-        options.onHide.call(this);
-      }
-      if (remove) {
-        if (options.onCancel) {
+        $(this).find('.action-confirm-cancel').click(function() {
           var button = 'cancel';
           var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');
-          options.onCancel(button, dontAsk);
+          remove = false;
+          dialog.modal('hide');
+          if (options.onCancel) {
+            options.onCancel(button, dontAsk);
+          }
+          dialog.remove();
+          if (oldActiveElement) {
+            oldActiveElement.focus();
+          }
+        });
+      }
+    });
+
+    $(dialog).on('hide.bs.modal', function(event) {
+      if (event.namespace == 'bs.modal') {
+        if (options.onHide) {
+          options.onHide.call(this);
         }
-        dialog.remove();
-        if (oldActiveElement) {
-          oldActiveElement.focus();
+        if (remove) {
+          if (options.onCancel) {
+            var button = 'cancel';
+            var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');
+            options.onCancel(button, dontAsk);
+          }
+          dialog.remove();
+          if (oldActiveElement) {
+            oldActiveElement.focus();
+          }
         }
       }
-    };
+    });
 
-    $(dialog).on('show.bs.modal', onShow);
-    $(dialog).on('hide.bs.modal', onHide);
-    $(dialog).on('shown.bs.modal', onShown);
+    $(dialog).on('shown.bs.modal', function(event) {
+      if (event.namespace == 'bs.modal') {
+        if (options.defaultButton) {
+          var btn = $(this).find('.modal-footer a.btn[rel=' + options.defaultButton + ']');
+          if (btn.length > 0) {
+            btn[0].focus();
+          }
+        }
+      }
+    });
 
     $(dialog).modal('show');
 
@@ -4575,17 +4577,17 @@
       oldActiveElement.blur();
     }
 
-    var onHide = function(e) {
-      if (callback) {
-        callback.call(this);
+    $(dialog).on('hide.bs.modal', function(event) {
+      if (event.namespace == 'bs.modal') {
+        if (callback) {
+          callback.call(this);
+        }
+        dialog.remove();
+        if (oldActiveElement) {
+          oldActiveElement.focus();
+        }
       }
-      dialog.remove();
-      if (oldActiveElement) {
-        oldActiveElement.focus();
-      }
-    };
-
-    $(dialog).on('hide.bs.modal', onHide);
+    });
 
     $(dialog).modal('show');
 
@@ -4646,18 +4648,18 @@
       oldActiveElement.blur();
     }
 
-    var onHide = function(e) {
-      var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');
-      if (callback) {
-        callback.call(this, dontAsk);
+    $(dialog).on('hide.bs.modal', function(event) {
+      if (event.namespace == 'bs.modal') {
+        var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');
+        if (callback) {
+          callback.call(this, dontAsk);
+        }
+        dialog.remove();
+        if (oldActiveElement) {
+          oldActiveElement.focus();
+        }
       }
-      dialog.remove();
-      if (oldActiveElement) {
-        oldActiveElement.focus();
-      }
-    };
-
-    $(dialog).on('hide.bs.modal', onHide);
+    });
 
     $(dialog).modal('show');
 
@@ -4685,9 +4687,7 @@
       options.onHide = options.onhide;
     }
 
-    // $('#br_modalPrompt').remove();
-
-    var s = '<div class="modal modal-autosize" id="br_modalPrompt" data-backdrop="static"';
+    var s = '<div class="modal modal-autosize" data-backdrop="static"';
     if (br.bootstrapVersion == 2) {
       s = s + ' style="top:20px;margin-top:0px;"';
     }
@@ -4699,10 +4699,10 @@
     for(var i in inputs) {
       if (br.isObject(inputs[i])) {
         s = s + '<label>' + i + '</label>' +
-              '<input type="text" ' + (inputs[i].id ? 'id="'+inputs[i].id+'"' : '') + ' class="span4 ' + (br.isEmpty(inputs[i]['class']) ? '' : inputs[i]['class']) + '" value="' + inputs[i].value + '" data-click-on-enter="#br_modalPrompt .action-confirm-close" />';
+              '<input type="text" ' + (inputs[i].id ? 'id="'+inputs[i].id+'"' : '') + ' class="span4 ' + (br.isEmpty(inputs[i]['class']) ? '' : inputs[i]['class']) + '" value="' + inputs[i].value + '" />';
       } else {
         s = s + '<label>' + i + '</label>' +
-                '<input type="text" class="form-control ' + (options.valueType == 'int' ? ' input-small' : ' justified') + (options.valueRequired ? ' required' : '') + ' " value="' + inputs[i] + '" data-click-on-enter="#br_modalPrompt .action-confirm-close" />';
+                '<input type="text" class="form-control ' + (options.valueType == 'int' ? ' input-small' : ' justified') + (options.valueRequired ? ' required' : '') + ' " value="' + inputs[i] + '" />';
       }
     }
 
@@ -4721,68 +4721,76 @@
 
     var remove = true;
 
-    var onShown = function(e) {
-      $(this).find('input[type=text]')[0].focus();
-    };
+    $(dialog).on('keypress', 'input', function(event) {
+      if (event.keyCode == 13) {
+        $(dialog).find('a.action-confirm-close').trigger('click');
+      }
+    });
 
-    var onShow = function(e) {
-      $(this).find('.action-confirm-close').click(function() {
-        var results = [];
-        var ok = true, notOkField;
-        var inputs = [];
-        $(this).closest('div.modal').find('input[type=text]').each(function() {
-          if ($(this).hasClass('required') && br.isEmpty($(this).val())) {
-            ok = false;
-            notOkField = $(this);
-          }
-          results.push($(this).val().trim());
-          inputs.push($(this));
-        });
-        if (ok) {
-          if (options.onValidate) {
-            try {
-              options.onValidate.call(this, results);
-            } catch (e) {
+    $(dialog).on('show.bs.modal', function(event) {
+      if (event.namespace == 'bs.modal') {
+        $(this).find('.action-confirm-close').on('click', function() {
+          var results = [];
+          var ok = true, notOkField;
+          var inputs = [];
+          $(this).closest('div.modal').find('input[type=text]').each(function() {
+            if ($(this).hasClass('required') && br.isEmpty($(this).val())) {
               ok = false;
-              br.growlError(e);
-              if (inputs.length == 1) {
-                inputs[0].focus();
+              notOkField = $(this);
+            }
+            results.push($(this).val().trim());
+            inputs.push($(this));
+          });
+          if (ok) {
+            if (options.onValidate) {
+              try {
+                options.onValidate.call(this, results);
+              } catch (e) {
+                ok = false;
+                br.growlError(e);
+                if (inputs.length == 1) {
+                  inputs[0].focus();
+                }
               }
             }
-          }
-          if (ok) {
-            remove = false;
-            $(dialog).modal('hide');
-            if (callback) {
-              callback.call(this, results);
+            if (ok) {
+              remove = false;
+              $(dialog).modal('hide');
+              if (callback) {
+                callback.call(this, results);
+              }
+              dialog.remove();
+              if (oldActiveElement) {
+                oldActiveElement.focus();
+              }
             }
-            dialog.remove();
-            if (oldActiveElement) {
-              oldActiveElement.focus();
-            }
+          } else {
+            br.growlError('Please enter value');
+            notOkField[0].focus();
           }
-        } else {
-          br.growlError('Please enter value');
-          notOkField[0].focus();
-        }
-      });
-    };
-
-    var onHide = function(e) {
-      if (options.onHide) {
-        options.onHide.call(this);
+        });
       }
-      if (remove) {
-        dialog.remove();
-        if (oldActiveElement) {
-          oldActiveElement.focus();
+    });
+
+    $(dialog).on('hide.bs.modal', function(event) {
+      if (event.namespace == 'bs.modal') {
+        if (options.onHide) {
+          options.onHide.call(this);
+        }
+        if (remove) {
+          dialog.remove();
+          if (oldActiveElement) {
+            oldActiveElement.focus();
+          }
         }
       }
-    };
+    });
 
-    $(dialog).on('show.bs.modal', onShow);
-    $(dialog).on('hide.bs.modal', onHide);
-    $(dialog).on('shown.bs.modal', onShown);
+    $(dialog).on('shown.bs.modal', function(event) {
+      if (event.namespace == 'bs.modal') {
+        $(this).find('input[type=text]')[0].focus();
+      }
+    });
 
     $(dialog).modal('show');
 
@@ -5048,15 +5056,13 @@
     } else {
       (function(control) {
         if (br.bootstrapVersion == 2) {
-          // if (br.isMobileDevice()) {
-            // control.css('top', '20px');
-          // } else {
-            control.css('top', '20px');
-            control.css('margin-top', '0px');
-          // }
+          control.css('top', '20px');
+          control.css('margin-top', '0px');
         }
-        control.on('shown.bs.modal', function() {
-          br.resizeModalPopup(control);
+        control.on('shown.bs.modal', function(event) {
+          if (event.namespace == 'bs.modal') {
+            br.resizeModalPopup(control);
+          }
         });
         $(window).resize(function(){
           br.resizeModalPopup(control);
@@ -5098,11 +5104,16 @@
       });
     }
 
-    $(modal).on('show.bs.modal', function() {
-      disableTabbingOnPage($(this));
+    $(modal).on('show.bs.modal', function(event) {
+      if (event.namespace == 'bs.modal') {
+        disableTabbingOnPage($(this));
+      }
     });
-    $(modal).on('hide.bs.modal', function() {
-      reEnableTabbingOnPage($(this));
+
+    $(modal).on('hide.bs.modal', function(event) {
+      if (event.namespace == 'bs.modal') {
+        reEnableTabbingOnPage($(this));
+      }
     });
 
   }
@@ -5232,8 +5243,10 @@
       }
     });
 
-    $(document).on('keypress', 'input[data-click-on-enter]', function(e) {
-      if (e.keyCode == 13) { $($(this).attr('data-click-on-enter')).trigger('click'); }
+    $(document).on('keypress', 'input[data-click-on-enter]', function(event) {
+      if (event.keyCode == 13) {
+        $($(this).attr('data-click-on-enter')).trigger('click');
+      }
     });
 
 
