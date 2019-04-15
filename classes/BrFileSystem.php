@@ -209,6 +209,21 @@ class BrFileSystem extends BrSingleton {
 
   }
 
+  public function copyFolder($src, $dst) {
+
+    $src = $this->normalizePath($src);
+    $dst = $this->normalizePath($dst);
+
+    $this->iteratePath($src, '.*', function($file) use ($src, $dst) {
+      if (!$file->isDir()) {
+        $dstName = $dst . str_replace($src, '', $file->nameWithPath());
+        br()->fs()->makeDir(br()->fs()->filePath($dstName));
+        copy($file->nameWithPath(), $dstName);
+      }
+    });
+
+  }
+
   public function iteratePath($startingDir, $mask, $callback = null) {
 
     if (gettype($mask) == 'string') {

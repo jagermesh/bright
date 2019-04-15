@@ -58,11 +58,11 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
             return;
             break;
         }
-        $message = array( 'text'        => '*' . $subject . '*' . "\n\n" . $this->getHeader()
+        $payload = array( 'text'        => '*' . $subject . '*' . "\n\n" . $this->getHeader()
                         , 'username'    => br()->request()->domain()
                         , 'attachments' => array(array('text' => $message))
                         );
-        br()->browser()->postJSON($this->webHookUrl, $message);
+        br()->browser()->postJSON($this->webHookUrl, $payload);
       } catch (\Exception $e) {
 
       }

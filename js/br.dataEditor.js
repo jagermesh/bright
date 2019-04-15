@@ -124,24 +124,30 @@
     _this.init = function() {
 
       if (_this.container.hasClass('modal')) {
-        _this.container.on('shown.bs.modal', function() {
-          editorShown();
-        });
-        _this.container.on('hide.bs.modal', function() {
-          if (cancelled) {
-            cancelled = false;
-          } else {
-            if (br.isCloseConfirmationRequired()) {
-              br.confirm('Changes detected', br.closeConfirmationMessage, function() {
-                _this.cancel();
-              });
-              return false;
-            }
+        _this.container.on('shown.bs.modal', function(event) {
+          if (event.namespace === 'bs.modal') {
+            editorShown();
           }
-          _this.events.trigger('editor.hide', false, editorRowid);
         });
-        _this.container.on('hidden.bs.modal', function() {
-          editorHidden(false, editorRowid);
+        _this.container.on('hide.bs.modal', function(event) {
+          if (event.namespace === 'bs.modal') {
+            if (cancelled) {
+              cancelled = false;
+            } else {
+              if (br.isCloseConfirmationRequired()) {
+                br.confirm('Changes detected', br.closeConfirmationMessage, function() {
+                  _this.cancel();
+                });
+                return false;
+              }
+            }
+            _this.events.trigger('editor.hide', false, editorRowid);
+          }
+        });
+        _this.container.on('hidden.bs.modal', function(event) {
+          if (event.namespace === 'bs.modal') {
+            editorHidden(false, editorRowid);
+          }
         });
       }
 
@@ -163,18 +169,12 @@
         }
       });
 
-      $(_this.inputsContainer).on('click', 'div.data-field[data-toggle=buttons-radio],input.data-field[type=checkbox],input.data-field[type=radio]', function(event) {
+      $(_this.inputsContainer).on('change', 'select.data-field,input.data-field,textarea.data-field', function(event) {
         br.confirmClose();
       });
 
-      $(_this.inputsContainer).on('change', 'select.data-field', function(event) {
+      $(_this.inputsContainer).on('input', 'select.data-field,input.data-field,textarea.data-field', function(event) {
         br.confirmClose();
-      });
-
-      $(_this.inputsContainer).on('keypress', 'input.data-field,textarea.data-field', function(event) {
-        if (event.keyCode != 27) {
-          br.confirmClose();
-        }
       });
 
       return _this;
@@ -456,10 +456,10 @@
             }
           }, options);
         }
-      } catch (e) {
-        _this.showError(e.message);
+      } catch (error) {
+        _this.showError(error.message);
         if (errorCallback) {
-          errorCallback.call(_this, data, e.message);
+          errorCallback.call(_this, data, error.message);
         }
         saving = false;
       }

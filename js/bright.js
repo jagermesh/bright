@@ -1076,7 +1076,7 @@
   for(var i = 0; i < scripts.length; i++) {
     var src = $(scripts[i]).attr('src');
     if (!br.isEmpty(src)) {
-      if (/bright[.a-z]*?[.]js/i.test(src)) {
+      if (/bright\/.+?[.]js/i.test(src)) {
         var idx = src.indexOf('vendor/');
         if (idx == -1) {
           idx = src.indexOf('bright/');
@@ -1885,12 +1885,14 @@
     _this.ajaxRequest = null;
     _this.name = '-';
     _this.options = options || {};
+
     _this.options.restServiceUrl = restServiceUrl;
-    if (_this.options.restServiceUrl.charAt(_this.options.restServiceUrl.length-1) != '/') {
-      _this.options.restServiceUrlNormalized = _this.options.restServiceUrl + '/';
-    } else {
-      _this.options.restServiceUrlNormalized = _this.options.restServiceUrl;
+    _this.options.restServiceUrlNormalized = restServiceUrl;
+
+    if (!restServiceUrl.match(/[.]json$/) && !restServiceUrl.match(/\/$/)) {
+      _this.options.restServiceUrlNormalized = restServiceUrl + '/';
     }
+
     _this.options.refreshDelay = _this.options.refreshDelay || 1500;
 
     _this.events = br.eventQueue(_this);
@@ -2456,6 +2458,11 @@
                                      , success: function(response) {
                                          try {
                                            _this.ajaxRequest = null;
+                                           if (br.isArray(response)) {
+                                             for(var i = 0; i < response.length; i++) {
+                                               _this.events.trigger('calcFields', response[i]);
+                                             }
+                                           }
                                            if ((_this.options.crossdomain && (typeof response == 'string')) || br.isNull(response)) {
                                              reject({request: request, options: options, errorMessage: 'Unknown error'});
                                            } else {
@@ -5641,24 +5648,30 @@
     _this.init = function() {
 
       if (_this.container.hasClass('modal')) {
-        _this.container.on('shown.bs.modal', function() {
-          editorShown();
-        });
-        _this.container.on('hide.bs.modal', function() {
-          if (cancelled) {
-            cancelled = false;
-          } else {
-            if (br.isCloseConfirmationRequired()) {
-              br.confirm('Changes detected', br.closeConfirmationMessage, function() {
-                _this.cancel();
-              });
-              return false;
-            }
+        _this.container.on('shown.bs.modal', function(event) {
+          if (event.namespace === 'bs.modal') {
+            editorShown();
           }
-          _this.events.trigger('editor.hide', false, editorRowid);
         });
-        _this.container.on('hidden.bs.modal', function() {
-          editorHidden(false, editorRowid);
+        _this.container.on('hide.bs.modal', function(event) {
+          if (event.namespace === 'bs.modal') {
+            if (cancelled) {
+              cancelled = false;
+            } else {
+              if (br.isCloseConfirmationRequired()) {
+                br.confirm('Changes detected', br.closeConfirmationMessage, function() {
+                  _this.cancel();
+                });
+                return false;
+              }
+            }
+            _this.events.trigger('editor.hide', false, editorRowid);
+          }
+        });
+        _this.container.on('hidden.bs.modal', function(event) {
+          if (event.namespace === 'bs.modal') {
+            editorHidden(false, editorRowid);
+          }
         });
       }
 
@@ -5680,18 +5693,12 @@
         }
       });
 
-      $(_this.inputsContainer).on('click', 'div.data-field[data-toggle=buttons-radio],input.data-field[type=checkbox],input.data-field[type=radio]', function(event) {
+      $(_this.inputsContainer).on('change', 'select.data-field,input.data-field,textarea.data-field', function(event) {
         br.confirmClose();
       });
 
-      $(_this.inputsContainer).on('change', 'select.data-field', function(event) {
+      $(_this.inputsContainer).on('input', 'select.data-field,input.data-field,textarea.data-field', function(event) {
         br.confirmClose();
-      });
-
-      $(_this.inputsContainer).on('keypress', 'input.data-field,textarea.data-field', function(event) {
-        if (event.keyCode != 27) {
-          br.confirmClose();
-        }
       });
 
       return _this;
@@ -5973,10 +5980,10 @@
             }
           }, options);
         }
-      } catch (e) {
-        _this.showError(e.message);
+      } catch (error) {
+        _this.showError(error.message);
         if (errorCallback) {
-          errorCallback.call(_this, data, e.message);
+          errorCallback.call(_this, data, error.message);
         }
         saving = false;
       }

@@ -24,7 +24,7 @@
   for(var i = 0; i < scripts.length; i++) {
     var src = $(scripts[i]).attr('src');
     if (!br.isEmpty(src)) {
-      if (/bright[.a-z]*?[.]js/i.test(src)) {
+      if (/bright\/.+?[.]js/i.test(src)) {
         var idx = src.indexOf('vendor/');
         if (idx == -1) {
           idx = src.indexOf('bright/');

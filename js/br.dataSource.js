@@ -16,12 +16,14 @@
     _this.ajaxRequest = null;
     _this.name = '-';
     _this.options = options || {};
+
     _this.options.restServiceUrl = restServiceUrl;
-    if (_this.options.restServiceUrl.charAt(_this.options.restServiceUrl.length-1) != '/') {
-      _this.options.restServiceUrlNormalized = _this.options.restServiceUrl + '/';
-    } else {
-      _this.options.restServiceUrlNormalized = _this.options.restServiceUrl;
+    _this.options.restServiceUrlNormalized = restServiceUrl;
+
+    if (!restServiceUrl.match(/[.]json$/) && !restServiceUrl.match(/\/$/)) {
+      _this.options.restServiceUrlNormalized = restServiceUrl + '/';
     }
+
     _this.options.refreshDelay = _this.options.refreshDelay || 1500;
 
     _this.events = br.eventQueue(_this);
@@ -587,6 +589,11 @@
                                      , success: function(response) {
                                          try {
                                            _this.ajaxRequest = null;
+                                           if (br.isArray(response)) {
+                                             for(var i = 0; i < response.length; i++) {
+                                               _this.events.trigger('calcFields', response[i]);
+                                             }
+                                           }
                                            if ((_this.options.crossdomain && (typeof response == 'string')) || br.isNull(response)) {
                                              reject({request: request, options: options, errorMessage: 'Unknown error'});
                                            } else {

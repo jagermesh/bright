@@ -53,7 +53,7 @@ class BrLog extends BrSingleton implements BrLoggable {
 
   public function getAdapters() {
 
-    return $this->adapter;
+    return $this->adapters;
 
   }
 

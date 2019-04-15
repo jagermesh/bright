@@ -414,7 +414,7 @@ class BrDataBaseManager {
     $sql .= 'BEGIN' . "\n";
     $sql .= '  DECLARE auditID BIGINT UNSIGNED;' . "\n";
     $sql .= '  IF @auditDisabled IS NULL THEN' . "\n";
-    $sql .= '    INSERT INTO ' . $this->auditChangeTable . ' (action_date, table_name, action_name, object_id, author_id, ip_address, context) VALUES (NOW(), "'. $tableName . '", "i", NEW.id, @sessionUserID, @sessionUserIP, @sessionAuditContext);' . "\n";
+    $sql .= '    INSERT INTO ' . $this->auditChangeTable . ' (action_date, table_name, action_name, object_id, author_id, ip_address, context) VALUES (NOW(), "'. $tableName . '", "i", NEW.id, @sessionUserID, IFNULL(@sessionUserIP, user()), @sessionAuditContext);' . "\n";
     $sql .= '    SET auditID = LAST_INSERT_ID();' . "\n";
 
     for ($i = 0; $i < count($fields); $i++) {
@@ -452,7 +452,7 @@ class BrDataBaseManager {
 
     $sql .= '       ) THEN' . "\n";
 
-    $sql .= '      INSERT INTO ' . $this->auditChangeTable . ' (action_date, table_name, action_name, object_id, author_id, ip_address, context) VALUES (NOW(), "'. $tableName . '", "u", NEW.id, @sessionUserID, @sessionUserIP, @sessionAuditContext);' . "\n";
+    $sql .= '      INSERT INTO ' . $this->auditChangeTable . ' (action_date, table_name, action_name, object_id, author_id, ip_address, context) VALUES (NOW(), "'. $tableName . '", "u", NEW.id, @sessionUserID, IFNULL(@sessionUserIP, user()), @sessionAuditContext);' . "\n";
     $sql .= '      SET auditID = LAST_INSERT_ID();' . "\n";
 
     for ($i = 0; $i < count($fields); $i++) {
@@ -478,7 +478,7 @@ class BrDataBaseManager {
     $sql .= 'BEGIN' . "\n";
     $sql .= '  DECLARE auditID BIGINT UNSIGNED;' . "\n";
     $sql .= '  IF @auditDisabled IS NULL THEN' . "\n";
-    $sql .= '    INSERT INTO ' . $this->auditChangeTable . ' (action_date, table_name, action_name, object_id, author_id, ip_address, context) VALUES (NOW(), "'. $tableName . '", "d", OLD.id, @sessionUserID, @sessionUserIP, @sessionAuditContext);' . "\n";
+    $sql .= '    INSERT INTO ' . $this->auditChangeTable . ' (action_date, table_name, action_name, object_id, author_id, ip_address, context) VALUES (NOW(), "'. $tableName . '", "d", OLD.id, @sessionUserID, IFNULL(@sessionUserIP, user()), @sessionAuditContext);' . "\n";
     $sql .= '    SET auditID = LAST_INSERT_ID();' . "\n";
 
     for ($i = 0; $i < count($fields); $i++) {
