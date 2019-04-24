@@ -1011,7 +1011,7 @@ class BrDataBaseManager {
 
           if (count($patchObjectsDeferred) > 0) {
             if (count($patchObjectsExecuted) > 0) {
-              return $this->runMigrationCommand($scriptFile, $results);
+              return $dbManager->runMigrationCommand($scriptFile, $results);
             } else {
               foreach($patchObjectsDeferred as $patch) {
                 $cmd->setLogPrefix('[' . br()->db()->getDataBaseName() . '] [' . get_class($patch) . ']');
