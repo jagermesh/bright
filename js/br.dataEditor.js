@@ -125,12 +125,12 @@
 
       if (_this.container.hasClass('modal')) {
         _this.container.on('shown.bs.modal', function(event) {
-          if (event.namespace === 'bs.modal') {
+          if ($(event.target).is(_this.container)) {
             editorShown();
           }
         });
         _this.container.on('hide.bs.modal', function(event) {
-          if (event.namespace === 'bs.modal') {
+          if ($(event.target).is(_this.container)) {
             if (cancelled) {
               cancelled = false;
             } else {
@@ -145,7 +145,7 @@
           }
         });
         _this.container.on('hidden.bs.modal', function(event) {
-          if (event.namespace === 'bs.modal') {
+          if ($(event.target).is(_this.container)) {
             editorHidden(false, editorRowid);
           }
         });

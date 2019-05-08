@@ -1184,4 +1184,25 @@ class BrCore extends BrSingleton {
 
   }
 
+  public function exec($cmd) {
+
+    $tempFile1 = br()->createTempFile('cmd1', '.log');
+    $tempFile2 = br()->createTempFile('cmd2', '.log');
+
+    $runCmd = $cmd . ' >' . $tempFile1. ' 2>' . $tempFile2;
+
+    $line = exec($runCmd, $stdout, $retval);
+
+    $log = br()->fs()->loadFromFile($tempFile1);
+    $err = br()->fs()->loadFromFile($tempFile2);
+
+    if ($retval) {
+      $error = $err ? $err : ($log ? $log : 'Can not run shell command ' . $cmd);
+      throw new \Bright\BrAppException($error);
+    }
+
+    return $log;
+
+  }
+
 }

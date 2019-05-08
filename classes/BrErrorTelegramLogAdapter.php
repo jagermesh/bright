@@ -66,10 +66,10 @@ class BrErrorTelegramLogAdapter extends BrGenericLogAdapter {
             return;
             break;
         }
-        $payload = [ 'chat_id' => $chatId
-                   , 'text'    => $message + "\n\n" . $this->getHeader()
-                   ];
         foreach($this->chatIds as $chatId) {
+          $payload = [ 'chat_id' => $chatId
+                     , 'text'    => $message . "\n\n" . $this->getHeader()
+                     ];
           \Longman\TelegramBot\Request::sendMessage($payload);
         }
       } catch (\Exception $e) {

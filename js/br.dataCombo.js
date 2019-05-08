@@ -12,7 +12,8 @@
   function BrDataCombo(selector, dataSource, options) {
 
     var _this = this;
-    var select2Binded = false;
+    var beautified = false;
+    var beautifier = '';
     var currentData = [];
 
     this.selector = $(selector);
@@ -110,61 +111,82 @@
 
     var requestTimer;
 
-    function switchToSelect2() {
+    function beautify() {
       var selectLimit = 50;
 
-      if (_this.isValid() && window.Select2 && !_this.options.noDecoration && !_this.selector.attr('size')) {
-        if (_this.options.lookupMode && select2Binded) {
-          return;
-        } else {
-          var params = {};
-          if (_this.options.hideSearchBox) {
-            params.minimumResultsForSearch = -1;
-          }
-          if (_this.options.skipTranslate) {
-            params.dropdownCssClass = 'skiptranslate';
-          }
-          if (_this.options.allowClear) {
-            params.allowClear  = _this.options.allowClear;
-            params.placeholder = _this.options.emptyName;
-          }
-          params.dropdownAutoWidth = true;
-          params.dropdownCss = { 'max-width': '400px' };
-          if (_this.options.lookupMode) {
-            params.minimumInputLength = _this.options.lookup_minimumInputLength;
-            params.allowClear  = true;
-            params.placeholder = _this.options.emptyName;
-            params.query = function (query) {
-              window.clearTimeout(requestTimer);
-              var request = { };
-              request.keyword = query.term;
-              requestTimer = window.setTimeout(function() {
-                if (query.term || _this.options.lookup_minimumInputLength === 0) {
-                  _this.dataSource.select(request, function(result, response) {
-                    if (result) {
-                      var data = { results: [] };
-                      for(var i = 0; i < response.length; i++) {
-                        data.results.push({ id:   response[i][_this.options.valueField]
-                                          , text: getName(response[i])
-                                          });
+      if (_this.isValid() && !_this.options.noDecoration && !_this.selector.attr('size')) {
+        if (window.Select2) {
+          if (_this.options.lookupMode && beautified) {
+            return;
+          } else {
+            var params = {};
+            if (_this.options.hideSearchBox) {
+              params.minimumResultsForSearch = -1;
+            }
+            if (_this.options.skipTranslate) {
+              params.dropdownCssClass = 'skiptranslate';
+            }
+            if (_this.options.allowClear) {
+              params.allowClear  = _this.options.allowClear;
+              params.placeholder = _this.options.emptyName;
+            }
+            params.dropdownAutoWidth = true;
+            params.dropdownCss = { 'max-width': '400px' };
+            if (_this.options.lookupMode) {
+              params.minimumInputLength = _this.options.lookup_minimumInputLength;
+              params.allowClear  = true;
+              params.placeholder = _this.options.emptyName;
+              params.query = function (query) {
+                window.clearTimeout(requestTimer);
+                var request = { };
+                request.keyword = query.term;
+                requestTimer = window.setTimeout(function() {
+                  if (query.term || _this.options.lookup_minimumInputLength === 0) {
+                    _this.dataSource.select(request, function(result, response) {
+                      if (result) {
+                        var data = { results: [] };
+                        for(var i = 0; i < response.length; i++) {
+                          data.results.push({ id:   response[i][_this.options.valueField]
+                                            , text: getName(response[i])
+                                            });
+                        }
+                        if (response.length == selectLimit) {
+                          data.more = true;
+                        }
+                        query.callback(data);
                       }
-                      if (response.length == selectLimit) {
-                        data.more = true;
-                      }
-                      query.callback(data);
-                    }
-                  }, { limit: selectLimit
-                     , skip: (query.page - 1) * selectLimit
-                     }
-                  );
-                }
-              }, 300);
-            };
+                    }, { limit: selectLimit
+                       , skip: (query.page - 1) * selectLimit
+                       }
+                    );
+                  }
+                }, 300);
+              };
+            }
+            _this.selector.select2(params);
+            beautified = true;
+            beautifier = 'select2';
           }
-          _this.selector.select2(params);
-          select2Binded = true;
+        } else
+        if (window.Selectize && !beautified) {
+          _this.selector.selectize({openOnFocus: false});
+          beautified = true;
+          beautifier = 'selectize';
         }
       }
+
+    }
+
+    function setValue(value) {
+      _this.selector.val(value);
+      switch(beautifier) {
+        case 'select2':
+          break;
+        case 'selectize':
+          _this.selector[0].selectize.setValue(value);
+          break;
+      }
+
     }
 
     this.selected = function(fieldName) {
@@ -196,8 +218,8 @@
           }
         }
         if (_this.isValid()) {
-          _this.selector.val(value);
-          switchToSelect2();
+          setValue(value);
+          beautify();
           if (_this.options.lookupMode) {
             if (value) {
               var data = { id: value, text: value };
@@ -277,7 +299,7 @@
         if (triggerChange) {
           _this.selector.trigger('change');
         } else {
-          switchToSelect2();
+          beautify();
         }
       }
     };
@@ -401,13 +423,13 @@
           if (_this.isValid()) {
             if (_this.options.lookupMode) {
               resolve({ request: {}, options: options, response: []});
-              switchToSelect2();
+              beautify();
               _this.loaded = true;
               _this.events.trigger('load', []);
             } else {
               _this.dataSource.select(filter, options).then(function(data) {
                 resolve(data);
-                switchToSelect2();
+                beautify();
                 _this.loaded = true;
               }).catch(function(data) {
                 reject(data);
@@ -451,7 +473,7 @@
           if (!_this.options.lookupMode) {
             render(data);
           }
-          switchToSelect2();
+          beautify();
         }
         _this.events.trigger('load', data);
       });
@@ -461,7 +483,7 @@
           if (!_this.options.lookupMode) {
             _this.selector.append($(renderRow(data)));
           }
-          switchToSelect2();
+          beautify();
         }
         _this.events.trigger('change');
       });
@@ -473,7 +495,7 @@
               _this.selector.find('option[value=' + data[_this.options.valueField] +']').text(getName(data));
             }
           }
-          switchToSelect2();
+          beautify();
         }
         _this.events.trigger('change');
       });
@@ -485,7 +507,7 @@
               _this.selector.find('option[value=' + data[_this.options.valueField] +']').remove();
             }
           }
-          switchToSelect2();
+          beautify();
         }
         _this.events.trigger('change');
       });
@@ -506,7 +528,7 @@
 
     }
 
-    switchToSelect2();
+    beautify();
 
     _this.selector.on('change', function() {
       if (_this.options.saveSelection) {
@@ -517,7 +539,7 @@
         }
       }
       _this.events.trigger('change');
-      switchToSelect2();
+      beautify();
     });
 
     _this.selector.on('click', function() {

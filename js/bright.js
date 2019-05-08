@@ -3015,7 +3015,9 @@
       } else
       if (s.length > 0) {
         var result = $(s);
-        result.data('data-row', data);
+        if (_this.options.storeDataRow) {
+          result.data('data-row', data);
+        }
         return result;
       } else {
         return null;
@@ -3030,7 +3032,9 @@
       } else
       if (s.length > 0) {
         var result = $(s);
-        result.data('data-row', data);
+        if (_this.options.storeDataRow) {
+          result.data('data-row', data);
+        }
         return result;
       } else {
         return null;
@@ -3045,7 +3049,9 @@
       } else
       if (s.length > 0) {
         var result = $(s);
-        result.data('data-row', data);
+        if (_this.options.storeDataRow) {
+          result.data('data-row', data);
+        }
         return result;
       } else {
         return null;
@@ -3060,7 +3066,9 @@
       } else
       if (s.length > 0) {
         var result = $(s);
-        result.data('data-row', data);
+        if (_this.options.storeDataRow) {
+          result.data('data-row', data);
+        }
         return result;
       } else {
         return null;
@@ -3210,7 +3218,9 @@
       if (row.length > 0) {
         var tableRow = _this.renderRow(data);
         if (tableRow) {
-          tableRow.data('data-row', data);
+          if (_this.options.storeDataRow) {
+            tableRow.data('data-row', data);
+          }
           _this.events.triggerBefore('update', data);
           _this.events.trigger('update', data, row);
           $(row[0]).before(tableRow);
@@ -3589,7 +3599,8 @@
   function BrDataCombo(selector, dataSource, options) {
 
     var _this = this;
-    var select2Binded = false;
+    var beautified = false;
+    var beautifier = '';
     var currentData = [];
 
     this.selector = $(selector);
@@ -3687,61 +3698,82 @@
 
     var requestTimer;
 
-    function switchToSelect2() {
+    function beautify() {
       var selectLimit = 50;
 
-      if (_this.isValid() && window.Select2 && !_this.options.noDecoration && !_this.selector.attr('size')) {
-        if (_this.options.lookupMode && select2Binded) {
-          return;
-        } else {
-          var params = {};
-          if (_this.options.hideSearchBox) {
-            params.minimumResultsForSearch = -1;
-          }
-          if (_this.options.skipTranslate) {
-            params.dropdownCssClass = 'skiptranslate';
-          }
-          if (_this.options.allowClear) {
-            params.allowClear  = _this.options.allowClear;
-            params.placeholder = _this.options.emptyName;
-          }
-          params.dropdownAutoWidth = true;
-          params.dropdownCss = { 'max-width': '400px' };
-          if (_this.options.lookupMode) {
-            params.minimumInputLength = _this.options.lookup_minimumInputLength;
-            params.allowClear  = true;
-            params.placeholder = _this.options.emptyName;
-            params.query = function (query) {
-              window.clearTimeout(requestTimer);
-              var request = { };
-              request.keyword = query.term;
-              requestTimer = window.setTimeout(function() {
-                if (query.term || _this.options.lookup_minimumInputLength === 0) {
-                  _this.dataSource.select(request, function(result, response) {
-                    if (result) {
-                      var data = { results: [] };
-                      for(var i = 0; i < response.length; i++) {
-                        data.results.push({ id:   response[i][_this.options.valueField]
-                                          , text: getName(response[i])
-                                          });
+      if (_this.isValid() && !_this.options.noDecoration && !_this.selector.attr('size')) {
+        if (window.Select2) {
+          if (_this.options.lookupMode && beautified) {
+            return;
+          } else {
+            var params = {};
+            if (_this.options.hideSearchBox) {
+              params.minimumResultsForSearch = -1;
+            }
+            if (_this.options.skipTranslate) {
+              params.dropdownCssClass = 'skiptranslate';
+            }
+            if (_this.options.allowClear) {
+              params.allowClear  = _this.options.allowClear;
+              params.placeholder = _this.options.emptyName;
+            }
+            params.dropdownAutoWidth = true;
+            params.dropdownCss = { 'max-width': '400px' };
+            if (_this.options.lookupMode) {
+              params.minimumInputLength = _this.options.lookup_minimumInputLength;
+              params.allowClear  = true;
+              params.placeholder = _this.options.emptyName;
+              params.query = function (query) {
+                window.clearTimeout(requestTimer);
+                var request = { };
+                request.keyword = query.term;
+                requestTimer = window.setTimeout(function() {
+                  if (query.term || _this.options.lookup_minimumInputLength === 0) {
+                    _this.dataSource.select(request, function(result, response) {
+                      if (result) {
+                        var data = { results: [] };
+                        for(var i = 0; i < response.length; i++) {
+                          data.results.push({ id:   response[i][_this.options.valueField]
+                                            , text: getName(response[i])
+                                            });
+                        }
+                        if (response.length == selectLimit) {
+                          data.more = true;
+                        }
+                        query.callback(data);
                       }
-                      if (response.length == selectLimit) {
-                        data.more = true;
-                      }
-                      query.callback(data);
-                    }
-                  }, { limit: selectLimit
-                     , skip: (query.page - 1) * selectLimit
-                     }
-                  );
-                }
-              }, 300);
-            };
+                    }, { limit: selectLimit
+                       , skip: (query.page - 1) * selectLimit
+                       }
+                    );
+                  }
+                }, 300);
+              };
+            }
+            _this.selector.select2(params);
+            beautified = true;
+            beautifier = 'select2';
           }
-          _this.selector.select2(params);
-          select2Binded = true;
+        } else
+        if (window.Selectize && !beautified) {
+          _this.selector.selectize({openOnFocus: false});
+          beautified = true;
+          beautifier = 'selectize';
         }
       }
+
+    }
+
+    function setValue(value) {
+      _this.selector.val(value);
+      switch(beautifier) {
+        case 'select2':
+          break;
+        case 'selectize':
+          _this.selector[0].selectize.setValue(value);
+          break;
+      }
+
     }
 
     this.selected = function(fieldName) {
@@ -3773,8 +3805,8 @@
           }
         }
         if (_this.isValid()) {
-          _this.selector.val(value);
-          switchToSelect2();
+          setValue(value);
+          beautify();
           if (_this.options.lookupMode) {
             if (value) {
               var data = { id: value, text: value };
@@ -3854,7 +3886,7 @@
         if (triggerChange) {
           _this.selector.trigger('change');
         } else {
-          switchToSelect2();
+          beautify();
         }
       }
     };
@@ -3978,13 +4010,13 @@
           if (_this.isValid()) {
             if (_this.options.lookupMode) {
               resolve({ request: {}, options: options, response: []});
-              switchToSelect2();
+              beautify();
               _this.loaded = true;
               _this.events.trigger('load', []);
             } else {
               _this.dataSource.select(filter, options).then(function(data) {
                 resolve(data);
-                switchToSelect2();
+                beautify();
                 _this.loaded = true;
               }).catch(function(data) {
                 reject(data);
@@ -4028,7 +4060,7 @@
           if (!_this.options.lookupMode) {
             render(data);
           }
-          switchToSelect2();
+          beautify();
         }
         _this.events.trigger('load', data);
       });
@@ -4038,7 +4070,7 @@
           if (!_this.options.lookupMode) {
             _this.selector.append($(renderRow(data)));
           }
-          switchToSelect2();
+          beautify();
         }
         _this.events.trigger('change');
       });
@@ -4050,7 +4082,7 @@
               _this.selector.find('option[value=' + data[_this.options.valueField] +']').text(getName(data));
             }
           }
-          switchToSelect2();
+          beautify();
         }
         _this.events.trigger('change');
       });
@@ -4062,7 +4094,7 @@
               _this.selector.find('option[value=' + data[_this.options.valueField] +']').remove();
             }
           }
-          switchToSelect2();
+          beautify();
         }
         _this.events.trigger('change');
       });
@@ -4083,7 +4115,7 @@
 
     }
 
-    switchToSelect2();
+    beautify();
 
     _this.selector.on('change', function() {
       if (_this.options.saveSelection) {
@@ -4094,7 +4126,7 @@
         }
       }
       _this.events.trigger('change');
-      switchToSelect2();
+      beautify();
     });
 
     _this.selector.on('click', function() {
@@ -4401,11 +4433,7 @@
     if (options.cssClass) {
       s = s + ' ' + options.cssClass;
     }
-    s += '"';
-    if (br.bootstrapVersion == 2) {
-      s = s + ' style="top:20px;margin-top:0px;"';
-    }
-    s = s + '>';
+    s += '">';
 
     var checkBoxes = '';
     if (options.checkBoxes) {
@@ -4447,7 +4475,8 @@
     }
     s = s + '<a href="javascript:;" class="btn btn-sm btn-default action-confirm-cancel" rel="cancel">&nbsp;' + options.cancelTitle + '&nbsp;</a>';
     s = s + '</div></div></div></div>';
-    var dialog = $(s);
+
+    var modal = $(s);
 
     var oldActiveElement = document.activeElement;
     if (oldActiveElement) {
@@ -4456,37 +4485,37 @@
 
     var remove = true;
 
-    $(dialog).on('show.bs.modal', function(event) {
-      if ($(event.target).is(dialog)) {
+    $(modal).on('show.bs.modal', function(event) {
+      if ($(event.target).is(modal)) {
         if (options.onShow) {
-          options.onShow.call(dialog);
+          options.onShow.call(modal);
         }
         $(this).find('.action-confirm-close').on('click', function() {
           var button = $(this).attr('rel');
-          var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');
+          var dontAsk = $('input[name=showDontAskMeAgain]', $(modal)).is(':checked');
           var checks = {};
           $('input.confirm-checkbox').each(function(){
             checks[$(this).attr('name')] = $(this).is(':checked');
           });
           remove = false;
-          dialog.modal('hide');
+          modal.modal('hide');
           if (options.onConfirm) {
             options.onConfirm.call(this, button, dontAsk, checks);
           }
-          dialog.remove();
+          modal.remove();
           if (oldActiveElement) {
             oldActiveElement.focus();
           }
         });
         $(this).find('.action-confirm-cancel').click(function() {
           var button = 'cancel';
-          var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');
+          var dontAsk = $('input[name=showDontAskMeAgain]', $(modal)).is(':checked');
           remove = false;
-          dialog.modal('hide');
+          modal.modal('hide');
           if (options.onCancel) {
             options.onCancel(button, dontAsk);
           }
-          dialog.remove();
+          modal.remove();
           if (oldActiveElement) {
             oldActiveElement.focus();
           }
@@ -4494,27 +4523,24 @@
       }
     });
 
-    $(dialog).on('hide.bs.modal', function(event) {
-      if ($(event.target).is(dialog)) {
+    $(modal).on('hide.bs.modal', function(event) {
+      if ($(event.target).is(modal)) {
         if (options.onHide) {
           options.onHide.call(this);
         }
         if (remove) {
           if (options.onCancel) {
             var button = 'cancel';
-            var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');
+            var dontAsk = $('input[name=showDontAskMeAgain]', $(modal)).is(':checked');
             options.onCancel(button, dontAsk);
           }
-          dialog.remove();
-          if (oldActiveElement) {
-            oldActiveElement.focus();
-          }
+          modal.remove();
         }
       }
     });
 
-    $(dialog).on('shown.bs.modal', function(event) {
-      if ($(event.target).is(dialog)) {
+    $(modal).on('shown.bs.modal', function(event) {
+      if ($(event.target).is(modal)) {
         if (options.defaultButton) {
           var btn = $(this).find('.modal-footer a.btn[rel=' + options.defaultButton + ']');
           if (btn.length > 0) {
@@ -4524,12 +4550,20 @@
       }
     });
 
-    $(dialog).modal('show');
+    $(modal).on('hidden.bs.modal', function(event) {
+      if ($(event.target).is(modal)) {
+        if (remove) {
+          modal.remove();
+        }
+        if (oldActiveElement) {
+          oldActiveElement.focus();
+        }
+      }
+    });
 
-    br.enchanceBootstrap(dialog);
-    br.resizeModalPopup(dialog);
+    $(modal).modal('show');
 
-    return dialog;
+    return modal;
 
   };
 
@@ -4556,11 +4590,7 @@
       $('#br_modalError').remove();
     }
 
-    var s = '<div class="modal modal-autosize" id="br_modalError" data-backdrop="static"';
-    if (br.bootstrapVersion == 2) {
-      s = s + ' style="top:20px;margin-top:0px;"';
-    }
-    s = s + '>' +
+    var s = '<div class="modal modal-autosize" id="br_modalError" data-backdrop="static">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">';
     if (title !== '') {
@@ -4570,31 +4600,33 @@
             '<div class="modal-footer" style="background-color:red;">';
     s = s + '<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn(buttonTitle) + '&nbsp;</a><';
     s = s + '/div></div></div></div>';
-    var dialog = $(s);
+    var modal = $(s);
 
     var oldActiveElement = document.activeElement;
     if (oldActiveElement) {
       oldActiveElement.blur();
     }
 
-    $(dialog).on('hide.bs.modal', function(event) {
-      if ($(event.target).is(dialog)) {
+    $(modal).on('hide.bs.modal', function(event) {
+      if ($(event.target).is(modal)) {
         if (callback) {
           callback.call(this);
         }
-        dialog.remove();
+      }
+    });
+
+    $(modal).on('hidden.bs.modal', function(event) {
+      if ($(event.target).is(modal)) {
+        modal.remove();
         if (oldActiveElement) {
           oldActiveElement.focus();
         }
       }
     });
 
-    $(dialog).modal('show');
+    $(modal).modal('show');
 
-    br.enchanceBootstrap(dialog);
-    br.resizeModalPopup(dialog);
-
-    return dialog;
+    return modal;
 
   };
 
@@ -4621,11 +4653,7 @@
       $('#br_modalInform').remove();
     }
 
-    var s = '<div class="modal modal-autosize" id="br_modalInform" data-backdrop="static"';
-    if (br.bootstrapVersion == 2) {
-      s = s + ' style="top:20px;margin-top:0px;"';
-    }
-    s = s + '>' +
+    var s = '<div class="modal modal-autosize" id="br_modalInform" data-backdrop="static">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">';
     if (title !== '') {
@@ -4641,32 +4669,34 @@
     }
     s = s +'<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn(buttonTitle) + '&nbsp;</a></div></div></div></div>';
 
-    var dialog = $(s);
+    var modal = $(s);
 
     var oldActiveElement = document.activeElement;
     if (oldActiveElement) {
       oldActiveElement.blur();
     }
 
-    $(dialog).on('hide.bs.modal', function(event) {
-      if ($(event.target).is(dialog)) {
-        var dontAsk = $('input[name=showDontAskMeAgain]', $(dialog)).is(':checked');
+    $(modal).on('hide.bs.modal', function(event) {
+      if ($(event.target).is(modal)) {
+        var dontAsk = $('input[name=showDontAskMeAgain]', $(modal)).is(':checked');
         if (callback) {
           callback.call(this, dontAsk);
         }
-        dialog.remove();
+      }
+    });
+
+    $(modal).on('hidden.bs.modal', function(event) {
+      if ($(event.target).is(modal)) {
+        modal.remove();
         if (oldActiveElement) {
           oldActiveElement.focus();
         }
       }
     });
 
-    $(dialog).modal('show');
+    $(modal).modal('show');
 
-    br.enchanceBootstrap(dialog);
-    br.resizeModalPopup(dialog);
-
-    return dialog;
+    return modal;
 
   };
 
@@ -4687,11 +4717,7 @@
       options.onHide = options.onhide;
     }
 
-    var s = '<div class="br-modal-prompt modal modal-autosize" data-backdrop="static"';
-    if (br.bootstrapVersion == 2) {
-      s = s + ' style="top:20px;margin-top:0px;"';
-    }
-    s = s + '>' +
+    var s = '<div class="br-modal-prompt modal modal-autosize" data-backdrop="static">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">' +
             '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>' +
@@ -4712,7 +4738,7 @@
     s = s + '<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn('Cancel') + '&nbsp;</a>';
     s = s + '</div></div></div></div>';
 
-    var dialog = $(s);
+    var modal = $(s);
 
     var oldActiveElement = document.activeElement;
     if (oldActiveElement) {
@@ -4721,14 +4747,14 @@
 
     var remove = true;
 
-    $(dialog).on('keypress', 'input', function(event) {
+    $(modal).on('keypress', 'input', function(event) {
       if (event.keyCode == 13) {
-        $(dialog).find('a.action-confirm-close').trigger('click');
+        $(modal).find('a.action-confirm-close').trigger('click');
       }
     });
 
-    $(dialog).on('show.bs.modal', function(event) {
-      if ($(event.target).is(dialog)) {
+    $(modal).on('show.bs.modal', function(event) {
+      if ($(event.target).is(modal)) {
         $(this).find('.action-confirm-close').on('click', function() {
           var results = [];
           var ok = true, notOkField;
@@ -4755,11 +4781,11 @@
             }
             if (ok) {
               remove = false;
-              $(dialog).modal('hide');
+              modal.modal('hide');
               if (callback) {
                 callback.call(this, results);
               }
-              dialog.remove();
+              modal.remove();
               if (oldActiveElement) {
                 oldActiveElement.focus();
               }
@@ -4772,32 +4798,34 @@
       }
     });
 
-    $(dialog).on('hide.bs.modal', function(event) {
-      if ($(event.target).is(dialog)) {
-        if (options.onHide) {
-          options.onHide.call(this);
-        }
-        if (remove) {
-          dialog.remove();
-          if (oldActiveElement) {
-            oldActiveElement.focus();
-          }
-        }
-      }
-    });
-
-    $(dialog).on('shown.bs.modal', function(event) {
-      if ($(event.target).is(dialog)) {
+    $(modal).on('shown.bs.modal', function(event) {
+      if ($(event.target).is(modal)) {
         $(this).find('input[type=text]')[0].focus();
       }
     });
 
-    $(dialog).modal('show');
+    $(modal).on('hide.bs.modal', function(event) {
+      if ($(event.target).is(modal)) {
+        if (options.onHide) {
+          options.onHide.call(this);
+        }
+      }
+    });
 
-    br.enchanceBootstrap(dialog);
-    br.resizeModalPopup(dialog);
+    $(modal).on('hidden.bs.modal', function(event) {
+      if ($(event.target).is(modal)) {
+        if (remove) {
+          modal.remove();
+        }
+        if (oldActiveElement) {
+          oldActiveElement.focus();
+        }
+      }
+    });
 
-    return dialog;
+    $(modal).modal('show');
+
+    return modal;
 
   };
 
@@ -4868,7 +4896,7 @@
   };
 
   var progressBar_Total = 0, progressBar_Progress = 0, progressBar_Message = '';
-  var progressBarTemplate = '<div id="br_progressBar" class="modal" style="display:none;z-index:10000;top:20px;margin-top:0px;" data-backdrop="static">' +
+  var progressBarTemplate = '<div id="br_progressBar" class="modal" style="display:none;z-index:10000;top:20px;margin-top:0px;position:fixed;" data-backdrop="static">' +
                             '  <div class="modal-dialog">'+
                             '    <div class="modal-content">'+
                             '      <div class="modal-body">' +
@@ -5050,91 +5078,7 @@
 
   };
 
-  function configureAutosize(control) {
-    if ($(control).data('brAutoSizeConfigured')) {
-
-    } else {
-      (function(control) {
-        if (br.bootstrapVersion == 2) {
-          control.css('top', '20px');
-          control.css('margin-top', '0px');
-        }
-        control.on('shown.bs.modal', function(event) {
-          if ($(event.target).is(control)) {
-            br.resizeModalPopup(control);
-          }
-        });
-        $(window).resize(function(){
-          br.resizeModalPopup(control);
-        });
-        control.data('brAutoSizeConfigured', 1);
-      })($(control));
-    }
-  }
-
-  function attachTabContros(modal) {
-
-    var tabbableElements = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, *[tabindex], *[contenteditable]';
-
-    function disableTabbingOnPage(except) {
-      $.each($(tabbableElements), function (idx, item) {
-        var el = $(item);
-        if (!el.closest(except).length) {
-          var tabindex = el.attr('tabindex');
-          if (tabindex) {
-            el.attr('data-prev-tabindex', tabindex);
-          }
-          el.attr('tabindex', '-1');
-        }
-      });
-    }
-
-    function reEnableTabbingOnPage(except) {
-      $.each($(tabbableElements), function (idx, item) {
-        var el = $(item);
-        if (!el.closest(except).length) {
-          var prevTabindex = el.attr('data-prev-tabindex');
-          if (prevTabindex) {
-            el.attr('tabindex', prevTabindex);
-          } else {
-            el.removeAttr('tabindex');
-          }
-          el.removeAttr('data-prev-tabindex');
-        }
-      });
-    }
-
-    $(modal).on('show.bs.modal', function(event) {
-      if ($(event.target).is(modal)) {
-        disableTabbingOnPage($(this));
-      }
-    });
-
-    $(modal).on('hide.bs.modal', function(event) {
-      if ($(event.target).is(modal)) {
-        reEnableTabbingOnPage($(this));
-      }
-    });
-
-  }
-
   window.br.enchanceBootstrap = function(el) {
-
-    if (el) {
-      if ($(el).hasClass('modal-autosize')) {
-        configureAutosize($(el));
-      }
-      if ($(el).hasClass('modal')) {
-        attachTabContros($(el));
-      }
-    } else {
-      $('div.modal.modal-autosize').each(function() {
-        configureAutosize($(this));
-      });
-      $('div.modal').each(function() {
-        attachTabContros($(this));
-      });
-    }
 
     if ($.ui !== undefined) {
       if (el) {
@@ -5197,6 +5141,19 @@
 
   };
 
+  window.br.handleClick = function(control, promise) {
+
+    $(control).addClass('disabled').attr('disabled', 'disabled');
+
+    promise.then(function() {
+      $(control).removeClass('disabled').removeAttr('disabled');
+    }).catch(function(error) {
+      $(control).removeClass('disabled').removeAttr('disabled');
+      br.growlError(error);
+    });
+
+  };
+
   if (typeof window.Handlebars == 'object') {
     Handlebars.registerHelper('if_eq', function(a, b, opts) {
       if (a === b) {
@@ -5205,6 +5162,112 @@
         return opts.inverse(this);
       }
     });
+  }
+
+  function enchanceBootstrap() {
+
+    var tabbableElements = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, *[tabindex], *[contenteditable]';
+
+    function disableTabbingOnPage(except) {
+      $.each($(tabbableElements), function (idx, item) {
+        var el = $(item);
+        if (!el.closest(except).length) {
+          var tabindex = el.attr('tabindex');
+          if (tabindex) {
+            el.attr('data-prev-tabindex', tabindex);
+          }
+          el.attr('tabindex', '-1');
+        }
+      });
+    }
+
+    function reEnableTabbingOnPage(except) {
+      $.each($(tabbableElements), function (idx, item) {
+        var el = $(item);
+        if (!el.closest(except).length) {
+          var prevTabindex = el.attr('data-prev-tabindex');
+          if (prevTabindex) {
+            el.attr('tabindex', prevTabindex);
+          } else {
+            el.removeAttr('tabindex');
+          }
+          el.removeAttr('data-prev-tabindex');
+        }
+      });
+    }
+
+    function configureAutosize(control) {
+      if (control.data('brAutoSizeConfigured')) {
+
+      } else {
+        if (br.bootstrapVersion == 2) {
+          control.css('top', '20px');
+          control.css('margin-top', '0px');
+          control.css('position', 'fixed');
+        }
+        $(window).resize(function(){
+          br.resizeModalPopup(control);
+        });
+        control.data('brAutoSizeConfigured', 1);
+      }
+    }
+
+    var defaultOpacity = 50;
+
+    $(document).on('shown.bs.modal', function(event) {
+      var target = $(event.target);
+      if (target.hasClass('modal')) {
+        var zindex = br.toInt(target.css('z-index'));
+        $('div.modal').each(function() {
+          if ($(this).is(':visible')) {
+            if (!$(this).is(event.target)) {
+              zindex += 2;
+            }
+          }
+        });
+        target.css('z-index', zindex);
+        zindex--;
+        $('.modal-backdrop').css('z-index', zindex);
+        if ($('.modal-backdrop').length) {
+          var opacity = defaultOpacity / $('.modal-backdrop').length;
+          $('.modal-backdrop').css({ 'opacity': opacity/100, 'filter': 'alpha(opacity=' + opacity + ')' });
+        }
+        disableTabbingOnPage(target);
+      }
+      if (target.hasClass('modal-autosize')) {
+        configureAutosize(target);
+        br.resizeModalPopup(target);
+      }
+    });
+
+    $(document).on('hidden.bs.modal', function(event) {
+      var target = $(event.target);
+      if (target.hasClass('modal')) {
+        var modals = [];
+        $('div.modal').each(function() {
+          if ($(this).is(':visible')) {
+            modals.push({zindex: br.toInt($(this).css('z-index')), modal: $(this) });
+          }
+        });
+        if (modals.length) {
+          modals.sort(function compare(a, b) {
+            if (a.zindex > b.zindex)
+              return -1;
+            if (a.zindex < b.zindex)
+              return 1;
+            return 0;
+          });
+          var zindex = modals[0].zindex-1;
+          $('.modal-backdrop').css('z-index', zindex);
+          if ($('.modal-backdrop').length) {
+            var opacity = defaultOpacity / $('.modal-backdrop').length;
+            $('.modal-backdrop').css({ 'opacity': opacity/100, 'filter': 'alpha(opacity=' + opacity + ')' });
+          }
+        }
+        reEnableTabbingOnPage(target);
+      }
+    });
+
   }
 
   $(document).ready(function() {
@@ -5249,9 +5312,10 @@
       }
     });
 
-
     br.enchanceBootstrap();
     br.attachDatePickers();
+
+    enchanceBootstrap();
 
     if ($('.focused').length > 0) {
       try { $('.focused')[0].focus(); } catch (ex) { }
@@ -5662,12 +5726,12 @@
 
       if (_this.container.hasClass('modal')) {
         _this.container.on('shown.bs.modal', function(event) {
-          if (event.namespace === 'bs.modal') {
+          if ($(event.target).is(_this.container)) {
             editorShown();
           }
         });
         _this.container.on('hide.bs.modal', function(event) {
-          if (event.namespace === 'bs.modal') {
+          if ($(event.target).is(_this.container)) {
             if (cancelled) {
               cancelled = false;
             } else {
@@ -5682,7 +5746,7 @@
           }
         });
         _this.container.on('hidden.bs.modal', function(event) {
-          if (event.namespace === 'bs.modal') {
+          if ($(event.target).is(_this.container)) {
             editorHidden(false, editorRowid);
           }
         });
@@ -6241,6 +6305,7 @@
                                  , autoHeight: this.options.autoHeight
                                  , autoWidth: this.options.autoWidth
                                  , storageTag: this.options.storageTag
+                                 , storeDataRow: this.options.storeDataRow
                                  }
                                );
 

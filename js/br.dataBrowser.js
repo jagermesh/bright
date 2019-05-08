@@ -117,6 +117,7 @@
                                  , autoHeight: this.options.autoHeight
                                  , autoWidth: this.options.autoWidth
                                  , storageTag: this.options.storageTag
+                                 , storeDataRow: this.options.storeDataRow
                                  }
                                );
 

@@ -43,7 +43,7 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
 
   public function write($message, $group = 'MSG', $tagline = null) {
 
-    if (br()->request()->isLocalHost() || br()->isConsoleMode()) {
+    if (br()->request()->isLocalHost() && !br()->isConsoleMode()) {
 
     } else {
       if ($email = $this->getEMail()) {

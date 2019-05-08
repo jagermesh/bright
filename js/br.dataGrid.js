@@ -116,7 +116,9 @@
       } else
       if (s.length > 0) {
         var result = $(s);
-        result.data('data-row', data);
+        if (_this.options.storeDataRow) {
+          result.data('data-row', data);
+        }
         return result;
       } else {
         return null;
@@ -131,7 +133,9 @@
       } else
       if (s.length > 0) {
         var result = $(s);
-        result.data('data-row', data);
+        if (_this.options.storeDataRow) {
+          result.data('data-row', data);
+        }
         return result;
       } else {
         return null;
@@ -146,7 +150,9 @@
       } else
       if (s.length > 0) {
         var result = $(s);
-        result.data('data-row', data);
+        if (_this.options.storeDataRow) {
+          result.data('data-row', data);
+        }
         return result;
       } else {
         return null;
@@ -161,7 +167,9 @@
       } else
       if (s.length > 0) {
         var result = $(s);
-        result.data('data-row', data);
+        if (_this.options.storeDataRow) {
+          result.data('data-row', data);
+        }
         return result;
       } else {
         return null;
@@ -311,7 +319,9 @@
       if (row.length > 0) {
         var tableRow = _this.renderRow(data);
         if (tableRow) {
-          tableRow.data('data-row', data);
+          if (_this.options.storeDataRow) {
+            tableRow.data('data-row', data);
+          }
           _this.events.triggerBefore('update', data);
           _this.events.trigger('update', data, row);
           $(row[0]).before(tableRow);
