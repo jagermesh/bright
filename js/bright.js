@@ -5219,9 +5219,11 @@
       if (target.hasClass('modal')) {
         var zindex = br.toInt(target.css('z-index'));
         $('div.modal').each(function() {
-          if ($(this).is(':visible')) {
-            if (!$(this).is(event.target)) {
-              zindex += 2;
+          var cthis = $(this);
+          if (cthis.is(':visible')) {
+            if (!cthis.is(target)) {
+              var czindex = br.toInt(cthis.css('z-index'));
+              zindex = Math.max(zindex, czindex) + 2;
             }
           }
         });
@@ -5246,7 +5248,7 @@
         var modals = [];
         $('div.modal').each(function() {
           if ($(this).is(':visible')) {
-            modals.push({zindex: br.toInt($(this).css('z-index')), modal: $(this) });
+            modals.push({ zindex: br.toInt($(this).css('z-index')), modal: $(this) });
           }
         });
         if (modals.length) {
