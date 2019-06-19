@@ -19,7 +19,7 @@ class BrDataBaseDictionary extends BrObject {
         foreach($row as $fieldName => $value) {
           if (is_scalar($value)) {
             $value = trim($value);
-            $length = strlen($value);
+            $length = mb_strlen($value);
             if ($columnDesc = br($tableDesc, $fieldName)) {
               $columnTitle = br($columnDesc, 'column_comment', ucwords(str_replace('_', ' ', $fieldName)));
               if (($length === 0) && $columnDesc['required']) {

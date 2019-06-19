@@ -316,8 +316,6 @@ class BrDataSource extends BrGenericDataSource {
 
     $this->validateInsert($row);
 
-    $this->getDb()->validate($this->dbEntity(), $row);
-
     $result = $this->callEvent('insert', $row, $transientData, $old, $options);
     if (is_null($result)) {
       try {
@@ -326,6 +324,7 @@ class BrDataSource extends BrGenericDataSource {
         }
         if ($row) {
           $table = $this->getDb()->table($this->dbEntity());
+          $this->getDb()->validate($this->dbEntity(), $row);
           if (br($options, 'dataTypes')) {
             $table->insert($row, br($options, 'dataTypes'));
           } else {
@@ -412,8 +411,6 @@ class BrDataSource extends BrGenericDataSource {
 
         $this->validateUpdate($old, $new);
 
-        $this->getDb()->validate($this->dbEntity(), $new);
-
         $result = $this->callEvent('update', $new, $transientData, $old, $options);
         if (is_null($result)) {
           $changes = array();
@@ -423,8 +420,8 @@ class BrDataSource extends BrGenericDataSource {
             }
           }
           if ($changes) {
+            $this->getDb()->validate($this->dbEntity(), $changes);
             $table->update($changes, $rowid, br($options, 'dataTypes'));
-            // $table->update($new, $rowid, br($options, 'dataTypes'));
           } else {
             $new = $table->findOne($filter);
           }

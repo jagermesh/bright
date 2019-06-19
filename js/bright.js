@@ -4154,6 +4154,10 @@
   window.br = window.br || {};
 
   window.br.dataCombo = function (selector, dataSource, options) {
+    var instance = $(selector).data('BrDataCombo');
+    if (instance) {
+      return instance;
+    }
     return new BrDataCombo(selector, dataSource, options);
   };
 
