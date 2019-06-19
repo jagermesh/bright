@@ -1166,7 +1166,7 @@
   };
 
   window.br.isFirefox = function() {
-    return typeof InstallTrigger !== 'undefined';   // Firefox 1.0+
+    return typeof InstallTrigger !== 'undefined'; // Firefox 1.0+
   };
 
   window.br.isSafari = function() {
@@ -1174,7 +1174,7 @@
   };
 
   window.br.isChrome = function() {
-    return !!window.chrome && !br.isOpera();              // Chrome 1+
+    return !!window.chrome && !br.isOpera(); // Chrome 1+
   };
 
   window.br.redirect = function(url) {
@@ -1744,22 +1744,21 @@
         window.br.logWarning(event.reason);
       }
 
-      // if (result) {
-        event.preventDefault();
-      // }
+      event.preventDefault();
     });
 
   }
 
-  function printObject(obj, eol) {
+  function printObject(obj, eol, prefix) {
 
     var result = '';
 
+    prefix = prefix ? prefix : '';
     for(var name in obj) {
       if (br.isObject(obj[name])) {
-        result += printObject(obj[name], eol);
+        result += printObject(obj[name], eol, prefix + name + '.');
       } else {
-        result += name + ': ' + obj[name] + eol;
+        result += prefix + name + ': ' + obj[name] + eol;
       }
     }
 
@@ -2044,8 +2043,10 @@
         }
         if (typeof callback == 'function') {
           callback.call(_this, false, data.errorMessage, data.request, data.options);
+        } else
+        if (!_this.events.has('error')) {
+          throw data;
         }
-        throw data;
       });
 
     };
@@ -2143,8 +2144,10 @@
         }
         if (typeof callback == 'function') {
           callback.call(_this, false, data.errorMessage, data.request, data.options);
+        } else
+        if (!_this.events.has('error')) {
+          throw data;
         }
-        throw data;
       });
 
     };
@@ -2229,8 +2232,10 @@
         }
         if (typeof callback == 'function') {
           callback.call(_this, false, data.errorMessage, data.request, data.options);
+        } else
+        if (!_this.events.has('error')) {
+          throw data;
         }
-        throw data;
       });
 
     };
@@ -2520,8 +2525,10 @@
         }
         if (typeof callback == 'function') {
           callback.call(_this, false, data.errorMessage, data.request, data.options);
+        } else
+        if (!_this.events.has('error')) {
+          throw data;
         }
-        throw data;
       });
 
     };
@@ -2615,8 +2622,10 @@
         }
         if (typeof callback == 'function') {
           callback.call(_this, false, data.errorMessage, data.request, data.options);
+        } else
+        if (!_this.events.has('error')) {
+          throw data;
         }
-        throw data;
       });
 
     };

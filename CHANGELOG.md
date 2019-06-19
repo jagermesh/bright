@@ -10,3 +10,26 @@ v2.0.8
 v2.0.9
 
 - CHG: Improved support of cascade Bootstrap dropdowns
+
+v2.0.10
+
+- CHG: Enchanced protection against malicious REST param values
+- CHG: br.dataSource prromise will not be rejected in case of error if there is "on error" event configured.
+- NEW: tools/randomize-urls.js - script to randomize urls, usefull when you don't have or can't install mod-pagespeed
+
+  value of v in below url's will be refreshed
+
+```html
+  <link href="{/}css/print-preview.css?v=0.8050659263242956" rel="stylesheet">
+```
+
+  could be used as grunt-shell task
+
+```javascript
+  , refreshTags: {
+    options: {
+      stdout: true
+    }
+  , command: 'node vendor/jagermesh/bright/tools/randomize-urls.js templates/head.html && node vendor/jagermesh/bright/tools/randomize-urls.js templates/footer.html'
+  }
+```

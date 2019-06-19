@@ -202,6 +202,9 @@ class BrRESTBinder extends BrObject {
           $get = is_array($mapping['get'])?$mapping['get']:array($mapping['get']);
           foreach($get as $getParam) {
             $value = br()->request()->get($getParam);
+            if (is_string($value) && strlen($value)) {
+              $value = str_replace('?', ' ', $value);
+            }
             if ($value || (is_string($value) && strlen($value))) {
               $fields = br($mapping, 'field', br($mapping, 'fields', $getParam));
               switch(br($mapping, 'type', '=')) {

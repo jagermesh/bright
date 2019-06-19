@@ -175,8 +175,10 @@
         }
         if (typeof callback == 'function') {
           callback.call(_this, false, data.errorMessage, data.request, data.options);
+        } else
+        if (!_this.events.has('error')) {
+          throw data;
         }
-        throw data;
       });
 
     };
@@ -274,8 +276,10 @@
         }
         if (typeof callback == 'function') {
           callback.call(_this, false, data.errorMessage, data.request, data.options);
+        } else
+        if (!_this.events.has('error')) {
+          throw data;
         }
-        throw data;
       });
 
     };
@@ -360,8 +364,10 @@
         }
         if (typeof callback == 'function') {
           callback.call(_this, false, data.errorMessage, data.request, data.options);
+        } else
+        if (!_this.events.has('error')) {
+          throw data;
         }
-        throw data;
       });
 
     };
@@ -651,8 +657,10 @@
         }
         if (typeof callback == 'function') {
           callback.call(_this, false, data.errorMessage, data.request, data.options);
+        } else
+        if (!_this.events.has('error')) {
+          throw data;
         }
-        throw data;
       });
 
     };
@@ -746,8 +754,10 @@
         }
         if (typeof callback == 'function') {
           callback.call(_this, false, data.errorMessage, data.request, data.options);
+        } else
+        if (!_this.events.has('error')) {
+          throw data;
         }
-        throw data;
       });
 
     };
