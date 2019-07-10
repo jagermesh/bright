@@ -46,6 +46,8 @@ v2.0.11
 - CHG: [BrGenerciRenderer] Method 'display' changed to use `br()->response()->sendAutodetect()` instead of `echo`
 - CHG: [br.dataSource] All AJAX methods will send `X-Csrf-Token` headeer if such token exists in cookies
 - CHG: [bootsrtap/br.ui] Added support for dropdowns which are inside block element with `overflow: hidden`. You need to add `br-dropdown-detachable` class in additional to standard Bootstrap's `dropdown` class
+- CHG: [BrDataBaseManager] added support for deefiner
+- CHG: [BrDataBasePatch] added lambda function into `executeScriptFile` as last parameter. Can be used to pre-process script which is gonna be executed.
 - FIX: [promise.js] library fixed to better support headless JS engines
 
 Backward incompatible changes

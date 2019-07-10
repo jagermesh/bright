@@ -24,6 +24,7 @@ class BrDataBaseManager {
   private $cascadeSubsystemInitialized   = false;
 
   private $logObject;
+  private $definer;
 
   public function setLogObject($logObject) {
 
@@ -258,47 +259,54 @@ class BrDataBaseManager {
     br()->db()->runQuery( 'DROP VIEW IF EXISTS view_br_missing_audit');
     br()->db()->runQuery( 'DROP VIEW IF EXISTS view_br_audit_tables');
 
-    br()->db()->runQuery( 'CREATE VIEW view_br_audit_tables AS
-                           SELECT tbl.table_name name
-                                , IFNULL(aut.is_insert_audited, 1) is_insert_audited
-                                , IFNULL(aut.is_update_audited, 1) is_update_audited
-                                , IFNULL(aut.is_delete_audited, 1) is_delete_audited
-                                , IFNULL(aut.is_cascade_audited, 1) is_cascade_audited
-                                , (SELECT COUNT(1)
-                                     FROM br_db_triggers
-                                    WHERE action_timing = "AFTER"
-                                      AND event_manipulation = "INSERT"
-                                      AND event_object_schema = tbl.table_schema
-                                      AND event_object_table = tbl.table_name) is_insert_trigger_exists
-                                , (SELECT COUNT(1)
-                                     FROM br_db_triggers
-                                    WHERE action_timing = "AFTER"
-                                      AND event_manipulation = "UPDATE"
-                                      AND event_object_schema = tbl.table_schema
-                                      AND event_object_table = tbl.table_name) is_update_trigger_exists
-                                , (SELECT COUNT(1)
-                                     FROM br_db_triggers
-                                    WHERE action_timing = "AFTER"
-                                      AND event_manipulation = "DELETE"
-                                      AND event_object_schema = tbl.table_schema
-                                      AND event_object_table = tbl.table_name) is_delete_trigger_exists
-                                , (SELECT COUNT(1)
-                                     FROM br_db_triggers
-                                    WHERE action_timing = "BEFORE"
-                                      AND event_manipulation = "DELETE"
-                                      AND event_object_schema = tbl.table_schema
-                                      AND event_object_table = tbl.table_name) is_cascade_trigger_exists
-                                , IF(aut.id IS NULL, 0, 1) is_registered
-                             FROM information_schema.tables tbl LEFT JOIN ' . $this->auditTablesTable . ' aut ON tbl.table_name = aut.name
-                            WHERE tbl.table_schema = ?
-                              AND tbl.table_type LIKE "%TABLE%"
-                              AND tbl.table_name NOT LIKE "tmp%"
-                              AND tbl.table_name NOT LIKE "backup%"
-                              AND tbl.table_name NOT LIKE "view_%"
-                              AND tbl.table_name NOT LIKE "v_%"
-                              AND tbl.table_name NOT LIKE "shared_%"
-                              AND tbl.table_name NOT LIKE "audit_%"
-                              AND tbl.table_name NOT LIKE "br_%"'
+
+    $sql  = 'CREATE ';
+    if ($this->definer) {
+      $sql .= ' DEFINER=' . $this->definer . ' ';
+    }
+    $sql .= 'VIEW view_br_audit_tables AS
+             SELECT tbl.table_name name
+                  , IFNULL(aut.is_insert_audited, 1) is_insert_audited
+                  , IFNULL(aut.is_update_audited, 1) is_update_audited
+                  , IFNULL(aut.is_delete_audited, 1) is_delete_audited
+                  , IFNULL(aut.is_cascade_audited, 1) is_cascade_audited
+                  , (SELECT COUNT(1)
+                       FROM br_db_triggers
+                      WHERE action_timing = "AFTER"
+                        AND event_manipulation = "INSERT"
+                        AND event_object_schema = tbl.table_schema
+                        AND event_object_table = tbl.table_name) is_insert_trigger_exists
+                  , (SELECT COUNT(1)
+                       FROM br_db_triggers
+                      WHERE action_timing = "AFTER"
+                        AND event_manipulation = "UPDATE"
+                        AND event_object_schema = tbl.table_schema
+                        AND event_object_table = tbl.table_name) is_update_trigger_exists
+                  , (SELECT COUNT(1)
+                       FROM br_db_triggers
+                      WHERE action_timing = "AFTER"
+                        AND event_manipulation = "DELETE"
+                        AND event_object_schema = tbl.table_schema
+                        AND event_object_table = tbl.table_name) is_delete_trigger_exists
+                  , (SELECT COUNT(1)
+                       FROM br_db_triggers
+                      WHERE action_timing = "BEFORE"
+                        AND event_manipulation = "DELETE"
+                        AND event_object_schema = tbl.table_schema
+                        AND event_object_table = tbl.table_name) is_cascade_trigger_exists
+                  , IF(aut.id IS NULL, 0, 1) is_registered
+               FROM information_schema.tables tbl LEFT JOIN ' . $this->auditTablesTable . ' aut ON tbl.table_name = aut.name
+              WHERE tbl.table_schema = ?
+                AND tbl.table_type LIKE "%TABLE%"
+                AND tbl.table_name NOT LIKE "tmp%"
+                AND tbl.table_name NOT LIKE "backup%"
+                AND tbl.table_name NOT LIKE "view_%"
+                AND tbl.table_name NOT LIKE "v_%"
+                AND tbl.table_name NOT LIKE "shared_%"
+                AND tbl.table_name NOT LIKE "audit_%"
+                AND tbl.table_name NOT LIKE "br_%"';
+
+    br()->db()->runQuery( $sql
                         , br()->config()->get('db.name')
                         );
 
@@ -409,7 +417,11 @@ class BrDataBaseManager {
 
     $fields = $this->getAuditFields($tableName);
 
-    $sql  = 'CREATE TRIGGER aud_tai_' . $tableName . "\n";
+    $sql  = 'CREATE ';
+    if ($this->definer) {
+      $sql .= ' DEFINER=' . $this->definer . ' ';
+    }
+    $sql .= 'TRIGGER aud_tai_' . $tableName . "\n";
     $sql .= 'AFTER INSERT  ON ' . $tableName .' FOR EACH ROW' . "\n";
     $sql .= 'BEGIN' . "\n";
     $sql .= '  DECLARE auditID BIGINT UNSIGNED;' . "\n";
@@ -434,7 +446,11 @@ class BrDataBaseManager {
 
     $fields = $this->getAuditFields($tableName);
 
-    $sql  = 'CREATE TRIGGER aud_tau_' . $tableName . "\n";
+    $sql  = 'CREATE ';
+    if ($this->definer) {
+      $sql .= ' DEFINER=' . $this->definer . ' ';
+    }
+    $sql .= 'TRIGGER aud_tau_' . $tableName . "\n";
     $sql .= 'AFTER UPDATE ON ' . $tableName .' FOR EACH ROW' . "\n";
     $sql .= 'BEGIN' . "\n";
     $sql .= '  DECLARE auditID BIGINT UNSIGNED;' . "\n";
@@ -473,7 +489,11 @@ class BrDataBaseManager {
 
     $fields = $this->getAuditFields($tableName);
 
-    $sql  = 'CREATE TRIGGER aud_tad_' . $tableName . "\n";
+    $sql  = 'CREATE ';
+    if ($this->definer) {
+      $sql .= ' DEFINER=' . $this->definer . ' ';
+    }
+    $sql .= 'TRIGGER aud_tad_' . $tableName . "\n";
     $sql .= 'AFTER DELETE  ON ' . $tableName .' FOR EACH ROW' . "\n";
     $sql .= 'BEGIN' . "\n";
     $sql .= '  DECLARE auditID BIGINT UNSIGNED;' . "\n";
@@ -496,7 +516,11 @@ class BrDataBaseManager {
 
     $this->initAuditSubsystem();
 
-    $sql  = 'CREATE TRIGGER csc_tbd_' . $tableName . "\n";
+    $sql  = 'CREATE ';
+    if ($this->definer) {
+      $sql .= ' DEFINER=' . $this->definer . ' ';
+    }
+    $sql .= 'TRIGGER csc_tbd_' . $tableName . "\n";
     $sql .= 'BEFORE DELETE ON ' . $tableName .' FOR EACH ROW' . "\n";
     $sql .= 'BEGIN' . "\n";
     $sql .= '  SET @BR_CSC_' . $tableName . ' = 1;' . "\n";
@@ -1017,6 +1041,12 @@ class BrDataBaseManager {
       }
 
     });
+
+  }
+
+  public function setDefiner($value) {
+
+    $this->definer = $value;
 
   }
 

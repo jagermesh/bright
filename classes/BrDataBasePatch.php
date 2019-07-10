@@ -202,7 +202,7 @@ class BrDataBasePatch {
 
   }
 
-  public function executeScriptFile($fileName, $stepName = null) {
+  public function executeScriptFile($fileName, $stepName = null, $prepare = null) {
 
     $this->stepNo++;
     $stepName = $stepName ? $stepName : $this->stepNo;
@@ -211,6 +211,9 @@ class BrDataBasePatch {
 
     if (file_exists($fileName)) {
       if ($script = br()->fs()->loadFromFile($fileName)) {
+        if (is_callable($prepare)) {
+          $script = $prepare($script);
+        }
         return $this->executeScript($script);
       } else {
         $error = 'Error. UP step "' . $stepName . '":' . "\n\nScript file empty: " . $fileName;
