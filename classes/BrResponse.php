@@ -12,7 +12,13 @@ namespace Bright;
 
 class BrResponse extends BrSingleton {
 
-  public function sendJSON($response, $alreadyPacked = false, $andExit = true) {
+  public function __construct() {
+
+    parent::__construct();
+
+  }
+
+  public function sendJSON($response, $alreadyPacked = false) {
 
     if ($alreadyPacked) {
       $responseJSON = $response;
@@ -21,16 +27,14 @@ class BrResponse extends BrSingleton {
     }
 
     if (!headers_sent()) {
-      header('Cache-Control: no-cache, must-revalidate');
+      header('Cache-Control: no-cache, no-store, must-revalidate');
       header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
       header('Content-type: application/json');
     }
 
     echo($responseJSON);
 
-    if ($andExit) {
-      exit();
-    }
+    exit();
 
   }
 
@@ -43,7 +47,7 @@ class BrResponse extends BrSingleton {
     $responseFull = $callback . '(' . $responseJSON . ')';
 
     if (!headers_sent()) {
-      header('Cache-Control: no-cache, must-revalidate');
+      header('Cache-Control: no-cache, no-store, must-revalidate');
       header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
       header('Content-type: application/jsonp');
     }
@@ -51,6 +55,43 @@ class BrResponse extends BrSingleton {
     echo($responseFull);
 
     exit();
+
+  }
+
+  public function sendHTML($response) {
+
+    if (!headers_sent()) {
+      header('Cache-Control: no-cache, no-store, must-revalidate');
+      header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+      header('Content-type: text/html');
+    }
+
+    echo($response);
+
+  }
+
+  public function sendXML($data) {
+
+    if (!headers_sent()) {
+      header('Cache-Control: no-cache, no-store, must-revalidate');
+      header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+      header('Content-type: text/xml');
+    }
+
+    echo($data);
+
+    exit();
+
+  }
+
+  public function sendAutodetect($response) {
+
+    if (!headers_sent()) {
+      header('Cache-Control: no-cache, no-store, must-revalidate');
+      header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+    }
+
+    echo($response);
 
   }
 
@@ -191,6 +232,8 @@ class BrResponse extends BrSingleton {
       header('HTTP/1.0 201 Created');
     }
 
+    exit();
+
   }
 
   public function sendNotModified() {
@@ -198,6 +241,8 @@ class BrResponse extends BrSingleton {
     if (!headers_sent()) {
       header('HTTP/1.0 304 Not Modified');
     }
+
+    exit();
 
   }
 
@@ -207,6 +252,8 @@ class BrResponse extends BrSingleton {
       header('HTTP/1.0 500 Internal Server Error');
     }
 
+    exit();
+
   }
 
   public function sendServiceUnavailable() {
@@ -215,51 +262,42 @@ class BrResponse extends BrSingleton {
       header('HTTP/1.0 503 Service unavailable');
     }
 
+    exit();
+
   }
 
-  public function sendConflict($error) {
+  public function sendConflict($response = null) {
 
     if (!headers_sent()) {
       header('HTTP/1.0 409 Conflict');
     }
 
-    if ($error) {
-      echo($error);
+    if ($response) {
+      echo($response);
     }
 
     exit();
 
   }
 
-  public function send($body = null) {
+  public function send($response = null) {
 
-    $this->sendSuccess($body);
+    $this->sendSuccess($response);
 
   }
 
-  public function sendSuccess($body = null) {
+  public function sendSuccess($response = null) {
 
     if (!headers_sent()) {
+      header('Cache-Control: no-cache, no-store, must-revalidate');
+      header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+
       header('HTTP/1.0 200 OK');
     }
 
-    if ($body) {
-      echo($body);
+    if ($response) {
+      echo($response);
     }
-
-    exit();
-
-  }
-
-  public function sendXML($data) {
-
-    if (!headers_sent()) {
-      header('Cache-Control: no-cache, must-revalidate');
-      header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
-      header('Content-type: text/xml');
-    }
-
-    echo($data);
 
     exit();
 

@@ -15,9 +15,23 @@
 
   function BrRequest() {
 
-    this.continueRoute = true;
+    var _this = this;
 
-    this.get = function(name, defaultValue) {
+    _this.continueRoute = true;
+    _this.csrfToken = '';
+
+    var csrfCookie = '';
+
+    if (document) {
+      if (document.cookie) {
+        var csrfCookieRegexp = document.cookie.match(/Csrf-Token=([\w-]+)/);
+        if (csrfCookieRegexp) {
+          _this.csrfToken = csrfCookieRegexp[1];
+        }
+      }
+    }
+
+    _this.get = function(name, defaultValue) {
       var vars = document.location.search.replace('?', '').split('&');
       var vals = {};
       var i;
@@ -43,7 +57,7 @@
       }
     };
 
-    this.hash = function(name, defaultValue) {
+    _this.hash = function(name, defaultValue) {
       var vars = document.location.hash.replace('#', '').split('&');
       var vals = {};
       var i;
@@ -69,7 +83,7 @@
       }
     };
 
-    this.anchor = function(defaultValue) {
+    _this.anchor = function(defaultValue) {
       var value = document.location.hash.replace('#', '');
       if (value) {
         if (value.length === 0) {
@@ -82,16 +96,16 @@
       return value;
     };
 
-    this.route = function(path, func) {
-      if (this.continueRoute) {
+    _this.route = function(path, func) {
+      if (_this.continueRoute) {
         var l = document.location.toString();
         l = l.replace(/[?].*/, '');
         if (l.search(path) != -1) {
-          this.continueRoute = false;
+          _this.continueRoute = false;
           func.call();
         }
       }
-      return this;
+      return _this;
     };
 
   }

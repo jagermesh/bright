@@ -14,7 +14,7 @@ v2.0.9
 v2.0.10
 
 - CHG: Enchanced protection against malicious REST param values
-- CHG: br.dataSource prromise will not be rejected in case of error if there is "on error" event configured.
+- CHG: [br.dataSource] prromise will not be rejected in case of error if there is "on error" event configured.
 - NEW: tools/randomize-urls.js - script to randomize urls, usefull when you don't have or can't install mod-pagespeed
 
   value of v in below url's will be refreshed
@@ -33,3 +33,23 @@ v2.0.10
   , command: 'node vendor/jagermesh/bright/tools/randomize-urls.js templates/head.html && node vendor/jagermesh/bright/tools/randomize-urls.js templates/footer.html'
   }
 ```
+
+v2.0.11
+
+- NEW: [bootstrap 2.3.2] Added 'shown.bs.dropdow' into Bootstrap 2.3.2 dropdowns
+- CHG: [BrAuth] Code refactoring
+- CHG: [BrResponse] Code refactoring
+- CHG: [BrResponse] Added `sendHTML`, `sendAutodetect`
+- CHG: [BrResponse] `SendJSON`, `SendJSONP` now returning header `no-store` to prevent unauthorized access to data via browser cache
+- CHG: [BrResponse] All methods which return errors (`Send404`, `SendNOtAuthorized`, etc) are changed to do `exit()` from PHP script
+- CHG: [BrSession] Added method `regenerate` to regenerate session id
+- CHG: [BrGenerciRenderer] Method 'display' changed to use `br()->response()->sendAutodetect()` instead of `echo`
+- CHG: [br.dataSource] All AJAX methods will send `X-Csrf-Token` headeer if such token exists in cookies
+- CHG: [bootsrtap/br.ui] Added support for dropdowns which are inside block element with `overflow: hidden`. You need to add `br-dropdown-detachable` class in additional to standard Bootstrap's `dropdown` class
+- FIX: [promise.js] library fixed to better support headless JS engines
+
+Backward incompatible changes
+
+- CHG: [BrDataBaseManager] method `registerTableForAuditing` removed as duplicate with `setupTableSupport`
+- CHG: [BrDataBasePatch] method `registerTableForAuditing` removed as duplicate with `setupTableSupport`
+

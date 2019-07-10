@@ -689,7 +689,9 @@
           // if mobile we we use a backdrop because click events don't delegate
           $('<div class="dropdown-backdrop"/>').insertBefore($(this)).on('click', clearMenus)
         }
+        var relatedTarget = { relatedTarget: this }
         $parent.toggleClass('open')
+        .trigger($.Event('shown.bs.dropdown', relatedTarget));
       }
 
       $this.focus()

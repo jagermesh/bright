@@ -584,9 +584,23 @@
 
   function BrRequest() {
 
-    this.continueRoute = true;
+    var _this = this;
 
-    this.get = function(name, defaultValue) {
+    _this.continueRoute = true;
+    _this.csrfToken = '';
+
+    var csrfCookie = '';
+
+    if (document) {
+      if (document.cookie) {
+        var csrfCookieRegexp = document.cookie.match(/Csrf-Token=([\w-]+)/);
+        if (csrfCookieRegexp) {
+          _this.csrfToken = csrfCookieRegexp[1];
+        }
+      }
+    }
+
+    _this.get = function(name, defaultValue) {
       var vars = document.location.search.replace('?', '').split('&');
       var vals = {};
       var i;
@@ -612,7 +626,7 @@
       }
     };
 
-    this.hash = function(name, defaultValue) {
+    _this.hash = function(name, defaultValue) {
       var vars = document.location.hash.replace('#', '').split('&');
       var vals = {};
       var i;
@@ -638,7 +652,7 @@
       }
     };
 
-    this.anchor = function(defaultValue) {
+    _this.anchor = function(defaultValue) {
       var value = document.location.hash.replace('#', '');
       if (value) {
         if (value.length === 0) {
@@ -651,16 +665,16 @@
       return value;
     };
 
-    this.route = function(path, func) {
-      if (this.continueRoute) {
+    _this.route = function(path, func) {
+      if (_this.continueRoute) {
         var l = document.location.toString();
         l = l.replace(/[?].*/, '');
         if (l.search(path) != -1) {
-          this.continueRoute = false;
+          _this.continueRoute = false;
           func.call();
         }
       }
-      return this;
+      return _this;
     };
 
   }
@@ -1987,6 +2001,7 @@
                  , data: request
                  , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
                  , url: _this.options.restServiceUrl + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
+                 , headers: { 'X-Csrf-Token': br.request.csrfToken }
                  , success: function(response) {
                      var result, errorMessage;
                      if (_this.options.crossdomain) {
@@ -2095,6 +2110,7 @@
                  , data: request
                  , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
                  , url: _this.options.restServiceUrlNormalized + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
+                 , headers: { 'X-Csrf-Token': br.request.csrfToken }
                  , success: function(response) {
                      var operation = 'update';
                      if (response) {
@@ -2196,6 +2212,7 @@
                  , data: request
                  , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
                  , url: _this.options.restServiceUrlNormalized + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
+                 , headers: { 'X-Csrf-Token': br.request.csrfToken }
                  , success: function(response) {
                      resolve({rowid: rowid, request: request, options: options, response: response});
                    }
@@ -2460,6 +2477,7 @@
                                      , data: request
                                      , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
                                      , url: url + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
+                                     , headers: { 'X-Csrf-Token': br.request.csrfToken }
                                      , success: function(response) {
                                          try {
                                            _this.ajaxRequest = null;
@@ -2587,6 +2605,7 @@
                , data: request
                , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
                , url: _this.options.restServiceUrlNormalized + method + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
+               , headers: { 'X-Csrf-Token': br.request.csrfToken }
                , success: function(response) {
                    if (_this.options.crossdomain && (typeof response == 'string')) {
                      reject({method: method, request: request, options: options, errorMessage: response});
@@ -5294,6 +5313,72 @@
           }
         }
         reEnableTabbingOnPage(target);
+      }
+    });
+
+    $(document).on('click', function(event) {
+      $('.br-dropdown-detached:visible').hide();
+    });
+
+    $(window).on('resize', function() {
+      $('.br-dropdown-detached:visible').each(function() {
+        var detachedMenu = $(this);
+        var detachedMenuHolder = detachedMenu.data('detachedMenuHolder');
+        var alignRight = detachedMenu.hasClass('br-dropdown-detached-right-aligned');
+        var menu = detachedMenu.find('.dropdown-menu');
+        var css = {
+          top: detachedMenuHolder.offset().top + detachedMenuHolder.height()
+        };
+        if (alignRight) {
+          css.right = ($(window).width() - detachedMenuHolder.offset().left - detachedMenuHolder.width()) + menu.width();
+        } else {
+          css.left = detachedMenuHolder.offset().left;
+        }
+        detachedMenu.css(css);
+      });
+    });
+
+    $(document).on('shown.bs.dropdown', function(event) {
+      $('.br-dropdown-detached:visible').hide();
+      var target = $(event.target);
+      if (target.hasClass('br-dropdown-detachable')) {
+        var detachedMenu = target.data('detachedMenu');
+        var alignRight = target.hasClass('br-dropdown-detachable-right-aligned');
+        var css = {
+          position: 'absolute',
+          top: target.offset().top + target.height()
+        };
+        if (detachedMenu) {
+          if (alignRight) {
+            css.right = ($(window).width() - target.offset().left - target.width()) + detachedMenu.data('detachedMenuWidth');
+          } else {
+            css.left = target.offset().left;
+          }
+          detachedMenu.css(css);
+          detachedMenu.addClass('open');
+          detachedMenu.show();
+        } else {
+          var menu = $(target.find('.dropdown-menu'));
+          if (menu.length) {
+            if (alignRight) {
+              css.right = ($(window).width() - target.offset().left - target.width()) + menu.width();
+            } else {
+              css.left = target.offset().left;
+            }
+            detachedMenu = $('<div class="dropdown br-dropdown-detached" style="min-height:1px;"></div>');
+            if (alignRight) {
+              detachedMenu.addClass('br-dropdown-detached-right-aligned');
+            }
+            detachedMenu.append(menu.detach());
+            detachedMenu.css(css);
+            $('body').append(detachedMenu);
+            menu.show();
+
+            detachedMenu.data('detachedMenuHolder', target);
+            detachedMenu.data('detachedMenuWidth', menu.width());
+            target.data('detachedMenu', detachedMenu);
+          }
+        }
       }
     });
 

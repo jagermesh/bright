@@ -102,7 +102,7 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
     $passwordField   = br()->auth()->getAttr('usersTable.passwordField');
 
     if ($login = $this->getSessionLogin()) {
-      $this->login($login);
+      $this->validateLogin($login);
     } else {
       if ($cookie = @json_decode(br($_COOKIE, $this->getAuthTag()), true)) {
         if (br()->db() && br($cookie, 'login') && br($cookie, 'token')) {
@@ -135,6 +135,27 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
 
   }
 
+  function validateLogin($login, $remember = false) {
+
+    $usersTable    = br()->auth()->getAttr('usersTable.name');
+    $loginField    = br()->auth()->getAttr('usersTable.loginField');
+    $passwordField = br()->auth()->getAttr('usersTable.passwordField');
+
+    try {
+      $rowid = br()->db()->rowidValue($login);
+      if ($login = br()->db()->getCachedRow('SELECT * FROM ' . $usersTable . ' WHERE id = ?', $rowid)) {
+        $login['rowid'] = $rowid;
+        return parent::validateLogin($login);
+      } else {
+        throw new \Exception('Login error: user ' . $rowid . ' unknown');
+      }
+    } catch (\Exception $e) {
+      br()->auth()->logout();
+      throw $e;
+    }
+
+  }
+
   function login($login, $remember = false) {
 
     $usersTable    = br()->auth()->getAttr('usersTable.name');
@@ -145,7 +166,7 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
       $rowid = br()->db()->rowidValue($login);
       if ($login = br()->db()->getCachedRow('SELECT * FROM ' . $usersTable . ' WHERE id = ?', $rowid)) {
         $login['rowid'] = $rowid;
-        $this->trigger('checkLoginPrivilege', $login);
+        $login = parent::validateLogin($login);
         if ($remember && ($password = br($login, $passwordField)) && ($username = br($login, $loginField))) {
           $token  = sha1(md5(sha1($password) . sha1($rowid)));
           $cookie = array( 'login' => $username
@@ -158,8 +179,7 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
                    , br()->request()->domain() == 'localhost' ? false : br()->request()->domain()
                    );
         }
-        $this->trigger('setLogin', $login);
-        return br()->session()->set('login', $login);
+        return $login;
       } else {
         throw new \Exception('Login error: user ' . $rowid . ' unknown');
       }

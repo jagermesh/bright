@@ -139,27 +139,18 @@ class BrDataBasePatch {
 
   }
 
-  public function registerTableForAuditing($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $excludeFields = null) {
+  public function refreshTableSupport($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $isCascadeAudited = 1, $excludeFields = null) {
 
-    $this->logObject->log(br('=')->repeat(80));
-    $this->logObject->log('registerTableForAuditing(' . $tableName . ', ' . $isInsertAudited . ', ' . $isUpdateAudited . ', ' . $isDeleteAudited . ', "' . $excludeFields . '")');
-
-    return $this->dbManager->registerTableForAuditing($tableName, $isInsertAudited, $isUpdateAudited, $isDeleteAudited, $excludeFields);
+    return $this->dbManager->refreshTableSupport($tableName, $isInsertAudited, $isUpdateAudited, $isDeleteAudited, $isCascadeAudited, $excludeFields);
 
   }
 
-  public function refreshTableSupport($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $excludeFields = null) {
-
-    return $this->dbManager->refreshTableSupport($tableName, $isInsertAudited, $isUpdateAudited, $isDeleteAudited, $excludeFields);
-
-  }
-
-  public function setupTableSupport($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $excludeFields = null) {
+  public function setupTableSupport($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $isCascadeAudited = 1, $excludeFields = null) {
 
     $this->logObject->log(br('=')->repeat(80));
     $this->logObject->log('setupTableSupport(' . $tableName . ', ' . $isInsertAudited . ', ' . $isUpdateAudited . ', ' . $isDeleteAudited . ', "' . $excludeFields . '")');
 
-    return $this->dbManager->setupTableSupport($tableName, $isInsertAudited, $isUpdateAudited, $isDeleteAudited, $excludeFields);
+    return $this->dbManager->setupTableSupport($tableName, $isInsertAudited, $isUpdateAudited, $isDeleteAudited, $isCascadeAudited, $excludeFields);
 
   }
 

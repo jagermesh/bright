@@ -925,6 +925,72 @@
       }
     });
 
+    $(document).on('click', function(event) {
+      $('.br-dropdown-detached:visible').hide();
+    });
+
+    $(window).on('resize', function() {
+      $('.br-dropdown-detached:visible').each(function() {
+        var detachedMenu = $(this);
+        var detachedMenuHolder = detachedMenu.data('detachedMenuHolder');
+        var alignRight = detachedMenu.hasClass('br-dropdown-detached-right-aligned');
+        var menu = detachedMenu.find('.dropdown-menu');
+        var css = {
+          top: detachedMenuHolder.offset().top + detachedMenuHolder.height()
+        };
+        if (alignRight) {
+          css.right = ($(window).width() - detachedMenuHolder.offset().left - detachedMenuHolder.width()) + menu.width();
+        } else {
+          css.left = detachedMenuHolder.offset().left;
+        }
+        detachedMenu.css(css);
+      });
+    });
+
+    $(document).on('shown.bs.dropdown', function(event) {
+      $('.br-dropdown-detached:visible').hide();
+      var target = $(event.target);
+      if (target.hasClass('br-dropdown-detachable')) {
+        var detachedMenu = target.data('detachedMenu');
+        var alignRight = target.hasClass('br-dropdown-detachable-right-aligned');
+        var css = {
+          position: 'absolute',
+          top: target.offset().top + target.height()
+        };
+        if (detachedMenu) {
+          if (alignRight) {
+            css.right = ($(window).width() - target.offset().left - target.width()) + detachedMenu.data('detachedMenuWidth');
+          } else {
+            css.left = target.offset().left;
+          }
+          detachedMenu.css(css);
+          detachedMenu.addClass('open');
+          detachedMenu.show();
+        } else {
+          var menu = $(target.find('.dropdown-menu'));
+          if (menu.length) {
+            if (alignRight) {
+              css.right = ($(window).width() - target.offset().left - target.width()) + menu.width();
+            } else {
+              css.left = target.offset().left;
+            }
+            detachedMenu = $('<div class="dropdown br-dropdown-detached" style="min-height:1px;"></div>');
+            if (alignRight) {
+              detachedMenu.addClass('br-dropdown-detached-right-aligned');
+            }
+            detachedMenu.append(menu.detach());
+            detachedMenu.css(css);
+            $('body').append(detachedMenu);
+            menu.show();
+
+            detachedMenu.data('detachedMenuHolder', target);
+            detachedMenu.data('detachedMenuWidth', menu.width());
+            target.data('detachedMenu', detachedMenu);
+          }
+        }
+      }
+    });
+
   }
 
   $(document).ready(function() {

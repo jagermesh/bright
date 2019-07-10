@@ -90,6 +90,11 @@ module.exports = function(grunt) {
           options: {
               banner: '/* jshint ignore:start */'
           }
+        , libs3rdparty: {
+              files: { '3rdparty/promisejs/promise-7.0.4.min.js': [ '3rdparty/promisejs/promise-7.0.4.js' ]
+                     , '3rdparty/bootstrap/2.3.2/js/bootstrap.min.js': [ '3rdparty/bootstrap/2.3.2/js/bootstrap.js' ]
+                     }
+          }
         , bright: {
               files: { 'js/bright.min.js': [ 'js/bright.js' ]
                      , '3rdparty/gritter/js/jquery.gritter.min.js': ['3rdparty/gritter/js/jquery.gritter.js']
@@ -117,6 +122,6 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks("grunt-phplint");
 
-  grunt.registerTask('default', ['jshint', 'phplint:all', 'concat:bright_js', 'uglify:bright', 'concat:bright_css', 'concat:bright_css_bs2', 'concat:bright_css_bs3', 'concat:bright_core_js_1_0', 'concat:bright_nojq_js_1_0', 'concat:bright_nobs_js_1_0', 'concat:bright_js_1_0']);
+  grunt.registerTask('default', ['jshint', 'phplint:all', 'uglify:libs3rdparty', 'concat:bright_js', 'uglify:bright', 'concat:bright_css', 'concat:bright_css_bs2', 'concat:bright_css_bs3', 'concat:bright_core_js_1_0', 'concat:bright_nojq_js_1_0', 'concat:bright_nobs_js_1_0', 'concat:bright_js_1_0']);
 
 };

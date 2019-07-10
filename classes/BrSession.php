@@ -50,6 +50,15 @@ class BrSession extends BrSingleton {
 
   }
 
+  public function regenerate($deleteOld = false) {
+
+    if (!br()->isConsoleMode()) {
+      session_regenerate_id($deleteOld);
+      session_commit();
+    }
+
+  }
+
   public function get($name = null, $default = null) {
 
     if (isset($_SESSION)) {

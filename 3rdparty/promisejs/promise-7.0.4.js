@@ -1,3 +1,8 @@
+/* global setTimeout */
+/* global setInterval */
+/* global clearTimeout */
+/* global clearInterval */
+
 (function e(t, n, r) {
   function s(o, u) {
     if (!n[o]) {
@@ -357,11 +362,20 @@
       }
       function makeRequestCallFromTimer(callback) {
         return function requestCall() {
-          var timeoutHandle = setTimeout(handleTimer, 0);
-          var intervalHandle = setInterval(handleTimer, 50);
+          var timeoutHandle, intervalHandle;
+          if (typeof setTimeout != 'undefined') {
+            timeoutHandle = setTimeout(handleTimer, 0);
+          }
+          if (typeof setInterval != 'undefined') {
+            intervalHandle = setInterval(handleTimer, 50);
+          }
           function handleTimer() {
-            clearTimeout(timeoutHandle);
-            clearInterval(intervalHandle);
+            if (timeoutHandle) {
+              clearTimeout(timeoutHandle);
+            }
+            if (intervalHandle) {
+              clearInterval(intervalHandle);
+            }
             callback();
           }
         };

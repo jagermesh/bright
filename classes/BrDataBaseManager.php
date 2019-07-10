@@ -744,30 +744,6 @@ class BrDataBaseManager {
 
   }
 
-  public function registerTableForAuditing($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $isCascadeAudited = 1, $excludeFields = null) {
-
-    $this->initAuditSubsystem();
-
-    br()->db()->runQuery( 'INSERT IGNORE INTO ' . $this->auditTablesTable . ' (name, is_insert_audited, is_update_audited, is_delete_audited, is_cascade_audited, exclude_fields)
-                           VALUES (?, ?, ?, ?, ?, ?)
-                               ON DUPLICATE KEY
-                           UPDATE is_insert_audited = VALUES(is_insert_audited)
-                                , is_update_audited = VALUES(is_update_audited)
-                                , is_delete_audited = VALUES(is_delete_audited)
-                                , is_cascade_audited = VALUES(is_cascade_audited)
-                                , exclude_fields    = VALUES(is_insert_audited)'
-                        , $tableName
-                        , $isInsertAudited
-                        , $isUpdateAudited
-                        , $isDeleteAudited
-                        , $isCascadeAudited
-                        , $excludeFields
-                        );
-
-    $this->createAuditTriggers($tableName);
-
-  }
-
   public function refreshTableSupport($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $isCascadeAudited = 1, $excludeFields = null) {
 
     $this->initAuditSubsystem();
@@ -790,12 +766,14 @@ class BrDataBaseManager {
 
     $this->initAuditSubsystem();
 
-    br()->db()->runQuery( 'INSERT IGNORE INTO ' . $this->auditTablesTable . ' (name, is_insert_audited, is_update_audited, is_delete_audited, is_cascade_audited, exclude_fields)
+    br()->db()->runQuery( 'INSERT INTO ' . $this->auditTablesTable . ' (name, is_insert_audited, is_update_audited, is_delete_audited, is_cascade_audited, exclude_fields)
                            VALUES (?, ?, ?, ?, ?, ?)
                                ON DUPLICATE KEY
-                           UPDATE is_insert_audited = VALUES(is_insert_audited)
-                                , is_update_audited = VALUES(is_update_audited)
-                                , is_delete_audited = VALUES(is_delete_audited)'
+                           UPDATE is_insert_audited  = VALUES(is_insert_audited)
+                                , is_update_audited  = VALUES(is_update_audited)
+                                , is_delete_audited  = VALUES(is_delete_audited)
+                                , is_cascade_audited = VALUES(is_cascade_audited)
+                                , exclude_fields     = VALUES(is_insert_audited)'
                         , $tableName
                         , $isInsertAudited
                         , $isUpdateAudited

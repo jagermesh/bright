@@ -73,9 +73,22 @@ class BrGenericAuthProvider extends BrSingleton {
 
   }
 
+  function validateLogin($login, $remember = false) {
+
+    try {
+      $this->trigger('checkLoginPrivilege', $login);
+      $this->trigger('setLogin', $login);
+      br()->session()->set('login', $login);
+      return $login;
+    } catch (\Exception $e) {
+      br()->auth()->logout();
+      throw $e;
+    }
+
+  }
   function login($login, $remember = false) {
 
-    $this->trigger('checkLoginPrivilege', $login);
+    $login = $this->validateLogin($login);
 
     if ($remember) {
       $password = $login['password'];
@@ -93,14 +106,7 @@ class BrGenericAuthProvider extends BrSingleton {
       }
     }
 
-    try {
-      $this->trigger('setLogin', $login);
-    } catch (\Exception $e) {
-      br()->auth()->logout();
-      throw $e;
-    }
-
-    return br()->session()->set('login', $login);
+    return $login;
 
   }
 
@@ -119,7 +125,14 @@ class BrGenericAuthProvider extends BrSingleton {
       $this->trigger('logout', $login);
     }
 
-    return br()->session()->clear('login');
+
+    br()->session()->clear('login');
+
+    // if ($resetSession) {
+    //   br()->session()->regenerate();
+    // }
+
+    return true;
 
   }
 

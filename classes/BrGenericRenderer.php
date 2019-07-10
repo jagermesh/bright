@@ -83,7 +83,7 @@ class BrGenericRenderer extends BrObject {
 
   public function display($templateName, $subst = array()) {
 
-    echo($this->fetch($templateName, $subst));
+    br()->response()->sendAutodetect($this->fetch($templateName, $subst));
 
   }
 
