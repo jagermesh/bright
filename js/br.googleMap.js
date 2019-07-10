@@ -174,6 +174,25 @@
       }
     }
 
+    this.removeMarker = function(marker) {
+      marker.setMap(null);
+    };
+
+    this.iterateMarkers = function(callback) {
+      var stop = false;
+      for(var tag in _this.markers) {
+        for (var i = _this.markers[tag].length-1; i >= 0; i--) {
+          stop = callback(_this.markers[tag][i]);
+          if (stop) {
+            break;
+          }
+        }
+        if (stop) {
+          break;
+        }
+      }
+    };
+
     this.removeMarkers = function(tag) {
       if (tag) {
         internalRemoveMarkers(tag);
@@ -185,12 +204,14 @@
     };
 
     this.addMarker = function(lat, lng, params, tag, custom) {
-      params = params || { };
+      var markerParams = Object.create({});
+      markerParams.icon = params.icon || null;
+      markerParams.draggable = params.draggable || false;
       var latLng = new google.maps.LatLng(lat, lng);
       var marker = new google.maps.Marker({ position: latLng
                                           , map: this.map
-                                          , icon: params.icon
-                                          , draggable: params.draggable
+                                          , icon: markerParams.icon
+                                          , draggable: markerParams.draggable
                                           });
       marker.custom = custom || { };
       tag = tag || '_';
@@ -199,7 +220,7 @@
       google.maps.event.addListener(marker, 'click', function(event) {
         _this.events.trigger('marker.click', marker, event);
       });
-      if (params.draggable) {
+      if (markerParams.draggable) {
         google.maps.event.addListener(marker, 'dragend', function(event) {
           _this.events.trigger('marker.dragend', marker, event);
         });
@@ -221,9 +242,9 @@
 
     function array_map(array, callback) {
       var original_callback_params = Array.prototype.slice.call(arguments, 2),
-          array_return = [],
-          array_length = array.length,
-          i;
+        array_return = [],
+        array_length = array.length,
+        i;
 
       if (Array.prototype.map && array.map === Array.prototype.map) {
         array_return = Array.prototype.map.call(array, function(item) {
@@ -232,8 +253,7 @@
 
           return callback.apply(this, callback_params);
         });
-      }
-      else {
+      } else {
         for (i = 0; i < array_length; i++) {
           var callback_params = original_callback_params;
           callback_params.splice(0, 0, array[i]);
@@ -308,6 +328,25 @@
       }
     }
 
+    this.removePolygon = function(polygon) {
+      polygon.setMap(null);
+    };
+
+    this.iteratePolygons = function(callback) {
+      var stop = false;
+      for(var tag in _this.polygons) {
+        for (var i = _this.polygons[tag].length-1; i >= 0; i--) {
+          stop = callback(_this.polygons[tag][i]);
+          if (stop) {
+            break;
+          }
+        }
+        if (stop) {
+          break;
+        }
+      }
+    };
+
     this.removePolygons = function(tag) {
       if (tag) {
         internalRemovePlygons(tag);
@@ -318,17 +357,22 @@
       }
     };
 
-    this.addGeoJSONPolygon = function(coordinates, params, tag, custom) {
-      params = params || { };
-      params.paths = array_flat(array_map(coordinates, arrayToLatLng, true));
-      params.map = _this.map;
-      params.strokeColor = params.strokeColor || '#999';
-      params.strokeOpacity = params.strokeOpacity || 1;
-      params.strokeWeight = params.strokeWeight || 0.5;
-      params.fillColor = params.fillColor || '';
-      params.fillOpacity = params.fillOpacity || 0.3;
+    this.clearPoi = function() {
+      this.removePolygons();
+      this.removeMarkers();
+    };
 
-      var polygon = new google.maps.Polygon(params);
+    this.addGeoJSONPolygon = function(geoData, params, tag, custom) {
+      var polygonParams = Object.create({});
+      var coordinates = JSON.parse(JSON.stringify(geoData));
+      polygonParams.paths = array_flat(array_map(coordinates, arrayToLatLng, true));
+      polygonParams.strokeColor = params.strokeColor || '#999';
+      polygonParams.strokeOpacity = params.strokeOpacity || 1;
+      polygonParams.strokeWeight = params.strokeWeight || 0.5;
+      polygonParams.fillColor = params.fillColor;
+      polygonParams.fillOpacity = polygonParams.fillColor ? (params.fillOpacity == undefined ? 0.3 : params.fillOpacity) : 0;
+      polygonParams.map = _this.map;
+      var polygon = new google.maps.Polygon(polygonParams);
       polygon.custom = custom;
       tag = tag || '_';
       this.polygons[tag] = this.polygons[tag] || [];
@@ -337,7 +381,6 @@
         _this.events.trigger('polygon.click', polygon, event);
       });
       return polygon;
-
     };
 
     this.getPolygonsByTag = function(tag) {
@@ -397,6 +440,10 @@
       for (tag in this.markers) {
         for (i = 0; i < this.markers[tag].length; i++) {
           points.push( { lat: this.markers[tag][i].position.lat(), lng: this.markers[tag][i].position.lng() });
+          points.push( { lat: this.markers[tag][i].position.lat()-1, lng: this.markers[tag][i].position.lng() });
+          points.push( { lat: this.markers[tag][i].position.lat()+1, lng: this.markers[tag][i].position.lng() });
+          points.push( { lat: this.markers[tag][i].position.lat(), lng: this.markers[tag][i].position.lng()-1 });
+          points.push( { lat: this.markers[tag][i].position.lat(), lng: this.markers[tag][i].position.lng()+1 });
         }
       }
       for (tag in this.polygons) {
