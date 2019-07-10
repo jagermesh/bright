@@ -48,6 +48,8 @@ v2.0.11
 - CHG: [bootsrtap/br.ui] Added support for dropdowns which are inside block element with `overflow: hidden`. You need to add `br-dropdown-detachable` class in additional to standard Bootstrap's `dropdown` class
 - CHG: [BrDataBaseManager] added support for deefiner
 - CHG: [BrDataBasePatch] added lambda function into `executeScriptFile` as last parameter. Can be used to pre-process script which is gonna be executed.
+- CHG: [BrMySQLiDBProvider] added function getQueryStructure - same as `getTableStructure` but for queries
+- CHG: [BrMySQLDBProvider] added function getQueryStructure - same as `getTableStructure` but for queries
 - FIX: [promise.js] library fixed to better support headless JS engines
 
 Backward incompatible changes

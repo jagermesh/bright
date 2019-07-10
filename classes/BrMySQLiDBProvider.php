@@ -179,8 +179,14 @@ class BrMySQLiDBProvider extends BrGenericSQLDBProvider {
 
   public function getTableStructure($tableName) {
 
+    return $this->getQueryStructure('SELECT * FROM '. $tableName .' LIMIT 1');
+
+  }
+
+  public function getQueryStructure($query) {
+
     $field_defs = array();
-    if ($query = $this->runQueryEx('SELECT * FROM '. $tableName .' LIMIT 1')) {
+    if ($query = $this->runQueryEx($query)) {
       while ($finfo = mysqli_fetch_field($query)) {
         $field_defs[strtolower($finfo->name)] = array( "length" => $finfo->max_length
                                                      , "type"   => $finfo->type
