@@ -192,6 +192,15 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   }
 
+  public function selectUnbuffered() {
+
+    $args = func_get_args();
+    $sql = array_shift($args);
+
+    return $this->runQueryEx($sql, $args, 0, null, MYSQLI_USE_RESULT);
+
+  }
+
   public function selectNext($query, $options = array()) {
 
   }

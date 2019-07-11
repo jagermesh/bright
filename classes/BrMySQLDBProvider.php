@@ -15,8 +15,8 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
   private $__connection;
   private $errorRedirect;
   private $config;
-  private $reconnectIterations = 10;
-  private $rerunIterations = 10;
+  private $reconnectIterations = 50;
+  private $rerunIterations     = 30;
 
   public function __construct($config) {
 
@@ -49,27 +49,30 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     $userName      = br($this->config, 'username');
     $password      = br($this->config, 'password');
 
+    if (preg_match('/(.+?)[:]([0-9]+)$/', $hostName, $matches)) {
+      $hostName    = $matches[1];
+      $port        = $matches[2];
+    } else {
+      $port        = br($this->config, 'port');
+    }
+
     try {
-      if ($this->__connection = @mysql_connect($hostName, $userName, $password, true)) {
-        $dbselected = false;
-        foreach($dataBaseNames as $dataBaseName) {
-          if ($dbselected = mysql_select_db($dataBaseName, $this->__connection)) {
-            $this->setDataBaseName($dataBaseName);
-            break;
-          }
+      foreach($dataBaseNames as $dataBaseName) {
+        if ($this->__connection = @mysqli_connect($hostName, $userName, $password, $dataBaseName, $port)) {
+          $this->setDataBaseName($dataBaseName);
+          break;
         }
-        if (!$dbselected) {
-          throw new \Exception(mysql_errno() . ': ' . mysql_error());
-        }
+      }
+      if ($this->__connection) {
         if (br($this->config, 'charset')) {
           $this->runQuery('SET NAMES ?', $this->config['charset']);
         }
-        $this->version = mysql_get_server_info($this->__connection);
+        $this->version = mysqli_get_server_info($this->__connection);
         $this->triggerSticky('after:connect');
         br()->triggerSticky('after:db.connect');
         br()->triggerSticky('after:br.db.connect');
       } else {
-        throw new \Exception(mysql_errno() . ': ' . mysql_error());
+        throw new \Exception(mysqli_connect_errno() . ': ' . mysqli_connect_error());
       }
     } catch (\Exception $e) {
       if (preg_match('/Unknown database/', $e->getMessage()) ||
@@ -114,7 +117,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   public function selectNext($query, $options = array()) {
 
-    $result = mysql_fetch_assoc($query);
+    $result = mysqli_fetch_assoc($query);
     if (!br($options, 'doNotChangeCase')) {
       if (is_array($result)) {
         $result = array_change_key_case($result, CASE_LOWER);
@@ -145,8 +148,8 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
   public function getLastError() {
 
     if ($this->__connection) {
-      if (mysql_errno($this->__connection)) {
-        return mysql_errno($this->__connection) . ': ' . mysql_error($this->__connection);
+      if (mysqli_errno($this->__connection)) {
+        return mysqli_errno($this->__connection) . ': ' . mysqli_error($this->__connection);
       }
     } else {
       return 'MySQL server has gone away';
@@ -157,7 +160,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
   public function getLastId() {
 
     if ($this->__connection) {
-      return mysql_insert_id($this->__connection);
+      return mysqli_insert_id($this->__connection);
     } else {
       throw new BrDBServerGoneAwayException('MySQL server has gone away');
     }
@@ -167,7 +170,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
   public function getAffectedRowsAmount() {
 
     if ($this->__connection) {
-      return mysql_affected_rows($this->__connection);
+      return mysqli_affected_rows($this->__connection);
     } else {
       throw new BrDBServerGoneAwayException('MySQL server has gone away');
     }
@@ -183,13 +186,14 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
   public function getQueryStructure($query) {
 
     $field_defs = array();
-    $query = $this->runQuery($query);
-    $field_count = mysql_num_fields($query);
-    for ($i=0; $i < $field_count; $i++) {
-      $field_defs[strtolower(mysql_field_name($query, $i))] = array( "length" => mysql_field_len($query, $i)
-                                                                   , "type"   => mysql_field_type($query, $i)
-                                                                   , "flags"  => mysql_field_flags($query, $i)
-                                                                   );
+    if ($query = $this->runQueryEx($query)) {
+      while ($finfo = mysqli_fetch_field($query)) {
+        $field_defs[strtolower($finfo->name)] = array( "length" => $finfo->max_length
+                                                     , "type"   => $finfo->type
+                                                     , "flags"  => $finfo->flags
+                                                     );
+      }
+      mysqli_free_result($query);
     }
 
     $field_defs = array_change_key_case($field_defs, CASE_LOWER);
@@ -201,7 +205,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   }
 
-  public function runQueryEx($sql, $args = array(), $iteration = 0, $rerunError = null) {
+  public function runQueryEx($sql, $args = array(), $iteration = 0, $rerunError = null, $resultMode = MYSQLI_STORE_RESULT) {
 
     try {
       // check connection
@@ -226,14 +230,13 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
       try {
         // moved to check problem line
-        $query = @mysql_query($queryText, $this->connection());
+        $query = @mysqli_query($this->connection(), $queryText, $resultMode);
         if ($query) {
           if ($this->inTransaction()) {
             $this->incTransactionBuffer($queryText);
           }
         } else {
           $error = $this->getLastError();
-          br()->trigger('br.db.query.error', $error);
           throw new BrDBException($error);
         }
       } catch (\Exception $e) {
@@ -262,11 +265,11 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
             preg_match('/Deadlock found when trying to get lock/', $e->getMessage())) {
           if ($this->inTransaction()) {
             if ($this->isTransactionBufferEmpty()) {
-              br()->log()->write('Deadlock occured, but this is first query. Trying restart transaction', 'SEP');
+              br()->log()->write('Some error occured, but this is first query. Trying restart transaction and repeat query', 'SEP');
               usleep(250000);
               $this->rollbackTransaction();
               $this->startTransaction();
-              $query = $this->runQueryEx($sql, $args, $iteration + 1, $e->getMessage());
+              $query = $this->runQueryEx($sql, $args, $iteration + 1, $e->getMessage(), $resultMode);
             } else {
               $error  = $e->getMessage();
               $error .= '. Automatic retrying was not possible - ' . $this->transactionBufferLength() . ' statement(s) in transaction buffer: ';
@@ -295,9 +298,10 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
               }
             }
           } else {
-            br()->log()->write('Deadlock occured, but we are not in transaction. Trying repeat query', 'SEP');
-            usleep(250000);
-            $query = $this->runQueryEx($sql, $args, $iteration + 1, $e->getMessage());
+            br()->log()->write('Some error occured, but we are not in transaction. Trying repeat query', 'SEP');
+            // usleep(250000);
+            sleep(1);
+            $query = $this->runQueryEx($sql, $args, $iteration + 1, $e->getMessage(), $resultMode);
           }
         } else
         if (preg_match('/1329: No data/', $e->getMessage())) {

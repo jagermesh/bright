@@ -31,10 +31,8 @@ class BrDataBase extends BrObject {
         self::$instances[$hash]['provider']    = null;
         switch($config['engine']) {
           case 'mysql':
-            self::$instances[$hash]['provider'] = new BrMySQLDBProvider($config);
-            break;
           case 'mysqli':
-            self::$instances[$hash]['provider'] = new BrMySQLiDBProvider($config);
+            self::$instances[$hash]['provider'] = new BrMySQLDBProvider($config);
             break;
           case 'mongodb':
             self::$instances[$hash]['provider'] = new BrMongoDBProvider($config);

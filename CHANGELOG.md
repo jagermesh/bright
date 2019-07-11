@@ -57,3 +57,10 @@ Backward incompatible changes
 - CHG: [BrDataBaseManager] method `registerTableForAuditing` removed as duplicate with `setupTableSupport`
 - CHG: [BrDataBasePatch] method `registerTableForAuditing` removed as duplicate with `setupTableSupport`
 
+v2.0.12
+
+- CHG [BrMySQLDbProvider] Added `selectUnbuffered` method, must be used same way as `select` but will not consume memory when iterating through result set
+
+Backward incompatible changes
+
+- CHG Removed support for mysql extension - it was deprecated long time ago
