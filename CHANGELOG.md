@@ -59,8 +59,12 @@ Backward incompatible changes
 
 v2.0.12
 
+- NEW [BrConsole] Added methods `purple` and `blue` colors
+- NEW [BrDataBaseManager] Added methods `executeScriptFile` and `executeScript`
 - CHG [BrMySQLDbProvider] Added `selectUnbuffered` method, must be used same way as `select` but will not consume memory when iterating through result set
+- CHG [BrMailLogAdapter] Added mail body cleanup from console color codes
 
 Backward incompatible changes
 
 - CHG Removed support for mysql extension - it was deprecated long time ago
+- CHG [BrDataBasePatch] Removed lambda function from `executeScriptFile`

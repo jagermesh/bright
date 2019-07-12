@@ -32,6 +32,72 @@ class BrDataBaseManager {
 
   }
 
+  private function parseScript($script) {
+
+    $result = array();
+    $delimiter = ';';
+    while(strlen($script) && preg_match('/((DELIMITER)[ ]+([^\n\r])|[' . $delimiter . ']|$)/is', $script, $matches, PREG_OFFSET_CAPTURE)) {
+      if (count($matches) > 2) {
+        $delimiter = $matches[3][0];
+        $script = substr($script, $matches[3][1] + 1);
+      } else {
+        if (strlen($statement = trim(substr($script, 0, $matches[0][1])))) {
+          $result[] = $statement;
+        }
+        $script = substr($script, $matches[0][1] + 1);
+      }
+    }
+
+    return $result;
+
+  }
+
+  public function executeScript($script) {
+
+    $result = 0;
+
+    if ($statements = $this->parseScript($script)) {
+      foreach($statements as $statement) {
+        $result += $this->internalExecute($statement);
+
+      }
+    }
+
+    return $result;
+
+  }
+
+  public function executeScriptFile($fileName) {
+
+    $result = 0;
+
+    if (file_exists($fileName)) {
+      if ($script = br()->fs()->loadFromFile($fileName)) {
+        $definer = '';
+        if ($this->getDefiner()) {
+          $definer = 'DEFINER=' . $this->getDefiner();
+        }
+        $script = str_replace('/* [[DEFINER]] */', $definer, $script);
+        br()->log('Executing ' . $fileName);
+        return $this->executeScript($script);
+      } else {
+        throw new BrAppException('Script file empty: ' . $fileName);
+      }
+    } else {
+      throw new BrAppException('Script file not found: ' . $fileName);
+    }
+
+  }
+
+  private function internalExecute($sql) {
+
+
+    br()->db()->runQuery($sql);
+
+    return br()->db()->getAffectedRowsAmount();
+
+  }
+
   public function initAuditSubsystem() {
 
     if ($this->auditSubsystemInitialized) {
@@ -261,8 +327,8 @@ class BrDataBaseManager {
 
 
     $sql  = 'CREATE ';
-    if ($this->definer) {
-      $sql .= ' DEFINER=' . $this->definer . ' ';
+    if ($this->getDefiner()) {
+      $sql .= ' DEFINER=' . $this->getDefiner() . ' ';
     }
     $sql .= 'VIEW view_br_audit_tables AS
              SELECT tbl.table_name name
@@ -418,8 +484,8 @@ class BrDataBaseManager {
     $fields = $this->getAuditFields($tableName);
 
     $sql  = 'CREATE ';
-    if ($this->definer) {
-      $sql .= ' DEFINER=' . $this->definer . ' ';
+    if ($this->getDefiner()) {
+      $sql .= ' DEFINER=' . $this->getDefiner() . ' ';
     }
     $sql .= 'TRIGGER aud_tai_' . $tableName . "\n";
     $sql .= 'AFTER INSERT  ON ' . $tableName .' FOR EACH ROW' . "\n";
@@ -447,8 +513,8 @@ class BrDataBaseManager {
     $fields = $this->getAuditFields($tableName);
 
     $sql  = 'CREATE ';
-    if ($this->definer) {
-      $sql .= ' DEFINER=' . $this->definer . ' ';
+    if ($this->getDefiner()) {
+      $sql .= ' DEFINER=' . $this->getDefiner() . ' ';
     }
     $sql .= 'TRIGGER aud_tau_' . $tableName . "\n";
     $sql .= 'AFTER UPDATE ON ' . $tableName .' FOR EACH ROW' . "\n";
@@ -490,8 +556,8 @@ class BrDataBaseManager {
     $fields = $this->getAuditFields($tableName);
 
     $sql  = 'CREATE ';
-    if ($this->definer) {
-      $sql .= ' DEFINER=' . $this->definer . ' ';
+    if ($this->getDefiner()) {
+      $sql .= ' DEFINER=' . $this->getDefiner() . ' ';
     }
     $sql .= 'TRIGGER aud_tad_' . $tableName . "\n";
     $sql .= 'AFTER DELETE  ON ' . $tableName .' FOR EACH ROW' . "\n";
@@ -517,8 +583,8 @@ class BrDataBaseManager {
     $this->initAuditSubsystem();
 
     $sql  = 'CREATE ';
-    if ($this->definer) {
-      $sql .= ' DEFINER=' . $this->definer . ' ';
+    if ($this->getDefiner()) {
+      $sql .= ' DEFINER=' . $this->getDefiner() . ' ';
     }
     $sql .= 'TRIGGER csc_tbd_' . $tableName . "\n";
     $sql .= 'BEFORE DELETE ON ' . $tableName .' FOR EACH ROW' . "\n";
@@ -972,13 +1038,21 @@ class BrDataBaseManager {
           if ($patch->checkRequirements($regularRun, $command)) {
             $patchObjects[] = $patch;
           }
+        } catch (BrSamePatchException $e) {
+          $results[] = array( 'message'    => $patch->logPrefix() . ' ' . $e->getMessage()
+                            , 'is_warning' => true
+                            , 'is_error'   => false
+                            );
         } catch (\Exception $e) {
-          $results[] = array( 'message'  => $patch->logPrefix() . ' ' . $e->getMessage()
-                            , 'is_error' => true
+          $results[] = array( 'message'    => $patch->logPrefix() . ' ' . $e->getMessage()
+                            , 'is_error'   => true
+                            , 'is_warning' => false
                             );
         }
         $cmd->setLogPrefix('[' . br()->db()->getDataBaseName() . ']');
       }
+
+      $returnCode = 0;
 
       if ($command == 'check') {
 
@@ -1005,6 +1079,7 @@ class BrDataBaseManager {
                 $patchObjectsExecuted[] = $patch;
               } catch (\Exception $e) {
                 $cmd->logException($e->getMessage());
+                $returnCode = 1;
               }
             } catch (\Exception $e) {
               $patchObjectsDeferred[] = $patch;
@@ -1019,9 +1094,16 @@ class BrDataBaseManager {
                 $cmd->setLogPrefix('[' . br()->db()->getDataBaseName() . '] [' . get_class($patch) . ']');
                 try {
                   $patch->checkDependencies();
+                } catch (BrSamePatchException $e) {
+                  $results[] = array( 'message'    => $patch->logPrefix() . ' ' . $e->getMessage()
+                                    , 'is_warning' => true
+                                    , 'is_error'   => false
+                                    );
                 } catch (\Exception $e) {
-                  $results[] = array( 'message'  => $patch->logPrefix() . ' ' . $e->getMessage()
-                                    , 'is_error' => true
+                  debug('AAA');
+                  $results[] = array( 'message'    => $patch->logPrefix() . ' ' . $e->getMessage()
+                                    , 'is_error'   => true
+                                    , 'is_warning' => false
                                     );
                 }
                 $cmd->setLogPrefix('[' . br()->db()->getDataBaseName() . ']');
@@ -1032,13 +1114,26 @@ class BrDataBaseManager {
 
         foreach($results as $result) {
           if ($result['is_error']) {
+            $returnCode = 1;
             br()->log()->write(br()->console()->red($result['message']));
+          } else
+          if ($result['is_warning']) {
+            if (!$returnCode) {
+              $returnCode = 2;
+            }
+            br()->log()->write(br()->console()->purple($result['message']));
           } else {
             br()->log()->write(br()->console()->green($result['message']));
           }
         }
 
       }
+
+      if ($returnCode > 0) {
+        exit($returnCode);
+      }
+
+      return true;
 
     });
 
@@ -1047,6 +1142,12 @@ class BrDataBaseManager {
   public function setDefiner($value) {
 
     $this->definer = $value;
+
+  }
+
+  public function getDefiner() {
+
+    return $this->definer;
 
   }
 

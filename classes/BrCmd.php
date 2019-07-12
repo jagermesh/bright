@@ -65,7 +65,7 @@ class BrCmd extends BrObject implements BrLoggable {
 
   public function logException($messageOrException, $sendOutput = false, $printCallStack = true) {
 
-    br()->log()->logException(new \Exception(br()->console()->yellow($this->logPrefix) . ' ' . $messageOrException), true, false);
+    br()->log()->logException(new \Exception(br()->console()->yellow($this->logPrefix) . ' ' . br()->console()->red($messageOrException)), true, false);
 
   }
 

@@ -10,6 +10,11 @@
 
 namespace Bright;
 
+class BrSamePatchException extends BrException {
+
+}
+
+
 class BrDataBasePatch {
 
   private $stepNo = 0;
@@ -91,10 +96,10 @@ class BrDataBasePatch {
             return false;
           default:
             if ($patch['patch_hash'] != $this->patchHash) {
-              throw new BrAppException('Error. Same patch already registered but has different hash: ' . $patch['patch_hash']);
+              throw new BrSamePatchException('Error. Same patch already registered but has different hash: ' . $patch['patch_hash']);
             } else
             if ($patch['patch_file'] != basename($this->patchFile)) {
-              throw new BrAppException('Error. Same patch already registered but has different name: ' . $patch['patch_file']);
+              throw new BrSamePatchException('Error. Same patch already registered but has different name: ' . $patch['patch_file']);
             } else {
               throw new BrAppException('Hmm... Not sure how and why we got here!!!');
             }
@@ -135,6 +140,7 @@ class BrDataBasePatch {
                         );
 
     $this->logObject->log('Applied', 'GREEN');
+
     return true;
 
   }
@@ -157,6 +163,7 @@ class BrDataBasePatch {
   public function execute($sql, $stepName = null) {
 
     $this->stepNo++;
+
     $stepName = $stepName ? $stepName : $this->stepNo;
 
     return $this->internalExecute($sql, $stepName, false);
@@ -183,10 +190,10 @@ class BrDataBasePatch {
 
   }
 
-
   public function executeScript($script, $stepName = null) {
 
     $this->stepNo++;
+
     $stepName = $stepName ? $stepName : $this->stepNo;
 
     $result = 0;
@@ -202,18 +209,21 @@ class BrDataBasePatch {
 
   }
 
-  public function executeScriptFile($fileName, $stepName = null, $prepare = null) {
+  public function executeScriptFile($fileName, $stepName = null) {
 
     $this->stepNo++;
+
     $stepName = $stepName ? $stepName : $this->stepNo;
 
     $result = 0;
 
     if (file_exists($fileName)) {
       if ($script = br()->fs()->loadFromFile($fileName)) {
-        if (is_callable($prepare)) {
-          $script = $prepare($script);
+        $definer = '';
+        if ($this->dbManager->getDefiner()) {
+          $definer = 'DEFINER=' . $this->dbManager->getDefiner();
         }
+        $script = str_replace('/* [[DEFINER]] */', $definer, $script);
         return $this->executeScript($script);
       } else {
         $error = 'Error. UP step "' . $stepName . '":' . "\n\nScript file empty: " . $fileName;

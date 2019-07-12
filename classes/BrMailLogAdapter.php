@@ -106,7 +106,7 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
 
     $body  = '<html>';
     $body .= '<body>';
-    $body .= $message;
+    $body .= preg_replace('/\e\[[0-9]+m/', '', $message);
     $body .= '</body>';
     $body .= '</html>';
 
