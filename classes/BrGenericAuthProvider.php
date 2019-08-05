@@ -20,7 +20,7 @@ class BrGenericAuthProvider extends BrSingleton {
 
   function getAuthTag() {
 
-    return 'Bright_AuthTag';
+    return '_br01';
 
   }
 
@@ -98,10 +98,10 @@ class BrGenericAuthProvider extends BrSingleton {
                        );
       if (!br()->isConsoleMode()) {
         setcookie( $this->getAuthTag()
-                 , json_encode($cookie)
+                 , base64_encode(json_encode($cookie))
                  , time() + 60*60*24*30
                  , br()->request()->baseUrl()
-                 , br()->request()->domain() == 'localhost' ? false : br()->request()->domain()
+                 , br()->request()->domain()
                  );
       }
     }
@@ -117,7 +117,7 @@ class BrGenericAuthProvider extends BrSingleton {
                , ''
                , time() - 60*60*24*30
                , br()->request()->baseUrl()
-               , br()->request()->domain() == 'localhost' ? false : br()->request()->domain()
+               , br()->request()->domain()
                );
     }
 

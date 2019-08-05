@@ -10,7 +10,7 @@
 
 namespace Bright;
 
-class BrJobCustomJob {
+class BrJobCustomJob extends BrObject {
 
   private $shellScript = 'nohup /usr/bin/php -f';
   private $runJobScript = 'run-job.php';

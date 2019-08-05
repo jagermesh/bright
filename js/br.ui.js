@@ -84,7 +84,7 @@
 
     var i;
 
-    var s = '<div class="br-modal-confirm modal modal-autosize';
+    var s = '<div class="br-modal-confirm modal';
     if (options.cssClass) {
       s = s + ' ' + options.cssClass;
     }
@@ -245,7 +245,7 @@
       $('#br_modalError').remove();
     }
 
-    var s = '<div class="modal modal-autosize" id="br_modalError" data-backdrop="static">' +
+    var s = '<div class="modal" id="br_modalError" data-backdrop="static">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">';
     if (title !== '') {
@@ -308,7 +308,7 @@
       $('#br_modalInform').remove();
     }
 
-    var s = '<div class="modal modal-autosize" id="br_modalInform" data-backdrop="static">' +
+    var s = '<div class="modal" id="br_modalInform" data-backdrop="static">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">';
     if (title !== '') {
@@ -372,7 +372,7 @@
       options.onHide = options.onhide;
     }
 
-    var s = '<div class="br-modal-prompt modal modal-autosize" data-backdrop="static">' +
+    var s = '<div class="br-modal-prompt modal" data-backdrop="static">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">' +
             '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>' +
@@ -809,6 +809,54 @@
 
   };
 
+  window.br.sortTable = function(table, order) {
+
+    function getValuesComparison(a, b, columnIndex, direction) {
+      var td1 = $($('td', $(a))[columnIndex]);
+      var td2 = $($('td', $(b))[columnIndex]);
+      var val1 = td1.remove('a').text().trim();
+      var val2 = td2.remove('a').text().trim();
+      var val1F = 0;
+      var val2F = 0;
+      var floatValues = 0;
+      if (!isNaN(parseFloat(val1)) && isFinite(val1)) {
+        val1F = parseFloat(val1);
+        floatValues++;
+      }
+      if (!isNaN(parseFloat(val2)) && isFinite(val2)) {
+        val2F = parseFloat(val2);
+        floatValues++;
+      }
+      if (floatValues == 2) {
+        return (val1F == val2F ? 0: (val1F > val2F ? direction : direction * -1));
+      } else {
+        return val1.localeCompare(val2) * direction;
+      }
+    }
+
+    return new Promise(function(resolve, reject) {
+      $('tbody', table).each(function() {
+        var tbody = $(this);
+        $('tr', tbody).sort(function(a, b) {
+          var values = [];
+          order.forEach(function(orderCfg) {
+            values.push(getValuesComparison(a, b, orderCfg.column, (orderCfg.order == 'asc' ? 1 : -1)));
+          });
+          return values.reduce(function(result, value) {
+            if (result != 0) {
+              return result;
+            }
+            return value;
+          }, 0);
+        }).each(function() {
+          $(tbody).append($(this));
+        });
+      });
+      resolve();
+    });
+
+  };
+
   if (typeof window.Handlebars == 'object') {
     Handlebars.registerHelper('if_eq', function(a, b, opts) {
       if (a === b) {
@@ -891,7 +939,8 @@
         }
         disableTabbingOnPage(target);
       }
-      if (target.hasClass('modal-autosize')) {
+      br.enchanceBootstrap(target);
+      if (target.hasClass('modal')) {
         configureAutosize(target);
         br.resizeModalPopup(target);
       }

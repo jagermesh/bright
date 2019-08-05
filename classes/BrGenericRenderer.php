@@ -144,8 +144,8 @@ class BrGenericRenderer extends BrObject {
                                                 )
                             , 'config'  => br()->config()->get()
                             , 'login'   => br()->auth()->getLogin()
-                            , 'core'    => array('v1' => br()->request()->brightUrl() . 'dist/1.0/bright.core.js')
-                            , 'lib'     => array('v1' => br()->request()->brightUrl() . 'dist/1.0/bright.js')
+                            , 'core'    => br()->request()->brightUrl() . 'dist/js/bright.core.min.js'
+                            , 'lib'     => br()->request()->brightUrl() . 'dist/js/bright.min.js'
                             );
 
     if ($localVars['br']['login']) {

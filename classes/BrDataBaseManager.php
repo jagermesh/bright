@@ -1100,7 +1100,6 @@ class BrDataBaseManager {
                                     , 'is_error'   => false
                                     );
                 } catch (\Exception $e) {
-                  debug('AAA');
                   $results[] = array( 'message'    => $patch->logPrefix() . ' ' . $e->getMessage()
                                     , 'is_error'   => true
                                     , 'is_warning' => false

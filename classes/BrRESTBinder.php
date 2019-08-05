@@ -720,7 +720,7 @@ class BrRESTBinder extends BrObject {
       $message = $msg;
     } else
     if ($e instanceof BrDBException) {
-      $message = 'Database error';
+      $message = 'Bad request';
     } else {
       $message = $msg;
     }
@@ -730,7 +730,7 @@ class BrRESTBinder extends BrObject {
     if (br()->request()->get('crossdomain')) {
       br()->response()->sendJSONP($message);
     } else {
-      br()->response()->sendForbidden($message);
+      br()->response()->sendBadRequest($message);
     }
 
   }

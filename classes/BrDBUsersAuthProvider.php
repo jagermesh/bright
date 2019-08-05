@@ -97,23 +97,27 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
 
   function checkLogin($returnNotAuthorized = true) {
 
-    $usersTable      = br()->auth()->getAttr('usersTable.name');
-    $loginField      = br()->auth()->getAttr('usersTable.loginField');
-    $passwordField   = br()->auth()->getAttr('usersTable.passwordField');
+    $usersTable    = br()->auth()->getAttr('usersTable.name');
+    $loginField    = br()->auth()->getAttr('usersTable.loginField');
+    $passwordField = br()->auth()->getAttr('usersTable.passwordField');
 
     if ($login = $this->getSessionLogin()) {
       $this->validateLogin($login);
     } else {
-      if ($cookie = @json_decode(br($_COOKIE, $this->getAuthTag()), true)) {
-        if (br()->db() && br($cookie, 'login') && br($cookie, 'token')) {
-          if (br($cookie, 'login') != '%') {
-            if ($users = br()->db()->getCachedRows('SELECT * FROM ' . $usersTable . ' WHERE ' . $loginField . ' = ?', $cookie['login'])) {
-              foreach($users as $user) {
-                if (($password = br($user, $passwordField)) && ($rowid = br()->db()->rowidValue($user))) {
-                  $token = sha1(md5(sha1($password) . sha1($rowid)));
-                  if ($token == $cookie['token']) {
-                    $this->login($user);
-                    return $user;
+      if ($cookie = br($_COOKIE, $this->getAuthTag())) {
+        if ($cookie = @base64_decode($cookie)) {
+          if ($cookie = @json_decode($cookie, true)) {
+            if (br()->db() && br($cookie, 'login') && br($cookie, 'token')) {
+              if (br($cookie, 'login') != '%') {
+                if ($users = br()->db()->getCachedRows('SELECT * FROM ' . $usersTable . ' WHERE ' . $loginField . ' = ?', $cookie['login'])) {
+                  foreach($users as $user) {
+                    if (($password = br($user, $passwordField)) && ($rowid = br()->db()->rowidValue($user))) {
+                      $token = sha1(md5(sha1($password) . sha1($rowid)));
+                      if ($token == $cookie['token']) {
+                        $this->login($user);
+                        return $user;
+                      }
+                    }
                   }
                 }
               }
@@ -165,18 +169,18 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
     try {
       $rowid = br()->db()->rowidValue($login);
       if ($login = br()->db()->getCachedRow('SELECT * FROM ' . $usersTable . ' WHERE id = ?', $rowid)) {
+        $rememberPassword = ($remember && ($password = br($login, $passwordField)) && ($username = br($login, $loginField)));
         $login['rowid'] = $rowid;
         $login = parent::validateLogin($login);
-        if ($remember && ($password = br($login, $passwordField)) && ($username = br($login, $loginField))) {
-          $token  = sha1(md5(sha1($password) . sha1($rowid)));
+        if ($rememberPassword) {
           $cookie = array( 'login' => $username
-                         , 'token' => $token
+                         , 'token' => sha1(md5(sha1($password) . sha1($rowid)))
                          );
           setcookie( $this->getAuthTag()
-                   , json_encode($cookie)
+                   , base64_encode(json_encode($cookie))
                    , time() + 60*60*24*30
                    , br()->request()->baseUrl()
-                   , br()->request()->domain() == 'localhost' ? false : br()->request()->domain()
+                   , br()->request()->domain()
                    );
         }
         return $login;

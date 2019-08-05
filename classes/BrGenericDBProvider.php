@@ -56,7 +56,7 @@ class BrGenericDBProvider extends BrObject {
 
   }
 
-  public function validate($tableName, $row) {
+  public function validate($tableName, &$row) {
 
     $dataBaseDictionaryFile = br()->getBasePath() . 'database/schema/UserDefinedDataBaseDictionary.php';
     if (file_exists($dataBaseDictionaryFile)) {

@@ -626,6 +626,15 @@
 
   };
 
+  window.br.getAudioContext = function() {
+
+    window.AudioContext = window.AudioContext ||
+                          window.webkitAudioContext;
+
+    return new AudioContext();
+
+  };
+
   var isLittleEndian = true;
 
   window.br.detectEndian = function() {

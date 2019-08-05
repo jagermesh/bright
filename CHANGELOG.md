@@ -61,10 +61,15 @@ v2.0.12
 
 - NEW [BrConsole] Added methods `purple` and `blue` colors
 - NEW [BrDataBaseManager] Added methods `executeScriptFile` and `executeScript`
+- NEW [BrDataBaseDictionary] Validation for insert/update fields list
+- NEW [br.draggable] Draggable support
+- NEW [br.sortTable] Method to sort tables
 - CHG [BrMySQLDbProvider] Added `selectUnbuffered` method, must be used same way as `select` but will not consume memory when iterating through result set
 - CHG [BrMailLogAdapter] Added mail body cleanup from console color codes
+- CHG [BrXSS] Added some safe domains
 
 Backward incompatible changes
 
 - CHG Removed support for mysql extension - it was deprecated long time ago
 - CHG [BrDataBasePatch] Removed lambda function from `executeScriptFile`
+- CHG 3rdparties folders re-arranged

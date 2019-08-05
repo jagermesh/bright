@@ -1,4 +1,4 @@
-/* jshint ignore:start *//*!
+/*!
  * Bright 1.0
  *
  * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
@@ -114,6 +114,7 @@
   };
 
 })(window);
+
 /*!
  * Bright 1.0
  *
@@ -387,6 +388,7 @@
   window.br.session = new BrStorage(window.sessionStorage);
 
 })(window);
+
 /*!
  * Bright 1.0
  *
@@ -567,6 +569,7 @@
   };
 
 })(window);
+
 /*!
  * Bright 1.0
  *
@@ -680,6 +683,7 @@
   }
 
 })(window);
+
 /*!
  * Bright 1.0
  *
@@ -737,6 +741,7 @@
   var executionThread = br.thread(true);
 
 })(window);
+
 /*!
  * Bright 1.0
  *
@@ -908,6 +913,7 @@
   };
 
 })(window);
+
 /*!
  * Bright 1.0
  *
@@ -1064,6 +1070,7 @@
     };
 
   })(window);
+
 /*!
  * Bright 1.0
  *
@@ -1692,6 +1699,15 @@
 
   };
 
+  window.br.getAudioContext = function() {
+
+    window.AudioContext = window.AudioContext ||
+                          window.webkitAudioContext;
+
+    return new AudioContext();
+
+  };
+
   var isLittleEndian = true;
 
   window.br.detectEndian = function() {
@@ -1806,6 +1822,7 @@
   };
 
 })(jQuery, window);
+
 /*!
  * Bright 1.0
  *
@@ -1880,6 +1897,7 @@
   };
 
 })(window);
+
 /*!
  * Bright 1.0
  *
@@ -2699,6 +2717,7 @@
   };
 
 })(jQuery, window);
+
 /*!
  * Bright 1.0
  *
@@ -2925,6 +2944,7 @@
   };
 
 })(jQuery, window);
+
 /*!
  * Bright 1.0
  *
@@ -3613,6 +3633,7 @@
   };
 
 })(jQuery, window);
+
 /*!
  * Bright 1.0
  *
@@ -4195,6 +4216,126 @@
   };
 
 })(jQuery, window);
+
+/*!
+ * Bright 1.0
+ *
+ * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://brightfw.com
+ *
+ */
+
+/* global jQuery */
+
+;(function ($, window) {
+
+  function makeDraggable(ctrl, options) {
+
+    var _this = this;
+
+    var dragObject = null;
+    var dragHandler = null;
+
+    options = options || {};
+    options.exclude = [ 'INPUT', 'TEXTAREA', 'SELECT', 'A', 'BUTTON' ];
+
+    if (options.handler) {
+      dragHandler = ctrl.querySelector(options.handler);
+    } else {
+      dragHandler = ctrl;
+    }
+
+    function setPosition(element, left, top) {
+      element.style.marginTop = '0px';
+      element.style.marginLeft = '0px';
+      element.style.left = left + 'px';
+      element.style.top = top + 'px';
+    }
+
+    var drg_h, drg_w, pos_y, pos_x, ofs_x, ofs_y;
+
+    ctrl.style.cursor = 'move';
+    ctrl.style.position = 'fixed';
+
+    function downHandler(e) {
+      var target = e.target || e.srcElement;
+      var parent = target.parentNode;
+
+      if (target && (options.exclude.indexOf(target.tagName.toUpperCase()) == -1)) {
+        if (!parent || (options.exclude.indexOf(parent.tagName.toUpperCase()) == -1)) {  // img in a
+          dragObject = ctrl;
+
+          var pageX = e.pageX || e.touches[0].pageX;
+          var pageY = e.pageY || e.touches[0].pageY;
+
+          ofs_x = dragObject.getBoundingClientRect().left - dragObject.offsetLeft;
+          ofs_y = dragObject.getBoundingClientRect().top  - dragObject.offsetTop;
+
+          pos_x = pageX - (dragObject.getBoundingClientRect().left + document.body.scrollLeft);
+          pos_y = pageY - (dragObject.getBoundingClientRect().top  + document.body.scrollTop);
+
+          e.preventDefault();
+        }
+      }
+    }
+
+    function moveHandler(e) {
+      if (dragObject !== null) {
+        var pageX = e.pageX || e.touches[0].pageX;
+        var pageY = e.pageY || e.touches[0].pageY;
+        var left = pageX - pos_x - ofs_x - document.body.scrollLeft;
+        var top  = pageY - pos_y - ofs_y - document.body.scrollTop;
+
+        setPosition(dragObject, left, top);
+        if (options.ondrag) {
+          options.ondrag.call(e);
+        }
+      }
+    }
+
+    function upHandler(e) {
+      if (dragObject !== null) {
+        dragObject = null;
+      }
+    }
+
+    dragHandler.addEventListener('mousedown', function(e) {
+      downHandler(e);
+    });
+
+    window.addEventListener('mousemove', function(e) {
+      moveHandler(e);
+    });
+
+    window.addEventListener('mouseup', function(e) {
+      upHandler(e);
+    });
+
+    dragHandler.addEventListener('touchstart', function(e) {
+      downHandler(e);
+    });
+
+    window.addEventListener('touchmove', function(e) {
+      moveHandler(e);
+    });
+
+    window.addEventListener('touchend', function(e) {
+      upHandler(e);
+    });
+
+    return _this;
+
+  }
+
+  window.br = window.br || {};
+
+  window.br.draggable = function (selector, options) {
+    return makeDraggable($(selector)[0], options);
+  };
+
+})(jQuery, window);
+
 /*!
  * Bright 1.0
  *
@@ -4389,6 +4530,7 @@
   };
 
 })(jQuery, window);
+
 /*!
  * Bright 1.0
  *
@@ -4475,7 +4617,7 @@
 
     var i;
 
-    var s = '<div class="br-modal-confirm modal modal-autosize';
+    var s = '<div class="br-modal-confirm modal';
     if (options.cssClass) {
       s = s + ' ' + options.cssClass;
     }
@@ -4636,7 +4778,7 @@
       $('#br_modalError').remove();
     }
 
-    var s = '<div class="modal modal-autosize" id="br_modalError" data-backdrop="static">' +
+    var s = '<div class="modal" id="br_modalError" data-backdrop="static">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">';
     if (title !== '') {
@@ -4699,7 +4841,7 @@
       $('#br_modalInform').remove();
     }
 
-    var s = '<div class="modal modal-autosize" id="br_modalInform" data-backdrop="static">' +
+    var s = '<div class="modal" id="br_modalInform" data-backdrop="static">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">';
     if (title !== '') {
@@ -4763,7 +4905,7 @@
       options.onHide = options.onhide;
     }
 
-    var s = '<div class="br-modal-prompt modal modal-autosize" data-backdrop="static">' +
+    var s = '<div class="br-modal-prompt modal" data-backdrop="static">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">' +
             '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>' +
@@ -5200,6 +5342,54 @@
 
   };
 
+  window.br.sortTable = function(table, order) {
+
+    function getValuesComparison(a, b, columnIndex, direction) {
+      var td1 = $($('td', $(a))[columnIndex]);
+      var td2 = $($('td', $(b))[columnIndex]);
+      var val1 = td1.remove('a').text().trim();
+      var val2 = td2.remove('a').text().trim();
+      var val1F = 0;
+      var val2F = 0;
+      var floatValues = 0;
+      if (!isNaN(parseFloat(val1)) && isFinite(val1)) {
+        val1F = parseFloat(val1);
+        floatValues++;
+      }
+      if (!isNaN(parseFloat(val2)) && isFinite(val2)) {
+        val2F = parseFloat(val2);
+        floatValues++;
+      }
+      if (floatValues == 2) {
+        return (val1F == val2F ? 0: (val1F > val2F ? direction : direction * -1));
+      } else {
+        return val1.localeCompare(val2) * direction;
+      }
+    }
+
+    return new Promise(function(resolve, reject) {
+      $('tbody', table).each(function() {
+        var tbody = $(this);
+        $('tr', tbody).sort(function(a, b) {
+          var values = [];
+          order.forEach(function(orderCfg) {
+            values.push(getValuesComparison(a, b, orderCfg.column, (orderCfg.order == 'asc' ? 1 : -1)));
+          });
+          return values.reduce(function(result, value) {
+            if (result != 0) {
+              return result;
+            }
+            return value;
+          }, 0);
+        }).each(function() {
+          $(tbody).append($(this));
+        });
+      });
+      resolve();
+    });
+
+  };
+
   if (typeof window.Handlebars == 'object') {
     Handlebars.registerHelper('if_eq', function(a, b, opts) {
       if (a === b) {
@@ -5282,7 +5472,8 @@
         }
         disableTabbingOnPage(target);
       }
-      if (target.hasClass('modal-autosize')) {
+      br.enchanceBootstrap(target);
+      if (target.hasClass('modal')) {
         configureAutosize(target);
         br.resizeModalPopup(target);
       }
@@ -5456,6 +5647,7 @@
   });
 
 })(jQuery, window);
+
 /*!
  * Bright 1.0
  *
@@ -5605,6 +5797,7 @@
   });
 
 })(jQuery, window);
+
 /*!
  * Bright 1.0
  *
@@ -5713,6 +5906,7 @@
   };
 
 })(window);
+
 /*!
  * Bright 1.0
  *
@@ -6300,6 +6494,7 @@
   };
 
 })(jQuery, window);
+
 /*!
  * Bright 1.0
  *
@@ -7244,6 +7439,7 @@
   };
 
 })(jQuery, window);
+
 /*!
  * Bright 1.0
  *
@@ -7365,6 +7561,7 @@
   };
 
 })(jQuery, window);
+
 /*!
  * Bright 1.0
  *

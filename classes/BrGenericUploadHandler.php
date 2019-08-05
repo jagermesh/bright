@@ -44,6 +44,9 @@ class BrGenericUploadHandler {
     if (isset($_GET['qqfile'])) {
       return $_GET['qqfile'];
     } else
+    if (isset($_POST['qqfile_name'])) {
+      return $_POST['qqfile_name'];
+    } else
     if (isset($_FILES['qqfile'])) {
       return $_FILES['qqfile']['name'];
     } else {

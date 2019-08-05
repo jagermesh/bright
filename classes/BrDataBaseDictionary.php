@@ -12,8 +12,7 @@ namespace Bright;
 
 class BrDataBaseDictionary extends BrObject {
 
-  public function validate($tableName, $row) {
-
+  public function validate($tableName, &$row) {
     if ($row) {
       if ($tableDesc = br($this->schema, $tableName)) {
         foreach($row as $fieldName => $value) {
@@ -67,6 +66,8 @@ class BrDataBaseDictionary extends BrObject {
                   }
                 }
               }
+            } else {
+              unset($row[$fieldName]);
             }
           }
         }
