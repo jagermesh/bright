@@ -4244,6 +4244,10 @@
 
   function makeDraggable(ctrl, options) {
 
+    if (ctrl.__br_draggable) {
+      return ctrl.__br_draggable;
+    }
+
     var _this = this;
 
     var dragObject = null;
@@ -4336,6 +4340,8 @@
       upHandler(e);
     });
 
+    ctrl.__br_draggable = _this;
+
     return _this;
 
   }
@@ -4343,7 +4349,14 @@
   window.br = window.br || {};
 
   window.br.draggable = function (selector, options) {
-    return makeDraggable($(selector)[0], options);
+    var result = [];
+    $(selector).each(function() {
+      result.push(makeDraggable(this, options));
+    });
+    if (result.length === 1) {
+      return result[0];
+    }
+    return result;
   };
 
 })(jQuery, window);
@@ -5280,22 +5293,6 @@
 
   window.br.enchanceBootstrap = function(el) {
 
-    if ($.ui !== undefined) {
-      if (el) {
-        $(el).not('.ui-draggable').each(function() {
-          if ($(this).find('.modal-header').length > 0) {
-            $(this).draggable({ handle: '.modal-header', cursor: 'pointer' }).find('.modal-header').css('cursor', 'move');
-          }
-        });
-      } else {
-        $('.modal').not('.ui-draggable').each(function() {
-          if ($(this).find('.modal-header').length > 0) {
-            $(this).draggable({ handle: '.modal-header', cursor: 'pointer' }).find('.modal-header').css('cursor', 'move');
-          }
-        });
-      }
-    }
-
   };
 
   function attachjQueryUIDatePickers(selector) {
@@ -5484,7 +5481,7 @@
         }
         disableTabbingOnPage(target);
       }
-      br.enchanceBootstrap(target);
+      br.draggable(target, { handler: '.modal-header' });
       if (target.hasClass('modal')) {
         configureAutosize(target);
         br.resizeModalPopup(target);
@@ -5629,7 +5626,7 @@
       }
     });
 
-    br.enchanceBootstrap();
+    // br.enchanceBootstrap();
     br.attachDatePickers();
 
     enchanceBootstrap();
@@ -6104,9 +6101,7 @@
 
     _this.fillDefaults = function() {
       _this.inputsContainer.find('input.data-field[type=checkbox]').each(function() {
-        if ($(this).attr('data-default-checked')) {
-          $(this).prop('checked', 'checked');
-        }
+        $(this).prop('checked', !!$(this).attr('data-default-checked'));
       });
     };
 
@@ -6120,16 +6115,10 @@
               input.find('button[value="' + val + '"]').addClass('active');
             } else
             if (input.attr('type') == 'checkbox') {
-              if (br.toInt(data[i]) == 1) {
-                input.prop('checked', 'checked');
-              } else {
-                input.removeAttr('checked');
-              }
+              input.prop('checked', br.toInt(data[i]) == 1);
             } else
             if (input.attr('type') == 'radio') {
-              if (br.toInt(data[i]) == br.toInt(input.val())) {
-                input.prop('checked', 'checked');
-              }
+              input.prop('checked', br.toInt(data[i]) == br.toInt(input.val()));
             } else {
               var ckeditorInstance = input.data('ckeditorInstance');
               if (ckeditorInstance) {
@@ -6183,7 +6172,7 @@
         }
       });
       _this.inputsContainer.find('input.data-field[type=checkbox]').val('1');
-      _this.inputsContainer.find('input.data-field[type=checkbox]').removeAttr('checked');
+      _this.inputsContainer.find('input.data-field[type=checkbox]').prop('checked', false);
       _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio]').find('button').removeClass('active');
 
       var ctrl = $(_this.options.selectors.errorMessage, _this.container);
@@ -6397,7 +6386,7 @@
         saving = true;
       }
 
-      var data = { };
+      var data = Object.create({ });
       var errors = [];
       try {
         $(_this.options.selectors.errorMessage, _this.container).hide();
@@ -6411,11 +6400,7 @@
               val = input.find('button.active').val();
             } else
             if (input.attr('type') == 'checkbox') {
-              if (input.is(':checked')) {
-                val = 1;
-              } else {
-                val = 0;
-              }
+              val = input.is(':checked') ? 1 : 0;
             } else
             if (input.attr('type') == 'radio') {
               if (input.is(':checked')) {

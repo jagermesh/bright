@@ -733,26 +733,6 @@
 
   };
 
-  window.br.enchanceBootstrap = function(el) {
-
-    if ($.ui !== undefined) {
-      if (el) {
-        $(el).not('.ui-draggable').each(function() {
-          if ($(this).find('.modal-header').length > 0) {
-            $(this).draggable({ handle: '.modal-header', cursor: 'pointer' }).find('.modal-header').css('cursor', 'move');
-          }
-        });
-      } else {
-        $('.modal').not('.ui-draggable').each(function() {
-          if ($(this).find('.modal-header').length > 0) {
-            $(this).draggable({ handle: '.modal-header', cursor: 'pointer' }).find('.modal-header').css('cursor', 'move');
-          }
-        });
-      }
-    }
-
-  };
-
   function attachjQueryUIDatePickers(selector) {
 
     if ($.ui !== undefined) {
@@ -784,6 +764,7 @@
     }
 
   }
+
   window.br.attachDatePickers = function (container) {
 
     if (container) {
@@ -939,7 +920,7 @@
         }
         disableTabbingOnPage(target);
       }
-      br.enchanceBootstrap(target);
+      br.draggable(target, { handler: '.modal-header' });
       if (target.hasClass('modal')) {
         configureAutosize(target);
         br.resizeModalPopup(target);
@@ -1084,7 +1065,6 @@
       }
     });
 
-    br.enchanceBootstrap();
     br.attachDatePickers();
 
     enchanceBootstrap();

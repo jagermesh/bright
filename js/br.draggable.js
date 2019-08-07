@@ -13,6 +13,10 @@
 
   function makeDraggable(ctrl, options) {
 
+    if (ctrl.__br_draggable) {
+      return ctrl.__br_draggable;
+    }
+
     var _this = this;
 
     var dragObject = null;
@@ -105,6 +109,8 @@
       upHandler(e);
     });
 
+    ctrl.__br_draggable = _this;
+
     return _this;
 
   }
@@ -112,7 +118,14 @@
   window.br = window.br || {};
 
   window.br.draggable = function (selector, options) {
-    return makeDraggable($(selector)[0], options);
+    var result = [];
+    $(selector).each(function() {
+      result.push(makeDraggable(this, options));
+    });
+    if (result.length === 1) {
+      return result[0];
+    }
+    return result;
   };
 
 })(jQuery, window);
