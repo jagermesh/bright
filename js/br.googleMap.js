@@ -363,6 +363,7 @@
     };
 
     this.addGeoJSONPolygon = function(geoData, params, tag, custom) {
+      params = params || Object.create({});
       var polygonParams = Object.create({});
       var coordinates = JSON.parse(JSON.stringify(geoData));
       polygonParams.paths = array_flat(array_map(coordinates, arrayToLatLng, true));
