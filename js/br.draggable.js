@@ -11,7 +11,7 @@
 
 ;(function ($, window) {
 
-  function makeDraggable(ctrl, options) {
+  function BrDraggable(ctrl, options) {
 
     if (ctrl.__br_draggable) {
       return ctrl.__br_draggable;
@@ -120,7 +120,7 @@
   window.br.draggable = function (selector, options) {
     var result = [];
     $(selector).each(function() {
-      result.push(makeDraggable(this, options));
+      result.push(new BrDraggable(this, options));
     });
     if (result.length === 1) {
       return result[0];

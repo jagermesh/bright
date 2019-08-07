@@ -4242,7 +4242,7 @@
 
 ;(function ($, window) {
 
-  function makeDraggable(ctrl, options) {
+  function BrDraggable(ctrl, options) {
 
     if (ctrl.__br_draggable) {
       return ctrl.__br_draggable;
@@ -4351,7 +4351,7 @@
   window.br.draggable = function (selector, options) {
     var result = [];
     $(selector).each(function() {
-      result.push(makeDraggable(this, options));
+      result.push(new BrDraggable(this, options));
     });
     if (result.length === 1) {
       return result[0];
@@ -5291,10 +5291,6 @@
 
   };
 
-  window.br.enchanceBootstrap = function(el) {
-
-  };
-
   function attachjQueryUIDatePickers(selector) {
 
     if ($.ui !== undefined) {
@@ -5326,6 +5322,7 @@
     }
 
   }
+
   window.br.attachDatePickers = function (container) {
 
     if (container) {
@@ -5626,7 +5623,6 @@
       }
     });
 
-    // br.enchanceBootstrap();
     br.attachDatePickers();
 
     enchanceBootstrap();

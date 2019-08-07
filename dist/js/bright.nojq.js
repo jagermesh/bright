@@ -4246,7 +4246,7 @@ this.activeTarget=b,this.clear();var c=this.selector+'[data-target="'+b+'"],'+th
 
 ;(function ($, window) {
 
-  function makeDraggable(ctrl, options) {
+  function BrDraggable(ctrl, options) {
 
     if (ctrl.__br_draggable) {
       return ctrl.__br_draggable;
@@ -4355,7 +4355,7 @@ this.activeTarget=b,this.clear();var c=this.selector+'[data-target="'+b+'"],'+th
   window.br.draggable = function (selector, options) {
     var result = [];
     $(selector).each(function() {
-      result.push(makeDraggable(this, options));
+      result.push(new BrDraggable(this, options));
     });
     if (result.length === 1) {
       return result[0];
@@ -5295,10 +5295,6 @@ this.activeTarget=b,this.clear();var c=this.selector+'[data-target="'+b+'"],'+th
 
   };
 
-  window.br.enchanceBootstrap = function(el) {
-
-  };
-
   function attachjQueryUIDatePickers(selector) {
 
     if ($.ui !== undefined) {
@@ -5330,6 +5326,7 @@ this.activeTarget=b,this.clear();var c=this.selector+'[data-target="'+b+'"],'+th
     }
 
   }
+
   window.br.attachDatePickers = function (container) {
 
     if (container) {
@@ -5630,7 +5627,6 @@ this.activeTarget=b,this.clear();var c=this.selector+'[data-target="'+b+'"],'+th
       }
     });
 
-    // br.enchanceBootstrap();
     br.attachDatePickers();
 
     enchanceBootstrap();
