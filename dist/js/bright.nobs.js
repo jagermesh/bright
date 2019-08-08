@@ -4244,23 +4244,14 @@
 
   function BrDraggable(ctrl, options) {
 
-    if (ctrl.__br_draggable) {
-      return ctrl.__br_draggable;
-    }
-
     var _this = this;
 
     var dragObject = null;
     var dragHandler = null;
+    var pos_y, pos_x, ofs_x, ofs_y;
 
     options = options || {};
     options.exclude = [ 'INPUT', 'TEXTAREA', 'SELECT', 'A', 'BUTTON' ];
-
-    if (options.handler) {
-      dragHandler = ctrl.querySelector(options.handler);
-    } else {
-      dragHandler = ctrl;
-    }
 
     function setPosition(element, left, top) {
       element.style.marginTop = '0px';
@@ -4268,11 +4259,6 @@
       element.style.left = left + 'px';
       element.style.top = top + 'px';
     }
-
-    var drg_h, drg_w, pos_y, pos_x, ofs_x, ofs_y;
-
-    ctrl.style.cursor = 'move';
-    ctrl.style.position = 'fixed';
 
     function downHandler(e) {
       var target = e.target || e.srcElement;
@@ -4316,31 +4302,48 @@
       }
     }
 
-    dragHandler.addEventListener('mousedown', function(e) {
-      downHandler(e);
-    });
+    if (options.handler) {
+      dragHandler = ctrl.querySelector(options.handler);
+    } else {
+      dragHandler = ctrl;
+    }
 
-    window.addEventListener('mousemove', function(e) {
-      moveHandler(e);
-    });
+    if (dragHandler) {
 
-    window.addEventListener('mouseup', function(e) {
-      upHandler(e);
-    });
+      dragHandler.style.cursor = 'move';
+      ctrl.style.position = 'fixed';
 
-    dragHandler.addEventListener('touchstart', function(e) {
-      downHandler(e);
-    });
+      if (dragHandler.__br_draggable) {
+        return dragHandler.__br_draggable;
+      }
 
-    window.addEventListener('touchmove', function(e) {
-      moveHandler(e);
-    });
+      dragHandler.addEventListener('mousedown', function(e) {
+        downHandler(e);
+      });
 
-    window.addEventListener('touchend', function(e) {
-      upHandler(e);
-    });
+      window.addEventListener('mousemove', function(e) {
+        moveHandler(e);
+      });
 
-    ctrl.__br_draggable = _this;
+      window.addEventListener('mouseup', function(e) {
+        upHandler(e);
+      });
+
+      dragHandler.addEventListener('touchstart', function(e) {
+        downHandler(e);
+      });
+
+      window.addEventListener('touchmove', function(e) {
+        moveHandler(e);
+      });
+
+      window.addEventListener('touchend', function(e) {
+        upHandler(e);
+      });
+
+      dragHandler.__br_draggable = _this;
+
+    }
 
     return _this;
 
