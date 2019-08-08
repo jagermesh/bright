@@ -13,40 +13,35 @@ namespace Bright;
 class BrAuth extends BrObject {
 
   static $instances = array();
-  static $reconsider = true;
 
-  public static function getInstance($name = 'default') {
+  public static function getInstance($name = null) {
 
-    $instance = null;
+    $name = $name ? $name : 'br/auth';
 
-    if (self::$reconsider || !isset(self::$instances[$name])) {
-      if ($authList = br()->config()->get('auth')) {
-        self::$reconsider = false;
-        $authConfig = br($authList, $name, $authList);
-        br()->assert($authConfig, 'Auth [' . $name . '] not configured');
-        switch($authConfig['type']) {
-          case "DBUsers":
-            $instance = new BrDBUsersAuthProvider($authConfig);
-            break;
-          default:
-            throw new BrException('Unknown auth provider requested: ' . $name);
-            break;
-        }
-      } else {
-        if (isset(self::$instances[$name])) {
-          $instance  = self::$instances[$name];
-        } else {
-          $authConfig = array();
-          $instance = new BrDBUsersAuthProvider($authConfig);
-        }
-      }
-
-      self::$instances[$name] = $instance;
+    if (is_array($name)) {
+      $config = $name;
     } else {
-      $instance = self::$instances[$name];
+      $config = br()->config()->get($name);
     }
 
-    return $instance;
+    if ($config && br($config, 'type')) {
+      $hash = md5(serialize($config));
+      if (!array_key_exists($hash, self::$instances)) {
+        self::$instances[$hash]['initialized'] = true;
+        self::$instances[$hash]['provider']    = null;
+        switch($config['type']) {
+          case 'DBUsers':
+            self::$instances[$hash]['provider'] = new BrDBUsersAuthProvider($config);
+            break;
+          default:
+            self::$instances[$hash]['provider'] = new BrGenericAuthProvider($config);
+            break;
+        }
+      }
+      return self::$instances[$hash]['provider'];
+    } else {
+      return null;
+    }
 
   }
 

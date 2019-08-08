@@ -16,7 +16,7 @@ class BrDataBase extends BrObject {
 
   public static function getInstance($name = null) {
 
-    $name = $name ? $name : 'db';
+    $name = $name ? $name : 'br/db';
 
     if (is_array($name)) {
       $config = $name;

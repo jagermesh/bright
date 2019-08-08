@@ -133,7 +133,8 @@ class BrDataBaseDictionary extends BrObject {
                                   AND col.table_name NOT LIKE "audit_%"
                                   AND col.table_name NOT LIKE "br_%"
                                 ORDER BY col.table_name, col.column_name'
-                            , br()->config()->get('db')['name']);
+                            , br()->db()->getDataBaseName()
+                            );
 
     $columns = br()->db()->getRows($sql);
 
