@@ -19,7 +19,9 @@ const configs = { jshint: { src: ['js/**/*.js'] }
                 , uglify: { libs: [ { dest: '3rdparty/promisejs/latest/js/', src: ['3rdparty/promisejs/latest/js/promise.js'] }
                                   , { dest: '3rdparty/bootstrap/2.3.2/js/', src: ['3rdparty/bootstrap/2.3.2/js/bootstrap.js'] }
                                   , { dest: '3rdparty/gritter/latest/js/', src: '3rdparty/gritter/latest/js/jquery.gritter.js' }
+                                  , { dest: '3rdparty/handlebars/4.1.2/js/', src: '3rdparty/handlebars/4.1.2/js/handlebars.js' }
                                   , { dest: '3rdparty/handlebars/latest/js/', src: '3rdparty/handlebars/latest/js/handlebars.js' }
+                                  , { dest: '3rdparty/fileuploader/latest/js/', src: '3rdparty/fileuploader/latest/js/fileuploader.js' }
                                   ]
                           , dist: [ { dest: 'dist/js/', src: 'dist/js/*.js' }
                                   ]
@@ -80,7 +82,7 @@ const configs = { jshint: { src: ['js/**/*.js'] }
                                     , dest: 'dist/js/'
                                     }
                                   ]
-                          , dist: [ { src: [ '3rdparty/bootstrap/3.3.7/js/bootstrap.min.js'
+                          , dist: [ { src: [ '3rdparty/bootstrap/latest/js/bootstrap.min.js'
                                            , 'dist/js/bright.core.js'
                                            ]
                                     , name: 'bright.nojq.js'
@@ -93,10 +95,24 @@ const configs = { jshint: { src: ['js/**/*.js'] }
                                     , dest: 'dist/js/'
                                     }
                                   , { src: [ '3rdparty/jquery/latest/js/jquery.min.js'
-                                           , '3rdparty/bootstrap/3.3.7/js/bootstrap.min.js'
+                                           , '3rdparty/bootstrap/latest/js/bootstrap.min.js'
                                            , 'dist/js/bright.core.js'
                                            ]
                                     , name: 'bright.js'
+                                    , dest: 'dist/js/'
+                                    }
+                                  , { src: [ '3rdparty/jquery/latest/js/jquery.min.js'
+                                           , '3rdparty/bootstrap/2.3.2/js/bootstrap.min.js'
+                                           , 'dist/js/bright.core.js'
+                                           ]
+                                    , name: 'bright.bs2.js'
+                                    , dest: 'dist/js/'
+                                    }
+                                  , { src: [ '3rdparty/jquery/latest/js/jquery.min.js'
+                                           , '3rdparty/bootstrap/3.4.1/js/bootstrap.min.js'
+                                           , 'dist/js/bright.core.js'
+                                           ]
+                                    , name: 'bright.bs3.js'
                                     , dest: 'dist/js/'
                                     }
                                   ]

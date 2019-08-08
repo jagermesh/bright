@@ -108,19 +108,21 @@ class BrErrorTelegramLogAdapter extends BrGenericLogAdapter {
       $body .= '_Client IP:_ ' . br()->request()->clientIP() . "\n";
       $body .= '_Server IP:_ ' . gethostbyname(php_uname('n')) . "\n";
       $userInfo = '';
-      if ($login = br()->auth()->getSessionLogin()) {
-        $userInfo = '_User ID:_ ' . br($login, 'id') . "\n";
-        if (br($login, 'name')) {
-          $userInfo .= '_User name:_ ' . br($login, 'name') . "\n";
-        }
-        if ($loginField = br()->auth()->getAttr('usersTable.loginField')) {
-          if (br($login, $loginField)) {
-            $userInfo .= '_User login:_ ' . br($login, $loginField) . "\n";
+      if (br()->auth()) {
+        if ($login = br()->auth()->getSessionLogin()) {
+          $userInfo = '_User ID:_ ' . br($login, 'id') . "\n";
+          if (br($login, 'name')) {
+            $userInfo .= '_User name:_ ' . br($login, 'name') . "\n";
           }
-        }
-        if ($emailField = br()->auth()->getAttr('usersTable.emailField')) {
-          if (br($login, $emailField)) {
-            $userInfo .= '_User e-mail:_ <mailto:' . br($login, $emailField) . '|' . br($login, $emailField) . '>' . "\n";
+          if ($loginField = br()->auth()->getAttr('usersTable.loginField')) {
+            if (br($login, $loginField)) {
+              $userInfo .= '_User login:_ ' . br($login, $loginField) . "\n";
+            }
+          }
+          if ($emailField = br()->auth()->getAttr('usersTable.emailField')) {
+            if (br($login, $emailField)) {
+              $userInfo .= '_User e-mail:_ <mailto:' . br($login, $emailField) . '|' . br($login, $emailField) . '>' . "\n";
+            }
           }
         }
       }

@@ -48,9 +48,11 @@ class BrFileLogAdapter extends BrGenericFileLogAdapter {
       }
     } else {
       $this->filePath .= br()->request()->clientIP();
-      if ($login = br()->auth()->getSessionLogin()) {
-        if (br($login, 'id')) {
-          $this->filePath .= '/' . $login['id'];
+      if (br()->auth()) {
+        if ($login = br()->auth()->getSessionLogin()) {
+          if (br($login, 'id')) {
+            $this->filePath .= '/' . $login['id'];
+          }
         }
       }
     }

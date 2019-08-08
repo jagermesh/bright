@@ -128,19 +128,21 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter {
         $this->writeToFile('Client IP:     ' . br()->request()->clientIP(), $group);
         $this->writeToFile('Server IP:     ' . gethostbyname(php_uname('n')), $group);
 
-        if ($login = br()->auth()->getSessionLogin()) {
-          $this->writeToFile('User ID:       ' . br($login, 'id'), $group);
-          if (br($login, 'name')) {
-            $this->writeToFile('User name:     ' . br($login, 'name'), $group);
-          }
-          if ($loginField = br()->auth()->getAttr('usersTable.loginField')) {
-            if (br($login, $loginField)) {
-              $this->writeToFile('User login:    ' . br($login, $loginField), $group);
+        if (br()->auth()) {
+          if ($login = br()->auth()->getSessionLogin()) {
+            $this->writeToFile('User ID:       ' . br($login, 'id'), $group);
+            if (br($login, 'name')) {
+              $this->writeToFile('User name:     ' . br($login, 'name'), $group);
             }
-          }
-          if ($emailField = br()->auth()->getAttr('usersTable.emailField')) {
-            if (br($login, $loginField)) {
-              $this->writeToFile('User e-mail:   ' . br($login, $emailField), $group);
+            if ($loginField = br()->auth()->getAttr('usersTable.loginField')) {
+              if (br($login, $loginField)) {
+                $this->writeToFile('User login:    ' . br($login, $loginField), $group);
+              }
+            }
+            if ($emailField = br()->auth()->getAttr('usersTable.emailField')) {
+              if (br($login, $loginField)) {
+                $this->writeToFile('User e-mail:   ' . br($login, $emailField), $group);
+              }
             }
           }
         }

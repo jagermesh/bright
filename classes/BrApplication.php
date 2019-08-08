@@ -30,7 +30,10 @@ class BrApplication extends BrSingleton {
       br()->auth()->logout();
     }
 
-    br()->auth()->checkLogin(false);
+    if (br()->auth()) {
+      br()->auth()->checkLogin(false);
+    }
+
     br()->request()->checkUrlRestrictions();
 
     $request = br()->request();

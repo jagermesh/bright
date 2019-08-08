@@ -14,8 +14,13 @@ class BrUsersDataSource extends BrDataSource {
 
   function __construct() {
 
-    $usersTable    = br()->auth()->getAttr('usersTable.name');
-    $loginField    = br()->auth()->getAttr('usersTable.loginField');
+    $usersTable = 'none';
+    $loginField = 'none';
+
+    if (br()->auth()) {
+      $usersTable = br()->auth()->getAttr('usersTable.name');
+      $loginField = br()->auth()->getAttr('usersTable.loginField');
+    }
 
     parent::__construct($usersTable, array('defaultOrder' => $loginField));
 

@@ -143,15 +143,16 @@ class BrGenericRenderer extends BrObject {
                                                 , 'baseUrl'     => br()->request()->baseUrl()
                                                 )
                             , 'config'  => br()->config()->get()
-                            , 'login'   => br()->auth()->getLogin()
                             , 'core'    => br()->request()->brightUrl() . 'dist/js/bright.core.min.js'
                             , 'lib'     => br()->request()->brightUrl() . 'dist/js/bright.min.js'
                             );
 
-    if ($localVars['br']['login']) {
-      $localVars['br']['authorized'] = true;
-    } else {
-      $localVars['br']['authorized'] = false;
+    $localVars['br']['authorized'] = false;
+
+    if (br()->auth()) {
+      if ($localVars['br']['login'] = br()->auth()->getLogin()) {
+        $localVars['br']['authorized'] = true;
+      }
     }
 
     $body = str_replace('[[br]]', '[[br.request.brightUrl]]', $body);
@@ -173,8 +174,9 @@ class BrGenericRenderer extends BrObject {
 
     $localVars['get']        = $localVars['br']['request']['get'];
     $localVars['config']     = $localVars['br']['config'];
-    $localVars['login']      = $localVars['br']['login'];
-    $localVars['authorized'] = $localVars['br']['authorized'];
+
+    $localVars['login']      = br($localVars['br'], 'login');
+    $localVars['authorized'] = br($localVars['br'], 'authorized');
     //
 
     $body = $this->render($body, $localVars);
@@ -205,76 +207,81 @@ class BrGenericRenderer extends BrObject {
     }
 
     // process secure/unsecure sections
-    if ($login = br()->auth()->getLogin()) {
-      if (preg_match_all('/[{][$]([^}]*?)[}](.+?)[{][$][}]/sm', $body, $matches, PREG_SET_ORDER)) {
-        foreach($matches as $match) {
-          if ($condition = trim($match[1])) {
-            if (preg_match('/login[.]([^!= ]+)[ ]?(==|!=|in|!in)(.*)/sm', $condition, $subMatch)) {
-              $field = $subMatch[1];
-              $condition = $subMatch[2];
-              $value = rtrim(ltrim(trim($subMatch[3]), '('), ')');
-              switch($condition) {
-                case 'in':
-                  $values = preg_split('~,~', $value);
-                  $ok = false;
-                  foreach($values as $value) {
-                    $value = trim(trim($value), "'\"");
-                    if (br($login, $field) == $value) {
-                      $ok = true;
-                      break;
+    if (br()->auth()) {
+      if ($login = br()->auth()->getLogin()) {
+        if (preg_match_all('/[{][$]([^}]*?)[}](.+?)[{][$][}]/sm', $body, $matches, PREG_SET_ORDER)) {
+          foreach($matches as $match) {
+            if ($condition = trim($match[1])) {
+              if (preg_match('/login[.]([^!= ]+)[ ]?(==|!=|in|!in)(.*)/sm', $condition, $subMatch)) {
+                $field = $subMatch[1];
+                $condition = $subMatch[2];
+                $value = rtrim(ltrim(trim($subMatch[3]), '('), ')');
+                switch($condition) {
+                  case 'in':
+                    $values = preg_split('~,~', $value);
+                    $ok = false;
+                    foreach($values as $value) {
+                      $value = trim(trim($value), "'\"");
+                      if (br($login, $field) == $value) {
+                        $ok = true;
+                        break;
+                      }
                     }
-                  }
-                  if ($ok) {
-                    $body = str_replace($match[0], $match[2], $body);
-                  } else {
-                    $body = str_replace($match[0], '', $body);
-                  }
-                  break;
-                case '!in':
-                  $values = preg_split('~,~', $value);
-                  $ok = true;
-                  foreach($values as $value) {
-                    $value = trim(trim($value), "'\"");
-                    if (br($login, $field) == $value) {
-                      $ok = false;
-                      break;
+                    if ($ok) {
+                      $body = str_replace($match[0], $match[2], $body);
+                    } else {
+                      $body = str_replace($match[0], '', $body);
                     }
-                  }
-                  if ($ok) {
-                    $body = str_replace($match[0], $match[2], $body);
-                  } else {
+                    break;
+                  case '!in':
+                    $values = preg_split('~,~', $value);
+                    $ok = true;
+                    foreach($values as $value) {
+                      $value = trim(trim($value), "'\"");
+                      if (br($login, $field) == $value) {
+                        $ok = false;
+                        break;
+                      }
+                    }
+                    if ($ok) {
+                      $body = str_replace($match[0], $match[2], $body);
+                    } else {
+                      $body = str_replace($match[0], '', $body);
+                    }
+                    break;
+                  case '==':
+                    $value = trim(trim($value, "'"), '"');
+                    if (br($login, $field) == $value) {
+                      $body = str_replace($match[0], $match[2], $body);
+                    } else {
+                      $body = str_replace($match[0], '', $body);
+                    }
+                    break;
+                  case '!=':
+                    $value = trim(trim($value, "'"), '"');
+                    if (br($login, $field) != $value) {
+                      $body = str_replace($match[0], $match[2], $body);
+                    } else {
+                      $body = str_replace($match[0], '', $body);
+                    }
+                    break;
+                  default:
                     $body = str_replace($match[0], '', $body);
-                  }
-                  break;
-                case '==':
-                  $value = trim(trim($value, "'"), '"');
-                  if (br($login, $field) == $value) {
-                    $body = str_replace($match[0], $match[2], $body);
-                  } else {
-                    $body = str_replace($match[0], '', $body);
-                  }
-                  break;
-                case '!=':
-                  $value = trim(trim($value, "'"), '"');
-                  if (br($login, $field) != $value) {
-                    $body = str_replace($match[0], $match[2], $body);
-                  } else {
-                    $body = str_replace($match[0], '', $body);
-                  }
-                  break;
-                default:
-                  $body = str_replace($match[0], '', $body);
-                  break;
+                    break;
+                }
+              } else {
+                $body = str_replace($match[0], $match[2], $body);
               }
             } else {
               $body = str_replace($match[0], $match[2], $body);
             }
-          } else {
-            $body = str_replace($match[0], $match[2], $body);
           }
         }
+        $body = preg_replace('/[{][-][}].+?[{]-[}]/sm', '', $body);
+      } else {
+        $body = preg_replace('/[{][$][^}]*?[}].+?[{][$][}]/sm', '', $body);
+        $body = preg_replace('/[{][-][}]/sm', '', $body);
       }
-      $body = preg_replace('/[{][-][}].+?[{]-[}]/sm', '', $body);
     } else {
       $body = preg_replace('/[{][$][^}]*?[}].+?[{][$][}]/sm', '', $body);
       $body = preg_replace('/[{][-][}]/sm', '', $body);
