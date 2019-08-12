@@ -838,6 +838,55 @@
 
   };
 
+  window.br.setComboValue = function(selector, value, fromBrDataCombo) {
+
+    $(selector).each(function() {
+      var element = $(this);
+      element.val(value);
+      var dataComboInstance = element.data('BrDataCombo');
+      if (dataComboInstance && !fromBrDataCombo) {
+        dataComboInstance.val(value);
+      } else {
+        element.val(value);
+        if (br.isEmpty(element.val())) {
+          var options = element.find('option');
+          var found = false;
+          options.each(function() {
+            if (!found && ((this.value == value) || (br.isEmpty(this.value) && br.isEmpty(value)))) {
+              element.val(this.value);
+              found = true;
+            }
+          });
+          if (!found) {
+            options.each(function() {
+              if (this.getAttribute('selected')) {
+                element.val(this.value);
+                found = true;
+              }
+            });
+            if (br.isEmpty(element.val())) {
+              if (element.attr('multiple') != 'multiple') {
+                if (options.length > 0) {
+                  element.val(options[0].value);
+                }
+              }
+            }
+          }
+        }
+        if (!fromBrDataCombo) {
+          if (!br.isEmpty(element.val())) {
+            if (element.data('select2')) {
+              if ((element.attr('multiple') != 'multiple')) {
+                element.select2('val', element.val());
+              }
+            }
+          }
+        }
+      }
+    });
+
+  };
+
   if (typeof window.Handlebars == 'object') {
     Handlebars.registerHelper('if_eq', function(a, b, opts) {
       if (a === b) {

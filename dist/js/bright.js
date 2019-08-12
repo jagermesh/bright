@@ -3802,30 +3802,12 @@
     }
 
     function setValue(value) {
-      var element = _this.selector;
-      element.val(value);
-      if (br.isEmpty(element.val())) {
-        var options = element.find('option');
-        var found = false;
-        options.each(function() {
-          if (!found && ((this.value == value) || (br.isEmpty(this.value) && br.isEmpty(value)))) {
-            element.val(this.value);
-            found = true;
-          }
-        });
-        if (!found) {
-          if (br.isEmpty(element.val())) {
-            if (options.length > 0) {
-              element.val(options[0].value);
-            }
-          }
-        }
-      }
+      br.setComboValue(_this.selector, value, true);
       switch(beautifier) {
         case 'select2':
           break;
         case 'selectize':
-          element[0].selectize.setValue(value);
+          _this.selector[0].selectize.setValue(value);
           break;
       }
     }
@@ -5425,6 +5407,55 @@
 
   };
 
+  window.br.setComboValue = function(selector, value, fromBrDataCombo) {
+
+    $(selector).each(function() {
+      var element = $(this);
+      element.val(value);
+      var dataComboInstance = element.data('BrDataCombo');
+      if (dataComboInstance && !fromBrDataCombo) {
+        dataComboInstance.val(value);
+      } else {
+        element.val(value);
+        if (br.isEmpty(element.val())) {
+          var options = element.find('option');
+          var found = false;
+          options.each(function() {
+            if (!found && ((this.value == value) || (br.isEmpty(this.value) && br.isEmpty(value)))) {
+              element.val(this.value);
+              found = true;
+            }
+          });
+          if (!found) {
+            options.each(function() {
+              if (this.getAttribute('selected')) {
+                element.val(this.value);
+                found = true;
+              }
+            });
+            if (br.isEmpty(element.val())) {
+              if (element.attr('multiple') != 'multiple') {
+                if (options.length > 0) {
+                  element.val(options[0].value);
+                }
+              }
+            }
+          }
+        }
+        if (!fromBrDataCombo) {
+          if (!br.isEmpty(element.val())) {
+            if (element.data('select2')) {
+              if ((element.attr('multiple') != 'multiple')) {
+                element.select2('val', element.val());
+              }
+            }
+          }
+        }
+      }
+    });
+
+  };
+
   if (typeof window.Handlebars == 'object') {
     Handlebars.registerHelper('if_eq', function(a, b, opts) {
       if (a === b) {
@@ -6188,16 +6219,11 @@
       if (br.isObject(rowid)) {
         defaultValues = rowid;
       }
-      _this.inputsContainer.find('input.data-field[type!=radio],select.data-field,textarea.data-field').each(function() {
-        var dataComboInstance = $(this).data('BrDataCombo');
-        if (dataComboInstance) {
-          dataComboInstance.val('');
-        } else {
-          $(this).val('');
-        }
+      _this.inputsContainer.find('select.data-field').each(function() {
+        br.setComboValue($(this), '');
       });
-      _this.inputsContainer.find('input.data-field[type=checkbox]').val('1');
-      _this.inputsContainer.find('input.data-field[type=checkbox]').prop('checked', false);
+      _this.inputsContainer.find('input.data-field[type!=radio],textarea.data-field').val('');
+      _this.inputsContainer.find('input.data-field[type=checkbox]').val('1').prop('checked', false);
       _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio]').find('button').removeClass('active');
 
       var ctrl = $(_this.options.selectors.errorMessage, _this.container);
