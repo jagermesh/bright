@@ -9,7 +9,7 @@
 
 ;(function ($, window) {
 
-  $(document).ready(function() {
+  $(function() {
 
     var users = br.dataSource(br.baseUrl + 'api/users/');
 

@@ -11,7 +11,9 @@
 
   function BrDataCombo(selector, dataSource, options) {
 
-    var _this = this;
+    const _this = this;
+
+    const selectLimit = 50;
 
     var beautified = false;
     var beautifier = '';
@@ -42,9 +44,9 @@
     };
 
     _this.getFirstAvailableValue = function() {
-      var result = null;
+      let result = null;
       _this.selector.find('option').each(function() {
-        var val = $(this).val();
+        let val = $(this).val();
         if (!br.isEmpty(val)) {
           if (br.isEmpty(result)) {
             result = val;
@@ -55,7 +57,7 @@
     };
 
     function storageTag(c) {
-      var result = _this.storageTag;
+      let result = _this.storageTag;
       result = result + ':filter-value';
       if (!br.isEmpty($(c).attr('id'))) {
         result = result + ':' + $(c).attr('id');
@@ -73,7 +75,7 @@
       if (br.isFunction(_this.options.onGetName)) {
         return _this.options.onGetName.call(_this, data);
       } else {
-        var item = { value: data[_this.options.keyField]
+        let item = { value: data[_this.options.keyField]
                    , name: data[_this.options.nameField]
                    };
         _this.events.trigger('formatItem', item, data);
@@ -82,14 +84,12 @@
     }
 
     function beautify() {
-      var selectLimit = 50;
-
       if (_this.isValid() && !_this.options.noDecoration && !_this.selector.attr('size')) {
         if (window.Select2) {
           if (_this.options.lookupMode && beautified) {
             return;
           } else {
-            var params = {};
+            let params = {};
             if (_this.options.hideSearchBox) {
               params.minimumResultsForSearch = -1;
             }
@@ -108,14 +108,14 @@
               params.placeholder = _this.options.emptyName;
               params.query = function (query) {
                 window.clearTimeout(requestTimer);
-                var request = { };
+                let request = { };
                 request.keyword = query.term;
                 requestTimer = window.setTimeout(function() {
                   if (query.term || _this.options.lookup_minimumInputLength === 0) {
                     _this.dataSource.select(request, function(result, response) {
                       if (result) {
-                        var data = { results: [] };
-                        for(var i = 0; i < response.length; i++) {
+                        let data = { results: [] };
+                        for(let i = 0; i < response.length; i++) {
                           data.results.push({ id:   response[i][_this.options.valueField]
                                             , text: getName(response[i])
                                             });
@@ -160,9 +160,9 @@
     _this.selected = function(fieldName) {
       if (br.isArray(currentData)) {
         if (currentData.length > 0) {
-          var val = _this.val();
+          let val = _this.val();
           if (!br.isEmpty(val)) {
-            for(var i = 0; i < currentData.length; i++) {
+            for(let i = 0; i < currentData.length; i++) {
               if (br.toInt(currentData[i][_this.options.valueField]) == br.toInt(val)) {
                 if (br.isEmpty(fieldName)) {
                   return currentData[i];
@@ -190,10 +190,10 @@
           beautify();
           if (_this.options.lookupMode) {
             if (value) {
-              var data = { id: value, text: value };
-              var request = { rowid: value };
+              let data = { id: value, text: value };
+              let request = { rowid: value };
               _this.selector.select2('data', data);
-              var options = { disableEvents: true };
+              let options = { disableEvents: true };
               _this.dataSource.events.triggerBefore('selectByRowid', request, options);
               _this.dataSource.select(request, function(result, response) {
                 if (result) {
@@ -223,7 +223,7 @@
         }
       }
       if (_this.isValid()) {
-        var val = _this.selector.val();
+        let val = _this.selector.val();
         if (val !== null) {
           return val;
         } else {
@@ -236,7 +236,7 @@
 
     _this.valOrNull = function() {
       if (_this.isValid()) {
-        var val = _this.val();
+        let val = _this.val();
         return br.isEmpty(val) ? null : val;
       } else {
         return undefined;
@@ -277,7 +277,7 @@
     });
 
     function renderRow(data) {
-      var s = '';
+      let s = '';
       if (!br.isEmpty(_this.options.groupField) && br.toInt(data[_this.options.groupField]) > 0) {
         s = s + '<optgroup';
       } else {
@@ -289,8 +289,8 @@
       }
       s = s + '>';
       if (!br.isEmpty(_this.options.levelField)) {
-        var margin = (br.toInt(data[_this.options.levelField]) - 1) * 4;
-        for (var k = 0; k < margin; k++) {
+        let margin = (br.toInt(data[_this.options.levelField]) - 1) * 4;
+        for (let k = 0; k < margin; k++) {
           s = s + '&nbsp;';
         }
       }
@@ -318,16 +318,16 @@
         }
 
         _this.selector.each(function() {
-          var _selector = $(this);
-          var val = _selector.val();
+          let _selector = $(this);
+          let val = _selector.val();
           if (br.isEmpty(val)) {
             val = _selector.attr('data-value');
             _selector.removeAttr('data-value');
           }
           _selector.html('');
 
-          var s = '';
-          var cbObj = {};
+          let s = '';
+          let cbObj = {};
           cbObj.data = data;
           if (_this.options.hideEmptyValue || (_this.options.autoSelectSingle && (data.length == 1))) {
 
@@ -346,10 +346,10 @@
           _this.events.triggerBefore('generateOptions', cbObj, _selector);
           s = cbObj.s;
 
-          for(var i = 0; i < data.length; i++) {
+          for(let i = 0; i < data.length; i++) {
             s = s + renderRow(data[i]);
             if (br.isEmpty(_this.options.selectedValue) && !br.isEmpty(_this.options.selectedValueField)) {
-              var selectedValue = data[i][_this.options.selectedValueField];
+              let selectedValue = data[i][_this.options.selectedValueField];
               if ((br.isBoolean(selectedValue) && selectedValue) || (br.toInt(selectedValue) == 1)) {
                 _this.options.selectedValue = data[i][_this.options.valueField];
               }
@@ -362,7 +362,7 @@
           } else
           if (!br.isEmpty(val)) {
             if (br.isArray(val)) {
-              for (var k = 0; k < val.length; k++) {
+              for (let k = 0; k < val.length; k++) {
                 _selector.find('option[value=' + val[k] +']').attr('selected', 'selected');
               }
             } else {
@@ -384,9 +384,7 @@
       }
 
       return new Promise(function(resolve, reject) {
-
-        var options = { fields: _this.options.fields };
-
+        let options = { fields: _this.options.fields };
         if (_this.dataSource) {
           if (_this.isValid()) {
             if (_this.options.lookupMode) {
@@ -409,7 +407,6 @@
             _this.events.trigger('load', []);
           }
         }
-
       }).then(function(data) {
         try {
           if (typeof callback == 'function') {
@@ -457,7 +454,7 @@
 
     _this.applyOptions = function(dataSource, options) {
 
-      var thereWasDataSource = (typeof _this.dataSource != 'undefined');
+      let thereWasDataSource = (typeof _this.dataSource != 'undefined');
 
       _this.dataSource = _this.dataSource || dataSource;
 
@@ -465,7 +462,7 @@
 
       _this.options = _this.options || Object.create({});
 
-      for(var optionName in options) {
+      for(let optionName in options) {
         _this.options[optionName] = options[optionName];
       }
 
@@ -572,11 +569,10 @@
   window.br = window.br || {};
 
   window.br.dataCombo = function (selector, dataSource, options) {
-    // var instance = $(selector).data('BrDataCombo');
-    // if (!instance) {
-    //   instance = new BrDataCombo(selector, dataSource, options);
-    // }
-    var instance = new BrDataCombo(selector, dataSource, options);
+    let instance = $(selector).data('BrDataCombo');
+    if (!instance) {
+      instance = new BrDataCombo(selector, dataSource, options);
+    }
     return instance.applyOptions(dataSource, options);
   };
 

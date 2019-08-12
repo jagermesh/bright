@@ -17,7 +17,7 @@
     clipboardCallbacks.push(callback);
   };
 
-  $(document).ready(function() {
+  $(function() {
     $('body').on('paste', function(evt) {
 
       var result = { data: { }, dataType: '', dataSubType: '', dataValue: '' };
@@ -25,17 +25,17 @@
 
       function notify(evt, result) {
         br.events.trigger('paste', evt, result);
-        for(var i = 0; i < clipboardCallbacks.length; i++) {
+        for(let i = 0; i < clipboardCallbacks.length; i++) {
           clipboardCallbacks[i].call(evt, result);
         }
       }
 
       function loadFile(result, file, originalEvt, onerror) {
-        var reader = new FileReader();
+        let reader = new FileReader();
         reader.onload = function(evt) {
-          var parts = /^data[:](.+?)\/(.+?);/.exec(evt.target.result);
-          var result_dataType    = 'other';
-          var result_dataSubType = 'binary';
+          let parts = /^data[:](.+?)\/(.+?);/.exec(evt.target.result);
+          let result_dataType    = 'other';
+          let result_dataSubType = 'binary';
           if (parts) {
             result_dataType    = parts[1];
             result_dataSubType = parts[2];
@@ -56,14 +56,14 @@
       }
 
       function loadData(result, clipboardData, mediaType, isImage) {
-        var data = clipboardData.getData(mediaType);
+        let data = clipboardData.getData(mediaType);
         if (data && (data.length > 0)) {
           if (isImage) {
             mediaType = 'image/url';
           }
-          var parts = /^(.+?)\/(.+?)$/.exec(mediaType);
-          var result_dataType    = 'other';
-          var result_dataSubType = 'binary';
+          let parts = /^(.+?)\/(.+?)$/.exec(mediaType);
+          let result_dataType    = 'other';
+          let result_dataSubType = 'binary';
           if (parts) {
             result_dataType    = parts[1];
             result_dataSubType = parts[2];
@@ -84,7 +84,7 @@
 
       function processItems() {
         if (items.length > 0) {
-          var item = items.shift();
+          let item = items.shift();
           loadFile(result, item, evt, function() {
             processItems();
           });
@@ -92,12 +92,11 @@
       }
 
       if (evt.clipboardData) {
-        var i;
-        for(i = 0; i < evt.clipboardData.types.length; i++) {
-          var dataType = evt.clipboardData.types[i];
-          var parts = /^(.+?)\/(.+?)$/.exec(dataType);
-          var result_dataType    = 'other';
-          var result_dataSubType = dataType;
+        for(let i = 0; i < evt.clipboardData.types.length; i++) {
+          let dataType = evt.clipboardData.types[i];
+          let parts = /^(.+?)\/(.+?)$/.exec(dataType);
+          let result_dataType    = 'other';
+          let result_dataSubType = dataType;
           if (parts) {
             result_dataType    = parts[1];
             result_dataSubType = parts[2];
@@ -106,7 +105,7 @@
           result.data[result_dataType][result_dataSubType] = evt.clipboardData.getData(dataType);
         }
 
-        var complete = true;
+        let complete = true;
         if (loadData(result, evt.clipboardData, 'public.url', true)) {
 
         } else
@@ -119,14 +118,14 @@
 
         } else {
           if (evt.clipboardData.items && (evt.clipboardData.items.length > 0)) {
-            for(i = 0; i < evt.clipboardData.items.length; i++) {
+            for(let i = 0; i < evt.clipboardData.items.length; i++) {
               if (evt.clipboardData.items[i].type.match('image.*')) {
                 items.push(evt.clipboardData.items[i].getAsFile());
               }
             }
           }
           if (evt.clipboardData.files && (evt.clipboardData.files.length > 0)) {
-            for(i = 0; i < evt.clipboardData.files.length; i++) {
+            for(let i = 0; i < evt.clipboardData.files.length; i++) {
               if (evt.clipboardData.files[i].type.match('image.*')) {
                 items.push(evt.clipboardData.files[0]);
               }

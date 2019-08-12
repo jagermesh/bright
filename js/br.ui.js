@@ -1072,7 +1072,7 @@
 
   }
 
-  $(document).ready(function() {
+  $(function() {
 
     var notAuthorized = false;
 

@@ -4,7 +4,7 @@
 
 const gulp = require('gulp');
 const concat = require('gulp-concat');
-const uglify = require('gulp-uglify');
+const terser = require('gulp-terser');
 const sass = require('gulp-sass');
 const jshint = require('gulp-jshint');
 const phplint = require('gulp-phplint');
@@ -138,7 +138,7 @@ gulp.task('phplint', function() {
 gulp.task('uglify:libs', function() {
   var tasks = configs.uglify.libs.map(function(task) {
     return gulp.src(task.src)
-               .pipe(uglify({ output: { preamble: '/* jshint ignore:start */\n', ascii_only: true }}))
+               .pipe(terser({ output: { preamble: '/* jshint ignore:start */\n', ascii_only: true }}))
                .pipe(rename({ suffix: '.min' }))
                .pipe(gulp.dest(task.dest));
   });
@@ -148,7 +148,7 @@ gulp.task('uglify:libs', function() {
 gulp.task('uglify:dist', function() {
   var tasks = configs.uglify.dist.map(function(task) {
     return gulp.src(task.src)
-               .pipe(uglify({ output: { preamble: '/* jshint ignore:start */\n', ascii_only: true }}))
+               .pipe(terser({ output: { preamble: '/* jshint ignore:start */\n', ascii_only: true }}))
                .pipe(rename({ suffix: '.min' }))
                .pipe(gulp.dest(task.dest));
   });

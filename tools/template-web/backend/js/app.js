@@ -1,4 +1,4 @@
-$(document).ready(function() {
+$(function() {
 
   br
     .request
@@ -9,5 +9,5 @@ $(document).ready(function() {
         br.load.js(br.baseUrl + 'backend/js/users.js');
       })
   ;
-  
+
 });

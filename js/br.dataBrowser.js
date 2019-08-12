@@ -513,7 +513,7 @@
       });
 
       _this.dataGrid.on('change', function() {
-        $(c('.action-select-all')).removeAttr('checked');
+        $(c('.action-select-all')).prop('checked', false);
         var selection = _this.selection.get();
         if (selection.length > 0) {
           _this.restoreSelection();
@@ -707,9 +707,9 @@
 
     this.clearSelection = function() {
       _this.selection.clear();
-      $(c('.action-select-row')).removeAttr('checked');
+      $(c('.action-select-row')).prop('checked', false);
       $(c('tr.row-selected')).removeClass('row-selected');
-      $(c('.action-select-all')).removeAttr('checked');
+      $(c('.action-select-all')).prop('checked', false);
       _this.events.trigger('selectionChanged', _this.selection.get().length);
     };
 
@@ -788,7 +788,7 @@
         row = $(_this.options.selectors.dataTable).find('tr[data-rowid=' + rowid + ']');
       }
       if (row.length > 0) {
-        row.find('.action-select-row').removeAttr('checked');
+        row.find('.action-select-row').prop('checked', false);
         row.removeClass('row-selected');
       }
       _this.selection.remove(rowid);
@@ -806,7 +806,7 @@
         row = $(_this.options.selectors.dataTable).find('tr[data-rowid=' + rowid + ']');
       }
       if (row.length > 0) {
-        row.find('.action-select-row').prop('checked', 'checked');
+        row.find('.action-select-row').prop('checked', true);
         row.addClass('row-selected');
         _this.selection.append(rowid);
         if (!multiple) {
@@ -817,9 +817,9 @@
 
     this.selectAll = function(checked) {
       if (checked) {
-        $(c('.action-select-all')).prop('checked', 'checked');
+        $(c('.action-select-all')).prop('checked', true);
       } else {
-        $(c('.action-select-all')).removeAttr('checked');
+        $(c('.action-select-all')).prop('checked', false);
       }
       $(c('.action-select-row')).each(function() {
         var row = $(this).closest('[data-rowid]');

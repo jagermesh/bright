@@ -1,10 +1,11 @@
-$(document).ready(function() {
+$(function() {
 
   // grid
 
-  var grid = br.dataBrowser([[entityName]], { noun: [[entityName]] });
+  var grid = br.dataBrowser('entityName', { noun: 'entityName' });
 
   grid.before('select', function(request) {
+
   });
 
   // editor
