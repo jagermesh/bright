@@ -10,7 +10,7 @@
 
 namespace Bright;
 
-require_once(dirname(__DIR__) . '/3rdparty/phpQuery/phpQuery.php');
+require_once(dirname(__DIR__) . '/3rdparty/phpQuery/latest/phpQuery.php');
 
 class BrHTML extends BrSingleton {
 

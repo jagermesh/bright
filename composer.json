@@ -4,10 +4,10 @@
   "description": "PHP Web Framework",
   "license": "MIT",
   "authors": [
-      {
-          "name": "Sergiy Lavryk",
-          "email": "jagermesh@gmail.com"
-      }
+    {
+      "name": "Sergiy Lavryk",
+      "email": "jagermesh@gmail.com"
+    }
   ],
   "require": {
     "php": ">=5.3.0",
