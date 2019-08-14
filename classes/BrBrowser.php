@@ -12,180 +12,68 @@ namespace Bright;
 
 class BrBrowser extends BrObject {
 
-  private $curl = null;
-
-  public $responseCode;
-
-  private function send($url, $data, $post, $dataType, $params = array()) {
-
-    $this->curl = curl_init();
-
-    $envelope = array();
-
-    if (is_array($data)) {
-      foreach($data as $name => $value) {
-        if (is_array($value) || is_object($value)) {
-          $value = br()->toJSON($value);
-        }
-        $envelope[$name] = $value;
-      }
-    }
-
-    if ($post) {
-      if ($dataType == 'json') {
-        curl_setopt($this->curl, CURLOPT_CUSTOMREQUEST, "POST");
-        $requestString = json_encode($data);
-        curl_setopt($this->curl, CURLOPT_POSTFIELDS, $requestString);
-        curl_setopt($this->curl, CURLOPT_HTTPHEADER, array(
-          'Content-Type: application/json',
-          'Content-Length: ' . strlen($requestString))
-        );
-      } else {
-        curl_setopt($this->curl, CURLOPT_POST, 1);
-        if (is_array($data)) {
-          $requestString = http_build_query($data);
-          curl_setopt($this->curl, CURLOPT_POSTFIELDS, $requestString);
-        } else {
-          curl_setopt($this->curl, CURLOPT_POSTFIELDS, $data);
-        }
-      }
-    } else {
-      if (is_array($data)) {
-        $get = '';
-        foreach($envelope as $name => $value) {
-          $get .= $name.'='.urlencode($value).'&';
-        }
-      } else {
-        $get = $data;
-      }
-      $get = rtrim($get, '&');
-      if (preg_match('/[?]/', $url)) {
-        $url = $url.'&'.$get;
-      } else {
-        $url = $url.'?'.$get;
-      }
-      curl_setopt($this->curl, CURLOPT_POST, 0);
-    }
-    curl_setopt($this->curl, CURLOPT_URL, $url);
-
-    curl_setopt($this->curl, CURLOPT_FOLLOWLOCATION, 1);
-    curl_setopt($this->curl, CURLOPT_HEADER, 0);
-    curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($this->curl, CURLOPT_USERAGENT, br($_SERVER, 'HTTP_USER_AGENT', 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-GB; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3'));
-
-    curl_setopt($this->curl, CURLOPT_SSL_VERIFYPEER, 0);
-    curl_setopt($this->curl, CURLOPT_SSL_VERIFYHOST, 0);
-
-    // $header = array();
-    // $header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
-    // curl_setopt($this->curl, CURLOPT_HTTPHEADER, $header);
-
-    // curl_setopt ($this->curl, CURLOPT_VERBOSE, 1);
-    // curl_setopt ($this->curl, CURLOPT_BINARYTRANSFER, 1);
-
-    // curl_setopt($this->curl, CURLOPT_CONNECTTIMEOUT, 10);
-    // curl_setopt($this->curl, CURLOPT_TIMEOUT, 10);
-    // curl_setopt($this->curl, CURLOPT_FRESH_CONNECT, 1);
-
-    // if ($cookie) {
-      // curl_setopt($this->curl, CURLOPT_COOKIEFILE, TEMPORARY_PATH.'.cookie-'.$this->session_id.'.txt');
-      // curl_setopt($this->curl, CURLOPT_COOKIEJAR, TEMPORARY_PATH.'.cookie-'.$this->session_id.'.txt');
-    // }
-
-    foreach($params as $name => $value) {
-      curl_setopt($this->curl, $name, $value);
-    }
-
-    $response = curl_exec($this->curl);
-
-    $this->responseCode = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
-
-    if ($this->responseCode >= 400) {
-      if ($response) {
-        throw new BrAppException($response);
-      } else {
-        throw new BrAppException('Request to ' . $url . ' failed. Response code: ' . $this->responseCode);
-      }
-    }
-
-    switch ($dataType) {
-      case 'json':
-      case 'jsonp':
-        if ($json = br()->fromJSON($response)) {
-          $response = $json;
-        } else
-        if ($json = br()->fromJSON('{'. $response . '}')) {
-          $response = $json;
-        }
-        break;
-    }
-
-    return $response;
-
-  }
-
   public function check($url) {
 
     $headers = @get_headers($url);
+
     return !preg_match('~HTTP/[0-9]+[.][0-9]+ 4.*?$~', @$headers[0]);
 
   }
 
-  public function get($url, $data = array(), $params = array()) {
+  private function getDefaultRequestsParams() {
 
-    return $this->send($url, $data, false, '', $params);
+    return [ 'connect_timeout' => 5
+           , 'read_timeout'    => 5
+           , 'timeout'         => 5
+           ];
 
   }
 
-  public function getJSON($url, $data = array()) {
+  public function get($url) {
 
-    return $this->send($url, $data, false, 'json');
+    $client = new \GuzzleHttp\Client();
+    $requestParams = $this->getDefaultRequestsParams();
+    $response = $client->request('GET', $url, $requestParams);
+    $contents = $response->getBody()->getContents();
+
+    return $contents;
 
   }
 
   public function post($url, $data = array()) {
 
-    return $this->send($url, $data, true, '');
+    $client = new \GuzzleHttp\Client();
+    $requestParams = $this->getDefaultRequestsParams();
+    $requestParams['form_params'] = $data;
+    $response = $client->request('POST', $url, $requestParams);
+    $contents = $response->getBody()->getContents();
+
+    return $contents;
 
   }
 
-  public function postJSON($url, $data = array()) {
+  public function download($url, $filePath) {
 
-    return $this->send($url, $data, true, 'json');
+    $contents = $this->get($url);
+    file_put_contents($filePath, $this->get($url));
 
-  }
-
-  public function download($url, $filePath, $params = array()) {
-
-    try {
-      if ($result = $this->get($url, array(), $params)) {
-        file_put_contents($filePath, $result);
-        return true;
-      }
-    } catch (\Exception $e) {
-      // br()->log()->logException($e);
-    }
-
-    return false;
+    return $contents;
 
   }
 
-  public function downloadUntilDone($url, $filePath, $params = array()) {
+  public function downloadUntilDone($url, $filePath) {
 
-    for($i = 0; $i < 5; $i++) {
+    $contents = $this->retry(function() use ($url, $filePath) {
       try {
-        if ($result = $this->get($url, array(), $params)) {
-          file_put_contents($filePath, $result);
-          return true;
+        return $this->download($url, $filePath);
+      } catch (\GuzzleHttp\Exception\ClientException $e) {
+        if ($e->getResponse()->getStatusCode() == 406) {
+          throw new \Bright\BrNonRecoverableException($e->getResponse()->getBody()->getContents());
         }
-        sleep(5);
-      } catch (\Exception $e) {
-        // br()->log()->logException($e);
-        sleep(5);
       }
-    }
+    });
 
-    return false;
+    return $contents;
 
   }
 

@@ -58,11 +58,25 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
             return;
             break;
         }
+
         $payload = array( 'text'        => '*' . $subject . '*' . "\n\n" . $this->getHeader()
-                        , 'username'    => br()->request()->domain()
                         , 'attachments' => array(array('text' => $message))
                         );
-        br()->browser()->postJSON($this->webHookUrl, $payload);
+
+        $client = new \GuzzleHttp\Client();
+
+        $requestParams = [ 'connect_timeout' => 5
+                         , 'read_timeout'    => 5
+                         , 'timeout'         => 5
+                         , 'form_params'     => [ 'payload' => json_encode($payload) ]
+                         ];
+
+        $response = $client->request('POST', $this->webHookUrl, $requestParams);
+
+        $contents = $response->getBody()->getContents();
+
+        print_r($contents);
+
       } catch (\Exception $e) {
 
       }

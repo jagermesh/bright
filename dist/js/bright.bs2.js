@@ -2746,24 +2746,24 @@
 
   function BrTable(selector, options) {
 
-    var _this = this;
+    const _this = this;
 
-    var initialized = false;
+    let initialized = false;
 
-    var table = $(selector);
-    var thead = $('thead', table);
-    var tbody = $('tbody', table);
+    let table = $(selector);
+    let thead = $('thead', table);
+    let tbody = $('tbody', table);
 
-    var tableCopy;
-    var theadCopy;
-    var tbodyCopy;
-    var theadColsCopy;
-    var tbodyColsCopy;
+    let tableCopy;
+    let theadCopy;
+    let tbodyCopy;
+    let theadColsCopy;
+    let tbodyColsCopy;
 
-    var calcDiv;
-    var imagesCounter = 0;
+    let calcDiv;
+    let imagesCounter = 0;
 
-    _this.options = options || { };
+    _this.options = options || Object.create({ });
 
     if (_this.options.debug) {
       calcDiv = $('<div />');
@@ -2789,9 +2789,9 @@
     function autosize() {
 
       if (_this.options.autoHeight) {
-        var windowHeight = $(window).height();
-        var tableTop     = table.offset().top;
-        var tbodyHeight  = windowHeight - tableTop - thead.height();
+        let windowHeight = $(window).height();
+        let tableTop     = table.offset().top;
+        let tbodyHeight  = windowHeight - tableTop - thead.height();
         if (_this.options.debug) {
           tbodyHeight -= 200;
         } else {
@@ -2810,11 +2810,11 @@
     function debugValue(container, value) {
 
       if (_this.options.debug) {
-        var c = $(container);
-        var v = Math.round(value);
-        var e = c.find('span.br-table-debug');
+        let c = $(container);
+        let v = Math.round(value);
+        let e = c.find('span.br-table-debug');
         if (e.length == 0) {
-          c.append('<br /><span class="br-table-debug">' + v + '</span>');
+          c.append('<br /><span class="br-table-debug" style="font-size:8px;">' + v + '</span>');
         } else {
           e.text(v);
         }
@@ -2824,18 +2824,18 @@
 
     function getWidths() {
 
-      var widths = {};
+      let widths = {};
 
       theadColsCopy.each(function(idx) {
-        var w = $(this)[0].getBoundingClientRect().width;
+        let w = this.getBoundingClientRect().width;
         debugValue(this, w);
-        widths[idx] = { h: w, b: 0, m: 0 };
+        widths[idx] = { h: w, b: 0 };
       });
 
       tbodyColsCopy.each(function(idx) {
-        var w = $(this)[0].getBoundingClientRect().width;
+        let w = this.getBoundingClientRect().width;
         debugValue(this, w);
-        widths[idx] = { h: w, b: 0, m: 0 };
+        widths[idx].b = w;
       });
 
       return widths;
@@ -2845,22 +2845,26 @@
     function createCopy() {
 
       tableCopy = table.clone();
-      theadCopy = $('thead', tableCopy);
-      tbodyCopy = $('tbody', tableCopy);
-      theadColsCopy = theadCopy.find('tr:first th');
-      tbodyColsCopy = tbodyCopy.find('tr:first td');
+      let theadCopy = tableCopy[0].getElementsByTagName('thead')[0];
+      let tbodyCopy = tableCopy[0].getElementsByTagName('tbody')[0];
+      theadColsCopy = $(theadCopy).find('tr:first th');
+      tbodyColsCopy = $(tbodyCopy).find('tr:first td');
 
-      theadCopy.css('display', '').css('overflow', '');
-      tbodyCopy.css('display', '').css('overflow', '');
+      theadCopy.style.display = '';
+      theadCopy.style.overflow = '';
+      tbodyCopy.style.display = '';
+      tbodyCopy.style.overflow = '';
 
       theadColsCopy.each(function(idx) {
-        var c = $(this);
-        c.css('min-width', '').css('max-width', '');
+        this.style.boxSizing = 'border-box';
+        this.style.minWidth = '';
+        this.style.maxWidth = '';
       });
 
       tbodyColsCopy.each(function(idx) {
-        var c = $(this);
-        c.css('min-width', '').css('max-width', '');
+        this.style.boxSizing = 'border-box';
+        this.style.minWidth = '';
+        this.style.maxWidth = '';
       });
 
       calcDiv.html('');
@@ -2897,39 +2901,43 @@
 
       window.setTimeout(function() {
 
-        var widths = getWidths();
+        let widths = getWidths();
 
-        var headerCols = table.find('thead tr:first th');
+        let headerCols = table.find('thead tr:first th');
 
         headerCols.each(function(idx) {
-          var w = widths[idx].h;
-          var c = $(this);
-          debugValue(c, w);
-          c.css({ 'min-width': w, 'max-width': w });
+          let w = widths[idx].h;
+          debugValue(this, w);
+          this.style.boxSizing = 'border-box';
+          this.style.minWidth = w + 'px';
+          this.style.maxWidth = w + 'px';
         });
 
-        var bodyCols   = table.find('tbody tr:first td');
+        let bodyCols   = table.find('tbody tr:first td');
 
         bodyCols.each(function(idx) {
-          var w = widths[idx].h;
-          var c = $(this);
-          debugValue(c, w);
-          c.css({ 'min-width': w, 'max-width': w });
+          let w = widths[idx].b;
+          debugValue(this, w);
+          this.style.boxSizing = 'border-box';
+          this.style.minWidth = w + 'px';
+          this.style.maxWidth = w + 'px';
         });
 
         autosize();
 
         if (imagesCounter == 0) {
-          calcDiv.html('');
-          tableCopy.remove();
-          tableCopy = null;
+          if (!_this.options.debug) {
+            calcDiv.html('');
+            tableCopy.remove();
+            tableCopy = null;
+          }
         }
 
       });
 
     }
 
-    var updateTimer;
+    let updateTimer;
 
     _this.update = function(skipCalcDivReloading) {
       window.clearTimeout(updateTimer);

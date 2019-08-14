@@ -30,10 +30,7 @@
         data[$(this).attr('name')] = $(this).val();
       });
 
-      var $btn = $(this);
-      $btn.button('loading');
       users.invoke('signup', data, function(result, response) {
-        $btn.button('reset');
         if (result) {
           br.redirect('?from=signup');
         } else {
@@ -76,12 +73,9 @@
         }
       });
 
-      var $btn = $(this);
-      $btn.button('loading');
       users.invoke( 'login'
                   , data
                   , function(result, response) {
-                      $btn.button('reset');
                       if (result) {
                         br.redirect(br.request.get('caller', '?from=login'));
                       } else {
@@ -113,12 +107,9 @@
         data[$(this).attr('name')] = $(this).val();
       });
 
-      var $btn = $(this);
-      $btn.button('loading');
       users.invoke( 'remindPassword'
                   , data
                   , function(result, response) {
-                      $btn.button('reset');
                       if (result) {
                         br.redirect(br.request.get('caller', 'reset-password-final.html'));
                       } else {
