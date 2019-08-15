@@ -1,3 +1,8 @@
-RewriteEngine On
-RewriteRule [.](gif|css|jpg|jpeg|js|swf|png|ico|avi|htc|flv|wmv|xml)$ - [L]
-RewriteRule .* index.php
+RewriteEngine on
+RewriteCond %{REQUEST_URI} "/3rdparty/" [OR]
+RewriteCond %{REQUEST_URI} "/css/" [OR]
+RewriteCond %{REQUEST_URI} "/images/" [OR]
+RewriteCond %{REQUEST_URI} "/js/" [OR]
+RewriteCond %{REQUEST_URI} "/vendor/"
+RewriteRule (.*) $1 [L]
+RewriteRule (.*) index.php [L]

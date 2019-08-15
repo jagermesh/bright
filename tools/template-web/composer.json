@@ -1,0 +1,10 @@
+{
+   "require": {
+      "jagermesh/bright": "*"
+   },
+   "autoload": {
+        "psr-4": {
+          "Libs\\": "libs/",
+          "DataSources\\": "datasources/"}
+    }
+}

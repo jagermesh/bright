@@ -1,0 +1,26 @@
+{
+  "laxcomma": true,
+  "loopfunc": true,
+  "laxbreak": true,
+  "sub": true,
+  "undef": true,
+  "esversion": 6,
+  "globals": {
+    "jQuery": true,
+    "module": true,
+    "document": true,
+    "navigator": true,
+    "AudioContext": true,
+    "Notify": true,
+    "$": true,
+    "window": true,
+    "Handlebars": true,
+    "confirm": true,
+    "alert": true,
+
+    "CKEDITOR": true,
+    "br": true,
+    "qq": true,
+    "io": true
+  }
+}

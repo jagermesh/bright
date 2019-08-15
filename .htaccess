@@ -1,5 +1,9 @@
-RedirectMatch 404 [.]svn/.*
-RedirectMatch 404 [.]git/.*
-RedirectMatch 404 Gruntfile.js
-RedirectMatch 404 _tmp/.*
-RedirectMatch 404 _logs/.*
+RewriteEngine On
+RewriteCond %{REQUEST_URI} "/3rdparty/" [OR]
+RewriteCond %{REQUEST_URI} "/css/" [OR]
+RewriteCond %{REQUEST_URI} "/dist/" [OR]
+RewriteCond %{REQUEST_URI} "/doc/" [OR]
+RewriteCond %{REQUEST_URI} "/images/" [OR]
+RewriteCond %{REQUEST_URI} "/js/"
+RewriteRule (.*) $1 [L]
+RewriteRule (.*) - [F]
