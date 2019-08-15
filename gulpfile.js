@@ -55,21 +55,27 @@ const configs = { jshint: { src: ['js/**/*.js'] }
                                       }
                                     ]
                           , css: [ { src: [ '3rdparty/gritter/latest/css/jquery.gritter.css'
-                                          , 'css/bright.css'
+                                          , 'css/bright.bs2.css'
+                                          ]
+                                   , name: 'bright.bs2.css'
+                                   , dest: 'dist/css/'
+                                   }
+                                 , { src: [ '3rdparty/gritter/latest/css/jquery.gritter.css'
+                                          , 'css/bright.bs3.css'
+                                          ]
+                                   , name: 'bright.bs3.css'
+                                   , dest: 'dist/css/'
+                                   }
+                                 , { src: [ '3rdparty/gritter/latest/css/jquery.gritter.css'
+                                          , 'css/bright.bs4.css'
+                                          ]
+                                   , name: 'bright.bs4.css'
+                                   , dest: 'dist/css/'
+                                   }
+                                 , { src: [ '3rdparty/gritter/latest/css/jquery.gritter.css'
+                                          , 'css/bright.bs4.css'
                                           ]
                                    , name: 'bright.css'
-                                   , dest: 'dist/css/'
-                                   }
-                                 , { src: [ '3rdparty/gritter/latest/css/jquery.gritter.css'
-                                          , 'css/bright-bootstrap2.css'
-                                          ]
-                                   , name: 'bright-bootstrap2.css'
-                                   , dest: 'dist/css/'
-                                   }
-                                 , { src: [ '3rdparty/gritter/latest/css/jquery.gritter.css'
-                                          , 'css/bright-bootstrap3.css'
-                                          ]
-                                   , name: 'bright-bootstrap3.css'
                                    , dest: 'dist/css/'
                                    }
                                  ]
@@ -95,13 +101,6 @@ const configs = { jshint: { src: ['js/**/*.js'] }
                                     , dest: 'dist/js/'
                                     }
                                   , { src: [ '3rdparty/jquery/latest/js/jquery.min.js'
-                                           , '3rdparty/bootstrap/latest/js/bootstrap.min.js'
-                                           , 'dist/js/bright.core.js'
-                                           ]
-                                    , name: 'bright.js'
-                                    , dest: 'dist/js/'
-                                    }
-                                  , { src: [ '3rdparty/jquery/latest/js/jquery.min.js'
                                            , '3rdparty/bootstrap/2.3.2/js/bootstrap.min.js'
                                            , 'dist/js/bright.core.js'
                                            ]
@@ -113,6 +112,20 @@ const configs = { jshint: { src: ['js/**/*.js'] }
                                            , 'dist/js/bright.core.js'
                                            ]
                                     , name: 'bright.bs3.js'
+                                    , dest: 'dist/js/'
+                                    }
+                                  , { src: [ '3rdparty/jquery/latest/js/jquery.min.js'
+                                           , '3rdparty/bootstrap/4.3.1/js/bootstrap.min.js'
+                                           , 'dist/js/bright.core.js'
+                                           ]
+                                    , name: 'bright.bs4.js'
+                                    , dest: 'dist/js/'
+                                    }
+                                  , { src: [ '3rdparty/jquery/latest/js/jquery.min.js'
+                                           , '3rdparty/bootstrap/latest/js/bootstrap.min.js'
+                                           , 'dist/js/bright.core.js'
+                                           ]
+                                    , name: 'bright.js'
                                     , dest: 'dist/js/'
                                     }
                                   ]

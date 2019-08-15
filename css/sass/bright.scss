@@ -218,6 +218,18 @@ td.optimal-width, th.optimal-width {
   margin: 5px 0px 5px 0px;
 }
 
+.navbar .input-append .btn {
+  margin: 0px 0px 0px 0px;
+}
+
+.navbar .btn-url {
+  margin: 5px 0px 5px 0px;
+}
+
+.navbar .input-append {
+  margin: 5px 0px 5px 0px;
+}
+
 .navbar-internal {
   margin-bottom: 5px;
 }
@@ -251,7 +263,7 @@ h1 {
 }
 
 .modal-header h1 {
-  margin-top: 5px !important;
+  margin-top: 5px;
 }
 
 h1 small {
@@ -287,7 +299,7 @@ div.br-sort-index {
   font-weight: normal;
 }
 
-.blured {
+.blured, .muted {
   color: #999;
 }
 
@@ -312,7 +324,7 @@ span.required {
   padding: 10px;
   padding-top: 6px;
   padding-bottom: 6px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   border: 1px solid #eee;
   border: 1px solid rgba(0, 0, 0, 0.05);
   -webkit-border-radius: 4px;
@@ -330,7 +342,7 @@ span.required {
 }
 
 .filter-block {
-  height: 65px;
+  height: 60px;
   margin-right: 10px;
 }
 
@@ -357,8 +369,8 @@ a i:hover, .brand:hover {
 }
 
 a.not-a {
-  text-decoration: none;
-  color: inherit;
+  text-decoration: none !important;
+  color: inherit !important;
 }
 a.btn-url {
   text-decoration: none;
@@ -372,13 +384,15 @@ a.btn-url {
   vertical-align: middle;
   cursor: pointer;
 }
-.navbar .btn-url {
-  margin: 5px 0px 5px 0px;
-}
-
 .label {
   font-weight: normal !important;
   padding:3px;
+  padding-left:5px;
+  padding-right:5px;
+}
+.badge {
+  font-weight: normal !important;
+  padding:1px;
   padding-left:5px;
   padding-right:5px;
 }
@@ -386,10 +400,12 @@ a.btn-url {
 table.table th {
   text-align: center;
   vertical-align: middle;
+  font-weight: 400;
+  line-height: 1.3em;
 }
 
 /* bootstrap3 */
-.form-control.select2-container {
+/*.form-control.select2-container {
   padding:0px;
   border:0px;
 }
@@ -403,7 +419,7 @@ table.table th {
   height:33px;
   padding-top: 3px;
 }
-
+*/
 .br-ajax-dropdown li {
   white-space:nowrap;
 }
@@ -464,3 +480,13 @@ div.br-editable, span.br-editable {
 .tooltip {
   z-index: 1060;
 }
+
+.input-append {
+  white-space: normal;
+}
+
+/* compatible with bootstrap3 */
+.input-group-btn {
+  float:right;
+}
+
