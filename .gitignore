@@ -3,3 +3,5 @@
 _logs
 _tmp
 node_modules
+vendor
+composer.lock
