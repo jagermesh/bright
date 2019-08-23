@@ -66,10 +66,8 @@ class BrBrowser extends BrObject {
     $contents = $this->retry(function() use ($url, $filePath) {
       try {
         return $this->download($url, $filePath);
-      } catch (\GuzzleHttp\Exception\ClientException $e) {
-        if ($e->getResponse()->getStatusCode() == 406) {
-          throw new \Bright\BrNonRecoverableException($e->getResponse()->getBody()->getContents());
-        }
+      } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+        throw new \Bright\BrNonRecoverableException($e->getResponse()->getBody()->getContents());
       }
     });
 

@@ -151,7 +151,7 @@ gulp.task('phplint', function() {
 gulp.task('uglify:libs', function() {
   var tasks = configs.uglify.libs.map(function(task) {
     return gulp.src(task.src)
-               .pipe(terser({ output: { preamble: '/* jshint ignore:start */\n', ascii_only: true }}))
+               .pipe(terser({ output: { preamble: '/* jshint ignore:start */\n', ascii_only: true }, compress: false}))
                .pipe(rename({ suffix: '.min' }))
                .pipe(gulp.dest(task.dest));
   });
@@ -161,7 +161,7 @@ gulp.task('uglify:libs', function() {
 gulp.task('uglify:dist', function() {
   var tasks = configs.uglify.dist.map(function(task) {
     return gulp.src(task.src)
-               .pipe(terser({ output: { preamble: '/* jshint ignore:start */\n', ascii_only: true }}))
+               .pipe(terser({ output: { preamble: '/* jshint ignore:start */\n', ascii_only: true }, compress: false}))
                .pipe(rename({ suffix: '.min' }))
                .pipe(gulp.dest(task.dest));
   });

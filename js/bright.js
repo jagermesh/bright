@@ -927,58 +927,15 @@
 
     function BrWebCamera() {
 
-      var _this = this;
+      const _this = this;
 
       _this.events = br.eventQueue(this);
       _this.before = function(event, callback) { _this.events.before(event, callback); };
       _this.on     = function(event, callback) { _this.events.on(event, callback); };
       _this.after  = function(event, callback) { _this.events.after(event, callback); };
 
-      var lastTime = 0;
-
-      _this.requestAnimationFrame = function(callback, element) {
-
-        var requestAnimationFrame =
-          window.requestAnimationFrame        ||
-          window.webkitRequestAnimationFrame  ||
-          window.mozRequestAnimationFrame     ||
-          window.oRequestAnimationFrame       ||
-          window.msRequestAnimationFrame      ||
-          function(callback, element) {
-            var currTime = new Date().getTime();
-            var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-            var id = window.setTimeout(function() {
-              callback(currTime + timeToCall);
-            }, timeToCall);
-            lastTime = currTime + timeToCall;
-            return id;
-          };
-
-        return requestAnimationFrame.call(window, callback, element);
-
-      };
-
-      _this.getUserMedia = function(options, success, error) {
-
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-          navigator.mediaDevices.getUserMedia(options).then(success).catch(error);
-        } else {
-          var getUserMedia =
-            navigator.getUserMedia       ||
-            navigator.mozGetUserMedia    ||
-            navigator.webkitGetUserMedia ||
-            navigator.msGetUserMedia     ||
-            function(options, success, error) {
-              error();
-            };
-
-          return getUserMedia.call(window, options, success, error);
-        }
-
-      };
-
-      var elem = document.createElement('canvas');
-      var canvasSupported = !!(elem.getContext && elem.getContext('2d'));
+      let elem = document.createElement('canvas');
+      let canvasSupported = !!(elem.getContext && elem.getContext('2d'));
       elem.remove();
 
       _this.isSupported = function() {
@@ -995,9 +952,9 @@
 
         if (_this.isSupported()) {
           try {
-            var attempts = 0;
+            let attempts = 0;
 
-            var requestFrame = function () {
+            let requestFrame = function () {
               if (webCam.readyState === webCam.HAVE_ENOUGH_DATA) {
                 try {
                   _this.events.trigger('frame', webCam);
@@ -1005,26 +962,26 @@
 
                 }
               }
-              _this.requestAnimationFrame(requestFrame);
+              br.requestAnimationFrame(requestFrame);
             };
 
-            var findVideoSize = function() {
+            let findVideoSize = function() {
               if (webCam.videoWidth > 0 && webCam.videoHeight > 0) {
                 webCam.removeEventListener('loadeddata', readyListener);
                 _this.events.trigger('connected', { width: webCam.videoWidth, height: webCam.videoWidth });
-                _this.requestAnimationFrame(requestFrame);
+                br.requestAnimationFrame(requestFrame);
               } else {
                 if (attempts < 10) {
                   attempts++;
                   window.setTimeout(findVideoSize, 200);
                 } else {
                   _this.events.trigger('connected', { width: 640, height: 480 });
-                  _this.requestAnimationFrame(requestFrame);
+                  br.requestAnimationFrame(requestFrame);
                 }
               }
             };
 
-            var readyListener = function(event) {
+            let readyListener = function(event) {
               findVideoSize();
             };
 
@@ -1035,18 +992,18 @@
               webCam.src = null;
             });
 
-            _this.getUserMedia( { video: true }
-                              , function(stream) {
-                                  webCam.srcObject = stream;
-                                  webCam.setAttribute('playsinline', true);
-                                  window.setTimeout(function() {
-                                    webCam.play();
-                                  }, 500);
-                                }
-                              , function (error) {
-                                  _this.events.trigger('error', error);
-                                }
-                              );
+            br.getUserMedia( { video: true }
+                           , function(stream) {
+                               webCam.srcObject = stream;
+                               webCam.setAttribute('playsinline', true);
+                               window.setTimeout(function() {
+                                 webCam.play();
+                               }, 500);
+                             }
+                           , function (error) {
+                               _this.events.trigger('error', error);
+                             }
+                           );
           } catch (error) {
             _this.events.trigger('error', error);
           }
@@ -1060,7 +1017,7 @@
 
     window.br = window.br || {};
 
-    var webCamera;
+    let webCamera;
 
     window.br.webCamera = function(params) {
       if (!webCamera) {
@@ -1089,16 +1046,16 @@
 
   window.br = window.br || {};
 
-  var baseUrl = '';
-  var brightUrl = '';
+  let baseUrl = '';
+  let brightUrl = '';
 
-  var scripts = $('script');
+  let scripts = $('script');
 
-  for(var i = 0; i < scripts.length; i++) {
-    var src = $(scripts[i]).attr('src');
+  for(let i = 0; i < scripts.length; i++) {
+    let src = $(scripts[i]).attr('src');
     if (!br.isEmpty(src)) {
       if (/bright\/.+?[.]js/i.test(src)) {
-        var idx = src.indexOf('vendor/');
+        let idx = src.indexOf('vendor/');
         if (idx == -1) {
           idx = src.indexOf('bright/');
         }
@@ -1116,7 +1073,7 @@
   window.br.brightUrl = brightUrl;
   window.br.popupBlocker = 'unknown';
 
-  var logStarted = false;
+  let logStarted = false;
 
   window.br.log = function(msg) {
     if (typeof(console) != 'undefined') {
@@ -1149,32 +1106,32 @@
   };
 
   window.br.isTouchScreen = function() {
-    var ua = navigator.userAgent;
+    let ua = navigator.userAgent;
     return ((/iPad/i.test(ua)) || (/iPhone/i.test(ua)) || (/Android/i.test(ua)));
   };
 
   window.br.isMobileDevice = function() {
-    var ua = navigator.userAgent;
+    let ua = navigator.userAgent;
     return ((/iPad/i.test(ua)) || (/iPhone/i.test(ua)) || (/Android/i.test(ua)));
   };
 
   window.br.isiOS = function() {
-    var ua = navigator.userAgent;
+    let ua = navigator.userAgent;
     return ((/iPad/i.test(ua)) || (/iPhone/i.test(ua)));
   };
 
   window.br.isiPad = function() {
-    var ua = navigator.userAgent;
+    let ua = navigator.userAgent;
     return (/iPad/i.test(ua));
   };
 
   window.br.isiPhone = function() {
-    var ua = navigator.userAgent;
+    let ua = navigator.userAgent;
     return (/iPhone/i.test(ua));
   };
 
   window.br.isAndroid = function() {
-    var ua = navigator.userAgent;
+    let ua = navigator.userAgent;
     return (/android/i.test(ua));
   };
 
@@ -1214,7 +1171,7 @@
     function processQueued(processRowCallback, processCompleteCallback, params) {
 
       if (array.length > 0) {
-        var rowid = array.shift();
+        let rowid = array.shift();
         processRowCallback(rowid, function() {
           if (params.showProgress) {
             br.stepProgress();
@@ -1245,13 +1202,13 @@
   };
 
   function BrTrn() {
-    var trn = [];
+    let trn = [];
     this.get = function (phrase) { if (trn[phrase]) { return trn[phrase]; } else { return phrase; } };
     this.set = function (phrase, translation) { trn[phrase] = translation; return this; };
     return this;
   }
 
-  var brTrn = new BrTrn();
+  let brTrn = new BrTrn();
 
   window.br.trn = function(phrase) {
     if (phrase) {
@@ -1263,8 +1220,8 @@
 
   window.br.preloadImages = function(images) {
     try {
-      var div = document.createElement('div');
-      var s = div.style;
+      let div = document.createElement('div');
+      let s = div.style;
       s.position = 'absolute';
       s.top = s.left = 0;
       s.visibility = 'hidden';
@@ -1291,7 +1248,7 @@
   };
 
   window.br.extend = function(Child, Parent) {
-    var F = function() { };
+    let F = function() { };
     F.prototype = Parent.prototype;
     Child.prototype = new F();
     Child.prototype.constructor = Child;
@@ -1302,7 +1259,7 @@
 
     options = options || { };
 
-    var s;
+    let s;
 
     if (options.urlTitle) {
       s = '<p>Click below to open link manually</p>'
@@ -1311,7 +1268,7 @@
       s = '<p>Click a <a target="' + (options.target ? options.target : '_blank') + '" class="action-open-link" href="' + url + '" style="word-wrap: break-word">here</a> to open link manually</p>';
     }
 
-    var dialog = br.inform( 'You browser is currently blocking popups'
+    let dialog = br.inform( 'You browser is currently blocking popups'
                           , s
                           + '<p>To eliminate this extra step, we recommend you modify your settings to disable the popup blocker.</p>'
                           );
@@ -1330,7 +1287,7 @@
     if (br.isSafari()) {
       br.openPopup(url, options);
     } else {
-      var a = document.createElement('a');
+      let a = document.createElement('a');
       a.href = url;
       a.target = options.target ? options.target : '_blank';
       document.body.appendChild(a);
@@ -1353,7 +1310,7 @@
     if (window.br.popupBlocker == 'active') {
       openUrl(url, options);
     } else {
-      var w, h;
+      let w, h;
       if (screen.width) {
         if (options.fullScreen) {
           w = screen.width;
@@ -1382,9 +1339,9 @@
           }
         }
       }
-      var left = (screen.width) ? (screen.width-w)/2 : 0;
-      var settings = 'height='+h+',width='+w+',top=20,left='+left+',menubar=0,scrollbars=1,resizable=1';
-      var win = window.open(url, options.target, settings);
+      let left = (screen.width) ? (screen.width-w)/2 : 0;
+      let settings = 'height='+h+',width='+w+',top=20,left='+left+',menubar=0,scrollbars=1,resizable=1';
+      let win = window.open(url, options.target, settings);
       if (win) {
         window.br.popupBlocker = 'inactive';
         win.focus();
@@ -1398,8 +1355,8 @@
   };
 
   function handleModified(element, deferred) {
-    var listName1 = 'BrModified_Callbacks2';
-    var listName2 = 'BrModified_LastCahange2';
+    let listName1 = 'BrModified_Callbacks2';
+    let listName2 = 'BrModified_LastCahange2';
     if (deferred) {
       window.clearTimeout(element.data('BrModified_Timeout'));
       listName1 = 'BrModified_Callbacks1';
@@ -1407,9 +1364,9 @@
     }
     if (element.data(listName2) != element.val()) {
       element.data(listName2, element.val());
-      var callbacks = element.data(listName1);
+      let callbacks = element.data(listName1);
       if (callbacks) {
-        for(var i in callbacks) {
+        for(let i in callbacks) {
           callbacks[i].call(element);
         }
       }
@@ -1431,11 +1388,11 @@
       if (!$(this).data('br-data-change-callbacks')) {
         $(this).data('br-data-change-callbacks', []);
       }
-      var listName = 'BrModified_Callbacks2';
+      let listName = 'BrModified_Callbacks2';
       if (deferred) {
         listName = 'BrModified_Callbacks1';
       }
-      var callbacks = $(this).data(listName);
+      let callbacks = $(this).data(listName);
       if (callbacks) {
 
       } else {
@@ -1482,8 +1439,8 @@
 
   window.br.closeConfirmationMessage = 'Some changes have been made. Are you sure you want to close current window?';
 
-  var closeConfirmationRequired = false;
-  var windowUnloading = false;
+  let closeConfirmationRequired = false;
+  let windowUnloading = false;
 
   function brightConfirmClose() {
     if (closeConfirmationRequired) {
@@ -1529,7 +1486,7 @@
 
   window.br.backToCaller = function(href, refresh) {
 
-    var inPopup = (window.opener !== null);
+    let inPopup = (window.opener !== null);
 
     // check opener
     if (inPopup) {
@@ -1560,12 +1517,12 @@
 
   window.br.disableBounce = function(container) {
 
-    var $container = container;
+    let $container = container;
 
     $('body').css('overflow', 'hidden');
 
     function resize() {
-      var h = $(window).height();
+      let h = $(window).height();
       $container.css('height', h + 'px');
       $container.css('overflow', 'auto');
     }
@@ -1580,13 +1537,13 @@
 
   window.br.getSelection = function() {
 
-    var html = '';
+    let html = '';
 
     if (typeof window.getSelection != 'undefined') {
-      var sel = window.getSelection();
+      let sel = window.getSelection();
       if (sel.rangeCount) {
-        var container = document.createElement('div');
-        for (var i = 0, len = sel.rangeCount; i < len; ++i) {
+        let container = document.createElement('div');
+        for (let i = 0, len = sel.rangeCount; i < len; ++i) {
           container.appendChild(sel.getRangeAt(i).cloneContents());
         }
         html = container.innerHTML;
@@ -1602,20 +1559,98 @@
 
   };
 
-  var ctx;
+  window.br.do = function(f) {
+    f.call();
+  };
+
+  /* jshint ignore:start */
+  window.br.load = window.br.resourceLoader = function(j){function p(c,a){var g=j.createElement(c),b;for(b in a)a.hasOwnProperty(b)&&g.setAttribute(b,a[b]);return g}function m(c){var a=k[c],b,e;if(a)b=a.callback,e=a.urls,e.shift(),h=0,e.length||(b&&b.call(a.context,a.obj),k[c]=null,n[c].length&&i(c))}function u(){if(!b){var c=navigator.userAgent;b={async:j.createElement("script").async===!0};(b.webkit=/AppleWebKit\//.test(c))||(b.ie=/MSIE/.test(c))||(b.opera=/Opera/.test(c))||(b.gecko=/Gecko\//.test(c))||(b.unknown=!0)}}function i(c,
+    a,g,e,h){var i=function(){m(c)},o=c==="css",f,l,d,q;u();if(a)if(a=typeof a==="string"?[a]:a.concat(),o||b.async||b.gecko||b.opera)n[c].push({urls:a,callback:g,obj:e,context:h});else{f=0;for(l=a.length;f<l;++f)n[c].push({urls:[a[f]],callback:f===l-1?g:null,obj:e,context:h})}if(!k[c]&&(q=k[c]=n[c].shift())){r||(r=j.head||j.getElementsByTagName("head")[0]);a=q.urls;f=0;for(l=a.length;f<l;++f)g=a[f],o?d=b.gecko?p("style"):p("link",{href:g,rel:"stylesheet"}):(d=p("script",{src:g}),d.async=!1),d.className=
+    "lazyload",d.setAttribute("charset","utf-8"),b.ie&&!o?d.onreadystatechange=function(){if(/loaded|complete/.test(d.readyState))d.onreadystatechange=null,i()}:o&&(b.gecko||b.webkit)?b.webkit?(q.urls[f]=d.href,s()):(d.innerHTML='@import "'+g+'";',m("css")):d.onload=d.onerror=i,r.appendChild(d)}}function s(){var c=k.css,a;if(c){for(a=t.length;--a>=0;)if(t[a].href===c.urls[0]){m("css");break}h+=1;c&&(h<200?setTimeout(s,50):m("css"))}}var b,r,k={},h=0,n={css:[],js:[]},t=j.styleSheets;return{css:function(c,
+    a,b,e){i("css",c,a,b,e)},js:function(c,a,b,e){i("js",c,a,b,e)}}}(document);
+  /* jshint ignore:end */
+
+  window.br.URL = window.URL || window.webkitURL;
+
+  // Media devices - audio/video
+
+  let lastAnimationFramtTime = 0;
+
+  window.br.requestAnimationFrame = function(callback, element) {
+
+    let requestAnimationFrame =
+      window.requestAnimationFrame        ||
+      window.webkitRequestAnimationFrame  ||
+      window.mozRequestAnimationFrame     ||
+      window.oRequestAnimationFrame       ||
+      window.msRequestAnimationFrame      ||
+      function(callback, element) {
+        let currTime = new Date().getTime();
+        let timeToCall = Math.max(0, 16 - (currTime - lastAnimationFramtTime));
+        let id = window.setTimeout(function() {
+          callback(currTime + timeToCall);
+        }, timeToCall);
+        lastAnimationFramtTime = currTime + timeToCall;
+        return id;
+      };
+
+    return requestAnimationFrame.call(window, callback, element);
+
+  };
+
+  window.br.cancelAnimationFrame = function(id) {
+
+    let cancelAnimationFrame =
+      window.cancelAnimationFrame ||
+      function(id) {
+        window.clearTimeout(id);
+      };
+
+    return cancelAnimationFrame.call(window, id);
+
+  };
+
+  window.br.getUserMedia = function(options, success, error) {
+
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia(options).then(success).catch(error);
+    } else {
+      let getUserMedia =
+        navigator.getUserMedia       ||
+        navigator.mozGetUserMedia    ||
+        navigator.webkitGetUserMedia ||
+        navigator.msGetUserMedia     ||
+        function(options, success, error) {
+          error();
+        };
+
+      return getUserMedia.call(window.navigator, options, success, error);
+    }
+
+  };
+
+  window.br.getAudioContext = function() {
+
+    let AudioContext = window.AudioContext ||
+                       window.webkitAudioContext;
+
+    return new AudioContext();
+
+  };
+
+  let beepAudioContext;
 
   window.br.beep = function(callback) {
 
     try {
-      var duration = 0.1;
-      window.AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!ctx) {
-        ctx = new AudioContext();
+      let duration = 0.1;
+      if (!beepAudioContext) {
+        beepAudioContext = br.getAudioContext();
       }
-      var osc = ctx.createOscillator();
+      let osc = beepAudioContext.createOscillator();
       osc.type = 0;
-      osc.connect(ctx.destination);
-      var now = ctx.currentTime;
+      osc.connect(beepAudioContext.destination);
+      let now = beepAudioContext.currentTime;
       if(osc.start) {
         osc.start(now);
         osc.stop(now + duration);
@@ -1635,99 +1670,10 @@
 
   };
 
-  window.br.do = function(f) {
-    f.call();
-  };
-
-  /* jshint ignore:start */
-  window.br.load = window.br.resourceLoader = function(j){function p(c,a){var g=j.createElement(c),b;for(b in a)a.hasOwnProperty(b)&&g.setAttribute(b,a[b]);return g}function m(c){var a=k[c],b,e;if(a)b=a.callback,e=a.urls,e.shift(),h=0,e.length||(b&&b.call(a.context,a.obj),k[c]=null,n[c].length&&i(c))}function u(){if(!b){var c=navigator.userAgent;b={async:j.createElement("script").async===!0};(b.webkit=/AppleWebKit\//.test(c))||(b.ie=/MSIE/.test(c))||(b.opera=/Opera/.test(c))||(b.gecko=/Gecko\//.test(c))||(b.unknown=!0)}}function i(c,
-    a,g,e,h){var i=function(){m(c)},o=c==="css",f,l,d,q;u();if(a)if(a=typeof a==="string"?[a]:a.concat(),o||b.async||b.gecko||b.opera)n[c].push({urls:a,callback:g,obj:e,context:h});else{f=0;for(l=a.length;f<l;++f)n[c].push({urls:[a[f]],callback:f===l-1?g:null,obj:e,context:h})}if(!k[c]&&(q=k[c]=n[c].shift())){r||(r=j.head||j.getElementsByTagName("head")[0]);a=q.urls;f=0;for(l=a.length;f<l;++f)g=a[f],o?d=b.gecko?p("style"):p("link",{href:g,rel:"stylesheet"}):(d=p("script",{src:g}),d.async=!1),d.className=
-    "lazyload",d.setAttribute("charset","utf-8"),b.ie&&!o?d.onreadystatechange=function(){if(/loaded|complete/.test(d.readyState))d.onreadystatechange=null,i()}:o&&(b.gecko||b.webkit)?b.webkit?(q.urls[f]=d.href,s()):(d.innerHTML='@import "'+g+'";',m("css")):d.onload=d.onerror=i,r.appendChild(d)}}function s(){var c=k.css,a;if(c){for(a=t.length;--a>=0;)if(t[a].href===c.urls[0]){m("css");break}h+=1;c&&(h<200?setTimeout(s,50):m("css"))}}var b,r,k={},h=0,n={css:[],js:[]},t=j.styleSheets;return{css:function(c,
-    a,b,e){i("css",c,a,b,e)},js:function(c,a,b,e){i("js",c,a,b,e)}}}(document);
-  /* jshint ignore:end */
-
-  window.br.URL = window.URL || window.webkitURL;
-
-  var lastTime = 0;
-
-  window.br.requestAnimationFrame = function(callback, element) {
-
-    var requestAnimationFrame =
-      window.requestAnimationFrame        ||
-      window.webkitRequestAnimationFrame  ||
-      window.mozRequestAnimationFrame     ||
-      window.oRequestAnimationFrame       ||
-      window.msRequestAnimationFrame      ||
-      function(callback, element) {
-        var currTime = new Date().getTime();
-        var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-        var id = window.setTimeout(function() {
-          callback(currTime + timeToCall);
-        }, timeToCall);
-        lastTime = currTime + timeToCall;
-        return id;
-      };
-
-    return requestAnimationFrame.call(window, callback, element);
-
-  };
-
-  window.br.cancelAnimationFrame = function(id) {
-
-    var cancelAnimationFrame =
-      window.cancelAnimationFrame ||
-      function(id) {
-        window.clearTimeout(id);
-      };
-
-    return cancelAnimationFrame.call(window, id);
-
-  };
-
-  window.br.getUserMedia = function(options, success, error) {
-
-    var getUserMedia =
-      window.navigator.getUserMedia ||
-      window.navigator.mozGetUserMedia ||
-      window.navigator.webkitGetUserMedia ||
-      window.navigator.msGetUserMedia ||
-      function(options, success, error) {
-          error();
-      };
-
-    return getUserMedia.call(window.navigator, options, success, error);
-
-  };
-
-  window.br.getAudioContext = function() {
-
-    window.AudioContext = window.AudioContext ||
-                          window.webkitAudioContext;
-
-    return new AudioContext();
-
-  };
-
-  var isLittleEndian = true;
-
-  window.br.detectEndian = function() {
-
-    var buf = new ArrayBuffer(8);
-    var data = new Uint32Array(buf);
-    data[0] = 0xff000000;
-    isLittleEndian = true;
-    if (buf[0] === 0xff) {
-      isLittleEndian = false;
-    }
-
-    return isLittleEndian;
-
-  };
-
   if (window.addEventListener) {
 
     window.addEventListener('error', function(event) {
-      var data = {
+      let data = {
           message: event.message
         , data: null
         , filename: event.filename
@@ -1737,7 +1683,7 @@
         , location: document.location.toString()
       };
 
-      var result = false;
+      let result = false;
 
       try {
         result = window.br.events.trigger('error', data);
@@ -1751,7 +1697,7 @@
     });
 
     window.addEventListener('unhandledrejection', function(event) {
-      var data = {
+      let data = {
           message: typeof event.reason == 'string' ? event.reason : null
         , data: typeof event.reason == 'string' ?  null : event.reason
         , filename: null
@@ -1761,7 +1707,7 @@
         , location: document.location.toString()
       };
 
-      var result = false;
+      let result = false;
 
       try {
         result = window.br.events.trigger('error', data);
@@ -1781,10 +1727,10 @@
 
   function printObject(obj, eol, prefix) {
 
-    var result = '';
+    let result = '';
 
     prefix = prefix ? prefix : '';
-    for(var name in obj) {
+    for(let name in obj) {
       if (br.isObject(obj[name])) {
         result += printObject(obj[name], eol, prefix + name + '.');
       } else {
@@ -1801,7 +1747,7 @@
     if (navigator.sendBeacon) {
       format = format || 'json';
       br.on('error', function(error) {
-        var message = '', suffix;
+        let message = '', suffix;
         switch(format) {
           case 'html':
             message = printObject(error, '<br />');
@@ -1813,7 +1759,7 @@
             message = JSON.stringify(error);
             break;
         }
-        var data = new FormData();
+        let data = new FormData();
         data.append('error', message);
         navigator.sendBeacon(url, data);
       });

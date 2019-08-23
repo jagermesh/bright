@@ -11,58 +11,15 @@
 
     function BrWebCamera() {
 
-      var _this = this;
+      const _this = this;
 
       _this.events = br.eventQueue(this);
       _this.before = function(event, callback) { _this.events.before(event, callback); };
       _this.on     = function(event, callback) { _this.events.on(event, callback); };
       _this.after  = function(event, callback) { _this.events.after(event, callback); };
 
-      var lastTime = 0;
-
-      _this.requestAnimationFrame = function(callback, element) {
-
-        var requestAnimationFrame =
-          window.requestAnimationFrame        ||
-          window.webkitRequestAnimationFrame  ||
-          window.mozRequestAnimationFrame     ||
-          window.oRequestAnimationFrame       ||
-          window.msRequestAnimationFrame      ||
-          function(callback, element) {
-            var currTime = new Date().getTime();
-            var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-            var id = window.setTimeout(function() {
-              callback(currTime + timeToCall);
-            }, timeToCall);
-            lastTime = currTime + timeToCall;
-            return id;
-          };
-
-        return requestAnimationFrame.call(window, callback, element);
-
-      };
-
-      _this.getUserMedia = function(options, success, error) {
-
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-          navigator.mediaDevices.getUserMedia(options).then(success).catch(error);
-        } else {
-          var getUserMedia =
-            navigator.getUserMedia       ||
-            navigator.mozGetUserMedia    ||
-            navigator.webkitGetUserMedia ||
-            navigator.msGetUserMedia     ||
-            function(options, success, error) {
-              error();
-            };
-
-          return getUserMedia.call(window, options, success, error);
-        }
-
-      };
-
-      var elem = document.createElement('canvas');
-      var canvasSupported = !!(elem.getContext && elem.getContext('2d'));
+      let elem = document.createElement('canvas');
+      let canvasSupported = !!(elem.getContext && elem.getContext('2d'));
       elem.remove();
 
       _this.isSupported = function() {
@@ -79,9 +36,9 @@
 
         if (_this.isSupported()) {
           try {
-            var attempts = 0;
+            let attempts = 0;
 
-            var requestFrame = function () {
+            let requestFrame = function () {
               if (webCam.readyState === webCam.HAVE_ENOUGH_DATA) {
                 try {
                   _this.events.trigger('frame', webCam);
@@ -89,26 +46,26 @@
 
                 }
               }
-              _this.requestAnimationFrame(requestFrame);
+              br.requestAnimationFrame(requestFrame);
             };
 
-            var findVideoSize = function() {
+            let findVideoSize = function() {
               if (webCam.videoWidth > 0 && webCam.videoHeight > 0) {
                 webCam.removeEventListener('loadeddata', readyListener);
                 _this.events.trigger('connected', { width: webCam.videoWidth, height: webCam.videoWidth });
-                _this.requestAnimationFrame(requestFrame);
+                br.requestAnimationFrame(requestFrame);
               } else {
                 if (attempts < 10) {
                   attempts++;
                   window.setTimeout(findVideoSize, 200);
                 } else {
                   _this.events.trigger('connected', { width: 640, height: 480 });
-                  _this.requestAnimationFrame(requestFrame);
+                  br.requestAnimationFrame(requestFrame);
                 }
               }
             };
 
-            var readyListener = function(event) {
+            let readyListener = function(event) {
               findVideoSize();
             };
 
@@ -119,18 +76,18 @@
               webCam.src = null;
             });
 
-            _this.getUserMedia( { video: true }
-                              , function(stream) {
-                                  webCam.srcObject = stream;
-                                  webCam.setAttribute('playsinline', true);
-                                  window.setTimeout(function() {
-                                    webCam.play();
-                                  }, 500);
-                                }
-                              , function (error) {
-                                  _this.events.trigger('error', error);
-                                }
-                              );
+            br.getUserMedia( { video: true }
+                           , function(stream) {
+                               webCam.srcObject = stream;
+                               webCam.setAttribute('playsinline', true);
+                               window.setTimeout(function() {
+                                 webCam.play();
+                               }, 500);
+                             }
+                           , function (error) {
+                               _this.events.trigger('error', error);
+                             }
+                           );
           } catch (error) {
             _this.events.trigger('error', error);
           }
@@ -144,7 +101,7 @@
 
     window.br = window.br || {};
 
-    var webCamera;
+    let webCamera;
 
     window.br.webCamera = function(params) {
       if (!webCamera) {

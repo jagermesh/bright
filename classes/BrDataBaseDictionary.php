@@ -66,8 +66,8 @@ class BrDataBaseDictionary extends BrObject {
                   }
                 }
               }
-            } else {
-              unset($row[$fieldName]);
+            // } else {
+              // unset($row[$fieldName]);
             }
           }
         }
