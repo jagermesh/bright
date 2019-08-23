@@ -1965,7 +1965,7 @@
                  , data: request
                  , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
                  , url: _this.options.restServiceUrl + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-                 , headers: { 'X-Csrf-Token': br.request.csrfToken }
+                 // , headers: { 'X-Csrf-Token': br.request.csrfToken }
                  , success: function(response) {
                      var result, errorMessage;
                      if (_this.options.crossdomain) {
@@ -2074,7 +2074,7 @@
                  , data: request
                  , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
                  , url: _this.options.restServiceUrlNormalized + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-                 , headers: { 'X-Csrf-Token': br.request.csrfToken }
+                 // , headers: { 'X-Csrf-Token': br.request.csrfToken }
                  , success: function(response) {
                      var operation = 'update';
                      if (response) {
@@ -2176,7 +2176,7 @@
                  , data: request
                  , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
                  , url: _this.options.restServiceUrlNormalized + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-                 , headers: { 'X-Csrf-Token': br.request.csrfToken }
+                 // , headers: { 'X-Csrf-Token': br.request.csrfToken }
                  , success: function(response) {
                      resolve({rowid: rowid, request: request, options: options, response: response});
                    }
@@ -2441,7 +2441,7 @@
                                      , data: request
                                      , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
                                      , url: url + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-                                     , headers: { 'X-Csrf-Token': br.request.csrfToken }
+                                     // , headers: { 'X-Csrf-Token': br.request.csrfToken }
                                      , success: function(response) {
                                          try {
                                            _this.ajaxRequest = null;
@@ -2569,7 +2569,7 @@
                , data: request
                , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
                , url: _this.options.restServiceUrlNormalized + method + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-               , headers: { 'X-Csrf-Token': br.request.csrfToken }
+               // , headers: { 'X-Csrf-Token': br.request.csrfToken }
                , success: function(response) {
                    if (_this.options.crossdomain && (typeof response == 'string')) {
                      reject({method: method, request: request, options: options, errorMessage: response});
