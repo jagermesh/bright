@@ -1,7 +1,7 @@
 {
   "name": "bright",
   "description": "Reactive PHP/JavaScript framework",
-  "version": "2.0.17",
+  "version": "2.0.18",
   "dependencies": {
     "del": "*",
     "gulp": "*",

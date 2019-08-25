@@ -7489,6 +7489,20 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
 
   window.br = window.br || Object.create({});
 
+  if (!google.maps.Polygon.prototype.getBounds) {
+    google.maps.Polygon.prototype.getBounds = function(latLng) {
+      let paths = this.getPaths();
+      let bounds = new google.maps.LatLngBounds();
+      paths.forEach(function(path) {
+        let points = path.getArray();
+        for(let i = 0, length = points.length; i < length; i++) {
+          bounds.extend(points[i]);
+        }
+      });
+      return bounds;
+    };
+  }
+
   function BrGoogleMap(selector, options) {
 
     const _this = this;
