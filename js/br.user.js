@@ -1,5 +1,5 @@
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
  * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -11,13 +11,13 @@
 
   $(function() {
 
-    var users = br.dataSource(br.baseUrl + 'api/users/');
+    let usersDataSourcee = br.dataSource(br.baseUrl + 'api/users/');
 
     $('.action-signup').click(function() {
 
-      var data = {};
+      let data = Object.create({});
 
-      var form = $(this).closest('form');
+      let form = $(this).closest('form');
       if (form.length === 0) {
         form = $(this).closest('div.modal');
       }
@@ -30,7 +30,7 @@
         data[$(this).attr('name')] = $(this).val();
       });
 
-      users.invoke('signup', data, function(result, response) {
+      usersDataSourcee.invoke('signup', data, function(result, response) {
         if (result) {
           br.redirect('?from=signup');
         } else {
@@ -46,9 +46,9 @@
 
     $('.action-login').click(function() {
 
-      var data = {};
+      let data = Object.create({});
 
-      var form = $(this).closest('form');
+      let form = $(this).closest('form');
       if (form.length === 0) {
         form = $(this).closest('div.modal');
       }
@@ -73,28 +73,25 @@
         }
       });
 
-      users.invoke( 'login'
-                  , data
-                  , function(result, response) {
-                      if (result) {
-                        br.redirect(br.request.get('caller', '?from=login'));
-                      } else {
-                        if ($('.login-error', form).length > 0) {
-                          $('.login-error', form).text(response).show();
-                        } else {
-                          br.growlError(response);
-                        }
-                      }
-                    }
-                  );
+      usersDataSourcee.invoke('login', data, function(result, response) {
+        if (result) {
+          br.redirect(br.request.get('caller', '?from=login'));
+        } else {
+          if ($('.login-error', form).length > 0) {
+            $('.login-error', form).text(response).show();
+          } else {
+            br.growlError(response);
+          }
+        }
+      });
 
     });
 
     $('.action-reset-password').click(function() {
 
-      var data = {};
+      let data = Object.create({});
 
-      var form = $(this).closest('form');
+      let form = $(this).closest('form');
       if (form.length === 0) {
         form = $(this).closest('div.modal');
       }
@@ -107,33 +104,29 @@
         data[$(this).attr('name')] = $(this).val();
       });
 
-      users.invoke( 'remindPassword'
-                  , data
-                  , function(result, response) {
-                      if (result) {
-                        br.redirect(br.request.get('caller', 'reset-password-final.html'));
-                      } else {
-                        if ($('.reset-password-error', form).length > 0) {
-                          $('.reset-password-error', form).text(response).fadeIn();
-                        } else {
-                          br.growlError(response);
-                        }
-                      }
-                    }
-                  );
+      usersDataSourcee.invoke('remindPassword', data, function(result, response) {
+        if (result) {
+          br.redirect(br.request.get('caller', 'reset-password-final.html'));
+        } else {
+          if ($('.reset-password-error', form).length > 0) {
+            $('.reset-password-error', form).text(response).fadeIn();
+          } else {
+            br.growlError(response);
+          }
+        }
+      });
 
     });
 
     $('.action-logout').click(function() {
 
-      users.invoke( 'logout'
-                  , { }
-                  , function(result) {
-                      if (result) {
-                        document.location = br.baseUrl;
-                      }
-                    }
-                  );
+      let data = Object.create({});
+
+      usersDataSourcee.invoke('logout', data, function(result) {
+        if (result) {
+          document.location = br.baseUrl;
+        }
+      });
 
     });
 

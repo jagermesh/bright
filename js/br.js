@@ -1,5 +1,5 @@
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
  * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -14,14 +14,14 @@
 
 ;(function ($, window) {
 
-  window.br = window.br || {};
+  window.br = window.br || Object.create({});
 
   let baseUrl = '';
   let brightUrl = '';
 
   let scripts = $('script');
 
-  for(let i = 0; i < scripts.length; i++) {
+  for(let i = 0, length = scripts.length; i < length; i++) {
     let src = $(scripts[i]).attr('src');
     if (!br.isEmpty(src)) {
       if (/bright\/.+?[.]js/i.test(src)) {
@@ -336,7 +336,7 @@
       element.data(listName2, element.val());
       let callbacks = element.data(listName1);
       if (callbacks) {
-        for(let i in callbacks) {
+        for(let i = 0, length = callbacks.length; i < length; i++) {
           callbacks[i].call(element);
         }
       }
@@ -513,7 +513,7 @@
       let sel = window.getSelection();
       if (sel.rangeCount) {
         let container = document.createElement('div');
-        for (let i = 0, len = sel.rangeCount; i < len; ++i) {
+        for(let i = 0, length = sel.rangeCount; i < length; ++i) {
           container.appendChild(sel.getRangeAt(i).cloneContents());
         }
         html = container.innerHTML;

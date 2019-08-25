@@ -4,15 +4,13 @@
  * Project:     Bright framework
  * Author:      Jager Mesh (jagermesh@gmail.com)
  *
- * @version 1.1.0.0
+ * @version 2.0
  * @package Bright Core
  */
 
 spl_autoload_register(function($className) {
 
   $files = [];
-
-  // echo($className . "<br/>");
 
   if (preg_match('#^Bright\\\Br.*Exception$#', $className, $matches)) {
     $files[] = __DIR__ . DIRECTORY_SEPARATOR . 'classes' . DIRECTORY_SEPARATOR . 'BrException.php';

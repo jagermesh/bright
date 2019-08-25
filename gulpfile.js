@@ -43,10 +43,9 @@ const configs = { jshint: { src: ['js/**/*.js'] }
                                              , 'js/br.editable.js'
                                              , 'js/br.ui.js'
                                              , 'js/br.clipboard.js'
-                                             , 'js/br.rabbitMQ.js'
                                              , 'js/br.dataEditor.js'
                                              , 'js/br.dataBrowser.js'
-                                             , 'js/br.exChangeMenu.js'
+                                             , 'js/br.dropDownMenu.js'
                                              , 'js/br.dataHelpers.js'
                                              , 'js/br.googleMap.js'
                                              ]

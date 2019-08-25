@@ -1,7 +1,7 @@
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
- * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2019, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
@@ -9,7 +9,9 @@
 
 /* global google */
 
-;(function ($, window, undefined) {
+;(function ($, window) {
+
+  window.br = window.br || Object.create({});
 
   function BrGoogleMap(selector, options) {
 
@@ -95,9 +97,10 @@
     });
 
     function computeRouteParams(result) {
-      var distance = 0, duration = 0;
-      var myroute = result.routes[0];
-      for (var i = 0; i < myroute.legs.length; i++) {
+      let distance = 0;
+      let duration = 0;
+      let myroute = result.routes[0];
+      for (let i = 0; i < myroute.legs.length; i++) {
         distance += myroute.legs[i].distance.value;
         duration += myroute.legs[i].duration.value;
       }
@@ -105,7 +108,7 @@
     }
 
     google.maps.event.addListener(_this.directionsDisplay, 'directions_changed', function() {
-      var routeParams = computeRouteParams(_this.directionsDisplay.directions);
+      let routeParams = computeRouteParams(_this.directionsDisplay.directions);
       routeParams.directions = _this.directionsDisplay.directions;
       _this.events.trigger('directions_changed', routeParams);
     });
@@ -129,7 +132,7 @@
     _this.identifyLocation = function(callback) {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
-          var pos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+          let pos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
           _this.map.setCenter(pos);
           _this.map.setZoom(15);
           if (typeof callback == 'function') {
@@ -178,9 +181,9 @@
     };
 
     _this.iterateMarkers = function(callback) {
-      var stop = false;
-      for(var tag in _this.markers) {
-        for (var i = _this.markers[tag].length-1; i >= 0; i--) {
+      let stop = false;
+      for(let tag in _this.markers) {
+        for (let i = _this.markers[tag].length-1; i >= 0; i--) {
           stop = callback(_this.markers[tag][i]);
           if (stop) {
             break;
@@ -203,11 +206,11 @@
     };
 
     _this.addMarker = function(lat, lng, params, tag, custom) {
-      var markerParams = Object.create({});
+      let markerParams = Object.create({});
       markerParams.icon = params.icon || null;
       markerParams.draggable = params.draggable || false;
-      var latLng = new google.maps.LatLng(lat, lng);
-      var marker = new google.maps.Marker({ position: latLng
+      let latLng = new google.maps.LatLng(lat, lng);
+      let marker = new google.maps.Marker({ position: latLng
                                           , map: this.map
                                           , icon: markerParams.icon
                                           , draggable: markerParams.draggable
@@ -232,8 +235,8 @@
     };
 
     _this.getMarkersCount = function() {
-      var result = 0;
-      for(var tag in _this.markers) {
+      let result = 0;
+      for(let tag in _this.markers) {
         result += _this.markers[tag].length;
       }
       return result;
@@ -241,7 +244,7 @@
 
     function internalRemovePolygons(tag) {
       if (_this.polygons[tag]) {
-        for (var i = _this.polygons[tag].length-1; i >= 0; i--) {
+        for (let i = _this.polygons[tag].length-1; i >= 0; i--) {
           _this.polygons[tag][i].setMap(null);
           _this.polygons[tag].splice(i, 1);
         }
@@ -253,9 +256,9 @@
     };
 
     _this.iteratePolygons = function(callback) {
-      var stop = false;
-      for(var tag in _this.polygons) {
-        for (var i = _this.polygons[tag].length-1; i >= 0; i--) {
+      let stop = false;
+      for(let tag in _this.polygons) {
+        for (let i = _this.polygons[tag].length-1; i >= 0; i--) {
           stop = callback(_this.polygons[tag][i]);
           if (stop) {
             break;
@@ -286,12 +289,11 @@
     _this.addGeoJSONPolygon = function(geoData, params, tag, custom) {
 
       function arrayMap(array, callback) {
-        var original_callback_params = Array.prototype.slice.call(arguments, 2),
-          array_return = [],
-          array_length = array.length,
-          i;
+        let original_callback_params = Array.prototype.slice.call(arguments, 2);
+        let array_return = [];
+        let array_length = array.length;
 
-        if (Array.prototype.map && array.map === Array.prototype.map) {
+        if (Array.prototype.map && (array.map === Array.prototype.map)) {
           array_return = Array.prototype.map.call(array, function(item) {
             var callback_params = original_callback_params;
             callback_params.splice(0, 0, item);
@@ -299,7 +301,7 @@
             return callback.apply(this, callback_params);
           });
         } else {
-          for (i = 0; i < array_length; i++) {
+          for (let i = 0; i < array_length; i++) {
             var callback_params = original_callback_params;
             callback_params.splice(0, 0, array[i]);
             array_return.push(callback.apply(this, callback_params));
@@ -310,7 +312,7 @@
       }
 
       function arrayFlat(array) {
-        var result = [];
+        let result = [];
 
         for (let i = 0; i < array.length; i++) {
           result = result.concat(array[i]);
@@ -320,7 +322,8 @@
       }
 
       function coordsToLatLngs(coords, useGeoJSON) {
-        var first_coord = coords[0], second_coord = coords[1];
+        let first_coord = coords[0];
+        let second_coord = coords[1];
 
         if (useGeoJSON) {
           first_coord = coords[1];
@@ -344,8 +347,8 @@
         return coords;
       }
       params = params || Object.create({});
-      var polygonParams = Object.create({});
-      var coordinates = JSON.parse(JSON.stringify(geoData));
+      let polygonParams = Object.create({});
+      let coordinates = JSON.parse(JSON.stringify(geoData));
       polygonParams.paths = arrayFlat(arrayMap(coordinates, arrayToLatLng, true));
       polygonParams.strokeColor = params.strokeColor || '#999';
       polygonParams.strokeOpacity = params.strokeOpacity || 1;
@@ -353,7 +356,7 @@
       polygonParams.fillColor = params.fillColor;
       polygonParams.fillOpacity = polygonParams.fillColor ? (params.fillOpacity == undefined ? 0.3 : params.fillOpacity) : 0;
       polygonParams.map = _this.map;
-      var polygon = new google.maps.Polygon(polygonParams);
+      let polygon = new google.maps.Polygon(polygonParams);
       polygon.custom = custom;
       tag = tag || '_';
       _this.polygons[tag] = _this.polygons[tag] || [];
@@ -429,7 +432,7 @@
           });
         }
       }
-      var bounds = new google.maps.LatLngBounds();
+      let bounds = new google.maps.LatLngBounds();
       _this.map.data.forEach(function(feature) {
         processPoints(feature.getGeometry(), bounds.extend, bounds);
       });
@@ -449,7 +452,7 @@
     _this.gotoAddress = function(address, callback) {
       _this.findAddress(address, function(result, points) {
         if (result) {
-          var pos = new google.maps.LatLng(points[0].lat, points[0].lng);
+          let pos = new google.maps.LatLng(points[0].lat, points[0].lng);
           _this.map.setCenter(pos);
           _this.map.setZoom(17);
           if (typeof callback == 'function') {
@@ -462,8 +465,8 @@
     _this.findAddress = function(address, callback) {
       _this.geocoder.geocode({'address': address}, function(results, status) {
         if (status == google.maps.GeocoderStatus.OK) {
-          var points = [];
-          for (var i = 0; i < results.length; i++) {
+          let points = [];
+          for (let i = 0; i < results.length; i++) {
             points.push({ lat: results[i].geometry.location.lat()
                         , lng: results[i].geometry.location.lng()
                         , name: results[i].formatted_address
@@ -486,11 +489,11 @@
     };
 
     _this.drawRoute = function(coord, callback) {
-      var origin = null;
-      var destination = null;
-      var waypoints = [];
-      for (var i = 0; i < coord.length; i++) {
-        var latLng = coord[i];
+      let origin = null;
+      let destination = null;
+      let waypoints = [];
+      for (let i = 0; i < coord.length; i++) {
+        let latLng = coord[i];
         if (origin === null) {
           origin = latLng;
         } else
@@ -502,7 +505,7 @@
         }
       }
       if ((origin !== null) && (destination !== null)) {
-        var request = {
+        let request = {
             origin: origin
           , destination: destination
           , waypoints: waypoints
@@ -515,7 +518,7 @@
           if (status == google.maps.DirectionsStatus.OK) {
             _this.directionsDisplay.setMap(_this.map);
             _this.directionsDisplay.setDirections(response);
-            var routeParams = computeRouteParams(_this.directionsDisplay.directions);
+            let routeParams = computeRouteParams(_this.directionsDisplay.directions);
             routeParams.directions = _this.directionsDisplay.directions;
             if (callback) {
               callback.call(this, true, routeParams);
@@ -534,9 +537,9 @@
     };
 
     _this.drawRouteByTag = function(tag, callback) {
-      var coord = [];
-      var markers = _this.getMarkersByTag(tag);
-      for (var i = 0; i < markers.length; i++) {
+      let coord = [];
+      let markers = _this.getMarkersByTag(tag);
+      for (let i = 0; i < markers.length; i++) {
         coord.push(new google.maps.LatLng(markers[i].position.lat(), markers[i].position.lng()));
       }
       _this.drawRoute(coord, callback);
@@ -559,7 +562,7 @@
       getJsonCustom.data = params.data;
       getJsonCustom.tag = params.tag;
 
-      var geoJsonLayer = new google.maps.Data();
+      let geoJsonLayer = new google.maps.Data();
       geoJsonLayer.addGeoJson(geoJson);
       geoJsonLayer.setMap(_this.map);
       geoJsonLayer.setStyle(getJsonStyle);
@@ -614,8 +617,6 @@
     return _this;
 
   }
-
-  window.br = window.br || {};
 
   window.br.googleMap = function (selector, options) {
     return new BrGoogleMap(selector, options);

@@ -4,7 +4,7 @@
  * Project:     Bright framework
  * Author:
  *
- * @version 1.1.0.0
+ * @version 2.0
  * @package Bright Core
  */
 

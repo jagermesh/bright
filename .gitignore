@@ -3,5 +3,6 @@
 _logs
 _tmp
 node_modules
+bower_components
 vendor
 composer.lock

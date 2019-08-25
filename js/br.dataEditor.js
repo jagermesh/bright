@@ -1,7 +1,7 @@
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
- * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2019, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
@@ -9,14 +9,19 @@
 
 ;(function ($, window) {
 
+  window.br = window.br || Object.create({});
+
   function BrDataEditor(selector, dataSource, options) {
 
-    var _this = this;
+    const _this = this;
 
-    var editorRowid = null;
-    var editorRowData = null;
-    var active = false;
-    var cancelled = false;
+    let editorRowid = null;
+    let editorRowData = null;
+    let active = false;
+    let cancelled = false;
+    let closeConfirmationTmp;
+    let saving = false;
+    let savingAndClosing = false;
 
     _this.options = options || {};
     _this.options.noun = _this.options.noun || '';
@@ -25,6 +30,7 @@
     _this.options.selectors.cancel = _this.options.selectors.cancel || '.action-cancel';
     _this.options.selectors.errorMessage = _this.options.selectors.errorMessage || '.editor-error-message';
     _this.container = $(selector);
+
     if (_this.options.inputsContainer) {
       _this.inputsContainer = $(_this.options.inputsContainer);
     } else {
@@ -69,7 +75,7 @@
     };
 
     _this.showError = function(message) {
-      var ctrl = $(_this.options.selectors.errorMessage, _this.container);
+      let ctrl = $(_this.options.selectors.errorMessage, _this.container);
       if (ctrl.length > 0) {
         ctrl.html(message).show();
       } else {
@@ -78,7 +84,7 @@
     };
 
     _this.editorConfigure = function(isCopy) {
-      var s = '';
+      let s = '';
       if (_this.options.title) {
         s = _this.options.title;
       } else
@@ -98,7 +104,7 @@
     };
 
     function editorShown() {
-      var focusedInput = $('input.focus[type!=hidden]:visible,select.focus:visible,textarea.focus:visible', _this.container);
+      let focusedInput = $('input.focus[type!=hidden]:visible,select.focus:visible,textarea.focus:visible', _this.container);
       if (focusedInput.length > 0) {
         try { focusedInput[0].focus(); } catch (e) { }
       } else {
@@ -110,8 +116,6 @@
       _this.events.trigger('editor.shown');
       br.resetCloseConfirmation();
     }
-
-    var closeConfirmationTmp;
 
     function editorHidden(result, response) {
       _this.events.trigger('editor.hidden', result, response);
@@ -158,9 +162,9 @@
       });
 
       $(_this.options.selectors.save, _this.container).click(function() {
-        var btn = $(this);
+        let btn = $(this);
         if (!btn.hasClass('disabled') && !saving) {
-          var andClose = btn.hasClass('action-close') || _this.container.hasClass('modal');
+          let andClose = btn.hasClass('action-close') || _this.container.hasClass('modal');
           btn.addClass('disabled');
           internalSave( andClose
                       , function() { btn.removeClass('disabled'); }
@@ -191,9 +195,9 @@
       if (data) {
         for(var i in data) {
           _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio][name=' + i + '],input.data-field[name=' + i + '],select.data-field[name=' + i + '],textarea.data-field[name=' + i + ']').each(function() {
-            var input = $(this);
+            let input = $(this);
             if (input.attr('data-toggle') == 'buttons-radio') {
-              var val = br.isNull(data[i]) ? '' : data[i];
+              let val = br.isNull(data[i]) ? '' : data[i];
               input.find('button[value="' + val + '"]').addClass('active');
             } else
             if (input.attr('type') == 'checkbox') {
@@ -202,7 +206,7 @@
             if (input.attr('type') == 'radio') {
               input.prop('checked', br.toInt(data[i]) == br.toInt(input.val()));
             } else {
-              var ckeditorInstance = input.data('ckeditorInstance');
+              let ckeditorInstance = input.data('ckeditorInstance');
               if (ckeditorInstance) {
                 (function(input, ckeditorInstance, data) {
                   ckeditorInstance.setData(data
@@ -216,7 +220,7 @@
                       });
                 })(input, ckeditorInstance, data[i]);
               } else {
-                var dataComboInstance = input.data('BrDataCombo');
+                let dataComboInstance = input.data('BrDataCombo');
                 if (dataComboInstance) {
                   dataComboInstance.val(data[i]);
                 } else {
@@ -238,7 +242,7 @@
       closeConfirmationTmp = br.isCloseConfirmationRequired();
       editorRowid = null;
       editorRowData = null;
-      var defaultValues = null;
+      let defaultValues = null;
       if (br.isNumber(rowid)) {
         editorRowid = rowid;
       } else
@@ -252,14 +256,14 @@
       _this.inputsContainer.find('input.data-field[type=checkbox]').val('1').prop('checked', false);
       _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio]').find('button').removeClass('active');
 
-      var ctrl = $(_this.options.selectors.errorMessage, _this.container);
+      let ctrl = $(_this.options.selectors.errorMessage, _this.container);
       if (ctrl.length > 0) {
         ctrl.html('').hide();
       }
 
       if (editorRowid) {
-        var request = { rowid: editorRowid };
-        var options = { disableEvents: true };
+        let request = { rowid: editorRowid };
+        let options = { disableEvents: true };
         _this.events.triggerBefore('editor.loadData', request, options);
         _this.dataSource.selectOne(request, function(result, data) {
           if (result) {
@@ -313,9 +317,6 @@
       }
     };
 
-    var saving = false;
-    var savingAndClosing = false;
-
     _this.isSaving = function() {
       return saving;
     };
@@ -345,15 +346,11 @@
 
       savingAndClosing = andClose;
 
-      var op = '';
-      var ok = true;
-      if (editorRowid) {
-        op = 'update';
-      } else {
-        op = 'insert';
-      }
+      let op = editorRowid ? 'update' : 'insert';
+      let ok = true;
+
       try {
-        var options = {  };
+        let options = Object.create({});
         _this.events.trigger('editor.save', op, data, options);
         if (editorRowid) {
           _this.events.triggerBefore('editor.update', data, options);
@@ -371,7 +368,7 @@
                     editorRowid = null;
                     editorRowData = null;
                   } else {
-                    var callResponse = { refresh: true };
+                    let callResponse = { refresh: true };
                     _this.events.trigger('editor.hide', true, response, callResponse);
                     editorHidden(true, response);
                     br.backToCaller(_this.options.returnUrl, callResponse.refresh);
@@ -415,7 +412,7 @@
                     editorRowid = null;
                     editorRowData = null;
                   } else {
-                    var callResponse = { refresh: true };
+                    let callResponse = { refresh: true };
                     _this.events.trigger('editor.hide', true, response, callResponse);
                     editorHidden(true, response);
                     br.backToCaller(_this.options.returnUrl, callResponse.refresh);
@@ -463,15 +460,15 @@
         saving = true;
       }
 
-      var data = Object.create({ });
-      var errors = [];
+      let data = Object.create({ });
+      let errors = [];
       try {
         $(_this.options.selectors.errorMessage, _this.container).hide();
         _this.events.triggerBefore('editor.save');
         _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio],input.data-field,select.data-field,textarea.data-field').each(function() {
-          var val;
-          var skip = false;
-          var input = $(this);
+          let val;
+          let skip = false;
+          let input = $(this);
           if ((input.attr('readonly') != 'readonly') && (input.attr('disabled') != 'disabled')) {
             if (input.attr('data-toggle') == 'buttons-radio') {
               val = input.find('button.active').val();
@@ -490,7 +487,7 @@
             }
             if (!skip) {
               if (input.hasClass('required') && br.isEmpty(val) && (!input.hasClass('required-edit-only') || _this.isEditMode()) && (!input.hasClass('required-insert-only') || _this.isInsertMode())) {
-                var title = input.attr('title');
+                let title = input.attr('title');
                 if (br.isEmpty(title)) {
                   title = input.prev('label').text();
                 }
@@ -498,7 +495,6 @@
                   this.focus();
                 }
                 errors.push(br.trn('%s must be filled').replace('%s', title));
-                ok = false;
               } else
               if (br.isEmpty(val)) {
                 data[input.attr('name')] = '';
@@ -508,27 +504,18 @@
             }
           }
         });
+
         if (errors.length > 0) {
-          var tmpl;
-          if (errors.length == 1) {
-            tmpl = '{{#errors}}{{.}}{{/errors}}';
-          } else {
-            tmpl = br.trn('Please check the following:') + '<br /><ul>{{#errors}}<li>{{.}}</li>{{/errors}}</ul>';
-          }
-          var error = br.fetch(tmpl, { errors: errors });
+          let tmpl = (errors.length == 1) ? '{{#errors}}{{.}}{{/errors}}': br.trn('Please check the following:') + '<br /><ul>{{#errors}}<li>{{.}}</li>{{/errors}}</ul>';
+          let error = br.fetch(tmpl, { errors: errors });
           _this.showError(error);
           if (errorCallback) {
             errorCallback.call(_this, data, error);
           }
           saving = false;
         } else {
-          var op = '';
-          var ok = true;
-          if (editorRowid) {
-            op = 'update';
-          } else {
-            op = 'insert';
-          }
+          let op = editorRowid ? 'update' : 'insert';
+          let ok = true;
           if (_this.events.has('editor.save', 'pause')) {
             _this.events.triggerPause( 'editor.save'
                                      , { continue: function(data) {
@@ -560,8 +547,6 @@
     return _this.init();
 
   }
-
-  window.br = window.br || {};
 
   window.br.dataEditor = function (selector, dataSource, options) {
     return new BrDataEditor(selector, dataSource, options);

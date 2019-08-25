@@ -1,5 +1,5 @@
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
  * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -9,33 +9,33 @@
 
 ;(function (window) {
 
-  var _helper = {
+  window.br = window.br || Object.create({});
 
+  const _helper = {
     pack: function(data) {
       return JSON.stringify(data);
-    },
-
-    unpack: function(data) {
+    }
+  , unpack: function(data) {
       try {
         return JSON.parse(data);
       } catch(ex) {
         return null;
       }
     }
-
   };
 
   function BrStorage(storage) {
 
-    var _storage = storage;
-    var _this = this;
+    const _this = this;
 
-    this.get = function(key, defaultValue) {
-      var result;
+    let _storage = storage;
+
+    _this.get = function(key, defaultValue) {
+      let result;
       if (br.isArray(key)) {
-        result = {};
-        for(var i in key) {
-          result[key[i]] = this.get(key[i]);
+        result = Object.create({});
+        for(let i in key) {
+          result[key[i]] = _this.get(key[i]);
         }
       } else {
         result = _helper.unpack(_storage.getItem(key));
@@ -43,22 +43,22 @@
       return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
     };
 
-    this.set = function(key, value) {
+    _this.set = function(key, value) {
       if (br.isObject(key)) {
-        for(var name in key) {
-          this.set(name, key[name]);
+        for(let name in key) {
+          _this.set(name, key[name]);
         }
       } else {
         _storage.setItem(key, _helper.pack(value));
       }
-      return this;
+      return _this;
     };
 
-    this.inc = function(key, increment, glue) {
-      var value = this.get(key);
+    _this.inc = function(key, increment, glue) {
+      let value = _this.get(key);
       if (br.isNumber(value)) {
         increment = (br.isNumber(increment) ? increment : 1);
-        this.set(key, value + increment);
+        _this.set(key, value + increment);
       } else
       if (br.isString(value)) {
         if (!br.isEmpty(increment)) {
@@ -70,31 +70,31 @@
           } else {
             value = increment;
           }
-          this.set(key, value);
+          _this.set(key, value);
         }
       } else {
         increment = (br.isNumber(increment) ? increment : 1);
-        this.set(key, increment);
+        _this.set(key, increment);
       }
-      return this;
+      return _this;
     };
 
-    this.dec = function(key, increment) {
-      var value = this.get(key);
+    _this.dec = function(key, increment) {
+      let value = _this.get(key);
       increment = (br.isNumber(increment) ? increment : 1);
-      this.set(key, br.isNumber(value) ? (value - increment) : increment);
-      return this;
+      _this.set(key, br.isNumber(value) ? (value - increment) : increment);
+      return _this;
     };
 
-    this.append = function(key, newValue, limit) {
+    _this.append = function(key, newValue, limit) {
       if (!br.isEmpty(newValue)) {
-        var value = this.get(key);
+        let value = _this.get(key);
         if (!br.isArray(value)) {
           value = [];
         }
         if (br.isArray(newValue)) {
-          for(var i in newValue) {
-            this.append(key, newValue[i], limit);
+          for(let i in newValue) {
+            _this.append(key, newValue[i], limit);
           }
         } else {
           if (br.isNumber(limit)) {
@@ -103,29 +103,29 @@
             }
           }
           value.push(newValue);
-          this.set(key, value);
+          _this.set(key, value);
         }
       }
-      return this;
+      return _this;
     };
 
-    this.appendUnique = function(key, newValue, limit) {
+    _this.appendUnique = function(key, newValue, limit) {
       if (!br.isEmpty(newValue)) {
-        this.remove(key, newValue);
-        this.append(key, newValue, limit);
+        _this.remove(key, newValue);
+        _this.append(key, newValue, limit);
       }
-      return this;
+      return _this;
     };
 
-    this.prepend = function(key, newValue, limit) {
+    _this.prepend = function(key, newValue, limit) {
       if (!br.isEmpty(newValue)) {
-        var value = this.get(key);
+        let value = _this.get(key);
         if (!br.isArray(value)) {
           value = [];
         }
         if (br.isArray(newValue)) {
-          for(var i in newValue) {
-            this.prepend(key, newValue[i], limit);
+          for(let i in newValue) {
+            _this.prepend(key, newValue[i], limit);
           }
         } else {
           if (br.isNumber(limit)) {
@@ -134,34 +134,34 @@
             }
           }
           value.unshift(newValue);
-          this.set(key, value);
+          _this.set(key, value);
         }
       }
-      return this;
+      return _this;
     };
 
-    this.prependUnique = function(key, newValue, limit) {
+    _this.prependUnique = function(key, newValue, limit) {
       if (!br.isEmpty(newValue)) {
-        this.remove(key, newValue);
-        this.prepend(key, newValue, limit);
+        _this.remove(key, newValue);
+        _this.prepend(key, newValue, limit);
       }
-      return this;
+      return _this;
     };
 
-    this.each = function(key, fn) {
-      var value = this.get(key);
+    _this.each = function(key, fn) {
+      let value = _this.get(key);
       if (!br.isArray(value)) {
         value = [];
       }
-      for(var i=0; i < value.length; i++) {
-        fn.call(this, value[i]);
+      for(let i = 0, length = value.length; i < length; i++) {
+        fn.call(_this, value[i]);
       }
-      return this;
+      return _this;
     };
 
     function _getLast(key, defaultValue, remove) {
-      var result = null;
-      var value = _this.get(key, defaultValue);
+      let result = null;
+      let value = _this.get(key, defaultValue);
       if (br.isArray(value)) {
         if (value.length > 0) {
           result = value.pop();
@@ -173,17 +173,17 @@
       return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
    }
 
-    this.getLast = function(key, defaultValue) {
+    _this.getLast = function(key, defaultValue) {
       return _getLast(key, defaultValue, false);
     };
 
-    this.takeLast = function(key, defaultValue) {
+    _this.takeLast = function(key, defaultValue) {
       return _getLast(key, defaultValue, true);
     };
 
     function _getFirst(key, defaultValue, remove) {
-      var result = null;
-      var value = _this.get(key, defaultValue);
+      let result = null;
+      let value = _this.get(key, defaultValue);
       if (br.isArray(value)) {
         if (value.length > 0) {
           result = value.shift();
@@ -195,68 +195,68 @@
       return br.isEmpty(result) ? (br.isEmpty(defaultValue) ? result : defaultValue) : result;
     }
 
-    this.getFirst = function(key, defaultValue) {
+    _this.getFirst = function(key, defaultValue) {
       return _getFirst(key, defaultValue, false);
     };
 
-    this.takeFirst = function(key, defaultValue) {
+    _this.takeFirst = function(key, defaultValue) {
       return _getFirst(key, defaultValue, true);
     };
 
-    this.extend = function(key, newValue) {
+    _this.extend = function(key, newValue) {
       if (!br.isEmpty(newValue)) {
-        var value = this.get(key);
+        let value = _this.get(key);
         if (!br.isObject(value)) {
-          value = {};
+          value = Object.create({});
         }
         if (br.isObject(newValue)) {
-          for(var i in newValue) {
+          for(let i in newValue) {
             value[i] = newValue[i];
           }
-          this.set(key, value);
+          _this.set(key, value);
         }
       }
-      return this;
+      return _this;
     };
 
-    this.not = function(key) {
-      var value = this.get(key);
+    _this.not = function(key) {
+      let value = _this.get(key);
       if (!br.isBoolean(value)) {
         value = false;
       }
-      this.set(key, !value);
-      return this;
+      _this.set(key, !value);
+      return _this;
     };
 
-    this.clear = function() {
+    _this.clear = function() {
       _storage.clear();
-      return this;
+      return _this;
     };
 
-    this.all = function() {
-      var result = {};
-      for(var name in _storage) {
-        result[name] = this.get(name);
+    _this.all = function() {
+      let result = Object.create({});
+      for(let name in _storage) {
+        result[name] = _this.get(name);
       }
       return result;
     };
 
-    this.remove = function(key, arrayValue) {
-      var value = this.get(key);
+    _this.remove = function(key, arrayValue) {
+      let value = _this.get(key);
       if (!br.isEmpty(arrayValue) && br.isArray(value)) {
-        var idx = value.indexOf(arrayValue);
+        let idx = value.indexOf(arrayValue);
         if (idx != -1) {
           value.splice(idx, 1);
         }
-        this.set(key, value);
+        _this.set(key, value);
       } else {
         _storage.removeItem(key);
       }
-      return this;
+      return _this;
     };
 
-    this.indexOf = function(key, arrayValue) {
-      var value = this.get(key);
+    _this.indexOf = function(key, arrayValue) {
+      let value = _this.get(key);
       if (br.isArray(value)) {
         return value.indexOf(arrayValue);
       }
@@ -264,8 +264,6 @@
     };
 
   }
-
-  window.br = window.br || {};
 
   window.br.storage = new BrStorage(window.localStorage);
   window.br.session = new BrStorage(window.sessionStorage);

@@ -1,25 +1,25 @@
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
- * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2019, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
  */
 
-/* global jQuery */
-
 ;(function ($, window) {
+
+  window.br = window.br || Object.create({});
 
   function BrDraggable(ctrl, options) {
 
-    var _this = this;
+    const _this = this;
 
-    var dragObject = null;
-    var dragHandler = null;
-    var pos_y, pos_x, ofs_x, ofs_y;
+    let dragObject = null;
+    let dragHandler = null;
+    let pos_y, pos_x, ofs_x, ofs_y;
 
-    options = options || {};
+    options = options || Object.create({});
     options.exclude = [ 'INPUT', 'TEXTAREA', 'SELECT', 'A', 'BUTTON' ];
 
     function setPosition(element, left, top) {
@@ -30,15 +30,15 @@
     }
 
     function downHandler(e) {
-      var target = e.target || e.srcElement;
-      var parent = target.parentNode;
+      let target = e.target || e.srcElement;
+      let parent = target.parentNode;
 
       if (target && (options.exclude.indexOf(target.tagName.toUpperCase()) == -1)) {
         if (!parent || (options.exclude.indexOf(parent.tagName.toUpperCase()) == -1)) {  // img in a
           dragObject = ctrl;
 
-          var pageX = e.pageX || e.touches[0].pageX;
-          var pageY = e.pageY || e.touches[0].pageY;
+          let pageX = e.pageX || e.touches[0].pageX;
+          let pageY = e.pageY || e.touches[0].pageY;
 
           ofs_x = dragObject.getBoundingClientRect().left - dragObject.offsetLeft;
           ofs_y = dragObject.getBoundingClientRect().top  - dragObject.offsetTop;
@@ -53,10 +53,10 @@
 
     function moveHandler(e) {
       if (dragObject !== null) {
-        var pageX = e.pageX || e.touches[0].pageX;
-        var pageY = e.pageY || e.touches[0].pageY;
-        var left = pageX - pos_x - ofs_x - document.body.scrollLeft;
-        var top  = pageY - pos_y - ofs_y - document.body.scrollTop;
+        let pageX = e.pageX || e.touches[0].pageX;
+        let pageY = e.pageY || e.touches[0].pageY;
+        let left = pageX - pos_x - ofs_x - document.body.scrollLeft;
+        let top  = pageY - pos_y - ofs_y - document.body.scrollTop;
 
         setPosition(dragObject, left, top);
         if (options.ondrag) {
@@ -118,10 +118,8 @@
 
   }
 
-  window.br = window.br || {};
-
   window.br.draggable = function (selector, options) {
-    var result = [];
+    let result = [];
     $(selector).each(function() {
       result.push(new BrDraggable(this, options));
     });

@@ -4,7 +4,7 @@
  * Project:     Bright framework
  * Author:      Jager Mesh (jagermesh@gmail.com)
  *
- * @version 1.1.0.0
+ * @version 2.0
  * @package Bright Core
  */
 
@@ -43,8 +43,8 @@ if (strtolower(basename($traces[0]['file'])) == 'bright.php') {
 }
 
 // Loading application settings
-br()->require(br()->getScriptBasePath()  . 'config.php');
-br()->require(br()->getBasePath()  . 'config.php');
+br()->require(br()->getScriptBasePath() . 'config.php');
+br()->require(br()->getBasePath() . 'config.php');
 
 // Core PHP settings - Secondary
 \Bright\BrSession::configure();

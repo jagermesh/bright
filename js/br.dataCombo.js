@@ -1,7 +1,7 @@
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
- * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2019, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
@@ -9,16 +9,18 @@
 
 ;(function ($, window) {
 
+  window.br = window.br || Object.create({});
+
   function BrDataCombo(selector, dataSource, options) {
 
     const _this = this;
 
     const selectLimit = 50;
 
-    var beautified = false;
-    var beautifier = '';
-    var currentData = [];
-    var requestTimer;
+    let beautified = false;
+    let beautifier = '';
+    let currentData = [];
+    let requestTimer;
 
     _this.selector = $(selector);
 
@@ -46,7 +48,7 @@
     _this.getFirstAvailableValue = function() {
       let result = null;
       _this.selector.find('option').each(function() {
-        let val = $(this).val();
+        const val = $(this).val();
         if (!br.isEmpty(val)) {
           if (br.isEmpty(result)) {
             result = val;
@@ -108,14 +110,14 @@
               params.placeholder = _this.options.emptyName;
               params.query = function (query) {
                 window.clearTimeout(requestTimer);
-                let request = { };
+                let request = Object.create({});
                 request.keyword = query.term;
                 requestTimer = window.setTimeout(function() {
                   if (query.term || _this.options.lookup_minimumInputLength === 0) {
                     _this.dataSource.select(request, function(result, response) {
                       if (result) {
                         let data = { results: [] };
-                        for(let i = 0; i < response.length; i++) {
+                        for(let i = 0, length = response.length; i < length; i++) {
                           data.results.push({ id:   response[i][_this.options.valueField]
                                             , text: getName(response[i])
                                             });
@@ -160,9 +162,9 @@
     _this.selected = function(fieldName) {
       if (br.isArray(currentData)) {
         if (currentData.length > 0) {
-          let val = _this.val();
+          const val = _this.val();
           if (!br.isEmpty(val)) {
-            for(let i = 0; i < currentData.length; i++) {
+            for(let i = 0, length = currentData.length; i < length; i++) {
               if (br.toInt(currentData[i][_this.options.valueField]) == br.toInt(val)) {
                 if (br.isEmpty(fieldName)) {
                   return currentData[i];
@@ -223,7 +225,7 @@
         }
       }
       if (_this.isValid()) {
-        let val = _this.selector.val();
+        const val = _this.selector.val();
         if (val !== null) {
           return val;
         } else {
@@ -236,7 +238,7 @@
 
     _this.valOrNull = function() {
       if (_this.isValid()) {
-        let val = _this.val();
+        const val = _this.val();
         return br.isEmpty(val) ? null : val;
       } else {
         return undefined;
@@ -289,8 +291,8 @@
       }
       s = s + '>';
       if (!br.isEmpty(_this.options.levelField)) {
-        let margin = (br.toInt(data[_this.options.levelField]) - 1) * 4;
-        for (let k = 0; k < margin; k++) {
+        const margin = (br.toInt(data[_this.options.levelField]) - 1) * 4;
+        for(let k = 0; k < margin; k++) {
           s = s + '&nbsp;';
         }
       }
@@ -318,7 +320,8 @@
         }
 
         _this.selector.each(function() {
-          let _selector = $(this);
+
+          const _selector = $(this);
           let val = _selector.val();
           if (br.isEmpty(val)) {
             val = _selector.attr('data-value');
@@ -346,7 +349,7 @@
           _this.events.triggerBefore('generateOptions', cbObj, _selector);
           s = cbObj.s;
 
-          for(let i = 0; i < data.length; i++) {
+          for(let i = 0, length = data.length; i < length; i++) {
             s = s + renderRow(data[i]);
             if (br.isEmpty(_this.options.selectedValue) && !br.isEmpty(_this.options.selectedValueField)) {
               let selectedValue = data[i][_this.options.selectedValueField];
@@ -362,7 +365,7 @@
           } else
           if (!br.isEmpty(val)) {
             if (br.isArray(val)) {
-              for (let k = 0; k < val.length; k++) {
+              for(let k = 0, length = val.length; k < length; k++) {
                 _selector.find('option[value=' + val[k] +']').attr('selected', 'selected');
               }
             } else {
@@ -425,7 +428,7 @@
 
     };
 
-    var prevValue = _this.val();
+    let prevValue = _this.val();
 
     _this.getPrevValue = function() {
       return prevValue;
@@ -447,6 +450,7 @@
       prevValue = _this.val();
       _this.events.trigger('click');
     });
+
     _this.selector.on('select2-opening', function() {
       prevValue = _this.val();
       _this.events.trigger('click');
@@ -543,17 +547,14 @@
       }
 
       if (_this.options.saveSelection && (!_this.dataSource || (!thereWasDataSource && _this.options.lookupMode))) {
-
         if (_this.options.saveToSessionStorage) {
           _this.options.selectedValue = br.session.get(storageTag(_this.selector));
         } else {
           _this.options.selectedValue = br.storage.get(storageTag(_this.selector));
         }
-
         if (!br.isEmpty(_this.options.selectedValue)) {
           _this.val(_this.options.selectedValue);
         }
-
       }
 
       beautify();
@@ -565,8 +566,6 @@
     _this.selector.data('BrDataCombo', _this);
 
   }
-
-  window.br = window.br || {};
 
   window.br.dataCombo = function (selector, dataSource, options) {
     let instance = $(selector).data('BrDataCombo');

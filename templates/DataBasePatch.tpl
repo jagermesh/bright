@@ -6,7 +6,7 @@ class Patch[[name]] extends \Bright\BrDataBasePatch {
 
     $this->setGuid('[[guid]]');
 
-    // add dependencies from other partches here
+    // add dependencies from other patches here
     // $this->addDependency('OTHER PATCH GUID');
 
   }

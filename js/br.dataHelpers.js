@@ -1,23 +1,21 @@
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
- * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2019, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
  */
 
-/* global Promise */
-
 ;(function ($, window) {
 
-  window.br = window.br || {};
+  window.br = window.br || Object.create({});
 
-  window.br.dataHelpers = window.br.dataHelpers || {};
+  window.br.dataHelpers = window.br.dataHelpers || Object.create({});
 
   window.br.dataHelpers.before = function(event, dataControls, callback) {
 
-    for(var i = 0; i < dataControls.length; i++) {
+    for(let i = 0, length = dataControls.length; i < length; i++) {
       dataControls[i].before(event, callback);
     }
 
@@ -25,7 +23,7 @@
 
   window.br.dataHelpers.on = function(event, dataControls, callback) {
 
-    for(var i = 0; i < dataControls.length; i++) {
+    for(let i = 0, length = dataControls.length; i < length; i++) {
       dataControls[i].on(event, callback);
     }
 
@@ -34,7 +32,7 @@
 
   function execute(funcToExecute, paramsQueue, extraParams, resolve, reject) {
 
-    var functionsQueue = [];
+    let functionsQueue = [];
 
     while ((functionsQueue.length <= extraParams.workers) && (paramsQueue.length > 0)) {
       functionsQueue.push(funcToExecute(paramsQueue.pop()).then(function() {
@@ -70,13 +68,13 @@
     extraParams.workers = extraParams.workers || 10;
 
     return new Promise(function(resolve, reject) {
-      var params = [];
-      var functionsForExecute = [];
+      let params = [];
+      let functionsForExecute = [];
       br.startProgress(funcToGetTotal(), extraParams.title);
       window.setTimeout(function() {
-        var paramsQueue = [];
+        let paramsQueue = [];
         while (true) {
-          var params = funcToGetParams();
+          let params = funcToGetParams();
           if (params) {
             paramsQueue.push(params);
           } else {
@@ -91,9 +89,9 @@
 
   window.br.dataHelpers.load = window.br.dataHelpers.select = function(dataControls, callback) {
 
-    var promises = [];
+    let promises = [];
 
-    for(var i = 0; i < dataControls.length; i++) {
+    for(let i = 0, length = dataControls.length; i < length; i++) {
       (function(dataObject) {
         promises.push(
           new Promise(function(resolve, reject) {

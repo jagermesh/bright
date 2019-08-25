@@ -4,6 +4,7 @@ RewriteCond %{REQUEST_URI} "/css/" [OR]
 RewriteCond %{REQUEST_URI} "/dist/" [OR]
 RewriteCond %{REQUEST_URI} "/doc/" [OR]
 RewriteCond %{REQUEST_URI} "/images/" [OR]
-RewriteCond %{REQUEST_URI} "/js/"
+RewriteCond %{REQUEST_URI} "/js/" [OR]
+RewriteCond %{REQUEST_URI} "/tests/"
 RewriteRule (.*) $1 [L]
 RewriteRule (.*) - [F]

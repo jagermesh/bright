@@ -1,5 +1,5 @@
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
  * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -11,7 +11,8 @@
 
 ;(function ($, window) {
 
-  window.br = window.br || {};
+  window.br = window.br || Object.create({});
+
   window.br.bootstrapVersion = 0;
 
   window.br.showError = function(s) {
@@ -29,9 +30,8 @@
         });
       } else
       if (typeof window.humane != 'undefined') {
-        humane.log(s, { addnCls     : 'humane-jackedup-error humane-original-error'
-                      //, clickToClose: true
-                      , timeout     : 5000
+        humane.log(s, { addnCls: 'humane-jackedup-error humane-original-error'
+                      , timeout: 5000
                       });
       } else {
         alert(s);
@@ -82,19 +82,17 @@
     options.cancelTitle = options.cancelTitle || br.trn('Cancel');
     options.onConfirm = options.onConfirm || callback;
 
-    var i;
-
-    var s = '<div class="br-modal-confirm modal';
+    let s = '<div class="br-modal-confirm modal';
     if (options.cssClass) {
       s = s + ' ' + options.cssClass;
     }
     s += '">';
 
-    var checkBoxes = '';
+    let checkBoxes = '';
     if (options.checkBoxes) {
-      for (i in options.checkBoxes) {
-        var check = options.checkBoxes[i];
-        var checked = '';
+      for (let i in options.checkBoxes) {
+        let check = options.checkBoxes[i];
+        let checked = '';
         if (check.default) {
           checked = 'checked';
         }
@@ -113,32 +111,32 @@
             '<div class="modal-body" style="overflow-y:auto;">' + message + checkBoxes + '</div>' +
             '<div class="modal-footer">';
     if (options.showDontAskMeAgain) {
-      var dontAskMeAgainTitle = (options.dontAskMeAgainTitle) ? options.dontAskMeAgainTitle : br.trn("Don't ask me again");
+      const dontAskMeAgainTitle = (options.dontAskMeAgainTitle) ? options.dontAskMeAgainTitle : br.trn("Don't ask me again");
       s = s + '<label style="text-align:left;float:left;padding-top:5px;" class="checkbox">' +
               '<input name="showDontAskMeAgain" type="checkbox" value="1"> ' + dontAskMeAgainTitle +
               '</label>';
     }
     if (br.isEmpty(buttons)) {
-      var yesTitle    = options.yesTitle || br.trn('Yes');
-      var yesLink     = options.yesLink || 'javascript:;';
-      var targetBlank = options.yesLink && !options.targetSamePage;
+      const yesTitle    = options.yesTitle || br.trn('Yes');
+      const yesLink     = options.yesLink || 'javascript:;';
+      const targetBlank = options.yesLink && !options.targetSamePage;
       s = s + '<a href="' + yesLink + '" ' + (targetBlank ? 'target="_blank"' : '') + ' class="btn btn-sm btn-primary action-confirm-close" rel="confirm">&nbsp;' + yesTitle + '&nbsp;</a>';
     } else {
-      for(i in buttons) {
+      for(let i in buttons) {
         s = s + '<a href="javascript:;" class="btn btn-sm btn-default action-confirm-close" rel="' + i + '">&nbsp;' + buttons[i] + '&nbsp;</a>';
       }
     }
     s = s + '<a href="javascript:;" class="btn btn-sm btn-default action-confirm-cancel" rel="cancel">&nbsp;' + options.cancelTitle + '&nbsp;</a>';
     s = s + '</div></div></div></div>';
 
-    var modal = $(s);
+    const modal = $(s);
 
-    var oldActiveElement = document.activeElement;
+    const oldActiveElement = document.activeElement;
     if (oldActiveElement) {
       oldActiveElement.blur();
     }
 
-    var remove = true;
+    let remove = true;
 
     $(modal).on('show.bs.modal', function(event) {
       if ($(event.target).is(modal)) {
@@ -146,9 +144,9 @@
           options.onShow.call(modal);
         }
         $(this).find('.action-confirm-close').on('click', function() {
-          var button = $(this).attr('rel');
-          var dontAsk = $('input[name=showDontAskMeAgain]', $(modal)).is(':checked');
-          var checks = {};
+          const button = $(this).attr('rel');
+          const dontAsk = $('input[name=showDontAskMeAgain]', $(modal)).is(':checked');
+          let checks = Object.create({});
           $('input.confirm-checkbox').each(function(){
             checks[$(this).attr('name')] = $(this).is(':checked');
           });
@@ -163,8 +161,8 @@
           }
         });
         $(this).find('.action-confirm-cancel').click(function() {
-          var button = 'cancel';
-          var dontAsk = $('input[name=showDontAskMeAgain]', $(modal)).is(':checked');
+          const button = 'cancel';
+          const dontAsk = $('input[name=showDontAskMeAgain]', $(modal)).is(':checked');
           remove = false;
           modal.modal('hide');
           if (options.onCancel) {
@@ -185,8 +183,8 @@
         }
         if (remove) {
           if (options.onCancel) {
-            var button = 'cancel';
-            var dontAsk = $('input[name=showDontAskMeAgain]', $(modal)).is(':checked');
+            const button = 'cancel';
+            const dontAsk = $('input[name=showDontAskMeAgain]', $(modal)).is(':checked');
             options.onCancel(button, dontAsk);
           }
           modal.remove();
@@ -197,7 +195,7 @@
     $(modal).on('shown.bs.modal', function(event) {
       if ($(event.target).is(modal)) {
         if (options.defaultButton) {
-          var btn = $(this).find('.modal-footer a.btn[rel=' + options.defaultButton + ']');
+          const btn = $(this).find('.modal-footer a.btn[rel=' + options.defaultButton + ']');
           if (btn.length > 0) {
             btn[0].focus();
           }
@@ -233,10 +231,10 @@
 
     options = options || {};
 
-    var buttonTitle = options.buttonTitle || 'Dismiss';
+    const buttonTitle = options.buttonTitle || 'Dismiss';
 
     if ($('#br_modalError').length > 0) {
-      var currentMessage = $('#br_modalError .modal-body').html();
+      const currentMessage = $('#br_modalError .modal-body').html();
       if (currentMessage.indexOf(message) == -1) {
         message = message + '<br /><br />' + currentMessage;
       }
@@ -245,7 +243,7 @@
       $('#br_modalError').remove();
     }
 
-    var s = '<div class="modal" id="br_modalError" data-backdrop="static">' +
+    let s = '<div class="modal" id="br_modalError" data-backdrop="static">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">';
     if (title !== '') {
@@ -255,9 +253,10 @@
             '<div class="modal-footer" style="background-color:red;">';
     s = s + '<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn(buttonTitle) + '&nbsp;</a><';
     s = s + '/div></div></div></div>';
-    var modal = $(s);
 
-    var oldActiveElement = document.activeElement;
+    const modal = $(s);
+
+    const oldActiveElement = document.activeElement;
     if (oldActiveElement) {
       oldActiveElement.blur();
     }
@@ -296,10 +295,10 @@
 
     options = options || {};
 
-    var buttonTitle = options.buttonTitle || 'Dismiss';
+    const buttonTitle = options.buttonTitle || 'Dismiss';
 
     if ($('#br_modalInform').length > 0) {
-      var currentMessage = $('#br_modalInform .modal-body').html();
+      const currentMessage = $('#br_modalInform .modal-body').html();
       if (currentMessage.indexOf(message) == -1) {
         message = message + '<br /><br />' + currentMessage;
       }
@@ -308,7 +307,7 @@
       $('#br_modalInform').remove();
     }
 
-    var s = '<div class="modal" id="br_modalInform" data-backdrop="static">' +
+    let s = '<div class="modal" id="br_modalInform" data-backdrop="static">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">';
     if (title !== '') {
@@ -317,24 +316,24 @@
     s = s + '<div class="modal-body" style="overflow-y:auto;">' + message + '</div>' +
             '<div class="modal-footer">';
     if (options.showDontAskMeAgain) {
-      var dontAskMeAgainTitle = (options.dontAskMeAgainTitle) ? options.dontAskMeAgainTitle : br.trn("Don't ask me again");
+      let dontAskMeAgainTitle = (options.dontAskMeAgainTitle) ? options.dontAskMeAgainTitle : br.trn("Don't ask me again");
       s = s + '<label style="text-align:left;float:left;padding-top:5px;" class="checkbox">' +
               '<input name="showDontAskMeAgain" type="checkbox" value="1"> ' + dontAskMeAgainTitle +
               '</label>';
     }
     s = s +'<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn(buttonTitle) + '&nbsp;</a></div></div></div></div>';
 
-    var modal = $(s);
+    const modal = $(s);
 
-    var oldActiveElement = document.activeElement;
+    const oldActiveElement = document.activeElement;
     if (oldActiveElement) {
       oldActiveElement.blur();
     }
 
     $(modal).on('hide.bs.modal', function(event) {
       if ($(event.target).is(modal)) {
-        var dontAsk = $('input[name=showDontAskMeAgain]', $(modal)).is(':checked');
         if (callback) {
+          const dontAsk = $('input[name=showDontAskMeAgain]', $(modal)).is(':checked');
           callback.call(this, dontAsk);
         }
       }
@@ -359,7 +358,7 @@
 
     options = options || {};
 
-    var inputs = {};
+    let inputs = Object.create({});
 
     if (br.isObject(fields)) {
       inputs = fields;
@@ -372,12 +371,12 @@
       options.onHide = options.onhide;
     }
 
-    var s = '<div class="br-modal-prompt modal" data-backdrop="static">' +
+    let s = '<div class="br-modal-prompt modal" data-backdrop="static">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">' +
             '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>' +
             '<div class="modal-body" style="overflow-y:auto;">';
-    for(var i in inputs) {
+    for(let i in inputs) {
       if (br.isObject(inputs[i])) {
         s = s + '<label>' + i + '</label>' +
               '<input type="text" ' + (inputs[i].id ? 'id="'+inputs[i].id+'"' : '') + ' class="span4 ' + (br.isEmpty(inputs[i]['class']) ? '' : inputs[i]['class']) + '" value="' + inputs[i].value + '" />';
@@ -393,14 +392,14 @@
     s = s + '<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn('Cancel') + '&nbsp;</a>';
     s = s + '</div></div></div></div>';
 
-    var modal = $(s);
+    const modal = $(s);
 
-    var oldActiveElement = document.activeElement;
+    const oldActiveElement = document.activeElement;
     if (oldActiveElement) {
       oldActiveElement.blur();
     }
 
-    var remove = true;
+    let remove = true;
 
     $(modal).on('keypress', 'input', function(event) {
       if (event.keyCode == 13) {
@@ -411,9 +410,10 @@
     $(modal).on('show.bs.modal', function(event) {
       if ($(event.target).is(modal)) {
         $(this).find('.action-confirm-close').on('click', function() {
-          var results = [];
-          var ok = true, notOkField;
-          var inputs = [];
+          let results = [];
+          let ok = true;
+          let notOkField;
+          let inputs = [];
           $(this).closest('div.modal').find('input[type=text]').each(function() {
             if ($(this).hasClass('required') && br.isEmpty($(this).val())) {
               ok = false;
@@ -484,7 +484,7 @@
 
   };
 
-  var noTemplateEngine = false;
+  let noTemplateEngine = false;
 
   window.br.compile = function(template) {
     if (template) {
@@ -503,7 +503,7 @@
   };
 
   window.br.fetch = function(template, data, tags) {
-    data = data || {};
+    data = data || Object.create({});
     if (template) {
       if (typeof window.Mustache == 'undefined') {
         if (typeof window.Handlebars == 'undefined') {
@@ -520,7 +520,7 @@
     }
   };
 
-  var progressCounter = 0;
+  let progressCounter = 0;
 
   window.br.isAJAXInProgress = function() {
     return (progressCounter > 0);
@@ -550,40 +550,43 @@
     }
   };
 
-  var progressBar_Total = 0, progressBar_Progress = 0, progressBar_Message = '';
-  var progressBarTemplate = '<div id="br_progressBar" class="modal" style="display:none;z-index:10000;top:20px;margin-top:0px;position:fixed;" data-backdrop="static">' +
-                            '  <div class="modal-dialog">'+
-                            '    <div class="modal-content">'+
-                            '      <div class="modal-body">' +
-                            '        <table style="width:100%;font-size:18px;font-weight:300;margin-bottom:10px;">'+
-                            '          <tr>'+
-                            '            <td><div id="br_progressMessage" style="max-width:440px;max-height:40px;overflow:hidden;text-overflow:ellipsis;"></div></td>' +
-                            '            <td align="right" id="br_progressStage" style="font-size:14px;font-weight:300;"></td>' +
-                            '          </tr>' +
-                            '        </table>' +
-                            '        <div id="br_progressBar_Section" style="display:none;clear:both;">' +
-                            '          <div style="margin-bottom:0px;padding:0px;height:20px;overflow: hidden;background-color: #f5f5f5;border-radius: 4px;box-shadow: inset 0 1px 2px rgba(0,0,0,.1);">' +
-                            '            <div id="br_progressBar_Bar" style="background-color:#008cba;border:none;padding:0px;height:20px;"></div>' +
-                            '          </div>' +
-                            '        </div>' +
-                            '        <div id="br_progressBarAnimation" style="display1:none;padding-top:10px;">' +
-                            '          <center><img src="' + br.brightUrl + 'images/progress-h.gif" /></center>' +
-                            '        </div>' +
-                            '      </div>' +
-                            '    </div>' +
-                            '  </div>' +
-                            '</div>';
+  let progressBar_Total = 0;
+  let progressBar_Progress = 0;
+  let progressBar_Message = '';
+
+  const progressBarTemplate = '<div id="br_progressBar" class="modal" style="display:none;z-index:10000;top:20px;margin-top:0px;position:fixed;" data-backdrop="static">' +
+                              '  <div class="modal-dialog">'+
+                              '    <div class="modal-content">'+
+                              '      <div class="modal-body">' +
+                              '        <table style="width:100%;font-size:18px;font-weight:300;margin-bottom:10px;">'+
+                              '          <tr>'+
+                              '            <td><div id="br_progressMessage" style="max-width:440px;max-height:40px;overflow:hidden;text-overflow:ellipsis;"></div></td>' +
+                              '            <td align="right" id="br_progressStage" style="font-size:14px;font-weight:300;"></td>' +
+                              '          </tr>' +
+                              '        </table>' +
+                              '        <div id="br_progressBar_Section" style="display:none;clear:both;">' +
+                              '          <div style="margin-bottom:0px;padding:0px;height:20px;overflow: hidden;background-color: #f5f5f5;border-radius: 4px;box-shadow: inset 0 1px 2px rgba(0,0,0,.1);">' +
+                              '            <div id="br_progressBar_Bar" style="background-color:#008cba;border:none;padding:0px;height:20px;"></div>' +
+                              '          </div>' +
+                              '        </div>' +
+                              '        <div id="br_progressBarAnimation" style="display1:none;padding-top:10px;">' +
+                              '          <center><img src="' + br.brightUrl + 'images/progress-h.gif" /></center>' +
+                              '        </div>' +
+                              '      </div>' +
+                              '    </div>' +
+                              '  </div>' +
+                              '</div>';
 
 
   function fileSize(size) {
-    var i = Math.floor(Math.log(size) / Math.log(1024));
+    const i = Math.floor(Math.log(size) / Math.log(1024));
     return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' '+['B', 'kB', 'MB', 'GB', 'TB'][i];
   }
 
-  var currentProgressType;
+  let currentProgressType;
 
   function renderProgress() {
-    var p = Math.round(progressBar_Progress * 100 / progressBar_Total);
+    const p = Math.round(progressBar_Progress * 100 / progressBar_Total);
     $('#br_progressBar_Bar').css('width', p + '%');
     $('#br_progressMessage').text(progressBar_Message);
     if (currentProgressType == 'upload') {
@@ -593,7 +596,7 @@
     }
   }
 
-  var backDropCounter = 0;
+  let backDropCounter = 0;
 
   function initBackDrop() {
     if ($('#br_modalBackDrop').length === 0) {
@@ -620,7 +623,7 @@
     progressBar_Progress = 0;
     progressBar_Message = message;
     if ($('#br_progressBar').length === 0) {
-      var pbr = $(progressBarTemplate);
+      const pbr = $(progressBarTemplate);
       if (br.bootstrapVersion == 2) {
         pbr.css('top', '20px');
         pbr.css('margin-top', '0px');
@@ -634,7 +637,7 @@
       $('#br_progressBar_Section').hide();
       $('#br_progressStage').hide();
     }
-    window.br.showProgress();
+    br.showProgress();
   };
 
   window.br.showProgress = function() {
@@ -649,7 +652,7 @@
   };
 
   window.br.incProgress = function(value) {
-    if (!value) { value = 1; }
+    value = value || 1;
     progressBar_Total += value;
     renderProgress();
   };
@@ -678,10 +681,12 @@
   window.br.initScrollableAreas = function(deferred) {
 
     $('.br-scrollable').each(function() {
-      var $container = $(this).parent('.br-container');
-      var $navBar = $('nav.navbar');
-      if ($navBar.length === 0) { $navBar = $('div.navbar'); }
-      var initialMarginTop = 0;
+      const $container = $(this).parent('.br-container');
+      let $navBar = $('nav.navbar');
+      if ($navBar.length === 0) {
+        $navBar = $('div.navbar');
+      }
+      let initialMarginTop = 0;
       if ($navBar.css('position') != 'static') {
         initialMarginTop = $container.offset().top;
       }
@@ -692,16 +697,16 @@
       $('body').css('overflow', 'hidden');
 
       function resize() {
-        var navBarHeight = 0;
+        let navBarHeight = 0;
         if ($navBar.length !== 0) {
           navBarHeight = $navBar.height();
         }
         if (deferred) {
           navBarHeight = 0;
         }
-        var height = $(window).height() - navBarHeight - initialMarginTop;
+        const height = $(window).height() - navBarHeight - initialMarginTop;
         if (height > 0) {
-          var marginTop = 0;
+          let marginTop = 0;
           if ($navBar.length > 0) {
             if ($navBar.css('position') == 'static') {
               marginTop = initialMarginTop;
@@ -727,7 +732,8 @@
 
   window.br.resizeModalPopup = function(modal) {
 
-    var mh = $(window).height() - $(modal).find('.modal-header').outerHeight() - $(modal).find('.modal-footer').outerHeight() - 90;
+    const mh = $(window).height() - $(modal).find('.modal-header').outerHeight() - $(modal).find('.modal-footer').outerHeight() - 90;
+
     $(modal).find('.modal-body').css('max-height', mh + 'px');
     $(modal).find('.modal-body').css('overflow-y', 'auto');
 
@@ -793,13 +799,13 @@
   window.br.sortTable = function(table, order) {
 
     function getValuesComparison(a, b, columnIndex, direction) {
-      var td1 = $($('td', $(a))[columnIndex]);
-      var td2 = $($('td', $(b))[columnIndex]);
-      var val1 = td1.remove('a').text().trim();
-      var val2 = td2.remove('a').text().trim();
-      var val1F = 0;
-      var val2F = 0;
-      var floatValues = 0;
+      const td1 = $($('td', $(a))[columnIndex]);
+      const td2 = $($('td', $(b))[columnIndex]);
+      const val1 = td1.remove('a').text().trim();
+      const val2 = td2.remove('a').text().trim();
+      let val1F = 0;
+      let val2F = 0;
+      let floatValues = 0;
       if (!isNaN(parseFloat(val1)) && isFinite(val1)) {
         val1F = parseFloat(val1);
         floatValues++;
@@ -817,9 +823,9 @@
 
     return new Promise(function(resolve, reject) {
       $('tbody', table).each(function() {
-        var tbody = $(this);
+        const tbody = $(this);
         $('tr', tbody).sort(function(a, b) {
-          var values = [];
+          let values = [];
           order.forEach(function(orderCfg) {
             values.push(getValuesComparison(a, b, orderCfg.column, (orderCfg.order == 'asc' ? 1 : -1)));
           });
@@ -841,16 +847,16 @@
   window.br.setComboValue = function(selector, value, fromBrDataCombo) {
 
     $(selector).each(function() {
-      var element = $(this);
+      const element = $(this);
       element.val(value);
-      var dataComboInstance = element.data('BrDataCombo');
+      const dataComboInstance = element.data('BrDataCombo');
       if (dataComboInstance && !fromBrDataCombo) {
         dataComboInstance.val(value);
       } else {
         element.val(value);
         if (br.isEmpty(element.val())) {
-          var options = element.find('option');
-          var found = false;
+          const options = element.find('option');
+          let found = false;
           options.each(function() {
             if (!found && ((this.value == value) || (br.isEmpty(this.value) && br.isEmpty(value)))) {
               element.val(this.value);
@@ -899,13 +905,13 @@
 
   function enchanceBootstrap() {
 
-    var tabbableElements = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, *[tabindex], *[contenteditable]';
+    const tabbableElements = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, *[tabindex], *[contenteditable]';
 
     function disableTabbingOnPage(except) {
       $.each($(tabbableElements), function (idx, item) {
-        var el = $(item);
+        const el = $(item);
         if (!el.closest(except).length) {
-          var tabindex = el.attr('tabindex');
+          const tabindex = el.attr('tabindex');
           if (tabindex) {
             el.attr('data-prev-tabindex', tabindex);
           }
@@ -916,9 +922,9 @@
 
     function reEnableTabbingOnPage(except) {
       $.each($(tabbableElements), function (idx, item) {
-        var el = $(item);
+        const el = $(item);
         if (!el.closest(except).length) {
-          var prevTabindex = el.attr('data-prev-tabindex');
+          const prevTabindex = el.attr('data-prev-tabindex');
           if (prevTabindex) {
             el.attr('tabindex', prevTabindex);
           } else {
@@ -948,14 +954,14 @@
     var defaultOpacity = 50;
 
     $(document).on('shown.bs.modal', function(event) {
-      var target = $(event.target);
+      const target = $(event.target);
       if (target.hasClass('modal')) {
-        var zindex = br.toInt(target.css('z-index'));
+        let zindex = br.toInt(target.css('z-index'));
         $('div.modal').each(function() {
-          var cthis = $(this);
+          const cthis = $(this);
           if (cthis.is(':visible')) {
             if (!cthis.is(target)) {
-              var czindex = br.toInt(cthis.css('z-index'));
+              const czindex = br.toInt(cthis.css('z-index'));
               zindex = Math.max(zindex, czindex) + 2;
             }
           }
@@ -964,7 +970,7 @@
         zindex--;
         $('.modal-backdrop').css('z-index', zindex);
         if ($('.modal-backdrop').length) {
-          var opacity = defaultOpacity / $('.modal-backdrop').length;
+          const opacity = defaultOpacity / $('.modal-backdrop').length;
           $('.modal-backdrop').css({ 'opacity': opacity/100, 'filter': 'alpha(opacity=' + opacity + ')' });
         }
         disableTabbingOnPage(target);
@@ -977,9 +983,9 @@
     });
 
     $(document).on('hidden.bs.modal', function(event) {
-      var target = $(event.target);
+      const target = $(event.target);
       if (target.hasClass('modal')) {
-        var modals = [];
+        let modals = [];
         $('div.modal').each(function() {
           if ($(this).is(':visible')) {
             modals.push({ zindex: br.toInt($(this).css('z-index')), modal: $(this) });
@@ -987,16 +993,18 @@
         });
         if (modals.length) {
           modals.sort(function compare(a, b) {
-            if (a.zindex > b.zindex)
+            if (a.zindex > b.zindex) {
               return -1;
-            if (a.zindex < b.zindex)
+            } else
+            if (a.zindex < b.zindex) {
               return 1;
+            }
             return 0;
           });
-          var zindex = modals[0].zindex-1;
+          const zindex = modals[0].zindex-1;
           $('.modal-backdrop').css('z-index', zindex);
           if ($('.modal-backdrop').length) {
-            var opacity = defaultOpacity / $('.modal-backdrop').length;
+            const opacity = defaultOpacity / $('.modal-backdrop').length;
             $('.modal-backdrop').css({ 'opacity': opacity/100, 'filter': 'alpha(opacity=' + opacity + ')' });
           }
         }
@@ -1010,13 +1018,13 @@
 
     $(window).on('resize', function() {
       $('.br-dropdown-detached:visible').each(function() {
-        var detachedMenu = $(this);
-        var detachedMenuHolder = detachedMenu.data('detachedMenuHolder');
-        var alignRight = detachedMenu.hasClass('br-dropdown-detached-right-aligned');
-        var menu = detachedMenu.find('.dropdown-menu');
-        var css = {
+        const detachedMenu = $(this);
+        const detachedMenuHolder = detachedMenu.data('detachedMenuHolder');
+        const alignRight = detachedMenu.hasClass('br-dropdown-detached-right-aligned');
+        const menu = detachedMenu.find('.dropdown-menu');
+        let css = Object.create({
           top: detachedMenuHolder.offset().top + detachedMenuHolder.height()
-        };
+        });
         if (alignRight) {
           css.right = ($(window).width() - detachedMenuHolder.offset().left - detachedMenuHolder.width()) + menu.width();
         } else {
@@ -1028,14 +1036,14 @@
 
     $(document).on('shown.bs.dropdown', function(event) {
       $('.br-dropdown-detached:visible').hide();
-      var target = $(event.target);
+      const target = $(event.target);
       if (target.hasClass('br-dropdown-detachable')) {
-        var detachedMenu = target.data('detachedMenu');
-        var alignRight = target.hasClass('br-dropdown-detachable-right-aligned');
-        var css = {
+        const alignRight = target.hasClass('br-dropdown-detachable-right-aligned');
+        let detachedMenu = target.data('detachedMenu');
+        let css = Object.create({
           position: 'absolute',
           top: target.offset().top + target.height()
-        };
+        });
         if (detachedMenu) {
           if (alignRight) {
             css.right = ($(window).width() - target.offset().left - target.width()) + detachedMenu.data('detachedMenuWidth');
@@ -1046,7 +1054,7 @@
           detachedMenu.addClass('open');
           detachedMenu.show();
         } else {
-          var menu = $(target.find('.dropdown-menu'));
+          let menu = $(target.find('.dropdown-menu'));
           if (menu.length) {
             if (alignRight) {
               css.right = ($(window).width() - target.offset().left - target.width()) + menu.width();
@@ -1074,8 +1082,7 @@
 
   $(function() {
 
-    var notAuthorized = false;
-
+    let notAuthorized = false;
 
     if ($.fn['modal']) {
       if ($.fn['modal'].toString().indexOf('bs.modal') == -1) {
@@ -1119,11 +1126,14 @@
     enchanceBootstrap();
 
     if ($('.focused').length > 0) {
-      try { $('.focused')[0].focus(); } catch (ex) { }
+      try {
+        $('.focused')[0].focus();
+      } catch (error) {
+      }
     }
 
     if (!br.isTouchScreen) {
-      var disableBounceContainer = $('body').attr('data-disable-bounce-container');
+      const disableBounceContainer = $('body').attr('data-disable-bounce-container');
       if (!br.isEmpty(disableBounceContainer)) {
         br.disableBounce($(disableBounceContainer));
       }

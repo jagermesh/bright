@@ -15,7 +15,7 @@
 
 (function n(t,e,r){function i(f,u){if(!e[f]){if(!t[f]){var c=typeof require=="function"&&require;if(!u&&c)return c(f,!0);if(o)return o(f,!0);var a=new Error("Cannot find module '"+f+"'");throw a.code="MODULE_NOT_FOUND",a}var s=e[f]={exports:{}};t[f][0].call(s.exports,function(n){var e=t[f][1][n];return i(e?e:n)},s,s.exports,n,t,e,r)}return e[f].exports}var o=typeof require=="function"&&require;for(var f=0;f<r.length;f++)i(r[f]);return i})({1:[function(n,t,e){"use strict";var r=n("asap/raw");function i(){}var o=null;var f={};function u(n){try{return n.then}catch(n){o=n;return f}}function c(n,t){try{return n(t)}catch(n){o=n;return f}}function a(n,t,e){try{n(t,e)}catch(n){o=n;return f}}t.exports=s;function s(n){if(typeof this!=="object"){throw new TypeError("Promises must be constructed via new")}if(typeof n!=="function"){throw new TypeError("not a function")}this._37=0;this._12=null;this._59=[];if(n===i)return;w(n,this)}s._99=i;s.prototype.then=function(n,t){if(this.constructor!==s){return l(this,n,t)}var e=new s(i);h(this,new d(n,t,e));return e};function l(n,t,e){return new n.constructor(function(r,o){var f=new s(i);f.then(r,o);h(n,new d(t,e,f))})}function h(n,t){while(n._37===3){n=n._12}if(n._37===0){n._59.push(t);return}r(function(){var e=n._37===1?t.onFulfilled:t.onRejected;if(e===null){if(n._37===1){p(t.promise,n._12)}else{v(t.promise,n._12)}return}var r=c(e,n._12);if(r===f){v(t.promise,o)}else{p(t.promise,r)}})}function p(n,t){if(t===n){return v(n,new TypeError("A promise cannot be resolved with itself."))}if(t&&(typeof t==="object"||typeof t==="function")){var e=u(t);if(e===f){return v(n,o)}if(e===n.then&&t instanceof s){n._37=3;n._12=t;y(n);return}else if(typeof e==="function"){w(e.bind(t),n);return}}n._37=1;n._12=t;y(n)}function v(n,t){n._37=2;n._12=t;y(n)}function y(n){for(var t=0;t<n._59.length;t++){h(n,n._59[t])}n._59=null}function d(n,t,e){this.onFulfilled=typeof n==="function"?n:null;this.onRejected=typeof t==="function"?t:null;this.promise=e}function w(n,t){var e=false;var r=a(n,function(n){if(e)return;e=true;p(t,n)},function(n){if(e)return;e=true;v(t,n)});if(!e&&r===f){e=true;v(t,o)}}},{"asap/raw":4}],2:[function(n,t,e){"use strict";var r=n("./core.js");t.exports=r;var i=s(true);var o=s(false);var f=s(null);var u=s(undefined);var c=s(0);var a=s("");function s(n){var t=new r(r._99);t._37=1;t._12=n;return t}r.resolve=function(n){if(n instanceof r)return n;if(n===null)return f;if(n===undefined)return u;if(n===true)return i;if(n===false)return o;if(n===0)return c;if(n==="")return a;if(typeof n==="object"||typeof n==="function"){try{var t=n.then;if(typeof t==="function"){return new r(t.bind(n))}}catch(n){return new r(function(t,e){e(n)})}}return s(n)};r.all=function(n){var t=Array.prototype.slice.call(n);return new r(function(n,e){if(t.length===0)return n([]);var i=t.length;function o(f,u){if(u&&(typeof u==="object"||typeof u==="function")){if(u instanceof r&&u.then===r.prototype.then){while(u._37===3){u=u._12}if(u._37===1)return o(f,u._12);if(u._37===2)e(u._12);u.then(function(n){o(f,n)},e);return}else{var c=u.then;if(typeof c==="function"){var a=new r(c.bind(u));a.then(function(n){o(f,n)},e);return}}}t[f]=u;if(--i===0){n(t)}}for(var f=0;f<t.length;f++){o(f,t[f])}})};r.reject=function(n){return new r(function(t,e){e(n)})};r.race=function(n){return new r(function(t,e){n.forEach(function(n){r.resolve(n).then(t,e)})})};r.prototype["catch"]=function(n){return this.then(null,n)}},{"./core.js":1}],3:[function(n,t,e){"use strict";var r=n("./raw");var i=[];var o=[];var f=r.makeRequestCallFromTimer(u);function u(){if(o.length){throw o.shift()}}t.exports=c;function c(n){var t;if(i.length){t=i.pop()}else{t=new a}t.task=n;r(t)}function a(){this.task=null}a.prototype.call=function(){try{this.task.call()}catch(n){if(c.onerror){c.onerror(n)}else{o.push(n);f()}}finally{this.task=null;i[i.length]=this}}},{"./raw":4}],4:[function(n,t,e){(function(n){"use strict";t.exports=e;function e(n){if(!r.length){o();i=true}r[r.length]=n}var r=[];var i=false;var o;var f=0;var u=1024;function c(){while(f<r.length){var n=f;f=f+1;r[n].call();if(f>u){for(var t=0,e=r.length-f;t<e;t++){r[t]=r[t+f]}r.length-=f;f=0}}r.length=0;f=0;i=false}var a=n.MutationObserver||n.WebKitMutationObserver;if(typeof a==="function"){o=s(c)}else{o=l(c)}e.requestFlush=o;function s(n){var t=1;var e=new a(n);var r=document.createTextNode("");e.observe(r,{characterData:true});return function n(){t=-t;r.data=t}}function l(n){return function t(){var e,r;if(typeof setTimeout!="undefined"){e=setTimeout(i,0)}if(typeof setInterval!="undefined"){r=setInterval(i,50)}function i(){if(e){clearTimeout(e)}if(r){clearInterval(r)}n()}}}e.makeRequestCallFromTimer=l}).call(this,typeof global!=="undefined"?global:typeof self!=="undefined"?self:typeof window!=="undefined"?window:{})},{}],5:[function(n,t,e){if(typeof Promise.prototype.done!=="function"){Promise.prototype.done=function(n,t){var e=arguments.length?this.then.apply(this,arguments):this;e.then(null,function(n){setTimeout(function(){throw n},0)})}}},{}],6:[function(n,t,e){var r=n("asap");if(typeof Promise==="undefined"){Promise=n("./lib/core.js");n("./lib/es6-extensions.js")}n("./polyfill-done.js")},{"./lib/core.js":1,"./lib/es6-extensions.js":2,"./polyfill-done.js":5,asap:3}]},{},[6]);
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
  * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -25,7 +25,7 @@
 
 ;(function (window) {
 
-  window.br = window.br || {};
+  window.br = window.br || Object.create({});
 
   window.br.isNumber = function(value) {
     return (
@@ -132,7 +132,7 @@
 })(window);
 
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
  * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -142,33 +142,33 @@
 
 ;(function (window) {
 
-  var _helper = {
+  window.br = window.br || Object.create({});
 
+  const _helper = {
     pack: function(data) {
       return JSON.stringify(data);
-    },
-
-    unpack: function(data) {
+    }
+  , unpack: function(data) {
       try {
         return JSON.parse(data);
       } catch(ex) {
         return null;
       }
     }
-
   };
 
   function BrStorage(storage) {
 
-    var _storage = storage;
-    var _this = this;
+    const _this = this;
 
-    this.get = function(key, defaultValue) {
-      var result;
+    let _storage = storage;
+
+    _this.get = function(key, defaultValue) {
+      let result;
       if (br.isArray(key)) {
-        result = {};
-        for(var i in key) {
-          result[key[i]] = this.get(key[i]);
+        result = Object.create({});
+        for(let i in key) {
+          result[key[i]] = _this.get(key[i]);
         }
       } else {
         result = _helper.unpack(_storage.getItem(key));
@@ -176,22 +176,22 @@
       return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
     };
 
-    this.set = function(key, value) {
+    _this.set = function(key, value) {
       if (br.isObject(key)) {
-        for(var name in key) {
-          this.set(name, key[name]);
+        for(let name in key) {
+          _this.set(name, key[name]);
         }
       } else {
         _storage.setItem(key, _helper.pack(value));
       }
-      return this;
+      return _this;
     };
 
-    this.inc = function(key, increment, glue) {
-      var value = this.get(key);
+    _this.inc = function(key, increment, glue) {
+      let value = _this.get(key);
       if (br.isNumber(value)) {
         increment = (br.isNumber(increment) ? increment : 1);
-        this.set(key, value + increment);
+        _this.set(key, value + increment);
       } else
       if (br.isString(value)) {
         if (!br.isEmpty(increment)) {
@@ -203,31 +203,31 @@
           } else {
             value = increment;
           }
-          this.set(key, value);
+          _this.set(key, value);
         }
       } else {
         increment = (br.isNumber(increment) ? increment : 1);
-        this.set(key, increment);
+        _this.set(key, increment);
       }
-      return this;
+      return _this;
     };
 
-    this.dec = function(key, increment) {
-      var value = this.get(key);
+    _this.dec = function(key, increment) {
+      let value = _this.get(key);
       increment = (br.isNumber(increment) ? increment : 1);
-      this.set(key, br.isNumber(value) ? (value - increment) : increment);
-      return this;
+      _this.set(key, br.isNumber(value) ? (value - increment) : increment);
+      return _this;
     };
 
-    this.append = function(key, newValue, limit) {
+    _this.append = function(key, newValue, limit) {
       if (!br.isEmpty(newValue)) {
-        var value = this.get(key);
+        let value = _this.get(key);
         if (!br.isArray(value)) {
           value = [];
         }
         if (br.isArray(newValue)) {
-          for(var i in newValue) {
-            this.append(key, newValue[i], limit);
+          for(let i in newValue) {
+            _this.append(key, newValue[i], limit);
           }
         } else {
           if (br.isNumber(limit)) {
@@ -236,29 +236,29 @@
             }
           }
           value.push(newValue);
-          this.set(key, value);
+          _this.set(key, value);
         }
       }
-      return this;
+      return _this;
     };
 
-    this.appendUnique = function(key, newValue, limit) {
+    _this.appendUnique = function(key, newValue, limit) {
       if (!br.isEmpty(newValue)) {
-        this.remove(key, newValue);
-        this.append(key, newValue, limit);
+        _this.remove(key, newValue);
+        _this.append(key, newValue, limit);
       }
-      return this;
+      return _this;
     };
 
-    this.prepend = function(key, newValue, limit) {
+    _this.prepend = function(key, newValue, limit) {
       if (!br.isEmpty(newValue)) {
-        var value = this.get(key);
+        let value = _this.get(key);
         if (!br.isArray(value)) {
           value = [];
         }
         if (br.isArray(newValue)) {
-          for(var i in newValue) {
-            this.prepend(key, newValue[i], limit);
+          for(let i in newValue) {
+            _this.prepend(key, newValue[i], limit);
           }
         } else {
           if (br.isNumber(limit)) {
@@ -267,34 +267,34 @@
             }
           }
           value.unshift(newValue);
-          this.set(key, value);
+          _this.set(key, value);
         }
       }
-      return this;
+      return _this;
     };
 
-    this.prependUnique = function(key, newValue, limit) {
+    _this.prependUnique = function(key, newValue, limit) {
       if (!br.isEmpty(newValue)) {
-        this.remove(key, newValue);
-        this.prepend(key, newValue, limit);
+        _this.remove(key, newValue);
+        _this.prepend(key, newValue, limit);
       }
-      return this;
+      return _this;
     };
 
-    this.each = function(key, fn) {
-      var value = this.get(key);
+    _this.each = function(key, fn) {
+      let value = _this.get(key);
       if (!br.isArray(value)) {
         value = [];
       }
-      for(var i=0; i < value.length; i++) {
-        fn.call(this, value[i]);
+      for(let i = 0, length = value.length; i < length; i++) {
+        fn.call(_this, value[i]);
       }
-      return this;
+      return _this;
     };
 
     function _getLast(key, defaultValue, remove) {
-      var result = null;
-      var value = _this.get(key, defaultValue);
+      let result = null;
+      let value = _this.get(key, defaultValue);
       if (br.isArray(value)) {
         if (value.length > 0) {
           result = value.pop();
@@ -306,17 +306,17 @@
       return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
    }
 
-    this.getLast = function(key, defaultValue) {
+    _this.getLast = function(key, defaultValue) {
       return _getLast(key, defaultValue, false);
     };
 
-    this.takeLast = function(key, defaultValue) {
+    _this.takeLast = function(key, defaultValue) {
       return _getLast(key, defaultValue, true);
     };
 
     function _getFirst(key, defaultValue, remove) {
-      var result = null;
-      var value = _this.get(key, defaultValue);
+      let result = null;
+      let value = _this.get(key, defaultValue);
       if (br.isArray(value)) {
         if (value.length > 0) {
           result = value.shift();
@@ -328,68 +328,68 @@
       return br.isEmpty(result) ? (br.isEmpty(defaultValue) ? result : defaultValue) : result;
     }
 
-    this.getFirst = function(key, defaultValue) {
+    _this.getFirst = function(key, defaultValue) {
       return _getFirst(key, defaultValue, false);
     };
 
-    this.takeFirst = function(key, defaultValue) {
+    _this.takeFirst = function(key, defaultValue) {
       return _getFirst(key, defaultValue, true);
     };
 
-    this.extend = function(key, newValue) {
+    _this.extend = function(key, newValue) {
       if (!br.isEmpty(newValue)) {
-        var value = this.get(key);
+        let value = _this.get(key);
         if (!br.isObject(value)) {
-          value = {};
+          value = Object.create({});
         }
         if (br.isObject(newValue)) {
-          for(var i in newValue) {
+          for(let i in newValue) {
             value[i] = newValue[i];
           }
-          this.set(key, value);
+          _this.set(key, value);
         }
       }
-      return this;
+      return _this;
     };
 
-    this.not = function(key) {
-      var value = this.get(key);
+    _this.not = function(key) {
+      let value = _this.get(key);
       if (!br.isBoolean(value)) {
         value = false;
       }
-      this.set(key, !value);
-      return this;
+      _this.set(key, !value);
+      return _this;
     };
 
-    this.clear = function() {
+    _this.clear = function() {
       _storage.clear();
-      return this;
+      return _this;
     };
 
-    this.all = function() {
-      var result = {};
-      for(var name in _storage) {
-        result[name] = this.get(name);
+    _this.all = function() {
+      let result = Object.create({});
+      for(let name in _storage) {
+        result[name] = _this.get(name);
       }
       return result;
     };
 
-    this.remove = function(key, arrayValue) {
-      var value = this.get(key);
+    _this.remove = function(key, arrayValue) {
+      let value = _this.get(key);
       if (!br.isEmpty(arrayValue) && br.isArray(value)) {
-        var idx = value.indexOf(arrayValue);
+        let idx = value.indexOf(arrayValue);
         if (idx != -1) {
           value.splice(idx, 1);
         }
-        this.set(key, value);
+        _this.set(key, value);
       } else {
         _storage.removeItem(key);
       }
-      return this;
+      return _this;
     };
 
-    this.indexOf = function(key, arrayValue) {
-      var value = this.get(key);
+    _this.indexOf = function(key, arrayValue) {
+      let value = _this.get(key);
       if (br.isArray(value)) {
         return value.indexOf(arrayValue);
       }
@@ -398,17 +398,15 @@
 
   }
 
-  window.br = window.br || {};
-
   window.br.storage = new BrStorage(window.localStorage);
   window.br.session = new BrStorage(window.sessionStorage);
 
 })(window);
 
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
- * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2019, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
@@ -416,169 +414,140 @@
 
 ;(function (window) {
 
+  window.br = window.br || Object.create({});
+
   function BrEventQueue(obj) {
 
-    var _this = this;
+    const _this = this;
 
-    this.subscribers = {};
-    this.connections = [];
-    this.obj = obj || this;
-    this.enabled = true;
+    _this.subscribers = Object.create({});
+    _this.connections = [];
+    _this.obj = obj || _this;
+    _this.enabled = true;
 
-    this.enable = function() {
-      this.enabled = true;
+    _this.enable = function() {
+      _this.enabled = true;
     };
 
-    this.disable = function() {
-      this.enabled = false;
+    _this.disable = function() {
+      _this.enabled = false;
     };
 
-    this.before = function(events, callback) {
-      events = events.split(',');
-      for(var i = 0; i < events.length; i++) {
-        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], pause: [], before: [], after: [] };
-        _this.subscribers[events[i]].before.push(callback);
-      }
-    };
-
-    this.on = function(events, callback) {
-      events = events.split(',');
-      for(var i = 0; i < events.length; i++) {
-        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], pause: [], before: [], after: [] };
-        _this.subscribers[events[i]].on.push(callback);
-      }
-    };
-
-    this.pause = function(events, callback) {
-      events = events.split(',');
-      for(var i = 0; i < events.length; i++) {
-        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], pause: [], before: [], after: [] };
-        _this.subscribers[events[i]].pause.push(callback);
-      }
-    };
-
-    this.after = function(events, callback) {
-      events = events.split(',');
-      for(var i = 0; i < events.length; i++) {
-        _this.subscribers[events[i]] = _this.subscribers[events[i]] || { on: [], pause: [], before: [], after: [] };
-        _this.subscribers[events[i]].after.push(callback);
-      }
-    };
-
-    this.off = function(events) {
-      events = events.split(',');
-      for(var i = 0; i < events.length; i++) {
-        delete _this.subscribers[events[i]];
-      }
-    };
-
-    this.has = function(eventName, pos) {
-      if (this.subscribers[eventName]) {
-        if (!pos) {
-          return true;
-        } else {
-          return this.subscribers[eventName][pos].length > 0;
+    function subscribe(events, action, func) {
+      let eventsArray = events.split(',');
+      for(let i = 0, length = eventsArray.length; i < length; i++) {
+        let event = eventsArray[i];
+        if (!_this.subscribers[event]) {
+          _this.subscribers[event] = Object.create({ on: [], pause: [], before: [], after: [] });
         }
-      } else {
-        return false;
+        _this.subscribers[event][action].push(func);
+      }
+    }
+
+    _this.before = function(events, func) {
+      subscribe(events, 'before', func);
+    };
+
+    _this.on = function(events, func) {
+      subscribe(events, 'on', func);
+    };
+
+    _this.pause = function(events, func) {
+      subscribe(events, 'pause', func);
+    };
+
+    _this.after = function(events, func) {
+      subscribe(events, 'after', func);
+    };
+
+    _this.off = function(events) {
+      let eventsArray = events.split(',');
+      for(let i = 0, length = eventsArray.length; i < length; i++) {
+        let event = eventsArray[i];
+        delete _this.subscribers[event];
       }
     };
 
-    this.connectTo = function(eventQueue) {
+    _this.has = function(event, action) {
+      return _this.subscribers[event] && (!action || (_this.subscribers[event][action].length > 0));
+    };
+
+    _this.connectTo = function(eventQueue) {
       _this.connections.push(eventQueue);
     };
 
-    this.getEvents = function() {
-      var res = [];
-      for(var name in _this.subscribers) {
-        res[res.length] = name;
+    _this.getEvents = function() {
+      let result = [];
+      for(let name in _this.subscribers) {
+        result.push(name);
       }
-      return res;
+      return result;
     };
 
-    function trigger(event, pos, args) {
-
-      var result = null;
-      var eventSubscribers = _this.subscribers[event];
-      var i;
-
-      if (eventSubscribers) {
-        switch (pos) {
-          case 'before':
-            for (i = 0; i < eventSubscribers.before.length; i++) {
-              eventSubscribers.before[i].apply(_this.obj, args);
-            }
-            break;
-          case 'on':
-            for (i = 0; i < eventSubscribers.on.length; i++) {
-              result = eventSubscribers.on[i].apply(_this.obj, args);
-            }
-            break;
-          case 'pause':
-            for (i = 0; i < eventSubscribers.on.length; i++) {
-              result = eventSubscribers.pause[i].apply(_this.obj, args);
-            }
-            break;
-          case 'after':
-            for (i = 0; i < eventSubscribers.after.length; i++) {
-              eventSubscribers.after[i].apply(_this.obj, args);
-            }
-            break;
+    function triggerOne(event, action, args) {
+      let result = null;
+      let subscribers = _this.subscribers[event];
+      if (subscribers) {
+        let funcs = subscribers[action];
+        if (funcs) {
+          for (let i = 0, length = funcs.length; i < length; i++) {
+            result = funcs[i].apply(_this.obj, args);
+          }
         }
       }
-
       return result;
-
     }
 
-    this.triggerEx = function(event, pos, largs) {
-
-      if (this.enabled) {
-
-        var args = [];
-        var i;
-
-        for(i = 0; i < largs.length; i++) {
-          args.push(largs[i]);
-        }
-
+    function trigger(event, action, params) {
+      if (_this.enabled) {
         if (event != '*') {
-          trigger('*', pos, args);
+          _this.triggerEx('*', action, params);
         }
-
-        args.splice(0,1);
-
-        var result = trigger(event, pos, args);
-
-        for (i = 0; i < _this.connections.length; i++) {
-          _this.connections[i].triggerEx(event, pos, largs);
+        let result = triggerOne(event, action, params);
+        for (let i = 0, length = _this.connections.length; i < length; i++) {
+          _this.connections[i].triggerEx(event, action, params);
         }
-
         return result;
-
       }
+    }
 
+    _this.triggerBefore = function(event) {
+      let params = Array.from(arguments);
+      params.splice(0, 1);
+      return trigger(event, 'before', params);
     };
 
-    this.triggerBefore = function(event) {
-      return this.triggerEx(event, 'before', arguments);
+    _this.trigger = function(event) {
+      let params = Array.from(arguments);
+      params.splice(0, 1);
+      return trigger(event, 'on', params);
     };
 
-    this.trigger = function(event) {
-      return this.triggerEx(event, 'on', arguments);
+    _this.triggerPause = function(event) {
+      let params = Array.from(arguments);
+      params.splice(0, 1);
+      return trigger(event, 'pause', params);
     };
 
-    this.triggerPause = function(event) {
-      return this.triggerEx(event, 'pause', arguments);
+    _this.triggerAfter = function(event) {
+      let params = Array.from(arguments);
+      params.splice(0, 1);
+      return trigger(event, 'after', params);
     };
 
-    this.triggerAfter = function(event) {
-      return this.triggerEx(event, 'after', arguments);
+    _this.triggerCustom = function(event, action) {
+      let params = Array.from(arguments);
+      params.splice(0, 2);
+      return trigger(event, action, params);
     };
+
+    _this.triggerEx = function(event, action, params) {
+      return trigger(event, action, params);
+    };
+
+    return _this;
 
   }
-
-  window.br = window.br || {};
 
   window.br.eventQueue = function(obj) {
     return new BrEventQueue(obj);
@@ -587,7 +556,7 @@
 })(window);
 
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
  * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -597,18 +566,16 @@
 
 ;(function (window) {
 
-  window.br = window.br || {};
-
-  window.br.request = new BrRequest();
+  window.br = window.br || Object.create({});
 
   function BrRequest() {
 
-    var _this = this;
+    const _this = this;
 
     _this.continueRoute = true;
     _this.csrfToken = '';
 
-    var csrfCookie = '';
+    let csrfCookie = '';
 
     if (document) {
       if (document.cookie) {
@@ -620,13 +587,12 @@
     }
 
     _this.get = function(name, defaultValue) {
-      var vars = document.location.search.replace('?', '').split('&');
-      var vals = {};
-      var i;
-      for (i = 0; i < vars.length; i++) {
-        var pair = vars[i].split("=");
+      let vars = document.location.search.replace('?', '').split('&');
+      let vals = Object.create({});
+      for (let i = 0; i < vars.length; i++) {
+        let pair = vars[i].split("=");
         if (pair[0].indexOf('[') != -1) {
-          var n = pair[0].substr(0, pair[0].indexOf('['));
+          let n = pair[0].substr(0, pair[0].indexOf('['));
           vals[n] = vals[n] || [];
           vals[n].push(window.unescape(pair[1]));
         } else {
@@ -634,10 +600,8 @@
         }
       }
       if (name) {
-        for (i in vals) {
-          if (i == name) {
-            return vals[i];
-          }
+        if (vals.hasOwnProperty(name)) {
+          return vals[name];
         }
         return defaultValue;
       } else {
@@ -646,13 +610,12 @@
     };
 
     _this.hash = function(name, defaultValue) {
-      var vars = document.location.hash.replace('#', '').split('&');
-      var vals = {};
-      var i;
-      for (i = 0; i < vars.length; i++) {
-        var pair = vars[i].split("=");
+      let vars = document.location.hash.replace('#', '').split('&');
+      let vals = {};
+      for (let i = 0; i < vars.length; i++) {
+        let pair = vars[i].split("=");
         if (pair[0].indexOf('[') != -1) {
-          var n = pair[0].substr(0, pair[0].indexOf('['));
+          let n = pair[0].substr(0, pair[0].indexOf('['));
           vals[n] = vals[n] || [];
           vals[n].push(window.unescape(pair[1]));
         } else {
@@ -660,10 +623,8 @@
         }
       }
       if (name) {
-        for (i in vals) {
-          if (i == name) {
-            return vals[i];
-          }
+        if (vals.hasOwnProperty(name)) {
+          return vals[name];
         }
         return defaultValue;
       } else {
@@ -672,7 +633,7 @@
     };
 
     _this.anchor = function(defaultValue) {
-      var value = document.location.hash.replace('#', '');
+      let value = document.location.hash.replace('#', '');
       if (value) {
         if (value.length === 0) {
           value = defaultValue;
@@ -686,7 +647,7 @@
 
     _this.route = function(path, func) {
       if (_this.continueRoute) {
-        var l = document.location.toString();
+        let l = document.location.toString();
         l = l.replace(/[?].*/, '');
         if (l.search(path) != -1) {
           _this.continueRoute = false;
@@ -698,10 +659,12 @@
 
   }
 
+  window.br.request = new BrRequest();
+
 })(window);
 
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
  * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -711,22 +674,24 @@
 
 ;(function (window) {
 
+  window.br = window.br || Object.create({});
+
   function BrThread(lazy) {
 
-    var _this = this;
+    const _this = this;
 
     _this.queue = [];
     _this.workingQueue = [];
     _this.lazy = lazy;
 
-    this.push = function(func) {
+    _this.push = function(func) {
       _this.queue.unshift({ func: func });
       if (!_this.lazy) {
         _this.wakeup();
       }
     };
 
-    this.done = function(func) {
+    _this.done = function(func) {
       _this.workingQueue.pop();
       _this.wakeup();
     };
@@ -738,7 +703,7 @@
 
     this.wakeup = function() {
       if ((_this.queue.length > 0) && (_this.workingQueue.length === 0)) {
-        var obj = _this.queue.pop();
+        let obj = _this.queue.pop();
         _this.workingQueue.push(obj);
         obj.func(function() {
           _this.done();
@@ -748,18 +713,14 @@
 
   }
 
-  window.br = window.br || {};
-
   window.br.thread = function(lazy) {
     return new BrThread(lazy);
   };
 
-  var executionThread = br.thread(true);
-
 })(window);
 
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
  * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -770,6 +731,8 @@
 /* global Int32Array */
 
 ;(function (window) {
+
+  window.br = window.br || Object.create({});
 
   function BrProfiler() {
 
@@ -914,9 +877,7 @@
 
   }
 
-  window.br = window.br || {};
-
-  var profiler;
+  let profiler;
 
   window.br.profiler = function(create) {
     if (create) {
@@ -931,7 +892,7 @@
 })(window);
 
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
  * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -939,113 +900,113 @@
  *
  */
 
-  ;(function (window) {
+;(function ($, window) {
 
-    function BrWebCamera() {
+  window.br = window.br || Object.create({});
 
-      const _this = this;
+  function BrWebCamera() {
 
-      _this.events = br.eventQueue(this);
-      _this.before = function(event, callback) { _this.events.before(event, callback); };
-      _this.on     = function(event, callback) { _this.events.on(event, callback); };
-      _this.after  = function(event, callback) { _this.events.after(event, callback); };
+    const _this = this;
 
-      let elem = document.createElement('canvas');
-      let canvasSupported = !!(elem.getContext && elem.getContext('2d'));
-      elem.remove();
+    _this.events = br.eventQueue(this);
+    _this.before = function(event, callback) { _this.events.before(event, callback); };
+    _this.on     = function(event, callback) { _this.events.on(event, callback); };
+    _this.after  = function(event, callback) { _this.events.after(event, callback); };
 
-      _this.isSupported = function() {
+    const elem = document.createElement('canvas');
+    const canvasSupported = !!(elem.getContext && elem.getContext('2d'));
+    elem.remove();
 
-        if (canvasSupported && (navigator.userAgent.search(/Chrome/) > -1 || navigator.userAgent.search(/Firefox/) > -1 || navigator.userAgent.search(/Safari/) > -1)) {
-          return true;
-        } else {
-          return false;
-        }
+    _this.isSupported = function() {
 
-      };
-
-      _this.connect = function(webCam) {
-
-        if (_this.isSupported()) {
-          try {
-            let attempts = 0;
-
-            let requestFrame = function () {
-              if (webCam.readyState === webCam.HAVE_ENOUGH_DATA) {
-                try {
-                  _this.events.trigger('frame', webCam);
-                } catch (Error) {
-
-                }
-              }
-              br.requestAnimationFrame(requestFrame);
-            };
-
-            let findVideoSize = function() {
-              if (webCam.videoWidth > 0 && webCam.videoHeight > 0) {
-                webCam.removeEventListener('loadeddata', readyListener);
-                _this.events.trigger('connected', { width: webCam.videoWidth, height: webCam.videoWidth });
-                br.requestAnimationFrame(requestFrame);
-              } else {
-                if (attempts < 10) {
-                  attempts++;
-                  window.setTimeout(findVideoSize, 200);
-                } else {
-                  _this.events.trigger('connected', { width: 640, height: 480 });
-                  br.requestAnimationFrame(requestFrame);
-                }
-              }
-            };
-
-            let readyListener = function(event) {
-              findVideoSize();
-            };
-
-            webCam.addEventListener('loadeddata', readyListener);
-
-            $(window).on('unload', function() {
-              webCam.pause();
-              webCam.src = null;
-            });
-
-            br.getUserMedia( { video: true }
-                           , function(stream) {
-                               webCam.srcObject = stream;
-                               webCam.setAttribute('playsinline', true);
-                               window.setTimeout(function() {
-                                 webCam.play();
-                               }, 500);
-                             }
-                           , function (error) {
-                               _this.events.trigger('error', error);
-                             }
-                           );
-          } catch (error) {
-            _this.events.trigger('error', error);
-          }
-        } else {
-          _this.events.trigger('error', 'Web Camera or Canvas is not supported in your browser');
-        }
-
-      };
-
-    }
-
-    window.br = window.br || {};
-
-    let webCamera;
-
-    window.br.webCamera = function(params) {
-      if (!webCamera) {
-        webCamera = new BrWebCamera(params);
+      if (canvasSupported && (navigator.userAgent.search(/Chrome/) > -1 || navigator.userAgent.search(/Firefox/) > -1 || navigator.userAgent.search(/Safari/) > -1)) {
+        return true;
+      } else {
+        return false;
       }
-      return webCamera;
+
     };
 
-  })(window);
+    _this.connect = function(webCam) {
+
+      if (_this.isSupported()) {
+        try {
+          let attempts = 0;
+
+          let requestFrame = function () {
+            if (webCam.readyState === webCam.HAVE_ENOUGH_DATA) {
+              try {
+                _this.events.trigger('frame', webCam);
+              } catch (Error) {
+
+              }
+            }
+            br.requestAnimationFrame(requestFrame);
+          };
+
+          let findVideoSize = function() {
+            if (webCam.videoWidth > 0 && webCam.videoHeight > 0) {
+              webCam.removeEventListener('loadeddata', readyListener);
+              _this.events.trigger('connected', { width: webCam.videoWidth, height: webCam.videoWidth });
+              br.requestAnimationFrame(requestFrame);
+            } else {
+              if (attempts < 10) {
+                attempts++;
+                window.setTimeout(findVideoSize, 200);
+              } else {
+                _this.events.trigger('connected', { width: 640, height: 480 });
+                br.requestAnimationFrame(requestFrame);
+              }
+            }
+          };
+
+          let readyListener = function(event) {
+            findVideoSize();
+          };
+
+          webCam.addEventListener('loadeddata', readyListener);
+
+          $(window).on('unload', function() {
+            webCam.pause();
+            webCam.src = null;
+          });
+
+          br.getUserMedia( { video: true }
+                         , function(stream) {
+                             webCam.srcObject = stream;
+                             webCam.setAttribute('playsinline', true);
+                             window.setTimeout(function() {
+                               webCam.play();
+                             }, 500);
+                           }
+                         , function (error) {
+                             _this.events.trigger('error', error);
+                           }
+                         );
+        } catch (error) {
+          _this.events.trigger('error', error);
+        }
+      } else {
+        _this.events.trigger('error', 'Web Camera or Canvas is not supported in your browser');
+      }
+
+    };
+
+  }
+
+  let webCamera;
+
+  window.br.webCamera = function(params) {
+    if (!webCamera) {
+      webCamera = new BrWebCamera(params);
+    }
+    return webCamera;
+  };
+
+})(jQuery, window);
 
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
  * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -1060,14 +1021,14 @@
 
 ;(function ($, window) {
 
-  window.br = window.br || {};
+  window.br = window.br || Object.create({});
 
   let baseUrl = '';
   let brightUrl = '';
 
   let scripts = $('script');
 
-  for(let i = 0; i < scripts.length; i++) {
+  for(let i = 0, length = scripts.length; i < length; i++) {
     let src = $(scripts[i]).attr('src');
     if (!br.isEmpty(src)) {
       if (/bright\/.+?[.]js/i.test(src)) {
@@ -1382,7 +1343,7 @@
       element.data(listName2, element.val());
       let callbacks = element.data(listName1);
       if (callbacks) {
-        for(let i in callbacks) {
+        for(let i = 0, length = callbacks.length; i < length; i++) {
           callbacks[i].call(element);
         }
       }
@@ -1559,7 +1520,7 @@
       let sel = window.getSelection();
       if (sel.rangeCount) {
         let container = document.createElement('div');
-        for (let i = 0, len = sel.rangeCount; i < len; ++i) {
+        for(let i = 0, length = sel.rangeCount; i < length; ++i) {
           container.appendChild(sel.getRangeAt(i).cloneContents());
         }
         html = container.innerHTML;
@@ -1786,9 +1747,9 @@
 })(jQuery, window);
 
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
- * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2019, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
@@ -1796,16 +1757,17 @@
 
 ;(function (window) {
 
+  window.br = window.br || Object.create({});
+
   function BrFlagsHolder(permanent, name) {
 
-    var flags = [];
+    let flags = [];
 
     this.append = function(id) {
       if (permanent) {
         br.storage.appendUnique(name, id);
       } else
-      if (this.isFlagged(id)) {
-      } else {
+      if (!this.isFlagged(id)) {
         flags.push(id);
       }
     };
@@ -1822,7 +1784,7 @@
       if (permanent) {
         br.storage.remove(name, id);
       } else {
-        var idx = flags.indexOf(id);
+        let idx = flags.indexOf(id);
         if (idx != -1) {
           flags.splice(idx, 1);
         }
@@ -1852,8 +1814,6 @@
 
   }
 
-  window.br = window.br || {};
-
   window.br.flagsHolder = function (permanent, name) {
     return new BrFlagsHolder(permanent, name);
   };
@@ -1861,9 +1821,9 @@
 })(window);
 
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
- * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2019, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
@@ -1871,32 +1831,32 @@
 
 ;(function ($, window) {
 
+  window.br = window.br || Object.create({});
+
   function BrDataSource(restServiceUrl, options) {
 
-    var _this = this;
+    const _this = this;
 
-    _this.ajaxRequest = null;
-    _this.name = '-';
-    _this.options = options || {};
-
+    _this.options = options || Object.create({});
     _this.options.restServiceUrl = restServiceUrl;
     _this.options.restServiceUrlNormalized = restServiceUrl;
+    _this.options.refreshDelay = _this.options.refreshDelay || 1500;
 
     if (!restServiceUrl.match(/[.]json$/) && !restServiceUrl.match(/\/$/)) {
       _this.options.restServiceUrlNormalized = restServiceUrl + '/';
     }
 
-    _this.options.refreshDelay = _this.options.refreshDelay || 1500;
+    _this.ajaxRequest = null;
+    _this.name = '-';
+    _this.clientUID = null;
 
     _this.events = br.eventQueue(_this);
     _this.before = function(event, callback) { _this.events.before(event, callback); };
     _this.on     = function(event, callback) { _this.events.on(event, callback); };
     _this.after  = function(event, callback) { _this.events.after(event, callback); };
 
-    _this.clientUID = null;
-
-    var selectOperationCounter = 0;
-    var refreshTimeout;
+    let selectOperationCounter = 0;
+    let refreshTimeout;
 
     _this.getClientUID = function() {
 
@@ -1939,13 +1899,13 @@
 
     _this.insert = function(item, callback, options) {
 
-      options = options || { };
+      options = options || Object.create({});
 
-      var disableEvents = options && options.disableEvents;
+      let disableEvents = options && options.disableEvents;
 
       return new Promise(function(resolve, reject) {
 
-        var request = item;
+        let request = item;
 
         try {
 
@@ -1971,7 +1931,7 @@
             request.__clientUID = options.clientUID;
           }
 
-          for(var paramName in request) {
+          for(let paramName in request) {
             if (request[paramName] === null) {
               request[paramName] = 'null';
             }
@@ -1981,9 +1941,9 @@
                  , data: request
                  , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
                  , url: _this.options.restServiceUrl + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-                 // , headers: { 'X-Csrf-Token': br.request.csrfToken }
+                 , headers: { 'X-Csrf-Token': br.request.csrfToken }
                  , success: function(response) {
-                     var result, errorMessage;
+                     let result, errorMessage;
                      if (_this.options.crossdomain) {
                        if (typeof response == 'string') {
                          result = false;
@@ -2007,7 +1967,7 @@
                    }
                  , error: function(jqXHR, textStatus, errorThrown) {
                      if (!br.isUnloading()) {
-                       var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                       let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
                        reject({request: request, options: options, errorMessage: errorMessage});
                      }
                    }
@@ -2048,13 +2008,13 @@
 
     _this.update = function(rowid, item, callback, options) {
 
-      options = options || { };
+      options = options || Object.create({});
 
-      var disableEvents = options && options.disableEvents;
+      let disableEvents = options && options.disableEvents;
 
       return new Promise(function(resolve, reject) {
 
-        var request = item;
+        let request = item;
 
         try {
 
@@ -2080,7 +2040,7 @@
             request.__clientUID = options.clientUID;
           }
 
-          for(var paramName in request) {
+          for(let paramName in request) {
             if (request[paramName] === null) {
               request[paramName] = 'null';
             }
@@ -2090,11 +2050,11 @@
                  , data: request
                  , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
                  , url: _this.options.restServiceUrlNormalized + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-                 // , headers: { 'X-Csrf-Token': br.request.csrfToken }
+                 , headers: { 'X-Csrf-Token': br.request.csrfToken }
                  , success: function(response) {
-                     var operation = 'update';
+                     let operation = 'update';
                      if (response) {
-                       var res = _this.events.trigger('removeAfterUpdate', item, response);
+                       let res = _this.events.trigger('removeAfterUpdate', item, response);
                        if ((res !== null) && res) {
                          operation = 'remove';
                        }
@@ -2103,7 +2063,7 @@
                    }
                  , error: function(jqXHR, textStatus, errorThrown) {
                      if (!br.isUnloading()) {
-                       var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                       let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
                        reject({request: request, options: options, errorMessage: errorMessage});
                      }
                    }
@@ -2150,13 +2110,13 @@
 
     _this.remove = function(rowid, callback, options) {
 
-      options = options || { };
+      options = options || Object.create({});
 
-      var disableEvents = options && options.disableEvents;
+      let disableEvents = options && options.disableEvents;
 
       return new Promise(function(resolve, reject) {
 
-        var request = {};
+        let request = Object.create({});
 
         try {
 
@@ -2182,7 +2142,7 @@
             request.__clientUID = options.clientUID;
           }
 
-          for(var paramName in request) {
+          for(let paramName in request) {
             if (request[paramName] === null) {
               request[paramName] = 'null';
             }
@@ -2192,13 +2152,13 @@
                  , data: request
                  , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
                  , url: _this.options.restServiceUrlNormalized + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-                 // , headers: { 'X-Csrf-Token': br.request.csrfToken }
+                 , headers: { 'X-Csrf-Token': br.request.csrfToken }
                  , success: function(response) {
                      resolve({rowid: rowid, request: request, options: options, response: response});
                    }
                  , error: function(jqXHR, textStatus, errorThrown) {
                      if (!br.isUnloading()) {
-                       var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                       let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
                        reject({rowid: rowid, request: request, options: options, errorMessage: errorMessage});
                      }
                    }
@@ -2242,12 +2202,12 @@
       if (typeof filter == 'function') {
         options = callback;
         callback = filter;
-        filter = { };
+        filter = Object.create({});
       }
 
-      var newFilter = {};
-      for(var i in filter) {
-        newFilter[i] = filter[i];
+      let newFilter = Object.create({});
+      for(let name in filter) {
+        newFilter[name] = filter[name];
       }
       newFilter.__result = 'count';
 
@@ -2263,10 +2223,10 @@
       if (typeof filter == 'function') {
         options = callback;
         callback = filter;
-        filter = { };
+        filter = Object.create({});
       }
 
-      options = options || { };
+      options = options || Object.create({});
       options.selectOne = true;
       options.limit = 1;
 
@@ -2285,17 +2245,15 @@
     _this.selectDeferred = _this.deferredSelect = function(filter, callback, msec) {
 
       return new Promise(function(resolve, reject) {
-
         msec = msec || _this.options.refreshDelay;
-        var savedFilter = {};
-        for(var i in filter) {
+        let savedFilter = Object.create({});
+        for(let i in filter) {
           savedFilter[i] = filter[i];
         }
         window.clearTimeout(refreshTimeout);
         refreshTimeout = window.setTimeout(function() {
           _this.select(savedFilter).then(resolve, reject);
         }, msec);
-
       }).then(function(data) {
         try {
           if (typeof callback == 'function') {
@@ -2318,31 +2276,27 @@
     _this.load = _this.select = function(filter, callback, options) {
 
       if (typeof filter == 'function') {
-        // .select(callback, options);
         options = callback;
         callback = filter;
-        filter = { };
+        filter = Object.create({});
       } else
       if ((callback != undefined) && (callback != null) && (typeof callback != 'function')) {
-        // .select(filter, options);
         options = callback;
         callback = null;
-      } else {
-        // .select(filter, callback, options);
       }
 
       options = options || { };
 
-      var disableEvents = options && options.disableEvents;
+      let disableEvents = options && options.disableEvents;
 
       return new Promise(function(resolve, reject) {
 
-        var request = {};
-        var requestRowid;
+        let request = Object.create({});
+        let requestRowid;
 
-        var selectOne = options && options.selectOne;
-        var selectCount = options && options.selectCount;
-        var singleRespone = selectOne || selectCount;
+        let selectOne = options && options.selectOne;
+        let selectCount = options && options.selectCount;
+        let singleRespone = selectOne || selectCount;
 
         if (selectOne) {
           options.limit = 1;
@@ -2356,7 +2310,7 @@
             if (br.isNumber(filter)) {
               filter = { rowid: filter };
             }
-            for(var name in filter) {
+            for(let name in filter) {
               if ((name == 'rowid') && selectOne) {
                 requestRowid = filter[name];
               } else {
@@ -2366,7 +2320,7 @@
           }
         }
 
-        var url;
+        let url;
 
         if (selectOne && requestRowid) {
           url = _this.options.restServiceUrlNormalized + requestRowid;
@@ -2374,7 +2328,7 @@
           url = _this.options.restServiceUrl;
         }
 
-        var proceed = true;
+        let proceed = true;
 
         if (!disableEvents) {
           try {
@@ -2447,7 +2401,7 @@
 
           selectOperationCounter++;
 
-          for(var paramName in request) {
+          for(let paramName in request) {
             if (request[paramName] === null) {
               request[paramName] = 'null';
             }
@@ -2457,12 +2411,12 @@
                                      , data: request
                                      , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
                                      , url: url + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-                                     // , headers: { 'X-Csrf-Token': br.request.csrfToken }
+                                     , headers: { 'X-Csrf-Token': br.request.csrfToken }
                                      , success: function(response) {
                                          try {
                                            _this.ajaxRequest = null;
                                            if (br.isArray(response)) {
-                                             for(var i = 0; i < response.length; i++) {
+                                             for(let i = 0, length = response.length; i < length; i++) {
                                                _this.events.trigger('calcFields', response[i]);
                                              }
                                            }
@@ -2536,7 +2490,7 @@
       if (typeof params == 'function') {
         options  = callback;
         callback = params;
-        params   = {};
+        params   = Object.create({});
       }
 
       if (callback && (typeof callback != 'function')) {
@@ -2544,13 +2498,13 @@
         callback = undefined;
       }
 
-      options = options || { };
+      options = options || Object.create({});
 
-      var disableEvents = options && options.disableEvents;
+      let disableEvents = options && options.disableEvents;
 
       return new Promise(function(resolve, reject) {
 
-        var request = params || { };
+        let request = params || Object.create({});
 
         if (!disableEvents) {
           _this.events.triggerBefore('request', request, options);
@@ -2575,7 +2529,7 @@
           request.__clientUID = options.clientUID;
         }
 
-        for(var paramName in request) {
+        for(let paramName in request) {
           if (request[paramName] === null) {
             request[paramName] = 'null';
           }
@@ -2585,7 +2539,7 @@
                , data: request
                , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
                , url: _this.options.restServiceUrlNormalized + method + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-               // , headers: { 'X-Csrf-Token': br.request.csrfToken }
+               , headers: { 'X-Csrf-Token': br.request.csrfToken }
                , success: function(response) {
                    if (_this.options.crossdomain && (typeof response == 'string')) {
                      reject({method: method, request: request, options: options, errorMessage: response});
@@ -2595,7 +2549,7 @@
                  }
                , error: function(jqXHR, textStatus, errorThrown) {
                    if (!br.isUnloading()) {
-                     var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                     let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
                      reject({method: method, request: request, options: options, errorMessage: errorMessage});
                    }
                  }
@@ -2629,50 +2583,7 @@
 
     };
 
-    _this.fillCombo = function(selector, data, options) {
-
-      options = options || { };
-
-      var valueField = options.valueField || 'rowid';
-      var nameField = options.nameField || 'name';
-      var hideEmptyValue = options.hideEmptyValue || false;
-      var emptyValue = options.emptyValue || '--any--';
-      var selectedValue = options.selectedValue || null;
-      var selectedValueField = options.selectedValueField || null;
-
-      $(selector).each(function() {
-        var val = $(this).val();
-        if (br.isEmpty(val)) {
-          val = $(this).attr('data-value');
-          $(this).removeAttr('data-value');
-        }
-        $(this).html('');
-        var s = '';
-        if (!hideEmptyValue) {
-          s = s + '<option value="">' + emptyValue + '</option>';
-        }
-        for(var i in data) {
-          if (!selectedValue && selectedValueField) {
-            if (data[i][selectedValueField] == '1') {
-              selectedValue = data[i][valueField];
-            }
-          }
-          s = s + '<option value="' + data[i][valueField] + '">' + data[i][nameField] + '</option>';
-        }
-        $(this).html(s);
-        if (!br.isEmpty(selectedValue)) {
-          val = selectedValue;
-        }
-        if (!br.isEmpty(val)) {
-          $(this).find('option[value=' + val +']').attr('selected', 'selected');
-        }
-      });
-
-    };
-
   }
-
-  window.br = window.br || {};
 
   window.br.dataSource = function (restServiceUrl, options) {
     return new BrDataSource(restServiceUrl, options);
@@ -2681,7 +2592,7 @@
 })(jQuery, window);
 
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
  * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -2690,6 +2601,8 @@
  */
 
 ;(function ($, window) {
+
+  window.br = window.br || Object.create({});
 
   function BrTable(selector, options) {
 
@@ -2771,7 +2684,7 @@
 
     function getWidths() {
 
-      let widths = {};
+      let widths = Object.create({});
 
       theadColsCopy.each(function(idx) {
         let w = this.getBoundingClientRect().width;
@@ -2907,8 +2820,6 @@
 
   }
 
-  window.br = window.br || {};
-
   window.br.table = function(selector, options) {
     return new BrTable($(selector), options);
   };
@@ -2916,9 +2827,9 @@
 })(jQuery, window);
 
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
- * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2019, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
@@ -2926,113 +2837,114 @@
 
 ;(function ($, window) {
 
+  window.br = window.br || Object.create({});
+
   function BrDataGrid(selector, rowTemplate, dataSource, options) {
 
-    var _this = this;
+    const _this = this;
 
-    this.selector = selector;
+    _this.selector = selector;
 
-    this.options = options || {};
+    _this.options = options || Object.create({});
 
-    this.options.templates          = this.options.templates || {};
+    _this.options.templates          = _this.options.templates || Object.create({});
 
-    this.options.templates.noData   = this.options.templates.noData || '.data-empty-template';
+    _this.options.templates.noData   = _this.options.templates.noData || '.data-empty-template';
 
-    this.options.templates.row      = $(rowTemplate).html();
-    this.options.templates.groupRow = this.options.templates.groupRow ? $(this.options.templates.groupRow).html() : '';
-    this.options.templates.header   = this.options.templates.header   ? $(this.options.templates.header).html() : '';
-    this.options.templates.footer   = this.options.templates.footer   ? $(this.options.templates.footer).html() : '';
-    this.options.templates.noData   = this.options.templates.noData   ? $(this.options.templates.noData).html() : '';
+    _this.options.templates.row      = $(rowTemplate).html();
+    _this.options.templates.groupRow = _this.options.templates.groupRow ? $(_this.options.templates.groupRow).html() : '';
+    _this.options.templates.header   = _this.options.templates.header   ? $(_this.options.templates.header).html() : '';
+    _this.options.templates.footer   = _this.options.templates.footer   ? $(_this.options.templates.footer).html() : '';
+    _this.options.templates.noData   = _this.options.templates.noData   ? $(_this.options.templates.noData).html() : '';
 
-    this.options.templates.row      = this.options.templates.row      || '';
-    this.options.templates.groupRow = this.options.templates.groupRow || '';
-    this.options.templates.header   = this.options.templates.header   || '';
-    this.options.templates.footer   = this.options.templates.footer   || '';
-    this.options.templates.noData   = this.options.templates.noData   || '';
+    _this.options.templates.row      = _this.options.templates.row      || '';
+    _this.options.templates.groupRow = _this.options.templates.groupRow || '';
+    _this.options.templates.header   = _this.options.templates.header   || '';
+    _this.options.templates.footer   = _this.options.templates.footer   || '';
+    _this.options.templates.noData   = _this.options.templates.noData   || '';
 
-    this.templates = {};
+    _this.templates = Object.create({});
 
-    this.templates.row      = this.options.templates.row.length > 0      ? br.compile(this.options.templates.row)      : function() { return ''; };
-    this.templates.groupRow = this.options.templates.groupRow.length > 0 ? br.compile(this.options.templates.groupRow) : function() { return ''; };
-    this.templates.header   = this.options.templates.header.length > 0   ? br.compile(this.options.templates.header)   : function() { return ''; };
-    this.templates.footer   = this.options.templates.footer.length > 0   ? br.compile(this.options.templates.footer)   : function() { return ''; };
-    this.templates.noData   = this.options.templates.noData.length > 0   ? br.compile(this.options.templates.noData)   : function() { return ''; };
+    _this.templates.row      = _this.options.templates.row.length > 0      ? br.compile(_this.options.templates.row)      : function() { return ''; };
+    _this.templates.groupRow = _this.options.templates.groupRow.length > 0 ? br.compile(_this.options.templates.groupRow) : function() { return ''; };
+    _this.templates.header   = _this.options.templates.header.length > 0   ? br.compile(_this.options.templates.header)   : function() { return ''; };
+    _this.templates.footer   = _this.options.templates.footer.length > 0   ? br.compile(_this.options.templates.footer)   : function() { return ''; };
+    _this.templates.noData   = _this.options.templates.noData.length > 0   ? br.compile(_this.options.templates.noData)   : function() { return ''; };
 
-    this.options.selectors          = this.options.selectors || {};
+    _this.options.selectors          = _this.options.selectors || Object.create({});
 
-    this.options.selectors.header   = this.options.selectors.header || this.options.headersSelector || this.selector;
-    this.options.selectors.footer   = this.options.selectors.footer || this.options.footersSelector || this.selector;
-    this.options.selectors.remove   = this.options.selectors.remove || this.options.deleteSelector  || '.action-delete';
+    _this.options.selectors.header   = _this.options.selectors.header || _this.options.headersSelector || _this.selector;
+    _this.options.selectors.footer   = _this.options.selectors.footer || _this.options.footersSelector || _this.selector;
+    _this.options.selectors.remove   = _this.options.selectors.remove || _this.options.deleteSelector  || '.action-delete';
 
-    this.options.dataSource = dataSource;
+    _this.options.dataSource = dataSource;
 
-    this.dataSource = this.options.dataSource;
-    this.storageTag = this.options.storageTag ? this.options.storageTag : document.location.pathname + ':' + this.dataSource.options.restServiceUrl;
+    _this.dataSource = _this.options.dataSource;
+    _this.storageTag = _this.options.storageTag ? _this.options.storageTag : document.location.pathname + ':' + _this.dataSource.options.restServiceUrl;
 
-    this.events = br.eventQueue(this);
-    this.before = function(event, callback) { this.events.before(event, callback); };
-    this.on     = function(event, callback) { this.events.on(event, callback); };
-    this.after  = function(event, callback) { this.events.after(event, callback); };
+    _this.events = br.eventQueue(_this);
+    _this.before = function(event, callback) { _this.events.before(event, callback); };
+    _this.on     = function(event, callback) { _this.events.on(event, callback); };
+    _this.after  = function(event, callback) { _this.events.after(event, callback); };
 
-    if (this.options.fixedHeader) {
-      this.table = br.table($(this.selector).closest('table'), options);
+    if (_this.options.fixedHeader) {
+      _this.table = br.table($(_this.selector).closest('table'), options);
     }
 
-    var noMoreData = false;
+    let noMoreData = false;
+    let disconnected = false;
 
     _this.loadingMoreData = false;
 
-    this.after('insert', function(data) {
+    _this.after('insert', function(data) {
       _this.events.trigger('change', data, 'insert');
       _this.events.triggerAfter('change', data, 'insert');
     });
 
-    this.after('update', function(data) {
+    _this.after('update', function(data) {
       _this.events.trigger('change', data, 'update');
       _this.events.triggerAfter('change', data, 'update');
     });
 
-    this.after('remove', function(data) {
+    _this.after('remove', function(data) {
       _this.events.trigger('change', data, 'remove');
       _this.events.triggerAfter('change', data, 'remove');
     });
 
-    this.after('change', function() {
-      if (this.table) {
-        this.table.update();
+    _this.after('change', function() {
+      if (_this.table) {
+        _this.table.update();
       }
     });
 
-    var disconnected = false;
-
-    this.setStored = function(name, value) {
+    _this.setStored = function(name, value) {
       br.storage.set(this.storageTag + 'stored:' + name, value);
     };
 
-    this.getStored = function(name, defaultValue) {
+    _this.getStored = function(name, defaultValue) {
       return br.storage.get(this.storageTag + 'stored:' + name, defaultValue);
     };
 
-    this.isDisconnected = function() {
+    _this.isDisconnected = function() {
       return disconnected;
     };
 
-    this.disconnectFromDataSource = function() {
+    _this.disconnectFromDataSource = function() {
       disconnected = true;
     };
 
-    this.reconnectWithDataSource = function() {
+    _this.reconnectWithDataSource = function() {
       disconnected = false;
     };
 
-    this.renderHeader = function(data, asString) {
+    _this.renderHeader = function(data, asString) {
       data = _this.events.trigger('renderHeader', data) || data;
-      var s = _this.templates.header(data);
+      let s = _this.templates.header(data);
       if (asString) {
         return s;
       } else
       if (s.length > 0) {
-        var result = $(s);
+        let result = $(s);
         if (_this.options.storeDataRow) {
           result.data('data-row', data);
         }
@@ -3042,14 +2954,14 @@
       }
     };
 
-    this.renderFooter = function(data, asString) {
+    _this.renderFooter = function(data, asString) {
       data = _this.events.trigger('renderFooter', data) || data;
-      var s =  _this.templates.footer(data);
+      let s =  _this.templates.footer(data);
       if (asString) {
         return s;
       } else
       if (s.length > 0) {
-        var result = $(s);
+        let result = $(s);
         if (_this.options.storeDataRow) {
           result.data('data-row', data);
         }
@@ -3059,14 +2971,14 @@
       }
     };
 
-    this.renderRow = function(data, asString) {
+    _this.renderRow = function(data, asString) {
       data = _this.events.trigger('renderRow', data) || data;
-      var s = _this.templates.row(data).trim();
+      let s = _this.templates.row(data).trim();
       if (asString) {
         return s;
       } else
       if (s.length > 0) {
-        var result = $(s);
+        let result = $(s);
         if (_this.options.storeDataRow) {
           result.data('data-row', data);
         }
@@ -3076,14 +2988,14 @@
       }
     };
 
-    this.renderGroupRow = function(data, asString) {
+    _this.renderGroupRow = function(data, asString) {
       data = _this.events.trigger('renderGroupRow', data) || data;
-      var s = _this.templates.groupRow(data).trim();
+      let s = _this.templates.groupRow(data).trim();
       if (asString) {
         return s;
       } else
       if (s.length > 0) {
-        var result = $(s);
+        let result = $(s);
         if (_this.options.storeDataRow) {
           result.data('data-row', data);
         }
@@ -3093,24 +3005,24 @@
       }
     };
 
-    this.prepend = function(row) {
+    _this.prepend = function(row) {
       return $(_this.selector).prepend(row);
     };
 
-    this.append = function(row) {
+    _this.append = function(row) {
       return $(_this.selector).append(row);
     };
 
-    this.insertDataRowAfter = function(row, selector) {
-      var tableRow = _this.renderRow(row);
+    _this.insertDataRowAfter = function(row, selector) {
+      let tableRow = _this.renderRow(row);
       if (tableRow) {
         $(tableRow).insertAfter(selector);
       }
       return tableRow;
     };
 
-    this.addDataRow = function(row, disableEvents) {
-      var tableRow = _this.renderRow(row);
+    _this.addDataRow = function(row, disableEvents) {
+      let tableRow = _this.renderRow(row);
       if (tableRow) {
         _this.events.triggerBefore('insert', row, tableRow);
         _this.events.trigger('insert', row, tableRow);
@@ -3127,12 +3039,12 @@
       return tableRow;
     };
 
-    this.hasRow = function(rowid) {
-      var row = $(_this.selector).find('[data-rowid=' + rowid + ']');
+    _this.hasRow = function(rowid) {
+      let row = $(_this.selector).find('[data-rowid=' + rowid + ']');
       return (row.length > 0);
     };
 
-    this.reloadRow = function(rowid, callback, options) {
+    _this.reloadRow = function(rowid, callback, options) {
       if (!br.isEmpty(callback)) {
         if (typeof callback != 'function') {
           options = callback;
@@ -3142,7 +3054,7 @@
       options = options || { };
       options.disableEvents = true;
       options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
-      var filter;
+      let filter;
       if (br.isObject(rowid)) {
         filter = rowid;
       } else {
@@ -3183,14 +3095,14 @@
       }
     }
 
-    this.removeRow = function(rowid, options) {
-      var filter = '[data-rowid=' + rowid + ']';
-      options = options || {};
+    _this.removeRow = function(rowid, options) {
+      let filter = '[data-rowid=' + rowid + ']';
+      options = options || Object.create({});
       options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
       if (options.refreshSelector) {
         filter = options.refreshSelector + filter;
       }
-      var row = $(_this.selector).find(filter);
+      let row = $(_this.selector).find(filter);
       if (row.length > 0) {
         _this.events.triggerBefore('remove', rowid);
         _this.events.trigger('remove', rowid, row);
@@ -3226,15 +3138,15 @@
     };
 
     _this.refreshRow = function(data, options) {
-      var filter = '[data-rowid=' + data.rowid + ']';
-      options = options || {};
+      let filter = '[data-rowid=' + data.rowid + ']';
+      options = options || Object.create({});
       options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
       if (options.refreshSelector) {
         filter = options.refreshSelector + filter;
       }
-      var row = $(_this.selector).find(filter);
+      let row = $(_this.selector).find(filter);
       if (row.length > 0) {
-        var tableRow = _this.renderRow(data);
+        let tableRow = _this.renderRow(data);
         if (tableRow) {
           if (_this.options.storeDataRow) {
             tableRow.data('data-row', data);
@@ -3259,7 +3171,7 @@
 
       } else {
         _this.loadingMoreData = true;
-        _this.dataSource.select({}, function(result, response) {
+        _this.dataSource.select(Object.create({}), function(result, response) {
           if (typeof callback == 'function') { callback.call(_this, result, response); }
           _this.loadingMoreData = false;
         }, { loadingMore: true });
@@ -3271,7 +3183,7 @@
     };
 
     _this.getKeys = function(attrName) {
-      var result = [];
+      let result = [];
       if (!attrName) {
         attrName = 'data-rowid';
       }
@@ -3282,7 +3194,7 @@
     };
 
     _this.isOrderConfigured = function() {
-      var orderAndGroup = _this.getOrderAndGroup();
+      let orderAndGroup = _this.getOrderAndGroup();
       return br.isArray(orderAndGroup) && (orderAndGroup.length > 0);
     };
 
@@ -3292,10 +3204,10 @@
     }
 
     function showOrder(orderAndGroup) {
-      for(var i = 0; i < orderAndGroup.length; i++) {
-        var ctrl = $('.sortable[data-field="' + orderAndGroup[i].fieldName + '"].' + (orderAndGroup[i].asc ? 'order-asc' : 'order-desc'), $(_this.options.selectors.header));
+      for(let i = 0, length = orderAndGroup.length; i < length; i++) {
+        let ctrl = $('.sortable[data-field="' + orderAndGroup[i].fieldName + '"].' + (orderAndGroup[i].asc ? 'order-asc' : 'order-desc'), $(_this.options.selectors.header));
         ctrl.addClass('icon-white').addClass('icon-border').addClass('fa-border');
-        var idx = ctrl.parent().find('div.br-sort-index');
+        let idx = ctrl.parent().find('div.br-sort-index');
         if (orderAndGroup.length > 1) {
           if (idx.length > 0) {
             idx.text(i + 1);
@@ -3307,10 +3219,10 @@
     }
 
     _this.getOrder = function() {
-      var order = _this.getOrderAndGroup();
-      var result = {};
+      let order = _this.getOrderAndGroup();
+      let result = Object.create({});
       if (br.isArray(order)) {
-        for(var i = 0; i < order.length; i++) {
+        for(let i = 0, length = order.length; i < length; i++) {
           if (order[i].asc) {
             result[order[i].fieldName] = 1;
           } else {
@@ -3322,15 +3234,15 @@
     };
 
     _this.setOrder = function(order, callback) {
-      var orderAndGroup = [];
-      for(var name in order) {
+      let orderAndGroup = [];
+      for(let name in order) {
         orderAndGroup.push({ fieldName: name, asc: order[name] > 0, group: false, index: orderAndGroup.length });
       }
       _this.setOrderAndGroup(orderAndGroup, callback);
     };
 
     _this.getOrderAndGroup = function() {
-      var result = br.storage.get(_this.storageTag + 'orderAndGroup', []);
+      let result = br.storage.get(_this.storageTag + 'orderAndGroup', []);
       if (br.isEmpty(result) || !br.isArray(result) || (result.length === 0)) {
         if (_this.options.defaultOrderAndGroup) {
           result = _this.options.defaultOrderAndGroup;
@@ -3360,7 +3272,7 @@
       showOrder(_this.getOrderAndGroup());
 
       $(this.options.selectors.header).on('click', '.sortable', function(event) {
-        var sorted = ($(this).hasClass('icon-white') || $(this).hasClass('icon-border') || $(this).hasClass('fa-border'));
+        let sorted = ($(this).hasClass('icon-white') || $(this).hasClass('icon-border') || $(this).hasClass('fa-border'));
         if (!event.metaKey) {
           $('.sortable', $(_this.options.selectors.header)).removeClass('icon-white').removeClass('icon-border').removeClass('fa-border');
           $('.br-sort-index', $(_this.options.selectors.header)).remove();
@@ -3371,13 +3283,13 @@
           $(this).siblings('i').removeClass('icon-white').removeClass('icon-border').removeClass('fa-border');
           $(this).addClass('icon-white').addClass('icon-border').addClass('fa-border');
         }
-        var orderAndGroup;
-        var fieldName = $(this).attr('data-field');
-        var newOrder = { fieldName: fieldName, asc: $(this).hasClass('order-asc'), group: $(this).hasClass('group-by') };
+        let orderAndGroup;
+        let fieldName = $(this).attr('data-field');
+        let newOrder = { fieldName: fieldName, asc: $(this).hasClass('order-asc'), group: $(this).hasClass('group-by') };
         if (event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) {
           orderAndGroup = _this.getOrderAndGroup();
-          var newOrderAndGroup = [];
-          for(var i = 0; i < orderAndGroup.length; i++) {
+          let newOrderAndGroup = [];
+          for(let i = 0, length = orderAndGroup.length; i < length; i++) {
             if (orderAndGroup[i].fieldName != fieldName) {
               newOrderAndGroup.push(orderAndGroup[i]);
             }
@@ -3435,10 +3347,10 @@
         });
 
         if (this.options.selectors.remove) {
-          $(_this.selector).on('click', this.options.selectors.remove, function() {
-            var row = $(this).closest('[data-rowid]');
+          $(_this.selector).on('click', _this.options.selectors.remove, function() {
+            let row = $(this).closest('[data-rowid]');
             if (row.length > 0) {
-              var rowid = $(row).attr('data-rowid');
+              let rowid = $(row).attr('data-rowid');
               if (!br.isEmpty(rowid)) {
                 br.confirm( 'Delete confirmation'
                           , 'Are you sure you want to delete this record?'
@@ -3453,11 +3365,11 @@
 
         if (br.isString(_this.selector)) {
           br.editable(_this.selector + ' .editable', function(content) {
-            var $this = $(this);
-            var rowid = $this.closest('[data-rowid]').attr('data-rowid');
-            var dataField = $this.attr('data-field');
+            let $this = $(this);
+            let rowid = $this.closest('[data-rowid]').attr('data-rowid');
+            let dataField = $this.attr('data-field');
             if (!br.isEmpty(rowid) && !br.isEmpty(dataField)) {
-              var data = {};
+              let data = Object.create({});
               data[dataField] = content;
               _this.dataSource.update( rowid
                                      , data
@@ -3476,18 +3388,17 @@
     };
 
     this.render = function(data, loadingMoreData) {
-      var $selector = $(_this.selector);
-      var tableRow;
+      let $selector = $(_this.selector);
+      let tableRow;
       _this.events.triggerBefore('change', data, 'render');
       if (data) {
-        var i, j, k;
         if (!loadingMoreData) {
           $selector.html('');
         }
         if (_this.options.freeGrid) {
           data = data[0];
-          if (data.headers) {
-            for (i in data.headers) {
+          if (data.headers && (data.headers.length > 0)) {
+            for (let i = 0, length = data.headers.length; i < length; i++) {
               if (data.headers[i]) {
                 tableRow = _this.renderHeader(data.headers[i]);
                 if (tableRow) {
@@ -3496,8 +3407,8 @@
               }
             }
           }
-          if (data.footers) {
-            for (i in data.footers) {
+          if (data.footers && (data.footers.length > 0)) {
+            for (let i = 0, length = data.footers.length; i < length; i++) {
               if (data.footers[i]) {
                 tableRow = _this.renderFooter(data.headers[i]);
                 if (tableRow) {
@@ -3509,10 +3420,8 @@
           $(_this.options.selectors.header).html('');
           $(_this.options.selectors.footer).html('');
           if (data.rows) {
-            if (data.rows.length === 0) {
-              $selector.html(_this.templates.noData());
-            } else {
-              for (i in data.rows) {
+            if (data.rows.length > 0) {
+              for (let i = 0, length = data.rows.length; i < length; i++) {
                 if (data.rows[i]) {
                   if (data.rows[i].row) {
                     tableRow = _this.renderRow(data.rows[i].row);
@@ -3534,34 +3443,36 @@
                   }
                 }
               }
+            } else {
+              $selector.html(_this.templates.noData());
             }
           } else {
             $selector.html(_this.templates.noData());
           }
         } else {
           if (data && (data.length > 0)) {
-            var group = _this.getOrderAndGroup();
-            var groupValues = {};
-            var groupFieldName = '';
-            for (i = 0; i < data.length; i++) {
+            let group = _this.getOrderAndGroup();
+            let groupValues = Object.create({});
+            let groupFieldName = '';
+            for (let i = 0, length = data.length; i < length; i++) {
               if (data[i]) {
                 if (br.isArray(group)) {
-                  for(k = 0; k < group.length; k++) {
+                  for (let k = 0, length = group.length; k < length; k++) {
                     groupFieldName = group[k].fieldName;
                     if (group[k].group && (groupValues[groupFieldName] != data[i][groupFieldName])) {
-                      for(j = k; j < group.length; j++) {
+                      for(let j = k, length = group.length; j < length; j++) {
                         groupFieldName = group[j].fieldName;
                         groupValues[groupFieldName] = undefined;
                       }
                       break;
                     }
                   }
-                  for(k = 0; k < group.length; k++) {
+                  for (let k = 0, length = group.length; k < length; k++) {
                     groupFieldName = group[k].fieldName;
                     if (group[k].group && (groupValues[groupFieldName] != data[i][groupFieldName])) {
                       groupValues[groupFieldName] = data[i][groupFieldName];
-                      var tmp = data[i];
-                      tmp.__groupBy = {};
+                      let tmp = data[i];
+                      tmp.__groupBy = Object.create({});
                       tmp.__groupBy.__field = groupFieldName;
                       tmp.__groupBy.__value = data[i][groupFieldName];
                       tmp.__groupBy[groupFieldName] = true;
@@ -3596,8 +3507,6 @@
 
   }
 
-  window.br = window.br || {};
-
   window.br.dataGrid = function (selector, rowTemplate, dataSource, options) {
     return new BrDataGrid(selector, rowTemplate, dataSource, options);
   };
@@ -3605,9 +3514,9 @@
 })(jQuery, window);
 
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
- * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2019, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
@@ -3615,16 +3524,18 @@
 
 ;(function ($, window) {
 
+  window.br = window.br || Object.create({});
+
   function BrDataCombo(selector, dataSource, options) {
 
     const _this = this;
 
     const selectLimit = 50;
 
-    var beautified = false;
-    var beautifier = '';
-    var currentData = [];
-    var requestTimer;
+    let beautified = false;
+    let beautifier = '';
+    let currentData = [];
+    let requestTimer;
 
     _this.selector = $(selector);
 
@@ -3652,7 +3563,7 @@
     _this.getFirstAvailableValue = function() {
       let result = null;
       _this.selector.find('option').each(function() {
-        let val = $(this).val();
+        const val = $(this).val();
         if (!br.isEmpty(val)) {
           if (br.isEmpty(result)) {
             result = val;
@@ -3714,14 +3625,14 @@
               params.placeholder = _this.options.emptyName;
               params.query = function (query) {
                 window.clearTimeout(requestTimer);
-                let request = { };
+                let request = Object.create({});
                 request.keyword = query.term;
                 requestTimer = window.setTimeout(function() {
                   if (query.term || _this.options.lookup_minimumInputLength === 0) {
                     _this.dataSource.select(request, function(result, response) {
                       if (result) {
                         let data = { results: [] };
-                        for(let i = 0; i < response.length; i++) {
+                        for(let i = 0, length = response.length; i < length; i++) {
                           data.results.push({ id:   response[i][_this.options.valueField]
                                             , text: getName(response[i])
                                             });
@@ -3766,9 +3677,9 @@
     _this.selected = function(fieldName) {
       if (br.isArray(currentData)) {
         if (currentData.length > 0) {
-          let val = _this.val();
+          const val = _this.val();
           if (!br.isEmpty(val)) {
-            for(let i = 0; i < currentData.length; i++) {
+            for(let i = 0, length = currentData.length; i < length; i++) {
               if (br.toInt(currentData[i][_this.options.valueField]) == br.toInt(val)) {
                 if (br.isEmpty(fieldName)) {
                   return currentData[i];
@@ -3829,7 +3740,7 @@
         }
       }
       if (_this.isValid()) {
-        let val = _this.selector.val();
+        const val = _this.selector.val();
         if (val !== null) {
           return val;
         } else {
@@ -3842,7 +3753,7 @@
 
     _this.valOrNull = function() {
       if (_this.isValid()) {
-        let val = _this.val();
+        const val = _this.val();
         return br.isEmpty(val) ? null : val;
       } else {
         return undefined;
@@ -3895,8 +3806,8 @@
       }
       s = s + '>';
       if (!br.isEmpty(_this.options.levelField)) {
-        let margin = (br.toInt(data[_this.options.levelField]) - 1) * 4;
-        for (let k = 0; k < margin; k++) {
+        const margin = (br.toInt(data[_this.options.levelField]) - 1) * 4;
+        for(let k = 0; k < margin; k++) {
           s = s + '&nbsp;';
         }
       }
@@ -3924,7 +3835,8 @@
         }
 
         _this.selector.each(function() {
-          let _selector = $(this);
+
+          const _selector = $(this);
           let val = _selector.val();
           if (br.isEmpty(val)) {
             val = _selector.attr('data-value');
@@ -3952,7 +3864,7 @@
           _this.events.triggerBefore('generateOptions', cbObj, _selector);
           s = cbObj.s;
 
-          for(let i = 0; i < data.length; i++) {
+          for(let i = 0, length = data.length; i < length; i++) {
             s = s + renderRow(data[i]);
             if (br.isEmpty(_this.options.selectedValue) && !br.isEmpty(_this.options.selectedValueField)) {
               let selectedValue = data[i][_this.options.selectedValueField];
@@ -3968,7 +3880,7 @@
           } else
           if (!br.isEmpty(val)) {
             if (br.isArray(val)) {
-              for (let k = 0; k < val.length; k++) {
+              for(let k = 0, length = val.length; k < length; k++) {
                 _selector.find('option[value=' + val[k] +']').attr('selected', 'selected');
               }
             } else {
@@ -4031,7 +3943,7 @@
 
     };
 
-    var prevValue = _this.val();
+    let prevValue = _this.val();
 
     _this.getPrevValue = function() {
       return prevValue;
@@ -4053,6 +3965,7 @@
       prevValue = _this.val();
       _this.events.trigger('click');
     });
+
     _this.selector.on('select2-opening', function() {
       prevValue = _this.val();
       _this.events.trigger('click');
@@ -4149,17 +4062,14 @@
       }
 
       if (_this.options.saveSelection && (!_this.dataSource || (!thereWasDataSource && _this.options.lookupMode))) {
-
         if (_this.options.saveToSessionStorage) {
           _this.options.selectedValue = br.session.get(storageTag(_this.selector));
         } else {
           _this.options.selectedValue = br.storage.get(storageTag(_this.selector));
         }
-
         if (!br.isEmpty(_this.options.selectedValue)) {
           _this.val(_this.options.selectedValue);
         }
-
       }
 
       beautify();
@@ -4172,8 +4082,6 @@
 
   }
 
-  window.br = window.br || {};
-
   window.br.dataCombo = function (selector, dataSource, options) {
     let instance = $(selector).data('BrDataCombo');
     if (!instance) {
@@ -4185,27 +4093,27 @@
 })(jQuery, window);
 
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
- * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2019, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
  */
 
-/* global jQuery */
-
 ;(function ($, window) {
+
+  window.br = window.br || Object.create({});
 
   function BrDraggable(ctrl, options) {
 
-    var _this = this;
+    const _this = this;
 
-    var dragObject = null;
-    var dragHandler = null;
-    var pos_y, pos_x, ofs_x, ofs_y;
+    let dragObject = null;
+    let dragHandler = null;
+    let pos_y, pos_x, ofs_x, ofs_y;
 
-    options = options || {};
+    options = options || Object.create({});
     options.exclude = [ 'INPUT', 'TEXTAREA', 'SELECT', 'A', 'BUTTON' ];
 
     function setPosition(element, left, top) {
@@ -4216,15 +4124,15 @@
     }
 
     function downHandler(e) {
-      var target = e.target || e.srcElement;
-      var parent = target.parentNode;
+      let target = e.target || e.srcElement;
+      let parent = target.parentNode;
 
       if (target && (options.exclude.indexOf(target.tagName.toUpperCase()) == -1)) {
         if (!parent || (options.exclude.indexOf(parent.tagName.toUpperCase()) == -1)) {  // img in a
           dragObject = ctrl;
 
-          var pageX = e.pageX || e.touches[0].pageX;
-          var pageY = e.pageY || e.touches[0].pageY;
+          let pageX = e.pageX || e.touches[0].pageX;
+          let pageY = e.pageY || e.touches[0].pageY;
 
           ofs_x = dragObject.getBoundingClientRect().left - dragObject.offsetLeft;
           ofs_y = dragObject.getBoundingClientRect().top  - dragObject.offsetTop;
@@ -4239,10 +4147,10 @@
 
     function moveHandler(e) {
       if (dragObject !== null) {
-        var pageX = e.pageX || e.touches[0].pageX;
-        var pageY = e.pageY || e.touches[0].pageY;
-        var left = pageX - pos_x - ofs_x - document.body.scrollLeft;
-        var top  = pageY - pos_y - ofs_y - document.body.scrollTop;
+        let pageX = e.pageX || e.touches[0].pageX;
+        let pageY = e.pageY || e.touches[0].pageY;
+        let left = pageX - pos_x - ofs_x - document.body.scrollLeft;
+        let top  = pageY - pos_y - ofs_y - document.body.scrollTop;
 
         setPosition(dragObject, left, top);
         if (options.ondrag) {
@@ -4304,10 +4212,8 @@
 
   }
 
-  window.br = window.br || {};
-
   window.br.draggable = function (selector, options) {
-    var result = [];
+    let result = [];
     $(selector).each(function() {
       result.push(new BrDraggable(this, options));
     });
@@ -4320,9 +4226,9 @@
 })(jQuery, window);
 
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
- * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2019, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
@@ -4330,19 +4236,23 @@
 
 ;(function ($, window) {
 
+  window.br = window.br || Object.create({});
+
   function BrEditable(ctrl, options) {
 
-    var _this = this;
-    _this.ctrl = $(ctrl);
+    const _this = this;
+
     if (br.isFunction(options)) {
       options = { onSave: options };
     }
-    _this.options = options || {};
+    _this.options = options || Object.create({});
+    _this.ctrl = $(ctrl);
     _this.editor = null;
     _this.savedWidth = '';
+
     _this.click = function(element, e) {
       if (!_this.activated()) {
-        var content = '';
+        let content = '';
         if (typeof _this.ctrl.attr('data-editable') != 'undefined') {
           content = _this.ctrl.attr('data-editable');
         } else {
@@ -4351,7 +4261,7 @@
         _this.ctrl.data('brEditable-original-html', _this.ctrl.html());
         _this.ctrl.data('brEditable-original-width', _this.ctrl.css('width'));
         _this.ctrl.text('');
-        var isTextarea = (_this.ctrl.attr('data-editable-type') == 'textarea');
+        let isTextarea = (_this.ctrl.attr('data-editable-type') == 'textarea');
         if (isTextarea) {
           _this.editor = $('<textarea rows="3"></textarea>');
         } else {
@@ -4359,17 +4269,18 @@
         }
         _this.editor.addClass('form-control');
         _this.editor.addClass('br-editable-control');
-        _this.editor.css('width', '100%');
-        _this.editor.css('height', '100%');
-        _this.editor.css('min-height', '30px');
-        _this.editor.css('font-size', _this.ctrl.css('font-size'));
-        _this.editor.css('font-weight', _this.ctrl.css('font-weight'));
-        _this.editor.css('box-sizing', '100%');
-        _this.editor.css('-webkit-box-sizing', 'border-box');
-        _this.editor.css('-moz-box-sizing', 'border-box');
-        _this.editor.css('-ms-box-sizing', 'border-box');
-        _this.editor.css('margin-top', '2px');
-        _this.editor.css('margin-bottom', '2px');
+        _this.editor.css({ 'width': '100%'
+                         , 'height': '100%'
+                         , 'min-height': '30px'
+                         , 'font-size': _this.ctrl.css('font-size')
+                         , 'font-weight': _this.ctrl.css('font-weight')
+                         , 'box-sizing': '100%'
+                         , '-webkit-box-sizing': 'border-box'
+                         , '-moz-box-sizing': 'border-box'
+                         , '-ms-box-sizing': 'border-box'
+                         , 'margin-top': '2px'
+                         , 'margin-bottom': '2px'
+                         });
         if (_this.ctrl.attr('data-editable-style')) {
           _this.editor.attr('style', _this.ctrl.attr('data-editable-style'));
         }
@@ -4380,7 +4291,7 @@
         _this.editor.val(content);
         _this.editor.on('keydown', function(e) {
           if (e.keyCode == 9) {
-            var content = _this.editor.val();
+            let content = _this.editor.val();
             if (_this.options.onSave) {
               _this.options.onSave.call(_this.ctrl, content, 'keyup');
             } else {
@@ -4391,7 +4302,7 @@
           }
         });
         _this.editor.on('keyup', function(e) {
-          var content = _this.editor.val();
+          let content = _this.editor.val();
           switch (e.keyCode) {
             case 13:
               if (_this.options.onSave) {
@@ -4408,12 +4319,12 @@
           }
         });
         _this.editor.on('blur', function(e) {
-          var ok = true;
+          let ok = true;
           if (_this.options.onBlur) {
             ok = _this.options.onBlur.call(_this.ctrl, e);
           }
           if (ok) {
-            var content = _this.editor.val();
+            let content = _this.editor.val();
             if (_this.options.onSave) {
               _this.options.onSave.call(_this.ctrl, content, 'blur');
             } else {
@@ -4470,16 +4381,16 @@
       }
     };
 
-  }
+    return _this;
 
-  window.br = window.br || {};
+  }
 
   window.br.editable = function(selector, callback, value) {
     if (typeof callback == 'string') {
       if ($(selector).hasClass('br-editable-control')) {
         selector = $(selector).parent();
       }
-      var data = $(selector).data('brEditable-editable');
+      let data = $(selector).data('brEditable-editable');
       switch (callback) {
         case 'exists':
           if (data) {
@@ -4503,7 +4414,8 @@
       }
     } else {
       $(document).on('click', selector, function(e) {
-        var $this = $(this), data = $this.data('brEditable-editable');
+        let $this = $(this);
+        let data = $this.data('brEditable-editable');
         if (!data) {
           $this.data('brEditable-editable', (data = new BrEditable(this, callback)));
         }
@@ -4515,7 +4427,7 @@
 })(jQuery, window);
 
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
  * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -4527,7 +4439,8 @@
 
 ;(function ($, window) {
 
-  window.br = window.br || {};
+  window.br = window.br || Object.create({});
+
   window.br.bootstrapVersion = 0;
 
   window.br.showError = function(s) {
@@ -4545,9 +4458,8 @@
         });
       } else
       if (typeof window.humane != 'undefined') {
-        humane.log(s, { addnCls     : 'humane-jackedup-error humane-original-error'
-                      //, clickToClose: true
-                      , timeout     : 5000
+        humane.log(s, { addnCls: 'humane-jackedup-error humane-original-error'
+                      , timeout: 5000
                       });
       } else {
         alert(s);
@@ -4598,19 +4510,17 @@
     options.cancelTitle = options.cancelTitle || br.trn('Cancel');
     options.onConfirm = options.onConfirm || callback;
 
-    var i;
-
-    var s = '<div class="br-modal-confirm modal';
+    let s = '<div class="br-modal-confirm modal';
     if (options.cssClass) {
       s = s + ' ' + options.cssClass;
     }
     s += '">';
 
-    var checkBoxes = '';
+    let checkBoxes = '';
     if (options.checkBoxes) {
-      for (i in options.checkBoxes) {
-        var check = options.checkBoxes[i];
-        var checked = '';
+      for (let i in options.checkBoxes) {
+        let check = options.checkBoxes[i];
+        let checked = '';
         if (check.default) {
           checked = 'checked';
         }
@@ -4629,32 +4539,32 @@
             '<div class="modal-body" style="overflow-y:auto;">' + message + checkBoxes + '</div>' +
             '<div class="modal-footer">';
     if (options.showDontAskMeAgain) {
-      var dontAskMeAgainTitle = (options.dontAskMeAgainTitle) ? options.dontAskMeAgainTitle : br.trn("Don't ask me again");
+      const dontAskMeAgainTitle = (options.dontAskMeAgainTitle) ? options.dontAskMeAgainTitle : br.trn("Don't ask me again");
       s = s + '<label style="text-align:left;float:left;padding-top:5px;" class="checkbox">' +
               '<input name="showDontAskMeAgain" type="checkbox" value="1"> ' + dontAskMeAgainTitle +
               '</label>';
     }
     if (br.isEmpty(buttons)) {
-      var yesTitle    = options.yesTitle || br.trn('Yes');
-      var yesLink     = options.yesLink || 'javascript:;';
-      var targetBlank = options.yesLink && !options.targetSamePage;
+      const yesTitle    = options.yesTitle || br.trn('Yes');
+      const yesLink     = options.yesLink || 'javascript:;';
+      const targetBlank = options.yesLink && !options.targetSamePage;
       s = s + '<a href="' + yesLink + '" ' + (targetBlank ? 'target="_blank"' : '') + ' class="btn btn-sm btn-primary action-confirm-close" rel="confirm">&nbsp;' + yesTitle + '&nbsp;</a>';
     } else {
-      for(i in buttons) {
+      for(let i in buttons) {
         s = s + '<a href="javascript:;" class="btn btn-sm btn-default action-confirm-close" rel="' + i + '">&nbsp;' + buttons[i] + '&nbsp;</a>';
       }
     }
     s = s + '<a href="javascript:;" class="btn btn-sm btn-default action-confirm-cancel" rel="cancel">&nbsp;' + options.cancelTitle + '&nbsp;</a>';
     s = s + '</div></div></div></div>';
 
-    var modal = $(s);
+    const modal = $(s);
 
-    var oldActiveElement = document.activeElement;
+    const oldActiveElement = document.activeElement;
     if (oldActiveElement) {
       oldActiveElement.blur();
     }
 
-    var remove = true;
+    let remove = true;
 
     $(modal).on('show.bs.modal', function(event) {
       if ($(event.target).is(modal)) {
@@ -4662,9 +4572,9 @@
           options.onShow.call(modal);
         }
         $(this).find('.action-confirm-close').on('click', function() {
-          var button = $(this).attr('rel');
-          var dontAsk = $('input[name=showDontAskMeAgain]', $(modal)).is(':checked');
-          var checks = {};
+          const button = $(this).attr('rel');
+          const dontAsk = $('input[name=showDontAskMeAgain]', $(modal)).is(':checked');
+          let checks = Object.create({});
           $('input.confirm-checkbox').each(function(){
             checks[$(this).attr('name')] = $(this).is(':checked');
           });
@@ -4679,8 +4589,8 @@
           }
         });
         $(this).find('.action-confirm-cancel').click(function() {
-          var button = 'cancel';
-          var dontAsk = $('input[name=showDontAskMeAgain]', $(modal)).is(':checked');
+          const button = 'cancel';
+          const dontAsk = $('input[name=showDontAskMeAgain]', $(modal)).is(':checked');
           remove = false;
           modal.modal('hide');
           if (options.onCancel) {
@@ -4701,8 +4611,8 @@
         }
         if (remove) {
           if (options.onCancel) {
-            var button = 'cancel';
-            var dontAsk = $('input[name=showDontAskMeAgain]', $(modal)).is(':checked');
+            const button = 'cancel';
+            const dontAsk = $('input[name=showDontAskMeAgain]', $(modal)).is(':checked');
             options.onCancel(button, dontAsk);
           }
           modal.remove();
@@ -4713,7 +4623,7 @@
     $(modal).on('shown.bs.modal', function(event) {
       if ($(event.target).is(modal)) {
         if (options.defaultButton) {
-          var btn = $(this).find('.modal-footer a.btn[rel=' + options.defaultButton + ']');
+          const btn = $(this).find('.modal-footer a.btn[rel=' + options.defaultButton + ']');
           if (btn.length > 0) {
             btn[0].focus();
           }
@@ -4749,10 +4659,10 @@
 
     options = options || {};
 
-    var buttonTitle = options.buttonTitle || 'Dismiss';
+    const buttonTitle = options.buttonTitle || 'Dismiss';
 
     if ($('#br_modalError').length > 0) {
-      var currentMessage = $('#br_modalError .modal-body').html();
+      const currentMessage = $('#br_modalError .modal-body').html();
       if (currentMessage.indexOf(message) == -1) {
         message = message + '<br /><br />' + currentMessage;
       }
@@ -4761,7 +4671,7 @@
       $('#br_modalError').remove();
     }
 
-    var s = '<div class="modal" id="br_modalError" data-backdrop="static">' +
+    let s = '<div class="modal" id="br_modalError" data-backdrop="static">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">';
     if (title !== '') {
@@ -4771,9 +4681,10 @@
             '<div class="modal-footer" style="background-color:red;">';
     s = s + '<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn(buttonTitle) + '&nbsp;</a><';
     s = s + '/div></div></div></div>';
-    var modal = $(s);
 
-    var oldActiveElement = document.activeElement;
+    const modal = $(s);
+
+    const oldActiveElement = document.activeElement;
     if (oldActiveElement) {
       oldActiveElement.blur();
     }
@@ -4812,10 +4723,10 @@
 
     options = options || {};
 
-    var buttonTitle = options.buttonTitle || 'Dismiss';
+    const buttonTitle = options.buttonTitle || 'Dismiss';
 
     if ($('#br_modalInform').length > 0) {
-      var currentMessage = $('#br_modalInform .modal-body').html();
+      const currentMessage = $('#br_modalInform .modal-body').html();
       if (currentMessage.indexOf(message) == -1) {
         message = message + '<br /><br />' + currentMessage;
       }
@@ -4824,7 +4735,7 @@
       $('#br_modalInform').remove();
     }
 
-    var s = '<div class="modal" id="br_modalInform" data-backdrop="static">' +
+    let s = '<div class="modal" id="br_modalInform" data-backdrop="static">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">';
     if (title !== '') {
@@ -4833,24 +4744,24 @@
     s = s + '<div class="modal-body" style="overflow-y:auto;">' + message + '</div>' +
             '<div class="modal-footer">';
     if (options.showDontAskMeAgain) {
-      var dontAskMeAgainTitle = (options.dontAskMeAgainTitle) ? options.dontAskMeAgainTitle : br.trn("Don't ask me again");
+      let dontAskMeAgainTitle = (options.dontAskMeAgainTitle) ? options.dontAskMeAgainTitle : br.trn("Don't ask me again");
       s = s + '<label style="text-align:left;float:left;padding-top:5px;" class="checkbox">' +
               '<input name="showDontAskMeAgain" type="checkbox" value="1"> ' + dontAskMeAgainTitle +
               '</label>';
     }
     s = s +'<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn(buttonTitle) + '&nbsp;</a></div></div></div></div>';
 
-    var modal = $(s);
+    const modal = $(s);
 
-    var oldActiveElement = document.activeElement;
+    const oldActiveElement = document.activeElement;
     if (oldActiveElement) {
       oldActiveElement.blur();
     }
 
     $(modal).on('hide.bs.modal', function(event) {
       if ($(event.target).is(modal)) {
-        var dontAsk = $('input[name=showDontAskMeAgain]', $(modal)).is(':checked');
         if (callback) {
+          const dontAsk = $('input[name=showDontAskMeAgain]', $(modal)).is(':checked');
           callback.call(this, dontAsk);
         }
       }
@@ -4875,7 +4786,7 @@
 
     options = options || {};
 
-    var inputs = {};
+    let inputs = Object.create({});
 
     if (br.isObject(fields)) {
       inputs = fields;
@@ -4888,12 +4799,12 @@
       options.onHide = options.onhide;
     }
 
-    var s = '<div class="br-modal-prompt modal" data-backdrop="static">' +
+    let s = '<div class="br-modal-prompt modal" data-backdrop="static">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">' +
             '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>' +
             '<div class="modal-body" style="overflow-y:auto;">';
-    for(var i in inputs) {
+    for(let i in inputs) {
       if (br.isObject(inputs[i])) {
         s = s + '<label>' + i + '</label>' +
               '<input type="text" ' + (inputs[i].id ? 'id="'+inputs[i].id+'"' : '') + ' class="span4 ' + (br.isEmpty(inputs[i]['class']) ? '' : inputs[i]['class']) + '" value="' + inputs[i].value + '" />';
@@ -4909,14 +4820,14 @@
     s = s + '<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn('Cancel') + '&nbsp;</a>';
     s = s + '</div></div></div></div>';
 
-    var modal = $(s);
+    const modal = $(s);
 
-    var oldActiveElement = document.activeElement;
+    const oldActiveElement = document.activeElement;
     if (oldActiveElement) {
       oldActiveElement.blur();
     }
 
-    var remove = true;
+    let remove = true;
 
     $(modal).on('keypress', 'input', function(event) {
       if (event.keyCode == 13) {
@@ -4927,9 +4838,10 @@
     $(modal).on('show.bs.modal', function(event) {
       if ($(event.target).is(modal)) {
         $(this).find('.action-confirm-close').on('click', function() {
-          var results = [];
-          var ok = true, notOkField;
-          var inputs = [];
+          let results = [];
+          let ok = true;
+          let notOkField;
+          let inputs = [];
           $(this).closest('div.modal').find('input[type=text]').each(function() {
             if ($(this).hasClass('required') && br.isEmpty($(this).val())) {
               ok = false;
@@ -5000,7 +4912,7 @@
 
   };
 
-  var noTemplateEngine = false;
+  let noTemplateEngine = false;
 
   window.br.compile = function(template) {
     if (template) {
@@ -5019,7 +4931,7 @@
   };
 
   window.br.fetch = function(template, data, tags) {
-    data = data || {};
+    data = data || Object.create({});
     if (template) {
       if (typeof window.Mustache == 'undefined') {
         if (typeof window.Handlebars == 'undefined') {
@@ -5036,7 +4948,7 @@
     }
   };
 
-  var progressCounter = 0;
+  let progressCounter = 0;
 
   window.br.isAJAXInProgress = function() {
     return (progressCounter > 0);
@@ -5066,40 +4978,43 @@
     }
   };
 
-  var progressBar_Total = 0, progressBar_Progress = 0, progressBar_Message = '';
-  var progressBarTemplate = '<div id="br_progressBar" class="modal" style="display:none;z-index:10000;top:20px;margin-top:0px;position:fixed;" data-backdrop="static">' +
-                            '  <div class="modal-dialog">'+
-                            '    <div class="modal-content">'+
-                            '      <div class="modal-body">' +
-                            '        <table style="width:100%;font-size:18px;font-weight:300;margin-bottom:10px;">'+
-                            '          <tr>'+
-                            '            <td><div id="br_progressMessage" style="max-width:440px;max-height:40px;overflow:hidden;text-overflow:ellipsis;"></div></td>' +
-                            '            <td align="right" id="br_progressStage" style="font-size:14px;font-weight:300;"></td>' +
-                            '          </tr>' +
-                            '        </table>' +
-                            '        <div id="br_progressBar_Section" style="display:none;clear:both;">' +
-                            '          <div style="margin-bottom:0px;padding:0px;height:20px;overflow: hidden;background-color: #f5f5f5;border-radius: 4px;box-shadow: inset 0 1px 2px rgba(0,0,0,.1);">' +
-                            '            <div id="br_progressBar_Bar" style="background-color:#008cba;border:none;padding:0px;height:20px;"></div>' +
-                            '          </div>' +
-                            '        </div>' +
-                            '        <div id="br_progressBarAnimation" style="display1:none;padding-top:10px;">' +
-                            '          <center><img src="' + br.brightUrl + 'images/progress-h.gif" /></center>' +
-                            '        </div>' +
-                            '      </div>' +
-                            '    </div>' +
-                            '  </div>' +
-                            '</div>';
+  let progressBar_Total = 0;
+  let progressBar_Progress = 0;
+  let progressBar_Message = '';
+
+  const progressBarTemplate = '<div id="br_progressBar" class="modal" style="display:none;z-index:10000;top:20px;margin-top:0px;position:fixed;" data-backdrop="static">' +
+                              '  <div class="modal-dialog">'+
+                              '    <div class="modal-content">'+
+                              '      <div class="modal-body">' +
+                              '        <table style="width:100%;font-size:18px;font-weight:300;margin-bottom:10px;">'+
+                              '          <tr>'+
+                              '            <td><div id="br_progressMessage" style="max-width:440px;max-height:40px;overflow:hidden;text-overflow:ellipsis;"></div></td>' +
+                              '            <td align="right" id="br_progressStage" style="font-size:14px;font-weight:300;"></td>' +
+                              '          </tr>' +
+                              '        </table>' +
+                              '        <div id="br_progressBar_Section" style="display:none;clear:both;">' +
+                              '          <div style="margin-bottom:0px;padding:0px;height:20px;overflow: hidden;background-color: #f5f5f5;border-radius: 4px;box-shadow: inset 0 1px 2px rgba(0,0,0,.1);">' +
+                              '            <div id="br_progressBar_Bar" style="background-color:#008cba;border:none;padding:0px;height:20px;"></div>' +
+                              '          </div>' +
+                              '        </div>' +
+                              '        <div id="br_progressBarAnimation" style="display1:none;padding-top:10px;">' +
+                              '          <center><img src="' + br.brightUrl + 'images/progress-h.gif" /></center>' +
+                              '        </div>' +
+                              '      </div>' +
+                              '    </div>' +
+                              '  </div>' +
+                              '</div>';
 
 
   function fileSize(size) {
-    var i = Math.floor(Math.log(size) / Math.log(1024));
+    const i = Math.floor(Math.log(size) / Math.log(1024));
     return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' '+['B', 'kB', 'MB', 'GB', 'TB'][i];
   }
 
-  var currentProgressType;
+  let currentProgressType;
 
   function renderProgress() {
-    var p = Math.round(progressBar_Progress * 100 / progressBar_Total);
+    const p = Math.round(progressBar_Progress * 100 / progressBar_Total);
     $('#br_progressBar_Bar').css('width', p + '%');
     $('#br_progressMessage').text(progressBar_Message);
     if (currentProgressType == 'upload') {
@@ -5109,7 +5024,7 @@
     }
   }
 
-  var backDropCounter = 0;
+  let backDropCounter = 0;
 
   function initBackDrop() {
     if ($('#br_modalBackDrop').length === 0) {
@@ -5136,7 +5051,7 @@
     progressBar_Progress = 0;
     progressBar_Message = message;
     if ($('#br_progressBar').length === 0) {
-      var pbr = $(progressBarTemplate);
+      const pbr = $(progressBarTemplate);
       if (br.bootstrapVersion == 2) {
         pbr.css('top', '20px');
         pbr.css('margin-top', '0px');
@@ -5150,7 +5065,7 @@
       $('#br_progressBar_Section').hide();
       $('#br_progressStage').hide();
     }
-    window.br.showProgress();
+    br.showProgress();
   };
 
   window.br.showProgress = function() {
@@ -5165,7 +5080,7 @@
   };
 
   window.br.incProgress = function(value) {
-    if (!value) { value = 1; }
+    value = value || 1;
     progressBar_Total += value;
     renderProgress();
   };
@@ -5194,10 +5109,12 @@
   window.br.initScrollableAreas = function(deferred) {
 
     $('.br-scrollable').each(function() {
-      var $container = $(this).parent('.br-container');
-      var $navBar = $('nav.navbar');
-      if ($navBar.length === 0) { $navBar = $('div.navbar'); }
-      var initialMarginTop = 0;
+      const $container = $(this).parent('.br-container');
+      let $navBar = $('nav.navbar');
+      if ($navBar.length === 0) {
+        $navBar = $('div.navbar');
+      }
+      let initialMarginTop = 0;
       if ($navBar.css('position') != 'static') {
         initialMarginTop = $container.offset().top;
       }
@@ -5208,16 +5125,16 @@
       $('body').css('overflow', 'hidden');
 
       function resize() {
-        var navBarHeight = 0;
+        let navBarHeight = 0;
         if ($navBar.length !== 0) {
           navBarHeight = $navBar.height();
         }
         if (deferred) {
           navBarHeight = 0;
         }
-        var height = $(window).height() - navBarHeight - initialMarginTop;
+        const height = $(window).height() - navBarHeight - initialMarginTop;
         if (height > 0) {
-          var marginTop = 0;
+          let marginTop = 0;
           if ($navBar.length > 0) {
             if ($navBar.css('position') == 'static') {
               marginTop = initialMarginTop;
@@ -5243,7 +5160,8 @@
 
   window.br.resizeModalPopup = function(modal) {
 
-    var mh = $(window).height() - $(modal).find('.modal-header').outerHeight() - $(modal).find('.modal-footer').outerHeight() - 90;
+    const mh = $(window).height() - $(modal).find('.modal-header').outerHeight() - $(modal).find('.modal-footer').outerHeight() - 90;
+
     $(modal).find('.modal-body').css('max-height', mh + 'px');
     $(modal).find('.modal-body').css('overflow-y', 'auto');
 
@@ -5309,13 +5227,13 @@
   window.br.sortTable = function(table, order) {
 
     function getValuesComparison(a, b, columnIndex, direction) {
-      var td1 = $($('td', $(a))[columnIndex]);
-      var td2 = $($('td', $(b))[columnIndex]);
-      var val1 = td1.remove('a').text().trim();
-      var val2 = td2.remove('a').text().trim();
-      var val1F = 0;
-      var val2F = 0;
-      var floatValues = 0;
+      const td1 = $($('td', $(a))[columnIndex]);
+      const td2 = $($('td', $(b))[columnIndex]);
+      const val1 = td1.remove('a').text().trim();
+      const val2 = td2.remove('a').text().trim();
+      let val1F = 0;
+      let val2F = 0;
+      let floatValues = 0;
       if (!isNaN(parseFloat(val1)) && isFinite(val1)) {
         val1F = parseFloat(val1);
         floatValues++;
@@ -5333,9 +5251,9 @@
 
     return new Promise(function(resolve, reject) {
       $('tbody', table).each(function() {
-        var tbody = $(this);
+        const tbody = $(this);
         $('tr', tbody).sort(function(a, b) {
-          var values = [];
+          let values = [];
           order.forEach(function(orderCfg) {
             values.push(getValuesComparison(a, b, orderCfg.column, (orderCfg.order == 'asc' ? 1 : -1)));
           });
@@ -5357,16 +5275,16 @@
   window.br.setComboValue = function(selector, value, fromBrDataCombo) {
 
     $(selector).each(function() {
-      var element = $(this);
+      const element = $(this);
       element.val(value);
-      var dataComboInstance = element.data('BrDataCombo');
+      const dataComboInstance = element.data('BrDataCombo');
       if (dataComboInstance && !fromBrDataCombo) {
         dataComboInstance.val(value);
       } else {
         element.val(value);
         if (br.isEmpty(element.val())) {
-          var options = element.find('option');
-          var found = false;
+          const options = element.find('option');
+          let found = false;
           options.each(function() {
             if (!found && ((this.value == value) || (br.isEmpty(this.value) && br.isEmpty(value)))) {
               element.val(this.value);
@@ -5415,13 +5333,13 @@
 
   function enchanceBootstrap() {
 
-    var tabbableElements = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, *[tabindex], *[contenteditable]';
+    const tabbableElements = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, *[tabindex], *[contenteditable]';
 
     function disableTabbingOnPage(except) {
       $.each($(tabbableElements), function (idx, item) {
-        var el = $(item);
+        const el = $(item);
         if (!el.closest(except).length) {
-          var tabindex = el.attr('tabindex');
+          const tabindex = el.attr('tabindex');
           if (tabindex) {
             el.attr('data-prev-tabindex', tabindex);
           }
@@ -5432,9 +5350,9 @@
 
     function reEnableTabbingOnPage(except) {
       $.each($(tabbableElements), function (idx, item) {
-        var el = $(item);
+        const el = $(item);
         if (!el.closest(except).length) {
-          var prevTabindex = el.attr('data-prev-tabindex');
+          const prevTabindex = el.attr('data-prev-tabindex');
           if (prevTabindex) {
             el.attr('tabindex', prevTabindex);
           } else {
@@ -5464,14 +5382,14 @@
     var defaultOpacity = 50;
 
     $(document).on('shown.bs.modal', function(event) {
-      var target = $(event.target);
+      const target = $(event.target);
       if (target.hasClass('modal')) {
-        var zindex = br.toInt(target.css('z-index'));
+        let zindex = br.toInt(target.css('z-index'));
         $('div.modal').each(function() {
-          var cthis = $(this);
+          const cthis = $(this);
           if (cthis.is(':visible')) {
             if (!cthis.is(target)) {
-              var czindex = br.toInt(cthis.css('z-index'));
+              const czindex = br.toInt(cthis.css('z-index'));
               zindex = Math.max(zindex, czindex) + 2;
             }
           }
@@ -5480,7 +5398,7 @@
         zindex--;
         $('.modal-backdrop').css('z-index', zindex);
         if ($('.modal-backdrop').length) {
-          var opacity = defaultOpacity / $('.modal-backdrop').length;
+          const opacity = defaultOpacity / $('.modal-backdrop').length;
           $('.modal-backdrop').css({ 'opacity': opacity/100, 'filter': 'alpha(opacity=' + opacity + ')' });
         }
         disableTabbingOnPage(target);
@@ -5493,9 +5411,9 @@
     });
 
     $(document).on('hidden.bs.modal', function(event) {
-      var target = $(event.target);
+      const target = $(event.target);
       if (target.hasClass('modal')) {
-        var modals = [];
+        let modals = [];
         $('div.modal').each(function() {
           if ($(this).is(':visible')) {
             modals.push({ zindex: br.toInt($(this).css('z-index')), modal: $(this) });
@@ -5503,16 +5421,18 @@
         });
         if (modals.length) {
           modals.sort(function compare(a, b) {
-            if (a.zindex > b.zindex)
+            if (a.zindex > b.zindex) {
               return -1;
-            if (a.zindex < b.zindex)
+            } else
+            if (a.zindex < b.zindex) {
               return 1;
+            }
             return 0;
           });
-          var zindex = modals[0].zindex-1;
+          const zindex = modals[0].zindex-1;
           $('.modal-backdrop').css('z-index', zindex);
           if ($('.modal-backdrop').length) {
-            var opacity = defaultOpacity / $('.modal-backdrop').length;
+            const opacity = defaultOpacity / $('.modal-backdrop').length;
             $('.modal-backdrop').css({ 'opacity': opacity/100, 'filter': 'alpha(opacity=' + opacity + ')' });
           }
         }
@@ -5526,13 +5446,13 @@
 
     $(window).on('resize', function() {
       $('.br-dropdown-detached:visible').each(function() {
-        var detachedMenu = $(this);
-        var detachedMenuHolder = detachedMenu.data('detachedMenuHolder');
-        var alignRight = detachedMenu.hasClass('br-dropdown-detached-right-aligned');
-        var menu = detachedMenu.find('.dropdown-menu');
-        var css = {
+        const detachedMenu = $(this);
+        const detachedMenuHolder = detachedMenu.data('detachedMenuHolder');
+        const alignRight = detachedMenu.hasClass('br-dropdown-detached-right-aligned');
+        const menu = detachedMenu.find('.dropdown-menu');
+        let css = Object.create({
           top: detachedMenuHolder.offset().top + detachedMenuHolder.height()
-        };
+        });
         if (alignRight) {
           css.right = ($(window).width() - detachedMenuHolder.offset().left - detachedMenuHolder.width()) + menu.width();
         } else {
@@ -5544,14 +5464,14 @@
 
     $(document).on('shown.bs.dropdown', function(event) {
       $('.br-dropdown-detached:visible').hide();
-      var target = $(event.target);
+      const target = $(event.target);
       if (target.hasClass('br-dropdown-detachable')) {
-        var detachedMenu = target.data('detachedMenu');
-        var alignRight = target.hasClass('br-dropdown-detachable-right-aligned');
-        var css = {
+        const alignRight = target.hasClass('br-dropdown-detachable-right-aligned');
+        let detachedMenu = target.data('detachedMenu');
+        let css = Object.create({
           position: 'absolute',
           top: target.offset().top + target.height()
-        };
+        });
         if (detachedMenu) {
           if (alignRight) {
             css.right = ($(window).width() - target.offset().left - target.width()) + detachedMenu.data('detachedMenuWidth');
@@ -5562,7 +5482,7 @@
           detachedMenu.addClass('open');
           detachedMenu.show();
         } else {
-          var menu = $(target.find('.dropdown-menu'));
+          let menu = $(target.find('.dropdown-menu'));
           if (menu.length) {
             if (alignRight) {
               css.right = ($(window).width() - target.offset().left - target.width()) + menu.width();
@@ -5590,8 +5510,7 @@
 
   $(function() {
 
-    var notAuthorized = false;
-
+    let notAuthorized = false;
 
     if ($.fn['modal']) {
       if ($.fn['modal'].toString().indexOf('bs.modal') == -1) {
@@ -5635,11 +5554,14 @@
     enchanceBootstrap();
 
     if ($('.focused').length > 0) {
-      try { $('.focused')[0].focus(); } catch (ex) { }
+      try {
+        $('.focused')[0].focus();
+      } catch (error) {
+      }
     }
 
     if (!br.isTouchScreen) {
-      var disableBounceContainer = $('body').attr('data-disable-bounce-container');
+      const disableBounceContainer = $('body').attr('data-disable-bounce-container');
       if (!br.isEmpty(disableBounceContainer)) {
         br.disableBounce($(disableBounceContainer));
       }
@@ -5661,9 +5583,9 @@
 })(jQuery, window);
 
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
- * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2019, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
@@ -5671,92 +5593,98 @@
 
 ;(function ($, window) {
 
-  window.br = window.br || {};
-
-  var clipboardCallbacks = [];
-
-  window.br.onPaste = function(callback) {
-    clipboardCallbacks.push(callback);
-  };
+  window.br = window.br || Object.create({});
 
   $(function() {
-    $('body').on('paste', function(evt) {
 
-      var result = { data: { }, dataType: '', dataSubType: '', dataValue: '' };
-      evt = evt.originalEvent;
+    function notify(event, result) {
 
-      function notify(evt, result) {
-        br.events.trigger('paste', evt, result);
-        for(let i = 0; i < clipboardCallbacks.length; i++) {
-          clipboardCallbacks[i].call(evt, result);
+      br.events.trigger('paste', event, result);
+
+    }
+
+    function loadFile(result, file, originalEvent, onError) {
+
+      const reader = new FileReader();
+
+      reader.onload = function(event) {
+        const parts = /^data[:](.+?)\/(.+?);/.exec(event.target.result);
+        let result_dataType    = 'other';
+        let result_dataSubType = 'binary';
+        if (parts) {
+          result_dataType    = parts[1];
+          result_dataSubType = parts[2];
         }
-      }
+        result.dataType    = result_dataType;
+        result.dataSubType = result_dataSubType;
+        result.dataValue   = event.target.result;
+        result.data[result_dataType] = result.data[result_dataType] || { };
+        result.data[result_dataType][result_dataSubType] = event.target.result;
+        notify(originalEvent, result);
+      };
 
-      function loadFile(result, file, originalEvt, onerror) {
-        let reader = new FileReader();
-        reader.onload = function(evt) {
-          let parts = /^data[:](.+?)\/(.+?);/.exec(evt.target.result);
-          let result_dataType    = 'other';
-          let result_dataSubType = 'binary';
-          if (parts) {
-            result_dataType    = parts[1];
-            result_dataSubType = parts[2];
-          }
-          result.dataType    = result_dataType;
-          result.dataSubType = result_dataSubType;
-          result.dataValue   = evt.target.result;
+      reader.onerror = function(event) {
+        if (onError) {
+          onError.call(event);
+        }
+      };
+
+      reader.readAsDataURL(file);
+
+    }
+
+    function loadData(result, clipboardData, mediaType, isImage) {
+
+      const data = clipboardData.getData(mediaType);
+
+      if (data && (data.length > 0)) {
+        if (isImage) {
+          mediaType = 'image/url';
+        }
+        const parts = /^(.+?)\/(.+?)$/.exec(mediaType);
+        let result_dataType    = 'other';
+        let result_dataSubType = 'binary';
+        if (parts) {
+          result_dataType    = parts[1];
+          result_dataSubType = parts[2];
+        }
+        result.dataType        = result_dataType;
+        result.dataSubType     = result_dataSubType;
+        result.dataValue       = data;
+        if (isImage) {
           result.data[result_dataType] = result.data[result_dataType] || { };
-          result.data[result_dataType][result_dataSubType] = evt.target.result;
-          notify(originalEvt, result);
-        };
-        reader.onerror = function(evt) {
-          if (onerror) {
-            onerror();
-          }
-        };
-        reader.readAsDataURL(file);
-      }
-
-      function loadData(result, clipboardData, mediaType, isImage) {
-        let data = clipboardData.getData(mediaType);
-        if (data && (data.length > 0)) {
-          if (isImage) {
-            mediaType = 'image/url';
-          }
-          let parts = /^(.+?)\/(.+?)$/.exec(mediaType);
-          let result_dataType    = 'other';
-          let result_dataSubType = 'binary';
-          if (parts) {
-            result_dataType    = parts[1];
-            result_dataSubType = parts[2];
-          }
-          result.dataType        = result_dataType;
-          result.dataSubType     = result_dataSubType;
-          result.dataValue       = data;
-          if (isImage) {
-            result.data[result_dataType] = result.data[result_dataType] || { };
-            result.data[result_dataType][result_dataSubType] = data;
-          }
-          return true;
+          result.data[result_dataType][result_dataSubType] = data;
         }
-        return false;
+        return true;
       }
 
-      var items = [];
+      return false;
 
-      function processItems() {
-        if (items.length > 0) {
-          let item = items.shift();
-          loadFile(result, item, evt, function() {
-            processItems();
-          });
-        }
+    }
+
+    function processItems(items, result, event) {
+
+      if (items.length > 0) {
+        let item = items.shift();
+        loadFile(result, item, event, function() {
+          processItems(items, result, event);
+        });
       }
 
-      if (evt.clipboardData) {
-        for(let i = 0; i < evt.clipboardData.types.length; i++) {
-          let dataType = evt.clipboardData.types[i];
-          let parts = /^(.+?)\/(.+?)$/.exec(dataType);
+    }
+
+    $('body').on('paste', function(event) {
+
+      let result = { data: { }, dataType: '', dataSubType: '', dataValue: '' };
+      let items = [];
+      let complete = true;
+
+      event = event.originalEvent;
+
+      if (event.clipboardData) {
+        for(let i = 0, length = event.clipboardData.types.length; i < length; i++) {
+          const dataType = event.clipboardData.types[i];
+          const parts = /^(.+?)\/(.+?)$/.exec(dataType);
           let result_dataType    = 'other';
           let result_dataSubType = dataType;
           if (parts) {
@@ -5764,164 +5692,54 @@
             result_dataSubType = parts[2];
           }
           result.data[result_dataType] = result.data[result_dataType] || { };
-          result.data[result_dataType][result_dataSubType] = evt.clipboardData.getData(dataType);
+          result.data[result_dataType][result_dataSubType] = event.clipboardData.getData(dataType);
         }
 
-        let complete = true;
-        if (loadData(result, evt.clipboardData, 'public.url', true)) {
+        if (loadData(result, event.clipboardData, 'public.url', true)) {
 
         } else
-        if (loadData(result, evt.clipboardData, 'text/html')) {
+        if (loadData(result, event.clipboardData, 'text/html')) {
           result.dataValue = result.dataValue.replace(/<(html|body|head|meta|link)[^>]*?>/g, '')
-                                             .replace(/<\/(html|body|head|meta|link)[^>]*?>/g, '')
-                                             ;
+                                             .replace(/<\/(html|body|head|meta|link)[^>]*?>/g, '');
         } else
-        if (loadData(result, evt.clipboardData, 'text/plain')) {
+        if (loadData(result, event.clipboardData, 'text/plain')) {
 
         } else {
-          if (evt.clipboardData.items && (evt.clipboardData.items.length > 0)) {
-            for(let i = 0; i < evt.clipboardData.items.length; i++) {
-              if (evt.clipboardData.items[i].type.match('image.*')) {
-                items.push(evt.clipboardData.items[i].getAsFile());
+          if (event.clipboardData.items && (event.clipboardData.items.length > 0)) {
+            for(let i = 0, length = event.clipboardData.items.length; i < length; i++) {
+              if (event.clipboardData.items[i].type.match('image.*')) {
+                items.push(event.clipboardData.items[i].getAsFile());
               }
             }
           }
-          if (evt.clipboardData.files && (evt.clipboardData.files.length > 0)) {
-            for(let i = 0; i < evt.clipboardData.files.length; i++) {
-              if (evt.clipboardData.files[i].type.match('image.*')) {
-                items.push(evt.clipboardData.files[0]);
+          if (event.clipboardData.files && (event.clipboardData.files.length > 0)) {
+            for(let i = 0, length = event.clipboardData.files.length; i < length; i++) {
+              if (event.clipboardData.files[i].type.match('image.*')) {
+                items.push(event.clipboardData.files[i]);
               }
             }
           }
           if (items.length > 0) {
             complete = false;
-            processItems();
+            processItems(items, result, event);
           }
         }
 
         if (complete) {
-          notify(evt, result);
+          notify(event, result);
         }
-
       }
+
     });
+
   });
 
 })(jQuery, window);
 
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
- * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
- * Dual licensed under the MIT or GPL Version 2 licenses.
- * http://brightfw.com
- *
- */
-
-/* global io */
-
-;(function (window) {
-
-  var instance;
-
-  function BrRabbitMQ(params) {
-
-    var _this = this;
-    var subs = [];
-    var uid = 1;
-    var reregister = false;
-
-    params = params || {};
-    params.host = params.host || 'localhost';
-    params.port = params.port || 80;
-
-    this.events = br.eventQueue(this);
-    this.before = function(event, callback) { this.events.before(event, callback); };
-    this.on     = function(event, callback) { this.events.on(event, callback); };
-    this.after  = function(event, callback) { this.events.after(event, callback); };
-
-    var socket = io.connect(params.host + ':' + params.port, { secure: true });
-
-    socket.on('connect', function() {
-      _this.events.trigger('rmq.log', 'connected');
-      _this.events.trigger('rmq.connect');
-      subscribe();
-    });
-
-    socket.on('disconnect', function() {
-      _this.events.trigger('rmq.log', 'disconnected');
-      _this.events.trigger('rmq.disconnect');
-      for(var i in subs) {
-        subs[i].status = 'added';
-      }
-    });
-
-    socket.on('error', function(data) {
-      _this.events.trigger('rmq.log', data);
-      _this.events.trigger('rmq.error', data);
-    });
-
-    socket.on('RMQ/Message', function (data) {
-      _this.events.trigger('rmq.log', data);
-      _this.events.trigger('rmq.message', data);
-      if (subs[data.uid]) {
-        if (subs[data.uid].active) {
-          subs[data.uid].callback.call(this, data.data);
-        }
-      }
-    });
-
-    socket.on('RMQ/Subscribed', function (data) {
-      _this.events.trigger('rmq.log', 'subscribed', data);
-      _this.events.trigger('rmq.subscribed', data);
-      if (subs[data.uid]) {
-        subs[data.uid].active = true;
-      }
-    });
-
-    function subscribe() {
-      for(var i in subs) {
-        var sub = subs[i];
-        if (sub.status == 'added') {
-          sub.status = 'inprogress';
-          socket.emit('RMQ/Subscribe', { uid: sub.uid, exchange: sub.exchange, topic: sub.topic });
-        }
-      }
-    }
-
-    this.subscribe = function(exchange, topic, callback) {
-      var sub = { uid: uid++, exchange: exchange, topic: topic, callback: callback, status: 'added' };
-      subs[sub.uid] = sub;
-      subscribe();
-    };
-
-    this.sendMessage = function(exchange, data, topic) {
-      socket.emit('RMQ/SendMessage', { exchange: exchange, data: data, topic: topic });
-    };
-
-    this.getSocket = function() {
-      return socket;
-    };
-
-    return this;
-
-  }
-
-  window.br = window.br || {};
-
-  window.br.rabbitMQ = function(params) {
-    if (!instance) {
-      instance = new BrRabbitMQ(params);
-    }
-    return instance;
-  };
-
-})(window);
-
-/*!
- * Bright 1.0
- *
- * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2019, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
@@ -5929,14 +5747,19 @@
 
 ;(function ($, window) {
 
+  window.br = window.br || Object.create({});
+
   function BrDataEditor(selector, dataSource, options) {
 
-    var _this = this;
+    const _this = this;
 
-    var editorRowid = null;
-    var editorRowData = null;
-    var active = false;
-    var cancelled = false;
+    let editorRowid = null;
+    let editorRowData = null;
+    let active = false;
+    let cancelled = false;
+    let closeConfirmationTmp;
+    let saving = false;
+    let savingAndClosing = false;
 
     _this.options = options || {};
     _this.options.noun = _this.options.noun || '';
@@ -5945,6 +5768,7 @@
     _this.options.selectors.cancel = _this.options.selectors.cancel || '.action-cancel';
     _this.options.selectors.errorMessage = _this.options.selectors.errorMessage || '.editor-error-message';
     _this.container = $(selector);
+
     if (_this.options.inputsContainer) {
       _this.inputsContainer = $(_this.options.inputsContainer);
     } else {
@@ -5989,7 +5813,7 @@
     };
 
     _this.showError = function(message) {
-      var ctrl = $(_this.options.selectors.errorMessage, _this.container);
+      let ctrl = $(_this.options.selectors.errorMessage, _this.container);
       if (ctrl.length > 0) {
         ctrl.html(message).show();
       } else {
@@ -5998,7 +5822,7 @@
     };
 
     _this.editorConfigure = function(isCopy) {
-      var s = '';
+      let s = '';
       if (_this.options.title) {
         s = _this.options.title;
       } else
@@ -6018,7 +5842,7 @@
     };
 
     function editorShown() {
-      var focusedInput = $('input.focus[type!=hidden]:visible,select.focus:visible,textarea.focus:visible', _this.container);
+      let focusedInput = $('input.focus[type!=hidden]:visible,select.focus:visible,textarea.focus:visible', _this.container);
       if (focusedInput.length > 0) {
         try { focusedInput[0].focus(); } catch (e) { }
       } else {
@@ -6030,8 +5854,6 @@
       _this.events.trigger('editor.shown');
       br.resetCloseConfirmation();
     }
-
-    var closeConfirmationTmp;
 
     function editorHidden(result, response) {
       _this.events.trigger('editor.hidden', result, response);
@@ -6078,9 +5900,9 @@
       });
 
       $(_this.options.selectors.save, _this.container).click(function() {
-        var btn = $(this);
+        let btn = $(this);
         if (!btn.hasClass('disabled') && !saving) {
-          var andClose = btn.hasClass('action-close') || _this.container.hasClass('modal');
+          let andClose = btn.hasClass('action-close') || _this.container.hasClass('modal');
           btn.addClass('disabled');
           internalSave( andClose
                       , function() { btn.removeClass('disabled'); }
@@ -6111,9 +5933,9 @@
       if (data) {
         for(var i in data) {
           _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio][name=' + i + '],input.data-field[name=' + i + '],select.data-field[name=' + i + '],textarea.data-field[name=' + i + ']').each(function() {
-            var input = $(this);
+            let input = $(this);
             if (input.attr('data-toggle') == 'buttons-radio') {
-              var val = br.isNull(data[i]) ? '' : data[i];
+              let val = br.isNull(data[i]) ? '' : data[i];
               input.find('button[value="' + val + '"]').addClass('active');
             } else
             if (input.attr('type') == 'checkbox') {
@@ -6122,7 +5944,7 @@
             if (input.attr('type') == 'radio') {
               input.prop('checked', br.toInt(data[i]) == br.toInt(input.val()));
             } else {
-              var ckeditorInstance = input.data('ckeditorInstance');
+              let ckeditorInstance = input.data('ckeditorInstance');
               if (ckeditorInstance) {
                 (function(input, ckeditorInstance, data) {
                   ckeditorInstance.setData(data
@@ -6136,7 +5958,7 @@
                       });
                 })(input, ckeditorInstance, data[i]);
               } else {
-                var dataComboInstance = input.data('BrDataCombo');
+                let dataComboInstance = input.data('BrDataCombo');
                 if (dataComboInstance) {
                   dataComboInstance.val(data[i]);
                 } else {
@@ -6158,7 +5980,7 @@
       closeConfirmationTmp = br.isCloseConfirmationRequired();
       editorRowid = null;
       editorRowData = null;
-      var defaultValues = null;
+      let defaultValues = null;
       if (br.isNumber(rowid)) {
         editorRowid = rowid;
       } else
@@ -6172,14 +5994,14 @@
       _this.inputsContainer.find('input.data-field[type=checkbox]').val('1').prop('checked', false);
       _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio]').find('button').removeClass('active');
 
-      var ctrl = $(_this.options.selectors.errorMessage, _this.container);
+      let ctrl = $(_this.options.selectors.errorMessage, _this.container);
       if (ctrl.length > 0) {
         ctrl.html('').hide();
       }
 
       if (editorRowid) {
-        var request = { rowid: editorRowid };
-        var options = { disableEvents: true };
+        let request = { rowid: editorRowid };
+        let options = { disableEvents: true };
         _this.events.triggerBefore('editor.loadData', request, options);
         _this.dataSource.selectOne(request, function(result, data) {
           if (result) {
@@ -6233,9 +6055,6 @@
       }
     };
 
-    var saving = false;
-    var savingAndClosing = false;
-
     _this.isSaving = function() {
       return saving;
     };
@@ -6265,15 +6084,11 @@
 
       savingAndClosing = andClose;
 
-      var op = '';
-      var ok = true;
-      if (editorRowid) {
-        op = 'update';
-      } else {
-        op = 'insert';
-      }
+      let op = editorRowid ? 'update' : 'insert';
+      let ok = true;
+
       try {
-        var options = {  };
+        let options = Object.create({});
         _this.events.trigger('editor.save', op, data, options);
         if (editorRowid) {
           _this.events.triggerBefore('editor.update', data, options);
@@ -6291,7 +6106,7 @@
                     editorRowid = null;
                     editorRowData = null;
                   } else {
-                    var callResponse = { refresh: true };
+                    let callResponse = { refresh: true };
                     _this.events.trigger('editor.hide', true, response, callResponse);
                     editorHidden(true, response);
                     br.backToCaller(_this.options.returnUrl, callResponse.refresh);
@@ -6335,7 +6150,7 @@
                     editorRowid = null;
                     editorRowData = null;
                   } else {
-                    var callResponse = { refresh: true };
+                    let callResponse = { refresh: true };
                     _this.events.trigger('editor.hide', true, response, callResponse);
                     editorHidden(true, response);
                     br.backToCaller(_this.options.returnUrl, callResponse.refresh);
@@ -6383,15 +6198,15 @@
         saving = true;
       }
 
-      var data = Object.create({ });
-      var errors = [];
+      let data = Object.create({ });
+      let errors = [];
       try {
         $(_this.options.selectors.errorMessage, _this.container).hide();
         _this.events.triggerBefore('editor.save');
         _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio],input.data-field,select.data-field,textarea.data-field').each(function() {
-          var val;
-          var skip = false;
-          var input = $(this);
+          let val;
+          let skip = false;
+          let input = $(this);
           if ((input.attr('readonly') != 'readonly') && (input.attr('disabled') != 'disabled')) {
             if (input.attr('data-toggle') == 'buttons-radio') {
               val = input.find('button.active').val();
@@ -6410,7 +6225,7 @@
             }
             if (!skip) {
               if (input.hasClass('required') && br.isEmpty(val) && (!input.hasClass('required-edit-only') || _this.isEditMode()) && (!input.hasClass('required-insert-only') || _this.isInsertMode())) {
-                var title = input.attr('title');
+                let title = input.attr('title');
                 if (br.isEmpty(title)) {
                   title = input.prev('label').text();
                 }
@@ -6418,7 +6233,6 @@
                   this.focus();
                 }
                 errors.push(br.trn('%s must be filled').replace('%s', title));
-                ok = false;
               } else
               if (br.isEmpty(val)) {
                 data[input.attr('name')] = '';
@@ -6428,27 +6242,18 @@
             }
           }
         });
+
         if (errors.length > 0) {
-          var tmpl;
-          if (errors.length == 1) {
-            tmpl = '{{#errors}}{{.}}{{/errors}}';
-          } else {
-            tmpl = br.trn('Please check the following:') + '<br /><ul>{{#errors}}<li>{{.}}</li>{{/errors}}</ul>';
-          }
-          var error = br.fetch(tmpl, { errors: errors });
+          let tmpl = (errors.length == 1) ? '{{#errors}}{{.}}{{/errors}}': br.trn('Please check the following:') + '<br /><ul>{{#errors}}<li>{{.}}</li>{{/errors}}</ul>';
+          let error = br.fetch(tmpl, { errors: errors });
           _this.showError(error);
           if (errorCallback) {
             errorCallback.call(_this, data, error);
           }
           saving = false;
         } else {
-          var op = '';
-          var ok = true;
-          if (editorRowid) {
-            op = 'update';
-          } else {
-            op = 'insert';
-          }
+          let op = editorRowid ? 'update' : 'insert';
+          let ok = true;
           if (_this.events.has('editor.save', 'pause')) {
             _this.events.triggerPause( 'editor.save'
                                      , { continue: function(data) {
@@ -6481,8 +6286,6 @@
 
   }
 
-  window.br = window.br || {};
-
   window.br.dataEditor = function (selector, dataSource, options) {
     return new BrDataEditor(selector, dataSource, options);
   };
@@ -6490,9 +6293,9 @@
 })(jQuery, window);
 
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
- * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2019, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
@@ -6500,25 +6303,32 @@
 
 ;(function ($, window) {
 
+  window.br = window.br || Object.create({});
+
   function BrDataBrowser(entity, options) {
 
-    var _this = this;
+    const _this = this;
 
-    var pagerSetUp = false;
+    let pagerSetUp = false;
+    let headerContainer = 'body';
+    let selectionQueue = [];
+    let pageNavIsSlider = false;
+    let pageSizeIsSlider = false;
+    let pagerInitialized = false;
 
-    this.options = options || {};
-    this.options.autoLoad = this.options.autoLoad || false;
-    this.options.defaults = this.options.defaults || {};
-    this.options.defaults.filtersHidden = this.options.defaults.filtersHidden || false;
-    this.options.entity = entity;
-    this.options.features = this.options.features || { editor: true };
-    this.options.noun = this.options.noun || '';
-    this.options.selectors = this.options.selectors || {};
-    this.options.selectors.container = this.options.selectors.container || '';
-    this.options.selectors.scrollContainer = this.options.selectors.scrollContainer || '';
-    this.options.pageSizes = this.options.pageSizes || [20, 50, 100, 200];
+    _this.options = options || Object.create({});
+    _this.options.autoLoad = _this.options.autoLoad || false;
+    _this.options.defaults = _this.options.defaults || {};
+    _this.options.defaults.filtersHidden = _this.options.defaults.filtersHidden || false;
+    _this.options.entity = entity;
+    _this.options.features = _this.options.features || { editor: true };
+    _this.options.noun = _this.options.noun || '';
+    _this.options.selectors = _this.options.selectors || {};
+    _this.options.selectors.container = _this.options.selectors.container || '';
+    _this.options.selectors.scrollContainer = _this.options.selectors.scrollContainer || '';
+    _this.options.pageSizes = _this.options.pageSizes || [20, 50, 100, 200];
 
-    function c(selector) {
+    function findNode(selector) {
       if (_this.options.selectors.container !== '') {
         return _this.options.selectors.container + ' ' + selector;
       } else {
@@ -6526,10 +6336,10 @@
       }
     }
 
-    this.scrollContainer = function() {
+    _this.scrollContainer = function() {
       if (_this.options.selectors.container !== '') {
         if (_this.options.selectors.scrollContainer !== '') {
-          if (this.options.selectors.scrollContainer.indexOf('#') === 0) {
+          if (_this.options.selectors.scrollContainer.indexOf('#') === 0) {
              return _this.options.selectors.scrollContainer;
           } else {
             return _this.options.selectors.container + ' ' + _this.options.selectors.scrollContainer;
@@ -6542,137 +6352,133 @@
       }
     };
 
-    this.options.selectors.dataTable = c(this.options.selectors.dataTable || '.data-table');
-    this.options.selectors.editForm = this.options.selectors.editForm || '';
-    if (this.options.selectors.editForm === '') {
-      if (this.options.selectors.container === '') {
-        this.options.selectors.editForm = '.data-edit-form';
+    _this.options.selectors.dataTable = findNode(_this.options.selectors.dataTable || '.data-table');
+    _this.options.selectors.editForm = _this.options.selectors.editForm || '';
+
+    if (_this.options.selectors.editForm === '') {
+      if (_this.options.selectors.container === '') {
+        _this.options.selectors.editForm = '.data-edit-form';
       } else {
-        this.options.selectors.editForm = _this.options.selectors.container + ' .data-edit-form';
+        _this.options.selectors.editForm = _this.options.selectors.container + ' .data-edit-form';
       }
     }
 
-    this.options.templates = this.options.templates || {};
-    this.options.templates.row = this.options.templates.row || this.options.templates.rowTemplate || '.data-row-template';
-    this.options.templates.groupRow = this.options.templates.groupRow || '.data-group-row-template';
-    this.options.templates.noData = this.options.templates.noData || '.data-empty-template';
+    _this.options.templates = _this.options.templates || {};
+    _this.options.templates.row = _this.options.templates.row || _this.options.templates.rowTemplate || '.data-row-template';
+    _this.options.templates.groupRow = _this.options.templates.groupRow || '.data-group-row-template';
+    _this.options.templates.noData = _this.options.templates.noData || '.data-empty-template';
 
-    var selActionCRUD = c('.action-edit') + ',' + c('.action-create') + ',' + c('.action-copy');
+    const selActionCRUD = findNode('.action-edit') + ',' + findNode('.action-create') + ',' + findNode('.action-copy');
 
     if (typeof entity == 'string') {
-      if (this.options.entity.indexOf('/') == -1) {
-        this.dataSource = br.dataSource(br.baseUrl + 'api/' + this.options.entity + '/');
+      if (_this.options.entity.indexOf('/') == -1) {
+        _this.dataSource = br.dataSource(br.baseUrl + 'api/' + _this.options.entity + '/');
       } else {
-        this.dataSource = br.dataSource(br.baseUrl + this.options.entity);
+        _this.dataSource = br.dataSource(br.baseUrl + _this.options.entity);
       }
-      this.dataSource.on('error', function(operation, error) {
+      _this.dataSource.on('error', function(operation, error) {
         br.growlError(error);
       });
     } else {
-      this.dataSource = entity;
+      _this.dataSource = entity;
     }
 
-    this.storageTag = this.options.storageTag ? this.options.storageTag : document.location.pathname + ':' + this.dataSource.options.restServiceUrl;
+    _this.storageTag = _this.options.storageTag ? _this.options.storageTag : document.location.pathname + ':' + _this.dataSource.options.restServiceUrl;
 
-    this.setStored = function(name, value) {
-      br.storage.set(this.storageTag + 'stored:' + name, value);
+    _this.setStored = function(name, value) {
+      br.storage.set(_this.storageTag + 'stored:' + name, value);
     };
 
-    this.getStored = function(name, defaultValue) {
-      return br.storage.get(this.storageTag + 'stored:' + name, defaultValue);
+    _this.getStored = function(name, defaultValue) {
+      return br.storage.get(_this.storageTag + 'stored:' + name, defaultValue);
     };
 
-    this.defaultLimit = this.options.limit || 20;
-    this.limit = _this.getStored('pager_PageSize', this.defaultLimit);
-    this.skip = 0;
-    this.recordsAmount = 0;
+    _this.defaultLimit = _this.options.limit || 20;
+    _this.limit = _this.getStored('pager_PageSize', _this.defaultLimit);
+    _this.skip = 0;
+    _this.recordsAmount = 0;
 
-    this.selection = br.flagsHolder();
+    _this.selection = br.flagsHolder();
 
-    this.countDataSource = br.dataSource(this.dataSource.options.restServiceUrl);
+    _this.countDataSource = br.dataSource(_this.dataSource.options.restServiceUrl);
 
-    var headerContainer = 'body';
-
-    if (this.options.selectors.container !== '') {
-      headerContainer = this.options.selectors.container;
+    if (_this.options.selectors.container !== '') {
+      headerContainer = _this.options.selectors.container;
     }
 
-    this.dataGrid = br.dataGrid( this.options.selectors.dataTable
-                               , this.options.templates.row
-                               , this.dataSource
-                               , { templates: { noData: this.options.templates.noData, groupRow: this.options.templates.groupRow }
-                                 , selectors: { header: headerContainer, remove: '.action-delete', refreshRow: this.options.selectors.refreshRow }
-                                 , appendInInsert: this.options.appendInInsert
-                                 , defaultOrderAndGroup: this.options.defaultOrderAndGroup
-                                 , fixedHeader: this.options.fixedHeader
-                                 , autoHeight: this.options.autoHeight
-                                 , autoWidth: this.options.autoWidth
-                                 , storageTag: this.options.storageTag
-                                 , storeDataRow: this.options.storeDataRow
-                                 }
-                               );
+    _this.dataGrid = br.dataGrid( _this.options.selectors.dataTable
+                                , _this.options.templates.row
+                                , _this.dataSource
+                                , { templates: { noData: _this.options.templates.noData, groupRow: _this.options.templates.groupRow }
+                                  , selectors: { header: headerContainer, remove: '.action-delete', refreshRow: _this.options.selectors.refreshRow }
+                                  , appendInInsert: _this.options.appendInInsert
+                                  , defaultOrderAndGroup: _this.options.defaultOrderAndGroup
+                                  , fixedHeader: _this.options.fixedHeader
+                                  , autoHeight: _this.options.autoHeight
+                                  , autoWidth: _this.options.autoWidth
+                                  , storageTag: _this.options.storageTag
+                                  , storeDataRow: _this.options.storeDataRow
+                                  }
+                                );
 
-    this.events = br.eventQueue(this);
-    this.before = function(event, callback) { this.events.before(event, callback); };
-    this.on     = function(event, callback) { this.events.on(event, callback); };
-    this.after  = function(event, callback) { this.events.after(event, callback); };
+    _this.events = br.eventQueue(_this);
+    _this.before = function(event, callback) { _this.events.before(event, callback); };
+    _this.on     = function(event, callback) { _this.events.on(event, callback); };
+    _this.after  = function(event, callback) { _this.events.after(event, callback); };
 
-    this.before = function(operation, callback) {
-      this.dataSource.before(operation, callback);
-      this.countDataSource.before(operation, callback);
+    _this.before = function(operation, callback) {
+      _this.dataSource.before(operation, callback);
+      _this.countDataSource.before(operation, callback);
     };
 
-    this.isOrderConfigured = function() {
+    _this.isOrderConfigured = function() {
       return _this.dataGrid.isOrderConfigured();
     };
 
-    this.getOrder = function() {
+    _this.getOrder = function() {
       return _this.dataGrid.getOrder();
     };
 
-    this.setOrder = function(order, callback) {
+    _this.setOrder = function(order, callback) {
       return _this.dataGrid.setOrder(order, callback);
     };
 
-    this.getOrderAndGroup = function() {
+    _this.getOrderAndGroup = function() {
       return _this.dataGrid.getOrderAndGroup();
     };
 
-    this.setOrderAndGroup = function(orderAndGroup, callback) {
+    _this.setOrderAndGroup = function(orderAndGroup, callback) {
       return _this.dataGrid.setOrderAndGroup(orderAndGroup, callback);
     };
 
-    this.setFilter = function(name, value) {
-      var filter = br.storage.get(this.storageTag + 'filter');
+    _this.setFilter = function(name, value) {
+      let filter = br.storage.get(_this.storageTag + 'filter');
       filter = filter || { };
       filter[name] = value;
-      br.storage.set(this.storageTag + 'filter', filter);
+      br.storage.set(_this.storageTag + 'filter', filter);
     };
 
-    this.getFilter = function(name, defaultValue) {
-      var filter = br.storage.get(this.storageTag + 'filter', defaultValue);
+    _this.getFilter = function(name, defaultValue) {
+      let filter = br.storage.get(_this.storageTag + 'filter', defaultValue);
       filter = filter || { };
       return filter[name];
     };
 
-    this.reloadRow = function(rowid, callback, options) {
+    _this.reloadRow = function(rowid, callback, options) {
       _this.dataGrid.reloadRow(rowid, callback, options);
     };
 
-    this.hasRow = function(rowid) {
+    _this.hasRow = function(rowid) {
       return _this.dataGrid.hasRow(rowid);
     };
 
-    this.removeRow = function(rowid) {
+    _this.removeRow = function(rowid) {
       return _this.dataGrid.removeRow(rowid);
     };
 
-    var selectionQueue = [];
-
     function deleteQueued() {
-
       if (selectionQueue.length > 0) {
-        var rowid = selectionQueue.shift();
+        const rowid = selectionQueue.shift();
         _this.dataSource.remove(rowid, function(result, response) {
           if (result) {
             _this.unSelectRow(rowid);
@@ -6683,10 +6489,9 @@
       } else {
         br.hideProgress();
       }
-
     }
 
-    this.deleteSelection = function() {
+    _this.deleteSelection = function() {
       selectionQueue = _this.selection.get().slice(0);
       if (selectionQueue.length > 0) {
         br.confirm( 'Delete confirmation'
@@ -6702,10 +6507,9 @@
     };
 
     function updateQueued(func) {
-
       if (selectionQueue.length > 0) {
-        var rowid = selectionQueue.shift();
-        var data = {};
+        const rowid = selectionQueue.shift();
+        let data = Object.create({});
         func(data);
         _this.dataSource.update(rowid, data, function(result, response) {
           if (result) {
@@ -6717,10 +6521,9 @@
       } else {
         br.hideProgress();
       }
-
     }
 
-    this.updateSelection = function(func) {
+    _this.updateSelection = function(func) {
       selectionQueue = _this.selection.get().slice(0);
       if (selectionQueue.length > 0) {
         br.startProgress(selectionQueue.length, 'Updating...');
@@ -6731,9 +6534,8 @@
     };
 
     function processQueued(processRowCallback, processCompleteCallback, params) {
-
       if (selectionQueue.length > 0) {
-        var rowid = selectionQueue.shift();
+        const rowid = selectionQueue.shift();
         processRowCallback(rowid, function() {
           if (params.showProgress) {
             br.stepProgress();
@@ -6748,11 +6550,10 @@
           processCompleteCallback();
         }
       }
-
     }
 
-    this.processSelection = function(processRowCallback, processCompleteCallback, params) {
-      params = params || {};
+    _this.processSelection = function(processRowCallback, processCompleteCallback, params) {
+      params = params || Object.create({});
       params.showProgress = params.showProgress || false;
       selectionQueue = _this.selection.get();
       if (selectionQueue.length > 0) {
@@ -6765,14 +6566,16 @@
       }
     };
 
-    this.init = function() {
-      // nav
-      $('.nav-item[rel=' + _this.options.nav + ']').addClass('active');
+    _this.init = function() {
+
+      if (_this.options.nav) {
+        $('.nav-item[rel=' + _this.options.nav + ']').addClass('active');
+      }
 
       _this.dataSource.before('select', function(request, options) {
-        request = request || {};
-        if ($(c('input.data-filter[name=keyword]')).length > 0) {
-          request.keyword = $(c('input.data-filter[name=keyword]')).val();
+        request = request || Object.create({});
+        if ($(findNode('input.data-filter[name=keyword]')).length > 0) {
+          request.keyword = $(findNode('input.data-filter[name=keyword]')).val();
           _this.setFilter('keyword', request.keyword);
         }
         options       = options || {};
@@ -6796,8 +6599,8 @@
       });
 
       _this.countDataSource.before('select', function(request) {
-        if ($(c('input.data-filter[name=keyword]')).length > 0) {
-          request.keyword = $(c('input.data-filter[name=keyword]')).val();
+        if ($(findNode('input.data-filter[name=keyword]')).length > 0) {
+          request.keyword = $(findNode('input.data-filter[name=keyword]')).val();
         }
       });
 
@@ -6812,9 +6615,10 @@
       });
 
       // search
-      br.modified(c('input.data-filter[name=keyword]'), function() {
-        var _val = $(this).val();
-        $(c('input.data-filter[name=keyword]')).each(function() {
+
+      br.modified(findNode('input.data-filter[name=keyword]'), function() {
+        const _val = $(this).val();
+        $(findNode('input.data-filter[name=keyword]')).each(function() {
           if ($(this).val() != _val) {
             $(this).val(_val);
           }
@@ -6824,33 +6628,34 @@
         }
       });
 
-      br.modified(c('input.data-filter') + ',' + c('select.data-filter'), function() {
+      br.modified(findNode('input.data-filter') + ',' + findNode('select.data-filter'), function() {
         _this.resetPager();
       });
 
       br.attachDatePickers();
 
       if (_this.options.features.editor) {
-        var editorOptions = _this.options.editor || { noun: _this.options.noun };
+        let editorOptions = _this.options.editor || { noun: _this.options.noun };
         _this.editor = br.dataEditor(_this.options.selectors.editForm, _this.dataSource, editorOptions);
         _this.editor.events.connectTo(_this.events);
 
-        $(c('.action-create')).show();
+        $(findNode('.action-create')).show();
 
         $(document).on('click', selActionCRUD, function() {
-          var isCopy = $(this).hasClass('action-copy');
-          var rowid = $(this).closest('[data-rowid]').attr('data-rowid');
+          const isCopy = $(this).hasClass('action-copy');
+          const rowid = $(this).closest('[data-rowid]').attr('data-rowid');
           _this.editor.show(rowid, isCopy);
         });
       }
 
       // pager
-      $(c('a.action-next') + ',' + c('a.pager-action-next')).on('click', function() {
+
+      $(findNode('a.action-next') + ',' + findNode('a.pager-action-next')).on('click', function() {
         _this.skip += _this.limit;
         _this.refresh({}, null, true);
       });
 
-      $(c('a.action-prior') + ',' + c('a.pager-action-prior')).on('click', function() {
+      $(findNode('a.action-prior') + ',' + findNode('a.pager-action-prior')).on('click', function() {
         _this.skip -= _this.limit;
         if (_this.skip < 0) {
           _this.skip = 0;
@@ -6858,10 +6663,10 @@
         _this.refresh({}, null, true);
       });
 
-      $(c('.pager-page-navigation')).on('click', 'a.pager-action-navigate', function() {
-        var value = br.toInt($(this).attr('data-page'));
+      $(findNode('.pager-page-navigation')).on('click', 'a.pager-action-navigate', function() {
+        const value = br.toInt($(this).attr('data-page'));
         if (value > 0) {
-          var newSkip = _this.limit * (value - 1);
+          const newSkip = _this.limit * (value - 1);
           if (newSkip != _this.skip) {
             _this.skip = _this.limit * (value - 1);
             _this.setStored('pager_PageNo', _this.skip);
@@ -6870,8 +6675,8 @@
         }
       });
 
-      $(c('.pager-page-size-navigation')).on('click', 'a.pager-action-page-size', function() {
-        var value = br.toInt($(this).attr('data-size'));
+      $(findNode('.pager-page-size-navigation')).on('click', 'a.pager-action-page-size', function() {
+        const value = br.toInt($(this).attr('data-size'));
         _this.limit = value;
         _this.skip = 0;
         _this.setStored('pager_PageNo', _this.skip);
@@ -6879,29 +6684,29 @@
         _this.refresh({}, null, true);
       });
 
-      $(c('.action-refresh')).click(function() {
+      $(findNode('.action-refresh')).click(function() {
         _this.refresh();
       });
 
-      $(c('.action-clear-one-filter')).click(function() {
-        $(c('.data-filter' + '[name=' + $(this).attr('rel') + ']')).val('');
+      $(findNode('.action-clear-one-filter')).click(function() {
+        $(findNode('.data-filter[name=' + $(this).attr('rel') + ']')).val('');
         _this.refresh();
       });
 
-      $(c('input.data-filter[name=keyword]')).val(_this.getFilter('keyword'));
+      $(findNode('input.data-filter[name=keyword]')).val(_this.getFilter('keyword'));
 
       function showFiltersDesc() {
 
-        if ($(c('.filters-panel')).is(':visible')) {
-          $(c('.action-show-hide-filters')).find('span').text('Hide filters');
-          $(c('.filter-description')).text('');
+        if ($(findNode('.filters-panel')).is(':visible')) {
+          $(findNode('.action-show-hide-filters')).find('span').text('Hide filters');
+          $(findNode('.filter-description')).text('');
         } else {
-          $(c('.action-show-hide-filters')).find('span').text('Show filters');
-          var s = '';
-          $(c('.data-filter')).each(function() {
-            var val = $(this).val();
-            var title = $(this).attr('title');
-            if (val &&title) {
+          $(findNode('.action-show-hide-filters')).find('span').text('Show filters');
+          let s = '';
+          $(findNode('.data-filter')).each(function() {
+            const val = $(this).val();
+            const title = $(this).attr('title');
+            if (val && title) {
               s = s + '/ <strong>' + title + '</strong> ';
               if ($(this).is('select')) {
                 s = s + $(this).find('option[value=' + val + ']').text() + ' ';
@@ -6911,7 +6716,7 @@
 
             }
           });
-          $(c('.filter-description')).html(s);
+          $(findNode('.filter-description')).html(s);
         }
 
       }
@@ -6920,14 +6725,14 @@
 
         function showHideFilters(initial) {
 
-          if ($(c('.filters-panel')).is(':visible')) {
+          if ($(findNode('.filters-panel')).is(':visible')) {
             _this.setStored('filters-hidden', true);
-            $(c('.filters-panel')).css('display', 'none');
+            $(findNode('.filters-panel')).css('display', 'none');
             showFiltersDesc();
             _this.events.trigger('hideFilters');
           } else {
             _this.setStored('filters-hidden', false);
-            $(c('.filters-panel')).show();
+            $(findNode('.filters-panel')).show();
             showFiltersDesc();
             _this.events.trigger('showFilters');
           }
@@ -6938,11 +6743,11 @@
 
         }
 
-        $(c('.action-show-hide-filters')).on('click', function() {
+        $(findNode('.action-show-hide-filters')).on('click', function() {
           showHideFilters();
         });
 
-        $(c('.action-reset-filters')).on('click', function () {
+        $(findNode('.action-reset-filters')).on('click', function () {
           _this.resetFilters();
         });
 
@@ -6961,12 +6766,15 @@
       setupFilters(true);
 
       function checkAutoLoad() {
-        var docsHeight = $(_this.options.selectors.dataTable).height();
-        var docsContainerHeight = $(_this.scrollContainer()).height();
-        var scrollTop = $(_this.scrollContainer()).scrollTop();
+
+        const docsHeight = $(_this.options.selectors.dataTable).height();
+        const docsContainerHeight = $(_this.scrollContainer()).height();
+        const scrollTop = $(_this.scrollContainer()).scrollTop();
+
         if (scrollTop + docsContainerHeight > docsHeight) {
           _this.dataGrid.loadMore();
         }
+
       }
 
       if (_this.options.autoLoad) {
@@ -6975,15 +6783,14 @@
         });
       }
 
-      $(document).on('click', c('.action-select-all'), function() {
-        var checked = $(this).is(':checked');
-        _this.selectAll(checked);
+      $(document).on('click', findNode('.action-select-all'), function() {
+        _this.selectAll($(this).is(':checked'));
       });
 
-      $(document).on('click', c('.action-select-row'), function() {
-        var row = $(this).closest('[data-rowid]');
-        var rowid = row.attr('data-rowid');
-        var checked = $(this).is(':checked');
+      $(document).on('click', findNode('.action-select-row'), function() {
+        const row = $(this).closest('[data-rowid]');
+        const rowid = row.attr('data-rowid');
+        const checked = $(this).is(':checked');
         if (checked) {
           _this.selectRow(rowid);
         } else {
@@ -6991,11 +6798,11 @@
         }
       });
 
-      $(document).on('click', c('.action-clear-selection'), function() {
+      $(document).on('click', findNode('.action-clear-selection'), function() {
         _this.clearSelection();
       });
 
-      $(document).on('click', c('.action-delete-selected'), function() {
+      $(document).on('click', findNode('.action-delete-selected'), function() {
         _this.deleteSelection();
       });
 
@@ -7004,8 +6811,8 @@
       });
 
       _this.dataGrid.on('change', function() {
-        $(c('.action-select-all')).prop('checked', false);
-        var selection = _this.selection.get();
+        $(findNode('.action-select-all')).prop('checked', false);
+        const selection = _this.selection.get();
         if (selection.length > 0) {
           _this.restoreSelection();
         } else {
@@ -7017,19 +6824,17 @@
 
       _this.events.on('selectionChanged', function(count) {
         if (count > 0) {
-          $(c('.selection-stat')).text(count + ' record(s) selected');
-          $(c('.selection-stat')).show();
-          $(c('.action-clear-selection')).show();
+          $(findNode('.selection-stat')).text(count + ' record(s) selected');
+          $(findNode('.selection-stat')).show();
+          $(findNode('.action-clear-selection')).show();
         } else {
-          $(c('.selection-stat')).css('display', 'none');
-          $(c('.action-clear-selection')).css('display', 'none');
+          $(findNode('.selection-stat')).css('display', 'none');
+          $(findNode('.action-clear-selection')).css('display', 'none');
         }
       });
 
       return this;
     };
-
-    var pageNavIsSlider = false, pageSizeIsSlider = false, pagerInitialized = false;
 
     function initPager() {
 
@@ -7038,15 +6843,15 @@
       }
 
       if ($.fn.slider) {
-        $(c('.pager-page-slider')).each(function() {
+        $(findNode('.pager-page-slider')).each(function() {
           pageNavIsSlider = true;
           $(this).slider({
               min: 1
             , value: 1
             , change: function(event, ui) {
-                var value = $(c('.pager-page-slider')).slider('option', 'value');
+                const value = $(findNode('.pager-page-slider')).slider('option', 'value');
                 if (value > 0) {
-                  var newSkip = _this.limit * (value - 1);
+                  const newSkip = _this.limit * (value - 1);
                   if (newSkip != _this.skip) {
                     _this.skip = _this.limit * (value - 1);
                     _this.setStored('pager_PageNo', _this.skip);
@@ -7057,7 +6862,7 @@
           });
         });
 
-        $(c('.pager-page-size-slider')).each(function() {
+        $(findNode('.pager-page-size-slider')).each(function() {
           pageSizeIsSlider = true;
           $(this).slider({
               min: _this.defaultLimit
@@ -7065,11 +6870,10 @@
             , max: _this.defaultLimit * 20
             , step: _this.defaultLimit
             , change: function(event, ui) {
-                var value = $(c('.pager-page-size-slider')).slider('option', 'value');
-                _this.limit = value;
+                _this.limit = $(findNode('.pager-page-size-slider')).slider('option', 'value');
                 _this.setStored('pager_PageSize', _this.limit);
-                $(c('.pager-page-slider')).slider('option', 'value', 1);
-                $(c('.pager-page-slider')).slider('option', 'max', Math.ceil(_this.recordsAmount / _this.limit));
+                $(findNode('.pager-page-slider')).slider('option', 'value', 1);
+                $(findNode('.pager-page-slider')).slider('option', 'max', Math.ceil(_this.recordsAmount / _this.limit));
                 _this.refresh({}, null, true);
               }
           });
@@ -7084,19 +6888,21 @@
 
       initPager();
 
-      var totalPages = Math.ceil(_this.recordsAmount / _this.limit);
-      var currentPage = Math.ceil(_this.skip / _this.limit) + 1;
-      var $pc, s, i;
+      const totalPages = Math.ceil(_this.recordsAmount / _this.limit);
+      const currentPage = Math.ceil(_this.skip / _this.limit) + 1;
 
       if (pageNavIsSlider) {
-        $(c('.pager-page-slider')).slider('option', 'max', totalPages);
-        $(c('.pager-page-slider')).slider('option', 'value', currentPage);
+        $(findNode('.pager-page-slider')).slider('option', 'max', totalPages);
+        $(findNode('.pager-page-slider')).slider('option', 'value', currentPage);
       } else {
-        $pc = $(c('.pager-page-navigation'));
+        const $pc = $(findNode('.pager-page-navigation'));
         $pc.html('');
-        s = '';
-        var f1 = false, f2 = false, r = 5, el = false;
-        for (i = 1; i <= totalPages; i++) {
+        let s = '';
+        let f1 = false;
+        let f2 = false;
+        let r = 5;
+        let el = false;
+        for(let i = 1; i <= totalPages; i++) {
           if ((i <= r) || ((i > currentPage - r) && (i < currentPage + r)) || (i > (totalPages - r))) {
             if (i == currentPage) {
               s = s + '<strong class="pager-nav-element">' + i+ '</strong>';
@@ -7116,22 +6922,22 @@
         }
         if (el) {
           $pc.html(s);
-          $(c('.pager-nav-element')).show();
+          $(findNode('.pager-nav-element')).show();
         } else {
-          $(c('.pager-nav-element')).css('display', 'none');
+          $(findNode('.pager-nav-element')).css('display', 'none');
         }
       }
 
       if (pageSizeIsSlider) {
 
       } else {
-        $pc = $(c('.pager-page-size-navigation'));
+        const $pc = $(findNode('.pager-page-size-navigation'));
         $pc.html('');
-        s = '';
-        var sizes = _this.options.pageSizes;
-        for (i = 0; i < sizes.length; i++) {
-          var size = sizes[i];
-          var dsize = size;
+        let s = '';
+        const sizes = _this.options.pageSizes;
+        for(let i = 0, length = sizes.length; i < length; i++) {
+          let size = sizes[i];
+          let dsize = size;
           if (size >= _this.recordsAmount) {
             dsize = _this.recordsAmount;
           }
@@ -7146,37 +6952,38 @@
         }
         if (s.length > 0) {
           $pc.html(s);
-          $(c('.pager-page-size-container')).show();
+          $(findNode('.pager-page-size-container')).show();
         } else {
-          $(c('.pager-page-size-container')).css('display', 'none');
+          $(findNode('.pager-page-size-container')).css('display', 'none');
         }
       }
 
-      var min = (_this.skip + 1);
-      var max = Math.min(_this.skip + _this.limit, _this.recordsAmount);
+      const min = (_this.skip + 1);
+      const max = Math.min(_this.skip + _this.limit, _this.recordsAmount);
+
       if (_this.recordsAmount > 0) {
         if (_this.recordsAmount > max) {
-          $(c('.action-next')).show();
-          $(c('.pager-action-next')).show();
+          $(findNode('.action-next')).show();
+          $(findNode('.pager-action-next')).show();
         } else {
-          $(c('.action-next')).css('display', 'none');
-          $(c('.pager-action-next')).css('display', 'none');
+          $(findNode('.action-next')).css('display', 'none');
+          $(findNode('.pager-action-next')).css('display', 'none');
         }
         if (_this.skip > 0) {
-          $(c('.action-prior')).show();
-          $(c('.pager-action-prior')).show();
+          $(findNode('.action-prior')).show();
+          $(findNode('.pager-action-prior')).show();
         } else {
-          $(c('.action-prior')).css('display', 'none');
-          $(c('.pager-action-prior')).css('display', 'none');
+          $(findNode('.action-prior')).css('display', 'none');
+          $(findNode('.pager-action-prior')).css('display', 'none');
         }
-        $(c('.pager-control')).show();
+        $(findNode('.pager-control')).show();
         _this.events.triggerAfter('pager.show');
       } else {
-        $(c('.pager-control')).css('display', 'none');
+        $(findNode('.pager-control')).css('display', 'none');
         _this.events.triggerAfter('pager.hide');
       }
-      $(c('.pager-stat')).text('Records ' + min + '-' + max + ' of ' + _this.recordsAmount);
-      $(c('.pager-page-size')).text(_this.limit + ' records per page');
+      $(findNode('.pager-stat')).text('Records ' + min + '-' + max + ' of ' + _this.recordsAmount);
+      $(findNode('.pager-page-size')).text(_this.limit + ' records per page');
 
       pagerSetUp = true;
 
@@ -7186,31 +6993,31 @@
 
     }
 
-    this.restoreSelection = function(selection) {
+    _this.restoreSelection = function(selection) {
       if (!selection) {
         selection = _this.selection.get();
       }
-      for (var i = 0; i < selection.length; i++) {
+      for(let i = 0, length = selection.length; i < length; i++) {
         _this.selectRow(selection[i], true);
       }
       _this.events.trigger('selectionChanged', _this.selection.get().length);
     };
 
-    this.clearSelection = function() {
+    _this.clearSelection = function() {
       _this.selection.clear();
-      $(c('.action-select-row')).prop('checked', false);
-      $(c('tr.row-selected')).removeClass('row-selected');
-      $(c('.action-select-all')).prop('checked', false);
+      $(findNode('.action-select-row')).prop('checked', false);
+      $(findNode('tr.row-selected')).removeClass('row-selected');
+      $(findNode('.action-select-all')).prop('checked', false);
       _this.events.trigger('selectionChanged', _this.selection.get().length);
     };
 
-    this.getSelection = function() {
+    _this.getSelection = function() {
       return _this.selection.get();
     };
 
-    this.setSelection = function(selection) {
+    _this.setSelection = function(selection) {
       if (selection) {
-        for (var i = 0; i < selection.length; i++) {
+        for(let i = 0, length = selection.length; i < length; i++) {
           _this.selectRow(selection[i], true);
           _this.selection.append(selection[i]);
         }
@@ -7218,7 +7025,8 @@
       }
     };
 
-    var updatePagerTimer;
+    let updatePagerTimer;
+    let refreshTimer;
 
     function doUpdatePager() {
       if (_this.dataSource.doingSelect() || _this.countDataSource.doingSelect()) {
@@ -7233,14 +7041,14 @@
             internalUpdatePager();
             _this.events.triggerAfter('recordsCountRetrieved', result);
           } else {
-            $(c('.pager-control')).css('display', 'none');
+            $(findNode('.pager-control')).css('display', 'none');
             _this.events.triggerAfter('pager.hide');
           }
         });
       }
     }
 
-    this.updatePager = function(force) {
+    _this.updatePager = function(force) {
       if (!pagerSetUp || force) {
         window.clearTimeout(updatePagerTimer);
         updatePagerTimer = window.setTimeout(function() {
@@ -7250,8 +7058,6 @@
         internalUpdatePager();
       }
     };
-
-    var refreshTimer;
 
     function internalRefresh(deferred, filter, callback) {
 
@@ -7270,14 +7076,9 @@
 
     }
 
-    this.unSelectRow = function(rowid, multiple) {
-      var chk = $(_this.options.selectors.dataTable).find('input.action-select-row[value=' + rowid + ']');
-      var row;
-      if (chk.length > 0) {
-        row = $(chk).closest('[data-rowid]');
-      } else {
-        row = $(_this.options.selectors.dataTable).find('tr[data-rowid=' + rowid + ']');
-      }
+    _this.unSelectRow = function(rowid, multiple) {
+      const chk = $(_this.options.selectors.dataTable).find('input.action-select-row[value=' + rowid + ']');
+      const row = (chk.length > 0) ? $(chk).closest('[data-rowid]') : $(_this.options.selectors.dataTable).find('tr[data-rowid=' + rowid + ']');
       if (row.length > 0) {
         row.find('.action-select-row').prop('checked', false);
         row.removeClass('row-selected');
@@ -7288,14 +7089,9 @@
       }
     };
 
-    this.selectRow = function(rowid, multiple) {
-      var chk = $(_this.options.selectors.dataTable).find('input.action-select-row[value=' + rowid + ']');
-      var row;
-      if (chk.length > 0) {
-        row = $(chk).closest('[data-rowid]');
-      } else {
-        row = $(_this.options.selectors.dataTable).find('tr[data-rowid=' + rowid + ']');
-      }
+    _this.selectRow = function(rowid, multiple) {
+      const chk = $(_this.options.selectors.dataTable).find('input.action-select-row[value=' + rowid + ']');
+      const row = (chk.length > 0) ? $(chk).closest('[data-rowid]') : $(_this.options.selectors.dataTable).find('tr[data-rowid=' + rowid + ']');
       if (row.length > 0) {
         row.find('.action-select-row').prop('checked', true);
         row.addClass('row-selected');
@@ -7306,15 +7102,11 @@
       }
     };
 
-    this.selectAll = function(checked) {
-      if (checked) {
-        $(c('.action-select-all')).prop('checked', true);
-      } else {
-        $(c('.action-select-all')).prop('checked', false);
-      }
-      $(c('.action-select-row')).each(function() {
-        var row = $(this).closest('[data-rowid]');
-        var rowid = row.attr('data-rowid');
+    _this.selectAll = function(checked) {
+      $(findNode('.action-select-all')).prop('checked', checked);
+      $(findNode('.action-select-row')).each(function() {
+        const row = $(this).closest('[data-rowid]');
+        const rowid = row.attr('data-rowid');
         if (checked) {
           _this.selectRow(rowid, true);
         } else {
@@ -7324,20 +7116,20 @@
       _this.events.trigger('selectionChanged', _this.selection.get().length);
     };
 
-    this.isFiltersVisible = function() {
-      return $(c('.filters-panel')).is(':visible');
+    _this.isFiltersVisible = function() {
+      return $(findNode('.filters-panel')).is(':visible');
     };
 
-    this.resetPager = function() {
+    _this.resetPager = function() {
       pagerSetUp = false;
       _this.skip = 0;
     };
 
-    this.resetFilters = function() {
-      $(c('input.data-filter')).val('');
-      $(c('select.data-filter')).val('');
-      $(c('select.data-filter')).trigger('reset');
-      br.storage.remove(this.storageTag + 'filter');
+    _this.resetFilters = function() {
+      $(findNode('input.data-filter')).val('');
+      $(findNode('select.data-filter')).val('');
+      $(findNode('select.data-filter')).trigger('reset');
+      br.storage.remove(_this.storageTag + 'filter');
       _this.events.trigger('resetFilters');
       br.refresh();
     };
@@ -7355,7 +7147,6 @@
       }
 
       return new Promise(function(resolve, reject) {
-
         internalRefresh(true, filter, function(result, response, request, options) {
           if (result) {
             resolve({ request: request, options: options, response: response });
@@ -7363,7 +7154,6 @@
             reject({ request: request, options: options, errorMessage: response });
           }
         });
-
       }).then(function(data) {
         try {
           if (typeof callback == 'function') {
@@ -7395,7 +7185,6 @@
       }
 
       return new Promise(function(resolve, reject) {
-
         internalRefresh(false, filter, function(result, response, request, options) {
           if (result) {
             resolve({ request: request, options: options, response: response });
@@ -7403,7 +7192,6 @@
             reject({ request: request, options: options, errorMessage: response });
           }
         });
-
       }).then(function(data) {
         try {
           if (typeof callback == 'function') {
@@ -7422,11 +7210,9 @@
 
     };
 
-    return this.init();
+    return _this.init();
 
   }
-
-  window.br = window.br || {};
 
   window.br.dataBrowser = function (entity, options) {
     return new BrDataBrowser(entity, options);
@@ -7435,9 +7221,9 @@
 })(jQuery, window);
 
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
- * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2019, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
@@ -7445,16 +7231,20 @@
 
 ;(function ($, window) {
 
-  var invokerTemplate = '<div class="dropdown br-ajax-dropdown"><span href="javascript:;" class="br-ex-action-change-menu-menu" style="cursor:pointer;"><span class="br-ex-current-value">{{&value}}</span> <b class="caret"></b></a></div>';
+  window.br = window.br || Object.create({});
+
+  const invokerTemplate = br.compile('<div class="dropdown br-ajax-dropdown"><span href="javascript:;" class="br-ex-action-change-menu-menu" style="cursor:pointer;"><span class="br-ex-current-value">{{&value}}</span> <b class="caret"></b></a></div>');
+  const menuItemTemplateStr = '<li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>';
+  const menuItemTemplate = br.compile('<li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>');
+  const dropDownTemplate = '<div class="dropdown br-ajax-dropdown" style="position:absolute;z-index:1050;"><a style="display:none;" href="javascript:;" role="button" data-toggle="dropdown" class="dropdown-toggle br-ex-action-change-menu-menu" style="cursor:pointer;"><span>{{value}}</span> <b class="caret"></b></a><ul class="dropdown-menu" role="menu" style="overflow:auto;"></ul></div>';
 
   function showDropDownMenu(invoker, response, rowid, menuElement, dataSource, fieldName, options) {
-    var menuItemTemplate = '<li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>';
-    var dropDown = $('<div class="dropdown br-ajax-dropdown" style="position:absolute;z-index:1050;"><a style="display:none;" href="javascript:;" role="button" data-toggle="dropdown" class="dropdown-toggle br-ex-action-change-menu-menu" style="cursor:pointer;"><span>{{value}}</span> <b class="caret"></b></a><ul class="dropdown-menu" role="menu" style="overflow:auto;"></ul></div>');
-    var dropDownList = dropDown.find('ul');
-    var dropDownMenu = dropDown.find('.br-ex-action-change-menu-menu');
+    const dropDown = $(dropDownTemplate);
+    const dropDownList = dropDown.find('ul');
+    const dropDownMenu = dropDown.find('.br-ex-action-change-menu-menu');
     dropDown.on('click', '.br-ex-action-change-menu', function() {
-      var value = $(this).attr('data-value');
-      var data = {};
+      const value = $(this).attr('data-value');
+      let data = Object.create({});
       data[fieldName] = value;
       if (options.onClick) {
         options.onClick.call($(this), dataSource, rowid, data, menuElement);
@@ -7473,30 +7263,30 @@
     });
     dropDownList.html('');
     if (options.allowClear) {
-      dropDownList.append(br.fetch(menuItemTemplate, { id: '', name: (options.clearLabel ? options.clearLabel : '-- сlear --') }));
+      dropDownList.append(menuItemTemplate({ id: '', name: (options.clearLabel ? options.clearLabel : '-- сlear --') }));
     }
     if (options.onBeforeRenderMenu) {
-      options.onBeforeRenderMenu.call(dropDownList, menuItemTemplate);
+      options.onBeforeRenderMenu.call(dropDownList, menuItemTemplateStr);
     }
-    for(var i in response) {
-      dropDownList.append(br.fetch(menuItemTemplate, { id: response[i][options.keyField], name: response[i][options.nameField] }));
+    for(let i = 0, length = response.length; i < length; i++) {
+      dropDownList.append(menuItemTemplate({ id: response[i][options.keyField], name: response[i][options.nameField] }));
     }
     dropDown.css('left', invoker.offset().left + 'px');
-    var invokerItem = invoker.find('.br-ex-action-change-menu-menu');
-    var t = (invokerItem.offset().top + invokerItem.height());
-    var scr = $(window).scrollTop();
+    const invokerItem = invoker.find('.br-ex-action-change-menu-menu');
+    const scr = $(window).scrollTop();
+    let t = (invokerItem.offset().top + invokerItem.height());
     dropDown.css('top', t + 'px');
     t = t - scr;
-    var h = Math.max($(window).height() - t - 20, 100);
+    let h = Math.max($(window).height() - t - 20, 100);
     dropDownList.css('max-height', h + 'px');
     $('body').append(dropDown);
     dropDownMenu.dropdown('toggle');
   }
 
   function handleClick(el, invoker, choicesDataSource, dataSource, fieldName, options) {
-    var rowid = el.closest('[data-rowid]').attr('data-rowid');
-    var menuElement = invoker.find('span.br-ex-current-value');
-    var filter = { __targetRowid: rowid };
+    const rowid = el.closest('[data-rowid]').attr('data-rowid');
+    const menuElement = invoker.find('span.br-ex-current-value');
+    let filter = { __targetRowid: rowid };
     if (options.onSelect) {
       options.onSelect.call(choicesDataSource, filter, rowid, $(el));
     }
@@ -7508,17 +7298,16 @@
   }
 
   function setupControl(el, doClick, choicesDataSource, dataSource, fieldName, options) {
-
-    var $this = el;
+    const $this = el;
     if ($this.data('BrExChangeMenu')) {
 
     } else {
       $this.data('BrExChangeMenu', true);
-      var value = $this.text().trim();
+      let value = $this.text().trim();
       if ((value.length === 0) || (value == '(click to change)')) {
         value = '<span style="color:#AAA;">(click to change)</span>';
       }
-      var invoker = $(br.fetch(invokerTemplate, { value: value }));
+      const invoker = $(invokerTemplate({ value: value }));
       if (options.onSetupInvoker) {
         options.onSetupInvoker.call(invoker);
       }
@@ -7533,8 +7322,7 @@
   }
 
   function BrExChangeMenu(selector, choicesDataSource, dataSource, fieldName, options) {
-
-    options = options || {};
+    options = options || Object.create({});
     options.keyField = options.keyField || 'id';
     options.nameField = options.nameField || 'name';
 
@@ -7545,37 +7333,32 @@
     $(document).on('click', selector, function() {
       setupControl($(this), true, choicesDataSource, dataSource, fieldName, options);
     });
-
   }
 
-  window.br = window.br || {};
-
-  window.br.exChangeMenu = function (selector, choicesDataSource, dataSource, fieldName, options) {
+  window.br.dropDownMenu = function (selector, choicesDataSource, dataSource, fieldName, options) {
     return new BrExChangeMenu(selector, choicesDataSource, dataSource, fieldName, options);
   };
 
 })(jQuery, window);
 
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
- * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2019, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
  */
 
-/* global Promise */
-
 ;(function ($, window) {
 
-  window.br = window.br || {};
+  window.br = window.br || Object.create({});
 
-  window.br.dataHelpers = window.br.dataHelpers || {};
+  window.br.dataHelpers = window.br.dataHelpers || Object.create({});
 
   window.br.dataHelpers.before = function(event, dataControls, callback) {
 
-    for(var i = 0; i < dataControls.length; i++) {
+    for(let i = 0, length = dataControls.length; i < length; i++) {
       dataControls[i].before(event, callback);
     }
 
@@ -7583,7 +7366,7 @@
 
   window.br.dataHelpers.on = function(event, dataControls, callback) {
 
-    for(var i = 0; i < dataControls.length; i++) {
+    for(let i = 0, length = dataControls.length; i < length; i++) {
       dataControls[i].on(event, callback);
     }
 
@@ -7592,7 +7375,7 @@
 
   function execute(funcToExecute, paramsQueue, extraParams, resolve, reject) {
 
-    var functionsQueue = [];
+    let functionsQueue = [];
 
     while ((functionsQueue.length <= extraParams.workers) && (paramsQueue.length > 0)) {
       functionsQueue.push(funcToExecute(paramsQueue.pop()).then(function() {
@@ -7628,13 +7411,13 @@
     extraParams.workers = extraParams.workers || 10;
 
     return new Promise(function(resolve, reject) {
-      var params = [];
-      var functionsForExecute = [];
+      let params = [];
+      let functionsForExecute = [];
       br.startProgress(funcToGetTotal(), extraParams.title);
       window.setTimeout(function() {
-        var paramsQueue = [];
+        let paramsQueue = [];
         while (true) {
-          var params = funcToGetParams();
+          let params = funcToGetParams();
           if (params) {
             paramsQueue.push(params);
           } else {
@@ -7649,9 +7432,9 @@
 
   window.br.dataHelpers.load = window.br.dataHelpers.select = function(dataControls, callback) {
 
-    var promises = [];
+    let promises = [];
 
-    for(var i = 0; i < dataControls.length; i++) {
+    for(let i = 0, length = dataControls.length; i < length; i++) {
       (function(dataObject) {
         promises.push(
           new Promise(function(resolve, reject) {
@@ -7690,9 +7473,9 @@
 })(jQuery, window);
 
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
- * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2019, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
@@ -7700,7 +7483,9 @@
 
 /* global google */
 
-;(function ($, window, undefined) {
+;(function ($, window) {
+
+  window.br = window.br || Object.create({});
 
   function BrGoogleMap(selector, options) {
 
@@ -7786,9 +7571,10 @@
     });
 
     function computeRouteParams(result) {
-      var distance = 0, duration = 0;
-      var myroute = result.routes[0];
-      for (var i = 0; i < myroute.legs.length; i++) {
+      let distance = 0;
+      let duration = 0;
+      let myroute = result.routes[0];
+      for (let i = 0; i < myroute.legs.length; i++) {
         distance += myroute.legs[i].distance.value;
         duration += myroute.legs[i].duration.value;
       }
@@ -7796,7 +7582,7 @@
     }
 
     google.maps.event.addListener(_this.directionsDisplay, 'directions_changed', function() {
-      var routeParams = computeRouteParams(_this.directionsDisplay.directions);
+      let routeParams = computeRouteParams(_this.directionsDisplay.directions);
       routeParams.directions = _this.directionsDisplay.directions;
       _this.events.trigger('directions_changed', routeParams);
     });
@@ -7820,7 +7606,7 @@
     _this.identifyLocation = function(callback) {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
-          var pos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+          let pos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
           _this.map.setCenter(pos);
           _this.map.setZoom(15);
           if (typeof callback == 'function') {
@@ -7869,9 +7655,9 @@
     };
 
     _this.iterateMarkers = function(callback) {
-      var stop = false;
-      for(var tag in _this.markers) {
-        for (var i = _this.markers[tag].length-1; i >= 0; i--) {
+      let stop = false;
+      for(let tag in _this.markers) {
+        for (let i = _this.markers[tag].length-1; i >= 0; i--) {
           stop = callback(_this.markers[tag][i]);
           if (stop) {
             break;
@@ -7894,11 +7680,11 @@
     };
 
     _this.addMarker = function(lat, lng, params, tag, custom) {
-      var markerParams = Object.create({});
+      let markerParams = Object.create({});
       markerParams.icon = params.icon || null;
       markerParams.draggable = params.draggable || false;
-      var latLng = new google.maps.LatLng(lat, lng);
-      var marker = new google.maps.Marker({ position: latLng
+      let latLng = new google.maps.LatLng(lat, lng);
+      let marker = new google.maps.Marker({ position: latLng
                                           , map: this.map
                                           , icon: markerParams.icon
                                           , draggable: markerParams.draggable
@@ -7923,8 +7709,8 @@
     };
 
     _this.getMarkersCount = function() {
-      var result = 0;
-      for(var tag in _this.markers) {
+      let result = 0;
+      for(let tag in _this.markers) {
         result += _this.markers[tag].length;
       }
       return result;
@@ -7932,7 +7718,7 @@
 
     function internalRemovePolygons(tag) {
       if (_this.polygons[tag]) {
-        for (var i = _this.polygons[tag].length-1; i >= 0; i--) {
+        for (let i = _this.polygons[tag].length-1; i >= 0; i--) {
           _this.polygons[tag][i].setMap(null);
           _this.polygons[tag].splice(i, 1);
         }
@@ -7944,9 +7730,9 @@
     };
 
     _this.iteratePolygons = function(callback) {
-      var stop = false;
-      for(var tag in _this.polygons) {
-        for (var i = _this.polygons[tag].length-1; i >= 0; i--) {
+      let stop = false;
+      for(let tag in _this.polygons) {
+        for (let i = _this.polygons[tag].length-1; i >= 0; i--) {
           stop = callback(_this.polygons[tag][i]);
           if (stop) {
             break;
@@ -7977,12 +7763,11 @@
     _this.addGeoJSONPolygon = function(geoData, params, tag, custom) {
 
       function arrayMap(array, callback) {
-        var original_callback_params = Array.prototype.slice.call(arguments, 2),
-          array_return = [],
-          array_length = array.length,
-          i;
+        let original_callback_params = Array.prototype.slice.call(arguments, 2);
+        let array_return = [];
+        let array_length = array.length;
 
-        if (Array.prototype.map && array.map === Array.prototype.map) {
+        if (Array.prototype.map && (array.map === Array.prototype.map)) {
           array_return = Array.prototype.map.call(array, function(item) {
             var callback_params = original_callback_params;
             callback_params.splice(0, 0, item);
@@ -7990,7 +7775,7 @@
             return callback.apply(this, callback_params);
           });
         } else {
-          for (i = 0; i < array_length; i++) {
+          for (let i = 0; i < array_length; i++) {
             var callback_params = original_callback_params;
             callback_params.splice(0, 0, array[i]);
             array_return.push(callback.apply(this, callback_params));
@@ -8001,7 +7786,7 @@
       }
 
       function arrayFlat(array) {
-        var result = [];
+        let result = [];
 
         for (let i = 0; i < array.length; i++) {
           result = result.concat(array[i]);
@@ -8011,7 +7796,8 @@
       }
 
       function coordsToLatLngs(coords, useGeoJSON) {
-        var first_coord = coords[0], second_coord = coords[1];
+        let first_coord = coords[0];
+        let second_coord = coords[1];
 
         if (useGeoJSON) {
           first_coord = coords[1];
@@ -8035,8 +7821,8 @@
         return coords;
       }
       params = params || Object.create({});
-      var polygonParams = Object.create({});
-      var coordinates = JSON.parse(JSON.stringify(geoData));
+      let polygonParams = Object.create({});
+      let coordinates = JSON.parse(JSON.stringify(geoData));
       polygonParams.paths = arrayFlat(arrayMap(coordinates, arrayToLatLng, true));
       polygonParams.strokeColor = params.strokeColor || '#999';
       polygonParams.strokeOpacity = params.strokeOpacity || 1;
@@ -8044,7 +7830,7 @@
       polygonParams.fillColor = params.fillColor;
       polygonParams.fillOpacity = polygonParams.fillColor ? (params.fillOpacity == undefined ? 0.3 : params.fillOpacity) : 0;
       polygonParams.map = _this.map;
-      var polygon = new google.maps.Polygon(polygonParams);
+      let polygon = new google.maps.Polygon(polygonParams);
       polygon.custom = custom;
       tag = tag || '_';
       _this.polygons[tag] = _this.polygons[tag] || [];
@@ -8120,7 +7906,7 @@
           });
         }
       }
-      var bounds = new google.maps.LatLngBounds();
+      let bounds = new google.maps.LatLngBounds();
       _this.map.data.forEach(function(feature) {
         processPoints(feature.getGeometry(), bounds.extend, bounds);
       });
@@ -8140,7 +7926,7 @@
     _this.gotoAddress = function(address, callback) {
       _this.findAddress(address, function(result, points) {
         if (result) {
-          var pos = new google.maps.LatLng(points[0].lat, points[0].lng);
+          let pos = new google.maps.LatLng(points[0].lat, points[0].lng);
           _this.map.setCenter(pos);
           _this.map.setZoom(17);
           if (typeof callback == 'function') {
@@ -8153,8 +7939,8 @@
     _this.findAddress = function(address, callback) {
       _this.geocoder.geocode({'address': address}, function(results, status) {
         if (status == google.maps.GeocoderStatus.OK) {
-          var points = [];
-          for (var i = 0; i < results.length; i++) {
+          let points = [];
+          for (let i = 0; i < results.length; i++) {
             points.push({ lat: results[i].geometry.location.lat()
                         , lng: results[i].geometry.location.lng()
                         , name: results[i].formatted_address
@@ -8177,11 +7963,11 @@
     };
 
     _this.drawRoute = function(coord, callback) {
-      var origin = null;
-      var destination = null;
-      var waypoints = [];
-      for (var i = 0; i < coord.length; i++) {
-        var latLng = coord[i];
+      let origin = null;
+      let destination = null;
+      let waypoints = [];
+      for (let i = 0; i < coord.length; i++) {
+        let latLng = coord[i];
         if (origin === null) {
           origin = latLng;
         } else
@@ -8193,7 +7979,7 @@
         }
       }
       if ((origin !== null) && (destination !== null)) {
-        var request = {
+        let request = {
             origin: origin
           , destination: destination
           , waypoints: waypoints
@@ -8206,7 +7992,7 @@
           if (status == google.maps.DirectionsStatus.OK) {
             _this.directionsDisplay.setMap(_this.map);
             _this.directionsDisplay.setDirections(response);
-            var routeParams = computeRouteParams(_this.directionsDisplay.directions);
+            let routeParams = computeRouteParams(_this.directionsDisplay.directions);
             routeParams.directions = _this.directionsDisplay.directions;
             if (callback) {
               callback.call(this, true, routeParams);
@@ -8225,9 +8011,9 @@
     };
 
     _this.drawRouteByTag = function(tag, callback) {
-      var coord = [];
-      var markers = _this.getMarkersByTag(tag);
-      for (var i = 0; i < markers.length; i++) {
+      let coord = [];
+      let markers = _this.getMarkersByTag(tag);
+      for (let i = 0; i < markers.length; i++) {
         coord.push(new google.maps.LatLng(markers[i].position.lat(), markers[i].position.lng()));
       }
       _this.drawRoute(coord, callback);
@@ -8250,7 +8036,7 @@
       getJsonCustom.data = params.data;
       getJsonCustom.tag = params.tag;
 
-      var geoJsonLayer = new google.maps.Data();
+      let geoJsonLayer = new google.maps.Data();
       geoJsonLayer.addGeoJson(geoJson);
       geoJsonLayer.setMap(_this.map);
       geoJsonLayer.setStyle(getJsonStyle);
@@ -8305,8 +8091,6 @@
     return _this;
 
   }
-
-  window.br = window.br || {};
 
   window.br.googleMap = function (selector, options) {
     return new BrGoogleMap(selector, options);

@@ -1,7 +1,7 @@
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
- * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2019, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
@@ -9,25 +9,32 @@
 
 ;(function ($, window) {
 
+  window.br = window.br || Object.create({});
+
   function BrDataBrowser(entity, options) {
 
-    var _this = this;
+    const _this = this;
 
-    var pagerSetUp = false;
+    let pagerSetUp = false;
+    let headerContainer = 'body';
+    let selectionQueue = [];
+    let pageNavIsSlider = false;
+    let pageSizeIsSlider = false;
+    let pagerInitialized = false;
 
-    this.options = options || {};
-    this.options.autoLoad = this.options.autoLoad || false;
-    this.options.defaults = this.options.defaults || {};
-    this.options.defaults.filtersHidden = this.options.defaults.filtersHidden || false;
-    this.options.entity = entity;
-    this.options.features = this.options.features || { editor: true };
-    this.options.noun = this.options.noun || '';
-    this.options.selectors = this.options.selectors || {};
-    this.options.selectors.container = this.options.selectors.container || '';
-    this.options.selectors.scrollContainer = this.options.selectors.scrollContainer || '';
-    this.options.pageSizes = this.options.pageSizes || [20, 50, 100, 200];
+    _this.options = options || Object.create({});
+    _this.options.autoLoad = _this.options.autoLoad || false;
+    _this.options.defaults = _this.options.defaults || {};
+    _this.options.defaults.filtersHidden = _this.options.defaults.filtersHidden || false;
+    _this.options.entity = entity;
+    _this.options.features = _this.options.features || { editor: true };
+    _this.options.noun = _this.options.noun || '';
+    _this.options.selectors = _this.options.selectors || {};
+    _this.options.selectors.container = _this.options.selectors.container || '';
+    _this.options.selectors.scrollContainer = _this.options.selectors.scrollContainer || '';
+    _this.options.pageSizes = _this.options.pageSizes || [20, 50, 100, 200];
 
-    function c(selector) {
+    function findNode(selector) {
       if (_this.options.selectors.container !== '') {
         return _this.options.selectors.container + ' ' + selector;
       } else {
@@ -35,10 +42,10 @@
       }
     }
 
-    this.scrollContainer = function() {
+    _this.scrollContainer = function() {
       if (_this.options.selectors.container !== '') {
         if (_this.options.selectors.scrollContainer !== '') {
-          if (this.options.selectors.scrollContainer.indexOf('#') === 0) {
+          if (_this.options.selectors.scrollContainer.indexOf('#') === 0) {
              return _this.options.selectors.scrollContainer;
           } else {
             return _this.options.selectors.container + ' ' + _this.options.selectors.scrollContainer;
@@ -51,137 +58,133 @@
       }
     };
 
-    this.options.selectors.dataTable = c(this.options.selectors.dataTable || '.data-table');
-    this.options.selectors.editForm = this.options.selectors.editForm || '';
-    if (this.options.selectors.editForm === '') {
-      if (this.options.selectors.container === '') {
-        this.options.selectors.editForm = '.data-edit-form';
+    _this.options.selectors.dataTable = findNode(_this.options.selectors.dataTable || '.data-table');
+    _this.options.selectors.editForm = _this.options.selectors.editForm || '';
+
+    if (_this.options.selectors.editForm === '') {
+      if (_this.options.selectors.container === '') {
+        _this.options.selectors.editForm = '.data-edit-form';
       } else {
-        this.options.selectors.editForm = _this.options.selectors.container + ' .data-edit-form';
+        _this.options.selectors.editForm = _this.options.selectors.container + ' .data-edit-form';
       }
     }
 
-    this.options.templates = this.options.templates || {};
-    this.options.templates.row = this.options.templates.row || this.options.templates.rowTemplate || '.data-row-template';
-    this.options.templates.groupRow = this.options.templates.groupRow || '.data-group-row-template';
-    this.options.templates.noData = this.options.templates.noData || '.data-empty-template';
+    _this.options.templates = _this.options.templates || {};
+    _this.options.templates.row = _this.options.templates.row || _this.options.templates.rowTemplate || '.data-row-template';
+    _this.options.templates.groupRow = _this.options.templates.groupRow || '.data-group-row-template';
+    _this.options.templates.noData = _this.options.templates.noData || '.data-empty-template';
 
-    var selActionCRUD = c('.action-edit') + ',' + c('.action-create') + ',' + c('.action-copy');
+    const selActionCRUD = findNode('.action-edit') + ',' + findNode('.action-create') + ',' + findNode('.action-copy');
 
     if (typeof entity == 'string') {
-      if (this.options.entity.indexOf('/') == -1) {
-        this.dataSource = br.dataSource(br.baseUrl + 'api/' + this.options.entity + '/');
+      if (_this.options.entity.indexOf('/') == -1) {
+        _this.dataSource = br.dataSource(br.baseUrl + 'api/' + _this.options.entity + '/');
       } else {
-        this.dataSource = br.dataSource(br.baseUrl + this.options.entity);
+        _this.dataSource = br.dataSource(br.baseUrl + _this.options.entity);
       }
-      this.dataSource.on('error', function(operation, error) {
+      _this.dataSource.on('error', function(operation, error) {
         br.growlError(error);
       });
     } else {
-      this.dataSource = entity;
+      _this.dataSource = entity;
     }
 
-    this.storageTag = this.options.storageTag ? this.options.storageTag : document.location.pathname + ':' + this.dataSource.options.restServiceUrl;
+    _this.storageTag = _this.options.storageTag ? _this.options.storageTag : document.location.pathname + ':' + _this.dataSource.options.restServiceUrl;
 
-    this.setStored = function(name, value) {
-      br.storage.set(this.storageTag + 'stored:' + name, value);
+    _this.setStored = function(name, value) {
+      br.storage.set(_this.storageTag + 'stored:' + name, value);
     };
 
-    this.getStored = function(name, defaultValue) {
-      return br.storage.get(this.storageTag + 'stored:' + name, defaultValue);
+    _this.getStored = function(name, defaultValue) {
+      return br.storage.get(_this.storageTag + 'stored:' + name, defaultValue);
     };
 
-    this.defaultLimit = this.options.limit || 20;
-    this.limit = _this.getStored('pager_PageSize', this.defaultLimit);
-    this.skip = 0;
-    this.recordsAmount = 0;
+    _this.defaultLimit = _this.options.limit || 20;
+    _this.limit = _this.getStored('pager_PageSize', _this.defaultLimit);
+    _this.skip = 0;
+    _this.recordsAmount = 0;
 
-    this.selection = br.flagsHolder();
+    _this.selection = br.flagsHolder();
 
-    this.countDataSource = br.dataSource(this.dataSource.options.restServiceUrl);
+    _this.countDataSource = br.dataSource(_this.dataSource.options.restServiceUrl);
 
-    var headerContainer = 'body';
-
-    if (this.options.selectors.container !== '') {
-      headerContainer = this.options.selectors.container;
+    if (_this.options.selectors.container !== '') {
+      headerContainer = _this.options.selectors.container;
     }
 
-    this.dataGrid = br.dataGrid( this.options.selectors.dataTable
-                               , this.options.templates.row
-                               , this.dataSource
-                               , { templates: { noData: this.options.templates.noData, groupRow: this.options.templates.groupRow }
-                                 , selectors: { header: headerContainer, remove: '.action-delete', refreshRow: this.options.selectors.refreshRow }
-                                 , appendInInsert: this.options.appendInInsert
-                                 , defaultOrderAndGroup: this.options.defaultOrderAndGroup
-                                 , fixedHeader: this.options.fixedHeader
-                                 , autoHeight: this.options.autoHeight
-                                 , autoWidth: this.options.autoWidth
-                                 , storageTag: this.options.storageTag
-                                 , storeDataRow: this.options.storeDataRow
-                                 }
-                               );
+    _this.dataGrid = br.dataGrid( _this.options.selectors.dataTable
+                                , _this.options.templates.row
+                                , _this.dataSource
+                                , { templates: { noData: _this.options.templates.noData, groupRow: _this.options.templates.groupRow }
+                                  , selectors: { header: headerContainer, remove: '.action-delete', refreshRow: _this.options.selectors.refreshRow }
+                                  , appendInInsert: _this.options.appendInInsert
+                                  , defaultOrderAndGroup: _this.options.defaultOrderAndGroup
+                                  , fixedHeader: _this.options.fixedHeader
+                                  , autoHeight: _this.options.autoHeight
+                                  , autoWidth: _this.options.autoWidth
+                                  , storageTag: _this.options.storageTag
+                                  , storeDataRow: _this.options.storeDataRow
+                                  }
+                                );
 
-    this.events = br.eventQueue(this);
-    this.before = function(event, callback) { this.events.before(event, callback); };
-    this.on     = function(event, callback) { this.events.on(event, callback); };
-    this.after  = function(event, callback) { this.events.after(event, callback); };
+    _this.events = br.eventQueue(_this);
+    _this.before = function(event, callback) { _this.events.before(event, callback); };
+    _this.on     = function(event, callback) { _this.events.on(event, callback); };
+    _this.after  = function(event, callback) { _this.events.after(event, callback); };
 
-    this.before = function(operation, callback) {
-      this.dataSource.before(operation, callback);
-      this.countDataSource.before(operation, callback);
+    _this.before = function(operation, callback) {
+      _this.dataSource.before(operation, callback);
+      _this.countDataSource.before(operation, callback);
     };
 
-    this.isOrderConfigured = function() {
+    _this.isOrderConfigured = function() {
       return _this.dataGrid.isOrderConfigured();
     };
 
-    this.getOrder = function() {
+    _this.getOrder = function() {
       return _this.dataGrid.getOrder();
     };
 
-    this.setOrder = function(order, callback) {
+    _this.setOrder = function(order, callback) {
       return _this.dataGrid.setOrder(order, callback);
     };
 
-    this.getOrderAndGroup = function() {
+    _this.getOrderAndGroup = function() {
       return _this.dataGrid.getOrderAndGroup();
     };
 
-    this.setOrderAndGroup = function(orderAndGroup, callback) {
+    _this.setOrderAndGroup = function(orderAndGroup, callback) {
       return _this.dataGrid.setOrderAndGroup(orderAndGroup, callback);
     };
 
-    this.setFilter = function(name, value) {
-      var filter = br.storage.get(this.storageTag + 'filter');
+    _this.setFilter = function(name, value) {
+      let filter = br.storage.get(_this.storageTag + 'filter');
       filter = filter || { };
       filter[name] = value;
-      br.storage.set(this.storageTag + 'filter', filter);
+      br.storage.set(_this.storageTag + 'filter', filter);
     };
 
-    this.getFilter = function(name, defaultValue) {
-      var filter = br.storage.get(this.storageTag + 'filter', defaultValue);
+    _this.getFilter = function(name, defaultValue) {
+      let filter = br.storage.get(_this.storageTag + 'filter', defaultValue);
       filter = filter || { };
       return filter[name];
     };
 
-    this.reloadRow = function(rowid, callback, options) {
+    _this.reloadRow = function(rowid, callback, options) {
       _this.dataGrid.reloadRow(rowid, callback, options);
     };
 
-    this.hasRow = function(rowid) {
+    _this.hasRow = function(rowid) {
       return _this.dataGrid.hasRow(rowid);
     };
 
-    this.removeRow = function(rowid) {
+    _this.removeRow = function(rowid) {
       return _this.dataGrid.removeRow(rowid);
     };
 
-    var selectionQueue = [];
-
     function deleteQueued() {
-
       if (selectionQueue.length > 0) {
-        var rowid = selectionQueue.shift();
+        const rowid = selectionQueue.shift();
         _this.dataSource.remove(rowid, function(result, response) {
           if (result) {
             _this.unSelectRow(rowid);
@@ -192,10 +195,9 @@
       } else {
         br.hideProgress();
       }
-
     }
 
-    this.deleteSelection = function() {
+    _this.deleteSelection = function() {
       selectionQueue = _this.selection.get().slice(0);
       if (selectionQueue.length > 0) {
         br.confirm( 'Delete confirmation'
@@ -211,10 +213,9 @@
     };
 
     function updateQueued(func) {
-
       if (selectionQueue.length > 0) {
-        var rowid = selectionQueue.shift();
-        var data = {};
+        const rowid = selectionQueue.shift();
+        let data = Object.create({});
         func(data);
         _this.dataSource.update(rowid, data, function(result, response) {
           if (result) {
@@ -226,10 +227,9 @@
       } else {
         br.hideProgress();
       }
-
     }
 
-    this.updateSelection = function(func) {
+    _this.updateSelection = function(func) {
       selectionQueue = _this.selection.get().slice(0);
       if (selectionQueue.length > 0) {
         br.startProgress(selectionQueue.length, 'Updating...');
@@ -240,9 +240,8 @@
     };
 
     function processQueued(processRowCallback, processCompleteCallback, params) {
-
       if (selectionQueue.length > 0) {
-        var rowid = selectionQueue.shift();
+        const rowid = selectionQueue.shift();
         processRowCallback(rowid, function() {
           if (params.showProgress) {
             br.stepProgress();
@@ -257,11 +256,10 @@
           processCompleteCallback();
         }
       }
-
     }
 
-    this.processSelection = function(processRowCallback, processCompleteCallback, params) {
-      params = params || {};
+    _this.processSelection = function(processRowCallback, processCompleteCallback, params) {
+      params = params || Object.create({});
       params.showProgress = params.showProgress || false;
       selectionQueue = _this.selection.get();
       if (selectionQueue.length > 0) {
@@ -274,14 +272,16 @@
       }
     };
 
-    this.init = function() {
-      // nav
-      $('.nav-item[rel=' + _this.options.nav + ']').addClass('active');
+    _this.init = function() {
+
+      if (_this.options.nav) {
+        $('.nav-item[rel=' + _this.options.nav + ']').addClass('active');
+      }
 
       _this.dataSource.before('select', function(request, options) {
-        request = request || {};
-        if ($(c('input.data-filter[name=keyword]')).length > 0) {
-          request.keyword = $(c('input.data-filter[name=keyword]')).val();
+        request = request || Object.create({});
+        if ($(findNode('input.data-filter[name=keyword]')).length > 0) {
+          request.keyword = $(findNode('input.data-filter[name=keyword]')).val();
           _this.setFilter('keyword', request.keyword);
         }
         options       = options || {};
@@ -305,8 +305,8 @@
       });
 
       _this.countDataSource.before('select', function(request) {
-        if ($(c('input.data-filter[name=keyword]')).length > 0) {
-          request.keyword = $(c('input.data-filter[name=keyword]')).val();
+        if ($(findNode('input.data-filter[name=keyword]')).length > 0) {
+          request.keyword = $(findNode('input.data-filter[name=keyword]')).val();
         }
       });
 
@@ -321,9 +321,10 @@
       });
 
       // search
-      br.modified(c('input.data-filter[name=keyword]'), function() {
-        var _val = $(this).val();
-        $(c('input.data-filter[name=keyword]')).each(function() {
+
+      br.modified(findNode('input.data-filter[name=keyword]'), function() {
+        const _val = $(this).val();
+        $(findNode('input.data-filter[name=keyword]')).each(function() {
           if ($(this).val() != _val) {
             $(this).val(_val);
           }
@@ -333,33 +334,34 @@
         }
       });
 
-      br.modified(c('input.data-filter') + ',' + c('select.data-filter'), function() {
+      br.modified(findNode('input.data-filter') + ',' + findNode('select.data-filter'), function() {
         _this.resetPager();
       });
 
       br.attachDatePickers();
 
       if (_this.options.features.editor) {
-        var editorOptions = _this.options.editor || { noun: _this.options.noun };
+        let editorOptions = _this.options.editor || { noun: _this.options.noun };
         _this.editor = br.dataEditor(_this.options.selectors.editForm, _this.dataSource, editorOptions);
         _this.editor.events.connectTo(_this.events);
 
-        $(c('.action-create')).show();
+        $(findNode('.action-create')).show();
 
         $(document).on('click', selActionCRUD, function() {
-          var isCopy = $(this).hasClass('action-copy');
-          var rowid = $(this).closest('[data-rowid]').attr('data-rowid');
+          const isCopy = $(this).hasClass('action-copy');
+          const rowid = $(this).closest('[data-rowid]').attr('data-rowid');
           _this.editor.show(rowid, isCopy);
         });
       }
 
       // pager
-      $(c('a.action-next') + ',' + c('a.pager-action-next')).on('click', function() {
+
+      $(findNode('a.action-next') + ',' + findNode('a.pager-action-next')).on('click', function() {
         _this.skip += _this.limit;
         _this.refresh({}, null, true);
       });
 
-      $(c('a.action-prior') + ',' + c('a.pager-action-prior')).on('click', function() {
+      $(findNode('a.action-prior') + ',' + findNode('a.pager-action-prior')).on('click', function() {
         _this.skip -= _this.limit;
         if (_this.skip < 0) {
           _this.skip = 0;
@@ -367,10 +369,10 @@
         _this.refresh({}, null, true);
       });
 
-      $(c('.pager-page-navigation')).on('click', 'a.pager-action-navigate', function() {
-        var value = br.toInt($(this).attr('data-page'));
+      $(findNode('.pager-page-navigation')).on('click', 'a.pager-action-navigate', function() {
+        const value = br.toInt($(this).attr('data-page'));
         if (value > 0) {
-          var newSkip = _this.limit * (value - 1);
+          const newSkip = _this.limit * (value - 1);
           if (newSkip != _this.skip) {
             _this.skip = _this.limit * (value - 1);
             _this.setStored('pager_PageNo', _this.skip);
@@ -379,8 +381,8 @@
         }
       });
 
-      $(c('.pager-page-size-navigation')).on('click', 'a.pager-action-page-size', function() {
-        var value = br.toInt($(this).attr('data-size'));
+      $(findNode('.pager-page-size-navigation')).on('click', 'a.pager-action-page-size', function() {
+        const value = br.toInt($(this).attr('data-size'));
         _this.limit = value;
         _this.skip = 0;
         _this.setStored('pager_PageNo', _this.skip);
@@ -388,29 +390,29 @@
         _this.refresh({}, null, true);
       });
 
-      $(c('.action-refresh')).click(function() {
+      $(findNode('.action-refresh')).click(function() {
         _this.refresh();
       });
 
-      $(c('.action-clear-one-filter')).click(function() {
-        $(c('.data-filter' + '[name=' + $(this).attr('rel') + ']')).val('');
+      $(findNode('.action-clear-one-filter')).click(function() {
+        $(findNode('.data-filter[name=' + $(this).attr('rel') + ']')).val('');
         _this.refresh();
       });
 
-      $(c('input.data-filter[name=keyword]')).val(_this.getFilter('keyword'));
+      $(findNode('input.data-filter[name=keyword]')).val(_this.getFilter('keyword'));
 
       function showFiltersDesc() {
 
-        if ($(c('.filters-panel')).is(':visible')) {
-          $(c('.action-show-hide-filters')).find('span').text('Hide filters');
-          $(c('.filter-description')).text('');
+        if ($(findNode('.filters-panel')).is(':visible')) {
+          $(findNode('.action-show-hide-filters')).find('span').text('Hide filters');
+          $(findNode('.filter-description')).text('');
         } else {
-          $(c('.action-show-hide-filters')).find('span').text('Show filters');
-          var s = '';
-          $(c('.data-filter')).each(function() {
-            var val = $(this).val();
-            var title = $(this).attr('title');
-            if (val &&title) {
+          $(findNode('.action-show-hide-filters')).find('span').text('Show filters');
+          let s = '';
+          $(findNode('.data-filter')).each(function() {
+            const val = $(this).val();
+            const title = $(this).attr('title');
+            if (val && title) {
               s = s + '/ <strong>' + title + '</strong> ';
               if ($(this).is('select')) {
                 s = s + $(this).find('option[value=' + val + ']').text() + ' ';
@@ -420,7 +422,7 @@
 
             }
           });
-          $(c('.filter-description')).html(s);
+          $(findNode('.filter-description')).html(s);
         }
 
       }
@@ -429,14 +431,14 @@
 
         function showHideFilters(initial) {
 
-          if ($(c('.filters-panel')).is(':visible')) {
+          if ($(findNode('.filters-panel')).is(':visible')) {
             _this.setStored('filters-hidden', true);
-            $(c('.filters-panel')).css('display', 'none');
+            $(findNode('.filters-panel')).css('display', 'none');
             showFiltersDesc();
             _this.events.trigger('hideFilters');
           } else {
             _this.setStored('filters-hidden', false);
-            $(c('.filters-panel')).show();
+            $(findNode('.filters-panel')).show();
             showFiltersDesc();
             _this.events.trigger('showFilters');
           }
@@ -447,11 +449,11 @@
 
         }
 
-        $(c('.action-show-hide-filters')).on('click', function() {
+        $(findNode('.action-show-hide-filters')).on('click', function() {
           showHideFilters();
         });
 
-        $(c('.action-reset-filters')).on('click', function () {
+        $(findNode('.action-reset-filters')).on('click', function () {
           _this.resetFilters();
         });
 
@@ -470,12 +472,15 @@
       setupFilters(true);
 
       function checkAutoLoad() {
-        var docsHeight = $(_this.options.selectors.dataTable).height();
-        var docsContainerHeight = $(_this.scrollContainer()).height();
-        var scrollTop = $(_this.scrollContainer()).scrollTop();
+
+        const docsHeight = $(_this.options.selectors.dataTable).height();
+        const docsContainerHeight = $(_this.scrollContainer()).height();
+        const scrollTop = $(_this.scrollContainer()).scrollTop();
+
         if (scrollTop + docsContainerHeight > docsHeight) {
           _this.dataGrid.loadMore();
         }
+
       }
 
       if (_this.options.autoLoad) {
@@ -484,15 +489,14 @@
         });
       }
 
-      $(document).on('click', c('.action-select-all'), function() {
-        var checked = $(this).is(':checked');
-        _this.selectAll(checked);
+      $(document).on('click', findNode('.action-select-all'), function() {
+        _this.selectAll($(this).is(':checked'));
       });
 
-      $(document).on('click', c('.action-select-row'), function() {
-        var row = $(this).closest('[data-rowid]');
-        var rowid = row.attr('data-rowid');
-        var checked = $(this).is(':checked');
+      $(document).on('click', findNode('.action-select-row'), function() {
+        const row = $(this).closest('[data-rowid]');
+        const rowid = row.attr('data-rowid');
+        const checked = $(this).is(':checked');
         if (checked) {
           _this.selectRow(rowid);
         } else {
@@ -500,11 +504,11 @@
         }
       });
 
-      $(document).on('click', c('.action-clear-selection'), function() {
+      $(document).on('click', findNode('.action-clear-selection'), function() {
         _this.clearSelection();
       });
 
-      $(document).on('click', c('.action-delete-selected'), function() {
+      $(document).on('click', findNode('.action-delete-selected'), function() {
         _this.deleteSelection();
       });
 
@@ -513,8 +517,8 @@
       });
 
       _this.dataGrid.on('change', function() {
-        $(c('.action-select-all')).prop('checked', false);
-        var selection = _this.selection.get();
+        $(findNode('.action-select-all')).prop('checked', false);
+        const selection = _this.selection.get();
         if (selection.length > 0) {
           _this.restoreSelection();
         } else {
@@ -526,19 +530,17 @@
 
       _this.events.on('selectionChanged', function(count) {
         if (count > 0) {
-          $(c('.selection-stat')).text(count + ' record(s) selected');
-          $(c('.selection-stat')).show();
-          $(c('.action-clear-selection')).show();
+          $(findNode('.selection-stat')).text(count + ' record(s) selected');
+          $(findNode('.selection-stat')).show();
+          $(findNode('.action-clear-selection')).show();
         } else {
-          $(c('.selection-stat')).css('display', 'none');
-          $(c('.action-clear-selection')).css('display', 'none');
+          $(findNode('.selection-stat')).css('display', 'none');
+          $(findNode('.action-clear-selection')).css('display', 'none');
         }
       });
 
       return this;
     };
-
-    var pageNavIsSlider = false, pageSizeIsSlider = false, pagerInitialized = false;
 
     function initPager() {
 
@@ -547,15 +549,15 @@
       }
 
       if ($.fn.slider) {
-        $(c('.pager-page-slider')).each(function() {
+        $(findNode('.pager-page-slider')).each(function() {
           pageNavIsSlider = true;
           $(this).slider({
               min: 1
             , value: 1
             , change: function(event, ui) {
-                var value = $(c('.pager-page-slider')).slider('option', 'value');
+                const value = $(findNode('.pager-page-slider')).slider('option', 'value');
                 if (value > 0) {
-                  var newSkip = _this.limit * (value - 1);
+                  const newSkip = _this.limit * (value - 1);
                   if (newSkip != _this.skip) {
                     _this.skip = _this.limit * (value - 1);
                     _this.setStored('pager_PageNo', _this.skip);
@@ -566,7 +568,7 @@
           });
         });
 
-        $(c('.pager-page-size-slider')).each(function() {
+        $(findNode('.pager-page-size-slider')).each(function() {
           pageSizeIsSlider = true;
           $(this).slider({
               min: _this.defaultLimit
@@ -574,11 +576,10 @@
             , max: _this.defaultLimit * 20
             , step: _this.defaultLimit
             , change: function(event, ui) {
-                var value = $(c('.pager-page-size-slider')).slider('option', 'value');
-                _this.limit = value;
+                _this.limit = $(findNode('.pager-page-size-slider')).slider('option', 'value');
                 _this.setStored('pager_PageSize', _this.limit);
-                $(c('.pager-page-slider')).slider('option', 'value', 1);
-                $(c('.pager-page-slider')).slider('option', 'max', Math.ceil(_this.recordsAmount / _this.limit));
+                $(findNode('.pager-page-slider')).slider('option', 'value', 1);
+                $(findNode('.pager-page-slider')).slider('option', 'max', Math.ceil(_this.recordsAmount / _this.limit));
                 _this.refresh({}, null, true);
               }
           });
@@ -593,19 +594,21 @@
 
       initPager();
 
-      var totalPages = Math.ceil(_this.recordsAmount / _this.limit);
-      var currentPage = Math.ceil(_this.skip / _this.limit) + 1;
-      var $pc, s, i;
+      const totalPages = Math.ceil(_this.recordsAmount / _this.limit);
+      const currentPage = Math.ceil(_this.skip / _this.limit) + 1;
 
       if (pageNavIsSlider) {
-        $(c('.pager-page-slider')).slider('option', 'max', totalPages);
-        $(c('.pager-page-slider')).slider('option', 'value', currentPage);
+        $(findNode('.pager-page-slider')).slider('option', 'max', totalPages);
+        $(findNode('.pager-page-slider')).slider('option', 'value', currentPage);
       } else {
-        $pc = $(c('.pager-page-navigation'));
+        const $pc = $(findNode('.pager-page-navigation'));
         $pc.html('');
-        s = '';
-        var f1 = false, f2 = false, r = 5, el = false;
-        for (i = 1; i <= totalPages; i++) {
+        let s = '';
+        let f1 = false;
+        let f2 = false;
+        let r = 5;
+        let el = false;
+        for(let i = 1; i <= totalPages; i++) {
           if ((i <= r) || ((i > currentPage - r) && (i < currentPage + r)) || (i > (totalPages - r))) {
             if (i == currentPage) {
               s = s + '<strong class="pager-nav-element">' + i+ '</strong>';
@@ -625,22 +628,22 @@
         }
         if (el) {
           $pc.html(s);
-          $(c('.pager-nav-element')).show();
+          $(findNode('.pager-nav-element')).show();
         } else {
-          $(c('.pager-nav-element')).css('display', 'none');
+          $(findNode('.pager-nav-element')).css('display', 'none');
         }
       }
 
       if (pageSizeIsSlider) {
 
       } else {
-        $pc = $(c('.pager-page-size-navigation'));
+        const $pc = $(findNode('.pager-page-size-navigation'));
         $pc.html('');
-        s = '';
-        var sizes = _this.options.pageSizes;
-        for (i = 0; i < sizes.length; i++) {
-          var size = sizes[i];
-          var dsize = size;
+        let s = '';
+        const sizes = _this.options.pageSizes;
+        for(let i = 0, length = sizes.length; i < length; i++) {
+          let size = sizes[i];
+          let dsize = size;
           if (size >= _this.recordsAmount) {
             dsize = _this.recordsAmount;
           }
@@ -655,37 +658,38 @@
         }
         if (s.length > 0) {
           $pc.html(s);
-          $(c('.pager-page-size-container')).show();
+          $(findNode('.pager-page-size-container')).show();
         } else {
-          $(c('.pager-page-size-container')).css('display', 'none');
+          $(findNode('.pager-page-size-container')).css('display', 'none');
         }
       }
 
-      var min = (_this.skip + 1);
-      var max = Math.min(_this.skip + _this.limit, _this.recordsAmount);
+      const min = (_this.skip + 1);
+      const max = Math.min(_this.skip + _this.limit, _this.recordsAmount);
+
       if (_this.recordsAmount > 0) {
         if (_this.recordsAmount > max) {
-          $(c('.action-next')).show();
-          $(c('.pager-action-next')).show();
+          $(findNode('.action-next')).show();
+          $(findNode('.pager-action-next')).show();
         } else {
-          $(c('.action-next')).css('display', 'none');
-          $(c('.pager-action-next')).css('display', 'none');
+          $(findNode('.action-next')).css('display', 'none');
+          $(findNode('.pager-action-next')).css('display', 'none');
         }
         if (_this.skip > 0) {
-          $(c('.action-prior')).show();
-          $(c('.pager-action-prior')).show();
+          $(findNode('.action-prior')).show();
+          $(findNode('.pager-action-prior')).show();
         } else {
-          $(c('.action-prior')).css('display', 'none');
-          $(c('.pager-action-prior')).css('display', 'none');
+          $(findNode('.action-prior')).css('display', 'none');
+          $(findNode('.pager-action-prior')).css('display', 'none');
         }
-        $(c('.pager-control')).show();
+        $(findNode('.pager-control')).show();
         _this.events.triggerAfter('pager.show');
       } else {
-        $(c('.pager-control')).css('display', 'none');
+        $(findNode('.pager-control')).css('display', 'none');
         _this.events.triggerAfter('pager.hide');
       }
-      $(c('.pager-stat')).text('Records ' + min + '-' + max + ' of ' + _this.recordsAmount);
-      $(c('.pager-page-size')).text(_this.limit + ' records per page');
+      $(findNode('.pager-stat')).text('Records ' + min + '-' + max + ' of ' + _this.recordsAmount);
+      $(findNode('.pager-page-size')).text(_this.limit + ' records per page');
 
       pagerSetUp = true;
 
@@ -695,31 +699,31 @@
 
     }
 
-    this.restoreSelection = function(selection) {
+    _this.restoreSelection = function(selection) {
       if (!selection) {
         selection = _this.selection.get();
       }
-      for (var i = 0; i < selection.length; i++) {
+      for(let i = 0, length = selection.length; i < length; i++) {
         _this.selectRow(selection[i], true);
       }
       _this.events.trigger('selectionChanged', _this.selection.get().length);
     };
 
-    this.clearSelection = function() {
+    _this.clearSelection = function() {
       _this.selection.clear();
-      $(c('.action-select-row')).prop('checked', false);
-      $(c('tr.row-selected')).removeClass('row-selected');
-      $(c('.action-select-all')).prop('checked', false);
+      $(findNode('.action-select-row')).prop('checked', false);
+      $(findNode('tr.row-selected')).removeClass('row-selected');
+      $(findNode('.action-select-all')).prop('checked', false);
       _this.events.trigger('selectionChanged', _this.selection.get().length);
     };
 
-    this.getSelection = function() {
+    _this.getSelection = function() {
       return _this.selection.get();
     };
 
-    this.setSelection = function(selection) {
+    _this.setSelection = function(selection) {
       if (selection) {
-        for (var i = 0; i < selection.length; i++) {
+        for(let i = 0, length = selection.length; i < length; i++) {
           _this.selectRow(selection[i], true);
           _this.selection.append(selection[i]);
         }
@@ -727,7 +731,8 @@
       }
     };
 
-    var updatePagerTimer;
+    let updatePagerTimer;
+    let refreshTimer;
 
     function doUpdatePager() {
       if (_this.dataSource.doingSelect() || _this.countDataSource.doingSelect()) {
@@ -742,14 +747,14 @@
             internalUpdatePager();
             _this.events.triggerAfter('recordsCountRetrieved', result);
           } else {
-            $(c('.pager-control')).css('display', 'none');
+            $(findNode('.pager-control')).css('display', 'none');
             _this.events.triggerAfter('pager.hide');
           }
         });
       }
     }
 
-    this.updatePager = function(force) {
+    _this.updatePager = function(force) {
       if (!pagerSetUp || force) {
         window.clearTimeout(updatePagerTimer);
         updatePagerTimer = window.setTimeout(function() {
@@ -759,8 +764,6 @@
         internalUpdatePager();
       }
     };
-
-    var refreshTimer;
 
     function internalRefresh(deferred, filter, callback) {
 
@@ -779,14 +782,9 @@
 
     }
 
-    this.unSelectRow = function(rowid, multiple) {
-      var chk = $(_this.options.selectors.dataTable).find('input.action-select-row[value=' + rowid + ']');
-      var row;
-      if (chk.length > 0) {
-        row = $(chk).closest('[data-rowid]');
-      } else {
-        row = $(_this.options.selectors.dataTable).find('tr[data-rowid=' + rowid + ']');
-      }
+    _this.unSelectRow = function(rowid, multiple) {
+      const chk = $(_this.options.selectors.dataTable).find('input.action-select-row[value=' + rowid + ']');
+      const row = (chk.length > 0) ? $(chk).closest('[data-rowid]') : $(_this.options.selectors.dataTable).find('tr[data-rowid=' + rowid + ']');
       if (row.length > 0) {
         row.find('.action-select-row').prop('checked', false);
         row.removeClass('row-selected');
@@ -797,14 +795,9 @@
       }
     };
 
-    this.selectRow = function(rowid, multiple) {
-      var chk = $(_this.options.selectors.dataTable).find('input.action-select-row[value=' + rowid + ']');
-      var row;
-      if (chk.length > 0) {
-        row = $(chk).closest('[data-rowid]');
-      } else {
-        row = $(_this.options.selectors.dataTable).find('tr[data-rowid=' + rowid + ']');
-      }
+    _this.selectRow = function(rowid, multiple) {
+      const chk = $(_this.options.selectors.dataTable).find('input.action-select-row[value=' + rowid + ']');
+      const row = (chk.length > 0) ? $(chk).closest('[data-rowid]') : $(_this.options.selectors.dataTable).find('tr[data-rowid=' + rowid + ']');
       if (row.length > 0) {
         row.find('.action-select-row').prop('checked', true);
         row.addClass('row-selected');
@@ -815,15 +808,11 @@
       }
     };
 
-    this.selectAll = function(checked) {
-      if (checked) {
-        $(c('.action-select-all')).prop('checked', true);
-      } else {
-        $(c('.action-select-all')).prop('checked', false);
-      }
-      $(c('.action-select-row')).each(function() {
-        var row = $(this).closest('[data-rowid]');
-        var rowid = row.attr('data-rowid');
+    _this.selectAll = function(checked) {
+      $(findNode('.action-select-all')).prop('checked', checked);
+      $(findNode('.action-select-row')).each(function() {
+        const row = $(this).closest('[data-rowid]');
+        const rowid = row.attr('data-rowid');
         if (checked) {
           _this.selectRow(rowid, true);
         } else {
@@ -833,20 +822,20 @@
       _this.events.trigger('selectionChanged', _this.selection.get().length);
     };
 
-    this.isFiltersVisible = function() {
-      return $(c('.filters-panel')).is(':visible');
+    _this.isFiltersVisible = function() {
+      return $(findNode('.filters-panel')).is(':visible');
     };
 
-    this.resetPager = function() {
+    _this.resetPager = function() {
       pagerSetUp = false;
       _this.skip = 0;
     };
 
-    this.resetFilters = function() {
-      $(c('input.data-filter')).val('');
-      $(c('select.data-filter')).val('');
-      $(c('select.data-filter')).trigger('reset');
-      br.storage.remove(this.storageTag + 'filter');
+    _this.resetFilters = function() {
+      $(findNode('input.data-filter')).val('');
+      $(findNode('select.data-filter')).val('');
+      $(findNode('select.data-filter')).trigger('reset');
+      br.storage.remove(_this.storageTag + 'filter');
       _this.events.trigger('resetFilters');
       br.refresh();
     };
@@ -864,7 +853,6 @@
       }
 
       return new Promise(function(resolve, reject) {
-
         internalRefresh(true, filter, function(result, response, request, options) {
           if (result) {
             resolve({ request: request, options: options, response: response });
@@ -872,7 +860,6 @@
             reject({ request: request, options: options, errorMessage: response });
           }
         });
-
       }).then(function(data) {
         try {
           if (typeof callback == 'function') {
@@ -904,7 +891,6 @@
       }
 
       return new Promise(function(resolve, reject) {
-
         internalRefresh(false, filter, function(result, response, request, options) {
           if (result) {
             resolve({ request: request, options: options, response: response });
@@ -912,7 +898,6 @@
             reject({ request: request, options: options, errorMessage: response });
           }
         });
-
       }).then(function(data) {
         try {
           if (typeof callback == 'function') {
@@ -931,11 +916,9 @@
 
     };
 
-    return this.init();
+    return _this.init();
 
   }
-
-  window.br = window.br || {};
 
   window.br.dataBrowser = function (entity, options) {
     return new BrDataBrowser(entity, options);

@@ -1,5 +1,5 @@
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
  * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -9,7 +9,7 @@
 
 ;(function (window) {
 
-  window.br = window.br || {};
+  window.br = window.br || Object.create({});
 
   window.br.isNumber = function(value) {
     return (

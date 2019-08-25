@@ -1,5 +1,5 @@
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
  * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -8,6 +8,8 @@
  */
 
 ;(function ($, window) {
+
+  window.br = window.br || Object.create({});
 
   function BrTable(selector, options) {
 
@@ -89,7 +91,7 @@
 
     function getWidths() {
 
-      let widths = {};
+      let widths = Object.create({});
 
       theadColsCopy.each(function(idx) {
         let w = this.getBoundingClientRect().width;
@@ -224,8 +226,6 @@
     return this;
 
   }
-
-  window.br = window.br || {};
 
   window.br.table = function(selector, options) {
     return new BrTable($(selector), options);

@@ -1,7 +1,7 @@
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
- * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
+ * Copyright 2012-2019, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://brightfw.com
  *
@@ -9,113 +9,114 @@
 
 ;(function ($, window) {
 
+  window.br = window.br || Object.create({});
+
   function BrDataGrid(selector, rowTemplate, dataSource, options) {
 
-    var _this = this;
+    const _this = this;
 
-    this.selector = selector;
+    _this.selector = selector;
 
-    this.options = options || {};
+    _this.options = options || Object.create({});
 
-    this.options.templates          = this.options.templates || {};
+    _this.options.templates          = _this.options.templates || Object.create({});
 
-    this.options.templates.noData   = this.options.templates.noData || '.data-empty-template';
+    _this.options.templates.noData   = _this.options.templates.noData || '.data-empty-template';
 
-    this.options.templates.row      = $(rowTemplate).html();
-    this.options.templates.groupRow = this.options.templates.groupRow ? $(this.options.templates.groupRow).html() : '';
-    this.options.templates.header   = this.options.templates.header   ? $(this.options.templates.header).html() : '';
-    this.options.templates.footer   = this.options.templates.footer   ? $(this.options.templates.footer).html() : '';
-    this.options.templates.noData   = this.options.templates.noData   ? $(this.options.templates.noData).html() : '';
+    _this.options.templates.row      = $(rowTemplate).html();
+    _this.options.templates.groupRow = _this.options.templates.groupRow ? $(_this.options.templates.groupRow).html() : '';
+    _this.options.templates.header   = _this.options.templates.header   ? $(_this.options.templates.header).html() : '';
+    _this.options.templates.footer   = _this.options.templates.footer   ? $(_this.options.templates.footer).html() : '';
+    _this.options.templates.noData   = _this.options.templates.noData   ? $(_this.options.templates.noData).html() : '';
 
-    this.options.templates.row      = this.options.templates.row      || '';
-    this.options.templates.groupRow = this.options.templates.groupRow || '';
-    this.options.templates.header   = this.options.templates.header   || '';
-    this.options.templates.footer   = this.options.templates.footer   || '';
-    this.options.templates.noData   = this.options.templates.noData   || '';
+    _this.options.templates.row      = _this.options.templates.row      || '';
+    _this.options.templates.groupRow = _this.options.templates.groupRow || '';
+    _this.options.templates.header   = _this.options.templates.header   || '';
+    _this.options.templates.footer   = _this.options.templates.footer   || '';
+    _this.options.templates.noData   = _this.options.templates.noData   || '';
 
-    this.templates = {};
+    _this.templates = Object.create({});
 
-    this.templates.row      = this.options.templates.row.length > 0      ? br.compile(this.options.templates.row)      : function() { return ''; };
-    this.templates.groupRow = this.options.templates.groupRow.length > 0 ? br.compile(this.options.templates.groupRow) : function() { return ''; };
-    this.templates.header   = this.options.templates.header.length > 0   ? br.compile(this.options.templates.header)   : function() { return ''; };
-    this.templates.footer   = this.options.templates.footer.length > 0   ? br.compile(this.options.templates.footer)   : function() { return ''; };
-    this.templates.noData   = this.options.templates.noData.length > 0   ? br.compile(this.options.templates.noData)   : function() { return ''; };
+    _this.templates.row      = _this.options.templates.row.length > 0      ? br.compile(_this.options.templates.row)      : function() { return ''; };
+    _this.templates.groupRow = _this.options.templates.groupRow.length > 0 ? br.compile(_this.options.templates.groupRow) : function() { return ''; };
+    _this.templates.header   = _this.options.templates.header.length > 0   ? br.compile(_this.options.templates.header)   : function() { return ''; };
+    _this.templates.footer   = _this.options.templates.footer.length > 0   ? br.compile(_this.options.templates.footer)   : function() { return ''; };
+    _this.templates.noData   = _this.options.templates.noData.length > 0   ? br.compile(_this.options.templates.noData)   : function() { return ''; };
 
-    this.options.selectors          = this.options.selectors || {};
+    _this.options.selectors          = _this.options.selectors || Object.create({});
 
-    this.options.selectors.header   = this.options.selectors.header || this.options.headersSelector || this.selector;
-    this.options.selectors.footer   = this.options.selectors.footer || this.options.footersSelector || this.selector;
-    this.options.selectors.remove   = this.options.selectors.remove || this.options.deleteSelector  || '.action-delete';
+    _this.options.selectors.header   = _this.options.selectors.header || _this.options.headersSelector || _this.selector;
+    _this.options.selectors.footer   = _this.options.selectors.footer || _this.options.footersSelector || _this.selector;
+    _this.options.selectors.remove   = _this.options.selectors.remove || _this.options.deleteSelector  || '.action-delete';
 
-    this.options.dataSource = dataSource;
+    _this.options.dataSource = dataSource;
 
-    this.dataSource = this.options.dataSource;
-    this.storageTag = this.options.storageTag ? this.options.storageTag : document.location.pathname + ':' + this.dataSource.options.restServiceUrl;
+    _this.dataSource = _this.options.dataSource;
+    _this.storageTag = _this.options.storageTag ? _this.options.storageTag : document.location.pathname + ':' + _this.dataSource.options.restServiceUrl;
 
-    this.events = br.eventQueue(this);
-    this.before = function(event, callback) { this.events.before(event, callback); };
-    this.on     = function(event, callback) { this.events.on(event, callback); };
-    this.after  = function(event, callback) { this.events.after(event, callback); };
+    _this.events = br.eventQueue(_this);
+    _this.before = function(event, callback) { _this.events.before(event, callback); };
+    _this.on     = function(event, callback) { _this.events.on(event, callback); };
+    _this.after  = function(event, callback) { _this.events.after(event, callback); };
 
-    if (this.options.fixedHeader) {
-      this.table = br.table($(this.selector).closest('table'), options);
+    if (_this.options.fixedHeader) {
+      _this.table = br.table($(_this.selector).closest('table'), options);
     }
 
-    var noMoreData = false;
+    let noMoreData = false;
+    let disconnected = false;
 
     _this.loadingMoreData = false;
 
-    this.after('insert', function(data) {
+    _this.after('insert', function(data) {
       _this.events.trigger('change', data, 'insert');
       _this.events.triggerAfter('change', data, 'insert');
     });
 
-    this.after('update', function(data) {
+    _this.after('update', function(data) {
       _this.events.trigger('change', data, 'update');
       _this.events.triggerAfter('change', data, 'update');
     });
 
-    this.after('remove', function(data) {
+    _this.after('remove', function(data) {
       _this.events.trigger('change', data, 'remove');
       _this.events.triggerAfter('change', data, 'remove');
     });
 
-    this.after('change', function() {
-      if (this.table) {
-        this.table.update();
+    _this.after('change', function() {
+      if (_this.table) {
+        _this.table.update();
       }
     });
 
-    var disconnected = false;
-
-    this.setStored = function(name, value) {
+    _this.setStored = function(name, value) {
       br.storage.set(this.storageTag + 'stored:' + name, value);
     };
 
-    this.getStored = function(name, defaultValue) {
+    _this.getStored = function(name, defaultValue) {
       return br.storage.get(this.storageTag + 'stored:' + name, defaultValue);
     };
 
-    this.isDisconnected = function() {
+    _this.isDisconnected = function() {
       return disconnected;
     };
 
-    this.disconnectFromDataSource = function() {
+    _this.disconnectFromDataSource = function() {
       disconnected = true;
     };
 
-    this.reconnectWithDataSource = function() {
+    _this.reconnectWithDataSource = function() {
       disconnected = false;
     };
 
-    this.renderHeader = function(data, asString) {
+    _this.renderHeader = function(data, asString) {
       data = _this.events.trigger('renderHeader', data) || data;
-      var s = _this.templates.header(data);
+      let s = _this.templates.header(data);
       if (asString) {
         return s;
       } else
       if (s.length > 0) {
-        var result = $(s);
+        let result = $(s);
         if (_this.options.storeDataRow) {
           result.data('data-row', data);
         }
@@ -125,14 +126,14 @@
       }
     };
 
-    this.renderFooter = function(data, asString) {
+    _this.renderFooter = function(data, asString) {
       data = _this.events.trigger('renderFooter', data) || data;
-      var s =  _this.templates.footer(data);
+      let s =  _this.templates.footer(data);
       if (asString) {
         return s;
       } else
       if (s.length > 0) {
-        var result = $(s);
+        let result = $(s);
         if (_this.options.storeDataRow) {
           result.data('data-row', data);
         }
@@ -142,14 +143,14 @@
       }
     };
 
-    this.renderRow = function(data, asString) {
+    _this.renderRow = function(data, asString) {
       data = _this.events.trigger('renderRow', data) || data;
-      var s = _this.templates.row(data).trim();
+      let s = _this.templates.row(data).trim();
       if (asString) {
         return s;
       } else
       if (s.length > 0) {
-        var result = $(s);
+        let result = $(s);
         if (_this.options.storeDataRow) {
           result.data('data-row', data);
         }
@@ -159,14 +160,14 @@
       }
     };
 
-    this.renderGroupRow = function(data, asString) {
+    _this.renderGroupRow = function(data, asString) {
       data = _this.events.trigger('renderGroupRow', data) || data;
-      var s = _this.templates.groupRow(data).trim();
+      let s = _this.templates.groupRow(data).trim();
       if (asString) {
         return s;
       } else
       if (s.length > 0) {
-        var result = $(s);
+        let result = $(s);
         if (_this.options.storeDataRow) {
           result.data('data-row', data);
         }
@@ -176,24 +177,24 @@
       }
     };
 
-    this.prepend = function(row) {
+    _this.prepend = function(row) {
       return $(_this.selector).prepend(row);
     };
 
-    this.append = function(row) {
+    _this.append = function(row) {
       return $(_this.selector).append(row);
     };
 
-    this.insertDataRowAfter = function(row, selector) {
-      var tableRow = _this.renderRow(row);
+    _this.insertDataRowAfter = function(row, selector) {
+      let tableRow = _this.renderRow(row);
       if (tableRow) {
         $(tableRow).insertAfter(selector);
       }
       return tableRow;
     };
 
-    this.addDataRow = function(row, disableEvents) {
-      var tableRow = _this.renderRow(row);
+    _this.addDataRow = function(row, disableEvents) {
+      let tableRow = _this.renderRow(row);
       if (tableRow) {
         _this.events.triggerBefore('insert', row, tableRow);
         _this.events.trigger('insert', row, tableRow);
@@ -210,12 +211,12 @@
       return tableRow;
     };
 
-    this.hasRow = function(rowid) {
-      var row = $(_this.selector).find('[data-rowid=' + rowid + ']');
+    _this.hasRow = function(rowid) {
+      let row = $(_this.selector).find('[data-rowid=' + rowid + ']');
       return (row.length > 0);
     };
 
-    this.reloadRow = function(rowid, callback, options) {
+    _this.reloadRow = function(rowid, callback, options) {
       if (!br.isEmpty(callback)) {
         if (typeof callback != 'function') {
           options = callback;
@@ -225,7 +226,7 @@
       options = options || { };
       options.disableEvents = true;
       options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
-      var filter;
+      let filter;
       if (br.isObject(rowid)) {
         filter = rowid;
       } else {
@@ -266,14 +267,14 @@
       }
     }
 
-    this.removeRow = function(rowid, options) {
-      var filter = '[data-rowid=' + rowid + ']';
-      options = options || {};
+    _this.removeRow = function(rowid, options) {
+      let filter = '[data-rowid=' + rowid + ']';
+      options = options || Object.create({});
       options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
       if (options.refreshSelector) {
         filter = options.refreshSelector + filter;
       }
-      var row = $(_this.selector).find(filter);
+      let row = $(_this.selector).find(filter);
       if (row.length > 0) {
         _this.events.triggerBefore('remove', rowid);
         _this.events.trigger('remove', rowid, row);
@@ -309,15 +310,15 @@
     };
 
     _this.refreshRow = function(data, options) {
-      var filter = '[data-rowid=' + data.rowid + ']';
-      options = options || {};
+      let filter = '[data-rowid=' + data.rowid + ']';
+      options = options || Object.create({});
       options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
       if (options.refreshSelector) {
         filter = options.refreshSelector + filter;
       }
-      var row = $(_this.selector).find(filter);
+      let row = $(_this.selector).find(filter);
       if (row.length > 0) {
-        var tableRow = _this.renderRow(data);
+        let tableRow = _this.renderRow(data);
         if (tableRow) {
           if (_this.options.storeDataRow) {
             tableRow.data('data-row', data);
@@ -342,7 +343,7 @@
 
       } else {
         _this.loadingMoreData = true;
-        _this.dataSource.select({}, function(result, response) {
+        _this.dataSource.select(Object.create({}), function(result, response) {
           if (typeof callback == 'function') { callback.call(_this, result, response); }
           _this.loadingMoreData = false;
         }, { loadingMore: true });
@@ -354,7 +355,7 @@
     };
 
     _this.getKeys = function(attrName) {
-      var result = [];
+      let result = [];
       if (!attrName) {
         attrName = 'data-rowid';
       }
@@ -365,7 +366,7 @@
     };
 
     _this.isOrderConfigured = function() {
-      var orderAndGroup = _this.getOrderAndGroup();
+      let orderAndGroup = _this.getOrderAndGroup();
       return br.isArray(orderAndGroup) && (orderAndGroup.length > 0);
     };
 
@@ -375,10 +376,10 @@
     }
 
     function showOrder(orderAndGroup) {
-      for(var i = 0; i < orderAndGroup.length; i++) {
-        var ctrl = $('.sortable[data-field="' + orderAndGroup[i].fieldName + '"].' + (orderAndGroup[i].asc ? 'order-asc' : 'order-desc'), $(_this.options.selectors.header));
+      for(let i = 0, length = orderAndGroup.length; i < length; i++) {
+        let ctrl = $('.sortable[data-field="' + orderAndGroup[i].fieldName + '"].' + (orderAndGroup[i].asc ? 'order-asc' : 'order-desc'), $(_this.options.selectors.header));
         ctrl.addClass('icon-white').addClass('icon-border').addClass('fa-border');
-        var idx = ctrl.parent().find('div.br-sort-index');
+        let idx = ctrl.parent().find('div.br-sort-index');
         if (orderAndGroup.length > 1) {
           if (idx.length > 0) {
             idx.text(i + 1);
@@ -390,10 +391,10 @@
     }
 
     _this.getOrder = function() {
-      var order = _this.getOrderAndGroup();
-      var result = {};
+      let order = _this.getOrderAndGroup();
+      let result = Object.create({});
       if (br.isArray(order)) {
-        for(var i = 0; i < order.length; i++) {
+        for(let i = 0, length = order.length; i < length; i++) {
           if (order[i].asc) {
             result[order[i].fieldName] = 1;
           } else {
@@ -405,15 +406,15 @@
     };
 
     _this.setOrder = function(order, callback) {
-      var orderAndGroup = [];
-      for(var name in order) {
+      let orderAndGroup = [];
+      for(let name in order) {
         orderAndGroup.push({ fieldName: name, asc: order[name] > 0, group: false, index: orderAndGroup.length });
       }
       _this.setOrderAndGroup(orderAndGroup, callback);
     };
 
     _this.getOrderAndGroup = function() {
-      var result = br.storage.get(_this.storageTag + 'orderAndGroup', []);
+      let result = br.storage.get(_this.storageTag + 'orderAndGroup', []);
       if (br.isEmpty(result) || !br.isArray(result) || (result.length === 0)) {
         if (_this.options.defaultOrderAndGroup) {
           result = _this.options.defaultOrderAndGroup;
@@ -443,7 +444,7 @@
       showOrder(_this.getOrderAndGroup());
 
       $(this.options.selectors.header).on('click', '.sortable', function(event) {
-        var sorted = ($(this).hasClass('icon-white') || $(this).hasClass('icon-border') || $(this).hasClass('fa-border'));
+        let sorted = ($(this).hasClass('icon-white') || $(this).hasClass('icon-border') || $(this).hasClass('fa-border'));
         if (!event.metaKey) {
           $('.sortable', $(_this.options.selectors.header)).removeClass('icon-white').removeClass('icon-border').removeClass('fa-border');
           $('.br-sort-index', $(_this.options.selectors.header)).remove();
@@ -454,13 +455,13 @@
           $(this).siblings('i').removeClass('icon-white').removeClass('icon-border').removeClass('fa-border');
           $(this).addClass('icon-white').addClass('icon-border').addClass('fa-border');
         }
-        var orderAndGroup;
-        var fieldName = $(this).attr('data-field');
-        var newOrder = { fieldName: fieldName, asc: $(this).hasClass('order-asc'), group: $(this).hasClass('group-by') };
+        let orderAndGroup;
+        let fieldName = $(this).attr('data-field');
+        let newOrder = { fieldName: fieldName, asc: $(this).hasClass('order-asc'), group: $(this).hasClass('group-by') };
         if (event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) {
           orderAndGroup = _this.getOrderAndGroup();
-          var newOrderAndGroup = [];
-          for(var i = 0; i < orderAndGroup.length; i++) {
+          let newOrderAndGroup = [];
+          for(let i = 0, length = orderAndGroup.length; i < length; i++) {
             if (orderAndGroup[i].fieldName != fieldName) {
               newOrderAndGroup.push(orderAndGroup[i]);
             }
@@ -518,10 +519,10 @@
         });
 
         if (this.options.selectors.remove) {
-          $(_this.selector).on('click', this.options.selectors.remove, function() {
-            var row = $(this).closest('[data-rowid]');
+          $(_this.selector).on('click', _this.options.selectors.remove, function() {
+            let row = $(this).closest('[data-rowid]');
             if (row.length > 0) {
-              var rowid = $(row).attr('data-rowid');
+              let rowid = $(row).attr('data-rowid');
               if (!br.isEmpty(rowid)) {
                 br.confirm( 'Delete confirmation'
                           , 'Are you sure you want to delete this record?'
@@ -536,11 +537,11 @@
 
         if (br.isString(_this.selector)) {
           br.editable(_this.selector + ' .editable', function(content) {
-            var $this = $(this);
-            var rowid = $this.closest('[data-rowid]').attr('data-rowid');
-            var dataField = $this.attr('data-field');
+            let $this = $(this);
+            let rowid = $this.closest('[data-rowid]').attr('data-rowid');
+            let dataField = $this.attr('data-field');
             if (!br.isEmpty(rowid) && !br.isEmpty(dataField)) {
-              var data = {};
+              let data = Object.create({});
               data[dataField] = content;
               _this.dataSource.update( rowid
                                      , data
@@ -559,18 +560,17 @@
     };
 
     this.render = function(data, loadingMoreData) {
-      var $selector = $(_this.selector);
-      var tableRow;
+      let $selector = $(_this.selector);
+      let tableRow;
       _this.events.triggerBefore('change', data, 'render');
       if (data) {
-        var i, j, k;
         if (!loadingMoreData) {
           $selector.html('');
         }
         if (_this.options.freeGrid) {
           data = data[0];
-          if (data.headers) {
-            for (i in data.headers) {
+          if (data.headers && (data.headers.length > 0)) {
+            for (let i = 0, length = data.headers.length; i < length; i++) {
               if (data.headers[i]) {
                 tableRow = _this.renderHeader(data.headers[i]);
                 if (tableRow) {
@@ -579,8 +579,8 @@
               }
             }
           }
-          if (data.footers) {
-            for (i in data.footers) {
+          if (data.footers && (data.footers.length > 0)) {
+            for (let i = 0, length = data.footers.length; i < length; i++) {
               if (data.footers[i]) {
                 tableRow = _this.renderFooter(data.headers[i]);
                 if (tableRow) {
@@ -592,10 +592,8 @@
           $(_this.options.selectors.header).html('');
           $(_this.options.selectors.footer).html('');
           if (data.rows) {
-            if (data.rows.length === 0) {
-              $selector.html(_this.templates.noData());
-            } else {
-              for (i in data.rows) {
+            if (data.rows.length > 0) {
+              for (let i = 0, length = data.rows.length; i < length; i++) {
                 if (data.rows[i]) {
                   if (data.rows[i].row) {
                     tableRow = _this.renderRow(data.rows[i].row);
@@ -617,34 +615,36 @@
                   }
                 }
               }
+            } else {
+              $selector.html(_this.templates.noData());
             }
           } else {
             $selector.html(_this.templates.noData());
           }
         } else {
           if (data && (data.length > 0)) {
-            var group = _this.getOrderAndGroup();
-            var groupValues = {};
-            var groupFieldName = '';
-            for (i = 0; i < data.length; i++) {
+            let group = _this.getOrderAndGroup();
+            let groupValues = Object.create({});
+            let groupFieldName = '';
+            for (let i = 0, length = data.length; i < length; i++) {
               if (data[i]) {
                 if (br.isArray(group)) {
-                  for(k = 0; k < group.length; k++) {
+                  for (let k = 0, length = group.length; k < length; k++) {
                     groupFieldName = group[k].fieldName;
                     if (group[k].group && (groupValues[groupFieldName] != data[i][groupFieldName])) {
-                      for(j = k; j < group.length; j++) {
+                      for(let j = k, length = group.length; j < length; j++) {
                         groupFieldName = group[j].fieldName;
                         groupValues[groupFieldName] = undefined;
                       }
                       break;
                     }
                   }
-                  for(k = 0; k < group.length; k++) {
+                  for (let k = 0, length = group.length; k < length; k++) {
                     groupFieldName = group[k].fieldName;
                     if (group[k].group && (groupValues[groupFieldName] != data[i][groupFieldName])) {
                       groupValues[groupFieldName] = data[i][groupFieldName];
-                      var tmp = data[i];
-                      tmp.__groupBy = {};
+                      let tmp = data[i];
+                      tmp.__groupBy = Object.create({});
                       tmp.__groupBy.__field = groupFieldName;
                       tmp.__groupBy.__value = data[i][groupFieldName];
                       tmp.__groupBy[groupFieldName] = true;
@@ -678,8 +678,6 @@
     return this.init();
 
   }
-
-  window.br = window.br || {};
 
   window.br.dataGrid = function (selector, rowTemplate, dataSource, options) {
     return new BrDataGrid(selector, rowTemplate, dataSource, options);

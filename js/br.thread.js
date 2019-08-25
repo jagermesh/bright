@@ -1,5 +1,5 @@
 /*!
- * Bright 1.0
+ * Bright 2.0
  *
  * Copyright 2012-2018, Sergiy Lavryk (jagermesh@gmail.com)
  * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -9,22 +9,24 @@
 
 ;(function (window) {
 
+  window.br = window.br || Object.create({});
+
   function BrThread(lazy) {
 
-    var _this = this;
+    const _this = this;
 
     _this.queue = [];
     _this.workingQueue = [];
     _this.lazy = lazy;
 
-    this.push = function(func) {
+    _this.push = function(func) {
       _this.queue.unshift({ func: func });
       if (!_this.lazy) {
         _this.wakeup();
       }
     };
 
-    this.done = function(func) {
+    _this.done = function(func) {
       _this.workingQueue.pop();
       _this.wakeup();
     };
@@ -36,7 +38,7 @@
 
     this.wakeup = function() {
       if ((_this.queue.length > 0) && (_this.workingQueue.length === 0)) {
-        var obj = _this.queue.pop();
+        let obj = _this.queue.pop();
         _this.workingQueue.push(obj);
         obj.func(function() {
           _this.done();
@@ -46,12 +48,8 @@
 
   }
 
-  window.br = window.br || {};
-
   window.br.thread = function(lazy) {
     return new BrThread(lazy);
   };
-
-  var executionThread = br.thread(true);
 
 })(window);
