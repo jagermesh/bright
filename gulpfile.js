@@ -12,18 +12,17 @@ const rename = require('gulp-rename');
 const shell = require('gulp-shell');
 const merge = require('merge-stream');
 const child_process = require('child_process');
-const del = require('del');
 
 const configs = { jshint: { src: ['js/**/*.js'] }
-                , phplint: { src: [ '**/*.php' ] }
+                , phplint: { src: [ '**/*.php', '!vendor/**/*.php' ] }
                 , uglify: { libs: [ { dest: '3rdparty/promisejs/latest/js/', src: ['3rdparty/promisejs/latest/js/promise.js'] }
                                   , { dest: '3rdparty/bootstrap/2.3.2/js/', src: ['3rdparty/bootstrap/2.3.2/js/bootstrap.js'] }
-                                  , { dest: '3rdparty/gritter/latest/js/', src: '3rdparty/gritter/latest/js/jquery.gritter.js' }
-                                  , { dest: '3rdparty/handlebars/4.1.2/js/', src: '3rdparty/handlebars/4.1.2/js/handlebars.js' }
-                                  , { dest: '3rdparty/handlebars/latest/js/', src: '3rdparty/handlebars/latest/js/handlebars.js' }
-                                  , { dest: '3rdparty/fileuploader/latest/js/', src: '3rdparty/fileuploader/latest/js/fileuploader.js' }
+                                  , { dest: '3rdparty/gritter/latest/js/', src: ['3rdparty/gritter/latest/js/jquery.gritter.js'] }
+                                  , { dest: '3rdparty/handlebars/4.1.2/js/', src: ['3rdparty/handlebars/4.1.2/js/handlebars.js'] }
+                                  , { dest: '3rdparty/handlebars/latest/js/', src: ['3rdparty/handlebars/latest/js/handlebars.js'] }
+                                  , { dest: '3rdparty/fileuploader/latest/js/', src: ['3rdparty/fileuploader/latest/js/fileuploader.js'] }
                                   ]
-                          , dist: [ { dest: 'dist/js/', src: 'dist/js/*.js' }
+                          , dist: [ { dest: 'dist/js/', src: ['dist/js/*.js', '!dist/js/*.min.js'] }
                                   ]
                           }
                 , concat: { bright: [ { src: [ 'js/br.typeCheck.js'
@@ -194,11 +193,7 @@ gulp.task('concat:core', gulp.series('concat:bright', function() {
   return _concat(configs.concat.core);
 }));
 
-gulp.task('clean:dist', function() {
-  return del(['dist/']);
-});
-
-gulp.task('concat:dist', gulp.series('clean:dist', 'concat:core', function() {
+gulp.task('concat:dist', gulp.series('concat:core', function() {
   return _concat(configs.concat.dist);
 }));
 
@@ -211,4 +206,5 @@ gulp.task('default', gulp.series( gulp.parallel('jshint', 'phplint', 'uglify:lib
                                 , gulp.parallel('concat:dist', 'concat:css')
                                 , 'uglify:dist'
                                 , 'shell:chmod'));
+
 gulp.task('css', gulp.series('concat:css', 'shell:chmod'));
