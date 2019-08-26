@@ -7527,11 +7527,12 @@
     if (typeof options.zoomControl == 'undefined') { options.zoomControl = true; }
     if (typeof options.scaleControl == 'undefined') { options.scaleControl = true; }
     if (typeof options.rotateControl == 'undefined') { options.rotateControl = true; }
+    if (typeof options.mapType == 'undefined') { options.mapType = google.maps.MapTypeId.ROADMAP; }
 
     _this.mapOptions = { zoom: options.zoom
                        , maxZoom: options.maxZoom
                        , center: options.mapCenter
-                       , mapTypeId: google.maps.MapTypeId.ROADMAP
+                       , mapTypeId: options.mapType
                        , mapTypeControl: options.mapTypeControl
                        , mapTypeControlOptions: {
                              style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR
@@ -8074,6 +8075,15 @@
         }
         return true;
       });
+    };
+
+    _this.getLayer = function(id) {
+      let result =  _this.layers.filter(function(item) {
+        return (item.custom && (item.custom.id == id));
+      });
+      if (result.length > 0) {
+        return result[0];
+      }
     };
 
     _this.layerExists = function(id) {

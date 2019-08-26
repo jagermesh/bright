@@ -1,7 +1,8 @@
 {
   "name": "jagermesh/bright",
   "type": "library",
-  "description": "PHP Web Framework",
+  "description": "Web Framework",
+  "version": "2.0.21",
   "license": "MIT",
   "authors": [
     {
