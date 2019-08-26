@@ -5595,7 +5595,7 @@
 
     function notify(event, result) {
 
-      br.events.trigger('paste', event, result);
+      br.events.trigger('paste', result, event);
 
     }
 

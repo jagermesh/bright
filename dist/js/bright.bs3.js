@@ -5601,7 +5601,7 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
 
     function notify(event, result) {
 
-      br.events.trigger('paste', event, result);
+      br.events.trigger('paste', result, event);
 
     }
 
