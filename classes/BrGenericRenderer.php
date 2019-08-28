@@ -132,15 +132,17 @@ class BrGenericRenderer extends BrObject {
 
     $localVars = array_merge($this->vars, $subst);
 
-    $localVars['br'] = array( 'request' => array( 'isDevHost'   => br()->request()->isDevHost()
-                                                , 'isLocalHost' => br()->request()->isLocalHost()
-                                                , 'host'        => br()->request()->host()
-                                                , 'domain'      => br()->request()->domain()
-                                                , 'url'         => br()->request()->url()
-                                                , 'get'         => br()->request()->get()
-                                                , 'post'        => br()->request()->post()
-                                                , 'brightUrl'   => br()->request()->brightUrl()
-                                                , 'baseUrl'     => br()->request()->baseUrl()
+    $localVars['br'] = array( 'request' => array( 'isDevHost'    => br()->request()->isDevHost()
+                                                , 'isLocalHost'  => br()->request()->isLocalHost()
+                                                , 'isProduction' => br()->request()->isProduction()
+                                                , 'isRest'       => br()->request()->isRest()
+                                                , 'host'         => br()->request()->host()
+                                                , 'domain'       => br()->request()->domain()
+                                                , 'url'          => br()->request()->url()
+                                                , 'get'          => br()->request()->get()
+                                                , 'post'         => br()->request()->post()
+                                                , 'brightUrl'    => br()->request()->brightUrl()
+                                                , 'baseUrl'      => br()->request()->baseUrl()
                                                 )
                             , 'config'  => br()->config()->get()
                             , 'core'    => br()->request()->brightUrl() . 'dist/js/bright.core.min.js'

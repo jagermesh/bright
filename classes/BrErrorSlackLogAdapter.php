@@ -75,8 +75,6 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
 
         $contents = $response->getBody()->getContents();
 
-        print_r($contents);
-
       } catch (\Exception $e) {
 
       }

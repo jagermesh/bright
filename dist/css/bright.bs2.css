@@ -45,7 +45,9 @@
 	color:#eee;
 	padding:11px 11px 11px 11px;
 	font-size: 10pt;
-  /*word-break: break-all;*/
+  word-wrap: break-word;
+  max-height: 400px;
+  overflow: auto;
 }
 .gritter-item-wrapper.hover {
   /*opacity: 1;*/

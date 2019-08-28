@@ -3591,7 +3591,7 @@
       if (br.isFunction(_this.options.onGetName)) {
         return _this.options.onGetName.call(_this, data);
       } else {
-        let item = { value: data[_this.options.keyField]
+        let item = { value: data[_this.options.valueField]
                    , name: data[_this.options.nameField]
                    };
         _this.events.trigger('formatItem', item, data);

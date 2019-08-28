@@ -1,55 +1,34 @@
-<style>
+[[#br.request.isProduction]]
+<div class="modal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Unexpected error</h3>
+      </div>
+      <div class="modal-body">
+      Sorry, we encountered unexpected error. Report was sent to support team.
+        </div>
+        <div class="modal-footer" style="background-color:red;">
+          <a href="javascript:;" onclick="window.history.back();" class="btn btn-sm btn-default" data-dismiss="modal">Close</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+[[/br.request.isProduction]]
 
-div.bright-error-panel {
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 10pt;
-  margin: 4px;
-  background-color: #FFC;
-  border: 1px solid #EFEFEF;
-  z-index: 1000;
-  color: black;
-}
-div.bright-error-panel-wrapper {
-  padding: 4px;
-}
-div.bright-error-panel div.bright-error-section {
-  padding: 4px;
-  word-wrap: break-word;
-}
-div.bright-error-panel div.error {
-  font-size: 14pt;
-  color: red;
-}
-div.bright-error-panel div.info-box {
-  font-family: Courier;
-  padding: 10px;
-  background-color: #FEFEFE;
-  border: 1px solid #DDD;
-  white-space: pre-wrap;
-  word-break: break-word;
-  line-height: 12pt;
-}
-
-</style>
-
+[[^br.request.isProduction]]
 <div class="bright-error-panel">
   <div class="bright-error-panel-wrapper">
     <div class="bright-error-section">
-      <div class="error"><?php echo($errorMessage); ?></div>
-      <?php if ($errorFile) { ?>
-      <div>in <?php echo($errorFile);?></div>
-      <?php } ?>
+      <div class="error">[[error.message]]</div>
+      <div>[[error.file]]</div>
     </div>
-    <?php if ($errorInfo) { ?>
+    [[#error.traceInfo]]
     <div class="bright-error-section">
-      <div class="info-box"><?php echo(htmlentities($errorInfo)); ?></div>
+      <div class="info-box">[[error.traceInfo]]</div>
     </div>
-    <?php } ?>
-    <?php if ($traceInfo) { ?>
-    <div class="bright-error-section">
-      <div class="info-box"><?php echo($traceInfo); ?></div>
-    </div>
-    <?php } ?>
+    [[/error.traceInfo]]
   </div>
 </div>
+[[/br.request.isProduction]]

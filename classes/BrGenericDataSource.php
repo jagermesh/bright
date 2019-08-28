@@ -102,7 +102,7 @@ class BrGenericDataSource extends BrObject {
 
     $options['limit'] = 1;
 
-    $cacheTag = 'DataSource:selectOneCached:' . md5(serialize($filter) . serialize($fields) . serialize($order) . serialize($options));
+    $cacheTag = 'DataSource:selectOneCached:' . get_class($this) . md5(serialize($filter) . serialize($fields) . serialize($order) . serialize($options));
 
     if (br()->cache()->exists($cacheTag)) {
       $result = br()->cache()->get($cacheTag);
@@ -119,7 +119,7 @@ class BrGenericDataSource extends BrObject {
 
   public function selectCached($filter = array(), $fields = array(), $order = array(), $options = array()) {
 
-    $cacheTag = 'DataSource:selectCached:' . md5(serialize($filter) . serialize($fields) . serialize($order) . serialize($options));
+    $cacheTag = 'DataSource:selectCached:' . get_class($this) . md5(serialize($filter) . serialize($fields) . serialize($order) . serialize($options));
 
     if (br()->cache()->exists($cacheTag)) {
       $result = br()->cache()->get($cacheTag);
@@ -136,7 +136,7 @@ class BrGenericDataSource extends BrObject {
 
     $options['result'] = 'count';
 
-    $cacheTag = 'DataSource:selectCountCached:' . md5(serialize($filter) . serialize($fields) . serialize($order) . serialize($options));
+    $cacheTag = 'DataSource:selectCountCached:' . get_class($this) . md5(serialize($filter) . serialize($fields) . serialize($order) . serialize($options));
 
     if (br()->cache()->exists($cacheTag)) {
       $result = br()->cache()->get($cacheTag);

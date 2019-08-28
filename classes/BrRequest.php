@@ -28,6 +28,7 @@ class BrRequest extends BrSingleton {
   private $contentType = null;
   private $urlRestrictions = array();
   private $restrictionsLoaded = false;
+  private $isRest = false;
 
   public function __construct() {
 
@@ -99,7 +100,9 @@ class BrRequest extends BrSingleton {
       } else {
         $rawInput = file_get_contents('php://input');
         if ($json = @json_decode($rawInput, true)) {
-          $this->putVars = $json;
+          if (is_array($json)) {
+            $this->putVars = $json;
+          }
         } else {
           parse_str($rawInput, $this->putVars);
         }
@@ -359,6 +362,7 @@ class BrRequest extends BrSingleton {
   public function isLocalHost() {
 
     $whitelist = array('localhost', '127.0.0.1');
+
     if (in_array($this->domain(), $whitelist)) {
       return true;
     }
@@ -388,6 +392,12 @@ class BrRequest extends BrSingleton {
     $this->trigger('checkDevHost', $domain, $result);
 
     return $result;
+
+  }
+
+  public function isProduction() {
+
+    return !$this->isLocalHost() && !$this->isDevHost();
 
   }
 
@@ -483,6 +493,18 @@ class BrRequest extends BrSingleton {
   public function isPermanentRedirect() {
 
     return (br($_SERVER, 'REDIRECT_STATUS') == 301);
+
+  }
+
+  public function isRest() {
+
+    return $this->isRest;
+
+  }
+
+  public function setIsRest($value) {
+
+    $this->isRest = true;
 
   }
 

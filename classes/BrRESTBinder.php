@@ -159,11 +159,12 @@ class BrRESTBinder extends BrObject {
 
     if (br()->request()->isAt($path)) {
 
+      br()->request()->setIsRest(true);
+      br()->request()->continueRoute(false);
+
       if (is_string($dataSource)) {
         $dataSource = new $dataSource();
       }
-
-      br()->request()->continueRoute(false);
 
       $event = 'select';
       if ($matches = br()->request()->isAt(rtrim($path, '/') . '/(' . $this->idRegExp . ')')) {
@@ -450,6 +451,9 @@ class BrRESTBinder extends BrObject {
 
     if (br()->request()->isAt(rtrim($path, '/'))) {
 
+      br()->request()->setIsRest(true);
+      br()->request()->continueRoute(false);
+
       if (is_string($dataSource)) {
         $dataSource = new $dataSource();
       }
@@ -463,8 +467,6 @@ class BrRESTBinder extends BrObject {
           $method = $matches[1];
         }
       }
-
-      br()->request()->continueRoute(false);
 
       if ($method) {
 
@@ -587,14 +589,15 @@ class BrRESTBinder extends BrObject {
 
     if ($matches = br()->request()->isAt($path)) {
 
+      br()->request()->setIsRest(true);
+      br()->request()->continueRoute(false);
+
       if (is_string($dataSource)) {
         $dataSource = new $dataSource();
       }
 
       $dataSourceOptions = array();
       $dataSourceOptions['source'] = 'RESTBinder';
-
-      br()->request()->continueRoute(false);
 
       $this->checkPermissions($options, array('insert'));
 
@@ -655,14 +658,15 @@ class BrRESTBinder extends BrObject {
 
     if ($matches = br()->request()->isAt($path)) {
 
+      br()->request()->setIsRest(true);
+      br()->request()->continueRoute(false);
+
       if (is_string($dataSource)) {
         $dataSource = new $dataSource();
       }
 
       $dataSourceOptions = array();
       $dataSourceOptions['source'] = 'RESTBinder';
-
-      br()->request()->continueRoute(false);
 
       if ($matches = br()->request()->isAt(rtrim($path, '/') . '/(' . $this->idRegExp . ')')) {
         if (preg_match('~' . $this->idCheckRegExp . '~', $matches[1])) {

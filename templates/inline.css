@@ -1,0 +1,72 @@
+[[^br.request.isRest]]
+
+<style>
+
+div.bright-debug-panel {
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 10pt;
+  margin: 4px;
+  background-color: #DDD;
+  border: 1px solid #EFEFEF;
+  z-index: 1000;
+  color: black;
+}
+div.bright-debug-panel-wrapper {
+  padding: 4px;
+}
+div.bright-debug-panel div.bright-debug-section {
+  padding: 4px;
+}
+div.bright-debug-panel div.title {
+  font-size: 12pt;
+  margin-bottom: 4px;
+}
+div.bright-debug-panel div.info-box {
+  font-family: Courier;
+  padding: 10pt;
+  background-color: #FEFEFE;
+  border: 1px solid #AAA;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 12pt;
+}
+
+div.bright-error {
+  color: black;
+  background-color: white;
+}
+div.bright-error-panel {
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 10pt;
+  margin: 4px;
+  background-color: #FFC;
+  border: 1px solid #EFEFEF;
+  z-index: 1000;
+  color: black;
+}
+div.bright-error-panel-wrapper {
+  padding: 4px;
+}
+div.bright-error-panel div.bright-error-section {
+  padding: 4px;
+  word-wrap: break-word;
+}
+div.bright-error-panel div.error {
+  font-size: 14pt;
+  color: red;
+}
+div.bright-error-panel div.info-box {
+  font-family: Courier;
+  padding: 10px;
+  background-color: #FEFEFE;
+  border: 1px solid #DDD;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 12pt;
+}
+
+</style>
+
+[[/br.request.isRest]]
