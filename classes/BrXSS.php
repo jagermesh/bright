@@ -33,6 +33,7 @@ class BrXSS extends BrSingleton {
           try {
             try {
               $doc = \phpQuery::newDocument($html);
+              $htmlBefore = trim($doc->html());
               foreach(pq($doc)->find('*') as $tag) {
                 if ($attrs = pq($tag)->attr('*')) {
                   foreach ($attrs as $name => $value) {
@@ -55,7 +56,10 @@ class BrXSS extends BrSingleton {
                   pq($tag)->remove();
                 }
               }
-              $html = trim($doc->html());
+              $htmlAfter = trim($doc->html());
+              if ($htmlAfter != $htmlBefore) {
+                $html = $htmlAfter;
+              }
             } catch (\Exception $e) {
 
             }
