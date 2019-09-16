@@ -149,7 +149,7 @@ gulp.task('phplint', function() {
 gulp.task('uglify:libs', function() {
   var tasks = configs.uglify.libs.map(function(task) {
     return gulp.src(task.src)
-               .pipe(terser({ output: { preamble: '/* jshint ignore:start */\n', ascii_only: true }, compress: false}))
+               .pipe(terser({ output: { preamble: '/* jshint ignore:start */\n', ascii_only: true }, compress: false, mangle: false}))
                .pipe(rename({ suffix: '.min' }))
                .pipe(gulp.dest(task.dest));
   });
@@ -159,7 +159,7 @@ gulp.task('uglify:libs', function() {
 gulp.task('uglify:dist', function() {
   var tasks = configs.uglify.dist.map(function(task) {
     return gulp.src(task.src)
-               .pipe(terser({ output: { preamble: '/* jshint ignore:start */\n', ascii_only: true }, compress: false}))
+               .pipe(terser({ output: { preamble: '/* jshint ignore:start */\n', ascii_only: true }, compress: false, mangle: false}))
                .pipe(rename({ suffix: '.min' }))
                .pipe(gulp.dest(task.dest));
   });
@@ -181,21 +181,21 @@ function _concat(cfg) {
   return merge(tasks);
 }
 
-gulp.task('concat:css', gulp.series('sass', function() {
+gulp.task('concat:css', function() {
   return _concat(configs.concat.css);
-}));
+});
 
 gulp.task('concat:bright', function() {
   return _concat(configs.concat.bright);
 });
 
-gulp.task('concat:core', gulp.series('concat:bright', function() {
+gulp.task('concat:core', function() {
   return _concat(configs.concat.core);
-}));
+});
 
-gulp.task('concat:dist', gulp.series('concat:core', function() {
+gulp.task('concat:dist', function() {
   return _concat(configs.concat.dist);
-}));
+});
 
 gulp.task('shell:chmod', function() {
   return gulp.src('gulpfile.js', {read: false})
@@ -203,6 +203,9 @@ gulp.task('shell:chmod', function() {
 });
 
 gulp.task('default', gulp.series( gulp.parallel('jshint', 'phplint', 'uglify:libs')
+                                , 'sass'
+                                , 'concat:bright'
+                                , 'concat:core'
                                 , gulp.parallel('concat:dist', 'concat:css')
                                 , 'uglify:dist'
                                 , 'shell:chmod'));

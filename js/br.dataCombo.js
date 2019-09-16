@@ -361,15 +361,15 @@
           _selector.html(s);
 
           if (!br.isEmpty(_this.options.selectedValue)) {
-            _selector.find('option[value=' + _this.options.selectedValue +']').attr('selected', 'selected');
+            _selector.find('option[value="' + _this.options.selectedValue +'"]').prop('selected', true).attr('selected', 'selected');
           } else
           if (!br.isEmpty(val)) {
             if (br.isArray(val)) {
               for(let k = 0, length = val.length; k < length; k++) {
-                _selector.find('option[value=' + val[k] +']').attr('selected', 'selected');
+                _selector.find('option[value="' + val[k] +'"]').prop('selected', true).attr('selected', 'selected');
               }
             } else {
-              _selector.find('option[value=' + val +']').attr('selected', 'selected');
+              _selector.find('option[value="' + val +'"]').prop('selected', true).attr('selected', 'selected');
             }
           }
 

@@ -3860,15 +3860,15 @@
           _selector.html(s);
 
           if (!br.isEmpty(_this.options.selectedValue)) {
-            _selector.find('option[value=' + _this.options.selectedValue +']').attr('selected', 'selected');
+            _selector.find('option[value="' + _this.options.selectedValue +'"]').prop('selected', true).attr('selected', 'selected');
           } else
           if (!br.isEmpty(val)) {
             if (br.isArray(val)) {
               for(let k = 0, length = val.length; k < length; k++) {
-                _selector.find('option[value=' + val[k] +']').attr('selected', 'selected');
+                _selector.find('option[value="' + val[k] +'"]').prop('selected', true).attr('selected', 'selected');
               }
             } else {
-              _selector.find('option[value=' + val +']').attr('selected', 'selected');
+              _selector.find('option[value="' + val +'"]').prop('selected', true).attr('selected', 'selected');
             }
           }
 
@@ -5260,7 +5260,6 @@
 
     $(selector).each(function() {
       const element = $(this);
-      element.val(value);
       const dataComboInstance = element.data('BrDataCombo');
       if (dataComboInstance && !fromBrDataCombo) {
         dataComboInstance.val(value);
@@ -6795,13 +6794,13 @@
       });
 
       _this.dataGrid.on('change', function() {
-        $(findNode('.action-select-all')).prop('checked', false);
         const selection = _this.selection.get();
         if (selection.length > 0) {
           _this.restoreSelection();
         } else {
           _this.clearSelection();
         }
+        $(findNode('.action-select-all')).prop('checked', false);
         _this.events.trigger('change');
         _this.events.triggerAfter('change');
       });
@@ -6811,9 +6810,19 @@
           $(findNode('.selection-stat')).text(count + ' record(s) selected');
           $(findNode('.selection-stat')).show();
           $(findNode('.action-clear-selection')).show();
+          const selection = _this.selection.get();
+          let deletable = selection.filter(function(rowid) {
+            return $(findNode('tr[data-rowid=' + rowid + '] td .action-delete')).length > 0;
+          });
+          if (deletable.length > 0) {
+            $(findNode('.action-delete-selected')).show();
+          } else {
+            $(findNode('.action-delete-selected')).hide();
+          }
         } else {
-          $(findNode('.selection-stat')).css('display', 'none');
-          $(findNode('.action-clear-selection')).css('display', 'none');
+          $(findNode('.selection-stat')).hide();
+          $(findNode('.action-clear-selection')).hide();
+          $(findNode('.action-delete-selected')).hide();
         }
       });
 

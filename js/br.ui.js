@@ -848,7 +848,6 @@
 
     $(selector).each(function() {
       const element = $(this);
-      element.val(value);
       const dataComboInstance = element.data('BrDataCombo');
       if (dataComboInstance && !fromBrDataCombo) {
         dataComboInstance.val(value);

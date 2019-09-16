@@ -2507,9 +2507,12 @@ class phpQueryObject
 
 		return $style;
 	}
+
 	function saveCss($parsed) {
-		foreach($parsed as $key => $value)
+		$style = '';
+		foreach($parsed as $key => $value) {
 			$style .= $key.': '.$value.'; ';
+		}
 		return $style;
 	}
 

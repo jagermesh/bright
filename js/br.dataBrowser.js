@@ -517,13 +517,13 @@
       });
 
       _this.dataGrid.on('change', function() {
-        $(findNode('.action-select-all')).prop('checked', false);
         const selection = _this.selection.get();
         if (selection.length > 0) {
           _this.restoreSelection();
         } else {
           _this.clearSelection();
         }
+        $(findNode('.action-select-all')).prop('checked', false);
         _this.events.trigger('change');
         _this.events.triggerAfter('change');
       });
@@ -533,9 +533,19 @@
           $(findNode('.selection-stat')).text(count + ' record(s) selected');
           $(findNode('.selection-stat')).show();
           $(findNode('.action-clear-selection')).show();
+          const selection = _this.selection.get();
+          let deletable = selection.filter(function(rowid) {
+            return $(findNode('tr[data-rowid=' + rowid + '] td .action-delete')).length > 0;
+          });
+          if (deletable.length > 0) {
+            $(findNode('.action-delete-selected')).show();
+          } else {
+            $(findNode('.action-delete-selected')).hide();
+          }
         } else {
-          $(findNode('.selection-stat')).css('display', 'none');
-          $(findNode('.action-clear-selection')).css('display', 'none');
+          $(findNode('.selection-stat')).hide();
+          $(findNode('.action-clear-selection')).hide();
+          $(findNode('.action-delete-selected')).hide();
         }
       });
 
