@@ -1079,9 +1079,13 @@
 
   }
 
-  $(function() {
+  let isAuthorized = true;
 
-    let notAuthorized = false;
+  br.setAutorizationState = function(value) {
+    isAuthorized = value;
+  };
+
+  $(function() {
 
     if ($.fn['modal']) {
       if ($.fn['modal'].toString().indexOf('bs.modal') == -1) {
@@ -1107,9 +1111,13 @@
 
     $(document).ajaxError(function(event, jqXHR, ajaxSettings, thrownError) {
       if (jqXHR.status == 401) {
-        if (!notAuthorized) {
-          notAuthorized = true;
-          br.growlError(br.trn('You are trying to run operation which require authorization.'));
+        if (isAuthorized) {
+          br.setAutorizationState(false);
+          if (br.events.has('authorizationRequired')) {
+            br.events.trigger('authorizationRequired');
+          } else {
+            br.growlError(br.trn('You are trying to run operation which require authorization.'));
+          }
         }
       }
     });

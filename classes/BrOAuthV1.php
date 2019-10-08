@@ -107,7 +107,7 @@ class BrOAuthV1 {
       curl_setopt($curl, CURLOPT_USERAGENT,      br($_SERVER, 'HTTP_USER_AGENT', 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-GB; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3'));
       curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
       curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
-      curl_setopt($curl, CURLOPT_VERBOSE, TRUE);
+      // curl_setopt($curl, CURLOPT_VERBOSE, TRUE);
 
       $response = curl_exec($curl);
 

@@ -299,6 +299,8 @@ class BrDataSource extends BrGenericDataSource {
       throw new BrDBException($rerunError);
     }
 
+    $startMarker = time();
+
     $this->DMLType = 'insert';
 
     $row = $rowParam;
@@ -317,38 +319,48 @@ class BrDataSource extends BrGenericDataSource {
     $this->validateInsert($row);
 
     $result = $this->callEvent('insert', $row, $transientData, $old, $options);
+
     if (is_null($result)) {
       try {
-        if ($this->transactionalDML()) {
-          $this->getDb()->startTransaction();
-        }
-        if ($row) {
-          $table = $this->getDb()->table($this->dbEntity());
-          $this->getDb()->validate($this->dbEntity(), $row);
-          if (br($options, 'dataTypes')) {
-            $table->insert($row, br($options, 'dataTypes'));
-          } else {
-            $table->insert($row);
+        try {
+          if ($this->transactionalDML()) {
+            $this->getDb()->startTransaction();
           }
-          $result = $row;
-          $this->callEvent('after:insert', $result, $transientData, $old, $options);
-          $result['rowid'] = $this->getDb()->rowidValue($result);
-          if (!br($options, 'noCalcFields')) {
-            $resultsArr = [$result];
-            $this->callEvent('prepareCalcFields', $resultsArr, $transientData, $options);
-            $this->callEvent('calcFields', $result, $transientData, $options);
+          if ($row) {
+            $table = $this->getDb()->table($this->dbEntity());
+            $this->getDb()->validate($this->dbEntity(), $row);
+            if (br($options, 'dataTypes')) {
+              $table->insert($row, br($options, 'dataTypes'));
+            } else {
+              $table->insert($row);
+            }
+            $result = $row;
+            $this->callEvent('after:insert', $result, $transientData, $old, $options);
+            $result['rowid'] = $this->getDb()->rowidValue($result);
+            if (!br($options, 'noCalcFields')) {
+              $resultsArr = [$result];
+              $this->callEvent('prepareCalcFields', $resultsArr, $transientData, $options);
+              $this->callEvent('calcFields', $result, $transientData, $options);
+            }
+            if ($this->transactionalDML()) {
+              $this->getDb()->commitTransaction();
+            }
+            $this->callEvent('after:commit', $result, $transientData, $old, $options);
+          } else {
+            throw new BrDBException('Empty insert request');
+          }
+        } catch (BrDBRecoverableException $e) {
+          br()->log('Repeating insert... (' . $iteration . ') because of ' . $e->getMessage());
+          if (time() - $startMarker > $this->rerunTimeLimit) {
+            br()->log('Too much time passed since the beginning of the operation: ' . (time() - $startMarker ) . 's');
+            throw $e;
           }
           if ($this->transactionalDML()) {
-            $this->getDb()->commitTransaction();
+            $this->getDb()->rollbackTransaction();
           }
-          $this->callEvent('after:commit', $result, $transientData, $old, $options);
-        } else {
-          throw new BrDBException('Empty insert request');
+          usleep(250000);
+          return $this->insert($rowParam, $transientData, $optionsParam, $iteration + 1, $e->getMessage());
         }
-      } catch (BrDBRecoverableException $e) {
-        br()->log('Repeating insert... (' . $iteration . ') because of ' . $e->getMessage());
-        usleep(250000);
-        return $this->insert($rowParam, $transientData, $optionsParam, $iteration + 1, $e->getMessage());
       } catch (\Exception $e) {
         if ($this->transactionalDML()) {
           $this->getDb()->rollbackTransaction();
@@ -360,11 +372,8 @@ class BrDataSource extends BrGenericDataSource {
           if (preg_match('/Duplicate entry/', $error, $matches)) {
             br()->log()->logException($e);
             throw new BrAppException('Unique constraint violated');
-          } else {
-            throw $e;
           }
-        } else {
-          return $result;
+          throw $e;
         }
       }
     }
@@ -378,6 +387,8 @@ class BrDataSource extends BrGenericDataSource {
     if ($iteration > $this->rerunIterations) {
       throw new BrDBException($rerunError);
     }
+
+    $startMarker = time();
 
     $this->DMLType = 'update';
 
@@ -397,51 +408,60 @@ class BrDataSource extends BrGenericDataSource {
 
     if ($currentRow = $table->findOne($filter)) {
       try {
-        if ($this->transactionalDML()) {
-          $this->getDb()->startTransaction();
-        }
+        try {
+          if ($this->transactionalDML()) {
+            $this->getDb()->startTransaction();
+          }
 
-        $old = $currentRow;
-        $new = $currentRow;
-        foreach($row as $name => $value) {
-          $new[$name] = $value;
-        }
+          $old = $currentRow;
+          $new = $currentRow;
+          foreach($row as $name => $value) {
+            $new[$name] = $value;
+          }
 
-        $this->callEvent('before:update', $new, $transientData, $old, $options);
+          $this->callEvent('before:update', $new, $transientData, $old, $options);
 
-        $this->validateUpdate($old, $new);
+          $this->validateUpdate($old, $new);
 
-        $result = $this->callEvent('update', $new, $transientData, $old, $options);
-        if (is_null($result)) {
-          $changes = array();
-          foreach($new as $name => $value) {
-            if (!array_key_exists($name, $old) || ($new[$name] !== $old[$name])) {
-              $changes[$name] = $value;
+          $result = $this->callEvent('update', $new, $transientData, $old, $options);
+          if (is_null($result)) {
+            $changes = array();
+            foreach($new as $name => $value) {
+              if (!array_key_exists($name, $old) || ($new[$name] !== $old[$name])) {
+                $changes[$name] = $value;
+              }
+            }
+            if ($changes) {
+              $this->getDb()->validate($this->dbEntity(), $changes);
+              $table->update($changes, $rowid, br($options, 'dataTypes'));
+            } else {
+              $new = $table->findOne($filter);
+            }
+            $result = $new;
+            $this->callEvent('after:update', $result, $transientData, $old, $options);
+            $result['rowid'] = $this->getDb()->rowidValue($result);
+            if (!br($options, 'noCalcFields')) {
+              $resultsArr = [$result];
+              $this->callEvent('prepareCalcFields', $resultsArr, $transientData, $options);
+              $this->callEvent('calcFields', $result, $transientData, $options);
             }
           }
-          if ($changes) {
-            $this->getDb()->validate($this->dbEntity(), $changes);
-            $table->update($changes, $rowid, br($options, 'dataTypes'));
-          } else {
-            $new = $table->findOne($filter);
+          if ($this->transactionalDML()) {
+            $this->getDb()->commitTransaction();
           }
-          $result = $new;
-          $this->callEvent('after:update', $result, $transientData, $old, $options);
-          $result['rowid'] = $this->getDb()->rowidValue($result);
-          if (!br($options, 'noCalcFields')) {
-            $resultsArr = [$result];
-            $this->callEvent('prepareCalcFields', $resultsArr, $transientData, $options);
-            $this->callEvent('calcFields', $result, $transientData, $options);
+          $this->callEvent('after:commit', $result, $transientData, $old, $options);
+        } catch (BrDBRecoverableException $e) {
+          br()->log('Repeating update... (' . $iteration . ') because of ' . $e->getMessage());
+          if (time() - $startMarker > $this->rerunTimeLimit) {
+            br()->log('Too much time passed since the beginning of the operation: ' . (time() - $startMarker ) . 's');
+            throw $e;
           }
+          if ($this->transactionalDML()) {
+            $this->getDb()->rollbackTransaction();
+          }
+          usleep(250000);
+          return $this->update($rowid, $rowParam, $transientData, $optionsParam, $iteration + 1, $e->getMessage());
         }
-        if ($this->transactionalDML()) {
-          $this->getDb()->commitTransaction();
-        }
-        $this->callEvent('after:commit', $result, $transientData, $old, $options);
-      } catch (BrDBRecoverableException $e) {
-        br()->log('Repeating update... (' . $iteration . ') because of ' . $e->getMessage());
-        usleep(250000);
-        return $this->update($rowid, $rowParam, $transientData, $optionsParam, $iteration + 1, $e->getMessage());
       } catch (\Exception $e) {
         if ($this->transactionalDML()) {
           $this->getDb()->rollbackTransaction();
@@ -462,9 +482,9 @@ class BrDataSource extends BrGenericDataSource {
         }
       }
       return $result;
-    } else {
-      throw new BrDBNotFoundException();
     }
+
+    throw new BrDBNotFoundException();
 
   }
 
@@ -473,6 +493,8 @@ class BrDataSource extends BrGenericDataSource {
     if ($iteration > $this->rerunIterations) {
       throw new BrDBException($rerunError);
     }
+
+    $startMarker = time();
 
     $this->DMLType = 'remove';
 
@@ -519,15 +541,15 @@ class BrDataSource extends BrGenericDataSource {
           $this->callEvent('after:commit', $result, $transientData, $crow, $options);
         } catch (BrDBRecoverableException $e) {
           br()->log('Repeating remove... (' . $iteration . ') because of ' . $e->getMessage());
+          if (time() - $startMarker > $this->rerunTimeLimit) {
+            br()->log('Too much time passed since the beginning of the operation: ' . (time() - $startMarker ) . 's');
+            throw $e;
+          }
+          if ($this->transactionalDML()) {
+            $this->getDb()->rollbackTransaction();
+          }
           usleep(250000);
           return $this->remove($rowid, $transientData, $optionsParam, $iteration + 1, $e->getMessage());
-        } catch (\Exception $e) {
-          // TODO: Move to the DB layer
-          if (preg_match('/1451: Cannot delete or update a parent row/', $e->getMessage())) {
-            throw new BrDBForeignKeyException();
-          } else {
-            throw new BrAppException($e->getMessage());
-          }
         }
       } catch (\Exception $e) {
         if ($this->transactionalDML()) {
@@ -535,13 +557,18 @@ class BrDataSource extends BrGenericDataSource {
         }
         $operation = 'remove';
         $error = $e->getMessage();
-        $this->trigger('error', $error, $operation, $e, $crow);
-        throw $e;
+        $result = $this->trigger('error', $error, $operation, $e, $crow);
+        if (is_null($result)) {
+          if (preg_match('/1451: Cannot delete or update a parent row/', $e->getMessage())) {
+            br()->log()->logException($e);
+            throw new BrDBForeignKeyException();
+          }
+          throw $e;
+        }
       }
-      return $result;
-    } else {
-      return $result;
     }
+
+    return $result;
 
   }
 

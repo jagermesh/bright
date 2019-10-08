@@ -26,20 +26,27 @@ class BrHTML extends BrSingleton {
 
   }
 
-  public function tidyUp($html) {
+  public function tidyUp($inHtml) {
 
-    try {
+    $result = trim($inHtml);
+
+    if (br()->HTML()->isHtml($inHtml)) {
       try {
-        $doc = \phpQuery::newDocument($html);
-        $html = $doc->html();
-      } catch (\Exception $e) {
+        try {
+          $doc = \phpQuery::newDocument($result);
+          $outHtml = trim($doc->html());
+          if ($inHtml != $outHtml) {
+            $result = $outHtml;
+          }
+        } catch (\Exception $e) {
 
+        }
+      } finally {
+        \phpQuery::unloadDocuments();
       }
-    } finally {
-      \phpQuery::unloadDocuments();
     }
 
-    return trim($html);
+    return $result;
 
   }
 
@@ -77,7 +84,8 @@ class BrHTML extends BrSingleton {
 
     $html = str_replace('%u2019', '&lsquo;', $html);
 
-    $html = trim($html);
+    $html = $this->tidyUp($html);
+
     if ($html == '&nbsp;') {
       $html = '';
     }

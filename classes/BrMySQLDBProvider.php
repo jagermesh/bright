@@ -37,10 +37,20 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   public function connect($iteration = 0, $rerunError = null) {
 
+    $wasConnected = !!$this->__connection;
+
+    if ($this->__connection) {
+      $this->disconnect();
+    }
+
     if ($iteration > $this->reconnectIterations) {
       $e = new BrDBConnectionErrorException($rerunError);
-      br()->triggerSticky('db.connectionError', $e);
+      $this->triggerSticky('connect.error', $e);
       br()->triggerSticky('br.db.connect.error', $e);
+      if ($wasConnected) {
+        $this->triggerSticky('reconnect.error', $e);
+        br()->triggerSticky('br.db.reconnect.error', $e);
+      }
       throw $e;
     }
 
@@ -68,17 +78,25 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
           $this->runQuery('SET NAMES ?', $this->config['charset']);
         }
         $this->version = mysqli_get_server_info($this->__connection);
+
         $this->triggerSticky('after:connect');
-        br()->triggerSticky('after:db.connect');
         br()->triggerSticky('after:br.db.connect');
+
+        if ($wasConnected) {
+          $this->triggerSticky('after:reconnect');
+          br()->triggerSticky('after:br.db.reconnect');
+        }
       } else {
         throw new \Exception(mysqli_connect_errno() . ': ' . mysqli_connect_error());
       }
     } catch (\Exception $e) {
-      if (preg_match('/Unknown database/', $e->getMessage()) ||
-          preg_match('/Access denied/', $e->getMessage())) {
-        br()->triggerSticky('db.connectionError', $e);
+      if (preg_match('/Unknown database/', $e->getMessage()) || preg_match('/Access denied/', $e->getMessage())) {
+        $this->triggerSticky('connect.error', $e);
         br()->triggerSticky('br.db.connect.error', $e);
+        if ($wasConnected) {
+          $this->triggerSticky('reconnect.error', $e);
+          br()->triggerSticky('br.db.reconnect.error', $e);
+        }
         throw new BrDBConnectionErrorException($e->getMessage());
       } else {
         $this->__connection = null;
@@ -346,11 +364,19 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
   }
 
-  public function captureShutdown() {
+  public function disconnect() {
 
     if ($this->__connection) {
       @mysqli_close($this->__connection);
     }
+
+    $this->__connection = null;
+
+  }
+
+  public function captureShutdown() {
+
+    $this->disconnect();
 
   }
 

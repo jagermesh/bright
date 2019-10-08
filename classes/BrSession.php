@@ -54,7 +54,6 @@ class BrSession extends BrSingleton {
 
     if (!br()->isConsoleMode()) {
       session_regenerate_id($deleteOld);
-      session_commit();
     }
 
   }

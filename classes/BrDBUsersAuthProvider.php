@@ -97,9 +97,9 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
 
   function checkLogin($returnNotAuthorized = true) {
 
-    $usersTable    = br()->auth()->getAttr('usersTable.name');
-    $loginField    = br()->auth()->getAttr('usersTable.loginField');
-    $passwordField = br()->auth()->getAttr('usersTable.passwordField');
+    $usersTable    = $this->getAttr('usersTable.name');
+    $loginField    = $this->getAttr('usersTable.loginField');
+    $passwordField = $this->getAttr('usersTable.passwordField');
 
     if ($login = $this->getSessionLogin()) {
       $this->validateLogin($login);
@@ -126,7 +126,7 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
         }
       }
       if ($this->trigger('findLogin', $options)) {
-        if ($login = br()->auth()->getLogin()) {
+        if ($login = $this->getLogin()) {
           return $login;
         }
       }
@@ -141,32 +141,30 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
 
   function validateLogin($login, $remember = false) {
 
-    // if (br()->db()) {
-      $usersTable    = br()->auth()->getAttr('usersTable.name');
-      $loginField    = br()->auth()->getAttr('usersTable.loginField');
-      $passwordField = br()->auth()->getAttr('usersTable.passwordField');
+    $usersTable    = $this->getAttr('usersTable.name');
+    $loginField    = $this->getAttr('usersTable.loginField');
+    $passwordField = $this->getAttr('usersTable.passwordField');
 
-      try {
-        $rowid = br()->db()->rowidValue($login);
-        if ($login = br()->db()->getCachedRow('SELECT * FROM ' . $usersTable . ' WHERE id = ?', $rowid)) {
-          $login['rowid'] = $rowid;
-          return parent::validateLogin($login);
-        } else {
-          throw new \Exception('Login error: user ' . $rowid . ' unknown');
-        }
-      } catch (\Exception $e) {
-        br()->auth()->logout();
-        throw $e;
+    try {
+      $rowid = br()->db()->rowidValue($login);
+      if ($login = br()->db()->getCachedRow('SELECT * FROM ' . $usersTable . ' WHERE id = ?', $rowid)) {
+        $login['rowid'] = $rowid;
+        return parent::validateLogin($login);
+      } else {
+        throw new \Exception('Login error: user ' . $rowid . ' unknown');
       }
-    // }
+    } catch (\Exception $e) {
+      $this->logout();
+      throw $e;
+    }
 
   }
 
   function login($login, $remember = false) {
 
-    $usersTable    = br()->auth()->getAttr('usersTable.name');
-    $loginField    = br()->auth()->getAttr('usersTable.loginField');
-    $passwordField = br()->auth()->getAttr('usersTable.passwordField');
+    $usersTable    = $this->getAttr('usersTable.name');
+    $loginField    = $this->getAttr('usersTable.loginField');
+    $passwordField = $this->getAttr('usersTable.passwordField');
 
     try {
       $rowid = br()->db()->rowidValue($login);
@@ -190,7 +188,7 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
         throw new \Exception('Login error: user ' . $rowid . ' unknown');
       }
     } catch (\Exception $e) {
-      br()->auth()->logout();
+      $this->logout();
       throw $e;
     }
 

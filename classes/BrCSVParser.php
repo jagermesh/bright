@@ -10,6 +10,8 @@
 
 namespace Bright;
 
+require_once(dirname(__DIR__) . '/3rdparty/forceutf8/Encoding.php');
+
 class BrCSVParser extends BrObject {
 
   private $delimiter = ',';
@@ -87,12 +89,11 @@ class BrCSVParser extends BrObject {
         }
 
         $enclosures = array( "\\" . $this->enclosure, $this->enclosure . $this->enclosure);
-        //------------------
+
         $enclosuresArr = array();
         foreach ($this->enclosureArr as $enclosure) {
           $enclosuresArr[] = array( "\\" . $enclosure, $enclosure . $enclosure);
         }
-        //------------------
 
         while (($line = fgets($handle)) !== FALSE) {
           if ($encoding) {
@@ -110,16 +111,17 @@ class BrCSVParser extends BrObject {
                 }
                 break;
             }
-            $line = iconv($encoding, 'UTF-8', $line);
+            // $line = iconv($encoding, 'UTF-8', $line);
           }
+          $line = \ForceUTF8\Encoding::toUTF8($line, \ForceUTF8\Encoding::ICONV_TRANSLIT);
           // remove The character is "\xa0" (i.e. 160), which is the standard Unicode translation for &nbsp;
-          $line = str_replace(chr(160), ' ', $line);
-          $line = str_replace(chr(194), '',  $line);
-          $line = str_replace(chr(180), '´', $line);
-          $line = str_replace(chr(248), 'o', $line);
-          $line = mb_convert_encoding($line, 'UTF-8');
+          // $line = str_replace(chr(160), ' ', $line);
+          // $line = str_replace(chr(194), '',  $line);
+          // $line = str_replace(chr(180), '´', $line);
+          // $line = str_replace(chr(248), 'o', $line);
+          // $line = mb_convert_encoding($line, 'UTF-8');
           $line = trim($line);
-          //------------------
+
           $ind = 0;
           $tcount = 0;
           foreach ($this->enclosureArr as $key => $enclosure) {
@@ -128,16 +130,13 @@ class BrCSVParser extends BrObject {
               $ind = $key;
             }
           }
-          //------------------
 
-          // $line = str_getcsv($line, $this->delimiter, $this->enclosure);
           $line = str_getcsv($line, $this->delimiter, $this->enclosureArr[$ind]);
           if (count($line) == 1) {
             // jagermesh for files like this:
             // "School Name,""Course ID"",Class ID,Class Name,School Year,Teacher ID"
             // "NEMO VISTA ELEMENTARY,200110,200110-1-0,""LANG ART K KIRTLAND, REGINA Per 01"",2013,1155"
             if (strpos($line[0], $this->delimiter) !== false) {
-              // $line = str_getcsv($line[0], $this->delimiter, $this->enclosure);
               $line = str_getcsv($line[0], $this->delimiter, $this->enclosureArr[$ind]);
             }
           }
@@ -146,7 +145,6 @@ class BrCSVParser extends BrObject {
           foreach($line as $col) {
 
             if (strlen($col)) {
-              // $col = str_replace($enclosures, $this->enclosure, $col);
               $col = str_replace($enclosuresArr[$ind], $this->enclosureArr[$ind], $col);
               $col = trim($col, '"\' ');
             }
@@ -159,7 +157,6 @@ class BrCSVParser extends BrObject {
           $callback($values, $linesAmount);
         }
 
-        // Close file
         fclose($handle);
 
         return $linesAmount;

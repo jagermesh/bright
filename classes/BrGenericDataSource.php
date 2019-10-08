@@ -20,6 +20,7 @@ class BrGenericDataSource extends BrObject {
   protected $nextAdjancedRecord    = null;
   protected $rowidFieldName        = null;
   protected $rerunIterations       = 20;
+  protected $rerunTimeLimit        = 60;
   protected $db                    = null;
   protected $lastSelectAmount      = null;
 
@@ -261,7 +262,10 @@ class BrGenericDataSource extends BrObject {
       throw new BrDBException($rerunError);
     }
 
+    $startMarker = time();
+
     $method = trim($method);
+
     switch($method) {
       case 'select':
       case 'selectOne':
@@ -275,12 +279,14 @@ class BrGenericDataSource extends BrObject {
       default:
         if (!$this->invokeMethodExists($method)) {
           throw new \Exception('Method [' . $method . '] not supported');
-        } else {
-          $options               = $optionsParam;
-          $options['operation']  = $method;
-          $options['dataSets']   = br(br($options, 'dataSets'))->split();
-          $options['clientUID']  = br($options, 'clientUID');
+        }
 
+        $options               = $optionsParam;
+        $options['operation']  = $method;
+        $options['dataSets']   = br(br($options, 'dataSets'))->split();
+        $options['clientUID']  = br($options, 'clientUID');
+
+        try {
           try {
             if ($this->getDb()) {
               if ($this->transactionalDML()) {
@@ -300,30 +306,36 @@ class BrGenericDataSource extends BrObject {
             return $data;
           } catch (BrDBRecoverableException $e) {
             br()->log('Repeating invoke of ' . $method . '... (' . $iteration . ') because of ' . $e->getMessage());
+            if (time() - $startMarker > $this->rerunTimeLimit) {
+              br()->log('Too much time passed since the beginning of the operation: ' . (time() - $startMarker ) . 's');
+              throw $e;
+            }
+            if ($this->transactionalDML()) {
+              $this->getDb()->rollbackTransaction();
+            }
             usleep(250000);
             return $this->invoke($method, $params, $transientData, $options);
-          } catch (\Exception $e) {
-            try {
-              if ($this->getDb()) {
-                if ($this->transactionalDML()) {
-                  $this->getDb()->rollbackTransaction();
-                }
-              }
-            } catch (\Exception $e2) {
-
-            }
-            $operation = $method;
-            $error = $e->getMessage();
-            $result = $this->trigger('error', $error, $operation, $e);
-            if (is_null($result)) {
-              $result = false;
-              $data = null;
-              $this->callEvent('after:' . $method, $result, $data, $params, $transientData, $options);
-              throw $e;
-            } else {
-              throw $result;
-            }
           }
+        } catch (\Exception $e) {
+          try {
+            if ($this->getDb()) {
+              if ($this->transactionalDML()) {
+                $this->getDb()->rollbackTransaction();
+              }
+            }
+          } catch (\Exception $e2) {
+
+          }
+          $operation = $method;
+          $error = $e->getMessage();
+          $result = $this->trigger('error', $error, $operation, $e);
+          if (is_null($result)) {
+            $result = false;
+            $data = null;
+            $this->callEvent('after:' . $method, $result, $data, $params, $transientData, $options);
+            throw $e;
+          }
+          throw $result;
         }
         break;
     }

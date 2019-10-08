@@ -4656,8 +4656,9 @@ abstract class phpQuery {
 	 * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
 	 */
 	public static function newDocument($markup = null, $contentType = null) {
-		if (! $markup)
+		if (!strlen(trim($markup))) {
 			$markup = '';
+		}
 		$documentID = phpQuery::createDocumentWrapper($markup, $contentType);
 		return new phpQueryObject($documentID);
 	}

@@ -81,7 +81,7 @@ class BrGenericAuthProvider extends BrSingleton {
       br()->session()->set('login', $login);
       return $login;
     } catch (\Exception $e) {
-      br()->auth()->logout();
+      $this->logout();
       throw $e;
     }
 
@@ -121,16 +121,13 @@ class BrGenericAuthProvider extends BrSingleton {
                );
     }
 
-    if ($login = br()->auth()->getLogin()) {
+    if ($login = $this->getLogin()) {
       $this->trigger('logout', $login);
+
+      br()->session()->clear('login');
+
+      br()->session()->regenerate(true);
     }
-
-
-    br()->session()->clear('login');
-
-    // if ($resetSession) {
-    //   br()->session()->regenerate();
-    // }
 
     return true;
 
@@ -142,14 +139,14 @@ class BrGenericAuthProvider extends BrSingleton {
     $userId = br($options, 'userId');
 
     if (!$userId) {
-      if ($login = br()->auth()->getLogin()) {
+      if ($login = $this->getLogin()) {
         $userId = $login['rowid'];
       }
     }
 
     if (!$userId) {
       if ($this->trigger('findLogin', $options)) {
-        if ($login = br()->auth()->getLogin()) {
+        if ($login = $this->getLogin()) {
           $userId = $login['rowid'];
         }
       }

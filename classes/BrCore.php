@@ -413,6 +413,16 @@ class BrCore extends BrSingleton {
 
   }
 
+  public function isJobMode() {
+
+    $result = $this->isConsoleMode();
+
+    $this->trigger('checkJobMode', $result);
+
+    return $result;
+
+  }
+
   public function isThreadMode() {
 
     return $this->threadMode;
