@@ -347,6 +347,12 @@ class BrCore extends BrSingleton {
 
   }
 
+  public function colors() {
+
+    return call_user_func_array(array('Bright\BrColors', 'getInstance'), func_get_args());
+
+  }
+
   public function cmd() {
 
     return call_user_func_array(array('Bright\BrCmd', 'getInstance'), func_get_args());
