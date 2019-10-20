@@ -49,28 +49,30 @@ class BrArray extends BrGenericDataType {
    * @param  boolean
    * @return boolean
    */
-  public function exists($value, $ignoreCase = false) {
+  public function exists($needle, $ignoreCase = false) {
 
-    if (is_array($value)) {
-      foreach($value as $val) {
-        if ($this->exists($val)) {
-          return true;
-        }
-      }
-    } else {
-      foreach ($this->value as $val) {
-        if ($ignoreCase) {
-          if (strtolower($val) === strtolower($value)) {
-            return true;
-          }
-        } else
-        if ((string)$val === (string)$value) {
-          return true;
-        }
-      }
-    }
+    $needle = is_array($needle) ? $needle : [$needle];
 
-    return false;
+    $searchFor = [];
+
+    array_walk_recursive($needle, function($value, $key) use (&$searchFor) {
+      $searchFor[] = $value;
+    });
+
+    $searchIn = [];
+
+    array_walk_recursive($this->value, function($value, $key) use (&$searchIn) {
+      $searchIn[] = $value;
+    });
+
+    $result = array_filter($searchFor, function($searchValue) use ($ignoreCase, $searchIn) {
+      $result = array_filter($searchIn, function($value) use ($ignoreCase, $searchValue) {
+        return $ignoreCase ? (strtolower($value) === strtolower($searchValue)) : ((string)$value === (string)$searchValue);
+      });
+      return (count($result) > 0);
+    });
+
+    return (count($result) > 0);
 
   }
 
@@ -118,24 +120,17 @@ class BrArray extends BrGenericDataType {
    */
   public function removeEmptyValues($assoc = true) {
 
-    $result = array();
+    $result = [];
 
-    foreach($this->value as $key => $value) {
-      $go = false;
-      if (is_array($value)) {
-        $value = br($value)->removeEmptyValues();
-        $go = $value;
-      } else {
-        $go = strlen($value);
-      }
-      if ($go) {
+    array_filter($this->value, function($value, $name) use (&$result, $assoc) {
+      if ((is_array($value) && (count($value) > 0)) || (is_scalar($value) && (strlen($value) > 0))) {
         if ($assoc) {
-          $result[$key] = $value;
+          $result[$name] = $value;
         } else {
           $result[] = $value;
         }
       }
-    }
+    }, ARRAY_FILTER_USE_BOTH);
 
     return $result;
 
@@ -145,20 +140,20 @@ class BrArray extends BrGenericDataType {
    * @param  array
    * @return array
    */
-  public function compare($arr2) {
+  public function compare($array2) {
 
-    $result = array();
+    $result = [];
 
-    foreach($this->value as $name => $value) {
-      if (!array_key_exists($name, $arr2)) {
-        if (is_array($value) || (strlen($value) > 0)) {
+    array_filter($this->value, function($value, $name) use ($array2, &$result) {
+      if (!array_key_exists($name, $array2)) {
+        if (is_array($value) || (is_scalar($value) && (strlen($value) > 0))) {
           $result[$name] = $value;
         }
       } else
-      if ($value != $arr2[$name]) {
+      if ($value != $array2[$name]) {
         $result[$name] = $value;
       }
-    }
+    }, ARRAY_FILTER_USE_BOTH);
 
     return $result;
 
@@ -168,15 +163,15 @@ class BrArray extends BrGenericDataType {
    * @param  array
    * @return boolean
    */
-  public function hasOnlyNames($arr2) {
+  public function hasOnlyNames($names) {
 
-    foreach($this->value as $name => $value) {
-      if (!in_array($name, $arr2)) {
-        return false;
-      }
-    }
+    $names = br($names)->split();
 
-    return true;
+    $result = array_filter($this->value, function($value, $name) use ($names) {
+      return !in_array($name, $names);
+    }, ARRAY_FILTER_USE_BOTH);
+
+    return (count($result) === 0);
 
   }
 
@@ -184,15 +179,15 @@ class BrArray extends BrGenericDataType {
    * @param  alpha-numeric
    * @return array
    */
-  public function valuesOf($index) {
+  public function valuesOf($name) {
 
-    $result = array();
-    foreach($this->value as $row) {
-      if (isset($row[$index])) {
-        $result[] = $row[$index];
+    $result = array_map(function($item) use ($name) {
+      if (isset($item[$name])) {
+        return $item[$name];
       }
-    }
-    return $result;
+    }, $this->value);
+
+    return $result ? $result : [];
 
   }
 
@@ -204,19 +199,19 @@ class BrArray extends BrGenericDataType {
 
     $fields = br($fields)->split();
 
-    $result = array();
-    foreach($this->value as $row) {
-      $trow = array();
-      foreach($fields as $field) {
-        if (isset($row[$field])) {
-          $trow[$field] = $row[$field];
+    array_map(function($item) use ($fields, &$result) {
+      $row = [];
+      foreach($fields as $name) {
+        if (isset($item[$name])) {
+          $row[$name] = $item[$name];
         }
       }
-      if ($trow) {
-        $result[] = $trow;
+      if ($row) {
+        $result[] = $row;
       }
-    }
-    return $result;
+    }, $this->value);
+
+    return $result ? $result : [];
 
   }
 
@@ -224,26 +219,38 @@ class BrArray extends BrGenericDataType {
    * @param  array
    * @return boolean
    */
-  public function in($value) {
+  public function in($array2) {
 
-    if (is_array($value)) {
-      $cnt = 0;
-      foreach($this->value as $item) {
-        if (in_array($item, $value)) {
-          $cnt++;
-        }
-      }
-      return ($cnt == count($this->value));
+    if (is_array($array2)) {
+      $intersection = array_filter($this->value, function($value, $key) use ($array2) {
+        return in_array($value, $array2);
+      }, ARRAY_FILTER_USE_BOTH);
+      return (count($intersection) == count($this->value));
     } else {
       return false;
     }
 
   }
 
+  private function canMoveElement($element, $blockShufflingCheck) {
+
+    if (is_callable($blockShufflingCheck)) {
+      return !$blockShufflingCheck($element);
+    } else {
+      return true;
+    }
+
+  }
+
+  /**
+   * @param  function
+   * @return array
+   */
   public function shuffle($blockShufflingCheck = null) {
 
     $result = $this->value;
-    $moved = array();
+
+    $moved = [];
 
     for ($i = 0; $i < count($result); $i++) {
       if (!in_array($i, $moved)) {
@@ -267,38 +274,44 @@ class BrArray extends BrGenericDataType {
 
   }
 
+  /**
+   * @return boolean
+   */
   public function isRegularArray() {
 
-    if (br($this->value)->isMultiArray()) {
-      return false;
-    } else {
-      $prior = -1;
-      foreach($this->value as $idx => $value) {
-        if (!is_numeric($idx)) {
-          return false;
-        }
-        $prior = $idx;
-      }
-      return true;
-    }
+    return (count(array_filter($this->value, function($value, $key) {
+      return is_array($value) || is_object($value) || !is_numeric($key);
+    }, ARRAY_FILTER_USE_BOTH)) === 0);
 
   }
 
+  /**
+   * @return boolean
+   */
   public function isMultiArray() {
 
-    $rv = array_filter($this->value, 'is_array');
-
-    return (count($rv) > 0);
+    return (count(array_filter($this->value, function($value, $key) {
+      return is_array($value);
+    }, ARRAY_FILTER_USE_BOTH)) > 0);
 
   }
 
-  private function canMoveElement($element, $blockShufflingCheck) {
+  /**
+   * @return boolean
+   */
+  public function isSimpleArray() {
 
-    if (is_callable($blockShufflingCheck)) {
-      return !$blockShufflingCheck($element);
-    } else {
+    if (count($this->value) === 0) {
       return true;
     }
+
+    $result = array_filter($this->value, function($value, $key) {
+      return preg_match('/^[$]/', $key) || !is_string($key) || (!is_scalar($value) && is_array($value) && count(array_filter($value, function($value, $key) {
+        return !is_numeric($key) || !is_scalar($value);
+      }, ARRAY_FILTER_USE_BOTH)) > 0);
+    }, ARRAY_FILTER_USE_BOTH);
+
+    return count($result) === 0;
 
   }
 

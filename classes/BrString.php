@@ -451,4 +451,10 @@ class BrString extends BrGenericDataType {
 
   }
 
+  public function isSimpleArray() {
+
+    return false;
+
+  }
+
 }

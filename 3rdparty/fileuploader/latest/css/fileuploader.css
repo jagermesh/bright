@@ -5,15 +5,14 @@
 
 .qq-upload-button {
     display:block; /* or inline-block */
-    padding: 7px 0;
     text-align:center;
     background:#880000;
     border-bottom:1px solid #ddd;
     color:#333333;
     margin: 0px;
+    margin-top: -1px;
     padding: 4px 10px 4px;
-    font-size: 12px;
-    /*line-height: 18px;*/
+    font-size: 14px;
     text-align: center;
     background-color: #fafafa;
     background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffffff), color-stop(25%, #ffffff), to(#e6e6e6));

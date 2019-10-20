@@ -90,11 +90,45 @@
     });
 
     _this.setStored = function(name, value) {
-      br.storage.set(this.storageTag + 'stored:' + name, value);
+      let stored = br.storage.get(_this.storageTag + 'stored');
+      stored = stored || Object.create({});
+      stored[name] = value;
+      br.storage.set(_this.storageTag + 'stored', stored);
     };
 
     _this.getStored = function(name, defaultValue) {
-      return br.storage.get(this.storageTag + 'stored:' + name, defaultValue);
+      let stored = br.storage.get(_this.storageTag + 'stored');
+      let result = stored ? stored[name] : stored;
+      return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
+    };
+
+    _this.resetStored = function(stopPropagation) {
+      br.storage.remove(_this.storageTag + 'stored');
+      if (!stopPropagation) {
+        _this.events.trigger('resetStored');
+        br.events.trigger('resetStored');
+      }
+    };
+
+    _this.setFilter = function(name, value) {
+      let filter = br.storage.get(_this.storageTag + 'filter');
+      filter = filter || Object.create({});
+      filter[name] = value;
+      br.storage.set(_this.storageTag + 'filter', filter);
+    };
+
+    _this.getFilter = function(name, defaultValue) {
+      let filter = br.storage.get(_this.storageTag + 'filter');
+      let result = filter ? filter[name] : filter;
+      return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
+    };
+
+    _this.resetFilters = function(stopPropagation) {
+      br.storage.remove(_this.storageTag + 'filter');
+      if (!stopPropagation) {
+        _this.events.trigger('resetFilters');
+        br.events.trigger('resetFilters');
+      }
     };
 
     _this.isDisconnected = function() {

@@ -2922,11 +2922,45 @@ THE SOFTWARE.
     });
 
     _this.setStored = function(name, value) {
-      br.storage.set(this.storageTag + 'stored:' + name, value);
+      let stored = br.storage.get(_this.storageTag + 'stored');
+      stored = stored || Object.create({});
+      stored[name] = value;
+      br.storage.set(_this.storageTag + 'stored', stored);
     };
 
     _this.getStored = function(name, defaultValue) {
-      return br.storage.get(this.storageTag + 'stored:' + name, defaultValue);
+      let stored = br.storage.get(_this.storageTag + 'stored');
+      let result = stored ? stored[name] : stored;
+      return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
+    };
+
+    _this.resetStored = function(stopPropagation) {
+      br.storage.remove(_this.storageTag + 'stored');
+      if (!stopPropagation) {
+        _this.events.trigger('resetStored');
+        br.events.trigger('resetStored');
+      }
+    };
+
+    _this.setFilter = function(name, value) {
+      let filter = br.storage.get(_this.storageTag + 'filter');
+      filter = filter || Object.create({});
+      filter[name] = value;
+      br.storage.set(_this.storageTag + 'filter', filter);
+    };
+
+    _this.getFilter = function(name, defaultValue) {
+      let filter = br.storage.get(_this.storageTag + 'filter');
+      let result = filter ? filter[name] : filter;
+      return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
+    };
+
+    _this.resetFilters = function(stopPropagation) {
+      br.storage.remove(_this.storageTag + 'filter');
+      if (!stopPropagation) {
+        _this.events.trigger('resetFilters');
+        br.events.trigger('resetFilters');
+      }
     };
 
     _this.isDisconnected = function() {
@@ -6396,19 +6430,6 @@ THE SOFTWARE.
 
     _this.storageTag = _this.options.storageTag ? _this.options.storageTag : document.location.pathname + ':' + _this.dataSource.options.restServiceUrl;
 
-    _this.setStored = function(name, value) {
-      br.storage.set(_this.storageTag + 'stored:' + name, value);
-    };
-
-    _this.getStored = function(name, defaultValue) {
-      return br.storage.get(_this.storageTag + 'stored:' + name, defaultValue);
-    };
-
-    _this.defaultLimit = _this.options.limit || 20;
-    _this.limit = _this.getStored('pager_PageSize', _this.defaultLimit);
-    _this.skip = 0;
-    _this.recordsAmount = 0;
-
     _this.selection = br.flagsHolder();
 
     _this.countDataSource = br.dataSource(_this.dataSource.options.restServiceUrl);
@@ -6431,6 +6452,26 @@ THE SOFTWARE.
                                   , storeDataRow: _this.options.storeDataRow
                                   }
                                 );
+
+    _this.setStored = function(name, value) {
+      _this.dataGrid.setStored(name, value);
+    };
+
+    _this.getStored = function(name, defaultValue) {
+      return _this.dataGrid.getStored(name, defaultValue);
+    };
+
+    _this.resetStored = function(stopPropagation) {
+      _this.dataGrid.resetStored(stopPropagation);
+      if (!stopPropagation) {
+        br.refresh();
+      }
+    };
+
+    _this.defaultLimit = _this.options.limit || 20;
+    _this.limit = _this.getStored('pager_PageSize', _this.defaultLimit);
+    _this.skip = 0;
+    _this.recordsAmount = 0;
 
     _this.events = br.eventQueue(_this);
     _this.before = function(event, callback) { _this.events.before(event, callback); };
@@ -6463,16 +6504,23 @@ THE SOFTWARE.
     };
 
     _this.setFilter = function(name, value) {
-      let filter = br.storage.get(_this.storageTag + 'filter');
-      filter = filter || { };
-      filter[name] = value;
-      br.storage.set(_this.storageTag + 'filter', filter);
+      _this.dataGrid.setFilter(name, value);
     };
 
     _this.getFilter = function(name, defaultValue) {
-      let filter = br.storage.get(_this.storageTag + 'filter', defaultValue);
-      filter = filter || { };
-      return filter[name];
+      return _this.dataGrid.setFilter(name, defaultValue);
+    };
+
+    _this.resetFilters = function(stopPropagation) {
+      br.setComboValue(findNode('input.data-filter'), '');
+      br.setComboValue(findNode('select.data-filter'), '');
+      $(findNode('input.data-filter')).trigger('reset');
+      $(findNode('select.data-filter')).trigger('reset');
+      _this.dataGrid.resetFilters(stopPropagation);
+      if (!stopPropagation) {
+        _this.events.trigger('resetFilters');
+        br.refresh();
+      }
     };
 
     _this.reloadRow = function(rowid, callback, options) {
@@ -7144,15 +7192,6 @@ THE SOFTWARE.
     _this.resetPager = function() {
       pagerSetUp = false;
       _this.skip = 0;
-    };
-
-    _this.resetFilters = function() {
-      $(findNode('input.data-filter')).val('');
-      $(findNode('select.data-filter')).val('');
-      $(findNode('select.data-filter')).trigger('reset');
-      br.storage.remove(_this.storageTag + 'filter');
-      _this.events.trigger('resetFilters');
-      br.refresh();
     };
 
     _this.refreshDeferred = function(filter, callback, doNotResetPager) {
