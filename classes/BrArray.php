@@ -181,9 +181,10 @@ class BrArray extends BrGenericDataType {
    */
   public function valuesOf($name) {
 
-    $result = array_map(function($item) use ($name) {
+    $result = [];
+    array_map(function($item) use ($name, &$result) {
       if (isset($item[$name])) {
-        return $item[$name];
+        $result[] = $item[$name];
       }
     }, $this->value);
 

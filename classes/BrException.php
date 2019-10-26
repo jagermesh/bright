@@ -114,9 +114,9 @@ class BrDataObjectException extends BrException {
 
 class BrDBForeignKeyException extends BrDBAppException {
 
-  function __construct() {
+  function __construct($message = '') {
 
-    parent::__construct('Cannot delete this record - there are references to it in the system');
+    parent::__construct($message ? $message : 'Cannot delete this record - there are references to it in the system');
 
   }
 
@@ -124,9 +124,9 @@ class BrDBForeignKeyException extends BrDBAppException {
 
 class BrDBNotFoundException extends BrDBAppException {
 
-  function __construct() {
+  function __construct($message = '') {
 
-    parent::__construct('Record not found');
+    parent::__construct($message ? $message : 'Record not found');
 
   }
 
@@ -149,6 +149,12 @@ class BrDBUniqueKeyException extends BrDBRecoverableException {
 }
 
 class BrDBUniqueException extends BrDBAppException {
+
+  function __construct($message = '') {
+
+    parent::__construct($message ? $message : 'Unique constraint violated');
+
+  }
 
 }
 

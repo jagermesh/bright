@@ -509,7 +509,7 @@
         if (typeof window.Handlebars == 'undefined') {
           throw 'Template engine not linked';
         } else {
-          var t = Handlebars.compile(template);
+          let t = Handlebars.compile(template);
           return t(data);
         }
       } else {

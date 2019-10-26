@@ -129,7 +129,9 @@ const configs = { jshint: { src: ['js/**/*.js'] }
                                   ]
                           }
                 , sass: { src: ['css/sass/**/*.scss'], dest: 'css/' }
-                , shell: { chmod: 'chmod 644 dist/js/*.js && chmod 644 dist/css/*.css' }
+                , shell: { chmod: 'chmod 644 dist/js/*.js && chmod 644 dist/css/*.css'
+                         , tests: 'php vendor/codeception/codeception/codecept run'
+                         }
                 };
 
 gulp.task('jshint', function() {
@@ -202,12 +204,20 @@ gulp.task('shell:chmod', function() {
              .pipe(shell(configs.shell.chmod));
 });
 
-gulp.task('default', gulp.series( gulp.parallel('jshint', 'phplint', 'uglify:libs')
-                                , 'sass'
-                                , 'concat:bright'
-                                , 'concat:core'
-                                , gulp.parallel('concat:dist', 'concat:css')
-                                , 'uglify:dist'
-                                , 'shell:chmod'));
+gulp.task('shell:tests', function() {
+  return gulp.src('gulpfile.js', {read: false})
+             .pipe(shell(configs.shell.tests));
+});
+
+gulp.task('build', gulp.series( gulp.parallel('jshint', 'phplint', 'uglify:libs')
+                              , 'sass'
+                              , 'concat:bright'
+                              , 'concat:core'
+                              , gulp.parallel('concat:dist', 'concat:css')
+                              , 'uglify:dist'
+                              , 'shell:chmod'));
 
 gulp.task('css', gulp.series('concat:css', 'shell:chmod'));
+
+gulp.task('default', gulp.series('build', 'shell:tests'));
+

@@ -258,6 +258,9 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
           throw new BrDBException($error);
         }
       } catch (\Exception $e) {
+        $error  = $e->getMessage();
+        br()->log()->write($error, 'SEP');
+        $error .= "\n" . $queryText;
         // if connection lost - we'll try to restore it first
         if (preg_match('/Error while sending QUERY packet/', $e->getMessage()) ||
             preg_match('/Error reading result set/', $e->getMessage()) ||
@@ -279,26 +282,19 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
             preg_match('/MySQL server has gone away/', $e->getMessage()) ||
             preg_match('/Packets out of order/', $e->getMessage()) ||
             preg_match('/Lock wait timeout exceeded/', $e->getMessage()) ||
-            // preg_match('/Duplicate entry \'[0-9]+\' for key \'PRIMARY\'/', $e->getMessage()) ||
             preg_match('/Deadlock found when trying to get lock/', $e->getMessage())) {
           if ($this->inTransaction()) {
             if ($this->isTransactionBufferEmpty()) {
-              br()->log()->write('Some error occured, but this is first query. Trying restart transaction and repeat query', 'SEP');
+              br()->log()->write('Trying restart transaction and repeat query', 'SEP');
               usleep(250000);
               $this->rollbackTransaction();
               $this->startTransaction();
               $query = $this->runQueryEx($sql, $args, $iteration + 1, $e->getMessage(), $resultMode);
             } else {
-              $error  = $e->getMessage();
-              $error .= '. Automatic retrying was not possible - ' . $this->transactionBufferLength() . ' statement(s) in transaction buffer: ';
-              $error .= json_encode($this->transactionBuffer());
-              $error .= '.' . "\n" . $sql;
+              br()->log()->write('Automatic retrying was not possible - ' . $this->transactionBufferLength() . ' statement(s) in transaction buffer: ' . "\n"  . json_encode($this->transactionBuffer()), 'SEP');
               if (preg_match('/Deadlock found when trying to get lock/', $error)) {
                 throw new BrDBDeadLockException($error);
               } else
-              // if (preg_match('/Duplicate entry \'[0-9]+\' for key \'PRIMARY\'/', $error)) {
-              //   throw new BrDBUniqueKeyException($error);
-              // } else
               if (preg_match('/Lock wait timeout exceeded/', $error)) {
                 throw new BrDBLockException($error);
               } else
@@ -316,8 +312,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
               }
             }
           } else {
-            br()->log()->write('Some error occured, but we are not in transaction. Trying repeat query', 'SEP');
-            // usleep(250000);
+            br()->log()->write('Trying to repeat query.', 'SEP');
             sleep(1);
             $query = $this->runQueryEx($sql, $args, $iteration + 1, $e->getMessage(), $resultMode);
           }
@@ -326,12 +321,11 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
         } else
         if (preg_match('/Duplicate entry/', $e->getMessage())) {
-          $error  = $e->getMessage();
-          $error .= '.' . "\n" . $queryText;
           throw new BrDBUniqueException($error);
+        } else
+        if (preg_match('/Cannot delete or update a parent row/', $e->getMessage())) {
+          throw new BrDBForeignKeyException($error);
         } else {
-          $error  = $e->getMessage();
-          $error .= '.' . "\n" . $queryText;
           throw new BrDBException($error);
         }
       }

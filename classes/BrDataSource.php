@@ -369,9 +369,8 @@ class BrDataSource extends BrGenericDataSource {
         $error = $e->getMessage();
         $result = $this->trigger('error', $error, $operation, $e, $row);
         if (is_null($result)) {
-          if (preg_match('/Duplicate entry/', $error, $matches)) {
-            br()->log()->logException($e);
-            throw new BrAppException('Unique constraint violated');
+          if ($e instanceof BrDBUniqueException) {
+            throw new BrDBUniqueException();
           }
           throw $e;
         }
@@ -470,9 +469,8 @@ class BrDataSource extends BrGenericDataSource {
         $error = $e->getMessage();
         $result = $this->trigger('error', $error, $operation, $e, $new);
         if (is_null($result)) {
-          if (preg_match('/Duplicate entry/', $error, $matches)) {
-            br()->log()->logException($e);
-            throw new BrAppException('Unique constraint violated');
+          if ($e instanceof BrDBUniqueException) {
+            throw new BrDBUniqueException();
           }
           if (preg_match("/Data truncated for column '([a-z_]+)'/i", $error, $matches)) {
             br()->log()->logException($e);
@@ -559,8 +557,7 @@ class BrDataSource extends BrGenericDataSource {
         $error = $e->getMessage();
         $result = $this->trigger('error', $error, $operation, $e, $crow);
         if (is_null($result)) {
-          if (preg_match('/1451: Cannot delete or update a parent row/', $e->getMessage())) {
-            br()->log()->logException($e);
+          if ($e instanceof BrDBForeignKeyException) {
             throw new BrDBForeignKeyException();
           }
           throw $e;

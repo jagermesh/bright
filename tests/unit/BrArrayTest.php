@@ -95,6 +95,7 @@ class BrArrayTest extends \Codeception\Test\Unit
 
     $this->assertEquals([1, 2], br([['id' => 1], ['id' => 2]])->valuesOf('id'));
     $this->assertEquals([1, 2], br([['id' => 1, 'name' => 'a'], ['id' => 2, 'name' => 'b']])->valuesOf('id'));
+    $this->assertEquals([1, 2], br([['id' => 1, 'name' => 'a'], ['id' => 2, 'name' => 'b'], ['name' => 'name']])->valuesOf('id'));
 
     $this->assertEquals([['id' => 1], ['id' => 2]], br([['id' => 1, 'name' => 'a'], ['id' => 2, 'name' => 'b']])->extract(['id']));
     $this->assertEquals([['id' => 1, 'name' => 'a'], ['id' => 2, 'name' => 'b']], br([['id' => 1, 'name' => 'a'], ['id' => 2, 'name' => 'b']])->extract(['id', 'name']));
