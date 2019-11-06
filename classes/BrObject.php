@@ -36,7 +36,7 @@ class BrObject {
 
   }
 
-  public function retry($func, $iterationsLimit = 50, $sleepTimeout = 250000) {
+  public function retry($func, $iterationsLimit = 25, $sleepTimeout = 250000) {
 
     $iteration = $iterationsLimit;
 
@@ -181,6 +181,12 @@ class BrObject {
         $func($this);
       }
     }
+
+  }
+
+  public function eventHandlerExists($event) {
+
+    return array_key_exists($event, $this->events);
 
   }
 

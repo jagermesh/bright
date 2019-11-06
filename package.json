@@ -1,7 +1,7 @@
 {
   "name": "bright",
   "description": "Web Framework",
-  "version": "2.0.31",
+  "version": "2.0.32",
   "dependencies": {
     "gulp": "*",
     "gulp-concat": "*",

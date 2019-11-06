@@ -47,6 +47,7 @@ const configs = { jshint: { src: ['js/**/*.js'] }
                                              , 'js/br.dropDownMenu.js'
                                              , 'js/br.dataHelpers.js'
                                              , 'js/br.googleMap.js'
+                                             , 'js/br.eventBus.js'
                                              ]
                                       , name: 'bright.js'
                                       , dest: 'js/'
