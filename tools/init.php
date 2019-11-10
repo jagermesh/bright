@@ -2,52 +2,69 @@
 
 require_once(dirname(__DIR__) . '/Bright.php');
 
-$templateName = $argv[1];
+function help() {
 
-$exists = false;
+  global $argv;
 
-$templateRelPath = '/bright/tools/template-' . $templateName;
+  br()->log('Bright project creation tool');
+  br()->log('');
+  br()->log(br()->console()->green('Usage:'));
+  br()->log('  php ' . $argv[0] . ' <template>');
+  br()->log('');
+  br()->log(br()->console()->green('Templates:'));
 
-try {
-  br()->fs()->iteratePath(__DIR__.'/template-'.$templateName, function($file) use ($templateRelPath) {
-
-    $dst = str_replace($templateRelPath, '', $file->nameWithPath());
-
-    if ($file->isDir()) {
-      br()->fs()->makeDir($dst);
-    }
-    if ($file->isFile() && ($file->name() != '.DS_Store') && ($file->name() != '.description')) {
-      if (file_exists($dst)) {
-        throw new \Bright\BrAppException('Error: Project already initialized - ' . $file->name() . ' found at root path.');
-      }
-    }
-
-  });
-
-  br()->fs()->iteratePath(__DIR__.'/template-'.$templateName, function($file) use ($templateRelPath) {
-
-    $dst = str_replace($templateRelPath, '', $file->nameWithPath());
+  br()->fs()->iterateDir(__DIR__ . '/project-templates/', function($file) {
 
     if ($file->isDir()) {
-      br()->fs()->makeDir($dst);
+      br()->log('  ' . $file->name());
     }
-    if ($file->isFile() && ($file->name() != '.DS_Store') && ($file->name() != '.description')) {
-      copy($file->nameWithPath(), $dst);
-    }
-
   });
 
-  br()->log()->write($templateName . ' template initialized');
-
-} catch(Exception $e) {
-
-  br()->log()->write($e->getMessage());
+  br()->log('');
 
 }
 
-br()->log()->write();
+if ($templateName = @$argv[1]) {
+  $templatePath = __DIR__ . '/project-templates/' . $templateName;
+  if (!file_exists($templatePath)) {
+    help();
+    br()->log(br()->console()->red('Template [' . $templateName . '] not found'));
+    die(1);
+  }
+  $projectRoot = dirname(dirname(dirname(dirname(__DIR__))));
+  try {
+    br()->log()->write('Checking root folder...');
+    br()->fs()->iteratePath($templatePath, function($file) use ($templatePath, $projectRoot) {
+      $dst = $projectRoot . str_replace($templatePath, '', $file->nameWithPath());
+      if ($file->isFile() && ($file->name() != '.DS_Store') && ($file->name() != '.description') && ($file->name() != 'composer.json')) {
+        if (file_exists($dst)) {
+          throw new \Bright\BrAppException('Error: Project already initialized - ' . $file->name() . ' found at root path.');
+        }
+      }
+    });
+    br()->log()->write('Copying project files..');
+    br()->fs()->iteratePath($templatePath, function($file) use ($templatePath, $projectRoot) {
+      $dst = $projectRoot . str_replace($templatePath, '', $file->nameWithPath());
+      if ($file->isDir()) {
+        br()->fs()->makeDir($dst);
+      }
+      if ($file->isFile() && ($file->name() != '.DS_Store') && ($file->name() != '.description') && ($file->name() != 'composer.json')) {
+        copy($file->nameWithPath(), $dst);
+      }
+    });
+  } catch(Exception $e) {
+    help();
+    br()->log(br()->console()->red($e->getMessage()));
+    die();
+  }
 
-$descFile = __DIR__.'/template-'.$templateName . '/.description';
-if (file_exists($descFile)) {
-  br()->log()->write(br()->fs()->loadFromFile($descFile));
+  br()->log()->write('Running composer update...');
+
+  br()->exec('composer update');
+
+  br()->log()->write('Project initialized');
+
+  br()->log('');
+} else {
+  help();
 }

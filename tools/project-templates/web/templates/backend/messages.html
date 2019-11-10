@@ -1,0 +1,75 @@
+{@head.html}
+
+<body>
+
+{@navigation.html}
+
+  <script class="data-row-template" type="html/template">
+    <div class="panel panel-default" data-rowid="{{rowid}}">
+      <div class="panel-heading">
+        <h3 class="panel-title">
+          <a class="action-delete btn btn-default btn-xs pull-right" title="Delete"><i class="icon-trash"></i> Delete</a>
+          <b>Received at:</b> {{#if display.createdAt}}({{display.createdAt}}){{/if}}<br />
+          <b>From:</b> <a href="mailto:{{email}}">{{email}}</a><br />
+          <b>Subject:</b> {{subject}}
+        </h3>
+      </div>
+      <div class="panel-body">
+        {{message}}
+      </div>
+    </div>
+  </script>
+
+  <script class="data-empty-template" type="text/template">
+    <h2 class="centered">No items in this view</h2>
+  </script>
+
+  <div class="container-fluid">
+
+      <div class="row">
+        <div class="col-md-12">
+          <h1>Messages <small class="filter-description"></small></h1>
+        </div>
+      </div>
+
+
+      <nav class="navbar navbar-inverse" role="navigation">
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <ul class="nav navbar-nav">
+          <li><a class="action-show-hide-filters"><i class="icon-filter icon-white"></i> <span>Hide filters</span></a></li>
+          <li><a class="action-reset-filters"><i class="icon-remove icon-white"></i> <span>Reset filters</span></a></li>
+          <li><a class="action-refresh"><i class="icon-refresh icon-white"></i></i> <span>Refresh</span></a></li>
+        </ul>
+      </nav>
+
+      <div class="row filters-panel" style="display:none;">
+        <div class="col-md-12">
+          <div class="filter-panel">
+
+            <div class="pull-left filter-block" style="width:300px;">
+              <label>Search</label>
+              <div class="input-group">
+                <input type="text" class="form-control data-filter" title="Search by" placeholder="search text" name="keyword" data-click-on-enter=".action-refresh" />
+                <span class="input-group-btn">
+                  <button class="btn btn-default action-refresh" type="button"><i class="fa fa-refresh"></i></button>
+                  <button class="btn btn-default action-clear-one-filter" rel="keyword" type="button"><i class="fa fa-remove"></i></button>
+                </span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      {@pager.html}
+
+      <div class="row">
+        <div class="col-md-12">
+          <div class="data-table">
+          </div>
+        </div>
+      </div>
+
+  </div>
+
+{@footer.html}

@@ -1,0 +1,96 @@
+{@head.html}
+
+<body>
+
+{@navigation.html}
+
+  <script class="data-row-template" type="html/template">
+    <tr data-rowid="{{rowid}}">
+      <td class="optimal-width"><input type="checkbox" class="action-select-row" value="{{rowid}}" /></td>
+      <td class="optimal-width">{{#if __permissions.canUpdate}}<a class="btn btn-default btn-xs" href="{/}backend/edit-user.html?rowid={{rowid}}"  title="Edit"><i class="fa fa-pencil"></i></a>{{/if}}</td>
+      <td class="optimal-width centered"><input {{#if __permissions.canUpdate}}data-field="is_active" class="action-switch-option"{{else}}disabled="disabled"{{/if}} type="checkbox" value="1" {{#if flag.isActive}}checked="checked"{{/if}}/></td>
+      <td class="editable" data-field="name">{{name}}</td>
+      <td class="editable" data-field="login">{{login}}</td>
+      <td class="editable" data-field="email">{{email}}</td>
+      <td class="editable" data-field="phone">{{phone}}</td>
+      <td class="optimal-width">{{#if __permissions.canUpdate}}<a class="action-delete btn btn-default btn-xs" title="Delete"><i class="fa fa-trash"></i></a>{{/if}}</td>
+    </tr>
+  </script>
+
+  <script class="data-empty-template" type="html/template">
+    <tr>
+      <td colspan="9">
+        <h2 class="centered">No items in this view</h2>
+      </td>
+    </tr>
+  </script>
+
+  <div class="container-fluid">
+
+    <div class="shadow-paper-box-internal1">
+
+      <div class="row">
+        <div class="col-md-12">
+          <h1>Users <small class="filter-description"></small></h1>
+        </div>
+      </div>
+
+
+      <nav class="navbar navbar-inverse" role="navigation">
+        <ul class="nav navbar-nav">
+          <li style="padding-left:7px;">
+            <div class="btn-toolbar">
+              <a class="btn btn-sm btn-warning navbar-btn action-create" href="{/}backend/edit-user.html" title="Create" target="_blank">Create</a>
+            </div>
+          </li>
+          <li class="divider-vertical"></li>
+          <li><a class="action-show-hide-filters"><i class="icon-filter icon-white"></i> <span>Hide filters</span></a></li>
+          <li><a class="action-reset-filters"><i class="icon-remove icon-white"></i> <span>Reset filters</span></a></li>
+          <li><a class="action-refresh"><i class="icon-refresh icon-white"></i></i> <span>Refresh</span></a></li>
+        </ul>
+      </nav>
+
+      <div class="row filters-panel" style="display:none;">
+        <div class="col-md-12">
+          <div class="filter-panel">
+
+            <div class="pull-left filter-block" style="width:300px;">
+              <label>Search</label>
+              <div class="input-group">
+                <input type="text" class="form-control data-filter" title="Search by" placeholder="search text" name="keyword" data-click-on-enter=".action-refresh" />
+                <span class="input-group-btn">
+                  <button class="btn btn-default action-refresh" type="button"><i class="fa fa-refresh"></i></button>
+                  <button class="btn btn-default action-clear-one-filter" rel="keyword" type="button"><i class="fa fa-remove"></i></button>
+                </span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      {@pager.html}
+
+      <div class="row">
+        <div class="col-md-12">
+          <table class="table table-bordered table-condensed table-striped table-hover">
+            <thead>
+              <th class="optimal-width"><input type="checkbox" class="action-select-all" title="Check All"/> </th>
+              <th class="optimal-width"></th>
+              <th class="optimal-width">Active</th>
+              <th>Name <i class="sortable icon-sort-by-alphabet order-asc" data-field="name"></i> <i class="sortable icon-sort-by-alphabet-alt order-desc" data-field="name"></i></th>
+              <th>Login <i class="sortable icon-sort-by-alphabet order-asc" data-field="login"></i> <i class="sortable icon-sort-by-alphabet-alt order-desc" data-field="login"></i></th>
+              <th>Email <i class="sortable icon-sort-by-alphabet order-asc" data-field="email"></i> <i class="sortable icon-sort-by-alphabet-alt order-desc" data-field="email"></i></th>
+              <th>Phone<i class="sortable icon-sort-by-alphabet order-asc" data-field="phone"></i> <i class="sortable icon-sort-by-alphabet-alt order-desc" data-field="email"></i></th>
+              <th class="optimal-width"><a class="action-delete-selected btn btn-default btn-xs" title="Delete"><i class="icon-trash"></i></a></th>
+            </thead>
+            <tbody class="data-table">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+{@footer.html}

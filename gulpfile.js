@@ -150,7 +150,7 @@ gulp.task('phplint', function() {
 });
 
 gulp.task('uglify:libs', function() {
-  var tasks = configs.uglify.libs.map(function(task) {
+  let tasks = configs.uglify.libs.map(function(task) {
     return gulp.src(task.src)
                .pipe(terser({ output: { preamble: '/* jshint ignore:start */\n', ascii_only: true }, compress: false, mangle: false}))
                .pipe(rename({ suffix: '.min' }))
@@ -160,7 +160,7 @@ gulp.task('uglify:libs', function() {
 });
 
 gulp.task('uglify:dist', function() {
-  var tasks = configs.uglify.dist.map(function(task) {
+  let tasks = configs.uglify.dist.map(function(task) {
     return gulp.src(task.src)
                .pipe(terser({ output: { preamble: '/* jshint ignore:start */\n', ascii_only: true }, compress: false, mangle: false}))
                .pipe(rename({ suffix: '.min' }))
@@ -176,7 +176,7 @@ gulp.task('sass', function() {
 });
 
 function _concat(cfg) {
-  var tasks = cfg.map(function(task) {
+  let tasks = cfg.map(function(task) {
     return gulp.src(task.src)
                .pipe(concat(task.name, { newLine: '\r\n' }))
                .pipe(gulp.dest(task.dest));

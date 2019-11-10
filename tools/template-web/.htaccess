@@ -1,7 +1,0 @@
-RewriteEngine On
-RewriteCond %{REQUEST_URI} "/3rdparty/" [OR]
-RewriteCond %{REQUEST_URI} "/css/" [OR]
-RewriteCond %{REQUEST_URI} "/images/" [OR]
-RewriteCond %{REQUEST_URI} "/js/"
-RewriteRule (.*) $1 [L]
-RewriteRule (.*) index.php [L]
