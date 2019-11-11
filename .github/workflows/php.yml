@@ -1,4 +1,4 @@
-name: PHP Composer
+name: CI
 
 on: [push]
 
@@ -10,8 +10,11 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
-    - name: Install dependencies
+    - name: Install composer dependencies
       run: composer install
+
+    - name: Install node dependencies
+      run: npm install
 
     - name: Gulp
       run: gulp
