@@ -16,7 +16,8 @@ class BrHTML extends BrSingleton {
 
   public function isHtml($text) {
 
-    return preg_match('/<[a-z]+[^>]*?>/i', $text) || preg_match('/&[a-z#0-9]+;/i', $text);
+    return preg_match('~<[/]?[\w][^>]*?>~i', $text) ||
+           preg_match('~&[a-z#0-9]+;~i', $text);
 
   }
 

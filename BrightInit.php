@@ -21,13 +21,15 @@ if (function_exists('set_magic_quotes_runtime')) {
   @set_magic_quotes_runtime(0);
 }
 
-if (get_magic_quotes_gpc()) {
-  br()->stripSlashes($_GET);
-  br()->stripSlashes($_POST);
-  br()->stripSlashes($_COOKIE);
-  br()->stripSlashes($_REQUEST);
-  if (isset($_SERVER['PHP_AUTH_USER'])) br()->stripSlashes($_SERVER['PHP_AUTH_USER']);
-  if (isset($_SERVER['PHP_AUTH_PW'])) br()->stripSlashes($_SERVER['PHP_AUTH_PW']);
+if (function_exists('get_magic_quotes_gpc')) {
+  if (@get_magic_quotes_gpc()) {
+    br()->stripSlashes($_GET);
+    br()->stripSlashes($_POST);
+    br()->stripSlashes($_COOKIE);
+    br()->stripSlashes($_REQUEST);
+    if (isset($_SERVER['PHP_AUTH_USER'])) br()->stripSlashes($_SERVER['PHP_AUTH_USER']);
+    if (isset($_SERVER['PHP_AUTH_PW'])) br()->stripSlashes($_SERVER['PHP_AUTH_PW']);
+  }
 }
 
 ini_set('url_rewriter.tags', null);

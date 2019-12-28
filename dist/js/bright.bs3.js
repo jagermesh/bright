@@ -6751,6 +6751,7 @@ THE SOFTWARE.
 
       $(findNode('.action-clear-one-filter')).click(function() {
         $(findNode('.data-filter[name=' + $(this).attr('rel') + ']')).val('');
+        $(findNode('.data-filter[name=' + $(this).attr('rel') + ']')).trigger('change');
         _this.refresh();
       });
 
