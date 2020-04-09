@@ -44,6 +44,12 @@ const configs = { jshint: { src: ['js/**/*.js'] }
                                    , name: 'bright.bs4.css'
                                    , dest: 'dist/css/'
                                    }
+                                 , { src: [ '3rdparty/gritter/latest/css/jquery.gritter.css'
+                                          , 'css/bright.bs4.css'
+                                          ]
+                                   , name: 'bright.latest.css'
+                                   , dest: 'dist/css/'
+                                   }
                                  ]
                           , core: [ { src: [ '3rdparty/handlebars/latest/js/handlebars.min.js'
                                            , '3rdparty/gritter/latest/js/jquery.gritter.min.js'
@@ -107,6 +113,13 @@ const configs = { jshint: { src: ['js/**/*.js'] }
                                            , 'dist/js/bright.core.js'
                                            ]
                                     , name: 'bright.bs4.js'
+                                    , dest: 'dist/js/'
+                                    }
+                                  , { src: [ '3rdparty/jquery/latest/js/jquery.min.js'
+                                           , '3rdparty/bootstrap/4.3.1/js/bootstrap.min.js'
+                                           , 'dist/js/bright.core.js'
+                                           ]
+                                    , name: 'bright.latest.js'
                                     , dest: 'dist/js/'
                                     }
                                   ]
