@@ -37,7 +37,7 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
             $cacheTag = '';
             $subject = 'Error report';
             if ($tagline) {
-              $subject .= ': ' . $tagline;
+              $subject .= ': ' . mb_substr($tagline, 0, 512);
               $cacheTag = get_class($this) . '|' . md5($subject);
               if ($this->cache) {
                 $isCached = $this->cache->get($cacheTag);
@@ -51,7 +51,7 @@ class BrErrorSlackLogAdapter extends BrGenericLogAdapter {
           case 'DBG':
             $subject = 'Debug message';
             if ($tagline) {
-              $subject .= ': ' . $tagline;
+              $subject .= ': ' . mb_substr($tagline);
             }
             break;
           default:

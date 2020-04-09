@@ -2612,12 +2612,13 @@
 
       if (_this.options.autoHeight) {
         let windowHeight = $(window).height();
-        let tableTop     = table.offset().top;
+        let scrollTop    = $(window).scrollTop() > 0 ? $(window).scrollTop() + 20 : 0;
+        let tableTop     = table.offset().top - scrollTop;
         let tbodyHeight  = windowHeight - tableTop - thead.height();
         if (_this.options.debug) {
           tbodyHeight -= 200;
         } else {
-          tbodyHeight -= 10;
+          tbodyHeight -= 20;
         }
         tbody.height(tbodyHeight);
       }
@@ -2711,8 +2712,8 @@
     function update(skipCalcDivReloading) {
 
       if (!initialized) {
-        thead.css({ 'display': 'block', 'overflow': 'hidden' });
-        tbody.css({ 'display': 'block', 'overflow': 'auto' });
+        thead.css({ 'display': 'block', 'box-sizing': 'border-box', 'overflow': 'hidden' });
+        tbody.css({ 'display': 'block', 'box-sizing': 'border-box', 'overflow': 'auto' });
         table.css({ 'border-bottom': '0px', 'border-left': '0px', 'border-right': '0px' });
         initialized = true;
       }
@@ -2759,7 +2760,7 @@
 
     }
 
-    let updateTimer;
+    let updateTimer, autosizeTimer;
 
     _this.update = function(skipCalcDivReloading) {
       window.clearTimeout(updateTimer);
@@ -2773,7 +2774,10 @@
     });
 
     $(window).on('scroll', function() {
-      autosize();
+      window.clearTimeout(autosizeTimer);
+      autosizeTimer = window.setTimeout(function() {
+        autosize();
+      }, 100);
     });
 
     _this.update();
@@ -3024,6 +3028,9 @@
         _this.events.trigger('insert', row, tableRow);
         if (_this.options.appendInInsert) {
           _this.append(tableRow);
+          if (_this.options.scrollToInsertedRow) {
+            tableRow[0].scrollIntoView();
+          }
         } else {
           _this.prepend(tableRow);
         }
@@ -3058,13 +3065,14 @@
       }
       _this.dataSource.select(filter, function(result, response) {
         if (!result || (response.length === 0)) {
-          if (!options.reloadOnlyRow) {
-            _this.refresh(function(result, response) {
-              if (typeof callback == 'function') {
-                callback.call(_this, result, response, false);
-              }
-            });
-          }
+          _this.removeRow(rowid);
+          // if (!options.reloadOnlyRow) {
+          //   _this.refresh(function(result, response) {
+          //     if (typeof callback == 'function') {
+          //       callback.call(_this, result, response, false);
+          //     }
+          //   });
+          // }
         } else {
           response = response[0];
           if (_this.refreshRow(response, options)) {
@@ -3320,12 +3328,14 @@
           }
         });
 
-        _this.dataSource.after('insert', function(success, response) {
-          if (success) {
-            if (_this.isEmpty()) {
-              $(_this.selector).html(''); // to remove No-Data box
+        _this.dataSource.after('insert', function(result, response) {
+          if (result) {
+            if (!disconnected) {
+              if (_this.isEmpty()) {
+                $(_this.selector).html(''); // to remove No-Data box
+              }
+              _this.addDataRow(response);
             }
-            _this.addDataRow(response);
           }
         });
 
@@ -3339,7 +3349,9 @@
         });
 
         _this.dataSource.on('remove', function(rowid) {
-          _this.removeRow(rowid, _this.options);
+          if (!disconnected) {
+            _this.removeRow(rowid, _this.options);
+          }
         });
 
         if (this.options.selectors.remove) {
@@ -3613,6 +3625,12 @@
               params.allowClear  = _this.options.allowClear;
               params.placeholder = _this.options.emptyName;
             }
+            if (_this.options.formatOption) {
+              params.formatResult = _this.options.formatOption;
+            }
+            if (_this.options.formatSelection) {
+              params.formatSelection = _this.options.formatSelection;
+            }
             params.dropdownAutoWidth = true;
             params.dropdownCss = { 'max-width': '400px' };
             if (_this.options.lookupMode) {
@@ -3652,21 +3670,10 @@
           }
         } else
         if (window.Selectize && !beautified) {
-          _this.selector.selectize({openOnFocus: false});
+          _this.selector.selectize({ openOnFocus: false });
           beautified = true;
           beautifier = 'selectize';
         }
-      }
-    }
-
-    function setValue(value) {
-      br.setComboValue(_this.selector, value, true);
-      switch(beautifier) {
-        case 'select2':
-          break;
-        case 'selectize':
-          _this.selector[0].selectize.setValue(value);
-          break;
       }
     }
 
@@ -3699,7 +3706,14 @@
           }
         }
         if (_this.isValid()) {
-          setValue(value);
+          br.setComboValue(_this.selector, value, true);
+          switch(beautifier) {
+            case 'select2':
+              break;
+            case 'selectize':
+              _this.selector[0].selectize.setValue(value);
+              break;
+          }
           beautify();
           if (_this.options.lookupMode) {
             if (value) {
@@ -3776,11 +3790,9 @@
       br.storage.remove(storageTag(_this.selector));
       br.session.remove(storageTag(_this.selector));
       if (_this.isValid()) {
-        _this.selector.val('');
+        _this.val('');
         if (triggerChange) {
           _this.selector.trigger('change');
-        } else {
-          beautify();
         }
       }
     };
@@ -3840,39 +3852,40 @@
           }
           _selector.html('');
 
-          let s = '';
+          let template = '';
           let cbObj = {};
           cbObj.data = data;
           if (_this.options.hideEmptyValue || (_this.options.autoSelectSingle && (data.length == 1))) {
 
           } else {
-            cbObj.s = s;
+            cbObj.s = template;
             _this.events.triggerBefore('generateEmptyOption', cbObj, _selector);
-            s = cbObj.s;
+            template = cbObj.s;
             if (_this.options.allowClear) {
-              s = s + '<option></option>';
+              template += '<option></option>';
             } else {
-              s = s + '<option value="' + _this.options.emptyValue + '">' + _this.options.emptyName + '</option>';
+              template += `<option value="${_this.options.emptyValue}">${_this.options.emptyName}</option>`;
             }
           }
 
-          cbObj.s = s;
+          cbObj.s = template;
           _this.events.triggerBefore('generateOptions', cbObj, _selector);
-          s = cbObj.s;
+          template = cbObj.s;
 
           for(let i = 0, length = data.length; i < length; i++) {
-            s = s + renderRow(data[i]);
+            template += renderRow(data[i]);
             if (br.isEmpty(_this.options.selectedValue) && !br.isEmpty(_this.options.selectedValueField)) {
               let selectedValue = data[i][_this.options.selectedValueField];
               if ((br.isBoolean(selectedValue) && selectedValue) || (br.toInt(selectedValue) == 1)) {
-                _this.options.selectedValue = data[i][_this.options.valueField];
+                _this.options.preSelectedValue = data[i][_this.options.valueField];
               }
             }
           }
-          _selector.html(s);
 
-          if (!br.isEmpty(_this.options.selectedValue)) {
-            _selector.find('option[value="' + _this.options.selectedValue +'"]').prop('selected', true).attr('selected', 'selected');
+          _selector.html(template);
+
+          if (!br.isEmpty(_this.options.preSelectedValue)) {
+            _selector.find(`option[value="${_this.options.preSelectedValue}"]`).prop('selected', true).attr('selected', 'selected');
           } else
           if (!br.isEmpty(val)) {
             if (br.isArray(val)) {
@@ -3882,6 +3895,10 @@
             } else {
               _selector.find('option[value="' + val +'"]').prop('selected', true).attr('selected', 'selected');
             }
+          }
+
+          if (!br.isEmpty(_this.options.selectedValue)) {
+            _selector.find(`option[value="${_this.options.selectedValue}"]`).prop('selected', true);
           }
 
         });
@@ -4978,7 +4995,7 @@
   let progressBar_Progress = 0;
   let progressBar_Message = '';
 
-  const progressBarTemplate = '<div id="br_progressBar" class="modal" style="display:none;z-index:10000;top:20px;margin-top:0px;position:fixed;" data-backdrop="static">' +
+  const progressBarTemplate = '<div id="br_progressBar" class="modal" style="display:none;z-index:10000;top:30px;margin-top:0px;position:fixed;" data-backdrop="static">' +
                               '  <div class="modal-dialog">'+
                               '    <div class="modal-content">'+
                               '      <div class="modal-body">' +
@@ -5048,8 +5065,9 @@
     progressBar_Message = message;
     if ($('#br_progressBar').length === 0) {
       const pbr = $(progressBarTemplate);
+      pbr.data('brAutoSizeConfigured', true);
       if (br.bootstrapVersion == 2) {
-        pbr.css('top', '20px');
+        pbr.css('top', '30px');
         pbr.css('margin-top', '0px');
       }
       $('body').append(pbr);
@@ -5182,11 +5200,12 @@
     try {
       $(selector).each(function() {
         $(this).bootstrapDatepicker({
-          todayBtn: "linked",
+          todayBtn: 'linked',
           clearBtn: true,
           multidate: false,
           autoclose: true,
-          todayHighlight: true
+          todayHighlight: true,
+          orientation: 'top'
         });
       });
     } catch (e) {
@@ -5573,11 +5592,13 @@
     br.initScrollableAreas();
 
     if (br.bootstrapVersion == 2) {
-      $('ul.dropdown-menu [data-toggle=dropdown]').on('touchstart', function(event) {
-        event.preventDefault();
-        event.stopPropagation();
-        $(this).closest('.dropdown-menu').find('.dropdown-submenu').removeClass('open');
-        $(this).parent().addClass('open');
+      $('ul.dropdown-menu [data-toggle=dropdown]').each(function(index, item) {
+        item.addEventListener('touchend', function(event) {
+          event.preventDefault();
+          event.stopPropagation();
+          $(this).closest('.dropdown-menu').find('.dropdown-submenu').removeClass('open');
+          $(this).parent().addClass('open');
+        });
       });
     }
 
@@ -8162,9 +8183,7 @@
 
     _this.events        = br.eventQueue(_this);
     _this.subscriptions = br.eventQueue(_this);
-
-    _this.clientUIDs = [];
-    _this.actions    = {};
+    _this.spaces        = br.eventQueue(_this);
 
     const debugMode = false;
     const reconnectTimeout = 1000;
@@ -8174,6 +8193,8 @@
     let reconnectsCounter = 0;
     let reconnectTimer;
     let successfulConnections = 0;
+    let __clientUID;
+    let __userInfo;
 
     function reconnect() {
       window.clearTimeout(reconnectTimer);
@@ -8192,7 +8213,10 @@
     function subscribe() {
       if (webSocket && (webSocket.readyState == 1) && (_this.subscriptions.getEvents().length > 0)) {
         let message = { action: 'eventBus.subscribe'
-                      , data: { events: _this.subscriptions.getEvents() }
+                      , data: { events: _this.subscriptions.getEvents()
+                              , spaces: _this.spaces.getEvents()
+                              , userInfo: __userInfo
+                              }
                       };
         try {
           webSocket.send(JSON.stringify(message));
@@ -8217,6 +8241,7 @@
         }
         webSocket = null;
       }
+      _this.setClientUID(undefined);
       _this.events.trigger('error', error);
       _this.events.trigger('disconnected');
       reconnectsCounter++;
@@ -8244,12 +8269,17 @@
           }
           try {
             let message = $.parseJSON(event.data);
-            if (message.action == 'eventBus.registered') {
-              _this.addClientUID(message.clientUID);
-              _this.events.trigger('registered', message.clientUID);
-            } else
-            if (!message.clientUID || (_this.clientUIDs.indexOf('UID:' + message.clientUID) == -1)) {
-              _this.subscriptions.trigger(message.action, message.data);
+            switch(message.action) {
+              case 'eventBus.registered':
+                _this.setClientUID(message.clientUID);
+                break;
+              case 'eventBus.usersList':
+                _this.spaces.trigger(message.spaceName, message.data);
+                break;
+              default:
+              if (!message.clientUID || (_this.getClientUID() != message.clientUID)) {
+                _this.subscriptions.trigger(message.action, message.data);
+              }
             }
           } catch (exception) {
             br.log(exception);
@@ -8280,16 +8310,29 @@
       return isValid;
     };
 
-    _this.addClientUID = function(clientUID) {
-      this.clientUIDs[this.clientUIDs.length] = 'UID:' + clientUID;
+    _this.setClientUID = function(clientUID) {
+      __clientUID = clientUID;
+      if (__clientUID) {
+        _this.events.trigger('registered', __clientUID);
+        return;
+      }
+      _this.events.trigger('unregistered');
+    };
+
+    _this.getClientUID = function() {
+      return __clientUID;
     };
 
     _this.on = function(event, callback) {
       if (webSocket && (webSocket.readyState == 1) && (event == 'connected')) {
         callback();
-      } else {
-        _this.events.on(event, callback);
+        return;
       }
+      if ((event == 'registered') && __clientUID) {
+        callback(__clientUID);
+        return;
+      }
+      _this.events.on(event, callback);
     };
 
     _this.off = function(event) {
@@ -8311,6 +8354,12 @@
 
     _this.unsubscribeAll = function(event) {
       _this.subscriptions.subscribers = {};
+    };
+
+    _this.joinSpace = function(spaceName, userInfo, callback) {
+      __userInfo = userInfo;
+      _this.spaces.on(spaceName, callback);
+      subscribe();
     };
 
     window.setTimeout(function() {

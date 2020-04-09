@@ -10,7 +10,7 @@
 
 namespace Bright;
 
-class BrFTP extends BrObject {
+class BrFTP extends BrRemoteConnection {
 
   private $connectionId;
   private $currentDirectory = '/';
@@ -27,7 +27,7 @@ class BrFTP extends BrObject {
 
   }
 
-  public function connect($hostName, $userName, $password, $port = 21, $passiveMode = true, $attempt = 0) {
+  public function connect($hostName, $userName, $password, $port = 21, $passiveMode = true) {
 
     $this->currentHostName    = $hostName;
     $this->currentUserName    = $userName;
@@ -35,29 +35,27 @@ class BrFTP extends BrObject {
     $this->currentPort        = $port;
     $this->currentPassiveMode = $passiveMode;
 
-    // br()->log('Connecting to ' . $hostName . ' as ' . $userName);
+    $_this = $this;
 
     try {
-      if ($this->connectionId = ftp_connect($hostName, $port)) {
-        if (ftp_login($this->connectionId, $userName, $password)) {
-          if (ftp_pasv($this->connectionId, $passiveMode ? true : false)) {
-            $this->currentDirectory = $this->getServerDir();
+      $this->retry(function($iteration) use ($_this, $hostName, $userName, $password, $port, $passiveMode) {
+        br()->log('Connecting to ' . $userName . '@' . $hostName . ($iteration > 1 ? ' (' . $iteration . ')' : ''));
+        if ($_this->connectionId = ftp_connect($hostName, $port)) {
+          if (ftp_login($_this->connectionId, $userName, $password)) {
+            if (ftp_pasv($_this->connectionId, $passiveMode ? true : false)) {
+              $_this->currentDirectory = $_this->getServerDir();
+            } else {
+              throw new \Exception('Can not switch passive mode to ' . $passiveMode);
+            }
           } else {
-            throw new \Exception('Can not switch passive mode to ' . $passiveMode);
+            throw new \Exception('Can not connect to ' . $hostName . ' as ' . $userName);
           }
         } else {
-          throw new \Exception('Can not connect to ' . $hostName . ' as ' . $userName);
+          throw new \Exception('Can not connect to ' . $hostName);
         }
-      } else {
-        throw new \Exception('Can not connect to ' . $hostName);
-      }
+      });
     } catch (\Exception $e) {
-      if (!preg_match('/Login incorrect/', $e->getMessage()) && ($attempt < $this->reconnectsAmount)) {
-        usleep(250000);
-        $this->connect($hostName, $userName, $password, $port, $passiveMode, $attempt + 1);
-      } else {
-        throw new \Exception('Can not connect to ' . $hostName . ': ' . $e->getMessage());
-      }
+      throw new BrRemoteConnectionErrorException($e->getMessage());
     }
 
   }

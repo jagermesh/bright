@@ -174,10 +174,6 @@ td.optimal-width, th.optimal-width {
 
 /* bootstrap */
 @media (max-width: 979px) {
-  .navbar-fixed-top {
-    position: static;
-    margin-bottom: 0px !important;
-  }
   .navbar-fixed-top .navbar-inner {
     padding: 0px;
     padding-left: 0px;
@@ -190,9 +186,6 @@ td.optimal-width, th.optimal-width {
   .shadow-paper-box, .shadow-paper-box-fluid {
     margin-top: 10px !important;
     padding: 23px !important;
-  }
-  .container-box, .container-box-fluid {
-    margin-top: 10px;
   }
   .fluid-box {
     margin-top: 10px;
@@ -465,12 +458,10 @@ a.pager-nav-element:hover,a.pager-size-element:hover {
 
 .br-editable {
   border: 1px solid transparent;
-  /*padding: 2px;*/
 }
 
 .br-editable:hover {
   border: 1px dashed orange;
-  /*padding: 2px;*/
   cursor: text;
 }
 div.br-editable, span.br-editable {

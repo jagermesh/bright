@@ -226,9 +226,6 @@ td.optimal-width, th.optimal-width {
 
 /* bootstrap */
 @media (max-width: 979px) {
-  .navbar-fixed-top {
-    position: static;
-    margin-bottom: 0px !important; }
   .navbar-fixed-top .navbar-inner {
     padding: 0px;
     padding-left: 0px;
@@ -239,8 +236,6 @@ td.optimal-width, th.optimal-width {
   .shadow-paper-box, .shadow-paper-box-fluid {
     margin-top: 10px !important;
     padding: 23px !important; }
-  .container-box, .container-box-fluid {
-    margin-top: 10px; }
   .fluid-box {
     margin-top: 10px; } }
 
@@ -415,22 +410,6 @@ table.table th {
   font-weight: 400;
   line-height: 1.3em; }
 
-/* bootstrap3 */
-/*.form-control.select2-container {
-  padding:0px;
-  border:0px;
-}
-
-.form-control.select2-container .select2-choice {
-  height:33px;
-  padding-top: 3px;
-}
-
-.form-control.select2-container .select2-choice div {
-  height:33px;
-  padding-top: 3px;
-}
-*/
 .br-ajax-dropdown li {
   white-space: nowrap; }
 
@@ -473,12 +452,10 @@ a.pager-nav-element:hover, a.pager-size-element:hover {
   color: none; }
 
 .br-editable {
-  border: 1px solid transparent;
-  /*padding: 2px;*/ }
+  border: 1px solid transparent; }
 
 .br-editable:hover {
   border: 1px dashed orange;
-  /*padding: 2px;*/
   cursor: text; }
 
 div.br-editable, span.br-editable {

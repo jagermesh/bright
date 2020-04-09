@@ -57,12 +57,13 @@
 
       if (_this.options.autoHeight) {
         let windowHeight = $(window).height();
-        let tableTop     = table.offset().top;
+        let scrollTop    = $(window).scrollTop() > 0 ? $(window).scrollTop() + 20 : 0;
+        let tableTop     = table.offset().top - scrollTop;
         let tbodyHeight  = windowHeight - tableTop - thead.height();
         if (_this.options.debug) {
           tbodyHeight -= 200;
         } else {
-          tbodyHeight -= 10;
+          tbodyHeight -= 20;
         }
         tbody.height(tbodyHeight);
       }
@@ -156,8 +157,8 @@
     function update(skipCalcDivReloading) {
 
       if (!initialized) {
-        thead.css({ 'display': 'block', 'overflow': 'hidden' });
-        tbody.css({ 'display': 'block', 'overflow': 'auto' });
+        thead.css({ 'display': 'block', 'box-sizing': 'border-box', 'overflow': 'hidden' });
+        tbody.css({ 'display': 'block', 'box-sizing': 'border-box', 'overflow': 'auto' });
         table.css({ 'border-bottom': '0px', 'border-left': '0px', 'border-right': '0px' });
         initialized = true;
       }
@@ -204,7 +205,7 @@
 
     }
 
-    let updateTimer;
+    let updateTimer, autosizeTimer;
 
     _this.update = function(skipCalcDivReloading) {
       window.clearTimeout(updateTimer);
@@ -218,7 +219,10 @@
     });
 
     $(window).on('scroll', function() {
-      autosize();
+      window.clearTimeout(autosizeTimer);
+      autosizeTimer = window.setTimeout(function() {
+        autosize();
+      }, 100);
     });
 
     _this.update();

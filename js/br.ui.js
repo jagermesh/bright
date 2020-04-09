@@ -554,7 +554,7 @@
   let progressBar_Progress = 0;
   let progressBar_Message = '';
 
-  const progressBarTemplate = '<div id="br_progressBar" class="modal" style="display:none;z-index:10000;top:20px;margin-top:0px;position:fixed;" data-backdrop="static">' +
+  const progressBarTemplate = '<div id="br_progressBar" class="modal" style="display:none;z-index:10000;top:30px;margin-top:0px;position:fixed;" data-backdrop="static">' +
                               '  <div class="modal-dialog">'+
                               '    <div class="modal-content">'+
                               '      <div class="modal-body">' +
@@ -624,8 +624,9 @@
     progressBar_Message = message;
     if ($('#br_progressBar').length === 0) {
       const pbr = $(progressBarTemplate);
+      pbr.data('brAutoSizeConfigured', true);
       if (br.bootstrapVersion == 2) {
-        pbr.css('top', '20px');
+        pbr.css('top', '30px');
         pbr.css('margin-top', '0px');
       }
       $('body').append(pbr);
@@ -758,11 +759,12 @@
     try {
       $(selector).each(function() {
         $(this).bootstrapDatepicker({
-          todayBtn: "linked",
+          todayBtn: 'linked',
           clearBtn: true,
           multidate: false,
           autoclose: true,
-          todayHighlight: true
+          todayHighlight: true,
+          orientation: 'top'
         });
       });
     } catch (e) {
@@ -1149,11 +1151,13 @@
     br.initScrollableAreas();
 
     if (br.bootstrapVersion == 2) {
-      $('ul.dropdown-menu [data-toggle=dropdown]').on('touchstart', function(event) {
-        event.preventDefault();
-        event.stopPropagation();
-        $(this).closest('.dropdown-menu').find('.dropdown-submenu').removeClass('open');
-        $(this).parent().addClass('open');
+      $('ul.dropdown-menu [data-toggle=dropdown]').each(function(index, item) {
+        item.addEventListener('touchend', function(event) {
+          event.preventDefault();
+          event.stopPropagation();
+          $(this).closest('.dropdown-menu').find('.dropdown-submenu').removeClass('open');
+          $(this).parent().addClass('open');
+        });
       });
     }
 

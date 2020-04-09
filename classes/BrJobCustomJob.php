@@ -112,6 +112,16 @@ class BrJobCustomJob extends BrObject {
 
   }
 
+  public function getLastRunTime() {
+
+    if (file_exists($this->lastRunFile)) {
+      return filemtime($this->lastRunFile);
+    } else {
+      return null;
+    }
+
+  }
+
   public function timeToStart($period = 5) {
 
     if (file_exists($this->lastRunFile)) {

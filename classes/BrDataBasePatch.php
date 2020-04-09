@@ -170,26 +170,6 @@ class BrDataBasePatch {
 
   }
 
-  public function parseScript($script) {
-
-    $result = array();
-    $delimiter = ';';
-    while(strlen($script) && preg_match('/((DELIMITER)[ ]+([^\n\r])|[' . $delimiter . ']|$)/is', $script, $matches, PREG_OFFSET_CAPTURE)) {
-      if (count($matches) > 2) {
-        $delimiter = $matches[3][0];
-        $script = substr($script, $matches[3][1] + 1);
-      } else {
-        if (strlen($statement = trim(substr($script, 0, $matches[0][1])))) {
-          $result[] = $statement;
-        }
-        $script = substr($script, $matches[0][1] + 1);
-      }
-    }
-
-    return $result;
-
-  }
-
   public function executeScript($script, $stepName = null) {
 
     $this->stepNo++;
@@ -198,7 +178,7 @@ class BrDataBasePatch {
 
     $result = 0;
 
-    if ($statements = $this->parseScript($script)) {
+    if ($statements = $this->dbManager->parseScript($script)) {
       foreach($statements as $statement) {
         $result += $this->internalExecute($statement, $stepName, false);
 
@@ -283,6 +263,10 @@ class BrDataBasePatch {
     }
 
     $this->logObject->log(br()->db()->getAffectedRowsAmount() . ' row(s) affected', 'GREEN');
+
+    if (preg_match('/DROP.*?TABLE/', $sql) || preg_match('/CREATE.*?TABLE/', $sql) || preg_match('/ALTER.*?TABLE/', $sql)) {
+      $this->dbManager->setAuditSubsystemInitialyzed(false);
+    }
 
     return br()->db()->getAffectedRowsAmount();
 

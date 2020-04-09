@@ -19,9 +19,7 @@
 
     _this.events        = br.eventQueue(_this);
     _this.subscriptions = br.eventQueue(_this);
-
-    _this.clientUIDs = [];
-    _this.actions    = {};
+    _this.spaces        = br.eventQueue(_this);
 
     const debugMode = false;
     const reconnectTimeout = 1000;
@@ -31,6 +29,8 @@
     let reconnectsCounter = 0;
     let reconnectTimer;
     let successfulConnections = 0;
+    let __clientUID;
+    let __userInfo;
 
     function reconnect() {
       window.clearTimeout(reconnectTimer);
@@ -49,7 +49,10 @@
     function subscribe() {
       if (webSocket && (webSocket.readyState == 1) && (_this.subscriptions.getEvents().length > 0)) {
         let message = { action: 'eventBus.subscribe'
-                      , data: { events: _this.subscriptions.getEvents() }
+                      , data: { events: _this.subscriptions.getEvents()
+                              , spaces: _this.spaces.getEvents()
+                              , userInfo: __userInfo
+                              }
                       };
         try {
           webSocket.send(JSON.stringify(message));
@@ -74,6 +77,7 @@
         }
         webSocket = null;
       }
+      _this.setClientUID(undefined);
       _this.events.trigger('error', error);
       _this.events.trigger('disconnected');
       reconnectsCounter++;
@@ -101,12 +105,17 @@
           }
           try {
             let message = $.parseJSON(event.data);
-            if (message.action == 'eventBus.registered') {
-              _this.addClientUID(message.clientUID);
-              _this.events.trigger('registered', message.clientUID);
-            } else
-            if (!message.clientUID || (_this.clientUIDs.indexOf('UID:' + message.clientUID) == -1)) {
-              _this.subscriptions.trigger(message.action, message.data);
+            switch(message.action) {
+              case 'eventBus.registered':
+                _this.setClientUID(message.clientUID);
+                break;
+              case 'eventBus.usersList':
+                _this.spaces.trigger(message.spaceName, message.data);
+                break;
+              default:
+              if (!message.clientUID || (_this.getClientUID() != message.clientUID)) {
+                _this.subscriptions.trigger(message.action, message.data);
+              }
             }
           } catch (exception) {
             br.log(exception);
@@ -137,16 +146,29 @@
       return isValid;
     };
 
-    _this.addClientUID = function(clientUID) {
-      this.clientUIDs[this.clientUIDs.length] = 'UID:' + clientUID;
+    _this.setClientUID = function(clientUID) {
+      __clientUID = clientUID;
+      if (__clientUID) {
+        _this.events.trigger('registered', __clientUID);
+        return;
+      }
+      _this.events.trigger('unregistered');
+    };
+
+    _this.getClientUID = function() {
+      return __clientUID;
     };
 
     _this.on = function(event, callback) {
       if (webSocket && (webSocket.readyState == 1) && (event == 'connected')) {
         callback();
-      } else {
-        _this.events.on(event, callback);
+        return;
       }
+      if ((event == 'registered') && __clientUID) {
+        callback(__clientUID);
+        return;
+      }
+      _this.events.on(event, callback);
     };
 
     _this.off = function(event) {
@@ -168,6 +190,12 @@
 
     _this.unsubscribeAll = function(event) {
       _this.subscriptions.subscribers = {};
+    };
+
+    _this.joinSpace = function(spaceName, userInfo, callback) {
+      __userInfo = userInfo;
+      _this.spaces.on(spaceName, callback);
+      subscribe();
     };
 
     window.setTimeout(function() {

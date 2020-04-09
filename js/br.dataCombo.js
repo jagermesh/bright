@@ -102,6 +102,12 @@
               params.allowClear  = _this.options.allowClear;
               params.placeholder = _this.options.emptyName;
             }
+            if (_this.options.formatOption) {
+              params.formatResult = _this.options.formatOption;
+            }
+            if (_this.options.formatSelection) {
+              params.formatSelection = _this.options.formatSelection;
+            }
             params.dropdownAutoWidth = true;
             params.dropdownCss = { 'max-width': '400px' };
             if (_this.options.lookupMode) {
@@ -141,21 +147,10 @@
           }
         } else
         if (window.Selectize && !beautified) {
-          _this.selector.selectize({openOnFocus: false});
+          _this.selector.selectize({ openOnFocus: false });
           beautified = true;
           beautifier = 'selectize';
         }
-      }
-    }
-
-    function setValue(value) {
-      br.setComboValue(_this.selector, value, true);
-      switch(beautifier) {
-        case 'select2':
-          break;
-        case 'selectize':
-          _this.selector[0].selectize.setValue(value);
-          break;
       }
     }
 
@@ -188,7 +183,14 @@
           }
         }
         if (_this.isValid()) {
-          setValue(value);
+          br.setComboValue(_this.selector, value, true);
+          switch(beautifier) {
+            case 'select2':
+              break;
+            case 'selectize':
+              _this.selector[0].selectize.setValue(value);
+              break;
+          }
           beautify();
           if (_this.options.lookupMode) {
             if (value) {
@@ -265,11 +267,9 @@
       br.storage.remove(storageTag(_this.selector));
       br.session.remove(storageTag(_this.selector));
       if (_this.isValid()) {
-        _this.selector.val('');
+        _this.val('');
         if (triggerChange) {
           _this.selector.trigger('change');
-        } else {
-          beautify();
         }
       }
     };
@@ -329,39 +329,40 @@
           }
           _selector.html('');
 
-          let s = '';
+          let template = '';
           let cbObj = {};
           cbObj.data = data;
           if (_this.options.hideEmptyValue || (_this.options.autoSelectSingle && (data.length == 1))) {
 
           } else {
-            cbObj.s = s;
+            cbObj.s = template;
             _this.events.triggerBefore('generateEmptyOption', cbObj, _selector);
-            s = cbObj.s;
+            template = cbObj.s;
             if (_this.options.allowClear) {
-              s = s + '<option></option>';
+              template += '<option></option>';
             } else {
-              s = s + '<option value="' + _this.options.emptyValue + '">' + _this.options.emptyName + '</option>';
+              template += `<option value="${_this.options.emptyValue}">${_this.options.emptyName}</option>`;
             }
           }
 
-          cbObj.s = s;
+          cbObj.s = template;
           _this.events.triggerBefore('generateOptions', cbObj, _selector);
-          s = cbObj.s;
+          template = cbObj.s;
 
           for(let i = 0, length = data.length; i < length; i++) {
-            s = s + renderRow(data[i]);
+            template += renderRow(data[i]);
             if (br.isEmpty(_this.options.selectedValue) && !br.isEmpty(_this.options.selectedValueField)) {
               let selectedValue = data[i][_this.options.selectedValueField];
               if ((br.isBoolean(selectedValue) && selectedValue) || (br.toInt(selectedValue) == 1)) {
-                _this.options.selectedValue = data[i][_this.options.valueField];
+                _this.options.preSelectedValue = data[i][_this.options.valueField];
               }
             }
           }
-          _selector.html(s);
 
-          if (!br.isEmpty(_this.options.selectedValue)) {
-            _selector.find('option[value="' + _this.options.selectedValue +'"]').prop('selected', true).attr('selected', 'selected');
+          _selector.html(template);
+
+          if (!br.isEmpty(_this.options.preSelectedValue)) {
+            _selector.find(`option[value="${_this.options.preSelectedValue}"]`).prop('selected', true).attr('selected', 'selected');
           } else
           if (!br.isEmpty(val)) {
             if (br.isArray(val)) {
@@ -371,6 +372,10 @@
             } else {
               _selector.find('option[value="' + val +'"]').prop('selected', true).attr('selected', 'selected');
             }
+          }
+
+          if (!br.isEmpty(_this.options.selectedValue)) {
+            _selector.find(`option[value="${_this.options.selectedValue}"]`).prop('selected', true);
           }
 
         });

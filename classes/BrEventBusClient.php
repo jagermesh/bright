@@ -65,9 +65,9 @@ class BrEventBusClient extends BrEventBusEngine {
 
     if ($this->url) {
       try {
-        if (!$this->client) {
+        // if (!$this->client) {
           $this->client = new \WebSocket\Client($this->url);
-        }
+        // }
         $this->client->send($this->packMessage($action, $data, $additionalRequestParams));
       } catch (\Exception $e) {
         br()->log()->logException($e);

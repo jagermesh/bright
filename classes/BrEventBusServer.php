@@ -48,6 +48,8 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
                        , 'clientUID'  => br()->guid()
                        , 'clientIP'   => $clientIP
                        , 'events'     => []
+                       , 'spaces'     => []
+                       , 'userInfo'   => []
                        );
 
     $this->clients[$clientHash] = $clientData;
@@ -86,12 +88,17 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
             case 'eventBus.subscribe':
               if ($data = br($message, 'data')) {
                 $events = br(br($data, 'events'))->split();
-                $clientData['events'] = $events;
+                $spaces = br(br($data, 'spaces'))->split();
+                $clientData['events']   = $events;
+                $clientData['spaces']   = $spaces;
+                $clientData['userInfo'] = br($data, 'userInfo', []);
                 $this->clients[$clientHash] = $clientData;
                 $message = json_encode([ 'action' => 'eventBus.subscribed'
                                        , 'events' => $events
+                                       , 'spaces' => $spaces
                                        ]);
                 $connection->send($message);
+                $this->broadcastUsersList($clientData);
               } else {
                 $this->log($this->getLogPrefix($clientData) . 'Wrong message format, attribute missing: data.');
               }
@@ -101,13 +108,13 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
                 unset($message['secret']);
                 $clientUID = br($message, 'clientUID');
                 $message = json_encode($message);
-                foreach($this->clients as $hash => $clientData) {
-                  if ($hash !== $clientHash) {
-                    if ($clientData['events']) {
-                      if ($clientUID != $clientData['clientUID']) {
-                        foreach($clientData['events'] as $event) {
+                foreach($this->clients as $tmpClientHash => $tmpClientData) {
+                  if ($tmpClientHash !== $clientHash) {
+                    if ($tmpClientData['events']) {
+                      if ($clientUID != $tmpClientData['clientUID']) {
+                        foreach($tmpClientData['events'] as $event) {
                           if (preg_match('#^' . $event . '$#ism', $action)) {
-                            $clientData['connection']->send($message);
+                            $tmpClientData['connection']->send($message);
                           }
                         }
                       }
@@ -137,6 +144,8 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
     unset($clientData['connection']);
     unset($this->clients[$clientHash]);
 
+    $this->broadcastUsersList($clientData);
+
     $this->log($this->getLogPrefix($clientData) . 'Disconnected (' . count($this->clients) . ')');
 
   }
@@ -146,6 +155,46 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
     $this->log('Error: ' . $e->getMessage());
 
     $from->close();
+
+  }
+
+  protected function broadcastUsersList($clientData) {
+
+    $spaces = br($clientData, 'spaces');
+    if ($spaces) {
+      $users = [];
+      foreach($this->clients as $tmpClientHash => $tmpClientData) {
+        if ($tmpClientData['spaces']) {
+          $found = false;
+          foreach($tmpClientData['spaces'] as $spaceName) {
+            if (in_array($spaceName, $spaces)) {
+              $found = true;
+              break;
+            }
+          }
+          if ($found) {
+            $users[] = $tmpClientData['userInfo'];
+          }
+        }
+      }
+      if ($users) {
+        foreach($this->clients as $tmpClientHash => $tmpClientData) {
+          if ($tmpClientData['spaces']) {
+            foreach($tmpClientData['spaces'] as $spaceName) {
+              if (in_array($spaceName, $spaces)) {
+                $message = json_encode([ 'action'    => 'eventBus.usersList'
+                                       , 'spaceName' => $spaceName
+                                       , 'data' => [ 'users' => $users
+                                                   , 'count' => count($users)
+                                                   ]
+                                       ]);
+                $tmpClientData['connection']->send($message);
+              }
+            }
+          }
+        }
+      }
+    }
 
   }
 

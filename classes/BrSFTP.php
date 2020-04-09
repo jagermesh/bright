@@ -10,7 +10,7 @@
 
 namespace Bright;
 
-class BrSFTP extends BrObject {
+class BrSFTP extends BrRemoteConnection {
 
   private $connection;
   private $currentDirectory = '/';
@@ -39,7 +39,7 @@ class BrSFTP extends BrObject {
 
   }
 
-  public function connect($hostName, $userName, $password, $port = 22, $attempt = 0) {
+  public function connect($hostName, $userName, $password, $port = 22) {
 
     $this->currentHostName = $hostName;
     $this->currentUserName = $userName;
@@ -49,7 +49,8 @@ class BrSFTP extends BrObject {
     $_this = $this;
 
     try {
-      $this->retry(function() use ($_this, $hostName, $userName, $password, $port) {
+      $this->retry(function($iteration) use ($_this, $hostName, $userName, $password, $port) {
+        br()->log('Connecting to ' . $userName . '@' . $hostName . ($iteration > 1 ? ' (' . $iteration . ')' : ''));
         $_this->connection = new \phpseclib\Net\SFTP($hostName, $port);
         if ($_this->connection->login($userName, $password)) {
           $_this->currentDirectory = $_this->getServerDir();
@@ -58,7 +59,7 @@ class BrSFTP extends BrObject {
         }
       });
     } catch (\Exception $e) {
-      throw new \Exception($e->getMessage());
+      throw new BrRemoteConnectionErrorException($e->getMessage());
     }
 
   }

@@ -234,6 +234,9 @@
         _this.events.trigger('insert', row, tableRow);
         if (_this.options.appendInInsert) {
           _this.append(tableRow);
+          if (_this.options.scrollToInsertedRow) {
+            tableRow[0].scrollIntoView();
+          }
         } else {
           _this.prepend(tableRow);
         }
@@ -268,13 +271,14 @@
       }
       _this.dataSource.select(filter, function(result, response) {
         if (!result || (response.length === 0)) {
-          if (!options.reloadOnlyRow) {
-            _this.refresh(function(result, response) {
-              if (typeof callback == 'function') {
-                callback.call(_this, result, response, false);
-              }
-            });
-          }
+          _this.removeRow(rowid);
+          // if (!options.reloadOnlyRow) {
+          //   _this.refresh(function(result, response) {
+          //     if (typeof callback == 'function') {
+          //       callback.call(_this, result, response, false);
+          //     }
+          //   });
+          // }
         } else {
           response = response[0];
           if (_this.refreshRow(response, options)) {
@@ -530,12 +534,14 @@
           }
         });
 
-        _this.dataSource.after('insert', function(success, response) {
-          if (success) {
-            if (_this.isEmpty()) {
-              $(_this.selector).html(''); // to remove No-Data box
+        _this.dataSource.after('insert', function(result, response) {
+          if (result) {
+            if (!disconnected) {
+              if (_this.isEmpty()) {
+                $(_this.selector).html(''); // to remove No-Data box
+              }
+              _this.addDataRow(response);
             }
-            _this.addDataRow(response);
           }
         });
 
@@ -549,7 +555,9 @@
         });
 
         _this.dataSource.on('remove', function(rowid) {
-          _this.removeRow(rowid, _this.options);
+          if (!disconnected) {
+            _this.removeRow(rowid, _this.options);
+          }
         });
 
         if (this.options.selectors.remove) {

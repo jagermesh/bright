@@ -20,6 +20,10 @@ class BrObject {
 
   static $instances = array();
 
+  /**
+   * Get Instance 
+   * @return \Bright\BrObject
+   */
   public static function getInstance() {
 
     $className = get_called_class();
@@ -38,19 +42,19 @@ class BrObject {
 
   public function retry($func, $iterationsLimit = 25, $sleepTimeout = 250000) {
 
-    $iteration = $iterationsLimit;
+    $iteration = 1;
 
     while (true) {
       try {
-        return $func();
+        return $func($iteration);
       } catch (BrNonRecoverableException $e) {
         throw $e;
       } catch (\Exception $e) {
-        $iteration--;
-        if ($iteration === 0) {
+        $iteration++;
+        if ($iteration >= $iterationsLimit) {
           throw $e;
         } else {
-          usleep(250000);
+          usleep($sleepTimeout);
         }
       }
     }

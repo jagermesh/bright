@@ -4781,7 +4781,8 @@ input[type="submit"].btn.btn-mini {
 
 .navbar .pull-right > li > .dropdown-menu .dropdown-menu,
 .navbar .nav > li > .dropdown-menu.pull-right .dropdown-menu {
-  right: 100%;
+  right: 50%;
+  top: 26px;
   left: auto;
   margin-right: -1px;
   margin-left: 0;

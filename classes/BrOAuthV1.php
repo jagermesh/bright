@@ -2,11 +2,13 @@
 
 namespace Bright;
 
-class BrOAuthV1 {
+class BrOAuthV1 extends BrRemoteConnection {
 
   private $OAuthKey;
   private $OAuthSecret;
   private $signatureMethod = 'SHA1';
+
+  public $debugMode = false;
 
   public function __construct($key, $secret, $signatureMethod = 'SHA1') {
 
@@ -57,7 +59,6 @@ class BrOAuthV1 {
     $oauth = array_merge($oauth, $params);
     $baseStr = $this->generateBaseString($method, $url, $oauth);
     $oauth['oauth_signature'] = base64_encode(hash_hmac($this->signatureMethod, $baseStr, $this->OAuthSecret . '&', true));
-    // $oauth['oauth_signature'] = base64_encode(hash_hmac('sha256', $baseStr, $this->OAuthSecret . '&', true));
     ksort($oauth);
     $authHeader = 'OAuth ';
     foreach ($oauth as $key => $value) {
@@ -70,9 +71,10 @@ class BrOAuthV1 {
   public function sendSignedRequest($method, $url, $params = array(), $content = '', array $additionalHeaders = array()) {
 
     $checkurl = parse_url($url);
-    $curl     = curl_init();
 
-    if ((br($checkurl,'scheme'))&&(br($checkurl,'host'))&&(br($checkurl,'path'))) {
+    if (br($checkurl,'scheme') && br($checkurl,'host') && br($checkurl,'path')) {
+
+      $curl = curl_init();
 
       switch ($method) {
         case 'PUT':
@@ -99,21 +101,39 @@ class BrOAuthV1 {
         $headers[] = $additionalHeader;
       }
 
-      curl_setopt($curl, CURLOPT_HTTPHEADER,     $headers);
       curl_setopt($curl, CURLOPT_URL,            $url);
       curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
       curl_setopt($curl, CURLOPT_HEADER,         0);
       curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+      curl_setopt($curl, CURLOPT_HTTPHEADER,     $headers);
       curl_setopt($curl, CURLOPT_USERAGENT,      br($_SERVER, 'HTTP_USER_AGENT', 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-GB; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3'));
       curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
       curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
-      // curl_setopt($curl, CURLOPT_VERBOSE, TRUE);
 
-      $response = curl_exec($curl);
+      if ($this->debugMode) {
+        curl_setopt($curl, CURLOPT_VERBOSE, TRUE);
+        logme('Url: ' . $url);
+        logme('Payload: ' . $content);
+      }
 
-      return json_decode($response, true);
+      $rawResponse  = curl_exec($curl);
+      $responseCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+      $response     = @json_decode($rawResponse, true);
+
+      if (br(br($response,'errors'),0)) {
+        $response['errors'][0]['errorCode'] = $responseCode;
+      } elseif (br($response, 'code')) {
+        $response['errorCode'] = $responseCode;
+      }
+
+      if ($this->debugMode) {
+        logme('ResponseCode: ' . $responseCode);
+        logme('Response: ' . $rawResponse);
+      }
+
+      return $response;
     } else {
-      return array('errors' => array(0 => array('description' => 'Not a valid host name. '.$url)));
+      return array('errors' => array(0 => array('description' => 'Not a valid host name. ' . $url)));
     }
 
 

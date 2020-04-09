@@ -226,9 +226,6 @@ td.optimal-width, th.optimal-width {
 
 /* bootstrap */
 @media (max-width: 979px) {
-  .navbar-fixed-top {
-    /*position: static;*/
-    margin-bottom: 0px !important; }
   .navbar-fixed-top .navbar-inner {
     padding: 0px;
     padding-left: 0px;
@@ -239,8 +236,6 @@ td.optimal-width, th.optimal-width {
   .shadow-paper-box, .shadow-paper-box-fluid {
     margin-top: 10px !important;
     padding: 23px !important; }
-  .container-box, .container-box-fluid {
-    margin-top: 10px; }
   .fluid-box {
     margin-top: 10px; } }
 
@@ -259,10 +254,6 @@ td.optimal-width, th.optimal-width {
   padding-left: 5px;
   padding-right: 5px; }
 
-/*.navbar .btn {
-  margin: 5px 0px 0px 0px;
-}
-*/
 .navbar-internal {
   margin-bottom: 5px; }
 

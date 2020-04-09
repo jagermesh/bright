@@ -10,6 +10,13 @@
 
 require_once(__DIR__ . '/BrightAutoload.php');
 
+/**
+ * 
+ * @param mixed $array
+ * @param mixed $name
+ * @param mixed $default
+ * @return \Bright\BrCore|\Bright\BrArray|\Bright\BrString|NULL
+ */
 function br($array = null, $name = null, $default = null) {
 
   if (func_num_args() === 0) {

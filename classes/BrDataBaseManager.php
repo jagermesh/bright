@@ -32,7 +32,7 @@ class BrDataBaseManager {
 
   }
 
-  private function parseScript($script) {
+  public function parseScript($script) {
 
     $result = array();
     $delimiter = ';';
@@ -94,7 +94,17 @@ class BrDataBaseManager {
 
     br()->db()->runQuery($sql);
 
+    if (preg_match('/DROP.*?TABLE/', $sql) || preg_match('/CREATE.*?TABLE/', $sql) || preg_match('/ALTER.*?TABLE/', $sql)) {
+      $this->auditSubsystemInitialized = false;
+    }
+
     return br()->db()->getAffectedRowsAmount();
+
+  }
+
+  public function setAuditSubsystemInitialyzed($value) {
+
+    $this->auditSubsystemInitialized = $value;
 
   }
 
@@ -412,10 +422,10 @@ class BrDataBaseManager {
         br()->db()->runQuery( 'CREATE TABLE br_db_patch (
                                  id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
                                , guid            VARCHAR(50)     NOT NULL
-                               , patch_file      VARCHAR(250)    NOT NULL
+                               , patch_file      TEXT            NOT NULL
                                , patch_hash      VARCHAR(250)    NOT NULL
-                               , body            LONGTEXT
-                               , installed_at    DATETIME
+                               , body            LONGTEXT        NOT NULL
+                               , installed_at    DATETIME        NOT NULL
                                , re_installed_at DATETIME
                                , UNIQUE INDEX un_bd_db_patch_guid (guid)
                                ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC'

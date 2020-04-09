@@ -169,3 +169,7 @@ class BrDBEngineException extends BrDBRecoverableException {
 class BrDBConnectionErrorException extends BrDBException {
 
 }
+
+class BrRemoteConnectionErrorException extends BrException {
+
+}

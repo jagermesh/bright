@@ -14,7 +14,7 @@ const merge = require('merge-stream');
 const child_process = require('child_process');
 
 const configs = { jshint: { src: ['js/**/*.js'] }
-                , phplint: { src: [ '**/*.php', '!vendor/**/*.php' ] }
+                , phplint: { src: [ '**/*.php', '!vendor/**/*.php', '!node_modules/**/*.php', '!bower_components/**/*.php' ] }
                 , uglify: { libs: [ { dest: '3rdparty/promisejs/latest/js/', src: ['3rdparty/promisejs/latest/js/promise.js'] }
                                   , { dest: '3rdparty/bootstrap/2.3.2/js/', src: ['3rdparty/bootstrap/2.3.2/js/bootstrap.js'] }
                                   , { dest: '3rdparty/gritter/latest/js/', src: ['3rdparty/gritter/latest/js/jquery.gritter.js'] }
@@ -152,7 +152,7 @@ gulp.task('phplint', function() {
 gulp.task('uglify:libs', function() {
   let tasks = configs.uglify.libs.map(function(task) {
     return gulp.src(task.src)
-               .pipe(terser({ output: { preamble: '/* jshint ignore:start */\n', ascii_only: true }, compress: false, mangle: false}))
+               .pipe(terser({ compress: false }))
                .pipe(rename({ suffix: '.min' }))
                .pipe(gulp.dest(task.dest));
   });
@@ -162,7 +162,7 @@ gulp.task('uglify:libs', function() {
 gulp.task('uglify:dist', function() {
   let tasks = configs.uglify.dist.map(function(task) {
     return gulp.src(task.src)
-               .pipe(terser({ output: { preamble: '/* jshint ignore:start */\n', ascii_only: true }, compress: false, mangle: false}))
+               .pipe(terser({ compress: false }))
                .pipe(rename({ suffix: '.min' }))
                .pipe(gulp.dest(task.dest));
   });

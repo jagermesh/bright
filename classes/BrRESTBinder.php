@@ -672,6 +672,37 @@ class BrRESTBinder extends BrObject {
         if (preg_match('~' . $this->idCheckRegExp . '~', $matches[1])) {
           $this->checkPermissions($options, array('remove', 'delete'));
 
+          if (br()->request()->isPUT() || br()->request()->isDELETE()) {
+            $data = br()->request()->put();
+          } else
+          if (br()->request()->isPOST()) {
+            $data = br()->request()->post();
+          } else {
+            $data = br()->request()->get();
+          }
+          if (br($data, '__values')) {
+            $data = $data['__values'];
+          }
+
+          foreach($data as $name => $value) {
+            switch ($name) {
+              case '__dataSets':
+                $dataSourceOptions['dataSets'] = $value;
+                break;
+              case '__clientUID':
+                $dataSourceOptions['clientUID'] = $value;
+                break;
+              case '__loginToken':
+                break;
+              default:
+                if (!is_array($value)) {
+                  $value = trim($value);
+                }
+                $row[$name] = $value;
+                break;
+            }
+          }
+
           try {
             $t = array();
             $result = $dataSource->remove($matches[1], $t, $dataSourceOptions);
