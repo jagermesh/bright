@@ -2,7 +2,8 @@
   "name": "bright",
   "description": "Web Framework",
   "version": "2.0.34",
-  "dependencies": {
+  "license": "MIT",
+  "devDependencies": {
     "gulp": "^4.0.2",
     "gulp-concat": "^2.6.1",
     "gulp-jshint": "^2.1.0",
@@ -21,5 +22,7 @@
     "type": "git",
     "url": "git://github.com/jagermesh/bright.git"
   },
-  "license": "MIT"
+  "scripts": {
+    "build": "npm update && gulp build"
+  }
 }

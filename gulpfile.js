@@ -14,7 +14,7 @@ const merge = require('merge-stream');
 const child_process = require('child_process');
 
 const configs = { jshint: { src: ['js/**/*.js'] }
-                , phplint: { src: [ '**/*.php', '!vendor/**/*.php', '!node_modules/**/*.php', '!bower_components/**/*.php' ] }
+                , phplint: { src: [ '**/*.php', '!vendor/**/*.php', '!node_modules/**/*.php' ] }
                 , uglify: { libs: [ { dest: '3rdparty/promisejs/latest/js/', src: ['3rdparty/promisejs/latest/js/promise.js'] }
                                   , { dest: '3rdparty/bootstrap/2.3.2/js/', src: ['3rdparty/bootstrap/2.3.2/js/bootstrap.js'] }
                                   , { dest: '3rdparty/gritter/latest/js/', src: ['3rdparty/gritter/latest/js/jquery.gritter.js'] }
