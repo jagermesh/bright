@@ -370,12 +370,12 @@
 
       // pager
 
-      $(findNode('a.action-next') + ',' + findNode('a.pager-action-next')).on('click', function() {
+      $(findNode('.action-next') + ',' + findNode('.pager-action-next')).on('click', function() {
         _this.skip += _this.limit;
         _this.refresh({}, null, true);
       });
 
-      $(findNode('a.action-prior') + ',' + findNode('a.pager-action-prior')).on('click', function() {
+      $(findNode('.action-prior') + ',' + findNode('.pager-action-prior')).on('click', function() {
         _this.skip -= _this.limit;
         if (_this.skip < 0) {
           _this.skip = 0;
@@ -383,7 +383,7 @@
         _this.refresh({}, null, true);
       });
 
-      $(findNode('.pager-page-navigation')).on('click', 'a.pager-action-navigate', function() {
+      $(findNode('.pager-page-navigation')).on('click', '.pager-action-navigate', function() {
         const value = br.toInt($(this).attr('data-page'));
         if (value > 0) {
           const newSkip = _this.limit * (value - 1);
@@ -395,7 +395,7 @@
         }
       });
 
-      $(findNode('.pager-page-size-navigation')).on('click', 'a.pager-action-page-size', function() {
+      $(findNode('.pager-page-size-navigation')).on('click', '.pager-action-page-size', function() {
         const value = br.toInt($(this).attr('data-size'));
         _this.limit = value;
         _this.skip = 0;

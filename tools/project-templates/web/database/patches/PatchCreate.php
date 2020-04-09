@@ -16,7 +16,7 @@ class PatchCreate extends \Bright\BrDataBasePatch {
     // put your patch code here using $this->execute($sql, $stepName);
 
     $this->execute( 'CREATE TABLE IF NOT EXISTS br_user (
-                       id       INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY
+                       id       BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
                      , login    VARCHAR(250) NOT NULL
                      , password VARCHAR(250) NOT NULL
                      , email    VARCHAR(250) DEFAULT NULL
@@ -29,7 +29,7 @@ class PatchCreate extends \Bright\BrDataBasePatch {
     $this->execute( 'INSERT IGNORE INTO br_user(id, login, password, name) VALUES (1, "admin", md5("test"), "Admin")');
 
     $this->execute( 'CREATE TABLE IF NOT EXISTS br_message (
-                       id         INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY
+                       id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
                      , subject    VARCHAR(250) DEFAULT NULL
                      , message    LONGTEXT NOT NULL
                      , email      VARCHAR(250) NOT NULL

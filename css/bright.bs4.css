@@ -49,3 +49,8 @@ a.justified {
 td.optimal-width, th.optimal-width {
   width: 10px;
   white-space: nowrap; }
+
+span.required {
+  color: red;
+  margin-right: 5px;
+  font-weight: bold; }

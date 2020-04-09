@@ -25,35 +25,8 @@ const configs = { jshint: { src: ['js/**/*.js'] }
                           , dist: [ { dest: 'dist/js/', src: ['dist/js/*.js', '!dist/js/*.min.js'] }
                                   ]
                           }
-                , concat: { bright: [ { src: [ 'js/br.typeCheck.js'
-                                             , 'js/br.storage.js'
-                                             , 'js/br.eventQueue.js'
-                                             , 'js/br.request.js'
-                                             , 'js/br.thread.js'
-                                             , 'js/br.profiler.js'
-                                             , 'js/br.webCamera.js'
-                                             , 'js/br.js'
-                                             , 'js/br.flagsHolder.js'
-                                             , 'js/br.dataSource.js'
-                                             , 'js/br.table.js'
-                                             , 'js/br.dataGrid.js'
-                                             , 'js/br.dataCombo.js'
-                                             , 'js/br.draggable.js'
-                                             , 'js/br.editable.js'
-                                             , 'js/br.ui.js'
-                                             , 'js/br.clipboard.js'
-                                             , 'js/br.dataEditor.js'
-                                             , 'js/br.dataBrowser.js'
-                                             , 'js/br.dropDownMenu.js'
-                                             , 'js/br.dataHelpers.js'
-                                             , 'js/br.googleMap.js'
-                                             , 'js/br.eventBus.js'
-                                             ]
-                                      , name: 'bright.js'
-                                      , dest: 'js/'
-                                      }
-                                    ]
-                          , css: [ { src: [ '3rdparty/gritter/latest/css/jquery.gritter.css'
+                , sass: { src: ['sass/**/*.scss'], dest: 'css/' }
+                , concat: { css: [ { src: [ '3rdparty/gritter/latest/css/jquery.gritter.css'
                                           , 'css/bright.bs2.css'
                                           ]
                                    , name: 'bright.bs2.css'
@@ -71,17 +44,33 @@ const configs = { jshint: { src: ['js/**/*.js'] }
                                    , name: 'bright.bs4.css'
                                    , dest: 'dist/css/'
                                    }
-                                 , { src: [ '3rdparty/gritter/latest/css/jquery.gritter.css'
-                                          , 'css/bright.bs4.css'
-                                          ]
-                                   , name: 'bright.css'
-                                   , dest: 'dist/css/'
-                                   }
                                  ]
                           , core: [ { src: [ '3rdparty/handlebars/latest/js/handlebars.min.js'
                                            , '3rdparty/gritter/latest/js/jquery.gritter.min.js'
                                            , '3rdparty/promisejs/latest/js/promise.min.js'
-                                           , 'js/bright.js'
+                                           , 'js/br.typeCheck.js'
+                                           , 'js/br.storage.js'
+                                           , 'js/br.eventQueue.js'
+                                           , 'js/br.request.js'
+                                           , 'js/br.thread.js'
+                                           , 'js/br.profiler.js'
+                                           , 'js/br.webCamera.js'
+                                           , 'js/br.core.js'
+                                           , 'js/br.flagsHolder.js'
+                                           , 'js/br.dataSource.js'
+                                           , 'js/br.table.js'
+                                           , 'js/br.dataGrid.js'
+                                           , 'js/br.dataCombo.js'
+                                           , 'js/br.draggable.js'
+                                           , 'js/br.editable.js'
+                                           , 'js/br.ui.js'
+                                           , 'js/br.clipboard.js'
+                                           , 'js/br.dataEditor.js'
+                                           , 'js/br.dataBrowser.js'
+                                           , 'js/br.dropDownMenu.js'
+                                           , 'js/br.dataHelpers.js'
+                                           , 'js/br.googleMap.js'
+                                           , 'js/br.eventBus.js'
                                            ]
                                     , name: 'bright.core.js'
                                     , dest: 'dist/js/'
@@ -120,16 +109,8 @@ const configs = { jshint: { src: ['js/**/*.js'] }
                                     , name: 'bright.bs4.js'
                                     , dest: 'dist/js/'
                                     }
-                                  , { src: [ '3rdparty/jquery/latest/js/jquery.min.js'
-                                           , '3rdparty/bootstrap/latest/js/bootstrap.min.js'
-                                           , 'dist/js/bright.core.js'
-                                           ]
-                                    , name: 'bright.js'
-                                    , dest: 'dist/js/'
-                                    }
                                   ]
                           }
-                , sass: { src: ['css/sass/**/*.scss'], dest: 'css/' }
                 , shell: { chmod: 'chmod 644 dist/js/*.js && chmod 644 dist/css/*.css'
                          , tests: 'php vendor/codeception/codeception/codecept run'
                          }
@@ -188,10 +169,6 @@ gulp.task('concat:css', function() {
   return _concat(configs.concat.css);
 });
 
-gulp.task('concat:bright', function() {
-  return _concat(configs.concat.bright);
-});
-
 gulp.task('concat:core', function() {
   return _concat(configs.concat.core);
 });
@@ -212,7 +189,6 @@ gulp.task('shell:tests', function() {
 
 gulp.task('build', gulp.series( gulp.parallel('jshint', 'phplint', 'uglify:libs')
                               , 'sass'
-                              , 'concat:bright'
                               , 'concat:core'
                               , gulp.parallel('concat:dist', 'concat:css')
                               , 'uglify:dist'

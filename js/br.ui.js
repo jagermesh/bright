@@ -82,11 +82,7 @@
     options.cancelTitle = options.cancelTitle || br.trn('Cancel');
     options.onConfirm = options.onConfirm || callback;
 
-    let s = '<div class="br-modal-confirm modal';
-    if (options.cssClass) {
-      s = s + ' ' + options.cssClass;
-    }
-    s += '">';
+    let template = '<div class="br-modal-confirm modal ${options.cssClass}" role="dialog">';
 
     let checkBoxes = '';
     if (options.checkBoxes) {
@@ -96,40 +92,42 @@
         if (check.default) {
           checked = 'checked';
         }
-        checkBoxes = checkBoxes + '<div class="checkbox">' +
-                                    '<label class="checkbox">' +
-                                    '<input type="checkbox" class="confirm-checkbox" name="' + check.name + '" value="1" ' + checked + '> ' +
-                                    check.title +
-                                    '</label>' +
-                                  '</div>';
+        checkBoxes += `<div class="checkbox">
+                         <label class="checkbox">
+                           <input type="checkbox" class="confirm-checkbox" name="${check.name}" value="1" ${checked}> ${check.title}
+                         </label>
+                       </div>`;
       }
     }
 
-    s = s + '<div class="modal-dialog">' +
-            '<div class="modal-content">' +
-            '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>' +
-            '<div class="modal-body" style="overflow-y:auto;">' + message + checkBoxes + '</div>' +
-            '<div class="modal-footer">';
+    template += `<div class="modal-dialog" role="document">
+                   <div class="modal-content">
+                   <div class="modal-header">
+                     <h5 class="modal-title">${title}</h5>
+                     <a class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
+                   </div>
+                   <div class="modal-body" style="overflow-y:auto;">${message} ${checkBoxes}</div>
+                   <div class="modal-footer">`;
     if (options.showDontAskMeAgain) {
       const dontAskMeAgainTitle = (options.dontAskMeAgainTitle) ? options.dontAskMeAgainTitle : br.trn("Don't ask me again");
-      s = s + '<label style="text-align:left;float:left;padding-top:5px;" class="checkbox">' +
-              '<input name="showDontAskMeAgain" type="checkbox" value="1"> ' + dontAskMeAgainTitle +
-              '</label>';
+      template += `<label style="text-align:left;float:left;padding-top:5px;" class="checkbox">
+                     <input name="showDontAskMeAgain" type="checkbox" value="1"> ${dontAskMeAgainTitle}
+                   </label>`;
     }
     if (br.isEmpty(buttons)) {
-      const yesTitle    = options.yesTitle || br.trn('Yes');
-      const yesLink     = options.yesLink || 'javascript:;';
-      const targetBlank = options.yesLink && !options.targetSamePage;
-      s = s + '<a href="' + yesLink + '" ' + (targetBlank ? 'target="_blank"' : '') + ' class="btn btn-sm btn-primary action-confirm-close" rel="confirm">&nbsp;' + yesTitle + '&nbsp;</a>';
+      const yesTitle = options.yesTitle || br.trn('Yes');
+      const yesLink  = options.yesLink || 'javascript:;';
+      const target   = (options.yesLink && !options.targetSamePage ? '_blank' : '');
+      template += `<a href="${yesLink}" target="${target}" class="btn btn-sm btn-primary action-confirm-close" rel="confirm">&nbsp;${yesTitle}&nbsp;</a>`;
     } else {
-      for(let i in buttons) {
-        s = s + '<a href="javascript:;" class="btn btn-sm btn-default action-confirm-close" rel="' + i + '">&nbsp;' + buttons[i] + '&nbsp;</a>';
+      for(let inputName in buttons) {
+        template += `<a href="javascript:;" class="btn btn-sm btn-default action-confirm-close" rel="${inputName}">&nbsp;${buttons[inputName]}&nbsp;</a>`;
       }
     }
-    s = s + '<a href="javascript:;" class="btn btn-sm btn-default action-confirm-cancel" rel="cancel">&nbsp;' + options.cancelTitle + '&nbsp;</a>';
-    s = s + '</div></div></div></div>';
+    template += `<a href="javascript:;" class="btn btn-sm btn-default action-confirm-cancel" rel="cancel">&nbsp;${options.cancelTitle}&nbsp;</a>
+                 </div></div></div></div>`;
 
-    const modal = $(s);
+    const modal = $(template);
 
     const oldActiveElement = document.activeElement;
     if (oldActiveElement) {
@@ -243,18 +241,21 @@
       $('#br_modalError').remove();
     }
 
-    let s = '<div class="modal" id="br_modalError" data-backdrop="static">' +
-            '<div class="modal-dialog">' +
-            '<div class="modal-content">';
+    let template = `<div class="br-modal-error modal" id="br_modalError" data-backdrop="static" role="dialog">
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">`;
     if (title !== '') {
-      s = s + '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>';
+      template += `<div class="modal-header">
+                     <h5 class="modal-title">${title}</h5>
+                     <a class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
+                   </div>`;
     }
-    s = s + '<div class="modal-body" style="overflow-y:auto;">' + message + '</div>' +
-            '<div class="modal-footer" style="background-color:red;">';
-    s = s + '<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn(buttonTitle) + '&nbsp;</a><';
-    s = s + '/div></div></div></div>';
+    template += `<div class="modal-body" style="overflow-y:auto;">${message}</div>
+                 <div class="modal-footer" style="background-color:red;">
+                   <a href="javascript:;" class="btn btn-sm btn-default btn-outline-secondary" data-dismiss="modal">&nbsp;${br.trn(buttonTitle)}&nbsp;</a>
+                 </div></div></div></div>`;
 
-    const modal = $(s);
+    const modal = $(template);
 
     const oldActiveElement = document.activeElement;
     if (oldActiveElement) {
@@ -307,23 +308,26 @@
       $('#br_modalInform').remove();
     }
 
-    let s = '<div class="modal" id="br_modalInform" data-backdrop="static">' +
-            '<div class="modal-dialog">' +
-            '<div class="modal-content">';
+    let template = `<div class="br-modal-inform modal" id="br_modalInform" data-backdrop="static" role="dialog">
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">`;
     if (title !== '') {
-      s = s + '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>';
+      template += `<div class="modal-header">
+                     <h5 class="modal-title">${title}</h5>
+                     <a class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
+                   </div>`;
     }
-    s = s + '<div class="modal-body" style="overflow-y:auto;">' + message + '</div>' +
-            '<div class="modal-footer">';
+    template += `<div class="modal-body" style="overflow-y:auto;">${message}</div>
+                 <div class="modal-footer">`;
     if (options.showDontAskMeAgain) {
       let dontAskMeAgainTitle = (options.dontAskMeAgainTitle) ? options.dontAskMeAgainTitle : br.trn("Don't ask me again");
-      s = s + '<label style="text-align:left;float:left;padding-top:5px;" class="checkbox">' +
-              '<input name="showDontAskMeAgain" type="checkbox" value="1"> ' + dontAskMeAgainTitle +
-              '</label>';
+      template += `<label style="text-align:left;float:left;padding-top:5px;" class="checkbox">
+                     <input name="showDontAskMeAgain" type="checkbox" value="1"> ${dontAskMeAgainTitle}
+                   </label>`;
     }
-    s = s +'<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn(buttonTitle) + '&nbsp;</a></div></div></div></div>';
+    template += `<a href="javascript:;" class="btn btn-sm btn-default btn-outline-secondary" data-dismiss="modal">&nbsp;${br.trn(buttonTitle)}&nbsp;</a></div></div></div></div>`;
 
-    const modal = $(s);
+    const modal = $(template);
 
     const oldActiveElement = document.activeElement;
     if (oldActiveElement) {
@@ -371,28 +375,40 @@
       options.onHide = options.onhide;
     }
 
-    let s = '<div class="br-modal-prompt modal" data-backdrop="static">' +
-            '<div class="modal-dialog">' +
-            '<div class="modal-content">' +
-            '<div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3 class="modal-title">' + title + '</h3></div>' +
-            '<div class="modal-body" style="overflow-y:auto;">';
-    for(let i in inputs) {
-      if (br.isObject(inputs[i])) {
-        s = s + '<label>' + i + '</label>' +
-              '<input type="text" ' + (inputs[i].id ? 'id="'+inputs[i].id+'"' : '') + ' class="span4 ' + (br.isEmpty(inputs[i]['class']) ? '' : inputs[i]['class']) + '" value="' + inputs[i].value + '" />';
+    let template = `<div class="br-modal-prompt modal" data-backdrop="static" role="dialog">
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                        <div class="modal-header">
+                          <h5 class="modal-title">${title}</h5>
+                          <a class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
+                        </div>
+                        <div class="modal-body" style="overflow-y:auto;">`;
+    for(let inputLabel in inputs) {
+      if (br.isObject(inputs[inputLabel])) {
+        let inputId    = (br.isEmpty(inputs[inputLabel].id) ? '' : inputs[inputLabel].id);
+        let inputClass = (br.isEmpty(inputs[inputLabel]['class']) ? '' : inputs[inputLabel]['class']) ;
+        let inputValue = inputs[inputLabel].value;
+        template += `<label>${inputLabel}</label>
+                     <input type="text" id="${inputId}" class="span4 ${inputClass}" value="${inputValue}" />`;
       } else {
-        s = s + '<label>' + i + '</label>' +
-                '<input type="text" class="form-control ' + (options.valueType == 'int' ? ' input-small' : ' justified') + (options.valueRequired ? ' required' : '') + ' " value="' + inputs[i] + '" />';
+        let inputClass1 = (options.valueType == 'int' ? ' input-small' : ' justified');
+        let inputClass2 = (options.valueRequired ? ' required' : '');
+        let inputValue  = inputs[inputLabel];
+        template += '<label>${inputLabel}</label>' +
+                    '<input type="text" class="form-control ${inputClass1} ${inputClass2}" value="${inputValue}" />';
       }
     }
 
-    s = s + '</div>' +
-            '<div class="modal-footer">';
-    s = s + '<a href="javascript:;" class="btn btn-sm btn-primary action-confirm-close" rel="confirm" >Ok</a>';
-    s = s + '<a href="javascript:;" class="btn btn-sm btn-default" data-dismiss="modal">&nbsp;' + br.trn('Cancel') + '&nbsp;</a>';
-    s = s + '</div></div></div></div>';
+    template += `</div>
+                 <div class="modal-footer">
+                   <a href="javascript:;" class="btn btn-sm btn-primary action-confirm-close" rel="confirm" >Ok</a>
+                   <a href="javascript:;" class="btn btn-sm btn-default btn-outline-secondary" data-dismiss="modal">&nbsp;${br.trn('Cancel')}&nbsp;</a>
+                 </div>
+               </div>
+             </div>
+           </div>`;
 
-    const modal = $(s);
+    const modal = $(template);
 
     const oldActiveElement = document.activeElement;
     if (oldActiveElement) {
@@ -554,28 +570,28 @@
   let progressBar_Progress = 0;
   let progressBar_Message = '';
 
-  const progressBarTemplate = '<div id="br_progressBar" class="modal" style="display:none;z-index:10000;top:30px;margin-top:0px;position:fixed;" data-backdrop="static">' +
-                              '  <div class="modal-dialog">'+
-                              '    <div class="modal-content">'+
-                              '      <div class="modal-body">' +
-                              '        <table style="width:100%;font-size:18px;font-weight:300;margin-bottom:10px;">'+
-                              '          <tr>'+
-                              '            <td><div id="br_progressMessage" style="max-width:440px;max-height:40px;overflow:hidden;text-overflow:ellipsis;"></div></td>' +
-                              '            <td align="right" id="br_progressStage" style="font-size:14px;font-weight:300;"></td>' +
-                              '          </tr>' +
-                              '        </table>' +
-                              '        <div id="br_progressBar_Section" style="display:none;clear:both;">' +
-                              '          <div style="margin-bottom:0px;padding:0px;height:20px;overflow: hidden;background-color: #f5f5f5;border-radius: 4px;box-shadow: inset 0 1px 2px rgba(0,0,0,.1);">' +
-                              '            <div id="br_progressBar_Bar" style="background-color:#008cba;border:none;padding:0px;height:20px;"></div>' +
-                              '          </div>' +
-                              '        </div>' +
-                              '        <div id="br_progressBarAnimation" style="display1:none;padding-top:10px;">' +
-                              '          <center><img src="' + br.brightUrl + 'images/progress-h.gif" /></center>' +
-                              '        </div>' +
-                              '      </div>' +
-                              '    </div>' +
-                              '  </div>' +
-                              '</div>';
+  const progressBarTemplate = `<div id="br_progressBar" class="br-modal-progress modal" style="display:none;z-index:10000;top:30px;margin-top:0px;position:fixed;" data-backdrop="static" role="dialog">
+                                 <div class="modal-dialog" role="document">
+                                   <div class="modal-content">
+                                     <div class="modal-body">
+                                       <table style="width:100%;font-size:18px;font-weight:300;margin-bottom:10px;">
+                                         <tr>
+                                           <td><div id="br_progressMessage" style="max-width:440px;max-height:40px;overflow:hidden;text-overflow:ellipsis;"></div></td>
+                                           <td align="right" id="br_progressStage" style="font-size:14px;font-weight:300;"></td>
+                                         </tr>
+                                       </table>
+                                       <div id="br_progressBar_Section" style="display:none;clear:both;">
+                                         <div style="margin-bottom:0px;padding:0px;height:20px;overflow: hidden;background-color: #f5f5f5;border-radius: 4px;box-shadow: inset 0 1px 2px rgba(0,0,0,.1);">
+                                           <div id="br_progressBar_Bar" style="background-color:#008cba;border:none;padding:0px;height:20px;"></div>
+                                         </div>
+                                       </div>
+                                       <div id="br_progressBarAnimation" style="padding-top:10px;">
+                                         <center><img src="${br.brightUrl}images/progress-h.gif" /></center>
+                                       </div>
+                                     </div>
+                                   </div>
+                                 </div>
+                               </div>`;
 
 
   function fileSize(size) {
