@@ -1,8 +1,8 @@
 {
   "name": "jagermesh/bright",
   "type": "library",
-  "description": "Web Framework",
-  "version": "2.0.35",
+  "description": "Reactive PHP/JavaScript Framework",
+  "version": "2.0.40",
   "license": "MIT",
   "authors": [
     {
