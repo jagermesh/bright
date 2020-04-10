@@ -200,14 +200,17 @@ gulp.task('shell:tests', function() {
              .pipe(shell(configs.shell.tests));
 });
 
-gulp.task('build', gulp.series( gulp.parallel('jshint', 'phplint', 'uglify:libs')
-                              , 'sass'
-                              , 'concat:core'
-                              , gulp.parallel('concat:dist', 'concat:css')
-                              , 'uglify:dist'
-                              , 'shell:chmod'));
+gulp.task('build',
+  gulp.series( gulp.parallel('jshint', 'phplint', 'uglify:libs')
+             , 'sass'
+             , 'concat:core'
+             , gulp.parallel('concat:dist', 'concat:css')
+             , 'uglify:dist'
+             , 'shell:chmod'
+             ));
 
-gulp.task('css', gulp.series('concat:css', 'shell:chmod'));
+gulp.task('css',
+  gulp.series('concat:css', 'shell:chmod'));
 
-gulp.task('default', gulp.series('build', 'shell:tests'));
-
+gulp.task('default',
+  gulp.series('build', 'shell:tests'));

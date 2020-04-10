@@ -3186,19 +3186,25 @@ THE SOFTWARE.
       if (options.refreshSelector) {
         filter = options.refreshSelector + filter;
       }
-      let row = $(_this.selector).find(filter);
-      if (row.length > 0) {
-        let tableRow = _this.renderRow(data);
-        if (tableRow) {
+      let existingRows = $(_this.selector).find(filter);
+      if (existingRows.length > 0) {
+        let replacementRow = _this.renderRow(data);
+        if (replacementRow) {
           if (_this.options.storeDataRow) {
-            tableRow.data('data-row', data);
+            replacementRow.data('data-row', data);
           }
           _this.events.triggerBefore('update', data);
-          _this.events.trigger('update', data, row);
-          $(row[0]).before(tableRow);
-          row.remove();
-          _this.events.triggerAfter('renderRow', data, tableRow);
-          _this.events.triggerAfter('update', data, tableRow);
+          _this.events.trigger('update', data, existingRows);
+          let resultingRows = [];
+          existingRows.each(function() {
+            let row = replacementRow.clone();
+            $(this).before(row);
+            resultingRows.push(row);
+          });
+          existingRows.remove();
+          let resultingRowsJq = $(resultingRows).map(function() { return this.toArray(); });
+          _this.events.triggerAfter('renderRow', data, resultingRowsJq);
+          _this.events.triggerAfter('update', data, resultingRowsJq);
           return true;
         } else {
           return false;
