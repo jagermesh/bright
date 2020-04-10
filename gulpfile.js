@@ -109,14 +109,14 @@ const configs = { jshint: { src: ['js/**/*.js'] }
                                     , dest: 'dist/js/'
                                     }
                                   , { src: [ '3rdparty/jquery/latest/js/jquery.min.js'
-                                           , '3rdparty/bootstrap/4.3.1/js/bootstrap.min.js'
+                                           , '3rdparty/bootstrap/4.4.1/js/bootstrap.min.js'
                                            , 'dist/js/bright.core.js'
                                            ]
                                     , name: 'bright.bs4.js'
                                     , dest: 'dist/js/'
                                     }
                                   , { src: [ '3rdparty/jquery/latest/js/jquery.min.js'
-                                           , '3rdparty/bootstrap/4.3.1/js/bootstrap.min.js'
+                                           , '3rdparty/bootstrap/4.4.1/js/bootstrap.min.js'
                                            , 'dist/js/bright.core.js'
                                            ]
                                     , name: 'bright.latest.js'

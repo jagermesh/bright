@@ -108,6 +108,7 @@ textarea.justified {
 
 input.justified, div.justified {
   width: 100%;
+  height: 2em;
   box-sizing: border-box;
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -141,3 +142,110 @@ span.required {
   color: red;
   margin-right: 5px;
   font-weight: bold; }
+
+.br-template {
+  display: none; }
+
+.br-centered {
+  text-align: center !important; }
+
+.br-left-aligned {
+  text-align: left !important; }
+
+.br-right-aligned {
+  text-align: right !important; }
+
+textarea.br-justified {
+  width: 100%;
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -ms-box-sizing: border-box;
+  margin-top: 2px;
+  margin-bottom: 2px; }
+
+input.br-justified, div.br-justified {
+  width: 100%;
+  height: 2em;
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -ms-box-sizing: border-box;
+  margin-top: 2px;
+  margin-bottom: 2px; }
+
+select.br-justified {
+  width: 100%;
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -ms-box-sizing: border-box;
+  margin-top: 2px;
+  margin-bottom: 2px; }
+
+a.br-justified {
+  width: 100%;
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -ms-box-sizing: border-box;
+  margin-top: 2px;
+  margin-bottom: 2px; }
+
+td.br-optimal-width, th.br-optimal-width {
+  width: 10px;
+  white-space: nowrap; }
+
+span.br-required {
+  color: red;
+  margin-right: 5px;
+  font-weight: bold; }
+
+.br-full-height {
+  height: 100%; }
+
+.br-full-width {
+  width: 100%; }
+
+.br-scrollable {
+  height: 100%;
+  overflow: auto; }
+
+@media print {
+  .br-container {
+    margin-top: 0px !important;
+    height: auto !important; }
+  .br-scrollable {
+    height: auto;
+    overflow: visible; } }
+
+.br-ajax-dropdown li {
+  white-space: nowrap; }
+
+.br-ajax-dropdown li a {
+  line-height: 14px !important;
+  font-size: 10pt; }
+
+.br-ajax-dropdown li.group-item {
+  padding-left: 20px;
+  padding-right: 20px;
+  cursor: pointer; }
+
+@media print {
+  .br-no-print {
+    display: none; }
+  .br-print-only {
+    display: inline; } }
+
+.br-editable {
+  border: 1px solid transparent; }
+
+.br-editable:hover {
+  border: 1px dashed orange;
+  cursor: text; }
+
+div.br-editable, span.br-editable {
+  padding: 2px; }
+
+.br-container-main {
+  margin-top: 64px; }
