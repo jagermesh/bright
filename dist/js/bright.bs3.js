@@ -4582,7 +4582,7 @@ THE SOFTWARE.
     template += `<div class="modal-dialog" role="document">
                    <div class="modal-content">
                    <div class="modal-header">
-                     <h5 class="modal-title">${title}</h5>
+                     <h3 class="modal-title">${title}</h3>
                      <a class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
                    </div>
                    <div class="modal-body" style="overflow-y:auto;">${message} ${checkBoxes}</div>
@@ -4725,7 +4725,7 @@ THE SOFTWARE.
                         <div class="modal-content">`;
     if (title !== '') {
       template += `<div class="modal-header">
-                     <h5 class="modal-title">${title}</h5>
+                     <h3 class="modal-title">${title}</h3>
                      <a class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
                    </div>`;
     }
@@ -4792,7 +4792,7 @@ THE SOFTWARE.
                         <div class="modal-content">`;
     if (title !== '') {
       template += `<div class="modal-header">
-                     <h5 class="modal-title">${title}</h5>
+                     <h3 class="modal-title">${title}</h3>
                      <a class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
                    </div>`;
     }
@@ -4858,7 +4858,7 @@ THE SOFTWARE.
                       <div class="modal-dialog" role="document">
                         <div class="modal-content">
                         <div class="modal-header">
-                          <h5 class="modal-title">${title}</h5>
+                          <h3 class="modal-title">${title}</h3>
                           <a class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
                         </div>
                         <div class="modal-body" style="overflow-y:auto;">`;
@@ -4873,8 +4873,8 @@ THE SOFTWARE.
         let inputClass1 = (options.valueType == 'int' ? ' input-small' : ' justified');
         let inputClass2 = (options.valueRequired ? ' required' : '');
         let inputValue  = inputs[inputLabel];
-        template += '<label>${inputLabel}</label>' +
-                    '<input type="text" class="form-control ${inputClass1} ${inputClass2}" value="${inputValue}" />';
+        template += `<label>${inputLabel}</label>
+                     <input type="text" class="form-control ${inputClass1} ${inputClass2}" value="${inputValue}" />`;
       }
     }
 

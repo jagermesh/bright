@@ -1,9 +1,9 @@
 {
   "name": "bright",
   "description": "Web Framework",
-  "version": "2.0.34",
+  "version": "2.0.35",
   "license": "MIT",
-  "devDependencies": {
+  "dependencies": {
     "gulp": "^4.0.2",
     "gulp-concat": "^2.6.1",
     "gulp-jshint": "^2.1.0",

@@ -256,9 +256,6 @@ td.optimal-width, th.optimal-width {
 .navbar .input-append .btn {
   margin: 0px 0px 0px 0px; }
 
-.navbar .btn-url {
-  margin: 5px 0px 5px 0px; }
-
 .navbar .input-append {
   margin: 5px 0px 5px 0px; }
 
@@ -379,18 +376,6 @@ a i:hover, .brand:hover {
 a.not-a {
   text-decoration: none !important;
   color: inherit !important; }
-
-a.btn-url {
-  text-decoration: none;
-  color: inherit;
-  display: inline-block;
-  padding: 4px 10px 4px 10px;
-  margin-bottom: 0;
-  font-size: 14px;
-  line-height: 20px;
-  text-align: center;
-  vertical-align: middle;
-  cursor: pointer; }
 
 .label {
   font-weight: normal !important;

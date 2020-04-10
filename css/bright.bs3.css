@@ -287,21 +287,6 @@ a.not-a {
   text-decoration: none;
   color: inherit; }
 
-a.btn-url {
-  text-decoration: none;
-  color: inherit;
-  display: inline-block;
-  padding: 4px 10px 4px 10px;
-  margin-bottom: 0;
-  font-size: 14px;
-  line-height: 20px;
-  text-align: center;
-  vertical-align: middle;
-  cursor: pointer; }
-
-.navbar .btn-url {
-  margin: 5px 0px 5px 0px; }
-
 .label {
   font-weight: normal !important;
   padding: 3px;
