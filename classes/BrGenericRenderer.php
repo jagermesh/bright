@@ -146,7 +146,7 @@ class BrGenericRenderer extends BrObject {
                                                 )
                             , 'config'  => br()->config()->get()
                             , 'core'    => br()->request()->brightUrl() . 'dist/js/bright.core.min.js'
-                            , 'lib'     => br()->request()->brightUrl() . 'dist/js/bright.min.js'
+                            , 'lib'     => br()->request()->brightUrl() . 'dist/js/bright.latest.min.js'
                             );
 
     $localVars['br']['authorized'] = false;
