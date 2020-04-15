@@ -50,13 +50,13 @@ class BrGenericRenderer extends BrObject {
 
   }
 
-  public function configure($params = array()) {
+  public function configure(array $params = []) {
 
     $this->params = $params;
 
   }
 
-  private function fetchFile($templateName) {
+  private function fetchFile(string $templateName) {
 
     $result = '';
     $templateFile = $templateName;
@@ -68,12 +68,14 @@ class BrGenericRenderer extends BrObject {
       @include($templateFile);
       $result = ob_get_contents();
       ob_end_clean();
+      return array('file' => $templateFile, 'content' => $result);
     }
-    return array('file' => $templateFile, 'content' => $result);
+
+    throw new \Exception('Template not found: ' . htmlspecialchars($templateName));
 
   }
 
-  public function fetchString($string, $subst = array()) {
+  public function fetchString(string $string, array $subst = []) {
 
     $content = $this->compile($string, $subst);
 
@@ -81,7 +83,7 @@ class BrGenericRenderer extends BrObject {
 
   }
 
-  public function display($templateName, $subst = array()) {
+  public function display(string $templateName, array $subst = []) {
 
     br()->response()->sendAutodetect($this->fetch($templateName, $subst));
 
@@ -91,7 +93,9 @@ class BrGenericRenderer extends BrObject {
 
   }
 
-  public function fetch($templateName, $subst = array()) {
+  public function fetch(string $templateName, array $subst = [], bool $compile = true) {
+
+    // echo('<pre>fetch ' . $templateName . '</pre>');
 
     $template = $this->fetchFile($templateName);
 
@@ -100,12 +104,12 @@ class BrGenericRenderer extends BrObject {
 
     // replace @@template-name with compiled template
     while (preg_match('/[{]([@]+)([^}]+)[}]/', $content, $matches)) {
-      $compileSubtemplate = ($matches[1] == '@@');
+      $compileSubTemplate = ($matches[1] == '@@');
       $internalSubst = $subst;
       $fileName = $matches[2];
       if (preg_match('/^([^ ]+?)[ ](.+)/', $fileName, $matches2)) {
         $fileName = $matches2[1];
-        $compileSubtemplate = true;
+        $compileSubTemplate = true;
         $varGroups = br($matches2[2])->split(' ');
         foreach($varGroups as $varGroup) {
           $vars = br($varGroup)->split('=');
@@ -115,20 +119,23 @@ class BrGenericRenderer extends BrObject {
         }
       }
       $includeFileName = dirname($templateFile) . '/' . $fileName;
-      $template = $this->fetchFile($includeFileName);
-      if ($compileSubtemplate) {
-        $template['content'] = $this->compile($template['content'], $internalSubst);
-      }
-      $content = str_replace($matches[0], $template['content'], $content);
+      // $template = $this->fetchFile($includeFileName);
+      $subTemplate = $this->fetch($includeFileName, $internalSubst, $compileSubTemplate);
+      // if ($compileSubtemplate) {
+        // $template['content'] = $this->compile($template['content'], $internalSubst);
+      // }
+      $content = str_replace($matches[0], $subTemplate, $content);
     }
 
-    $content = $this->compile($content, $subst);
+    if ($compile) {
+      $content = $this->compile($content, $subst);
+    }
 
     return $content;
 
   }
 
-  protected function compile($body, $subst = array()) {
+  protected function compile(string $body, array $subst = []) {
 
     $localVars = array_merge($this->vars, $subst);
 
@@ -143,6 +150,8 @@ class BrGenericRenderer extends BrObject {
                                                 , 'post'         => br()->request()->post()
                                                 , 'brightUrl'    => br()->request()->brightUrl()
                                                 , 'baseUrl'      => br()->request()->baseUrl()
+                                                , 'clientIP'     => br()->request()->clientIP()
+                                                , 'referer'      => br()->request()->referer()
                                                 )
                             , 'config'  => br()->config()->get()
                             , 'core'    => br()->request()->brightUrl() . 'dist/js/bright.core.min.js'
@@ -206,87 +215,6 @@ class BrGenericRenderer extends BrObject {
           $body = str_replace($match[0], '', $body);
         }
       }
-    }
-
-    // process secure/unsecure sections
-    if (br()->auth()) {
-      if ($login = br()->auth()->getLogin()) {
-        if (preg_match_all('/[{][$]([^}]*?)[}](.+?)[{][$][}]/sm', $body, $matches, PREG_SET_ORDER)) {
-          foreach($matches as $match) {
-            if ($condition = trim($match[1])) {
-              if (preg_match('/login[.]([^!= ]+)[ ]?(==|!=|in|!in)(.*)/sm', $condition, $subMatch)) {
-                $field = $subMatch[1];
-                $condition = $subMatch[2];
-                $value = rtrim(ltrim(trim($subMatch[3]), '('), ')');
-                switch($condition) {
-                  case 'in':
-                    $values = preg_split('~,~', $value);
-                    $ok = false;
-                    foreach($values as $value) {
-                      $value = trim(trim($value), "'\"");
-                      if (br($login, $field) == $value) {
-                        $ok = true;
-                        break;
-                      }
-                    }
-                    if ($ok) {
-                      $body = str_replace($match[0], $match[2], $body);
-                    } else {
-                      $body = str_replace($match[0], '', $body);
-                    }
-                    break;
-                  case '!in':
-                    $values = preg_split('~,~', $value);
-                    $ok = true;
-                    foreach($values as $value) {
-                      $value = trim(trim($value), "'\"");
-                      if (br($login, $field) == $value) {
-                        $ok = false;
-                        break;
-                      }
-                    }
-                    if ($ok) {
-                      $body = str_replace($match[0], $match[2], $body);
-                    } else {
-                      $body = str_replace($match[0], '', $body);
-                    }
-                    break;
-                  case '==':
-                    $value = trim(trim($value, "'"), '"');
-                    if (br($login, $field) == $value) {
-                      $body = str_replace($match[0], $match[2], $body);
-                    } else {
-                      $body = str_replace($match[0], '', $body);
-                    }
-                    break;
-                  case '!=':
-                    $value = trim(trim($value, "'"), '"');
-                    if (br($login, $field) != $value) {
-                      $body = str_replace($match[0], $match[2], $body);
-                    } else {
-                      $body = str_replace($match[0], '', $body);
-                    }
-                    break;
-                  default:
-                    $body = str_replace($match[0], '', $body);
-                    break;
-                }
-              } else {
-                $body = str_replace($match[0], $match[2], $body);
-              }
-            } else {
-              $body = str_replace($match[0], $match[2], $body);
-            }
-          }
-        }
-        $body = preg_replace('/[{][-][}].+?[{]-[}]/sm', '', $body);
-      } else {
-        $body = preg_replace('/[{][$][^}]*?[}].+?[{][$][}]/sm', '', $body);
-        $body = preg_replace('/[{][-][}]/sm', '', $body);
-      }
-    } else {
-      $body = preg_replace('/[{][$][^}]*?[}].+?[{][$][}]/sm', '', $body);
-      $body = preg_replace('/[{][-][}]/sm', '', $body);
     }
 
     return $body;

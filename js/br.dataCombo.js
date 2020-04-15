@@ -197,7 +197,7 @@
               let data = { id: value, text: value };
               let request = { rowid: value };
               _this.selector.select2('data', data);
-              let options = { disableEvents: true };
+              let options = { disableEvents: true, dataSets: 'none' };
               _this.dataSource.events.triggerBefore('selectByRowid', request, options);
               _this.dataSource.select(request, function(result, response) {
                 if (result) {

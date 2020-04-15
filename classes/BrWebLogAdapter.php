@@ -18,9 +18,8 @@ class BrWebLogAdapter extends BrGenericLogAdapter {
 
     if (!br()->isConsoleMode() && $sendOutput) {
       try {
-        $errorMessage  = (($e instanceof BrErrorException) ? $e->getType() : 'Error');
-        $errorMessage .= ': ';
-        $errorMessage .= $e->getMessage();
+        $errorType    = (($e instanceof BrErrorException) ? $e->getType() : 'Error');
+        $errorMessage = $e->getMessage();
 
         $errorFile = null;
         $traceInfo = null;
@@ -37,9 +36,11 @@ class BrWebLogAdapter extends BrGenericLogAdapter {
           $this->debugCSSInjected = true;
         }
 
-        $data = ['error' => [ 'message' => $errorMessage
-                            , 'file' => $errorFile
+        $data = ['error' => [ 'type'      => $errorType
+                            , 'message'   => htmlspecialchars($errorMessage)
+                            , 'file'      => $errorFile
                             , 'traceInfo' => $traceInfo
+                            , 'timestamp' => date('Y-m-d H:i:s')
                             ]];
 
         br()->renderer()->display(dirname(__DIR__) . '/templates/ErrorMessage.html', $data);
