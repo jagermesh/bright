@@ -52,7 +52,7 @@ class BrXSS extends BrSingleton {
                 pq($style)->remove();
               }
               foreach(pq($doc)->find('iframe') as $tag) {
-                if (!pq($tag)->attr('src') || !preg_match('~^(http[s]?:|)//.*?(playposit[.]com|vimeo[.]com|youtu[.]be|youtube[.]com|youtube-nocookie[.]com|flickr[.]com|soundcloud[.]com|edpuzzle[.]com|eDoctrina[.]org|docs.google.com)(/|$)~ism', pq($tag)->attr('src'))) {
+                if (!pq($tag)->attr('src') || !preg_match('~^(http[s]?:|)//.*?(playposit[.]com|vimeo[.]com|youtu[.]be|youtube[.]com|youtube-nocookie[.]com|flickr[.]com|soundcloud[.]com|edpuzzle[.]com|eDoctrina[.]org|docs.google.com|drive.google.com)(/|$)~ism', pq($tag)->attr('src'))) {
                   pq($tag)->remove();
                 }
               }
