@@ -10,8 +10,6 @@
 
 namespace Bright;
 
-require_once(dirname(__DIR__) . '/3rdparty/forceutf8/Encoding.php');
-
 class BrCSVParser extends BrObject {
 
   private $delimiter = ',';
