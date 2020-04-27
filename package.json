@@ -1,7 +1,7 @@
 {
   "name": "bright",
   "description": "Reactive PHP/JavaScript Framework",
-  "version": "2.0.47",
+  "version": "2.0.48",
   "license": "MIT",
   "dependencies": {
     "gulp": "^4.0.2",
@@ -9,14 +9,14 @@
     "gulp-jshint": "^2.1.0",
     "gulp-phplint": "^0.9.0",
     "gulp-rename": "^1.4.0",
-    "gulp-sass": "^4.0.2",
+    "gulp-sass": "^4.1.0",
     "gulp-shell": "^0.7.1",
     "gulp-terser": "^1.2.0",
-    "merge-stream": "^2.0.0",
     "jshint": "^2.11.0",
+    "merge-stream": "^2.0.0",
     "phplint": "^2.0.1",
-    "sass": "^1.26.3",
-    "terser": "^4.6.11"
+    "sass": "^1.26.5",
+    "terser": "^4.6.12"
   },
   "repository": {
     "type": "git",
