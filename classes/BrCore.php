@@ -1200,7 +1200,7 @@ class BrCore extends BrSingleton {
 
   }
 
-  public function exec($cmd) {
+  public function exec($cmd, $whatToReturn = '') {
 
     $tempFile1 = br()->createTempFile('cmd1', '.log');
     $tempFile2 = br()->createTempFile('cmd2', '.log');
@@ -1211,6 +1211,19 @@ class BrCore extends BrSingleton {
 
     $log = br()->fs()->loadFromFile($tempFile1);
     $err = br()->fs()->loadFromFile($tempFile2);
+
+    $result = [ 'stdout'   => $log
+              , 'stderr'   => $err
+              , 'exitCode' => $retval
+              ];
+
+    if ($whatToReturn == 'all') {
+      return $result;
+    }
+
+    if (array_key_exists($whatToReturn, $result)) {
+      return $result[$whatToReturn];
+    }
 
     if ($retval) {
       $error = $err ? $err : ($log ? $log : 'Can not run shell command ' . $cmd);

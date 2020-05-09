@@ -72,13 +72,13 @@ class BrHTML extends BrSingleton {
 
     $html = preg_replace('|<!--.+?-->|ism', '', $html);
     $html = preg_replace('|<title></title>|i', '', $html);
-    $html = preg_replace('|<script[^>]*>.*?</script>|ism', '', $html);
-    $html = preg_replace('|<style[^>]*>.*?</style>|ism', '', $html);
-    $html = preg_replace('|<head[^>]*>.*?</head>|ism', '', $html);
-    $html = preg_replace('|<html[^>]*>|ism', '', $html);
+    $html = preg_replace('|<script[^>]*?>.*?</script>|ism', '', $html);
+    $html = preg_replace('|<style[^>]*?>.*?</style>|ism', '', $html);
+    $html = preg_replace('|<head[^>]*?>.*?</head>|ism', '', $html);
+    $html = preg_replace('|<html[^>]*?>|ism', '', $html);
     $html = preg_replace('|</html>|ism', '', $html);
-    $html = preg_replace('|<base[^>]*>|ism', '', $html);
-    $html = preg_replace('|<body[^>]*>|ism', '', $html);
+    $html = preg_replace('|<base[^>]*?>|ism', '', $html);
+    $html = preg_replace('|<body[^>]*?>|ism', '', $html);
     $html = preg_replace('|</body>|ism', '', $html);
     $html = preg_replace('|onload="[^"]+"|ism', '', $html);
     $html = preg_replace('|<p>[\s\r\t\n ]*&nbsp;</p>|i', '', $html);
@@ -153,8 +153,8 @@ class BrHTML extends BrSingleton {
     $html = preg_replace('~<style[^>]*?>.*?</style>~ism', '', $html);
     $html = preg_replace('~<script[^>]*?>.*?</script>~ism', '', $html);
     $html = preg_replace('~&nbsp;~ism', ' ', $html);
-    $html = preg_replace("~<br[^>]*>[\n]+~ism", "\n", $html);
-    $html = preg_replace("~<br[^>]*>~ism", "\n", $html);
+    $html = preg_replace("~<br[^>]*?>[\n]+~ism", "\n", $html);
+    $html = preg_replace("~<br[^>]*?>~ism", "\n", $html);
     $html = preg_replace('~<[A-Z][^>]*?>~ism', '', $html);
     $html = preg_replace('~<\/[A-Z][^>]*?>~ism', '', $html);
     $html = preg_replace('~<!--.*?-->~ism', ' ', $html);
