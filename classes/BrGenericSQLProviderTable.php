@@ -79,36 +79,6 @@ class BrGenericSQLProviderTable {
 
   }
 
-  public function remove($filter) {
-
-    $where = '';
-    $joins = '';
-    $args = array();
-
-    if ($filter) {
-      if (is_array($filter)) {
-        $joinsTables = array();
-        $filter = array('$and' => $filter);
-        $this->compileFilter($filter, $this->tableName, '', ' AND ', $joins, $joinsTables, $where, $args);
-      } else {
-        $where .= ' AND ' . $this->provider->rowidField() . ' = ?';
-        $args[] = $filter;
-      }
-    } else {
-      throw new \Exception('It is not allowed to invoke remove method without passing filter condition');
-    }
-
-    if ($where) {
-      $sql = 'DELETE ';
-      $sql .= ' FROM '.$this->tableName.$joins.' WHERE 1=1 '.$where;
-    } else {
-      throw new \Exception('It is not allowed to invoke remove method without passing filter condition');
-    }
-
-    return $this->provider->runQueryEx($sql, $args);
-
-  }
-
   public function findOne($filter = array()) {
 
     if ($rows = $this->find($filter)) {
@@ -118,12 +88,140 @@ class BrGenericSQLProviderTable {
     }
   }
 
-  public function save($values, $dataTypes = null) {
+  public function insert(&$values, $dataTypes = null) {
+
+    $this->provider->validate($this->tableName, $values);
 
     $fields_str = '';
     $values_str = '';
 
-    $sql = 'UPDATE '.$this->tableName.' SET ';
+    foreach($values as $field => $value) {
+      if (is_array($value)) {
+
+      }
+      $fields_str .= ($fields_str?',':'').$field;
+      $values_str .= ($values_str?',':'').'?';
+      if (is_array($dataTypes)) {
+        if (br($dataTypes, $field) == 's') {
+          $values_str .= '&';
+        }
+      }
+    }
+    $sql = 'INSERT INTO '.$this->tableName.' ('.$fields_str.') VALUES ('.$values_str.')';
+
+    $args = array();
+    foreach($values as $field => $value) {
+      array_push($args, $value);
+    }
+
+    $this->provider->runQueryEx($sql, $args);
+    if ($newId = $this->provider->getLastId()) {
+      if ($newValues = $this->findOne(array($this->provider->rowidField() => $newId))) {
+        $values = $newValues;
+        return $newId;
+      } else {
+        throw new \Exception('Can not find inserted record');
+      }
+    } else {
+      throw new \Exception('Can not get ID of inserted record');
+    }
+
+  }
+
+  public function insertIgnore(&$values, $dataTypes = null, $fallbackSql = null) {
+
+    $this->provider->validate($this->tableName, $values);
+
+    $fields_str = '';
+    $values_str = '';
+
+    if ($dataTypes) {
+      if (!is_array($dataTypes)) {
+        $fallbackSql = $dataTypes;
+        $dataTypes = null;
+      }
+    }
+
+    foreach($values as $field => $value) {
+      if (is_array($value)) {
+
+      }
+      $fields_str .= ($fields_str?',':'').$field;
+      $values_str .= ($values_str?',':'').'?';
+      if (is_array($dataTypes)) {
+        if (br($dataTypes, $field) == 's') {
+          $values_str .= '&';
+        }
+      }
+    }
+    $sql = 'INSERT IGNORE INTO ' . $this->tableName . ' (' . $fields_str . ') VALUES (' . $values_str . ')';
+
+    $args = array();
+    foreach($values as $field => $value) {
+      array_push($args, $value);
+    }
+
+    $this->provider->runQueryEx($sql, $args);
+    if ($newId = $this->provider->getLastId()) {
+      if ($newValues = $this->findOne(array($this->provider->rowidField() => $newId))) {
+        $values = $newValues;
+      }
+      return $newId;
+    } else
+    if ($fallbackSql) {
+      return $this->provider->getValue($fallbackSql);
+    } else {
+      return null;
+    }
+
+  }
+
+  public function replace(&$values, $dataTypes = null) {
+
+    $this->provider->validate($this->tableName, $values);
+
+    $fields_str = '';
+    $values_str = '';
+
+    foreach($values as $field => $value) {
+      if (is_array($value)) {
+
+      }
+      $fields_str .= ($fields_str?',':'') . $field;
+      $values_str .= ($values_str?',':'') . '?';
+      if (is_array($dataTypes)) {
+        if (br($dataTypes, $field) == 's') {
+          $values_str .= '&';
+        }
+      }
+    }
+    $sql = 'REPLACE INTO ' . $this->tableName . ' (' . $fields_str . ') VALUES (' . $values_str . ')';
+
+    $args = array();
+    foreach($values as $field => $value) {
+      array_push($args, $value);
+    }
+
+    $this->provider->runQueryEx($sql, $args);
+    if ($newId = $this->provider->getLastId()) {
+      if ($newValues = $this->findOne(array($this->provider->rowidField() => $newId))) {
+        $values = $newValues;
+        return $newId;
+      } else {
+        throw new \Exception('Can not find inserted record');
+      }
+    }
+
+  }
+
+  public function save($values, $dataTypes = null) {
+
+    $this->provider->validate($this->tableName, $values);
+
+    $fields_str = '';
+    $values_str = '';
+
+    $sql = 'UPDATE ' . $this->tableName . ' SET ';
     foreach($values as $field => $value) {
       if ($field != $this->provider->rowidField()) {
         $sql .= $field . ' = ?';
@@ -157,10 +255,12 @@ class BrGenericSQLProviderTable {
 
   public function update($values, $filter, $dataTypes = null) {
 
+    $this->provider->validate($this->tableName, $values);
+
     $fields_str = '';
     $values_str = '';
 
-    $sql = 'UPDATE '.$this->tableName.' SET ';
+    $sql = 'UPDATE ' . $this->tableName . ' SET ';
     foreach($values as $field => $value) {
       if ($field != $this->provider->rowidField()) {
         $sql .= $field . ' = ?';
@@ -217,127 +317,37 @@ class BrGenericSQLProviderTable {
 
     $this->provider->runQueryEx($sql, $args);
 
-    return true;//$filter;//$values[$this->provider->rowidField()];
+    return true;
 
   }
 
-  public function insertIgnore(&$values, $dataTypes = null, $fallbackSql = null) {
+  public function remove($filter) {
 
-    $fields_str = '';
-    $values_str = '';
-
-    if ($dataTypes) {
-      if (!is_array($dataTypes)) {
-        $fallbackSql = $dataTypes;
-        $dataTypes = null;
-      }
-    }
-
-    foreach($values as $field => $value) {
-      if (is_array($value)) {
-
-      }
-      $fields_str .= ($fields_str?',':'').$field;
-      $values_str .= ($values_str?',':'').'?';
-      if (is_array($dataTypes)) {
-        if (br($dataTypes, $field) == 's') {
-          $values_str .= '&';
-        }
-      }
-    }
-    $sql = 'INSERT IGNORE INTO '.$this->tableName.' ('.$fields_str.') VALUES ('.$values_str.')';
-
+    $where = '';
+    $joins = '';
     $args = array();
-    foreach($values as $field => $value) {
-      array_push($args, $value);
-    }
 
-    $this->provider->runQueryEx($sql, $args);
-    if ($newId = $this->provider->getLastId()) {
-      if ($newValues = $this->findOne(array($this->provider->rowidField() => $newId))) {
-        $values = $newValues;
-      }
-      return $newId;
-    } else
-    if ($fallbackSql) {
-      return $this->provider->getValue($fallbackSql);
-    } else {
-      return null;
-    }
-
-  }
-
-  public function replace(&$values, $dataTypes = null) {
-
-    $fields_str = '';
-    $values_str = '';
-
-    foreach($values as $field => $value) {
-      if (is_array($value)) {
-
-      }
-      $fields_str .= ($fields_str?',':'').$field;
-      $values_str .= ($values_str?',':'').'?';
-      if (is_array($dataTypes)) {
-        if (br($dataTypes, $field) == 's') {
-          $values_str .= '&';
-        }
-      }
-    }
-    $sql = 'REPLACE INTO '.$this->tableName.' ('.$fields_str.') VALUES ('.$values_str.')';
-
-    $args = array();
-    foreach($values as $field => $value) {
-      array_push($args, $value);
-    }
-
-    $this->provider->runQueryEx($sql, $args);
-    if ($newId = $this->provider->getLastId()) {
-      if ($newValues = $this->findOne(array($this->provider->rowidField() => $newId))) {
-        $values = $newValues;
-        return $newId;
+    if ($filter) {
+      if (is_array($filter)) {
+        $joinsTables = array();
+        $filter = array('$and' => $filter);
+        $this->compileFilter($filter, $this->tableName, '', ' AND ', $joins, $joinsTables, $where, $args);
       } else {
-        throw new \Exception('Can not find inserted record');
-      }
-    }
-
-  }
-
-  public function insert(&$values, $dataTypes = null) {
-
-    $fields_str = '';
-    $values_str = '';
-
-    foreach($values as $field => $value) {
-      if (is_array($value)) {
-
-      }
-      $fields_str .= ($fields_str?',':'').$field;
-      $values_str .= ($values_str?',':'').'?';
-      if (is_array($dataTypes)) {
-        if (br($dataTypes, $field) == 's') {
-          $values_str .= '&';
-        }
-      }
-    }
-    $sql = 'INSERT INTO '.$this->tableName.' ('.$fields_str.') VALUES ('.$values_str.')';
-
-    $args = array();
-    foreach($values as $field => $value) {
-      array_push($args, $value);
-    }
-
-    $this->provider->runQueryEx($sql, $args);
-    if ($newId = $this->provider->getLastId()) {
-      if ($newValues = $this->findOne(array($this->provider->rowidField() => $newId))) {
-        $values = $newValues;
-        return $newId;
-      } else {
-        throw new \Exception('Can not find inserted record');
+        $where .= ' AND ' . $this->provider->rowidField() . ' = ?';
+        $args[] = $filter;
       }
     } else {
-      throw new \Exception('Can not get ID of inserted record');
+      throw new \Exception('It is not allowed to invoke remove method without passing filter condition');
     }
+
+    if ($where) {
+      $sql = 'DELETE ';
+      $sql .= ' FROM '.$this->tableName.$joins.' WHERE 1=1 '.$where;
+    } else {
+      throw new \Exception('It is not allowed to invoke remove method without passing filter condition');
+    }
+
+    return $this->provider->runQueryEx($sql, $args);
 
   }
 

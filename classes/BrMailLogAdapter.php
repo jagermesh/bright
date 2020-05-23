@@ -127,19 +127,21 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
       $body .= '<strong>Client IP:</strong>     ' . br()->request()->clientIP() . '<br />';
       $body .= '<strong>Server IP:</strong>     ' . gethostbyname(php_uname('n')) . '<br />';
       $userInfo = '';
-      if ($login = br()->auth()->getSessionLogin()) {
-        $userInfo = '<strong>User ID:</strong>       ' . br($login, 'id') . '<br />';
-        if (br($login, 'name')) {
-          $userInfo .= '<strong>User name:</strong>    ' . br($login, 'name') . '<br />';
-        }
-        if ($loginField = br()->auth()->getAttr('usersTable.loginField')) {
-          if (br($login, $loginField)) {
-            $userInfo .= '<strong>User login:</strong>   ' . br($login, $loginField) . '<br />';
+      if (br()->auth()) {
+        if ($login = br()->auth()->getSessionLogin()) {
+          $userInfo = '<strong>User ID:</strong>       ' . br($login, 'id') . '<br />';
+          if (br($login, 'name')) {
+            $userInfo .= '<strong>User name:</strong>    ' . br($login, 'name') . '<br />';
           }
-        }
-        if ($emailField = br()->auth()->getAttr('usersTable.emailField')) {
-          if (br($login, $emailField)) {
-            $userInfo .= '<strong>User e-mail:</strong>  <a href="mailto:' . br($login, $emailField) . '">' . br($login, $emailField) . '</a><br />';
+          if ($loginField = br()->auth()->getAttr('usersTable.loginField')) {
+            if (br($login, $loginField)) {
+              $userInfo .= '<strong>User login:</strong>   ' . br($login, $loginField) . '<br />';
+            }
+          }
+          if ($emailField = br()->auth()->getAttr('usersTable.emailField')) {
+            if (br($login, $emailField)) {
+              $userInfo .= '<strong>User e-mail:</strong>  <a href="mailto:' . br($login, $emailField) . '">' . br($login, $emailField) . '</a><br />';
+            }
           }
         }
       }

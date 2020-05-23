@@ -282,7 +282,6 @@
         } else {
           response = response[0];
           if (_this.refreshRow(response, options)) {
-
           } else {
             if (_this.isEmpty()) {
               $(_this.selector).html('');
@@ -364,11 +363,17 @@
           _this.events.triggerBefore('update', data);
           _this.events.trigger('update', data, existingRows);
           let resultingRows = [];
-          existingRows.each(function() {
+          if (replacementRow.length > 1) {
             let row = replacementRow.clone();
-            $(this).before(row);
+            $(existingRows[0]).before(row);
             resultingRows.push(row);
-          });
+          } else {
+            existingRows.each(function() {
+              let row = replacementRow.clone();
+              $(this).before(row);
+              resultingRows.push(row);
+            });
+          }
           existingRows.remove();
           let resultingRowsJq = $(resultingRows).map(function() { return this.toArray(); });
           _this.events.triggerAfter('renderRow', data, resultingRowsJq);

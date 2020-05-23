@@ -10,6 +10,8 @@
 
 namespace Bright;
 
+require_once(dirname(__DIR__) . '/3rdparty/phpQuery/latest/phpQuery.php');
+
 class BrString extends BrGenericDataType {
 
   public function length() {
@@ -454,6 +456,69 @@ class BrString extends BrGenericDataType {
   public function isSimpleArray() {
 
     return false;
+
+  }
+
+  public function forceUTF8() {
+
+    return \ForceUTF8\Encoding::toUTF8(br($this->value)->encodeUTF8MB4(), \ForceUTF8\Encoding::ICONV_TRANSLIT);
+
+  }
+
+  public function encodeUTF8MB4() {
+
+    return preg_replace_callback('/./u', function (array $match) {
+      $res = $match[0];
+      if (strlen($res) >= 4) {
+        $res = mb_convert_encoding($res, 'HTML-ENTITIES', "UTF-8") ;
+      }
+      return $res;
+    }, $this->value);
+
+  }
+
+  public function cleanUpSpaces() {
+
+    $html = $this->value;
+
+    if (strlen(trim($html)) > 0) {
+      // UTF version of &nbsp;
+      $html = preg_replace('/\xC2\xA0/ism', '&nbsp;', $html);
+      // Replace single &nbsp; with space
+      $html = preg_replace('/([^; ])&nbsp;([^& ])/ism', '$1 $2', $html);
+      // Replace double &nbsp; with &nbsp;space
+      $html = preg_replace('/&nbsp;&nbsp;/ism', ' ', $html);
+    }
+
+    return $html;
+
+  }
+
+  public function removeWidthsFromTableColumns() {
+
+    $html = $this->value;
+
+    if (strlen(trim($html)) > 0) {
+      if (br()->HTML()->isHtml($html)) {
+        try {
+          $doc = \phpQuery::newDocument($html);
+
+          foreach($doc->find('td,th,col') as $el) {
+            if ($style = pq($el)->attr('style')) {
+              $style = preg_replace('#width[^:]*:[^;]+#ism', '', $style);
+              pq($el)->attr('style', $style);
+            }
+            pq($el)->attr('width', '');
+          }
+
+          $html = $doc->html();
+        } finally {
+          \phpQuery::unloadDocuments();
+        }
+      }
+    }
+
+    return $html;
 
   }
 
