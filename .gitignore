@@ -1,8 +1,4 @@
 .svn
 .DS_Store
-_logs
-_tmp
 node_modules
-bower_components
 vendor
-composer.lock
