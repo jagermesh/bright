@@ -1195,7 +1195,15 @@ class BrCore extends BrSingleton {
 
     $runCmd = $cmd . ' >' . $tempFile1. ' 2>' . $tempFile2;
 
+    br()->log(br()->console()->yellow('[EXEC]') . ' ' . $runCmd);
+
     $line = exec($runCmd, $stdout, $retval);
+
+    if ($retval) {
+      br()->log(br()->console()->red('[EXEC]') . ' Result: ' . $retval);
+    } else {
+      br()->log(br()->console()->green('[EXEC]') . ' Result: ' . $retval);
+    }
 
     $log = br()->fs()->loadFromFile($tempFile1);
     $err = br()->fs()->loadFromFile($tempFile2);

@@ -111,7 +111,7 @@ class BrCSVParser extends BrObject {
             }
             // $line = iconv($encoding, 'UTF-8', $line);
           }
-          $line = \ForceUTF8\Encoding::toUTF8($line, \ForceUTF8\Encoding::ICONV_TRANSLIT);
+          $line = br($line)->forceUTF8();
           // remove The character is "\xa0" (i.e. 160), which is the standard Unicode translation for &nbsp;
           // $line = str_replace(chr(160), ' ', $line);
           // $line = str_replace(chr(194), '',  $line);

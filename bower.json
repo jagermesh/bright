@@ -1,7 +1,7 @@
 {
   "name": "bright",
   "description": "Reactive PHP/JavaScript Framework",
-  "version": "2.0.50",
+  "version": "2.0.51",
   "main": "",
   "authors": [
     "Sergiy Lavryk <jagermesh@gmail.com>"
