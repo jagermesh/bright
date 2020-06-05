@@ -1848,6 +1848,11 @@ THE SOFTWARE.
 
     let selectOperationCounter = 0;
     let refreshTimeout;
+    let requestHeaders = { };
+
+    if (br.request.csrfToken) {
+      requestHeaders['X-Csrf-Token'] = br.request.csrfToken;
+    }
 
     _this.getClientUID = function() {
 
@@ -1932,7 +1937,7 @@ THE SOFTWARE.
                  , data: request
                  , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
                  , url: _this.options.restServiceUrl + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-                 , headers: { 'X-Csrf-Token': br.request.csrfToken }
+                 , headers: requestHeaders
                  , success: function(response) {
                      let result, errorMessage;
                      if (_this.options.crossdomain) {
@@ -2041,7 +2046,7 @@ THE SOFTWARE.
                  , data: request
                  , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
                  , url: _this.options.restServiceUrlNormalized + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-                 , headers: { 'X-Csrf-Token': br.request.csrfToken }
+                 , headers: requestHeaders
                  , success: function(response) {
                      let operation = 'update';
                      if (response) {
@@ -2143,7 +2148,7 @@ THE SOFTWARE.
                  , data: request
                  , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
                  , url: _this.options.restServiceUrlNormalized + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-                 , headers: { 'X-Csrf-Token': br.request.csrfToken }
+                 , headers: requestHeaders
                  , success: function(response) {
                      resolve({rowid: rowid, request: request, options: options, response: response});
                    }
@@ -2402,7 +2407,7 @@ THE SOFTWARE.
                                      , data: request
                                      , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
                                      , url: url + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-                                     , headers: { 'X-Csrf-Token': br.request.csrfToken }
+                                     , headers: requestHeaders
                                      , success: function(response) {
                                          try {
                                            _this.ajaxRequest = null;
@@ -2530,7 +2535,7 @@ THE SOFTWARE.
                , data: request
                , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
                , url: _this.options.restServiceUrlNormalized + method + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-               , headers: { 'X-Csrf-Token': br.request.csrfToken }
+               , headers: requestHeaders
                , success: function(response) {
                    if (_this.options.crossdomain && (typeof response == 'string')) {
                      reject({method: method, request: request, options: options, errorMessage: response});
@@ -4584,8 +4589,8 @@ THE SOFTWARE.
     template += `<div class="modal-dialog" role="document">
                    <div class="modal-content">
                    <div class="modal-header">
-                     <h3 class="modal-title">${title}</h3>
                      <a class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
+                     <h3 class="modal-title">${title}</h3>
                    </div>
                    <div class="modal-body" style="overflow-y:auto;">${message} ${checkBoxes}</div>
                    <div class="modal-footer">`;

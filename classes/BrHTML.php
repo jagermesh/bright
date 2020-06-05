@@ -235,4 +235,30 @@ class BrHTML extends BrSingleton {
   }
 
 
+  function parseStyle($value) {
+
+    $result = [];
+
+    preg_match_all("/([\w-]+)\s*:\s*([^;]+)\s*;?/", $value, $matches, PREG_SET_ORDER);
+
+    foreach ($matches as $match) {
+      $result[$match[1]] = $match[2];
+    }
+
+    return $result;
+
+  }
+
+  function packStyle($value) {
+
+    $result = [];
+
+    foreach($value as $name => $value) {
+      $result[] = $name . ':' . $value;
+    }
+
+    return br($result)->join(';');
+
+  }
+
 }

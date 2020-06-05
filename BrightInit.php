@@ -84,16 +84,16 @@ if (br()->isConsoleMode()) {
 if (br()->config()->get('Logger/RMQ/Active') && br()->config()->get('Logger/RMQ/Host') && br()->config()->get('Logger/RMQ/Port')) {
   if (!br()->log()->isAdapterExists('Bright\\BrRMQLogAdapter')) {
     br()->log()->addAdapter(new \Bright\BrRMQLogAdapter( array( 'host'            => br()->config()->get('Logger/RMQ/Host')
-                                                      , 'port'            => br()->config()->get('Logger/RMQ/Port')
-                                                      , 'login'           => br()->config()->get('Logger/RMQ/Login')
-                                                      , 'password'        => br()->config()->get('Logger/RMQ/Password')
-                                                      // optional
-                                                      , 'vhost'           => br()->config()->get('Logger/RMQ/VirtualHost')
-                                                      , 'exchangeName'    => br()->config()->get('Logger/RMQ/ExchangeName', 'logger')
-                                                      , 'exchangeType'    => br()->config()->get('Logger/RMQ/ExchangeType', 'topic')
-                                                      , 'exchangePassive' => br()->config()->get('Logger/RMQ/ExchangePassive')
-                                                      , 'routingKey'      => br()->config()->get('Logger/RMQ/RoutingKey')
-                                                      )));
+                                                              , 'port'            => br()->config()->get('Logger/RMQ/Port')
+                                                              , 'login'           => br()->config()->get('Logger/RMQ/Login')
+                                                              , 'password'        => br()->config()->get('Logger/RMQ/Password')
+                                                              // optional
+                                                              , 'vhost'           => br()->config()->get('Logger/RMQ/VirtualHost')
+                                                              , 'exchangeName'    => br()->config()->get('Logger/RMQ/ExchangeName', 'logger')
+                                                              , 'exchangeType'    => br()->config()->get('Logger/RMQ/ExchangeType', 'topic')
+                                                              , 'exchangePassive' => br()->config()->get('Logger/RMQ/ExchangePassive')
+                                                              , 'routingKey'      => br()->config()->get('Logger/RMQ/RoutingKey')
+                                                              )));
   }
 }
 

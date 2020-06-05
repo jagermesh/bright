@@ -329,6 +329,12 @@ class BrCore extends BrSingleton {
 
   }
 
+  /**
+   * Get Instance of BrConfig OR value of config-element
+   * @param string $name
+   * @param mixed $defaultValue
+   * @return \Bright\BrConfig|mixed
+   */
   public function config($name = null, $defaultValue = null) {
 
     $config = BrConfig::getInstance();
@@ -395,6 +401,10 @@ class BrCore extends BrSingleton {
 
   }
 
+  /**
+   * Get Instance of BrRequest
+   * @return \Bright\BrRequest
+   */
   public function request() {
 
     return call_user_func_array(array('Bright\BrRequest', 'getInstance'), func_get_args());

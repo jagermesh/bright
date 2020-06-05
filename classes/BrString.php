@@ -461,7 +461,7 @@ class BrString extends BrGenericDataType {
 
   public function forceUTF8() {
 
-    return \ForceUTF8\Encoding::toUTF8(br($this->value)->encodeUTF8MB4(), \ForceUTF8\Encoding::ICONV_TRANSLIT);
+    return br(\ForceUTF8\Encoding::toUTF8($this->value, \ForceUTF8\Encoding::ICONV_TRANSLIT))->encodeUTF8MB4();
 
   }
 
