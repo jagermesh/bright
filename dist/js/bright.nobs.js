@@ -1943,20 +1943,11 @@ THE SOFTWARE.
                  , headers: requestHeaders
                  , success: function(response) {
                      let result, errorMessage;
-                     if (_this.options.crossdomain) {
-                       if (typeof response == 'string') {
-                         result = false;
-                         errorMessage = response.length > 0 ? response : 'Empty response. Was expecting new created records with ROWID.';
-                       } else {
-                         result = true;
-                       }
+                     if (response) {
+                       result = true;
                      } else {
-                       if (response) {
-                         result = true;
-                       } else {
-                         result = false;
-                         errorMessage = 'Empty response. Was expecting new created records with ROWID.';
-                       }
+                       result = false;
+                       errorMessage = 'Empty response. Was expecting new created records with ROWID.';
                      }
                      if (result) {
                        resolve({request: request, options: options, response: response});
@@ -2419,25 +2410,21 @@ THE SOFTWARE.
                                                _this.events.trigger('calcFields', response[i]);
                                              }
                                            }
-                                           if ((_this.options.crossdomain && (typeof response == 'string')) || br.isNull(response)) {
-                                             reject({request: request, options: options, errorMessage: 'Unknown error'});
-                                           } else {
-                                             if (singleRespone && br.isArray(response)) {
-                                               if (response.length > 0) {
-                                                 response = response[0];
-                                               } else {
-                                                 reject({request: request, options: options, errorMessage: 'Record not found'});
-                                                 return;
-                                               }
-                                             } else
-                                             if (!singleRespone && !br.isArray(response)) {
-                                               response = [response];
+                                           if (singleRespone && br.isArray(response)) {
+                                             if (response.length > 0) {
+                                               response = response[0];
+                                             } else {
+                                               reject({request: request, options: options, errorMessage: 'Record not found'});
+                                               return;
                                              }
-                                             if (selectCount) {
-                                               response = parseInt(response);
-                                             }
-                                             resolve({request: request, options: options, response: response});
+                                           } else
+                                           if (!singleRespone && !br.isArray(response)) {
+                                             response = [response];
                                            }
+                                           if (selectCount) {
+                                             response = parseInt(response);
+                                           }
+                                           resolve({request: request, options: options, response: response});
                                          } finally {
                                            selectOperationCounter--;
                                          }
@@ -2540,11 +2527,7 @@ THE SOFTWARE.
                , url: _this.options.restServiceUrlNormalized + method + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
                , headers: requestHeaders
                , success: function(response) {
-                   if (_this.options.crossdomain && (typeof response == 'string')) {
-                     reject({method: method, request: request, options: options, errorMessage: response});
-                   } else {
-                     resolve({method: method, request: request, options: options, response: response});
-                   }
+                   resolve({method: method, request: request, options: options, response: response});
                  }
                , error: function(jqXHR, textStatus, errorThrown) {
                    if (!br.isUnloading()) {

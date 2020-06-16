@@ -106,9 +106,7 @@ class BrRESTBinder extends BrObject {
     $result        = 'login';
 
     if (is_array($securityRules)) {
-
       $found = false;
-
       foreach($methods as $method) {
         if (array_key_exists($method, $securityRules)) {
           $result = $securityRules[$method];
@@ -118,7 +116,6 @@ class BrRESTBinder extends BrObject {
           break;
         }
       }
-
       if (!$found) {
         foreach($securityRules as $RegExp => $value) {
           if ($RegExp == '*') {
@@ -136,21 +133,12 @@ class BrRESTBinder extends BrObject {
           }
         }
       }
-
     } else {
-
       $result = $securityRules;
-
     }
 
     if ($result && !br()->auth()->isLoggedIn()) {
-
-      if (br()->request()->get('crossdomain')) {
-        br()->response()->sendJSONP('Not Authorized');
-      } else {
-        br()->response()->sendNotAuthorized();
-      }
-
+      br()->response()->sendNotAuthorized();
     }
 
   }
@@ -556,27 +544,15 @@ class BrRESTBinder extends BrObject {
             }
           } catch (BrDBNotFoundException $e) {
             br()->log()->logException($e);
-            if (br()->request()->get('crossdomain')) {
-              br()->response()->sendJSONP('Record not found');
-            } else {
-              br()->response()->send404('Record not found');
-            }
+            br()->response()->send404('Record not found');
           } catch (\Exception $e) {
             $this->returnException($e);
           }
         } else {
-          if (br()->request()->get('crossdomain')) {
-            br()->response()->sendJSONP('Method not allowed');
-          } else {
-            br()->response()->sendMethodNotAllowed();
-          }
-        }
-      } else {
-        if (br()->request()->get('crossdomain')) {
-          br()->response()->sendJSONP('Method not allowed');
-        } else {
           br()->response()->sendMethodNotAllowed();
         }
+      } else {
+        br()->response()->sendMethodNotAllowed();
       }
 
     }
@@ -713,27 +689,15 @@ class BrRESTBinder extends BrObject {
             }
           } catch (BrDBNotFoundException $e) {
             br()->log()->logException($e);
-            if (br()->request()->get('crossdomain')) {
-              br()->response()->sendJSONP('Record not found');
-            } else {
-              br()->response()->send404('Record not found');
-            }
+            br()->response()->send404('Record not found');
           } catch (\Exception $e) {
             $this->returnException($e);
           }
         } else {
-          if (br()->request()->get('crossdomain')) {
-            br()->response()->sendJSONP('Method not allowed');
-          } else {
-            br()->response()->sendMethodNotAllowed();
-          }
-        }
-      } else {
-        if (br()->request()->get('crossdomain')) {
-          br()->response()->sendJSONP('Method not allowed');
-        } else {
           br()->response()->sendMethodNotAllowed();
         }
+      } else {
+        br()->response()->sendMethodNotAllowed();
       }
 
     }
@@ -762,11 +726,7 @@ class BrRESTBinder extends BrObject {
     if ($outputSent) {
       $message = '';
     }
-    if (br()->request()->get('crossdomain')) {
-      br()->response()->sendJSONP($message);
-    } else {
-      br()->response()->sendBadRequest($message);
-    }
+    br()->response()->sendBadRequest($message);
 
   }
 
