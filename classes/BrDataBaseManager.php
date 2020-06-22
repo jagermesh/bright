@@ -1086,7 +1086,10 @@ class BrDataBaseManager {
                 $patchObjectsExecuted[] = $patch;
               } catch (\Exception $e) {
                 $cmd->logException($e->getMessage());
-                $returnCode = 1;
+                $results[] = array( 'message'    => $patch->logPrefix() . ' ' . $e->getMessage()
+                                  , 'is_error'   => true
+                                  , 'is_warning' => false
+                                  );
               }
             } catch (\Exception $e) {
               $patchObjectsDeferred[] = $patch;

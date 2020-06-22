@@ -232,8 +232,9 @@ class BrDataSource extends BrGenericDataSource {
             }
             if (!br($options, 'noCalcFields')) {
               $this->callEvent('prepareCalcFields', $result, $transientData, $options);
-              foreach($result as &$row) {
+              foreach($result as $key => $row) {
                 $this->callEvent('calcFields', $row, $transientData, $options);
+                $result[$key] = $row;
               }
             }
           }
@@ -250,14 +251,16 @@ class BrDataSource extends BrGenericDataSource {
 
       if (!$countOnly && is_array($result)) {
         $this->lastSelectAmount = 0;
-        foreach($result as &$row) {
+        foreach($result as $key => $row) {
           $row['rowid'] = $this->getDb()->rowidValue($row, $this->rowidFieldName);
+          $result[$key] = $row;
           $this->lastSelectAmount++;
         }
         if (!br($options, 'noCalcFields')) {
           $this->callEvent('prepareCalcFields', $result, $transientData, $options);
-          foreach($result as &$row) {
+          foreach($result as $key => $row) {
             $this->callEvent('calcFields', $row, $transientData, $options);
+            $result[$key] = $row;
           }
         }
       }

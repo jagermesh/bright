@@ -2,7 +2,7 @@
   "name": "jagermesh/bright",
   "type": "library",
   "description": "Reactive PHP/JavaScript Framework",
-  "version": "2.0.54",
+  "version": "2.0.55",
   "license": "MIT",
   "authors": [
     {
@@ -14,8 +14,8 @@
     "php": ">=7.1.0",
     "swiftmailer/swiftmailer": "^6.2",
     "mustache/mustache": "^2.13",
-    "longman/telegram-bot": "^0.62.0",
-    "neitanod/forceutf8": "~2.0"
+    "longman/telegram-bot": "^0.63.0",
+    "neitanod/forceutf8": "^2.0"
   },
   "require-dev": {
     "codeception/codeception": "^4.1",

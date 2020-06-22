@@ -4725,8 +4725,8 @@ THE SOFTWARE.
                         <div class="modal-content">`;
     if (title !== '') {
       template += `<div class="modal-header">
-                     <h3 class="modal-title">${title}</h3>
                      <a class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
+                     <h3 class="modal-title">${title}</h3>
                    </div>`;
     }
     template += `<div class="modal-body" style="overflow-y:auto;">${message}</div>
@@ -4792,8 +4792,8 @@ THE SOFTWARE.
                         <div class="modal-content">`;
     if (title !== '') {
       template += `<div class="modal-header">
-                     <h3 class="modal-title">${title}</h3>
                      <a class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
+                     <h3 class="modal-title">${title}</h3>
                    </div>`;
     }
     template += `<div class="modal-body" style="overflow-y:auto;">${message}</div>
@@ -4858,8 +4858,8 @@ THE SOFTWARE.
                       <div class="modal-dialog" role="document">
                         <div class="modal-content">
                         <div class="modal-header">
-                          <h3 class="modal-title">${title}</h3>
                           <a class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
+                          <h3 class="modal-title">${title}</h3>
                         </div>
                         <div class="modal-body" style="overflow-y:auto;">`;
     for(let inputLabel in inputs) {
