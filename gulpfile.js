@@ -21,6 +21,7 @@ const configs = { jshint: { src: ['js/**/*.js'] }
                                   , { dest: '3rdparty/handlebars/4.1.2/js/', src: ['3rdparty/handlebars/4.1.2/js/handlebars.js'] }
                                   , { dest: '3rdparty/handlebars/latest/js/', src: ['3rdparty/handlebars/latest/js/handlebars.js'] }
                                   , { dest: '3rdparty/fileuploader/latest/js/', src: ['3rdparty/fileuploader/latest/js/fileuploader.js'] }
+                                  , { dest: '3rdparty/select2/3.5.4/js/', src: ['3rdparty/select2/3.5.4/js/select2.js'] }
                                   ]
                           , dist: [ { dest: 'dist/js/', src: ['dist/js/*.js', '!dist/js/*.min.js'] }
                                   ]

@@ -147,7 +147,8 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
 
     try {
       $rowid = br()->db()->rowidValue($login);
-      if ($login = br()->db()->getCachedRow('SELECT * FROM ' . $usersTable . ' WHERE id = ?', $rowid)) {
+      if ($rawUser = br()->db()->getCachedRow('SELECT * FROM ' . $usersTable . ' WHERE id = ?', $rowid)) {
+        $login = array_merge($rawUser, $login);
         $login['rowid'] = $rowid;
         return parent::validateLogin($login);
       } else {
@@ -168,9 +169,10 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
 
     try {
       $rowid = br()->db()->rowidValue($login);
-      if ($login = br()->db()->getCachedRow('SELECT * FROM ' . $usersTable . ' WHERE id = ?', $rowid)) {
-        $rememberPassword = ($remember && ($password = br($login, $passwordField)) && ($username = br($login, $loginField)));
+      if ($rawUser = br()->db()->getCachedRow('SELECT * FROM ' . $usersTable . ' WHERE id = ?', $rowid)) {
+        $login = array_merge($rawUser, $login);
         $login['rowid'] = $rowid;
+        $rememberPassword = ($remember && ($password = br($login, $passwordField)) && ($username = br($login, $loginField)));
         $login = parent::validateLogin($login);
         if ($rememberPassword) {
           $cookie = array( 'login' => $username
