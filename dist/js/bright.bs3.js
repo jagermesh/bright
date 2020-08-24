@@ -5265,18 +5265,45 @@ THE SOFTWARE.
     try {
       $(selector).each(function() {
         $(this).bootstrapDatepicker({
-          todayBtn: 'linked',
-          clearBtn: true,
-          multidate: false,
-          autoclose: true,
-          todayHighlight: true,
-          orientation: 'top'
-        }).on('show', function() {
-          $(this).bootstrapDatepicker('update', $(this).val());
+          todayBtn: 'linked'
+        , clearBtn: true
+        , multidate: false
+        , autoclose: true
+        , todayHighlight: true
+        , orientation: ($(this).attr('data-dp-orientation') ? $(this).attr('data-dp-orientation') : 'top')
+        }).on('show', function(evt) {
+          if (!evt.date) {
+            if ($(this).val()) {
+              $(this).bootstrapDatepicker('update', $(this).val());
+            }
+          }
         });
       });
     } catch (e) {
-      br.log('[ERROR] bootstrapDatepicker expected but script was not loaded');
+      br.log('[ERROR] bootstrapDatePicker expected but script was not loaded');
+    }
+
+  }
+
+  function attachBootstrapDateTimePickers(selector) {
+
+    try {
+      $(selector).each(function() {
+        $(this).datetimepicker({
+            format: 'mm/dd/yyyy HH:ii P'
+          , autoclose: true
+          , todayBtn: true
+          , pickerPosition: 'bottom-left'
+          , minuteStep: 5
+          , showMeridian: true
+          , useCurrent: false
+          , todayHighlight: false
+        }).on('show', function() {
+          // $(this).datetimepicker('update', $(this).val());
+        });
+      });
+    } catch (e) {
+      br.log('[ERROR] bootstrapDateTimePicker expected but script was not loaded');
     }
 
   }
@@ -5286,9 +5313,11 @@ THE SOFTWARE.
     if (container) {
       attachjQueryUIDatePickers($('input.datepicker', container));
       attachBootstrapDatePickers($('input.bootstrap-datepicker', container));
+      attachBootstrapDateTimePickers($('input.bootstrap-datetimepicker', container));
     } else {
       attachjQueryUIDatePickers($('input.datepicker'));
       attachBootstrapDatePickers($('input.bootstrap-datepicker'));
+      attachBootstrapDateTimePickers($('input.bootstrap-datetimepicker'));
     }
 
   };
