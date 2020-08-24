@@ -2900,6 +2900,12 @@ THE SOFTWARE.
       }
     });
 
+    _this.getContainer = function() {
+      return $(_this.selector);
+    };
+
+    _this.container = _this.getContainer();
+
     _this.setStored = function(name, value) {
       let stored = br.storage.get(_this.storageTag + 'Stored');
       stored = stored || Object.create({});
@@ -3693,6 +3699,11 @@ THE SOFTWARE.
               };
             }
             _this.selector.select2(params);
+            if (_this.val()) {
+              _this.selector.addClass('br-input-has-value');
+            } else {
+              _this.selector.removeClass('br-input-has-value');
+            }
             beautified = true;
             beautifier = 'select2';
           }
@@ -3918,10 +3929,10 @@ THE SOFTWARE.
           if (!br.isEmpty(val)) {
             if (br.isArray(val)) {
               for(let k = 0, length = val.length; k < length; k++) {
-                _selector.find('option[value="' + val[k] +'"]').prop('selected', true).attr('selected', 'selected');
+                _selector.find(`option[value="${val[k]}"]`).prop('selected', true).attr('selected', 'selected');
               }
             } else {
-              _selector.find('option[value="' + val +'"]').prop('selected', true).attr('selected', 'selected');
+              _selector.find(`option[value="${val}"]`).prop('selected', true).attr('selected', 'selected');
             }
           }
 
@@ -5222,6 +5233,7 @@ THE SOFTWARE.
 
     $(modal).find('.modal-body').css('max-height', mh + 'px');
     $(modal).find('.modal-body').css('overflow-y', 'auto');
+    $(modal).trigger('bs.body.resize');
 
   };
 
@@ -5250,6 +5262,8 @@ THE SOFTWARE.
           autoclose: true,
           todayHighlight: true,
           orientation: 'top'
+        }).on('show', function() {
+          $(this).bootstrapDatepicker('update', $(this).val());
         });
       });
     } catch (e) {
@@ -5331,7 +5345,7 @@ THE SOFTWARE.
 
   };
 
-  window.br.setComboValue = function(selector, value, fromBrDataCombo) {
+  window.br.setValue = window.br.setComboValue = function(selector, value, fromBrDataCombo) {
 
     $(selector).each(function() {
       const element = $(this);
@@ -5425,6 +5439,7 @@ THE SOFTWARE.
       if (control.data('brAutoSizeConfigured')) {
 
       } else {
+        control.data('brAutoSizeConfigured', 1);
         if (br.bootstrapVersion == 2) {
           control.css('top', '20px');
           control.css('margin-top', '0px');
@@ -5433,7 +5448,6 @@ THE SOFTWARE.
         $(window).resize(function(){
           br.resizeModalPopup(control);
         });
-        control.data('brAutoSizeConfigured', 1);
       }
     }
 
@@ -5612,6 +5626,17 @@ THE SOFTWARE.
     $(document).on('keypress', 'input[data-click-on-enter]', function(event) {
       if (event.keyCode == 13) {
         $($(this).attr('data-click-on-enter')).trigger('click');
+      }
+    });
+
+    $(document).on('click', '.action-clear-selector-value', function(event) {
+      const target = $($(this).attr('data-selector'));
+      if (target.length > 0) {
+        br.setValue(target, '');
+        target.trigger('change');
+        if (target.attr('data-click-on-enter')) {
+          $(target.attr('data-click-on-enter')).trigger('click');
+        }
       }
     });
 
@@ -5835,12 +5860,11 @@ THE SOFTWARE.
     _this.options.selectors.save = _this.options.selectors.save || '.action-save';
     _this.options.selectors.cancel = _this.options.selectors.cancel || '.action-cancel';
     _this.options.selectors.errorMessage = _this.options.selectors.errorMessage || '.editor-error-message';
-    _this.container = $(selector);
 
     if (_this.options.inputsContainer) {
       _this.inputsContainer = $(_this.options.inputsContainer);
     } else {
-      _this.inputsContainer = _this.container;
+      _this.inputsContainer = $(selector);
     }
 
     _this.dataSource = dataSource;
@@ -5850,6 +5874,12 @@ THE SOFTWARE.
     _this.on     = function(event, callback) { _this.events.on(event, callback); };
     _this.pause  = function(event, callback) { _this.events.pause(event, callback); };
     _this.after  = function(event, callback) { _this.events.after(event, callback); };
+
+    _this.getContainer = function() {
+      return $(selector);
+    };
+
+    _this.container = _this.getContainer();
 
     _this.rowid = function() {
       return editorRowid;
@@ -6404,19 +6434,29 @@ THE SOFTWARE.
       }
     }
 
-    _this.scrollContainer = function() {
+    _this.getContainer = function() {
+      if (_this.options.selectors.container !== '') {
+        return $(_this.options.selectors.container);
+      } else {
+        return $('body');
+      }
+    };
+
+    _this.container = _this.getContainer();
+
+    _this.getScrollContainer = function() {
       if (_this.options.selectors.container !== '') {
         if (_this.options.selectors.scrollContainer !== '') {
           if (_this.options.selectors.scrollContainer.indexOf('#') === 0) {
-             return _this.options.selectors.scrollContainer;
+             return $(_this.options.selectors.scrollContainer);
           } else {
-            return _this.options.selectors.container + ' ' + _this.options.selectors.scrollContainer;
+            return $(_this.options.selectors.container + ' ' + _this.options.selectors.scrollContainer);
           }
         } else {
-          return _this.options.selectors.container;
+          return $(_this.options.selectors.container);
         }
       } else {
-        return _this.options.selectors.scrollContainer;
+        return $(_this.options.selectors.scrollContainer);
       }
     };
 
@@ -6531,7 +6571,7 @@ THE SOFTWARE.
     };
 
     _this.getFilter = function(name, defaultValue) {
-      return _this.dataGrid.setFilter(name, defaultValue);
+      return _this.dataGrid.getFilter(name, defaultValue);
     };
 
     _this.resetFilters = function(stopPropagation) {
@@ -6656,7 +6696,8 @@ THE SOFTWARE.
 
       _this.dataSource.before('select', function(request, options) {
         request = request || Object.create({});
-        if ($(findNode('input.data-filter[name=keyword]')).length > 0) {
+        const keywordControl = $(findNode('input.data-filter[name=keyword]'));
+        if (keywordControl.length > 0) {
           request.keyword = $(findNode('input.data-filter[name=keyword]')).val();
           _this.setFilter('keyword', request.keyword);
         }
@@ -6697,20 +6738,41 @@ THE SOFTWARE.
       });
 
       // search
-
-      br.modified(findNode('input.data-filter[name=keyword]'), function() {
-        const _val = $(this).val();
-        $(findNode('input.data-filter[name=keyword]')).each(function() {
-          if ($(this).val() != _val) {
-            $(this).val(_val);
-          }
-        });
-        if ($(this).hasClass('instant-search')) {
-          _this.refreshDeferred();
+      const inputControls = $(findNode('input.data-filter,select.data-filter'));
+      inputControls.each(function() {
+        if ($(this).parent().hasClass('input-append')) {
+          $(this).parent().addClass('data-filter');
+          $(this).parent().css({ display: 'inline-block', position: 'relative' });
         }
       });
 
-      br.modified(findNode('input.data-filter') + ',' + findNode('select.data-filter'), function() {
+      const keywordControl = $(findNode('input.data-filter[name=keyword]'));
+      if (keywordControl.length > 0) {
+        br.modified(keywordControl, function() {
+          const val = $(this).val();
+          keywordControl.each(function() {
+            if ($(this).val() != val) {
+              $(this).val(val);
+            }
+          });
+          if ($(this).hasClass('instant-search')) {
+            _this.refreshDeferred();
+          }
+        });
+      }
+
+      br.modified(findNode('input.data-filter,select.data-filter'), function() {
+        const val = $(this).val();
+        let container = $(this).parent();
+        if (container.hasClass('input-append')) {
+        } else {
+          container = $(this);
+        }
+        if (br.isEmpty(val)) {
+          container.removeClass('br-input-has-value');
+        } else {
+          container.addClass('br-input-has-value');
+        }
         _this.resetPager();
       });
 
@@ -6718,7 +6780,7 @@ THE SOFTWARE.
 
       if (_this.options.features.editor) {
         let editorOptions = _this.options.editor || { noun: _this.options.noun };
-        _this.editor = br.dataEditor(_this.options.selectors.editForm, _this.dataSource, editorOptions);
+        _this.editor = _this.dataEditor = br.dataEditor(_this.options.selectors.editForm, _this.dataSource, editorOptions);
         _this.editor.events.connectTo(_this.events);
 
         $(findNode('.action-create')).show();
@@ -6766,11 +6828,11 @@ THE SOFTWARE.
         _this.refresh({}, null, true);
       });
 
-      $(findNode('.action-refresh')).click(function() {
+      $(findNode('.action-refresh')).on('click', function() {
         _this.refresh();
       });
 
-      $(findNode('.action-clear-one-filter')).click(function() {
+      $(findNode('.action-clear-one-filter')).on('click', function() {
         $(findNode('.data-filter[name=' + $(this).attr('rel') + ']')).val('');
         $(findNode('.data-filter[name=' + $(this).attr('rel') + ']')).trigger('change');
         _this.refresh();
@@ -6851,8 +6913,8 @@ THE SOFTWARE.
       function checkAutoLoad() {
 
         const docsHeight = $(_this.options.selectors.dataTable).height();
-        const docsContainerHeight = $(_this.scrollContainer()).height();
-        const scrollTop = $(_this.scrollContainer()).scrollTop();
+        const docsContainerHeight = _this.getScrollContainer().height();
+        const scrollTop = _this.getScrollContainer().scrollTop();
 
         if (scrollTop + docsContainerHeight > docsHeight) {
           _this.dataGrid.loadMore();
@@ -6861,7 +6923,7 @@ THE SOFTWARE.
       }
 
       if (_this.options.autoLoad) {
-        $(_this.scrollContainer()).on('scroll', function() {
+        _this.getScrollContainer().on('scroll', function() {
           checkAutoLoad();
         });
       }

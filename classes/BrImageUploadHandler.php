@@ -14,7 +14,7 @@ class BrImageUploadHandler extends BrFileUploadHandler {
 
   public function __construct($options = array()) {
 
-    $options['allowedExtensions'] = array('jpeg', 'jpg', 'gif', 'png');
+    $options['allowedExtensions'] = array('jpeg', 'jpg', 'gif', 'png', 'svg');
 
     parent::__construct($options);
 

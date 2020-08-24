@@ -22,8 +22,8 @@ class BrDataBasePatch {
   private $dependencies = array();
   private $className;
   private $patchFile;
-  private $logObject;
 
+  protected $logObject;
   protected $dbManager;
 
   const DO_ABORT    = 0;

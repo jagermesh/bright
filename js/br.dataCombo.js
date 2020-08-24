@@ -142,6 +142,11 @@
               };
             }
             _this.selector.select2(params);
+            if (_this.val()) {
+              _this.selector.addClass('br-input-has-value');
+            } else {
+              _this.selector.removeClass('br-input-has-value');
+            }
             beautified = true;
             beautifier = 'select2';
           }
@@ -367,10 +372,10 @@
           if (!br.isEmpty(val)) {
             if (br.isArray(val)) {
               for(let k = 0, length = val.length; k < length; k++) {
-                _selector.find('option[value="' + val[k] +'"]').prop('selected', true).attr('selected', 'selected');
+                _selector.find(`option[value="${val[k]}"]`).prop('selected', true).attr('selected', 'selected');
               }
             } else {
-              _selector.find('option[value="' + val +'"]').prop('selected', true).attr('selected', 'selected');
+              _selector.find(`option[value="${val}"]`).prop('selected', true).attr('selected', 'selected');
             }
           }
 

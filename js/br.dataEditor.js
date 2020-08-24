@@ -29,12 +29,11 @@
     _this.options.selectors.save = _this.options.selectors.save || '.action-save';
     _this.options.selectors.cancel = _this.options.selectors.cancel || '.action-cancel';
     _this.options.selectors.errorMessage = _this.options.selectors.errorMessage || '.editor-error-message';
-    _this.container = $(selector);
 
     if (_this.options.inputsContainer) {
       _this.inputsContainer = $(_this.options.inputsContainer);
     } else {
-      _this.inputsContainer = _this.container;
+      _this.inputsContainer = $(selector);
     }
 
     _this.dataSource = dataSource;
@@ -44,6 +43,12 @@
     _this.on     = function(event, callback) { _this.events.on(event, callback); };
     _this.pause  = function(event, callback) { _this.events.pause(event, callback); };
     _this.after  = function(event, callback) { _this.events.after(event, callback); };
+
+    _this.getContainer = function() {
+      return $(selector);
+    };
+
+    _this.container = _this.getContainer();
 
     _this.rowid = function() {
       return editorRowid;

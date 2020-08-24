@@ -42,19 +42,29 @@
       }
     }
 
-    _this.scrollContainer = function() {
+    _this.getContainer = function() {
+      if (_this.options.selectors.container !== '') {
+        return $(_this.options.selectors.container);
+      } else {
+        return $('body');
+      }
+    };
+
+    _this.container = _this.getContainer();
+
+    _this.getScrollContainer = function() {
       if (_this.options.selectors.container !== '') {
         if (_this.options.selectors.scrollContainer !== '') {
           if (_this.options.selectors.scrollContainer.indexOf('#') === 0) {
-             return _this.options.selectors.scrollContainer;
+             return $(_this.options.selectors.scrollContainer);
           } else {
-            return _this.options.selectors.container + ' ' + _this.options.selectors.scrollContainer;
+            return $(_this.options.selectors.container + ' ' + _this.options.selectors.scrollContainer);
           }
         } else {
-          return _this.options.selectors.container;
+          return $(_this.options.selectors.container);
         }
       } else {
-        return _this.options.selectors.scrollContainer;
+        return $(_this.options.selectors.scrollContainer);
       }
     };
 
@@ -169,7 +179,7 @@
     };
 
     _this.getFilter = function(name, defaultValue) {
-      return _this.dataGrid.setFilter(name, defaultValue);
+      return _this.dataGrid.getFilter(name, defaultValue);
     };
 
     _this.resetFilters = function(stopPropagation) {
@@ -294,7 +304,8 @@
 
       _this.dataSource.before('select', function(request, options) {
         request = request || Object.create({});
-        if ($(findNode('input.data-filter[name=keyword]')).length > 0) {
+        const keywordControl = $(findNode('input.data-filter[name=keyword]'));
+        if (keywordControl.length > 0) {
           request.keyword = $(findNode('input.data-filter[name=keyword]')).val();
           _this.setFilter('keyword', request.keyword);
         }
@@ -335,20 +346,41 @@
       });
 
       // search
-
-      br.modified(findNode('input.data-filter[name=keyword]'), function() {
-        const _val = $(this).val();
-        $(findNode('input.data-filter[name=keyword]')).each(function() {
-          if ($(this).val() != _val) {
-            $(this).val(_val);
-          }
-        });
-        if ($(this).hasClass('instant-search')) {
-          _this.refreshDeferred();
+      const inputControls = $(findNode('input.data-filter,select.data-filter'));
+      inputControls.each(function() {
+        if ($(this).parent().hasClass('input-append')) {
+          $(this).parent().addClass('data-filter');
+          $(this).parent().css({ display: 'inline-block', position: 'relative' });
         }
       });
 
-      br.modified(findNode('input.data-filter') + ',' + findNode('select.data-filter'), function() {
+      const keywordControl = $(findNode('input.data-filter[name=keyword]'));
+      if (keywordControl.length > 0) {
+        br.modified(keywordControl, function() {
+          const val = $(this).val();
+          keywordControl.each(function() {
+            if ($(this).val() != val) {
+              $(this).val(val);
+            }
+          });
+          if ($(this).hasClass('instant-search')) {
+            _this.refreshDeferred();
+          }
+        });
+      }
+
+      br.modified(findNode('input.data-filter,select.data-filter'), function() {
+        const val = $(this).val();
+        let container = $(this).parent();
+        if (container.hasClass('input-append')) {
+        } else {
+          container = $(this);
+        }
+        if (br.isEmpty(val)) {
+          container.removeClass('br-input-has-value');
+        } else {
+          container.addClass('br-input-has-value');
+        }
         _this.resetPager();
       });
 
@@ -356,7 +388,7 @@
 
       if (_this.options.features.editor) {
         let editorOptions = _this.options.editor || { noun: _this.options.noun };
-        _this.editor = br.dataEditor(_this.options.selectors.editForm, _this.dataSource, editorOptions);
+        _this.editor = _this.dataEditor = br.dataEditor(_this.options.selectors.editForm, _this.dataSource, editorOptions);
         _this.editor.events.connectTo(_this.events);
 
         $(findNode('.action-create')).show();
@@ -404,11 +436,11 @@
         _this.refresh({}, null, true);
       });
 
-      $(findNode('.action-refresh')).click(function() {
+      $(findNode('.action-refresh')).on('click', function() {
         _this.refresh();
       });
 
-      $(findNode('.action-clear-one-filter')).click(function() {
+      $(findNode('.action-clear-one-filter')).on('click', function() {
         $(findNode('.data-filter[name=' + $(this).attr('rel') + ']')).val('');
         $(findNode('.data-filter[name=' + $(this).attr('rel') + ']')).trigger('change');
         _this.refresh();
@@ -489,8 +521,8 @@
       function checkAutoLoad() {
 
         const docsHeight = $(_this.options.selectors.dataTable).height();
-        const docsContainerHeight = $(_this.scrollContainer()).height();
-        const scrollTop = $(_this.scrollContainer()).scrollTop();
+        const docsContainerHeight = _this.getScrollContainer().height();
+        const scrollTop = _this.getScrollContainer().scrollTop();
 
         if (scrollTop + docsContainerHeight > docsHeight) {
           _this.dataGrid.loadMore();
@@ -499,7 +531,7 @@
       }
 
       if (_this.options.autoLoad) {
-        $(_this.scrollContainer()).on('scroll', function() {
+        _this.getScrollContainer().on('scroll', function() {
           checkAutoLoad();
         });
       }

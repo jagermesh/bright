@@ -1046,6 +1046,9 @@ class BrCore extends BrSingleton {
       case 'swf':
         $result = 'application/x-shockwave-flash';
         break;
+      case 'svg':
+        $result = 'image/svg+xml';
+        break;
       default:
         $result = 'application/octet-stream';
         break;

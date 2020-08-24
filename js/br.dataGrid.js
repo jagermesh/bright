@@ -89,6 +89,12 @@
       }
     });
 
+    _this.getContainer = function() {
+      return $(_this.selector);
+    };
+
+    _this.container = _this.getContainer();
+
     _this.setStored = function(name, value) {
       let stored = br.storage.get(_this.storageTag + 'Stored');
       stored = stored || Object.create({});

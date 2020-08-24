@@ -14,7 +14,7 @@ class BrS3ImageUploadHandler extends BrGenericUploadHandler {
 
   public function __construct($params = array()) {
 
-    $params['allowedExtensions'] = array('jpeg', 'jpg', 'gif', 'png');
+    $params['allowedExtensions'] = array('jpeg', 'jpg', 'gif', 'png', 'svg');
 
     parent::__construct($params);
 

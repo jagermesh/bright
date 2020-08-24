@@ -753,6 +753,7 @@
 
     $(modal).find('.modal-body').css('max-height', mh + 'px');
     $(modal).find('.modal-body').css('overflow-y', 'auto');
+    $(modal).trigger('bs.body.resize');
 
   };
 
@@ -781,6 +782,8 @@
           autoclose: true,
           todayHighlight: true,
           orientation: 'top'
+        }).on('show', function() {
+          $(this).bootstrapDatepicker('update', $(this).val());
         });
       });
     } catch (e) {
@@ -862,7 +865,7 @@
 
   };
 
-  window.br.setComboValue = function(selector, value, fromBrDataCombo) {
+  window.br.setValue = window.br.setComboValue = function(selector, value, fromBrDataCombo) {
 
     $(selector).each(function() {
       const element = $(this);
@@ -956,6 +959,7 @@
       if (control.data('brAutoSizeConfigured')) {
 
       } else {
+        control.data('brAutoSizeConfigured', 1);
         if (br.bootstrapVersion == 2) {
           control.css('top', '20px');
           control.css('margin-top', '0px');
@@ -964,7 +968,6 @@
         $(window).resize(function(){
           br.resizeModalPopup(control);
         });
-        control.data('brAutoSizeConfigured', 1);
       }
     }
 
@@ -1143,6 +1146,17 @@
     $(document).on('keypress', 'input[data-click-on-enter]', function(event) {
       if (event.keyCode == 13) {
         $($(this).attr('data-click-on-enter')).trigger('click');
+      }
+    });
+
+    $(document).on('click', '.action-clear-selector-value', function(event) {
+      const target = $($(this).attr('data-selector'));
+      if (target.length > 0) {
+        br.setValue(target, '');
+        target.trigger('change');
+        if (target.attr('data-click-on-enter')) {
+          $(target.attr('data-click-on-enter')).trigger('click');
+        }
       }
     });
 
