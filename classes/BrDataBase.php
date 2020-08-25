@@ -37,6 +37,9 @@ class BrDataBase extends BrObject {
           case 'mongodb':
             self::$instances[$hash]['provider'] = new BrMongoDBProvider($config);
             break;
+          case 'mssql':
+            self::$instances[$hash]['provider'] = new BrMSSQLDBProvider($config);
+            break;
         }
       }
 
