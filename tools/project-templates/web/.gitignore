@@ -5,4 +5,3 @@ _tmp
 /config.app.php
 /config.db.php
 /node_modules
-/package-lock.json
