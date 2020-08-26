@@ -4583,8 +4583,8 @@ THE SOFTWARE.
     template += `<div class="modal-dialog" role="document">
                    <div class="modal-content">
                    <div class="modal-header">
-                     <a class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
                      <h3 class="modal-title">${title}</h3>
+                     <a class="close pull-right float-right" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
                    </div>
                    <div class="modal-body" style="overflow-y:auto;">${message} ${checkBoxes}</div>
                    <div class="modal-footer">`;
@@ -4726,8 +4726,8 @@ THE SOFTWARE.
                         <div class="modal-content">`;
     if (title !== '') {
       template += `<div class="modal-header">
-                     <a class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
                      <h3 class="modal-title">${title}</h3>
+                     <a class="close pull-right float-right" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
                    </div>`;
     }
     template += `<div class="modal-body" style="overflow-y:auto;">${message}</div>
@@ -4793,8 +4793,8 @@ THE SOFTWARE.
                         <div class="modal-content">`;
     if (title !== '') {
       template += `<div class="modal-header">
-                     <a class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
                      <h3 class="modal-title">${title}</h3>
+                     <a class="close pull-right float-right" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
                    </div>`;
     }
     template += `<div class="modal-body" style="overflow-y:auto;">${message}</div>
@@ -4859,8 +4859,8 @@ THE SOFTWARE.
                       <div class="modal-dialog" role="document">
                         <div class="modal-content">
                         <div class="modal-header">
-                          <a class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
                           <h3 class="modal-title">${title}</h3>
+                          <a class="close pull-right float-right" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
                         </div>
                         <div class="modal-body" style="overflow-y:auto;">`;
     for(let inputLabel in inputs) {
