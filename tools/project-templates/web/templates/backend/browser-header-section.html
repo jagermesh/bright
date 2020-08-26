@@ -1,0 +1,17 @@
+    <nav class="navbar navbar-expand-lg navbar-light mb-2 mt-3" style="background-color: #EEE;">
+      <a class="navbar-brand" href="javascript:;">[[section-title]]</a>
+      <a class="btn btn-outline-secondary action-create mr-sm-2" href="javascript:;" title="Create"><i class="far fa-plus"></i> Create</a>
+      <a class="btn btn-outline-secondary action-refresh mr-sm-2" href="javascript:;"><i class="far fa-sync-alt"></i> Refresh</a>
+      <div class="form-inline my-2 my-lg-0">
+        <div class="input-group">
+          <input type="text" class="form-control data-filter" title="Search by" placeholder="search" name="keyword" data-click-on-enter=".action-refresh" />
+          <span class="input-group-append">
+            <button class="btn btn-outline-secondary action-refresh" type="button"><i class="far fa-search"></i></button>
+            <button class="btn btn-outline-secondary action-clear-selector-value" data-selector="input.data-filter[name=keyword]" type="button"><i class="fas fa-times"></i></button>
+          </span>
+        </div>
+      </div>
+      <div class="mr-auto">
+        <!-- <a class="btn btn-outline-secondary action-reset-filters" href="javascript:;"><i class="far fa-times"></i> Reset filters</a> -->
+      </div>
+    </nav>

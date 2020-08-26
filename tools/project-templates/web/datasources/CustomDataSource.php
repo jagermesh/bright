@@ -4,7 +4,7 @@ namespace DataSources;
 
 class CustomDataSource extends \Bright\BrDataSource {
 
-  function __construct($table, $options = array()) {
+  function __construct($table, $options = []) {
 
     parent::__construct($table, $options);
 

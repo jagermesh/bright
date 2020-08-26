@@ -10,7 +10,7 @@ class UsersDataSource extends \Bright\BrUsersDataSource {
 
     $this->on('calcFields', function($dataSource, &$row) {
 
-      $row['flag']['isNotify'] = (br($row, 'is_notify_about_messages') > 0);
+      $row['flag']['isActive'] = (br($row, 'is_active') > 0);
 
       unset($row['password']);
 
@@ -25,6 +25,12 @@ class UsersDataSource extends \Bright\BrUsersDataSource {
       }
 
       throw new \Bright\BrAppException('Access denied');
+
+    });
+
+    $this->before('loginSelectUser', function($dataSource, $params, &$filter) {
+
+      $filter[] = [ 'is_active' => 1 ];
 
     });
 

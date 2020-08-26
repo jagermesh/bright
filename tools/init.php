@@ -48,7 +48,7 @@ if ($templateName = @$argv[1]) {
       if ($file->isDir()) {
         br()->fs()->makeDir($dst);
       }
-      if ($file->isFile() && ($file->name() != '.DS_Store') && ($file->name() != '.description') && ($file->name() != 'composer.json')) {
+      if ($file->isFile() && ($file->name() != '.DS_Store') && ($file->name() != '.description')) {
         copy($file->nameWithPath(), $dst);
       }
     });
