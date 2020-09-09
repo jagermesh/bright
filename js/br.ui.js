@@ -994,7 +994,7 @@
           control.css('margin-top', '0px');
           control.css('position', 'fixed');
         }
-        $(window).resize(function(){
+        $(window).on('resize', function(){
           br.resizeModalPopup(control);
         });
       }

@@ -50,8 +50,12 @@ class BrRequest extends BrSingleton {
       if (!$serverAddr || ($serverAddr == '::1')) {
         $serverAddr = '127.0.0.1';
       }
-      $protocol = 'http'.((br($_SERVER, 'HTTPS') == 'on') ? 's' : '') . '://';
-      $host = $protocol . $domain;
+      if (br()->config()->get('br/request/forceHttps')) {
+        $this->protocol = 'https://';
+      } else {
+        $this->protocol = 'http'.((br($_SERVER, 'HTTPS') == 'on') ? 's' : '') . '://';
+      }
+      $host = $this->protocol . $domain;
       $request = br($_SERVER, 'REQUEST_URI');
       $query = preg_replace('~^[^?]*~', '', $request);
       $request = preg_replace('~[?].*$~', '', $request);
@@ -88,7 +92,6 @@ class BrRequest extends BrSingleton {
       $this->path = $path;
       $this->serverAddr = $serverAddr;
       $this->domain = $domain;
-      $this->protocol = $protocol;
       $this->host = $host;
       $this->relativeUrl = $relativeUrl;
       $this->baseUrl = $baseUrl;

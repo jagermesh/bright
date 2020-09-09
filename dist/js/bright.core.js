@@ -2907,20 +2907,20 @@ THE SOFTWARE.
     _this.container = _this.getContainer();
 
     _this.setStored = function(name, value) {
-      let stored = br.storage.get(_this.storageTag + 'Stored');
+      let stored = br.storage.get(`${_this.storageTag}Stored`);
       stored = stored || Object.create({});
       stored[name] = value;
-      br.storage.set(_this.storageTag + 'Stored', stored);
+      br.storage.set(`${_this.storageTag}Stored`, stored);
     };
 
     _this.getStored = function(name, defaultValue) {
-      let stored = br.storage.get(_this.storageTag + 'Stored');
+      let stored = br.storage.get(`${_this.storageTag}Stored`);
       let result = stored ? stored[name] : stored;
       return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
     };
 
     _this.resetStored = function(stopPropagation) {
-      br.storage.remove(_this.storageTag + 'Stored');
+      br.storage.remove(`${_this.storageTag}Stored`);
       if (!stopPropagation) {
         _this.events.trigger('resetStored');
         br.events.trigger('resetStored');
@@ -2928,14 +2928,14 @@ THE SOFTWARE.
     };
 
     _this.setFilter = function(name, value) {
-      let filter = br.storage.get(_this.storageTag + 'Filter');
+      let filter = br.storage.get(`${_this.storageTag}Filter`);
       filter = filter || Object.create({});
       filter[name] = value;
-      br.storage.set(_this.storageTag + 'Filter', filter);
+      br.storage.set(`${_this.storageTag}Filter`, filter);
     };
 
     _this.getFilter = function(name, defaultValue) {
-      let filter = br.storage.get(_this.storageTag + 'Filter');
+      let filter = br.storage.get(`${_this.storageTag}Filter`);
       let result = filter ? filter[name] : filter;
       return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
     };
@@ -5474,7 +5474,7 @@ THE SOFTWARE.
           control.css('margin-top', '0px');
           control.css('position', 'fixed');
         }
-        $(window).resize(function(){
+        $(window).on('resize', function(){
           br.resizeModalPopup(control);
         });
       }

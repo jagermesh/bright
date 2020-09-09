@@ -140,7 +140,7 @@ class BrDataBaseManager {
                                    , INDEX idx_' . $this->auditChangeTable . '_author (author_id)
                                    , INDEX idx_' . $this->auditChangeTable . '_ip_address (ip_address)
                                    , INDEX idx_' . $this->auditChangeTable . '_context (context)
-                                   ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC'
+                                   ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC'
                                 );
           } else {
             throw $e;
@@ -169,7 +169,7 @@ class BrDataBaseManager {
                                    , new_value  LONGTEXT
                                    , INDEX idx_audit_change_log_field_name (field_name)
                                    , CONSTRAINT fk_' . $this->auditChangeLogTable . '_change_id FOREIGN KEY (change_id) REFERENCES ' . $this->auditChangeTable . ' (id) ON DELETE CASCADE
-                                   ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC'
+                                   ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC'
                                 );
           } else {
             throw $e;
@@ -199,7 +199,7 @@ class BrDataBaseManager {
                                    , is_cascade_audited TINYINT(1)     NOT NULL DEFAULT 1
                                    , exclude_fields     LONGTEXT
                                    , UNIQUE INDEX un_' . $this->auditTablesTable . '_name (name)
-                                   ) ENGINE=InnoDB DEFAULT CHARSET=utf8'
+                                   ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC'
                                 );
           } else {
             throw $e;
@@ -259,7 +259,7 @@ class BrDataBaseManager {
                                , column_name            VARCHAR(64)  NOT NULL
                                , referenced_column_name VARCHAR(64)
                                , INDEX idx_br_constraint_keys1 (constraint_schema, constraint_name, constraint_catalog)
-                              ) ENGINE=InnoDB DEFAULT CHARSET=utf8'
+                              ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC'
                             );
       } else {
         throw $e;
@@ -288,7 +288,7 @@ class BrDataBaseManager {
                                , referenced_table_name VARCHAR(64)     NOT NULL
                                , INDEX idx_br_constraint_refs1 (constraint_schema, constraint_name, constraint_catalog)
                                , INDEX idx_br_constraint_refs2 (constraint_schema, delete_rule, referenced_table_name)
-                               ) ENGINE=InnoDB DEFAULT CHARSET=utf8'
+                               ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC'
                             );
       } else {
         throw $e;
@@ -315,7 +315,7 @@ class BrDataBaseManager {
                                , action_timing         VARCHAR(64)     NOT NULL
                                , event_manipulation    VARCHAR(64)     NOT NULL
                                , INDEX idx_br_db_triggers1 (event_object_schema, event_object_table, action_timing, event_manipulation)
-                               ) ENGINE=InnoDB DEFAULT CHARSET=utf8'
+                               ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC'
                             );
       } else {
         throw $e;
@@ -428,7 +428,7 @@ class BrDataBaseManager {
                                , installed_at    DATETIME        NOT NULL
                                , re_installed_at DATETIME
                                , UNIQUE INDEX un_bd_db_patch_guid (guid)
-                               ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC'
+                               ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC'
                             );
       } else {
         throw $e;

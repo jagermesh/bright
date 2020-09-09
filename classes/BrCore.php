@@ -496,7 +496,7 @@ class BrCore extends BrSingleton {
     $result = '';
 
     if ($secs) {
-      $result = number_format($secs, 3);
+      $result = br()->smartRound(number_format($secs, 3), 3);
     }
     if ($mins) {
       $result = $mins.($result?':'.$result:'');
@@ -527,7 +527,7 @@ class BrCore extends BrSingleton {
     $result = '';
 
     if ($secs) {
-      $result = number_format($secs, 3).' '.'secs';
+      $result = br()->smartRound(number_format($secs, 3), 3) . ' '.'secs';
     }
     if ($mins) {
       $result = round($mins).' '.'mins'.' '.$result;
@@ -1206,7 +1206,7 @@ class BrCore extends BrSingleton {
     $tempFile1 = br()->createTempFile('cmd1', '.log');
     $tempFile2 = br()->createTempFile('cmd2', '.log');
 
-    $runCmd = $cmd . ' >' . $tempFile1. ' 2>' . $tempFile2;
+    $runCmd = $cmd . ' </dev/null >' . $tempFile1. ' 2>' . $tempFile2;
 
     br()->log(br()->console()->yellow('[EXEC]') . ' ' . $runCmd);
 

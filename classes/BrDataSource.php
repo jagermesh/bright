@@ -99,7 +99,7 @@ class BrDataSource extends BrGenericDataSource {
     $this->priorAdjancedRecord = null;
     $this->nextAdjancedRecord = null;
 
-    $sortOrder = br($options, 'order', array());
+    $sortOrder = br($options, 'order', br($options, 'orderBy', []));
 
     if (!$sortOrder) {
       $sortOrder = $order;
