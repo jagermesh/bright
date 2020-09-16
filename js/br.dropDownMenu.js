@@ -61,7 +61,7 @@
     dropDownMenu.dropdown('toggle');
   }
 
-  function handleClick(el, invoker, choicesDataSource, dataSource, fieldName, options) {
+  function internalhandleClick(el, invoker, choicesDataSource, dataSource, fieldName, options) {
     const rowid = el.closest('[data-rowid]').attr('data-rowid');
     const menuElement = invoker.find('span.br-ex-current-value');
     let filter = { __targetRowid: rowid };
@@ -73,6 +73,16 @@
         showDropDownMenu(invoker, response, rowid, menuElement, dataSource, fieldName, options);
       }
     });
+  }
+
+  function handleClick(el, invoker, choicesDataSource, dataSource, fieldName, options) {
+    if (options.onActivate) {
+      options.onActivate.call(el, function() {
+        internalhandleClick(el, invoker, choicesDataSource, dataSource, fieldName, options);
+      });
+    } else {
+      internalhandleClick(el, invoker, choicesDataSource, dataSource, fieldName, options);
+    }
   }
 
   function setupControl(el, doClick, choicesDataSource, dataSource, fieldName, options) {

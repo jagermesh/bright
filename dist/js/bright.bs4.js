@@ -4452,10 +4452,10 @@ THE SOFTWARE.
       if ($(selector).hasClass('br-editable-control')) {
         selector = $(selector).parent();
       }
-      let data = $(selector).data('brEditable-editable');
+      let instance = $(selector).data('brEditable-editable');
       switch (callback) {
         case 'exists':
-          if (data) {
+          if (instance) {
             return true;
           } else {
             return false;
@@ -4466,22 +4466,29 @@ THE SOFTWARE.
         case 'save':
         case 'cancel':
         case 'click':
-          if (!data) {
-            $(selector).data('brEditable-editable', (data = new BrEditable($(selector), callback)));
+          if (!instance) {
+            $(selector).data('brEditable-editable', (instance = new BrEditable($(selector), callback)));
           }
-          if (data) {
-            return data[callback](value);
-          }
-          break;
+          return instance[callback](value);
       }
     } else {
-      $(document).on('click', selector, function(e) {
+      $(document).on('click', selector, function(event) {
         let $this = $(this);
-        let data = $this.data('brEditable-editable');
-        if (!data) {
-          $this.data('brEditable-editable', (data = new BrEditable(this, callback)));
+        let instance = $this.data('brEditable-editable');
+        if (!instance) {
+          $this.data('brEditable-editable', (instance = new BrEditable(this, callback)));
         }
-        data.click(e);
+        if (instance.options.onActivate) {
+          instance.options.onActivate.call(instance.ctrl, function() {
+            instance.click(event);
+          });
+          return;
+        }
+        if (instance.options.onClick) {
+          instance.options.onClick.call(instance.ctrl, event);
+          return;
+        }
+        return instance.click(event);
       });
     }
   };
@@ -7468,7 +7475,7 @@ THE SOFTWARE.
     dropDownMenu.dropdown('toggle');
   }
 
-  function handleClick(el, invoker, choicesDataSource, dataSource, fieldName, options) {
+  function internalhandleClick(el, invoker, choicesDataSource, dataSource, fieldName, options) {
     const rowid = el.closest('[data-rowid]').attr('data-rowid');
     const menuElement = invoker.find('span.br-ex-current-value');
     let filter = { __targetRowid: rowid };
@@ -7480,6 +7487,16 @@ THE SOFTWARE.
         showDropDownMenu(invoker, response, rowid, menuElement, dataSource, fieldName, options);
       }
     });
+  }
+
+  function handleClick(el, invoker, choicesDataSource, dataSource, fieldName, options) {
+    if (options.onActivate) {
+      options.onActivate.call(el, function() {
+        internalhandleClick(el, invoker, choicesDataSource, dataSource, fieldName, options);
+      });
+    } else {
+      internalhandleClick(el, invoker, choicesDataSource, dataSource, fieldName, options);
+    }
   }
 
   function setupControl(el, doClick, choicesDataSource, dataSource, fieldName, options) {
