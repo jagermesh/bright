@@ -17,7 +17,10 @@ class BrConsoleLogAdapter extends BrGenericLogAdapter {
     if (($group != 'QRY') && ($group != 'SEP')) {
       $logMessage  = str_repeat(' ', br()->log()->getLevel() * 2);
       $logMessage .= $message;
-      $logMessage .= "\n";
+
+      if (!preg_match('/\r$/', $message)) {
+        $logMessage .= "\n";
+      }
 
       echo($logMessage);
     }
@@ -25,4 +28,3 @@ class BrConsoleLogAdapter extends BrGenericLogAdapter {
   }
 
 }
-

@@ -29,6 +29,7 @@ class BrRequest extends BrSingleton {
   private $urlRestrictions = array();
   private $restrictionsLoaded = false;
   private $isRest = false;
+  private $headers = [];
 
   public function __construct() {
 
@@ -164,6 +165,12 @@ class BrRequest extends BrSingleton {
 
       $this->urlRestrictions    = array();
       $this->restrictionsLoaded = false;
+
+      foreach ($_SERVER as $name => $value) {
+        if (substr($name, 0, 5) == 'HTTP_') {
+          $this->headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+        }
+      }
 
     }
 
@@ -559,15 +566,39 @@ class BrRequest extends BrSingleton {
 
   }
 
-  public function cookie($name, $default = null) {
+  public function param($name, $default = null) {
+
+    return $this->get($name, $this->post($name, $this->put($name, $default)));
+
+  }
+
+  public function getCookie($name, $default = null) {
 
     return br($_COOKIE, $name, $default);
 
   }
 
-  public function param($name, $default = null) {
+  public function getCookies() {
 
-    return $this->get($name, $this->post($name, $this->put($name, $default)));
+    return $_COOKIE;
+
+  }
+
+  public function cookie($name, $default = null) {
+
+    return $this->getCookie($name, $default);
+
+  }
+
+  public function getHeader($name, $default = null) {
+
+    return br($this->headers, $name, $default);
+
+  }
+
+  public function getHeaders() {
+
+    return $this->headers;
 
   }
 
@@ -577,57 +608,51 @@ class BrRequest extends BrSingleton {
 
   }
 
-  public function file($name) {
+  public function getUploadedFileInfo($name) {
 
-    $result = br($_FILES, $name);
-    return $result;
+    return br($_FILES, $name);
 
   }
 
-  public function fileTmp($name) {
 
-    if ($this->isFileUploaded($name)) {
-      return br($this->file($name), 'tmp_name');
+  public function getUploadedFileLocation($name) {
+
+    if ($info = $this->getUploadedFileInfo($name)) {
+      return br($info, 'tmp_name');
     }
 
   }
 
-  public function fileName($name) {
+  public function getUploadedFileName($name) {
 
-    if ($this->isFileUploaded($name)) {
-      return br($this->file($name), 'name');
+    if ($info = $this->getUploadedFileInfo($name)) {
+      return br($info, 'name');
     }
 
   }
 
-  public function fileSize($name) {
+  public function getUploadedFileSize($name) {
 
-    if ($this->isFileUploaded($name)) {
-      return br($this->file($name), 'size');
+    if ($info = $this->getUploadedFileInfo($name)) {
+      return br($info, 'size');
     }
 
   }
 
-  public function fileError($name) {
+  public function getUploadedFileError($name) {
 
-    if ($_FILES) {
-      if ($result = br($_FILES, $name)) {
-        return br($this->file($name), 'error');
-      }
+    if ($info = $this->getUploadedFileInfo($name)) {
+      return br($info, 'error');
     }
 
   }
 
   public function isFileUploaded($name) {
 
-    if ($this->isFilesUploaded()) {
-      if ($result = $this->file($name)) {
-        return br($result, 'tmp_name') &&
-               file_exists(br($result, 'tmp_name')) &&
-               (br($result, 'error') == UPLOAD_ERR_OK) &&
-               (br($result, 'size') > 0);
-      }
+    if ($info = $this->getUploadedFileInfo($name)) {
+      return $this->getUploadedFileLocation($name) && file_exists($this->getUploadedFileLocation($name)) && ($this->getUploadedFileError($name) == UPLOAD_ERR_OK) && ($this->getUploadedFileSize($name) > 0);
     }
+
     return false;
 
   }
@@ -637,9 +662,9 @@ class BrRequest extends BrSingleton {
     if ($this->isFileUploaded($name)) {
       $destFolder = br()->fs()->normalizePath($destFolder);
       if (br()->fs()->makeDir($destFolder)) {
-        return move_uploaded_file($this->fileTmp($name), $destFolder.$this->fileName($name));
+        return move_uploaded_file($this->getUploadedFileLocation($name), $destFolder . $this->getUploadedFileName($name));
       } else {
-        throw new BrException('Cannot create folder '.$destFolder);
+        throw new BrException('Cannot create folder ' . $destFolder);
       }
     } else {
       throw new BrException("Cannot move file - it's not uploaded");
@@ -796,14 +821,6 @@ class BrRequest extends BrSingleton {
 
       br()->response()->send404();
     }
-
-  }
-
-  // needs to be removed
-
-  public function scriptName() {
-
-    return $this->scriptName;
 
   }
 
