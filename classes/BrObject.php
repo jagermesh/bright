@@ -21,7 +21,7 @@ class BrObject {
   static $instances = array();
 
   /**
-   * Get Instance 
+   * Get Instance
    * @return \Bright\BrObject
    */
   public static function getInstance() {
