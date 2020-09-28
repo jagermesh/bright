@@ -10,7 +10,7 @@
 
 namespace Bright;
 
-class BrSocketClient {
+class BrSocketClient extends BrObject {
 
   const EVENT        = 2;
 
@@ -20,12 +20,13 @@ class BrSocketClient {
   const OPCODE_TEXT     = 0x1;
 
   private $socket;
+  private $connected;
+  private $connecting;
 
   private $url;
   private $parsedUrl;
   private $pollingUrl;
   private $path = '/socket.io/?sid=$sid&EIO=3&transport=websocket';
-  private $events = [];
 
   public function __construct($url) {
     $this->url = $url;
@@ -104,6 +105,7 @@ class BrSocketClient {
     $result = @fwrite($this->socket, (string)$payload);
     if (!$result) {
       $this->socket = null;
+      $this->connected = false;
       throw new \Exception('Socket connection broken');
     }
   }
@@ -112,87 +114,79 @@ class BrSocketClient {
     while (trim(fgets($this->socket)));
   }
 
-  public function on($eventName, $callback) {
-    $this->events[] = [ 'name' => $eventName, 'callback' => $callback ];
-  }
-
-  private function trigger($eventName) {
-    foreach($this->events as $event) {
-      if ($event['name'] == $eventName) {
-        $event['callback']($this);
-      }
+  public function connect() {
+    if ($this->connecting) {
+      return;
     }
-  }
+    $this->connecting = true;
+    try {
+      $errorNumber = null;
+      $errorString = null;
+      $context     = ['http' => []];
 
-  private function connect() {
-    $errorNumber = null;
-    $errorString = null;
-    $context     = ['http' => []];
+      $pollingUrl = $this->pollingUrl . '/socket.io/?use_b64=0&EIO=3&transport=polling';
 
-    $pollingUrl = $this->pollingUrl . '/socket.io/?use_b64=0&EIO=3&transport=polling';
+      $result = @file_get_contents($pollingUrl, false, stream_context_create($context));
 
-    $result = @file_get_contents($pollingUrl, false, stream_context_create($context));
-
-    if (!$result) {
-      throw new \Exception($pollingUrl . ': failed to open stream: Connection refused');
-    }
-
-    // echo($result);
-
-    $cookies = [];
-    foreach ($http_response_header as $header) {
-      if (preg_match('/^Set-Cookie:\s*([^;]*)/i', $header, $matches)) {
-        $cookies[] = $matches[1];
-      }
-    }
-
-    $start   = strpos($result, '{');
-    $encoded = substr($result, $start, strrpos($result, '}') - $start + 1);
-    $decoded = json_decode($encoded, true);
-
-    $sid = $decoded['sid'];
-
-    $this->socket = stream_socket_client($this->socketUrl, $errorNumber, $errorString, 60, STREAM_CLIENT_CONNECT, stream_context_create($context));
-    // stream_set_blocking($this->socket, 0);
-
-    if ($this->socket) {
-      $hash = sha1(uniqid(mt_rand(), true), true);
-      $hash = substr($hash, 0, 16);
-      $key = base64_encode($hash);
-
-      $request = 'GET /socket.io/?sid=' . $sid . '&EIO=3&transport=websocket HTTP/1.1' . "\r\n" .
-                 'Host: ' . $this->socketUrl . "\r\n" .
-                 'Upgrade: WebSocket' . "\r\n" .
-                 'Connection: Upgrade' . "\r\n" .
-                 'Sec-WebSocket-Key: ' . $key . "\r\n"  .
-                 'Sec-WebSocket-Version: 13' . "\r\n" .
-                 'Origin: *' . "\r\n";
-
-      if ($cookies) {
-        $request .= 'Cookie: ' . implode('; ', $cookies) . "\r\n";
+      if (!$result) {
+        throw new \Exception($pollingUrl . ': failed to open stream: Connection refused');
       }
 
-      $request .= "\r\n";
-
-      // echo($request);
-
-      fwrite($this->socket, $request);
-
-      $result = fread($this->socket, 12);
-
-      // echo($result);
-
-      if ($result != 'HTTP/1.1 101') {
-        throw new \Exception('Unexpected server response. Expected "HTTP/1.1 101", Received "' . $result . '"');
+      $cookies = [];
+      foreach ($http_response_header as $header) {
+        if (preg_match('/^Set-Cookie:\s*([^;]*)/i', $header, $matches)) {
+          $cookies[] = $matches[1];
+        }
       }
 
-      $this->flush();
+      $start   = strpos($result, '{');
+      $encoded = substr($result, $start, strrpos($result, '}') - $start + 1);
+      $decoded = json_decode($encoded, true);
 
-      $this->write(self::UPGRADE);
+      $sid = $decoded['sid'];
 
-      $this->trigger('connected');
-    } else {
-      new \Exception('Can not connect to socket: ' . $errorString . "(" . $errorNumber . ")");
+      $this->socket = stream_socket_client($this->socketUrl, $errorNumber, $errorString, 60, STREAM_CLIENT_CONNECT, stream_context_create($context));
+      // stream_set_blocking($this->socket, 0);
+
+      if ($this->socket) {
+        $hash = sha1(uniqid(mt_rand(), true), true);
+        $hash = substr($hash, 0, 16);
+        $key = base64_encode($hash);
+
+        $request = 'GET /socket.io/?sid=' . $sid . '&EIO=3&transport=websocket HTTP/1.1' . "\r\n" .
+                   'Host: ' . $this->socketUrl . "\r\n" .
+                   'Upgrade: WebSocket' . "\r\n" .
+                   'Connection: Upgrade' . "\r\n" .
+                   'Sec-WebSocket-Key: ' . $key . "\r\n"  .
+                   'Sec-WebSocket-Version: 13' . "\r\n" .
+                   'Origin: *' . "\r\n";
+
+        if ($cookies) {
+          $request .= 'Cookie: ' . implode('; ', $cookies) . "\r\n";
+        }
+
+        $request .= "\r\n";
+
+        fwrite($this->socket, $request);
+
+        $result = fread($this->socket, 12);
+
+        if ($result != 'HTTP/1.1 101') {
+          throw new \Exception('Unexpected server response. Expected "HTTP/1.1 101", Received "' . $result . '"');
+        }
+
+        $this->flush();
+
+        $this->write(self::UPGRADE);
+
+        $this->trigger('connect', $this);
+
+        $this->connected = true;
+      } else {
+        new \Exception('Can not connect to socket: ' . $errorString . "(" . $errorNumber . ")");
+      }
+    } finally {
+      $this->connecting = false;
     }
   }
 
@@ -200,7 +194,13 @@ class BrSocketClient {
     if ($this->socket) {
       @fclose($this->socket);
       $this->socket = null;
+      $this->connected = false;
+      $this->trigger('disconnect');
     }
+  }
+
+  public function isConnected() {
+    return $this->connected;
   }
 
 }
