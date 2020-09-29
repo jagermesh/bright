@@ -73,7 +73,16 @@
     };
 
     _this.disconnect = function(webCam) {
-      webCam.pause();
+      if (webCam.srcObject) {
+        try {
+          const tracks = webCam.srcObject.getTracks();
+          if (tracks.length > 0) {
+            tracks[0].stop();
+          }
+        } catch (error) {
+
+        }
+      }
       webCam.srcObject = null;
     };
 

@@ -979,7 +979,16 @@ THE SOFTWARE.
     };
 
     _this.disconnect = function(webCam) {
-      webCam.pause();
+      if (webCam.srcObject) {
+        try {
+          const tracks = webCam.srcObject.getTracks();
+          if (tracks.length > 0) {
+            tracks[0].stop();
+          }
+        } catch (error) {
+
+        }
+      }
       webCam.srcObject = null;
     };
 
@@ -4203,6 +4212,15 @@ THE SOFTWARE.
         let pageY = e.pageY || e.touches[0].pageY;
         let left = pageX - pos_x - ofs_x - document.body.scrollLeft;
         let top  = pageY - pos_y - ofs_y - document.body.scrollTop;
+        if (top < 0) {
+          top = 0;
+        }
+        if (top > window.innerHeight) {
+          top = window.innerHeight - 40;
+        }
+        if (left < 0) {
+          left = 0;
+        }
 
         setPosition(dragObject, left, top);
         if (options.ondrag) {
@@ -4590,8 +4608,9 @@ THE SOFTWARE.
     template += `<div class="modal-dialog" role="document">
                    <div class="modal-content">
                    <div class="modal-header">
-                     <h3 class="modal-title">${title}</h3>
+                     <h3 class="modal-title pull-left">${title}</h3>
                      <a class="close pull-right float-right" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
+                     <div class="clearfix"></div>
                    </div>
                    <div class="modal-body" style="overflow-y:auto;">${message} ${checkBoxes}</div>
                    <div class="modal-footer">`;
@@ -4733,8 +4752,9 @@ THE SOFTWARE.
                         <div class="modal-content">`;
     if (title !== '') {
       template += `<div class="modal-header">
-                     <h3 class="modal-title">${title}</h3>
+                     <h3 class="modal-title pull-left">${title}</h3>
                      <a class="close pull-right float-right" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
+                     <div class="clearfix"></div>
                    </div>`;
     }
     template += `<div class="modal-body" style="overflow-y:auto;">${message}</div>
@@ -4800,8 +4820,9 @@ THE SOFTWARE.
                         <div class="modal-content">`;
     if (title !== '') {
       template += `<div class="modal-header">
-                     <h3 class="modal-title">${title}</h3>
+                     <h3 class="modal-title pull-left">${title}</h3>
                      <a class="close pull-right float-right" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
+                     <div class="clearfix"></div>
                    </div>`;
     }
     template += `<div class="modal-body" style="overflow-y:auto;">${message}</div>
@@ -4866,8 +4887,9 @@ THE SOFTWARE.
                       <div class="modal-dialog" role="document">
                         <div class="modal-content">
                         <div class="modal-header">
-                          <h3 class="modal-title">${title}</h3>
+                          <h3 class="modal-title pull-left">${title}</h3>
                           <a class="close pull-right float-right" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
+                          <div class="clearfix"></div>
                         </div>
                         <div class="modal-body" style="overflow-y:auto;">`;
     for(let inputLabel in inputs) {
@@ -5487,7 +5509,7 @@ THE SOFTWARE.
       }
     }
 
-    var defaultOpacity = 50;
+    const defaultOpacity = 50;
 
     $(document).on('shown.bs.modal', function(event) {
       const target = $(event.target);
