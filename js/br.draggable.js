@@ -57,6 +57,15 @@
         let pageY = e.pageY || e.touches[0].pageY;
         let left = pageX - pos_x - ofs_x - document.body.scrollLeft;
         let top  = pageY - pos_y - ofs_y - document.body.scrollTop;
+        if (top < 0) {
+          top = 0;
+        }
+        if (top > window.innerHeight) {
+          top = window.innerHeight - 40;
+        }
+        if (left < 0) {
+          left = 0;
+        }
 
         setPosition(dragObject, left, top);
         if (options.ondrag) {
