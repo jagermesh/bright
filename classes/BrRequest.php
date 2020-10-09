@@ -488,6 +488,12 @@ class BrRequest extends BrSingleton {
 
   }
 
+  public function isHEAD() {
+
+    return (br($_SERVER, 'REQUEST_METHOD') == 'HEAD');
+
+  }
+
   public function isRedirect() {
 
     return (br($_SERVER, 'REDIRECT_STATUS') != 200);

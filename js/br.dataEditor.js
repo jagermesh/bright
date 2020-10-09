@@ -225,12 +225,7 @@
                       });
                 })(input, ckeditorInstance, data[i]);
               } else {
-                let dataComboInstance = input.data('BrDataCombo');
-                if (dataComboInstance) {
-                  dataComboInstance.val(data[i]);
-                } else {
-                  input.val(data[i]);
-                }
+                br.setValue(input, data[i]);
               }
             }
           });
@@ -255,7 +250,7 @@
         defaultValues = rowid;
       }
       _this.inputsContainer.find('select.data-field').each(function() {
-        br.setComboValue($(this), '');
+        br.setValue($(this), '');
       });
       _this.inputsContainer.find('input.data-field[type!=radio],textarea.data-field').val('');
       _this.inputsContainer.find('input.data-field[type=checkbox]').val('1').prop('checked', false);

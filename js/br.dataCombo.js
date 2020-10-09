@@ -188,7 +188,7 @@
           }
         }
         if (_this.isValid()) {
-          br.setComboValue(_this.selector, value, true);
+          br.setValue(_this.selector, value, true);
           switch(beautifier) {
             case 'select2':
               break;

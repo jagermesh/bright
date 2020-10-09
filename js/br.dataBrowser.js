@@ -183,8 +183,8 @@
     };
 
     _this.resetFilters = function(stopPropagation) {
-      br.setComboValue(findNode('input.data-filter'), '');
-      br.setComboValue(findNode('select.data-filter'), '');
+      br.setValue(findNode('input.data-filter'), '');
+      br.setValue(findNode('select.data-filter'), '');
       $(findNode('input.data-filter')).trigger('reset');
       $(findNode('select.data-filter')).trigger('reset');
       _this.dataGrid.resetFilters(stopPropagation);

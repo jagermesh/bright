@@ -898,7 +898,7 @@
 
   };
 
-  window.br.setValue = window.br.setComboValue = function(selector, value, fromBrDataCombo) {
+  window.br.setValue = function(selector, value, fromBrDataCombo) {
 
     $(selector).each(function() {
       const element = $(this);

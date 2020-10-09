@@ -147,7 +147,7 @@ gulp.task('phplint', function() {
 gulp.task('uglify:libs', function() {
   let tasks = configs.uglify.libs.map(function(task) {
     return gulp.src(task.src)
-               .pipe(terser({ compress: false }))
+               .pipe(terser({ compress: false, mangle: false }))
                .pipe(rename({ suffix: '.min' }))
                .pipe(gulp.dest(task.dest));
   });
@@ -157,7 +157,7 @@ gulp.task('uglify:libs', function() {
 gulp.task('uglify:dist', function() {
   let tasks = configs.uglify.dist.map(function(task) {
     return gulp.src(task.src)
-               .pipe(terser({ compress: false }))
+               .pipe(terser({ compress: false, mangle: false }))
                .pipe(rename({ suffix: '.min' }))
                .pipe(gulp.dest(task.dest));
   });
