@@ -272,7 +272,7 @@ class BrDataBaseManager {
                            SELECT constraint_catalog, constraint_schema, constraint_name, table_name, column_name, referenced_column_name
                              FROM information_schema.key_column_usage
                             WHERE constraint_schema = ?'
-                        , br()->config()->get('db.name')
+                        , br()->config()->get('br/db.name')
                         );
 
     try {
@@ -301,7 +301,7 @@ class BrDataBaseManager {
                            SELECT constraint_catalog, constraint_schema, constraint_name, delete_rule, referenced_table_name
                              FROM information_schema.referential_constraints
                             WHERE constraint_schema = ?'
-                        , br()->config()->get('db.name')
+                        , br()->config()->get('br/db.name')
                         );
 
     try {
@@ -328,7 +328,7 @@ class BrDataBaseManager {
                            SELECT event_object_schema, event_object_table, action_timing, event_manipulation
                              FROM information_schema.triggers
                             WHERE event_object_schema = ?'
-                        , br()->config()->get('db.name')
+                        , br()->config()->get('br/db.name')
                         );
 
     br()->db()->runQuery( 'DROP VIEW IF EXISTS v_missing_audit');
@@ -383,7 +383,7 @@ class BrDataBaseManager {
                 AND tbl.table_name NOT LIKE "br_%"';
 
     br()->db()->runQuery( $sql
-                        , br()->config()->get('db.name')
+                        , br()->config()->get('br/db.name')
                         );
 
     br()->db()->runQuery( 'INSERT IGNORE INTO ' . $this->auditTablesTable . ' (name, is_insert_audited, is_update_audited, is_delete_audited, is_cascade_audited)
@@ -402,7 +402,7 @@ class BrDataBaseManager {
                                                  FROM information_schema.tables tbl
                                                 WHERE tbl.table_schema = ?
                                                   AND atb.name = tbl.table_name)'
-                        , br()->config()->get('db.name')
+                        , br()->config()->get('br/db.name')
                         );
 
     $this->auditSubsystemInitialized = true;

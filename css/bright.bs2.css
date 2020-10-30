@@ -362,10 +362,6 @@ a.pager-nav-element:hover, a.pager-size-element:hover {
 .input-append {
   white-space: normal; }
 
-/* compatible with bootstrap3 */
-.input-group-btn {
-  float: right; }
-
 .br-container-main {
   margin-top: 55px; }
 
