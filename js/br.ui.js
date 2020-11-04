@@ -81,8 +81,9 @@
     options = options || {};
     options.cancelTitle = options.cancelTitle || br.trn('Cancel');
     options.onConfirm = options.onConfirm || callback;
+    options.cssClass = options.cssClass || '';
 
-    let template = '<div class="br-modal-confirm modal ${options.cssClass}" role="dialog">';
+    let template = `<div class="br-modal-confirm modal ${options.cssClass}" role="dialog">`;
 
     let checkBoxes = '';
     if (options.checkBoxes) {

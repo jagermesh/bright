@@ -125,6 +125,49 @@
     return !!window.chrome && !br.isOpera(); // Chrome 1+
   };
 
+  window.br.redirectBack = function(defaultHref, params) {
+    let refresh = params.refresh ? true : false;
+    let whenImpossible = params.whenImpossible;
+    let inPopup = (window.opener !== null);
+    // check opener
+    if (inPopup) {
+      // is opener still exists?
+      if (window.opener) {
+        if (!window.opener.closed) {
+          window.opener.focus();
+          try {
+            if (refresh) {
+              if (window.opener.document) {
+                window.opener.document.location.reload();
+              }
+            }
+          } catch (e) {
+
+          }
+        }
+      }
+      window.close();
+    } else {
+      let caller = br.isEmpty(br.request.get('caller')) ? null : br.request.get('caller');
+      let referer = br.isEmpty(document.referrer) ? null : (document.referrer.indexOf('login') != -1 ? null : (document.referrer == document.location.toString() ? null : document.referrer));
+      let href = br.isEmpty(defaultHref) ? null : defaultHref;
+      let redirectHref = (caller ? caller : (href ? href : referer));
+      if (redirectHref) {
+        br.redirect(redirectHref);
+      } else {
+        window.setTimeout(function() {
+          if (whenImpossible) {
+            whenImpossible(this);
+          } else {
+            br.error('Oops', 'Sorry, we can not determine where to redirect you from this page, please go there manually :(', function(event) {
+              event.preventDefault();
+            });
+          }
+        });
+      }
+    }
+  };
+
   window.br.redirect = function(url) {
     if ((url.search(/^\//) == -1) && (url.search(/^http[s]?:\/\//) == -1)) {
       url = this.baseUrl + url;
