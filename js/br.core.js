@@ -682,7 +682,6 @@
   };
 
   if (window.addEventListener) {
-
     window.addEventListener('error', function(event) {
       let data = {
           message: event.message
@@ -758,21 +757,23 @@
     if (navigator.sendBeacon) {
       format = format || 'json';
       br.on('error', function(error) {
-        let message = '', suffix;
-        switch(format) {
-          case 'html':
-            message = printObject(error, '<br />');
-            break;
-          case 'text':
-            message = printObject(error, '\n');
-            break;
-          default:
-            message = JSON.stringify(error);
-            break;
+        if (!error.filename || (error.filename.indexOf('chrome-extension') !== 0)) {
+          let message = '', suffix;
+          switch(format) {
+            case 'html':
+              message = printObject(error, '<br />');
+              break;
+            case 'text':
+              message = printObject(error, '\n');
+              break;
+            default:
+              message = JSON.stringify(error);
+              break;
+          }
+          let data = new FormData();
+          data.append('error', message);
+          navigator.sendBeacon(url, data);
         }
-        let data = new FormData();
-        data.append('error', message);
-        navigator.sendBeacon(url, data);
       });
     }
 
