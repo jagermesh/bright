@@ -168,12 +168,12 @@
 
     _this.renderFooter = function(data, asString) {
       data = _this.events.trigger('renderFooter', data) || data;
-      let s =  _this.templates.footer(data);
+      let template =  _this.templates.footer(data);
       if (asString) {
-        return s;
+        return template;
       } else
-      if (s.length > 0) {
-        let result = $(s);
+      if (template.length > 0) {
+        let result = $(template);
         if (_this.options.storeDataRow) {
           result.data('data-row', data);
         }
@@ -183,20 +183,20 @@
       }
     };
 
-    _this.renderRow = function(data, asString) {
-      data = _this.events.trigger('renderRow', data) || data;
-      let s = _this.templates.row(data).trim();
+    _this.renderRow = function(srcDataRow, asString) {
+      let dataRow = _this.events.trigger('renderRow', srcDataRow) || srcDataRow;
+      let template = _this.templates.row(dataRow).trim();
       if (asString) {
-        return s;
+        return { rendered: template, dataRow: dataRow };
       } else
-      if (s.length > 0) {
-        let result = $(s);
+      if (template.length > 0) {
+        let result = $(template);
         if (_this.options.storeDataRow) {
-          result.data('data-row', data);
+          result.data('data-row', dataRow);
         }
-        return result;
+        return { renderedRow: result, dataRow: dataRow };
       } else {
-        return null;
+        return { renderedRow: null, dataRow: dataRow };
       }
     };
 
@@ -225,33 +225,33 @@
       return $(_this.selector).append(row);
     };
 
-    _this.insertDataRowAfter = function(row, selector) {
-      let tableRow = _this.renderRow(row);
-      if (tableRow) {
-        $(tableRow).insertAfter(selector);
+    _this.insertDataRowAfter = function(dataRow, selector) {
+      let renderedRow = _this.renderRow(dataRow);
+      if (renderedRow.renderedRow) {
+        $(renderedRow.renderedRow).insertAfter(selector);
       }
-      return tableRow;
+      return renderedRow.renderedRow;
     };
 
-    _this.addDataRow = function(row, disableEvents) {
-      let tableRow = _this.renderRow(row);
-      if (tableRow) {
-        _this.events.triggerBefore('insert', row, tableRow);
-        _this.events.trigger('insert', row, tableRow);
+    _this.addDataRow = function(dataRow, disableEvents) {
+      let renderedRow = _this.renderRow(dataRow);
+      if (renderedRow.renderedRow) {
+        _this.events.triggerBefore('insert', renderedRow.dataRow, renderedRow.renderedRow);
+        _this.events.trigger('insert', renderedRow.dataRow, renderedRow.renderedRow);
         if (_this.options.appendInInsert) {
-          _this.append(tableRow);
+          _this.append(renderedRow.renderedRow);
           if (_this.options.scrollToInsertedRow) {
-            tableRow[0].scrollIntoView();
+            renderedRow.renderedRow[0].scrollIntoView();
           }
         } else {
-          _this.prepend(tableRow);
+          _this.prepend(renderedRow.renderedRow);
         }
         if (!disableEvents) {
-          _this.events.triggerAfter('renderRow', row, tableRow);
-          _this.events.triggerAfter('insert', row, tableRow);
+          _this.events.triggerAfter('renderRow', renderedRow.dataRow, renderedRow.renderedRow);
+          _this.events.triggerAfter('insert', renderedRow.dataRow, renderedRow.renderedRow);
         }
       }
-      return tableRow;
+      return renderedRow.renderedRow;
     };
 
     _this.hasRow = function(rowid) {
@@ -278,13 +278,6 @@
       _this.dataSource.select(filter, function(result, response) {
         if (!result || (response.length === 0)) {
           _this.removeRow(rowid);
-          // if (!options.reloadOnlyRow) {
-          //   _this.refresh(function(result, response) {
-          //     if (typeof callback == 'function') {
-          //       callback.call(_this, result, response, false);
-          //     }
-          //   });
-          // }
         } else {
           response = response[0];
           if (_this.refreshRow(response, options)) {
@@ -352,8 +345,8 @@
 
     };
 
-    _this.refreshRow = function(data, options) {
-      let filter = '[data-rowid=' + data.rowid + ']';
+    _this.refreshRow = function(dataRow, options) {
+      let filter = '[data-rowid=' + dataRow.rowid + ']';
       options = options || Object.create({});
       options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
       if (options.refreshSelector) {
@@ -361,29 +354,29 @@
       }
       let existingRows = $(_this.selector).find(filter);
       if (existingRows.length > 0) {
-        let replacementRow = _this.renderRow(data);
-        if (replacementRow) {
+        let renderedRow = _this.renderRow(dataRow);
+        if (renderedRow.renderedRow) {
           if (_this.options.storeDataRow) {
-            replacementRow.data('data-row', data);
+            renderedRow.renderedRow.data('data-row', renderedRow.dataRow);
           }
-          _this.events.triggerBefore('update', data);
-          _this.events.trigger('update', data, existingRows);
+          _this.events.triggerBefore('update', renderedRow.dataRow);
+          _this.events.trigger('update', renderedRow.dataRow, existingRows);
           let resultingRows = [];
-          if (replacementRow.length > 1) {
-            let row = replacementRow.clone();
+          if (renderedRow.renderedRow.length > 1) {
+            let row = renderedRow.renderedRow.clone();
             $(existingRows[0]).before(row);
             resultingRows.push(row);
           } else {
             existingRows.each(function() {
-              let row = replacementRow.clone();
+              let row = renderedRow.renderedRow.clone();
               $(this).before(row);
               resultingRows.push(row);
             });
           }
           existingRows.remove();
           let resultingRowsJq = $(resultingRows).map(function() { return this.toArray(); });
-          _this.events.triggerAfter('renderRow', data, resultingRowsJq);
-          _this.events.triggerAfter('update', data, resultingRowsJq);
+          _this.events.triggerAfter('renderRow', renderedRow.dataRow, resultingRowsJq);
+          _this.events.triggerAfter('update', renderedRow.dataRow, resultingRowsJq);
           return true;
         } else {
           return false;
@@ -535,17 +528,13 @@
 
         _this.dataSource.before('select', function(request, options) {
           options.order = _this.getOrder();
-          if (!_this.loadingMoreData) {
-            // $(_this.selector).html('');
-            // $(_this.selector).addClass('progress-big');
-          }
         });
 
         _this.dataSource.after('select', function(result, response, request) {
           $(_this.selector).removeClass('progress-big');
           if (result) {
             noMoreData = (response.length === 0);
-            if (!disconnected) {
+            if (!_this.isDisconnected()) {
               _this.render(response, _this.loadingMoreData);
             }
           }
@@ -553,7 +542,7 @@
 
         _this.dataSource.after('insert', function(result, response) {
           if (result) {
-            if (!disconnected) {
+            if (!_this.isDisconnected()) {
               if (_this.isEmpty()) {
                 $(_this.selector).html(''); // to remove No-Data box
               }
@@ -572,7 +561,7 @@
         });
 
         _this.dataSource.on('remove', function(rowid) {
-          if (!disconnected) {
+          if (!_this.isDisconnected()) {
             _this.removeRow(rowid, _this.options);
           }
         });
@@ -620,7 +609,6 @@
 
     this.render = function(data, loadingMoreData) {
       let $selector = $(_this.selector);
-      let tableRow;
       _this.events.triggerBefore('change', data, 'render');
       if (data) {
         if (!loadingMoreData) {
@@ -631,7 +619,7 @@
           if (data.headers && (data.headers.length > 0)) {
             for (let i = 0, length = data.headers.length; i < length; i++) {
               if (data.headers[i]) {
-                tableRow = _this.renderHeader(data.headers[i]);
+                let tableRow = _this.renderHeader(data.headers[i]);
                 if (tableRow) {
                   $(_this.options.selectors.header).append(tableRow);
                 }
@@ -641,7 +629,7 @@
           if (data.footers && (data.footers.length > 0)) {
             for (let i = 0, length = data.footers.length; i < length; i++) {
               if (data.footers[i]) {
-                tableRow = _this.renderFooter(data.headers[i]);
+                let tableRow = _this.renderFooter(data.headers[i]);
                 if (tableRow) {
                   $(_this.options.selectors.footer).append(tableRow);
                 }
@@ -655,19 +643,19 @@
               for (let i = 0, length = data.rows.length; i < length; i++) {
                 if (data.rows[i]) {
                   if (data.rows[i].row) {
-                    tableRow = _this.renderRow(data.rows[i].row);
-                    if (tableRow) {
-                      $selector.append(tableRow);
+                    let renderedRow = _this.renderRow(data.rows[i].row);
+                    if (renderedRow.renderedRow) {
+                      $selector.append(renderedRow.renderedRow);
                     }
                   }
                   if (data.rows[i].header) {
-                    tableRow = _this.renderHeader(data.rows[i].header);
+                    let tableRow = _this.renderHeader(data.rows[i].header);
                     if (tableRow) {
                       $(_this.options.selectors.header).append(tableRow);
                     }
                   }
                   if (data.rows[i].footer) {
-                    tableRow = _this.renderFooter(data.rows[i].footer);
+                    let tableRow = _this.renderFooter(data.rows[i].footer);
                     if (tableRow) {
                       $(_this.options.selectors.footer).append(tableRow);
                     }
@@ -707,7 +695,7 @@
                       tmp.__groupBy.__field = groupFieldName;
                       tmp.__groupBy.__value = data[i][groupFieldName];
                       tmp.__groupBy[groupFieldName] = true;
-                      tableRow = _this.renderGroupRow(tmp);
+                      let tableRow = _this.renderGroupRow(tmp);
                       if (tableRow) {
                         $selector.append(tableRow);
                         _this.events.triggerAfter('renderGroupRow', data[i], tableRow);
@@ -715,10 +703,11 @@
                     }
                   }
                 }
-                tableRow = _this.renderRow(data[i]);
-                if (tableRow) {
-                  $selector.append(tableRow);
-                  _this.events.triggerAfter('renderRow', data[i], tableRow);
+                let dataRow = data[i];
+                let renderedRow = _this.renderRow(dataRow);
+                if (renderedRow.renderedRow) {
+                  $selector.append(renderedRow.renderedRow);
+                  _this.events.triggerAfter('renderRow', renderedRow.dataRow, renderedRow.renderedRow);
                 }
               }
             }
@@ -732,6 +721,7 @@
       }
       _this.events.trigger('change', data, 'render');
       _this.events.triggerAfter('change', data, 'render');
+      _this.events.triggerAfter('render', data);
     };
 
     return this.init();

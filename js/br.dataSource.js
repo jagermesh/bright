@@ -631,7 +631,7 @@
         try {
           if (!disableEvents) {
             _this.events.trigger('select', data.response, data.request, data.options);
-            _this.events.triggerAfter('select', true, data.response, data.request, data.options);
+            data.response = _this.events.triggerAfter('select', true, data.response, data.request, data.options) || data.response;
           }
           if (typeof callback == 'function') {
             callback.call(_this, true, data.response, data.request, data.options);
