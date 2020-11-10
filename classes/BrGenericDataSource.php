@@ -192,11 +192,16 @@ class BrGenericDataSource extends BrObject {
   protected function internalSelect($filter = array(), $fields = array(), $order = array(), $options = array()) {
 
     $countOnly = (br($options, 'result') == 'count');
-    $limit = $this->limit = br($options, 'limit');
-    $skip = br($options, 'skip', 0);
-    if (!$skip || ($skip < 0)) { $skip = 0; }
-    $options['limit'] = $limit;
-    $options['skip'] = $skip;
+
+    $this->limit = br($options, 'limit');
+    $this->skip  = br($options, 'skip', 0);
+
+    if (!$this->skip || ($this->skip < 0)) {
+      $this->skip = 0;
+    }
+
+    $options['limit'] = $this->limit;
+    $options['skip']  = $this->skip;
 
     $transientData = array();
 

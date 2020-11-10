@@ -65,19 +65,20 @@ class BrDataSource extends BrGenericDataSource {
 
     $this->DMLType = '';
 
-    $countOnly = (br($options, 'result') == 'count');
-    $returnCursor = (br($options, 'result') == 'cursor');
+    $countOnly       = (br($options, 'result') == 'count');
+    $returnCursor    = (br($options, 'result') == 'cursor');
     $returnStatement = (br($options, 'result') == 'statement');
-    $returnSQL = (br($options, 'result') == 'sql');
-    $limit = $this->limit = br($options, 'limit');
-    $skip = br($options, 'skip');
-    if (!$skip || ($skip < 0)) { $skip = 0; }
-    $this->skip = $skip;
-    $options['limit'] = $limit;
-    $options['skip'] = $skip;
+    $returnSQL       = (br($options, 'result') == 'sql');
 
-    $transientData = array();
+    $this->limit = br($options, 'limit');
+    $this->skip  = br($options, 'skip', 0);
 
+    if (!$this->skip || ($this->skip < 0)) {
+      $this->skip = 0;
+    }
+
+    $options['limit']         = $this->limit;
+    $options['skip']          = $this->skip;
     $options['operation']     = 'select';
     $options['dataSets']      = br(br($options, 'dataSets'))->split();
     $options['clientUID']     = br($options, 'clientUID');
@@ -87,7 +88,12 @@ class BrDataSource extends BrGenericDataSource {
     $options['excludeFields'] = br(br($options, 'excludeFields'))->split();
     $options['order']         = $order;
 
+    $transientData = array();
+
     $this->callEvent('before:select', $filter, $transientData, $options);
+
+    $this->limit = $options['limit'];
+    $this->skip  = $options['skip'];
 
     if (br($options, 'fields')) {
       $fields = array_unique(array_merge($fields, $options['fields']));
@@ -136,7 +142,7 @@ class BrDataSource extends BrGenericDataSource {
 
       $table = $this->getDb()->table($this->dbEntity(), $this->dbEntityAlias(), array('indexHint' => $this->dbIndexHint));
 
-      if (!strlen($limit) || ($limit > 0)) {
+      if (!strlen($this->limit) || ($this->limit > 0)) {
 
         try {
 
@@ -171,26 +177,26 @@ class BrDataSource extends BrGenericDataSource {
             $cursor = $cursor->sort($sortOrder);
           }
 
-          if ($skip) {
+          if ($this->skip) {
             if ($this->selectAdjancedRecords) {
-              $cursor = $cursor->skip($skip - 1);
+              $cursor = $cursor->skip($this->skip - 1);
             } else {
-              $cursor = $cursor->skip($skip);
+              $cursor = $cursor->skip($this->skip);
             }
           }
 
-          if (strlen($limit)) {
+          if (strlen($this->limit)) {
             if ($this->selectAdjancedRecords) {
-              if ($skip) {
-                $cursor = $cursor->limit($limit + 2);
+              if ($this->skip) {
+                $cursor = $cursor->limit($this->limit + 2);
               } else {
-                $cursor = $cursor->limit($limit + 1);
+                $cursor = $cursor->limit($this->limit + 1);
               }
             } else
             if ($this->checkTraversing) {
-              $cursor = $cursor->limit($limit + 1);
+              $cursor = $cursor->limit($this->limit + 1);
             } else {
-              $cursor = $cursor->limit($limit);
+              $cursor = $cursor->limit($this->limit);
             }
           }
 
@@ -215,14 +221,14 @@ class BrDataSource extends BrGenericDataSource {
                   unset($row[$excludeFieldName]);
                 }
               }
-              if ($this->selectAdjancedRecords && $skip && ($idx == 1)) {
+              if ($this->selectAdjancedRecords && $this->skip && ($idx == 1)) {
                 $this->nextAdjancedRecord = $row;
               } else
-              if ($this->selectAdjancedRecords && (count($result) == $limit)) {
+              if ($this->selectAdjancedRecords && (count($result) == $this->limit)) {
                 $this->priorAdjancedRecord = $row;
                 $this->lastSelectAmount++;
               } else
-              if (!$limit || (count($result) < $limit)) {
+              if (!$this->limit || (count($result) < $this->limit)) {
                 $result[] = $row;
                 $this->lastSelectAmount++;
               } else {

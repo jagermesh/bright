@@ -1142,6 +1142,49 @@ THE SOFTWARE.
     return !!window.chrome && !br.isOpera(); // Chrome 1+
   };
 
+  window.br.redirectBack = function(defaultHref, params) {
+    let refresh = params.refresh ? true : false;
+    let whenImpossible = params.whenImpossible;
+    let inPopup = (window.opener !== null);
+    // check opener
+    if (inPopup) {
+      // is opener still exists?
+      if (window.opener) {
+        if (!window.opener.closed) {
+          window.opener.focus();
+          try {
+            if (refresh) {
+              if (window.opener.document) {
+                window.opener.document.location.reload();
+              }
+            }
+          } catch (e) {
+
+          }
+        }
+      }
+      window.close();
+    } else {
+      let caller = br.isEmpty(br.request.get('caller')) ? null : br.request.get('caller');
+      let referer = br.isEmpty(document.referrer) ? null : (document.referrer.indexOf('login') != -1 ? null : (document.referrer == document.location.toString() ? null : document.referrer));
+      let href = br.isEmpty(defaultHref) ? null : defaultHref;
+      let redirectHref = (caller ? caller : (href ? href : referer));
+      if (redirectHref) {
+        br.redirect(redirectHref);
+      } else {
+        window.setTimeout(function() {
+          if (whenImpossible) {
+            whenImpossible(this);
+          } else {
+            br.error('Oops', 'Sorry, we can not determine where to redirect you from this page, please go there manually :(', function(event) {
+              event.preventDefault();
+            });
+          }
+        });
+      }
+    }
+  };
+
   window.br.redirect = function(url) {
     if ((url.search(/^\//) == -1) && (url.search(/^http[s]?:\/\//) == -1)) {
       url = this.baseUrl + url;
@@ -1242,50 +1285,49 @@ THE SOFTWARE.
     Child.superclass = Parent.prototype;
   };
 
-  function openUrl(url, options) {
-
+  function openUrl(href, options) {
     options = options || { };
 
-    let s;
+    let message;
+    const target = (options.target ? options.target : '_blank');
 
     if (options.urlTitle) {
-      s = '<p>Click below to open link manually</p>'
-        + '<p><a target="' + (options.target ? options.target : '_blank') + '" class="action-open-link" href="' + url + '" style="word-wrap: break-word">' + options.urlTitle + '</a></p>';
+      message = `<p>Click below to open link manually</p>
+                 <p><a target="${target}" class="action-open-link" href="${href}" style="word-wrap: break-word">${options.urlTitle}</a></p>`;
     } else {
-      s = '<p>Click a <a target="' + (options.target ? options.target : '_blank') + '" class="action-open-link" href="' + url + '" style="word-wrap: break-word">here</a> to open link manually</p>';
+      message = `<p>Click a <a target="${target}" class="action-open-link" href="${href}" style="word-wrap: break-word">here</a> to open link manually</p>`;
     }
 
-    let dialog = br.inform( 'You browser is currently blocking popups'
-                          , s
-                          + '<p>To eliminate this extra step, we recommend you modify your settings to disable the popup blocker.</p>'
-                          );
+    message = `${message}
+              <p>To eliminate this extra step, we recommend you modify your settings to disable the popup blocker.</p>`;
 
+    const dialog = br.inform('You browser is currently blocking popups', message);
     $('.action-open-link', dialog).on('click', function() {
       dialog.modal('hide');
       dialog.remove();
     });
-
   }
 
-  window.br.openPage = function(url, options) {
-
+  window.br.openPage = function(href, options) {
     options = options || { };
 
     if (br.isSafari()) {
-      br.openPopup(url, options);
+      br.openPopup(href, options);
     } else {
-      let a = document.createElement('a');
-      a.href = url;
-      a.target = options.target ? options.target : '_blank';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      const link = document.createElement('a');
+      link.href = href;
+      link.target = options.target ? options.target : '_blank';
+      link.click();
     }
-
   };
 
-  window.br.openPopup = function(url, options) {
+  window.br.openFile = function(href) {
+    const link = document.createElement('a');
+    link.href = href;
+    link.click();
+  };
 
+  window.br.openPopup = function(href, options) {
     if (br.isString(options)) {
       options = { target: options };
     } else {
@@ -1295,50 +1337,49 @@ THE SOFTWARE.
     options.target = options.target || '_blank';
 
     if (window.br.popupBlocker == 'active') {
-      openUrl(url, options);
+      openUrl(href, options);
     } else {
-      let w, h;
+      let width, height;
       if (screen.width) {
         if (options.fullScreen) {
-          w = screen.width;
+          width = screen.width;
         } else {
           if (screen.width >= 1280) {
-            w = 1000;
+            width = 1000;
           } else
           if (screen.width >= 1024) {
-            w = 800;
+            width = 800;
           } else {
-            w = 600;
+            width = 600;
           }
         }
       }
       if (screen.height) {
         if (options.fullScreen) {
-          h = screen.height;
+          height = screen.height;
         } else {
           if (screen.height >= 900) {
-            h = 700;
+            height = 700;
           } else
           if (screen.height >= 800) {
-            h = 600;
+            height = 600;
           } else {
-            h = 500;
+            height = 500;
           }
         }
       }
-      let left = (screen.width) ? (screen.width-w)/2 : 0;
-      let settings = 'height='+h+',width='+w+',top=20,left='+left+',menubar=0,scrollbars=1,resizable=1';
-      let win = window.open(url, options.target, settings);
+      let left = (screen.width) ? (screen.width-width)/2 : 0;
+      let settings = `height=${height},width=${width},top=20,left=${left},menubar=0,scrollbars=1,resizable=1`;
+      let win = window.open(href, options.target, settings);
       if (win) {
         window.br.popupBlocker = 'inactive';
         win.focus();
         return win;
       } else {
         window.br.popupBlocker = 'active';
-        openUrl(url, options);
+        openUrl(href, options);
       }
     }
-
   };
 
   function handleModified(element, deferred) {
@@ -1658,7 +1699,6 @@ THE SOFTWARE.
   };
 
   if (window.addEventListener) {
-
     window.addEventListener('error', function(event) {
       let data = {
           message: event.message
@@ -1734,21 +1774,23 @@ THE SOFTWARE.
     if (navigator.sendBeacon) {
       format = format || 'json';
       br.on('error', function(error) {
-        let message = '', suffix;
-        switch(format) {
-          case 'html':
-            message = printObject(error, '<br />');
-            break;
-          case 'text':
-            message = printObject(error, '\n');
-            break;
-          default:
-            message = JSON.stringify(error);
-            break;
+        if (!error.filename || (error.filename.indexOf('chrome-extension') !== 0)) {
+          let message = '', suffix;
+          switch(format) {
+            case 'html':
+              message = printObject(error, '<br />');
+              break;
+            case 'text':
+              message = printObject(error, '\n');
+              break;
+            default:
+              message = JSON.stringify(error);
+              break;
+          }
+          let data = new FormData();
+          data.append('error', message);
+          navigator.sendBeacon(url, data);
         }
-        let data = new FormData();
-        data.append('error', message);
-        navigator.sendBeacon(url, data);
       });
     }
 
@@ -4596,8 +4638,9 @@ THE SOFTWARE.
     options = options || {};
     options.cancelTitle = options.cancelTitle || br.trn('Cancel');
     options.onConfirm = options.onConfirm || callback;
+    options.cssClass = options.cssClass || '';
 
-    let template = '<div class="br-modal-confirm modal ${options.cssClass}" role="dialog">';
+    let template = `<div class="br-modal-confirm modal ${options.cssClass}" role="dialog">`;
 
     let checkBoxes = '';
     if (options.checkBoxes) {
