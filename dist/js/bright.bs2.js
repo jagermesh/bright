@@ -2499,7 +2499,7 @@ THE SOFTWARE.
         try {
           if (!disableEvents) {
             _this.events.trigger('select', data.response, data.request, data.options);
-            _this.events.triggerAfter('select', true, data.response, data.request, data.options);
+            data.response = _this.events.triggerAfter('select', true, data.response, data.request, data.options) || data.response;
           }
           if (typeof callback == 'function') {
             callback.call(_this, true, data.response, data.request, data.options);
@@ -3034,12 +3034,12 @@ THE SOFTWARE.
 
     _this.renderFooter = function(data, asString) {
       data = _this.events.trigger('renderFooter', data) || data;
-      let s =  _this.templates.footer(data);
+      let template =  _this.templates.footer(data);
       if (asString) {
-        return s;
+        return template;
       } else
-      if (s.length > 0) {
-        let result = $(s);
+      if (template.length > 0) {
+        let result = $(template);
         if (_this.options.storeDataRow) {
           result.data('data-row', data);
         }
@@ -3049,20 +3049,20 @@ THE SOFTWARE.
       }
     };
 
-    _this.renderRow = function(data, asString) {
-      data = _this.events.trigger('renderRow', data) || data;
-      let s = _this.templates.row(data).trim();
+    _this.renderRow = function(srcDataRow, asString) {
+      let dataRow = _this.events.trigger('renderRow', srcDataRow) || srcDataRow;
+      let template = _this.templates.row(dataRow).trim();
       if (asString) {
-        return s;
+        return { rendered: template, dataRow: dataRow };
       } else
-      if (s.length > 0) {
-        let result = $(s);
+      if (template.length > 0) {
+        let result = $(template);
         if (_this.options.storeDataRow) {
-          result.data('data-row', data);
+          result.data('data-row', dataRow);
         }
-        return result;
+        return { renderedRow: result, dataRow: dataRow };
       } else {
-        return null;
+        return { renderedRow: null, dataRow: dataRow };
       }
     };
 
@@ -3091,33 +3091,33 @@ THE SOFTWARE.
       return $(_this.selector).append(row);
     };
 
-    _this.insertDataRowAfter = function(row, selector) {
-      let tableRow = _this.renderRow(row);
-      if (tableRow) {
-        $(tableRow).insertAfter(selector);
+    _this.insertDataRowAfter = function(dataRow, selector) {
+      let renderedRow = _this.renderRow(dataRow);
+      if (renderedRow.renderedRow) {
+        $(renderedRow.renderedRow).insertAfter(selector);
       }
-      return tableRow;
+      return renderedRow.renderedRow;
     };
 
-    _this.addDataRow = function(row, disableEvents) {
-      let tableRow = _this.renderRow(row);
-      if (tableRow) {
-        _this.events.triggerBefore('insert', row, tableRow);
-        _this.events.trigger('insert', row, tableRow);
+    _this.addDataRow = function(dataRow, disableEvents) {
+      let renderedRow = _this.renderRow(dataRow);
+      if (renderedRow.renderedRow) {
+        _this.events.triggerBefore('insert', renderedRow.dataRow, renderedRow.renderedRow);
+        _this.events.trigger('insert', renderedRow.dataRow, renderedRow.renderedRow);
         if (_this.options.appendInInsert) {
-          _this.append(tableRow);
+          _this.append(renderedRow.renderedRow);
           if (_this.options.scrollToInsertedRow) {
-            tableRow[0].scrollIntoView();
+            renderedRow.renderedRow[0].scrollIntoView();
           }
         } else {
-          _this.prepend(tableRow);
+          _this.prepend(renderedRow.renderedRow);
         }
         if (!disableEvents) {
-          _this.events.triggerAfter('renderRow', row, tableRow);
-          _this.events.triggerAfter('insert', row, tableRow);
+          _this.events.triggerAfter('renderRow', renderedRow.dataRow, renderedRow.renderedRow);
+          _this.events.triggerAfter('insert', renderedRow.dataRow, renderedRow.renderedRow);
         }
       }
-      return tableRow;
+      return renderedRow.renderedRow;
     };
 
     _this.hasRow = function(rowid) {
@@ -3144,13 +3144,6 @@ THE SOFTWARE.
       _this.dataSource.select(filter, function(result, response) {
         if (!result || (response.length === 0)) {
           _this.removeRow(rowid);
-          // if (!options.reloadOnlyRow) {
-          //   _this.refresh(function(result, response) {
-          //     if (typeof callback == 'function') {
-          //       callback.call(_this, result, response, false);
-          //     }
-          //   });
-          // }
         } else {
           response = response[0];
           if (_this.refreshRow(response, options)) {
@@ -3218,8 +3211,8 @@ THE SOFTWARE.
 
     };
 
-    _this.refreshRow = function(data, options) {
-      let filter = '[data-rowid=' + data.rowid + ']';
+    _this.refreshRow = function(dataRow, options) {
+      let filter = '[data-rowid=' + dataRow.rowid + ']';
       options = options || Object.create({});
       options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
       if (options.refreshSelector) {
@@ -3227,29 +3220,29 @@ THE SOFTWARE.
       }
       let existingRows = $(_this.selector).find(filter);
       if (existingRows.length > 0) {
-        let replacementRow = _this.renderRow(data);
-        if (replacementRow) {
+        let renderedRow = _this.renderRow(dataRow);
+        if (renderedRow.renderedRow) {
           if (_this.options.storeDataRow) {
-            replacementRow.data('data-row', data);
+            renderedRow.renderedRow.data('data-row', renderedRow.dataRow);
           }
-          _this.events.triggerBefore('update', data);
-          _this.events.trigger('update', data, existingRows);
+          _this.events.triggerBefore('update', renderedRow.dataRow);
+          _this.events.trigger('update', renderedRow.dataRow, existingRows);
           let resultingRows = [];
-          if (replacementRow.length > 1) {
-            let row = replacementRow.clone();
+          if (renderedRow.renderedRow.length > 1) {
+            let row = renderedRow.renderedRow.clone();
             $(existingRows[0]).before(row);
             resultingRows.push(row);
           } else {
             existingRows.each(function() {
-              let row = replacementRow.clone();
+              let row = renderedRow.renderedRow.clone();
               $(this).before(row);
               resultingRows.push(row);
             });
           }
           existingRows.remove();
           let resultingRowsJq = $(resultingRows).map(function() { return this.toArray(); });
-          _this.events.triggerAfter('renderRow', data, resultingRowsJq);
-          _this.events.triggerAfter('update', data, resultingRowsJq);
+          _this.events.triggerAfter('renderRow', renderedRow.dataRow, resultingRowsJq);
+          _this.events.triggerAfter('update', renderedRow.dataRow, resultingRowsJq);
           return true;
         } else {
           return false;
@@ -3401,17 +3394,13 @@ THE SOFTWARE.
 
         _this.dataSource.before('select', function(request, options) {
           options.order = _this.getOrder();
-          if (!_this.loadingMoreData) {
-            // $(_this.selector).html('');
-            // $(_this.selector).addClass('progress-big');
-          }
         });
 
         _this.dataSource.after('select', function(result, response, request) {
           $(_this.selector).removeClass('progress-big');
           if (result) {
             noMoreData = (response.length === 0);
-            if (!disconnected) {
+            if (!_this.isDisconnected()) {
               _this.render(response, _this.loadingMoreData);
             }
           }
@@ -3419,7 +3408,7 @@ THE SOFTWARE.
 
         _this.dataSource.after('insert', function(result, response) {
           if (result) {
-            if (!disconnected) {
+            if (!_this.isDisconnected()) {
               if (_this.isEmpty()) {
                 $(_this.selector).html(''); // to remove No-Data box
               }
@@ -3438,7 +3427,7 @@ THE SOFTWARE.
         });
 
         _this.dataSource.on('remove', function(rowid) {
-          if (!disconnected) {
+          if (!_this.isDisconnected()) {
             _this.removeRow(rowid, _this.options);
           }
         });
@@ -3486,7 +3475,6 @@ THE SOFTWARE.
 
     this.render = function(data, loadingMoreData) {
       let $selector = $(_this.selector);
-      let tableRow;
       _this.events.triggerBefore('change', data, 'render');
       if (data) {
         if (!loadingMoreData) {
@@ -3497,7 +3485,7 @@ THE SOFTWARE.
           if (data.headers && (data.headers.length > 0)) {
             for (let i = 0, length = data.headers.length; i < length; i++) {
               if (data.headers[i]) {
-                tableRow = _this.renderHeader(data.headers[i]);
+                let tableRow = _this.renderHeader(data.headers[i]);
                 if (tableRow) {
                   $(_this.options.selectors.header).append(tableRow);
                 }
@@ -3507,7 +3495,7 @@ THE SOFTWARE.
           if (data.footers && (data.footers.length > 0)) {
             for (let i = 0, length = data.footers.length; i < length; i++) {
               if (data.footers[i]) {
-                tableRow = _this.renderFooter(data.headers[i]);
+                let tableRow = _this.renderFooter(data.headers[i]);
                 if (tableRow) {
                   $(_this.options.selectors.footer).append(tableRow);
                 }
@@ -3521,19 +3509,19 @@ THE SOFTWARE.
               for (let i = 0, length = data.rows.length; i < length; i++) {
                 if (data.rows[i]) {
                   if (data.rows[i].row) {
-                    tableRow = _this.renderRow(data.rows[i].row);
-                    if (tableRow) {
-                      $selector.append(tableRow);
+                    let renderedRow = _this.renderRow(data.rows[i].row);
+                    if (renderedRow.renderedRow) {
+                      $selector.append(renderedRow.renderedRow);
                     }
                   }
                   if (data.rows[i].header) {
-                    tableRow = _this.renderHeader(data.rows[i].header);
+                    let tableRow = _this.renderHeader(data.rows[i].header);
                     if (tableRow) {
                       $(_this.options.selectors.header).append(tableRow);
                     }
                   }
                   if (data.rows[i].footer) {
-                    tableRow = _this.renderFooter(data.rows[i].footer);
+                    let tableRow = _this.renderFooter(data.rows[i].footer);
                     if (tableRow) {
                       $(_this.options.selectors.footer).append(tableRow);
                     }
@@ -3573,7 +3561,7 @@ THE SOFTWARE.
                       tmp.__groupBy.__field = groupFieldName;
                       tmp.__groupBy.__value = data[i][groupFieldName];
                       tmp.__groupBy[groupFieldName] = true;
-                      tableRow = _this.renderGroupRow(tmp);
+                      let tableRow = _this.renderGroupRow(tmp);
                       if (tableRow) {
                         $selector.append(tableRow);
                         _this.events.triggerAfter('renderGroupRow', data[i], tableRow);
@@ -3581,10 +3569,11 @@ THE SOFTWARE.
                     }
                   }
                 }
-                tableRow = _this.renderRow(data[i]);
-                if (tableRow) {
-                  $selector.append(tableRow);
-                  _this.events.triggerAfter('renderRow', data[i], tableRow);
+                let dataRow = data[i];
+                let renderedRow = _this.renderRow(dataRow);
+                if (renderedRow.renderedRow) {
+                  $selector.append(renderedRow.renderedRow);
+                  _this.events.triggerAfter('renderRow', renderedRow.dataRow, renderedRow.renderedRow);
                 }
               }
             }
@@ -3598,6 +3587,7 @@ THE SOFTWARE.
       }
       _this.events.trigger('change', data, 'render');
       _this.events.triggerAfter('change', data, 'render');
+      _this.events.triggerAfter('render', data);
     };
 
     return this.init();
@@ -6517,7 +6507,6 @@ THE SOFTWARE.
     _this.options = options || Object.create({});
     _this.options.autoLoad = _this.options.autoLoad || false;
     _this.options.defaults = _this.options.defaults || {};
-    _this.options.defaults.filtersHidden = _this.options.defaults.filtersHidden || false;
     _this.options.entity = entity;
     _this.options.features = _this.options.features || { editor: true };
     _this.options.noun = _this.options.noun || '';
@@ -6834,7 +6823,6 @@ THE SOFTWARE.
           }
         }
         _this.updatePager(true);
-        showFiltersDesc();
       });
 
       // search
@@ -6940,75 +6928,9 @@ THE SOFTWARE.
 
       $(findNode('input.data-filter[name=keyword]')).val(_this.getFilter('keyword'));
 
-      function showFiltersDesc() {
-
-        if ($(findNode('.filters-panel')).is(':visible')) {
-          $(findNode('.action-show-hide-filters')).find('span').text('Hide filters');
-          $(findNode('.filter-description')).text('');
-        } else {
-          $(findNode('.action-show-hide-filters')).find('span').text('Show filters');
-          let s = '';
-          $(findNode('.data-filter')).each(function() {
-            const val = $(this).val();
-            const title = $(this).attr('title');
-            if (val && title) {
-              s = s + '/ <strong>' + title + '</strong> ';
-              if ($(this).is('select')) {
-                s = s + $(this).find('option[value=' + val + ']').text() + ' ';
-              } else {
-                s = s + val + ' ';
-              }
-
-            }
-          });
-          $(findNode('.filter-description')).html(s);
-        }
-
-      }
-
-      function setupFilters(initial) {
-
-        function showHideFilters(initial) {
-
-          if ($(findNode('.filters-panel')).is(':visible')) {
-            _this.setStored('filters-hidden', true);
-            $(findNode('.filters-panel')).css('display', 'none');
-            showFiltersDesc();
-            _this.events.trigger('hideFilters');
-          } else {
-            _this.setStored('filters-hidden', false);
-            $(findNode('.filters-panel')).show();
-            showFiltersDesc();
-            _this.events.trigger('showFilters');
-          }
-
-          if (_this.dataGrid.table) {
-            _this.dataGrid.table.update();
-          }
-
-        }
-
-        $(findNode('.action-show-hide-filters')).on('click', function() {
-          showHideFilters();
-        });
-
-        $(findNode('.action-reset-filters')).on('click', function () {
-          _this.resetFilters();
-        });
-
-        if (br.isNull(_this.getStored('filters-hidden'))) {
-          _this.setStored('filters-hidden', _this.options.defaults.filtersHidden);
-        }
-
-        if (_this.getStored('filters-hidden')) {
-          showFiltersDesc();
-        } else {
-          showHideFilters(initial);
-        }
-
-      }
-
-      setupFilters(true);
+      $(findNode('.action-reset-filters')).on('click', function () {
+        _this.resetFilters();
+      });
 
       function checkAutoLoad() {
 
@@ -7141,109 +7063,112 @@ THE SOFTWARE.
 
     function internalUpdatePager() {
 
-      initPager();
+      if (!_this.dataGrid.isDisconnected()) {
 
-      const totalPages = Math.ceil(_this.recordsAmount / _this.limit);
-      const currentPage = Math.ceil(_this.skip / _this.limit) + 1;
+        initPager();
 
-      if (pageNavIsSlider) {
-        $(findNode('.pager-page-slider')).slider('option', 'max', totalPages);
-        $(findNode('.pager-page-slider')).slider('option', 'value', currentPage);
-      } else {
-        const $pc = $(findNode('.pager-page-navigation'));
-        $pc.html('');
-        let s = '';
-        let f1 = false;
-        let f2 = false;
-        let r = 5;
-        let el = false;
-        for(let i = 1; i <= totalPages; i++) {
-          if ((i <= r) || ((i > currentPage - r) && (i < currentPage + r)) || (i > (totalPages - r))) {
-            if (i == currentPage) {
-              s = s + '<strong class="pager-nav-element">' + i+ '</strong>';
-            } else {
-              el = true;
-              s = s + '<a href="javascript:;" class="pager-action-navigate pager-nav-element" data-page="'+ i + '">' + i+ '</a>';
+        const totalPages = Math.ceil(_this.recordsAmount / _this.limit);
+        const currentPage = Math.ceil(_this.skip / _this.limit) + 1;
+
+        if (pageNavIsSlider) {
+          $(findNode('.pager-page-slider')).slider('option', 'max', totalPages);
+          $(findNode('.pager-page-slider')).slider('option', 'value', currentPage);
+        } else {
+          const $pc = $(findNode('.pager-page-navigation'));
+          $pc.html('');
+          let s = '';
+          let f1 = false;
+          let f2 = false;
+          let r = 5;
+          let el = false;
+          for(let i = 1; i <= totalPages; i++) {
+            if ((i <= r) || ((i > currentPage - r) && (i < currentPage + r)) || (i > (totalPages - r))) {
+              if (i == currentPage) {
+                s = s + '<strong class="pager-nav-element">' + i+ '</strong>';
+              } else {
+                el = true;
+                s = s + '<a href="javascript:;" class="pager-action-navigate pager-nav-element" data-page="'+ i + '">' + i+ '</a>';
+              }
+            } else
+            if (!f1 && i < currentPage) {
+              s = s + '...';
+              f1 = true;
+            } else
+            if (!f2 && i > currentPage) {
+              s = s + '...';
+              f2 = true;
             }
-          } else
-          if (!f1 && i < currentPage) {
-            s = s + '...';
-            f1 = true;
-          } else
-          if (!f2 && i > currentPage) {
-            s = s + '...';
-            f2 = true;
           }
-        }
-        if (el) {
-          $pc.html(s);
-          $(findNode('.pager-nav-element')).show();
-        } else {
-          $(findNode('.pager-nav-element')).css('display', 'none');
-        }
-      }
-
-      if (pageSizeIsSlider) {
-
-      } else {
-        const $pc = $(findNode('.pager-page-size-navigation'));
-        $pc.html('');
-        let s = '';
-        const sizes = _this.options.pageSizes;
-        for(let i = 0, length = sizes.length; i < length; i++) {
-          let size = sizes[i];
-          let dsize = size;
-          if (size >= _this.recordsAmount) {
-            dsize = _this.recordsAmount;
-          }
-          if (size == _this.limit) {
-            s = s + '<strong class="pager-nav-element">' + dsize + '</strong>';
+          if (el) {
+            $pc.html(s);
+            $(findNode('.pager-nav-element')).show();
           } else {
-            s = s + '<a href="javascript:;" class="pager-action-page-size pager-size-element" data-size="' + size + '">' + dsize + '</a>';
-          }
-          if (size >= _this.recordsAmount) {
-            break;
+            $(findNode('.pager-nav-element')).css('display', 'none');
           }
         }
-        if (s.length > 0) {
-          $pc.html(s);
-          $(findNode('.pager-page-size-container')).show();
+
+        if (pageSizeIsSlider) {
+
         } else {
-          $(findNode('.pager-page-size-container')).css('display', 'none');
+          const $pc = $(findNode('.pager-page-size-navigation'));
+          $pc.html('');
+          let s = '';
+          const sizes = _this.options.pageSizes;
+          for(let i = 0, length = sizes.length; i < length; i++) {
+            let size = sizes[i];
+            let dsize = size;
+            if (size >= _this.recordsAmount) {
+              dsize = _this.recordsAmount;
+            }
+            if (size == _this.limit) {
+              s = s + '<strong class="pager-nav-element">' + dsize + '</strong>';
+            } else {
+              s = s + '<a href="javascript:;" class="pager-action-page-size pager-size-element" data-size="' + size + '">' + dsize + '</a>';
+            }
+            if (size >= _this.recordsAmount) {
+              break;
+            }
+          }
+          if (s.length > 0) {
+            $pc.html(s);
+            $(findNode('.pager-page-size-container')).show();
+          } else {
+            $(findNode('.pager-page-size-container')).css('display', 'none');
+          }
         }
-      }
 
-      const min = (_this.skip + 1);
-      const max = Math.min(_this.skip + _this.limit, _this.recordsAmount);
+        const min = (_this.skip + 1);
+        const max = Math.min(_this.skip + _this.limit, _this.recordsAmount);
 
-      if (_this.recordsAmount > 0) {
-        if (_this.recordsAmount > max) {
-          $(findNode('.action-next')).show();
-          $(findNode('.pager-action-next')).show();
+        if (_this.recordsAmount > 0) {
+          if (_this.recordsAmount > max) {
+            $(findNode('.action-next')).show();
+            $(findNode('.pager-action-next')).show();
+          } else {
+            $(findNode('.action-next')).css('display', 'none');
+            $(findNode('.pager-action-next')).css('display', 'none');
+          }
+          if (_this.skip > 0) {
+            $(findNode('.action-prior')).show();
+            $(findNode('.pager-action-prior')).show();
+          } else {
+            $(findNode('.action-prior')).css('display', 'none');
+            $(findNode('.pager-action-prior')).css('display', 'none');
+          }
+          $(findNode('.pager-control')).show();
+          _this.events.triggerAfter('pager.show');
         } else {
-          $(findNode('.action-next')).css('display', 'none');
-          $(findNode('.pager-action-next')).css('display', 'none');
+          $(findNode('.pager-control')).css('display', 'none');
+          _this.events.triggerAfter('pager.hide');
         }
-        if (_this.skip > 0) {
-          $(findNode('.action-prior')).show();
-          $(findNode('.pager-action-prior')).show();
-        } else {
-          $(findNode('.action-prior')).css('display', 'none');
-          $(findNode('.pager-action-prior')).css('display', 'none');
+        $(findNode('.pager-stat')).text('Records ' + min + '-' + max + ' of ' + _this.recordsAmount);
+        $(findNode('.pager-page-size')).text(_this.limit + ' records per page');
+
+        pagerSetUp = true;
+
+        if (_this.dataGrid.table) {
+          _this.dataGrid.table.update();
         }
-        $(findNode('.pager-control')).show();
-        _this.events.triggerAfter('pager.show');
-      } else {
-        $(findNode('.pager-control')).css('display', 'none');
-        _this.events.triggerAfter('pager.hide');
-      }
-      $(findNode('.pager-stat')).text('Records ' + min + '-' + max + ' of ' + _this.recordsAmount);
-      $(findNode('.pager-page-size')).text(_this.limit + ' records per page');
-
-      pagerSetUp = true;
-
-      if (_this.dataGrid.table) {
-        _this.dataGrid.table.update();
       }
 
     }
