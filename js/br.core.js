@@ -11,6 +11,7 @@
 /* global ArrayBuffer */
 /* global Uint32Array */
 /* global FormData */
+/* global safari */
 
 ;(function ($, window) {
 
@@ -76,33 +77,27 @@
   };
 
   window.br.isTouchScreen = function() {
-    let ua = navigator.userAgent;
-    return ((/iPad/i.test(ua)) || (/iPhone/i.test(ua)) || (/Android/i.test(ua)));
+    return /iPad|iPhone|iPod/.test(navigator.platform) || /Android/i.test(navigator.userAgent);
   };
 
   window.br.isMobileDevice = function() {
-    let ua = navigator.userAgent;
-    return ((/iPad/i.test(ua)) || (/iPhone/i.test(ua)) || (/Android/i.test(ua)));
+    return /iPad|iPhone|iPod/.test(navigator.platform) || /Android/i.test(navigator.userAgent);
   };
 
   window.br.isiOS = function() {
-    let ua = navigator.userAgent;
-    return ((/iPad/i.test(ua)) || (/iPhone/i.test(ua)));
+    return /iPad|iPhone|iPod/.test(navigator.platform);
   };
 
   window.br.isiPad = function() {
-    let ua = navigator.userAgent;
-    return (/iPad/i.test(ua));
+    return /iPad/.test(navigator.platform);
   };
 
   window.br.isiPhone = function() {
-    let ua = navigator.userAgent;
-    return (/iPhone/i.test(ua));
+    return /iPhone/.test(navigator.platform);
   };
 
   window.br.isAndroid = function() {
-    let ua = navigator.userAgent;
-    return (/android/i.test(ua));
+    return (/Android/i.test(navigator.userAgent));
   };
 
   window.br.isIE = function() {
@@ -110,7 +105,7 @@
   };
 
   window.br.isOpera = function() {
-    return !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+    return (!!window.opr && !!window.opr.addons) || !!window.opera;
   };
 
   window.br.isFirefox = function() {
@@ -118,11 +113,11 @@
   };
 
   window.br.isSafari = function() {
-    return (navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1);
+    return /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window.safari || (typeof window.safari !== 'undefined' && window.safari.pushNotification));
   };
 
   window.br.isChrome = function() {
-    return !!window.chrome && !br.isOpera(); // Chrome 1+
+    return !!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime) && !window.opera;
   };
 
   window.br.redirectBack = function(defaultHref, params) {
