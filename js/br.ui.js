@@ -268,7 +268,7 @@
     $(modal).on('hide.bs.modal', function(event) {
       if ($(event.target).is(modal)) {
         if (callback) {
-          callback.call(this);
+          callback.call(this, event);
         }
       }
     });
@@ -856,8 +856,8 @@
     function getValuesComparison(a, b, columnIndex, direction) {
       const td1 = $($('td', $(a))[columnIndex]);
       const td2 = $($('td', $(b))[columnIndex]);
-      const val1 = td1.remove('a').text().trim();
-      const val2 = td2.remove('a').text().trim();
+      const val1 = td1.attr('data-sort-value') ? td1.attr('data-sort-value') : td1.text().trim().replace(/\%$/, '').replace(/\,/, '');
+      const val2 = td2.attr('data-sort-value') ? td2.attr('data-sort-value') : td2.text().trim().replace(/\%$/, '').replace(/\,/, '');
       let val1F = 0;
       let val2F = 0;
       let floatValues = 0;
