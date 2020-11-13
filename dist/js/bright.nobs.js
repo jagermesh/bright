@@ -1021,6 +1021,7 @@ THE SOFTWARE.
 /* global ArrayBuffer */
 /* global Uint32Array */
 /* global FormData */
+/* global safari */
 
 ;(function ($, window) {
 
@@ -1086,33 +1087,27 @@ THE SOFTWARE.
   };
 
   window.br.isTouchScreen = function() {
-    let ua = navigator.userAgent;
-    return ((/iPad/i.test(ua)) || (/iPhone/i.test(ua)) || (/Android/i.test(ua)));
+    return /iPad|iPhone|iPod/.test(navigator.platform) || /Android/i.test(navigator.userAgent);
   };
 
   window.br.isMobileDevice = function() {
-    let ua = navigator.userAgent;
-    return ((/iPad/i.test(ua)) || (/iPhone/i.test(ua)) || (/Android/i.test(ua)));
+    return /iPad|iPhone|iPod/.test(navigator.platform) || /Android/i.test(navigator.userAgent);
   };
 
   window.br.isiOS = function() {
-    let ua = navigator.userAgent;
-    return ((/iPad/i.test(ua)) || (/iPhone/i.test(ua)));
+    return /iPad|iPhone|iPod/.test(navigator.platform);
   };
 
   window.br.isiPad = function() {
-    let ua = navigator.userAgent;
-    return (/iPad/i.test(ua));
+    return /iPad/.test(navigator.platform);
   };
 
   window.br.isiPhone = function() {
-    let ua = navigator.userAgent;
-    return (/iPhone/i.test(ua));
+    return /iPhone/.test(navigator.platform);
   };
 
   window.br.isAndroid = function() {
-    let ua = navigator.userAgent;
-    return (/android/i.test(ua));
+    return (/Android/i.test(navigator.userAgent));
   };
 
   window.br.isIE = function() {
@@ -1120,7 +1115,7 @@ THE SOFTWARE.
   };
 
   window.br.isOpera = function() {
-    return !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+    return (!!window.opr && !!window.opr.addons) || !!window.opera;
   };
 
   window.br.isFirefox = function() {
@@ -1128,11 +1123,11 @@ THE SOFTWARE.
   };
 
   window.br.isSafari = function() {
-    return (navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1);
+    return /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window.safari || (typeof window.safari !== 'undefined' && window.safari.pushNotification));
   };
 
   window.br.isChrome = function() {
-    return !!window.chrome && !br.isOpera(); // Chrome 1+
+    return !!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime) && !window.opera;
   };
 
   window.br.redirectBack = function(defaultHref, params) {
@@ -4808,7 +4803,7 @@ THE SOFTWARE.
     $(modal).on('hide.bs.modal', function(event) {
       if ($(event.target).is(modal)) {
         if (callback) {
-          callback.call(this);
+          callback.call(this, event);
         }
       }
     });
@@ -5396,8 +5391,8 @@ THE SOFTWARE.
     function getValuesComparison(a, b, columnIndex, direction) {
       const td1 = $($('td', $(a))[columnIndex]);
       const td2 = $($('td', $(b))[columnIndex]);
-      const val1 = td1.remove('a').text().trim();
-      const val2 = td2.remove('a').text().trim();
+      const val1 = td1.attr('data-sort-value') ? td1.attr('data-sort-value') : td1.text().trim().replace(/\%$/, '').replace(/\,/, '');
+      const val2 = td2.attr('data-sort-value') ? td2.attr('data-sort-value') : td2.text().trim().replace(/\%$/, '').replace(/\,/, '');
       let val1F = 0;
       let val2F = 0;
       let floatValues = 0;
