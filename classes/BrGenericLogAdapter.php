@@ -13,32 +13,36 @@ namespace Bright;
 class BrGenericLogAdapter extends BrObject {
 
   protected $fiexdLogInfo;
+  protected $logSnapshot;
 
   public function __construct() {
     parent::__construct();
+
+    $this->fiexdLogInfo = [
+      'client_ip' => br()->request()->clientIP(),
+      'pid' => br()->getProcessID(),
+    ];
 
     if (br()->isConsoleMode()) {
       $this->commandLine = br(br()->getCommandLineArguments())->join(' ');
     }
 
-    $this->fiexdLogInfo = [
-      'client_ip' => br()->request()->clientIP(),
-      'pid' => br()->getProcessID(),
+    $this->logSnapshot = [
       'script_name' => br()->getScriptName(),
       'server_ip' => gethostbyname(php_uname('n')),
     ];
 
     if (br()->isConsoleMode()) {
       if ($commandLine = br(br()->getCommandLineArguments())->join(' ')) {
-        $this->fiexdLogInfo['command_line'] = $commandLine;
+        $this->logSnapshot['command_line'] = $commandLine;
       }
     } else {
-      $this->fiexdLogInfo += [
+      $this->logSnapshot += [
         'request_type' => br()->request()->method(),
         'url' => br()->request()->url(),
       ];
       if (br()->request()->referer()) {
-        $this->fiexdLogInfo['referer'] = br()->request()->referer();
+        $this->logSnapshot['referer'] = br()->request()->referer();
       }
       $requestData = br()->request()->post();
       if (!$requestData) {
@@ -47,12 +51,20 @@ class BrGenericLogAdapter extends BrObject {
       unset($requestData['password']);
       unset($requestData['paswd']);
       if ($requestData) {
-        $this->fiexdLogInfo['request_data'] = $requestData;
+        foreach ($requestData as $key => $value) {
+          $requestData[$key] = BrGenericLogAdapter::convertMessageOrObjectToText($requestData[$key], false);
+          if (mb_strlen($requestData[$key]) > 512) {
+            $remain = mb_strlen($requestData[$key]) - 512;
+            $suffix = ($remain > 1 ? 's' : '');
+            $requestData[$key] = mb_substr($requestData[$key], 0, 512) . ' (' . $remain . ' byte' . $suffix . ' more...)';
+          }
+        }
+        $this->logSnapshot['request_data'] = $requestData;
       }
     }
 
     if (br()->config()->get('br/db')) {
-      $this->fiexdLogInfo['db'] = [
+      $this->logSnapshot['db'] = [
         'name' => br(br()->config()->get('br/db'), 'name'),
         'hostname' => br(br()->config()->get('br/db'), 'hostname'),
       ];
@@ -78,13 +90,12 @@ class BrGenericLogAdapter extends BrObject {
             }
           }
         }
-        $this->fiexdLogInfo['auth'] = $auth;
+        $this->logSnapshot['auth'] = $auth;
       }
     }
   }
 
   public function write($messageOrObject, $params) {
-
   }
 
   protected function isDebugEventType($params) {
@@ -103,6 +114,10 @@ class BrGenericLogAdapter extends BrObject {
     return ($params['log_event'] == 'message');
   }
 
+  protected function isSnapshotEventType($params) {
+    return ($params['log_event'] == 'snapshot');
+  }
+
   protected function isRegularEventType($params) {
     return $this->isDebugEventType($params) ||
            $this->isErrorEventType($params) ||
@@ -110,13 +125,16 @@ class BrGenericLogAdapter extends BrObject {
            $this->isMessageEventType($params);
   }
 
-  protected function getLogInfo($messageOrObject, $params, $withMessage = false) {
+  protected function getLogInfo($messageOrObject, $params, $contentType = []) {
+    $withMessage = in_array('message', $contentType);
+    $withSnapshot = in_array('snapshot', $contentType);
+
     $result = [
       'timestamp' => br()->getUnifiedTimestamp(),
     ];
 
     if ($withMessage) {
-      $result['message'] = BrErrorsFormatter::convertMessageOrObjectToText($messageOrObject, $params, true);
+      $result['message'] = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, true);
     }
 
     $result['log_event'] = $params['log_event'];
@@ -130,6 +148,31 @@ class BrGenericLogAdapter extends BrObject {
 
     $result += $this->fiexdLogInfo;
 
+    if ($withSnapshot) {
+      $result += $this->logSnapshot;
+    }
+
+    return $result;
+  }
+
+  static public function convertMessageOrObjectToText($messageOrObject, $includeStackTrace = false) {
+    $result = '';
+    if (is_scalar($messageOrObject)) {
+      $result .= $messageOrObject;
+    } else
+    if (is_array($messageOrObject)) {
+      $result .= @print_r($messageOrObject, true);
+    } else
+    if ($messageOrObject instanceof \Throwable) {
+      $exceptionMessage = BrErrorsFormatter::getStackTraceFromException($messageOrObject);
+      $result .= $messageOrObject->getMessage();
+      if ($includeStackTrace) {
+        $result .= "\n\n" . $exceptionMessage;
+      }
+    } else
+    if (is_object($messageOrObject)) {
+      $result .= @print_r($messageOrObject, true);
+    };
     return $result;
   }
 

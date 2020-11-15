@@ -50,7 +50,7 @@ class BrTelegramLogAdapter extends BrGenericLogAdapter {
               return;
             }
 
-            $excerpt = BrErrorsFormatter::convertMessageOrObjectToText($messageOrObject, $params, false);
+            $excerpt = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, false);
 
             $this->initCache();
 
@@ -69,8 +69,8 @@ class BrTelegramLogAdapter extends BrGenericLogAdapter {
               $subject = 'Debug message: ' . $excerpt;
             }
 
-            $info = $this->getLogInfo($messageOrObject, $params);
-            $message = BrErrorsFormatter::convertMessageOrObjectToText($messageOrObject, $params, true);
+            $info = $this->getLogInfo($messageOrObject, $params, [ 'snapshot' ]);
+            $message = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, true);
 
             foreach($this->chatIds as $chatId) {
               $payload = [
@@ -87,7 +87,6 @@ class BrTelegramLogAdapter extends BrGenericLogAdapter {
         }
       }
     }
-
   }
 
 }

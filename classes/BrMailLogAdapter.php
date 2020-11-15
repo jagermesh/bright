@@ -56,7 +56,7 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
               return;
             }
 
-            $excerpt = BrErrorsFormatter::convertMessageOrObjectToText($messageOrObject, $params, false);
+            $excerpt = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, false);
 
             $this->initCache();
 
@@ -75,8 +75,8 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
               $subject = 'Debug message: ' . $excerpt;
             }
 
-            $info = $this->getLogInfo($messageOrObject, $params);
-            $message = BrErrorsFormatter::convertMessageOrObjectToText($messageOrObject, $params, true);
+            $info = $this->getLogInfo($messageOrObject, $params, [ 'snapshot' ]);
+            $message = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, true);
 
             $body  = '<html>';
             $body .= '<body>';

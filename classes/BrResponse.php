@@ -342,7 +342,7 @@ class BrResponse extends BrSingleton {
 
       $data = [
         'error' => [
-          'message' => BrErrorsFormatter::convertMessageOrObjectToText($messageOrObject, $details, false),
+          'message' => BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, false),
           'timestamp' => br()->getUnifiedTimestamp(),
           'type' =>  (($messageOrObject instanceof \ErrorException) ? br()->getErrorSeverityName($messageOrObject->getSeverity()) : 'Error'),
           'file' => (($messageOrObject instanceof \Throwable) ? $messageOrObject->getFile() . ', line ' . $messageOrObject->getLine() : ''),

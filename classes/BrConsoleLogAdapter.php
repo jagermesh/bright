@@ -24,9 +24,7 @@ class BrConsoleLogAdapter extends BrGenericLogAdapter {
       if ($params['log_prefix']) {
         $message .= br()->console()->purple($params['log_prefix']) . ' ';
       }
-      $formattedMessage = BrErrorsFormatter::convertMessageOrObjectToText($messageOrObject, $params, true);
-      // $formattedMessage = str_replace('[', chr(27) . '[35m[', $formattedMessage);
-      // $formattedMessage = str_replace(']', ']' . chr(27) . '[0m', $formattedMessage);
+      $formattedMessage = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, true);
       if ($this->isErrorEventType($params)) {
         $message .= br()->console()->red($formattedMessage);
       } else

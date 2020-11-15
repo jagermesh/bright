@@ -13,7 +13,6 @@ namespace Bright;
 class BrWebLogAdapter extends BrGenericLogAdapter {
 
   public function write($messageOrObject, $params) {
-
     if ($this->isDebugEventType($params)) {
       if (!br()->isConsoleMode() && (br()->request()->isLocalHost() || br()->request()->isDevHost())) {
         try {
@@ -21,7 +20,7 @@ class BrWebLogAdapter extends BrGenericLogAdapter {
 
           $data = [
             'debug' => [
-              'message' => htmlspecialchars(BrErrorsFormatter::convertMessageOrObjectToText($messageOrObject, $params, true))
+              'message' => htmlspecialchars(BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, true))
             ]
           ];
 
@@ -31,8 +30,6 @@ class BrWebLogAdapter extends BrGenericLogAdapter {
         }
       }
     }
-
   }
 
 }
-

@@ -99,26 +99,4 @@ class BrErrorsFormatter {
     return ltrim($result, "\n");
   }
 
-  static public function convertMessageOrObjectToText($messageOrObject, $params, $includeStackTrace) {
-    $result = '';
-    if (is_scalar($messageOrObject)) {
-      $result .= $messageOrObject;
-    } else
-    if (is_array($messageOrObject)) {
-      $result .= @print_r($messageOrObject, true);
-    } else
-    if ($messageOrObject instanceof \Throwable) {
-      $exceptionMessage = self::getStackTraceFromException($messageOrObject);
-      $result .= $messageOrObject->getMessage();
-      if ($includeStackTrace) {
-        $result .= "\n\n" . $exceptionMessage;
-      }
-    } else
-    if (is_object($messageOrObject)) {
-      $result .= @print_r($messageOrObject, true);
-    };
-    return $result;
-  }
-
-
 }

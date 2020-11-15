@@ -70,10 +70,13 @@ class BrFileLogAdapter extends BrGenericFileLogAdapter {
   }
 
   public function write($messageOrObject, $params) {
-    $info = $this->getLogInfo($messageOrObject, $params, true);
+    $contentType = [ 'message' ];
+    if ($this->isSnapshotEventType($params)) {
+      $contentType[] = 'snapshot';
+    }
+    $info = $this->getLogInfo($messageOrObject, $params, $contentType);
     $message = json_encode($info);
     $this->writeToLogFile($message);
   }
 
 }
-

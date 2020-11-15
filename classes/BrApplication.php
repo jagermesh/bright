@@ -17,6 +17,7 @@ class BrApplication extends BrSingleton {
   public function __construct() {
     parent::__construct();
 
+    br()->log()->message('Application started', [], 'snapshot');
     br()->profiler()->logStart('Application');
     register_shutdown_function(array(&$this, 'captureShutdown'));
 
@@ -80,6 +81,7 @@ class BrApplication extends BrSingleton {
 
   public function captureShutdown() {
     br()->profiler()->logFinish('Application');
+    br()->log()->message('Application finished', [], 'snapshot');
   }
 
 }
