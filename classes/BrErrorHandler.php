@@ -49,19 +49,17 @@ class BrErrorHandler extends BrObject {
             case E_USER_WARNING:
             case E_USER_ERROR:
               throw $exception;
-            break;
-          default:
-            if (br()->request()->isDevHost() || (br()->isConsoleMode() && !br()->isJobMode())) {
-              throw $exception;
-            } else {
-              br()->log()->error($exception);
-              br()->response()->displayError($exception);
-            }
-            break;
+              break;
+            default:
+              if (br()->request()->isDevHost() || (br()->isConsoleMode() && !br()->isJobMode())) {
+                throw $exception;
+              } else {
+                br()->log()->error($exception);
+              }
+              break;
           }
         }
       }
-
     }
   }
 
