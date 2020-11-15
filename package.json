@@ -1,9 +1,8 @@
 {
   "name": "bright",
   "description": "Reactive PHP/JavaScript Framework",
-  "version": "2.0.66",
   "license": "MIT",
-  "dependencies": {
+  "devDependencies": {
     "gulp": "^4.0.2",
     "gulp-concat": "^2.6.1",
     "gulp-jshint": "^2.1.0",
