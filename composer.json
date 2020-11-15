@@ -11,8 +11,15 @@
   ],
   "require": {
     "php": ">=7.1.0",
+    "aws/aws-sdk-php": "^3",
+    "guzzlehttp/guzzle": "^7",
+    "cboden/ratchet": "^0.4",
+    "ratchet/pawl": "^0.3",
+    "phpseclib/phpseclib": "^2.0",
     "swiftmailer/swiftmailer": "^6.2",
+    "textalk/websocket": "^1.2",
     "mustache/mustache": "^2.13",
+    "michelf/php-markdown": "^1",
     "longman/telegram-bot": "^0.64.0",
     "neitanod/forceutf8": "^2.0"
   },
