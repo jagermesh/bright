@@ -15,7 +15,6 @@ class BrDataBase extends BrObject {
   static $instances = [];
 
   public static function getInstance($name = null) {
-
     $name = $name ? $name : 'br/db';
 
     if (is_array($name)) {
@@ -47,7 +46,6 @@ class BrDataBase extends BrObject {
     } else {
       return null;
     }
-
   }
 
 }

@@ -12,16 +12,7 @@ namespace Bright;
 
 class BrFileLogAdapter extends BrGenericFileLogAdapter {
 
-  function __construct($baseFilePath = null, $baseFileName = null) {
-
-    parent::__construct($baseFilePath, $baseFileName);
-
-    register_shutdown_function(array(&$this, "end"));
-
-  }
-
-  function generateLogFileName() {
-
+  public function generateLogFileName() {
     $this->filePath = $this->baseFilePath ? $this->baseFilePath : br()->getLogsPath();
 
     $this->filePath = rtrim($this->filePath, '/') . '/';
@@ -76,15 +67,12 @@ class BrFileLogAdapter extends BrGenericFileLogAdapter {
       }
       $this->filePath .= '.log';
     }
-
   }
 
-  function end() {
-
-    if (function_exists('memory_get_usage')) {
-      $this->write('Memory usage:  ' . br()->formatBytes(memory_get_usage()), '---');
-    }
-
+  public function write($messageOrObject, $params) {
+    $info = $this->getLogInfo($messageOrObject, $params, true);
+    $message = json_encode($info);
+    $this->writeToLogFile($message);
   }
 
 }

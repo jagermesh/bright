@@ -23,14 +23,7 @@ class BrDataBaseManager {
   private $migrationSubsystemInitialized = false;
   private $cascadeSubsystemInitialized   = false;
 
-  private $logObject;
   private $definer;
-
-  public function setLogObject($logObject) {
-
-    $this->logObject = $logObject;
-
-  }
 
   public function parseScript($script) {
 
@@ -439,26 +432,6 @@ class BrDataBaseManager {
 
   }
 
-  public function log($message, $group = 'MSG') {
-
-    if ($this->logObject) {
-      $this->logObject->log($message, $group);
-    } else {
-      br()->log()->log($message, $group);
-    }
-
-  }
-
-  public function logException($message) {
-
-    if ($this->logObject) {
-      $this->logObject->logException(new \Exception($message), true, false);
-    } else {
-      br()->log()->logException(new \Exception($message), true, false);
-    }
-
-  }
-
   private function getAuditExcludeFields($tableName) {
 
     $this->initAuditSubsystem();
@@ -674,16 +647,16 @@ class BrDataBaseManager {
 
   }
 
-  public function createInsertAuditTrigger($tableName) {
+  private function createInsertAuditTrigger($tableName) {
 
     $this->initAuditSubsystem();
 
     try {
       $this->deleteInsertAuditTrigger($tableName, false);
       br()->db()->runQuery($this->generateInsertAuditTrigger($tableName));
-      $this->log('[' . $tableName . '] Insert audited');
+      br()->log()->message('[' . $tableName . '] Insert audited');
     } catch (\Exception $e) {
-      $this->logException('[' . $tableName . '] Error. ' . $e->getMessage());
+      br()->log()->error($e->getMessage());
     }
 
   }
@@ -695,24 +668,24 @@ class BrDataBaseManager {
     try {
       br()->db()->runQuery('DROP TRIGGER IF EXISTS aud_tai_' . $tableName);
       if ($log) {
-        $this->log('[' . $tableName . '] Insert not audited');
+        br()->log()->message('[' . $tableName . '] Insert not audited');
       }
     } catch (\Exception $e) {
-      $this->logException('[' . $tableName . '] Error. ' . $e->getMessage());
+      br()->log()->error($e->getMessage());
     }
 
   }
 
-  public function createUpdateAuditTrigger($tableName) {
+  private function createUpdateAuditTrigger($tableName) {
 
     $this->initAuditSubsystem();
 
     try {
       $this->deleteUpdateAuditTrigger($tableName, false);
       br()->db()->runQuery($this->generateUpdateAuditTrigger($tableName));
-      $this->log('[' . $tableName . '] Update audited');
+      br()->log()->message('[' . $tableName . '] Update audited');
     } catch (\Exception $e) {
-      $this->logException('[' . $tableName . '] Error. ' . $e->getMessage());
+      br()->log()->error($e->getMessage());
     }
 
   }
@@ -724,24 +697,24 @@ class BrDataBaseManager {
     try {
       br()->db()->runQuery('DROP TRIGGER IF EXISTS aud_tau_' . $tableName);
       if ($log) {
-        $this->log('[' . $tableName . '] Update not audited');
+        br()->log()->message('[' . $tableName . '] Update not audited');
       }
     } catch (\Exception $e) {
-      $this->logException('[' . $tableName . '] Error. ' . $e->getMessage());
+      br()->log()->error('[' . $tableName . '] Error. ' . $e->getMessage());
     }
 
   }
 
-  public function createDeleteAuditTrigger($tableName) {
+  private function createDeleteAuditTrigger($tableName) {
 
     $this->initAuditSubsystem();
 
     try {
       $this->deleteDeleteAuditTrigger($tableName, false);
       br()->db()->runQuery($this->generateDeleteAuditTrigger($tableName));
-      $this->log('[' . $tableName . '] Delete audited');
+      br()->log()->message('[' . $tableName . '] Delete audited');
     } catch (\Exception $e) {
-      $this->logException('[' . $tableName . '] Error. ' . $e->getMessage());
+      br()->log()->error('[' . $tableName . '] Error. ' . $e->getMessage());
     }
 
   }
@@ -753,10 +726,10 @@ class BrDataBaseManager {
     try {
       br()->db()->runQuery('DROP TRIGGER IF EXISTS aud_tad_' . $tableName);
       if ($log) {
-        $this->log('[' . $tableName . '] Delete not audited');
+        br()->log()->message('[' . $tableName . '] Delete not audited');
       }
     } catch (\Exception $e) {
-      $this->logException('[' . $tableName . '] Error. ' . $e->getMessage());
+      br()->log()->error('[' . $tableName . '] Error. ' . $e->getMessage());
     }
 
   }
@@ -769,12 +742,12 @@ class BrDataBaseManager {
       $this->deleteCascadeAuditTrigger($tableName, false);
       if ($sql = $this->generateCascadeAuditTrigger($tableName)) {
         br()->db()->runQuery($sql);
-        $this->log('[' . $tableName . '] Cascade deletion audited');
+        br()->log()->message('[' . $tableName . '] Cascade deletion audited');
       } else {
-        $this->log('[' . $tableName . '] Cascade deletion not applicable');
+        br()->log()->message('[' . $tableName . '] Cascade deletion not applicable');
       }
     } catch (\Exception $e) {
-      $this->logException('[' . $tableName . '] Error. ' . $e->getMessage());
+      br()->log()->error('[' . $tableName . '] Error. ' . $e->getMessage());
     }
 
   }
@@ -786,10 +759,10 @@ class BrDataBaseManager {
     try {
       br()->db()->runQuery('DROP TRIGGER IF EXISTS csc_tbd_' . $tableName);
       if ($log) {
-        $this->log('[' . $tableName . '] Cascade deletion not audited');
+        br()->log()->message('[' . $tableName . '] Cascade deletion not audited');
       }
     } catch (\Exception $e) {
-      $this->logException('[' . $tableName . '] Error. ' . $e->getMessage());
+      br()->log()->error('[' . $tableName . '] Error. ' . $e->getMessage());
     }
 
   }
@@ -833,10 +806,10 @@ class BrDataBaseManager {
     $this->initAuditSubsystem();
 
     if ($table = br()->db()->getCachedRow('SELECT * FROM ' . $this->auditTablesTable . ' WHERE name LIKE ?', $tableName)) {
-      $this->log($this->generateInsertAuditTrigger($table['name']));
-      $this->log($this->generateUpdateAuditTrigger($table['name']));
-      $this->log($this->generateDeleteAuditTrigger($table['name']));
-      $this->log($this->generateCascadeAuditTrigger($table['name']));
+      br()->log()->message($this->generateInsertAuditTrigger($table['name']));
+      br()->log()->message($this->generateUpdateAuditTrigger($table['name']));
+      br()->log()->message($this->generateDeleteAuditTrigger($table['name']));
+      br()->log()->message($this->generateCascadeAuditTrigger($table['name']));
     }
 
   }
@@ -885,266 +858,246 @@ class BrDataBaseManager {
 
   public function runAuditCommand($scriptFile) {
 
-    $dbManager = $this;
+    $this->initAuditSubsystem();
 
-    br()->cmd()->run(function($cmd) use ($scriptFile, $dbManager) {
+    $command   = br()->cmd()->getParam(1, 'setup');
+    $tableName = br()->cmd()->getParam(2, '*');
 
-      $dbManager->setLogObject($cmd);
+    if ($tableName == '*') {
+      $tableName = '%';
+      $regularRun = true;
+    } else {
+      $regularRun = false;
+    }
 
-      $cmd->setLogPrefix('[' . br()->db()->getDataBaseName() . ']');
+    $showHelp = false;
 
-      $dbManager->initAuditSubsystem();
-
-      $command   = $cmd->getParam(1, 'setup');
-      $tableName = $cmd->getParam(2, '*');
-
-      if ($tableName == '*') {
-        $tableName = '%';
-        $regularRun = true;
-      } else {
-        $regularRun = false;
-      }
-
-      $showHelp = false;
-
-      switch($command) {
-        case 'setup':
-        case 'delete':
-        case 'print':
-          break;
-        case '?':
-        case 'help':
-          $showHelp = true;
-          exit();
-        default:
-          $tableName = $command;
-          $command = 'setup';
-          $regularRun = false;
-          break;
-      }
-
-      $tables = br()->db()->getRows('SELECT * FROM ' . $this->auditTablesTable . ' WHERE name LIKE ? ORDER BY name', $tableName);
-
-      if (count($tables) === 0) {
-        if (!$regularRun) {
-          $cmd->log('Running: ' . basename($scriptFile) . ' ' . $command . ' ' . $tableName);
-          $cmd->logException('Error. Table not found');
-          $showHelp = true;
-        }
-      }
-
-      if ($showHelp) {
-        br()->log()->write('Usage: php ' . basename($scriptFile) . ' [setup|delete|print] [tableName]');
-        br()->log()->write('Usage: php ' . basename($scriptFile) . '');
-        br()->log()->write('Usage: php ' . basename($scriptFile) . ' setup year');
+    switch($command) {
+      case 'setup':
+      case 'delete':
+      case 'print':
+        break;
+      case '?':
+      case 'help':
+        $showHelp = true;
         exit();
+      default:
+        $tableName = $command;
+        $command = 'setup';
+        $regularRun = false;
+        break;
+    }
+
+    $tables = br()->db()->getRows('SELECT * FROM ' . $this->auditTablesTable . ' WHERE name LIKE ? ORDER BY name', $tableName);
+
+    if (count($tables) === 0) {
+      if (!$regularRun) {
+        br()->log()->message('Running: ' . basename($scriptFile) . ' ' . $command . ' ' . $tableName);
+        br()->log()->error('Error. Table not found');
+        $showHelp = true;
       }
+    }
 
-      $cmd->log('Running: ' . basename($scriptFile) . ' ' . $command . ' ' . $tableName);
+    if ($showHelp) {
+      br()->log()->message('Usage: php ' . basename($scriptFile) . ' [setup|delete|print] [tableName]');
+      br()->log()->message('Usage: php ' . basename($scriptFile) . '');
+      br()->log()->message('Usage: php ' . basename($scriptFile) . ' setup year');
+      exit();
+    }
 
-      foreach($tables as $table) {
-        switch ($command) {
-          case  'delete':
-            $this->deleteAuditTriggers($table['name']);
-            break;
-          case 'setup':
-            $this->createAuditTriggers($table['name']);
-            break;
-          case 'print':
-            $this->printAuditTriggers($table['name']);
-            break;
-        }
+    br()->log()->message('Running: ' . basename($scriptFile) . ' ' . $command . ' ' . $tableName);
+
+    foreach($tables as $table) {
+      switch ($command) {
+        case  'delete':
+          $this->deleteAuditTriggers($table['name']);
+          break;
+        case 'setup':
+          $this->createAuditTriggers($table['name']);
+          break;
+        case 'print':
+          $this->printAuditTriggers($table['name']);
+          break;
       }
-
-    });
+    }
 
   }
 
   public function runMigrationCommand($scriptFile, $results = array()) {
 
-    $dbManager = $this;
+    $this->initMigrationsSubsystem();
 
-    br()->cmd()->run(function($cmd) use ($scriptFile, $dbManager, &$results) {
+    $command   = br()->cmd()->getParam(1, 'run');
+    $patchName = br()->cmd()->getParam(2, '*');
 
-      $dbManager->setLogObject($cmd);
+    if ($patchName == '*') {
+      $patchName = 'Patch.+[.]php';
+      $regularRun = true;
+    } else {
+      $patchName = $patchName . '[.]php';
+      $regularRun = false;
+    }
 
-      $cmd->setLogPrefix('[' . br()->db()->getDataBaseName() . ']');
+    $showHelp = false;
 
-      $dbManager->initMigrationsSubsystem();
-
-      $command   = $cmd->getParam(1, 'run');
-      $patchName = $cmd->getParam(2, '*');
-
-      if ($patchName == '*') {
-        $patchName = 'Patch.+[.]php';
-        $regularRun = true;
-      } else {
-        $patchName = $patchName . '[.]php';
+    switch($command) {
+      case 'run':
+      case 'check':
+        break;
+      case 'force':
+      case 'register':
+        if ($regularRun) {
+          br()->log()->message('Error: please specify patch name', 'RED');
+          $showHelp = true;
+        }
+        break;
+      case '?':
+      case 'help':
+        $showHelp = true;
+        break;
+      default:
+        $patchName = $command . '[.]php';
+        $command = 'run';
         $regularRun = false;
+        break;
+    }
+
+    $patches      = array();
+    $patchObjects = array();
+
+    br()->fs()->iterateDir(br()->getScriptBasePath() . 'patches/', '^' . $patchName . '$', function($patchFile) use (&$patches) {
+      $patches[] = array( 'classFile' => $patchFile->nameWithPath()
+                        , 'className' => br()->fs()->fileNameOnly($patchFile->name())
+                        );
+    });
+
+    if (count($patches) === 0) {
+      if (!$regularRun) {
+        br()->log()->message('Running: ' . basename($scriptFile) . ' ' . $command . ' ' . $patchName);
+        br()->log()->error('Error. Patch not found');
+        $showHelp = true;
       }
+    }
 
-      $showHelp = false;
+    if ($showHelp) {
+      br()->log()->message('Usage: php ' . basename($scriptFile) . ' [run|force|register] [patchName]');
+      br()->log()->message('       php ' . basename($scriptFile) . '');
+      br()->log()->message('       php ' . basename($scriptFile) . ' register Patch1234');
+      br()->log()->message('       php ' . basename($scriptFile) . ' force Patch1234');
+      exit();
+    }
 
-      switch($command) {
-        case 'run':
-        case 'check':
-          break;
-        case 'force':
-        case 'register':
-          if ($regularRun) {
-            br()->log()->write('Error: please specify patch name', 'RED');
-            $showHelp = true;
-          }
-          break;
-        case '?':
-        case 'help':
-          $showHelp = true;
-          break;
-        default:
-          $patchName = $command . '[.]php';
-          $command = 'run';
-          $regularRun = false;
-          break;
-      }
+    br()->log()->message('Running: ' . basename($scriptFile) . ' ' . $command . ' ' . $patchName);
 
-      $patches      = array();
-      $patchObjects = array();
-
-      br()->fs()->iterateDir(br()->getScriptBasePath() . 'patches/', '^' . $patchName . '$', function($patchFile) use (&$patches) {
-        $patches[] = array( 'classFile' => $patchFile->nameWithPath()
-                          , 'className' => br()->fs()->fileNameOnly($patchFile->name())
+    foreach($patches as $patchDesc) {
+      $classFile = $patchDesc['classFile'];
+      $className = $patchDesc['className'];
+      require_once($classFile);
+      $patch = new $className($classFile, $this);
+      $patch->init();
+      br()->log()->setLogPrefix('[' . get_class($patch) . ']');
+      try {
+        if ($patch->checkRequirements($regularRun, $command)) {
+          $patchObjects[] = $patch;
+        }
+      } catch (BrSamePatchException $e) {
+        $results[] = array( 'message'    => $patch->logPrefix() . ' ' . $e->getMessage()
+                          , 'is_warning' => true
+                          , 'is_error'   => false
                           );
-      });
-
-      if (count($patches) === 0) {
-        if (!$regularRun) {
-          $cmd->log('Running: ' . basename($scriptFile) . ' ' . $command . ' ' . $patchName);
-          $cmd->logException('Error. Patch not found');
-          $showHelp = true;
-        }
+      } catch (\Exception $e) {
+        $results[] = array( 'message'    => $patch->logPrefix() . ' ' . $e->getMessage()
+                          , 'is_error'   => true
+                          , 'is_warning' => false
+                          );
       }
+      br()->log()->setLogPrefix('');
+    }
 
-      if ($showHelp) {
-        br()->log()->write('Usage: php ' . basename($scriptFile) . ' [run|force|register] [patchName]');
-        br()->log()->write('       php ' . basename($scriptFile) . '');
-        br()->log()->write('       php ' . basename($scriptFile) . ' register Patch1234');
-        br()->log()->write('       php ' . basename($scriptFile) . ' force Patch1234');
-        exit();
-      }
+    $returnCode = 0;
 
-      $cmd->log('Running: ' . basename($scriptFile) . ' ' . $command . ' ' . $patchName);
+    if ($command == 'check') {
 
-      foreach($patches as $patchDesc) {
-        $classFile = $patchDesc['classFile'];
-        $className = $patchDesc['className'];
-        require_once($classFile);
-        $patch = new $className($classFile, $dbManager, $cmd);
-        $patch->init();
-        $cmd->setLogPrefix('[' . br()->db()->getDataBaseName() . '] [' . get_class($patch) . ']');
-        try {
-          if ($patch->checkRequirements($regularRun, $command)) {
-            $patchObjects[] = $patch;
-          }
-        } catch (BrSamePatchException $e) {
-          $results[] = array( 'message'    => $patch->logPrefix() . ' ' . $e->getMessage()
-                            , 'is_warning' => true
-                            , 'is_error'   => false
-                            );
-        } catch (\Exception $e) {
-          $results[] = array( 'message'    => $patch->logPrefix() . ' ' . $e->getMessage()
-                            , 'is_error'   => true
-                            , 'is_warning' => false
-                            );
+      if ($patchObjects) {
+        foreach($patchObjects as $patch) {
+          br()->log()->message('[' . get_class($patch) . '] Pending');
         }
-        $cmd->setLogPrefix('[' . br()->db()->getDataBaseName() . ']');
-      }
-
-      $returnCode = 0;
-
-      if ($command == 'check') {
-
-        if ($patchObjects) {
-          foreach($patchObjects as $patch) {
-            $cmd->log('[' . get_class($patch) . '] Pending');
-          }
-          $cmd->log(count($patchObjects) . ' patch' . (count($patchObjects) > 1 ? 'es' : '') . ' needs to be run');
-        } else {
-          $cmd->log('No patches to run');
-        }
-
+        br()->log()->message(count($patchObjects) . ' patch' . (count($patchObjects) > 1 ? 'es' : '') . ' needs to be run');
       } else {
+        br()->log()->message('No patches to run');
+      }
 
-        if ($patchObjects) {
-          $patchObjectsDeferred = array();
-          $patchObjectsExecuted = array();
-          foreach($patchObjects as $patch) {
-            $cmd->setLogPrefix('[' . br()->db()->getDataBaseName() . '] [' . get_class($patch) . ']');
+    } else {
+
+      if ($patchObjects) {
+        $patchObjectsDeferred = array();
+        $patchObjectsExecuted = array();
+        foreach($patchObjects as $patch) {
+          br()->log()->setLogPrefix('[' . get_class($patch) . ']');
+          try {
+            $patch->checkDependencies();
             try {
-              $patch->checkDependencies();
+              $patch->run();
+              $patchObjectsExecuted[] = $patch;
+            } catch (\Exception $e) {
+              br()->log()->error($e->getMessage());
+              $results[] = array( 'message'    => $patch->logPrefix() . ' ' . $e->getMessage()
+                                , 'is_error'   => true
+                                , 'is_warning' => false
+                                );
+            }
+          } catch (\Exception $e) {
+            $patchObjectsDeferred[] = $patch;
+          }
+        }
+
+        if (count($patchObjectsDeferred) > 0) {
+          if (count($patchObjectsExecuted) > 0) {
+            return $this->runMigrationCommand($scriptFile, $results);
+          } else {
+            foreach($patchObjectsDeferred as $patch) {
+              br()->log()->setLogPrefix('[' . get_class($patch) . ']');
               try {
-                $patch->run();
-                $patchObjectsExecuted[] = $patch;
+                $patch->checkDependencies();
+              } catch (BrSamePatchException $e) {
+                $results[] = array( 'message'    => $patch->logPrefix() . ' ' . $e->getMessage()
+                                  , 'is_warning' => true
+                                  , 'is_error'   => false
+                                  );
               } catch (\Exception $e) {
-                $cmd->logException($e->getMessage());
                 $results[] = array( 'message'    => $patch->logPrefix() . ' ' . $e->getMessage()
                                   , 'is_error'   => true
                                   , 'is_warning' => false
                                   );
               }
-            } catch (\Exception $e) {
-              $patchObjectsDeferred[] = $patch;
-            }
-          }
-
-          if (count($patchObjectsDeferred) > 0) {
-            if (count($patchObjectsExecuted) > 0) {
-              return $dbManager->runMigrationCommand($scriptFile, $results);
-            } else {
-              foreach($patchObjectsDeferred as $patch) {
-                $cmd->setLogPrefix('[' . br()->db()->getDataBaseName() . '] [' . get_class($patch) . ']');
-                try {
-                  $patch->checkDependencies();
-                } catch (BrSamePatchException $e) {
-                  $results[] = array( 'message'    => $patch->logPrefix() . ' ' . $e->getMessage()
-                                    , 'is_warning' => true
-                                    , 'is_error'   => false
-                                    );
-                } catch (\Exception $e) {
-                  $results[] = array( 'message'    => $patch->logPrefix() . ' ' . $e->getMessage()
-                                    , 'is_error'   => true
-                                    , 'is_warning' => false
-                                    );
-                }
-                $cmd->setLogPrefix('[' . br()->db()->getDataBaseName() . ']');
-              }
+              br()->log()->setLogPrefix('');
             }
           }
         }
+      }
 
-        foreach($results as $result) {
-          if ($result['is_error']) {
-            $returnCode = 1;
-            br()->log()->write(br()->console()->red($result['message']));
-          } else
-          if ($result['is_warning']) {
-            if (!$returnCode) {
-              $returnCode = 2;
-            }
-            br()->log()->write(br()->console()->purple($result['message']));
-          } else {
-            br()->log()->write(br()->console()->green($result['message']));
+      foreach($results as $result) {
+        if ($result['is_error']) {
+          $returnCode = 1;
+          br()->log()->message(br()->console()->red($result['message']));
+        } else
+        if ($result['is_warning']) {
+          if (!$returnCode) {
+            $returnCode = 2;
           }
+          br()->log()->message(br()->console()->purple($result['message']));
+        } else {
+          br()->log()->message(br()->console()->green($result['message']));
         }
-
       }
 
-      if ($returnCode > 0) {
-        exit($returnCode);
-      }
+    }
 
-      return true;
+    if ($returnCode > 0) {
+      exit($returnCode);
+    }
 
-    });
+    return true;
 
   }
 

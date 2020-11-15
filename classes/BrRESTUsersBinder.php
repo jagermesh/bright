@@ -53,8 +53,8 @@ class BrRESTUsersBinder extends BrRESTBinder {
                   if ($message = br()->renderer()->fetch($mailTemplate, array('user' => $user, 'data' => $data))) {
                     if (br()->sendMail($email, br()->auth()->getAttr('passwordReminder.passwordMail.subject'), $message, array('sender' => br()->auth()->getAttr('passwordReminder.passwordMail.from')))) {
                       br()->db()->runQuery('UPDATE ' . $usersTable . ' SET ' . $passwordResetField . ' = null, ' . $passwordField . ' = ?& WHERE id = ?', $finalPassword, $user['id']);
-                      br()->log()->write('New password sent to ' . $email);
-                      br()->log()->write($user);
+                      br()->log()->message('New password sent to ' . $email);
+                      br()->log()->message($user);
                       br()->response()->redirect($data['loginUrl']);
                       return true;
                     } else {

@@ -427,11 +427,7 @@ class BrString extends BrGenericDataType {
 
   }
 
-  public function logDifference($newText, $logObject = null, $console = true) {
-
-    if (!$logObject) {
-      $logObject = br()->log();
-    }
+  public function logDifference($newText, $console = true) {
 
     $mergeStruct = $this->mergeText($this->value, $newText);
     foreach($mergeStruct as $line) {
@@ -448,7 +444,7 @@ class BrString extends BrGenericDataType {
           $s = chr(27) . '[31m' . $s . chr(27) . '[0m';
         }
       }
-      $logObject->log(str_pad($line['lineNo'], $line['maxLines'], ' ', STR_PAD_LEFT) . ': ' . $line['type'] . ' ' . $s);
+      br()->log()->message(str_pad($line['lineNo'], $line['maxLines'], ' ', STR_PAD_LEFT) . ': ' . $line['type'] . ' ' . $s);
     }
 
   }

@@ -12,56 +12,18 @@ namespace Bright;
 
 class BrWebLogAdapter extends BrGenericLogAdapter {
 
-  private $inlineStylesInjected = false;
+  public function write($messageOrObject, $params) {
 
-  public function writeException($e, $sendOutput = false, $printCallStack = true) {
-
-    if (!br()->isConsoleMode() && $sendOutput) {
-      try {
-        $errorType    = (($e instanceof BrErrorException) ? $e->getType() : 'Error');
-        $errorMessage = $e->getMessage();
-
-        $errorFile = null;
-        $traceInfo = null;
-
-        $errorFile = $e->getFile() . ', line ' . $e->getLine();
-        $traceInfo = br()->log()->getStackTraceFromException($e);
-
-        if (!headers_sent()) {
-          header('HTTP/1.0 500 Internal Server Error');
-        }
-
-        if (!$this->inlineStylesInjected) {
-          br()->renderer()->display(dirname(__DIR__) . '/templates/inline.css');
-          $this->debugCSSInjected = true;
-        }
-
-        $data = ['error' => [ 'type'      => $errorType
-                            , 'message'   => htmlspecialchars($errorMessage)
-                            , 'file'      => $errorFile
-                            , 'traceInfo' => $traceInfo
-                            , 'timestamp' => date('Y-m-d H:i:s')
-                            ]];
-
-        br()->renderer()->display(dirname(__DIR__) . '/templates/ErrorMessage.html', $data);
-      } catch (\Exception $e) {
-
-      }
-    }
-
-  }
-
-  public function write($message, $group = 'MSG', $tagline = null) {
-
-    if ($group == 'DBG') {
+    if ($this->isDebugEventType($params)) {
       if (!br()->isConsoleMode() && (br()->request()->isLocalHost() || br()->request()->isDevHost())) {
         try {
-          if (!$this->inlineStylesInjected) {
-            br()->renderer()->display(dirname(__DIR__) . '/templates/inline.css');
-            $this->debugCSSInjected = true;
-          }
+          br()->response()->injectSystemStyles();
 
-          $data = ['debug' => ['message' => $message]];
+          $data = [
+            'debug' => [
+              'message' => htmlspecialchars(BrErrorsFormatter::convertMessageOrObjectToText($messageOrObject, $params, true))
+            ]
+          ];
 
           br()->renderer()->display(dirname(__DIR__) . '/templates/DebugMessage.html', $data);
         } catch (\Exception $e) {

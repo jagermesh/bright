@@ -27,7 +27,6 @@ class BrColors extends BrSingleton {
     , 'springgreen'=>'00FF7F','steelblue'=>'4682B4','tan'=>'D2B48C','teal'=>'008080','thistle'=>'D8BFD8','tomato'=>'FF6347','turquoise'=>'40E0D0','violet'=>'EE82EE','wheat'=>'F5DEB3','white'=>'FFFFFF','whitesmoke'=>'F5F5F5','yellow'=>'FFFF00','yellowgreen'=>'9ACD32');
 
   public function colorToRGB($color) {
-
     if (preg_match('/^#/', $color)) {
       $color = ltrim($color, '#');
     } else {
@@ -35,11 +34,9 @@ class BrColors extends BrSingleton {
     }
 
     return $color ? $color : 'FFFFFF';
-
   }
 
   public function getGoodColorForBackground($color) {
-
     $color = $this->colorToRGB($color);
 
     $R1 = hexdec(substr($color, 0, 2));
@@ -70,7 +67,6 @@ class BrColors extends BrSingleton {
     } else {
       return 'FFFFFF';
     }
-
   }
 
 }

@@ -537,7 +537,7 @@ class BrRESTBinder extends BrObject {
             br()->response()->sendJSON($result);
           }
         } catch (BrDBNotFoundException $e) {
-          br()->log()->logException($e);
+          br()->log()->error($e);
           br()->response()->send404('Record not found');
         } catch (\Exception $e) {
           $this->returnException($e);
@@ -678,7 +678,7 @@ class BrRESTBinder extends BrObject {
             br()->response()->sendJSON($result);
           }
         } catch (BrDBNotFoundException $e) {
-          br()->log()->logException($e);
+          br()->log()->error($e);
           br()->response()->send404('Record not found');
         } catch (\Exception $e) {
           $this->returnException($e);
@@ -700,7 +700,7 @@ class BrRESTBinder extends BrObject {
     if ($e instanceof BrAppException) {
 
     } else {
-      br()->log()->logException($e);
+      br()->log()->error($e);
     }
     if (br()->request()->isDevHost()) {
       $message = $msg;

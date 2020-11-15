@@ -14,42 +14,45 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
 
   private $cachePath;
 
-  public function __construct($cfg = array()) {
+  public function __construct($config = []) {
+    parent::__construct($config);
 
-    parent::__construct($cfg);
-
-    if (br($cfg, 'cachePath')) {
-      $this->setCachePath(rtrim($cfg['cachePath'], '/') . '/');
+    if (br($config, 'cachePath')) {
+      $this->setCachePath(rtrim($config['cachePath'], '/') . '/');
     }
 
-    if (br($cfg, 'lifeTime')) {
-      $this->setCacheLifeTime($cfg['lifeTime']);
+    if (br($config, 'lifeTime')) {
+      $this->setCacheLifeTime($config['lifeTime']);
     }
+  }
 
+  private function getCacheFilePath($name) {
+    return $this->getCachePath() . br()->fs()->getCharsPath(md5($name) . '.cache');
+  }
+
+  private function checkCacheFile($filePath) {
+    if (file_exists($filePath)) {
+      return ((time() - filemtime($filePath)) < $this->getCacheLifeTime());
+    } else {
+      return false;
+    }
   }
 
   public static function isSupported() {
-
     return true;
-
   }
 
   public function reset() {
-
     throw new BrAppException('Reset cache is not implemented for this provider');
-
   }
 
   public function exists($name) {
-
     $name = $this->safeName($name);
 
     return $this->checkCacheFile($this->getCacheFilePath($name));
-
   }
 
   public function get($name, $default = null, $saveDefault = false) {
-
     $name = $this->safeName($name);
 
     $filePath = $this->getCacheFilePath($name);
@@ -64,27 +67,28 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
     }
 
     return $value;
-
   }
 
   public function getEx($name) {
-
     $name = $this->safeName($name);
 
     $filePath = $this->getCacheFilePath($name);
 
     if ($this->checkCacheFile($filePath)) {
-      $result = array('success' => true, 'value' => unserialize(br()->fs()->loadFromFile($filePath)));
+      $result = [
+        'success' => true,
+        'value' => unserialize(br()->fs()->loadFromFile($filePath))
+      ];
     } else {
-      $result = array('success' => false);
+      $result = [
+        'success' => false
+      ];
     }
 
     return $value;
-
   }
 
   public function set($name, $value, $cacheLifeTime = null) {
-
     $name = $this->safeName($name);
 
     if (!$cacheLifeTime) {
@@ -98,11 +102,9 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
     }
 
     return $value;
-
   }
 
   public function remove($name) {
-
     $name = $this->safeName($name);
 
     $filePath = $this->getCacheFilePath($name);
@@ -112,29 +114,13 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
     }
 
     $this->clearAttr($name);
-
-  }
-
-  // functions
-
-  private function checkCacheFile($filePath) {
-
-    if (file_exists($filePath)) {
-      return ((time() - filemtime($filePath)) < $this->getCacheLifeTime());
-    } else {
-      return false;
-    }
-
   }
 
   public function setCachePath($value) {
-
     $this->cachePath = rtrim($value, '/') . '/';
-
   }
 
   public function getCachePath() {
-
     if ($this->cachePath) {
       $result = $this->cachePath;
     } else {
@@ -157,14 +143,6 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
     }
 
     return $result;
-
-  }
-
-
-  private function getCacheFilePath($name) {
-
-    return $this->getCachePath() . br()->fs()->getCharsPath(md5($name) . '.cache');
-
   }
 
 }

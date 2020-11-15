@@ -15,104 +15,55 @@ class BrMongoProviderTable extends MongoCollection {
   private $provider;
 
   public function __construct(&$provider, $tableName) {
-
     $this->provider = $provider;
-
     parent::__construct($this->provider->database, $tableName);
-
   }
 
-  public function find($query = array(), $fields = array()) {
-
-    br()->log()->write('MONGO->FIND', "QRY");
-    br()->log()->write($query,  "FLT");
-    br()->log()->write($fields, "FLD");
-
+  public function find($query = [], $fields = []) {
+    br()->log()->message('Executing find', [ 'query' => $query, 'fields' => $fields ], 'internal');
     $result = parent::find($query, $fields);
-
-    br()->log()->write('Query complete', 'SEP');
-
+    br()->log()->message('Find complete', [ 'query' => $query, 'fields' => $fields ], 'internal');
     return $result;
-
   }
 
-  public function findOne($query = array(), $fields = array()) {
-
-    br()->log()->write('MONGO->FIND', "QRY");
-    br()->log()->write($query,  "FLT");
-    br()->log()->write($fields, "OPT");
-
+  public function findOne($query = [], $fields = []) {
+    br()->log()->message('Executing findOne', [ 'query' => $query, 'fields' => $fields ], 'internal');
     $result = parent::findOne($query, $fields);
-
-    br()->log()->write('Query complete', 'SEP');
-
+    br()->log()->message('FindOne complete', [ 'query' => $query, 'fields' => $fields ], 'internal');
     return $result;
-
   }
 
-  public function remove($filter, $options = array()) {
-
-    br()->log()->write('MONGO->REMOVE', "QRY");
-    br()->log()->write($filter,  "FLT");
-    br()->log()->write($options, "OPT");
-
+  public function remove($filter, $options = []) {
+    br()->log()->message('Executing remove', [ 'filter' => $filter, 'options' => $options ], 'internal');
     $result = parent::remove($filter, $options);
-
-    br()->log()->write('Query complete', 'SEP');
-
+    br()->log()->message('Remove complete', [ 'filter' => $filter, 'options' => $options ], 'internal');
     return $result;
-
   }
 
-  public function insert($filter, $options = array()) {
-
-    br()->log()->write('MONGO->INSERT', "QRY");
-    br()->log()->write($filter,  "FLT");
-    br()->log()->write($options, "OPT");
-
+  public function insert($filter, $options = []) {
+    br()->log()->message('Executing insert', [ 'filter' => $filter, 'options' => $options ], 'internal');
     $result = parent::insert($filter, $options);
-
-    br()->log()->write('Query complete', 'SEP');
-
+    br()->log()->message('Insert complete', [ 'filter' => $filter, 'options' => $options ], 'internal');
     return $result;
-
   }
 
-  public function update($values, $filter, $options = array()) {
-
-    if (is_array($filter)) {
-
-    } else {
+  public function update($values, $filter, $options = []) {
+    if (!is_array($filter)) {
       $rowid = $filter;
       $filter = array();
       $filter[br()->db()->rowidField()] = br()->db()->rowid($rowid);
     }
-
-    br()->log()->write('MONGO->UPDATE', "QRY");
-    br()->log()->write($filter,  "FLT");
-    br()->log()->write($values,  "DAT");
-    br()->log()->write($options, "OPT");
-
+    br()->log()->message('Executing update', [ 'values' => $values, 'filter' => $filter, 'options' => $options ], 'internal');
     $result = parent::update($filter, $values);
-
-    br()->log()->write('Query complete', 'SEP');
-
+    br()->log()->message('Update complete', [ 'values' => $values, 'filter' => $filter, 'options' => $options ], 'internal');
     return $result;
-
   }
 
-  public function save($values, $options = array()) {
-
-    br()->log()->write('MONGO->SAVE', "QRY");
-    br()->log()->write($values,  "DAT");
-    br()->log()->write($options, "OPT");
-
+  public function save($values, $options = []) {
+    br()->log()->message('Executing save', [ 'values' => $values, 'options' => $options ], 'internal');
     $result = parent::update($values, $values);
-
-    br()->log()->write('Query complete', 'SEP');
-
+    br()->log()->message('Save complete', [ 'values' => $values, 'options' => $options ], 'internal');
     return $result;
-
   }
 
 }

@@ -10,29 +10,23 @@
 
 namespace Bright;
 
-class BrMailLogAdapter extends BrGenericLogAdapter {
+class BrTelegramLogAdapter extends BrGenericLogAdapter {
 
-  protected $cache;
-  protected $cacheInitialized = false;
+  private $cache;
+  private $cacheInitialized = false;
+  private $apiKey;
+  private $username;
+  private $chatIds;
+  private $telegram;
 
-  private $email;
+  public function __construct($apiKey, $username, $chatIds) {
+    $this->apiKey   = $apiKey;
+    $this->username = $username;
+    $this->chatIds  = br($chatIds)->split();
 
-  public function __construct($email = null) {
-    $this->email = $email;
+    $this->telegram = new \Longman\TelegramBot\Telegram($this->apiKey, $this->username);
 
     parent::__construct();
-  }
-
-  public function setEMail($email) {
-    $this->email = $email;
-  }
-
-  public function getEMail() {
-    if ($this->email) {
-      return $this->email;
-    } else {
-      return br()->config()->get('br/mail/support');
-    }
   }
 
   private function initCache() {
@@ -48,7 +42,7 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
   }
 
   public function write($messageOrObject, $params) {
-    if ($email = $this->getEMail()) {
+    if ($this->apiKey && $this->username && $this->chatIds) {
       if ($this->isErrorEventType($params) || $this->isDebugEventType($params)) {
         if (!(br()->request()->isLocalHost() && !br()->isConsoleMode())) {
           try {
@@ -78,20 +72,22 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
             $info = $this->getLogInfo($messageOrObject, $params);
             $message = BrErrorsFormatter::convertMessageOrObjectToText($messageOrObject, $params, true);
 
-            $body  = '<html>';
-            $body .= '<body>';
-            $body .= '<pre>' . json_encode($info, JSON_PRETTY_PRINT) . '</pre>';
-            $body .= '<pre>' . $message . '</pre>';
-            $body .= '</body>';
-            $body .= '</html>';
-
-            br()->sendMail($email, $subject, $body);
+            foreach($this->chatIds as $chatId) {
+              $payload = [
+                'chat_id' => $chatId,
+                'text' => '*' . $subject . '*' . "\n" .
+                json_encode($info, JSON_PRETTY_PRINT) .
+                $message,
+              ];
+              \Longman\TelegramBot\Request::sendMessage($payload);
+            }
           } catch (\Exception $e) {
 
           }
         }
       }
     }
+
   }
 
 }

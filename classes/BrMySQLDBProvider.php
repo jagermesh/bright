@@ -19,14 +19,12 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
   private $rerunIterations     = 30;
 
   public function __construct($config) {
-
     $this->config = $config;
-    register_shutdown_function(array(&$this, "captureShutdown"));
 
+    register_shutdown_function(array(&$this, "captureShutdown"));
   }
 
   public function connection() {
-
     if ($this->__connection) {
       return $this->__connection;
     } else {
@@ -36,7 +34,6 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
   }
 
   public function connect($iteration = 0, $rerunError = null) {
-
     $wasConnected = !!$this->__connection;
 
     if ($this->__connection) {
@@ -106,65 +103,50 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     }
 
     return $this->__connection;
-
   }
 
   public function startTransaction($force = false) {
-
     $this->runQuery('START TRANSACTION');
 
     parent::startTransaction($force);
-
   }
 
   public function commitTransaction($force = false) {
-
     $this->runQuery('COMMIT');
 
     parent::commitTransaction($force);
-
   }
 
   public function rollbackTransaction($force = false) {
-
     $this->runQuery('ROLLBACK');
 
     parent::rollbackTransaction($force);
-
   }
 
   public function selectNext($query, $options = array()) {
-
     $result = mysqli_fetch_assoc($query);
     if (!br($options, 'doNotChangeCase')) {
       if (is_array($result)) {
         $result = array_change_key_case($result, CASE_LOWER);
       }
     }
-    return $result;
 
+    return $result;
   }
 
   public function isEmptyDate($date) {
-
     return (($date == "0000-00-00") or ($date == "0000-00-00 00:00:00") or !$date);
-
   }
 
   public function toDateTime($date) {
-
     return date('Y-m-d H:i:s', $date);
-
   }
 
   public function toDate($date) {
-
     return date('Y-m-d', $date);
-
   }
 
   public function getLastError() {
-
     if ($this->__connection) {
       if (mysqli_errno($this->__connection)) {
         return mysqli_errno($this->__connection) . ': ' . mysqli_error($this->__connection);
@@ -172,37 +154,29 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     } else {
       return 'MySQL server has gone away';
     }
-
   }
 
   public function getLastId() {
-
     if ($this->__connection) {
       return mysqli_insert_id($this->__connection);
     } else {
       throw new BrDBServerGoneAwayException('MySQL server has gone away');
     }
-
   }
 
   public function getAffectedRowsAmount() {
-
     if ($this->__connection) {
       return mysqli_affected_rows($this->__connection);
     } else {
       throw new BrDBServerGoneAwayException('MySQL server has gone away');
     }
-
   }
 
   public function getTableStructure($tableName) {
-
     return $this->getQueryStructure('SELECT * FROM '. $tableName .' LIMIT 1');
-
   }
 
   public function getQueryStructure($query) {
-
     $field_defs = array();
     if ($query = $this->runQueryEx($query)) {
       while ($finfo = mysqli_fetch_field($query)) {
@@ -220,11 +194,9 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     }
 
     return $field_defs;
-
   }
 
   public function runQueryEx($sql, $args = array(), $iteration = 0, $rerunError = null, $resultMode = MYSQLI_STORE_RESULT) {
-
     try {
       // check connection
       $this->connection();
@@ -244,7 +216,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
         throw new BrDBException($error);
       }
 
-      br()->log()->write($queryText, "QRY");
+      br()->log()->message('Executing query', [ 'sql' => $queryText ], 'internal');
 
       try {
         // moved to check problem line
@@ -259,7 +231,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
         }
       } catch (\Exception $e) {
         $error  = $e->getMessage();
-        br()->log()->write($error, 'SEP');
+        br()->log()->message($e);
         $error .= "\n" . $queryText;
         // if connection lost - we'll try to restore it first
         if (preg_match('/Error while sending QUERY packet/', $e->getMessage()) ||
@@ -286,13 +258,13 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
             preg_match('/Deadlock found when trying to get lock/', $e->getMessage())) {
           if ($this->inTransaction()) {
             if ($this->isTransactionBufferEmpty()) {
-              br()->log()->write('Trying restart transaction and repeat query', 'SEP');
+              br()->log()->message('Trying restart transaction and repeat query', [ 'sql' => $queryText ], 'internal');
               usleep(250000);
               $this->rollbackTransaction();
               $this->startTransaction();
               $query = $this->runQueryEx($sql, $args, $iteration + 1, $e->getMessage(), $resultMode);
             } else {
-              br()->log()->write('Automatic retrying was not possible - ' . $this->transactionBufferLength() . ' statement(s) in transaction buffer: ' . "\n"  . json_encode($this->transactionBuffer()), 'SEP');
+              br()->log()->message('Automatic retrying was not possible - ' . $this->transactionBufferLength() . ' statement(s) in transaction buffer: ' . "\n"  . json_encode($this->transactionBuffer()));
               if (preg_match('/Deadlock found when trying to get lock/', $error) ||
                   preg_match('/Deadlock: wsrep aborted transaction/', $error)) {
                 throw new BrDBDeadLockException($error);
@@ -314,7 +286,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
               }
             }
           } else {
-            br()->log()->write('Trying to repeat query.', 'SEP');
+            br()->log()->message('Trying to repeat query', [ 'sql' => $queryText ], 'internal');
             sleep(1);
             $query = $this->runQueryEx($sql, $args, $iteration + 1, $e->getMessage(), $resultMode);
           }
@@ -332,7 +304,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
         }
       }
 
-      br()->log()->write('Query complete', 'SEP');
+      br()->log()->message('Query complete', [ 'sql' => $queryText ], 'internal');
 
     } catch (\Exception $e) {
       $error = $e->getMessage();
@@ -341,11 +313,9 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     }
 
     return $query;
-
   }
 
   public function getRowsAmountEx($sql, $args) {
-
     $countSQL = $this->getCountSQL($sql);
     try {
       $query = $this->runQueryEx($countSQL, $args);
@@ -357,23 +327,18 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     } catch (\Exception $e) {
       return mysqli_num_rows($this->runQueryEx($sql, $args));
     }
-
   }
 
   public function disconnect() {
-
     if ($this->__connection) {
       @mysqli_close($this->__connection);
     }
 
     $this->__connection = null;
-
   }
 
   public function captureShutdown() {
-
     $this->disconnect();
-
   }
 
 }

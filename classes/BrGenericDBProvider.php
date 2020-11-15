@@ -15,29 +15,20 @@ class BrGenericDBProvider extends BrObject {
   private $dataBaseName;
 
   public function setDataBaseName($name) {
-
     $this->dataBaseName = $name;
-
   }
 
   public function getDataBaseName() {
-
     $this->connection();
-
     return $this->dataBaseName;
-
   }
 
   public function now() {
-
     return $this->toDateTime(time());
-
   }
 
   public function today() {
-
     return $this->toDate(time());
-
   }
 
   public function connection() {
@@ -57,7 +48,6 @@ class BrGenericDBProvider extends BrObject {
   }
 
   public function validate($tableName, &$row) {
-
     $dataBaseDictionaryFile = br()->getBasePath() . 'database/schema/UserDefinedDataBaseDictionary.php';
     if (file_exists($dataBaseDictionaryFile)) {
       require_once($dataBaseDictionaryFile);
@@ -71,7 +61,6 @@ class BrGenericDBProvider extends BrObject {
         $dataBaseDictionary->validate($tableName, $row);
       }
     }
-
   }
 
 }

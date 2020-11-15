@@ -78,7 +78,7 @@ class BrDataBaseDictionary extends BrObject {
 
   public function generateDictionaryScript($scriptFile) {
 
-    br()->log()->log('[' . br()->db()->getDataBaseName() . '] Generating dictionary file');
+    br()->log()->message('[' . br()->db()->getDataBaseName() . '] Generating dictionary file');
 
     $sql = br()->placeholder( 'SELECT col.*, col.table_name
                                     , col.column_name
@@ -182,7 +182,7 @@ class BrDataBaseDictionary extends BrObject {
                           , br()->renderer()->fetchString( br()->fs()->loadFromFile(dirname(__DIR__) . '/templates/DataBaseDictionary.tpl')
                                                          , array( 'schema' => $schema2 )));
 
-    br()->log()->log('[' . br()->db()->getDataBaseName() . '] Dictionary file saved into ' . $fileName, 'GREEN');
+    br()->log()->message('[' . br()->db()->getDataBaseName() . '] Dictionary file saved into ' . $fileName, 'GREEN');
 
   }
 

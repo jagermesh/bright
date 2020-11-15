@@ -5,59 +5,50 @@ require_once(dirname(__DIR__) . '/vendor/jagermesh/bright/Bright.php');
 if (!br()->isConsoleMode()) { br()->panic('Console mode only'); }
 $handle = br()->OS()->lockIfRunning(br()->getScriptPath());
 
-$scriptFile = __FILE__;
+$tableName = br()->cmd()->getParam(1);
 
-br()->cmd()->run(function($cmd) use ($scriptFile) {
+$showHelp = false;
 
-  $cmd->setLogPrefix('[' . br()->db()->getDataBaseName() . ']');
+if (!$tableName) {
+  $showHelp = true;
+}
 
-  $tableName = $cmd->getParam(1);
+if ($showHelp) {
+  br()->log()->message('Usage: php ' . basename(__FILE__) . ' tableName [--createStructure] [--nameField=name] [--rangeField=] [--orderField=name] [--parentField=parent_id]');
+  exit();
+}
 
-  $showHelp = false;
+$params = br()->cmd()->getSwitches();
 
-  if (!$tableName) {
-    $showHelp = true;
+$message = 'Running: ' . basename(__FILE__) . ' ' . $tableName;
+
+foreach($params as $name => $value) {
+  $message .= ' ' . $name;
+  if (strlen($value)) {
+    $message .= '=' . $value;
   }
+}
 
-  if ($showHelp) {
-    br()->log()->write('Usage: php ' . basename($scriptFile) . ' tableName [--createStructure] [--nameField=name] [--rangeField=] [--orderField=name] [--parentField=parent_id]');
-    exit();
-  }
+br()->log()->message($message);
 
-  $params = $cmd->getSwitches();
+br()->log()->setLogPrefix('[' . $tableName . ']');
 
-  $s = 'Running: ' . basename($scriptFile) . ' ' . $tableName;
-
-  foreach($params as $name => $value) {
-    $s .= ' ' . $name;
-    if (strlen($value)) {
-      $s .= '=' . $value;
-    }
-  }
-
-  $cmd->log($s);
-
-  $cmd->setLogPrefix('[' . br()->db()->getDataBaseName() . '] [' . $tableName . ']');
-
-  if (br($params, 'createStructure')) {
-    try {
-      br()->db()->runQuery('ALTER TABLE ' . $tableName . ' ADD left_key  INTEGER');
-      br()->db()->runQuery('ALTER TABLE ' . $tableName . ' ADD right_key INTEGER');
-      br()->db()->runQuery('ALTER TABLE ' . $tableName . ' ADD level     INTEGER DEFAULT 1');
-    } catch (Exception $e) {
-      $cmd->logException('Error. Can not create structure for ' . $tableName . ': ' . $e->getMessage());
-      exit();
-    }
-  }
-
-  $nestedSet = new \Bright\BrNestedSet($tableName, $params);
-
+if (br($params, 'createStructure')) {
   try {
-    $nestedSet->setup();
+    br()->db()->runQuery('ALTER TABLE ' . $tableName . ' ADD left_key  INTEGER');
+    br()->db()->runQuery('ALTER TABLE ' . $tableName . ' ADD right_key INTEGER');
+    br()->db()->runQuery('ALTER TABLE ' . $tableName . ' ADD level     INTEGER DEFAULT 1');
   } catch (Exception $e) {
-    $cmd->logException('Error');
-    br()->log()->logException($e);
+    br()->log()->error('Error. Can not create structure for ' . $tableName . ': ' . $e->getMessage());
     exit();
   }
+}
 
-});
+$nestedSet = new \Bright\BrNestedSet($tableName, $params);
+
+try {
+  $nestedSet->setup();
+} catch (Exception $e) {
+  br()->log()->error($e);
+  exit();
+}

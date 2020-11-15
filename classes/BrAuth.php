@@ -15,7 +15,6 @@ class BrAuth extends BrObject {
   static $instances = array();
 
   public static function getInstance($name = null) {
-
     $name = $name ? $name : 'br/auth';
 
     if (is_array($name)) {
@@ -28,7 +27,7 @@ class BrAuth extends BrObject {
       $hash = md5(serialize($config));
       if (!array_key_exists($hash, self::$instances)) {
         self::$instances[$hash]['initialized'] = true;
-        self::$instances[$hash]['provider']    = null;
+        self::$instances[$hash]['provider'] = null;
         switch($config['type']) {
           case 'DBUsers':
             self::$instances[$hash]['provider'] = new BrDBUsersAuthProvider($config);
@@ -42,7 +41,6 @@ class BrAuth extends BrObject {
     } else {
       return null;
     }
-
   }
 
 }

@@ -48,7 +48,7 @@ class BrEventBusClient extends BrEventBusEngine {
           $connection->send($this->packMessage($action, $data, $additionalRequestParams));
         }
       , function(\Exception $e) use ($onMessage, $loop) {
-          br()->log()->logException($e);
+          br()->log()->error($e);
           $onMessage(true, $e->getMessage());
           $loop->stop();
         }
@@ -70,7 +70,7 @@ class BrEventBusClient extends BrEventBusEngine {
         // }
         $this->client->send($this->packMessage($action, $data, $additionalRequestParams));
       } catch (\Exception $e) {
-        br()->log()->logException($e);
+        br()->log()->error($e);
       }
     }
 

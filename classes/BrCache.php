@@ -16,13 +16,9 @@ class BrCache extends BrObject {
   static $reconsider = true;
 
   public static function getInstance($name = null) {
-
     $name = $name ? $name : 'default';
-
     if (!array_key_exists($name, self::$instances)) {
-
       $cacheConfig = array('engine' => $name);
-
       if ($config = br()->config()->get('cache')) {
         if (br($config, $name)) {
           if (br($config[$name], 'engine')) {
@@ -33,9 +29,7 @@ class BrCache extends BrObject {
           $cacheConfig = $config;
         }
       }
-
       $instance = null;
-
       try {
         if (self::isSupported($cacheConfig['engine'])) {
           $instance = self::createInstance($cacheConfig['engine'], $cacheConfig);
@@ -46,22 +40,17 @@ class BrCache extends BrObject {
         if (br($cacheConfig, 'required')) {
           throw new \Exception('Can not initialize ' . $cacheConfig['engine'] . ' caching engine: ' . $e->getMessage());
         } else {
-          br()->log()->write('Can not initialize ' . $cacheConfig['engine'] . ' caching engine: ' . $e->getMessage() . '. Switching to memory caching.', 'RED');
+          br()->log()->message('Can not initialize ' . $cacheConfig['engine'] . ' caching engine: ' . $e->getMessage() . '. Switching to memory caching.', 'RED');
           $instance = self::createInstance('memory');
         }
       }
-
       self::$instances[$name] = $instance;
     }
-
     return self::$instances[$name];
-
   }
 
   private static function createInstance($engine = null, $cacheConfig = array()) {
-
     $engine = $engine ? $engine : 'memory';
-
     switch($engine) {
       case "memcache":
         return new BrMemCacheCacheProvider($cacheConfig);
@@ -77,13 +66,10 @@ class BrCache extends BrObject {
       default:
         return new BrMemoryCacheProvider($cacheConfig);
     }
-
   }
 
   public static function isSupported($engine = null) {
-
     $engine = $engine ? $engine : 'memory';
-
     switch ($engine) {
       case "memcache":
         return BrMemCacheCacheProvider::isSupported();
@@ -97,7 +83,6 @@ class BrCache extends BrObject {
         return true;
         break;
     }
-
   }
 
 }

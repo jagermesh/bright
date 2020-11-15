@@ -33,7 +33,7 @@ if ($templateName = @$argv[1]) {
   }
   $projectRoot = dirname(dirname(dirname(dirname(__DIR__))));
   try {
-    br()->log()->write('Checking root folder...');
+    br()->log()->message('Checking root folder...');
     br()->fs()->iteratePath($templatePath, function($file) use ($templatePath, $projectRoot) {
       $dst = $projectRoot . str_replace($templatePath, '', $file->nameWithPath());
       if ($file->isFile() && ($file->name() != '.DS_Store') && ($file->name() != '.description') && ($file->name() != 'composer.json')) {
@@ -42,7 +42,7 @@ if ($templateName = @$argv[1]) {
         }
       }
     });
-    br()->log()->write('Copying project files..');
+    br()->log()->message('Copying project files..');
     br()->fs()->iteratePath($templatePath, function($file) use ($templatePath, $projectRoot) {
       $dst = $projectRoot . str_replace($templatePath, '', $file->nameWithPath());
       if ($file->isDir()) {
@@ -58,11 +58,11 @@ if ($templateName = @$argv[1]) {
     die();
   }
 
-  br()->log()->write('Running composer update...');
+  br()->log()->message('Running composer update...');
 
   br()->exec('composer update');
 
-  br()->log()->write('Project initialized');
+  br()->log()->message('Project initialized');
 
   br()->log('');
 } else {

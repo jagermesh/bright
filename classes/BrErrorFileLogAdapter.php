@@ -15,23 +15,10 @@ class BrErrorFileLogAdapter extends BrGenericFileLogAdapter {
   private $writingHeader = false;
 
   public function __construct($baseFilePath = null, $baseFileName = null) {
-
-    $this->writeAppInfoWithEveryMessage = true;
-
     parent::__construct($baseFilePath, 'errors.log');
-
-  }
-
-  public function write($message, $group = 'MSG', $tagline = null) {
-
-    if ($group == 'ERR') {
-      parent::write($message . "\n", $group, $tagline);
-    }
-
   }
 
   protected function generateLogFileName() {
-
     $this->filePath = $this->baseFilePath ? $this->baseFilePath : br()->getLogsPath();
 
     $this->filePath = rtrim($this->filePath, '/') . '/';
@@ -40,7 +27,14 @@ class BrErrorFileLogAdapter extends BrGenericFileLogAdapter {
     $hour = @strftime('%H');
 
     $this->filePath .= $date . '/' . $this->baseFileName;
+  }
 
+  public function write($messageOrObject, $params) {
+    if ($this->isErrorEventType($params)) {
+      $info = $this->getLogInfo($messageOrObject, $params, true);
+      $message = json_encode($info, JSON_PRETTY_PRINT);
+      $this->writeToLogFile($message);
+    }
   }
 
 }

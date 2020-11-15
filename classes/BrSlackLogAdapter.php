@@ -10,29 +10,16 @@
 
 namespace Bright;
 
-class BrMailLogAdapter extends BrGenericLogAdapter {
+class BrSlackLogAdapter extends BrGenericLogAdapter {
 
-  protected $cache;
-  protected $cacheInitialized = false;
+  private $cache;
+  private $cacheInitialized = false;
+  private $webHookUrl;
 
-  private $email;
-
-  public function __construct($email = null) {
-    $this->email = $email;
+  public function __construct($webHookUrl) {
+    $this->webHookUrl = $webHookUrl;
 
     parent::__construct();
-  }
-
-  public function setEMail($email) {
-    $this->email = $email;
-  }
-
-  public function getEMail() {
-    if ($this->email) {
-      return $this->email;
-    } else {
-      return br()->config()->get('br/mail/support');
-    }
   }
 
   private function initCache() {
@@ -48,7 +35,7 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
   }
 
   public function write($messageOrObject, $params) {
-    if ($email = $this->getEMail()) {
+    if ($this->webHookUrl) {
       if ($this->isErrorEventType($params) || $this->isDebugEventType($params)) {
         if (!(br()->request()->isLocalHost() && !br()->isConsoleMode())) {
           try {
@@ -78,14 +65,26 @@ class BrMailLogAdapter extends BrGenericLogAdapter {
             $info = $this->getLogInfo($messageOrObject, $params);
             $message = BrErrorsFormatter::convertMessageOrObjectToText($messageOrObject, $params, true);
 
-            $body  = '<html>';
-            $body .= '<body>';
-            $body .= '<pre>' . json_encode($info, JSON_PRETTY_PRINT) . '</pre>';
-            $body .= '<pre>' . $message . '</pre>';
-            $body .= '</body>';
-            $body .= '</html>';
+            $payload = [
+              'text' => '*' . $subject . '*' . "\n" .
+               json_encode($info, JSON_PRETTY_PRINT),
+              'attachments' => [
+                [
+                  'text' => $message
+                ]
+              ]
+            ];
 
-            br()->sendMail($email, $subject, $body);
+            $requestParams = [
+              'connect_timeout' => 5,
+              'read_timeout' => 5,
+              'timeout' => 5,
+              'form_params' => [
+                'payload' => json_encode($payload),
+              ]
+            ];
+            $client = new \GuzzleHttp\Client();
+            $client->request('POST', $this->webHookUrl, $requestParams);
           } catch (\Exception $e) {
 
           }

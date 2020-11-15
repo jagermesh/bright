@@ -480,7 +480,7 @@ class BrDataSource extends BrGenericDataSource {
             throw new BrDBUniqueException();
           }
           if (preg_match("/Data truncated for column '([a-z_]+)'/i", $error, $matches)) {
-            br()->log()->logException($e);
+            br()->log()->error($e);
             throw new BrAppException('Wrong value for field ' . br()->config()->get('dbSchema.' . $this->dbEntity() . '.' . $matches[1] . '.displayName', $matches[1]));
           }
           throw $e;

@@ -23,20 +23,18 @@ class BrDataBasePatch {
   private $className;
   private $patchFile;
 
-  protected $logObject;
   protected $dbManager;
 
   const DO_ABORT    = 0;
   const DO_CONTINUE = 1;
   const DO_RETRY    = 2;
 
-  public function __construct($patchFile, $dbManager, $logObject) {
+  public function __construct($patchFile, $dbManager) {
 
     $this->patchFile = $patchFile;
     $this->className = get_called_class();
     $this->patchHash = sha1_file($patchFile);
     $this->dbManager = $dbManager;
-    $this->logObject = $logObject;
 
   }
 
@@ -48,7 +46,7 @@ class BrDataBasePatch {
 
   public function logPrefix() {
 
-    return '[' . br()->db()->getDataBaseName() . '] [' . $this->className . ']';
+    return '[' . $this->className . ']';
 
   }
 
@@ -127,8 +125,7 @@ class BrDataBasePatch {
 
   public function run() {
 
-    br()->log('');
-    $this->logObject->log('Apply');
+    br()->log()->message('Apply');
 
     $this->up();
 
@@ -139,7 +136,7 @@ class BrDataBasePatch {
                                      , basename($this->patchFile), $this->patchHash, br()->fs()->loadFromFile($this->patchFile)
                         );
 
-    $this->logObject->log('Applied', 'GREEN');
+    br()->log()->message('Applied');
 
     return true;
 
@@ -153,8 +150,8 @@ class BrDataBasePatch {
 
   public function setupTableSupport($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $isCascadeAudited = 1, $excludeFields = null) {
 
-    $this->logObject->log(br('=')->repeat(80));
-    $this->logObject->log('setupTableSupport(' . $tableName . ', ' . $isInsertAudited . ', ' . $isUpdateAudited . ', ' . $isDeleteAudited . ', "' . $excludeFields . '")');
+    br()->log()->message(br('=')->repeat(80));
+    br()->log()->message('setupTableSupport(' . $tableName . ', ' . $isInsertAudited . ', ' . $isUpdateAudited . ', ' . $isDeleteAudited . ', "' . $excludeFields . '")');
 
     return $this->dbManager->setupTableSupport($tableName, $isInsertAudited, $isUpdateAudited, $isDeleteAudited, $isCascadeAudited, $excludeFields);
 
@@ -220,18 +217,17 @@ class BrDataBasePatch {
 
     $stepName = $stepName ? $stepName : $this->stepNo;
 
-    $this->logObject->log(br('=')->repeat(20) . ' ' . 'UP step "' . $stepName . '"' . ' ' . br('=')->repeat(20), 'YELLOW');
-    // $this->logObject->log();
+    br()->log()->message(br('=')->repeat(20) . ' ' . 'UP step "' . $stepName . '"' . ' ' . br('=')->repeat(20), 'YELLOW');
     try {
       if (is_callable($sql)) {
         $sql();
       } else {
-        $this->logObject->log($sql);
+        br()->log()->message($sql);
         br()->db()->runQuery($sql);
       }
     } catch (\Exception $e) {
       $error = 'Error. UP step "' . $stepName . '":' . "\n\n" . $e->getMessage();
-      $this->logObject->log(br('=')->repeat(20) . ' ' . 'DOWN step "' . $stepName . '"' . ' ' . br('=')->repeat(20), 'YELLOW');
+      br()->log()->message(br('=')->repeat(20) . ' ' . 'DOWN step "' . $stepName . '"' . ' ' . br('=')->repeat(20), 'YELLOW');
       try {
         $retry = $this->down($stepName, $e->getMessage());
       } catch (\Exception $e2) {
@@ -243,14 +239,14 @@ class BrDataBasePatch {
         case self::DO_CONTINUE:
           break;
         case self::DO_RETRY:
-          $this->logObject->log($error, 'RED');
-          $this->logObject->log('DOWN step "' . $stepName . '" requested rerun');
+          br()->log()->message($error, 'RED');
+          br()->log()->message('DOWN step "' . $stepName . '" requested rerun');
           try {
             if (is_callable($sql)) {
               $sql();
             } else {
-              $this->logObject->log(br('=')->repeat(80));
-              $this->logObject->log($sql);
+              br()->log()->message(br('=')->repeat(80));
+              br()->log()->message($sql);
               br()->db()->runQuery($sql);
             }
           } catch (\Exception $e) {
@@ -262,7 +258,7 @@ class BrDataBasePatch {
       }
     }
 
-    $this->logObject->log(br()->db()->getAffectedRowsAmount() . ' row(s) affected', 'GREEN');
+    br()->log()->message(br()->db()->getAffectedRowsAmount() . ' row(s) affected', 'GREEN');
 
     if (preg_match('/DROP.*?TABLE/', $sql) || preg_match('/CREATE.*?TABLE/', $sql) || preg_match('/ALTER.*?TABLE/', $sql)) {
       $this->dbManager->setAuditSubsystemInitialyzed(false);
@@ -274,7 +270,7 @@ class BrDataBasePatch {
 
   static function generatePatchScript($name, $path) {
 
-    $name     = ucfirst($name);
+    $name = ucfirst($name);
     $fileName = $path . '/patches/Patch' . $name . '.php';
 
     if (file_exists($fileName)) {

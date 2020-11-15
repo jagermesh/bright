@@ -24,7 +24,6 @@ class BrRequest extends BrSingleton {
   private $continueRoute = true;
   private $domain = null;
   private $putVars = array();
-  private $serverAddr = null;
   private $contentType = null;
   private $urlRestrictions = array();
   private $restrictionsLoaded = false;
@@ -35,7 +34,7 @@ class BrRequest extends BrSingleton {
 
     if (br()->isConsoleMode()) {
 
-      $this->serverAddr = br()->config()->get('br/request/consoleModeServerAddr',  '127.0.0.1');
+      $this->clientIP   = br()->config()->get('br/request/consoleModeServerAddr',  '127.0.0.1');
       $this->domain     = br()->config()->get('br/request/consoleModeBaseDomain',  'localhost');
       $this->protocol   = br()->config()->get('br/request/consoleModeWebProtocol', 'http://');
       $this->host       = br()->config()->get('br/request/consoleModeBaseHost',    $this->protocol . $this->domain);
@@ -47,10 +46,6 @@ class BrRequest extends BrSingleton {
     } else {
 
       $domain = br($_SERVER, 'HTTP_HOST');
-      $serverAddr = br($_SERVER, 'SERVER_ADDR');
-      if (!$serverAddr || ($serverAddr == '::1')) {
-        $serverAddr = '127.0.0.1';
-      }
       if (br()->config()->get('br/request/forceHttps')) {
         $this->protocol = 'https://';
       } else {
@@ -91,7 +86,6 @@ class BrRequest extends BrSingleton {
 
       $this->url = $url;
       $this->path = $path;
-      $this->serverAddr = $serverAddr;
       $this->domain = $domain;
       $this->host = $host;
       $this->relativeUrl = $relativeUrl;
@@ -355,16 +349,6 @@ class BrRequest extends BrSingleton {
       return br()->config()->get('br/request/consoleModeBaseDomain', 'localhost');
     } else {
       return $this->domain;
-    }
-
-  }
-
-  public function serverAddr() {
-
-    if (br()->isConsoleMode()) {
-      return br()->config()->get('br/request/consoleModeServerAddr', '127.0.0.1');
-    } else {
-      return $this->serverAddr;
     }
 
   }

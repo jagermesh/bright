@@ -12,6 +12,8 @@ namespace Bright;
 
 class BrResponse extends BrSingleton {
 
+  private $systemStylesInjected = false;
+
   public function __construct() {
 
     parent::__construct();
@@ -104,7 +106,7 @@ class BrResponse extends BrSingleton {
       $url .= ((strpos('?', $url) === false)?'?':'&').'caller='.urlencode(br()->request()->url());
     }
 
-    br()->log()->write('Redirecting to ' . $url);
+    br()->log()->message('Redirecting to ' . $url);
 
     if (headers_sent()) {
       if ($timedOut) {
@@ -321,6 +323,37 @@ class BrResponse extends BrSingleton {
     header('Expires: ' . $expires);
     header('Cache-Control: public, max-age=' . $ageSec . ', no-transform');
 
+  }
+
+  public function injectSystemStyles() {
+    if (!$this->systemStylesInjected) {
+      br()->renderer()->display(dirname(__DIR__) . '/templates/inline.css');
+      $this->systemStylesInjected = true;
+    }
+  }
+
+  public function displayError($messageOrObject, $details = []) {
+    try {
+      if (!headers_sent()) {
+        header('HTTP/1.0 500 Internal Server Error');
+      }
+
+      $this->injectSystemStyles();
+
+      $data = [
+        'error' => [
+          'message' => BrErrorsFormatter::convertMessageOrObjectToText($messageOrObject, $details, false),
+          'timestamp' => br()->getUnifiedTimestamp(),
+          'type' =>  (($messageOrObject instanceof \ErrorException) ? br()->getErrorSeverityName($messageOrObject->getSeverity()) : 'Error'),
+          'file' => (($messageOrObject instanceof \Throwable) ? $messageOrObject->getFile() . ', line ' . $messageOrObject->getLine() : ''),
+          'traceInfo' => (($messageOrObject instanceof \Throwable) ? BrErrorsFormatter::getStackTraceFromException($messageOrObject) : ''),
+        ]
+      ];
+
+      br()->renderer()->display(dirname(__DIR__) . '/templates/ErrorMessage.html', $data);
+    } catch (\Exception $e) {
+
+    }
   }
 
 }

@@ -426,12 +426,6 @@ class BrAWS extends BrObject {
                 }
                 $marksDataNormalized = $this->normalizeMarks($marksDataRaw, $currentTime);
                 $marksData = array_merge($marksData, $marksDataNormalized);
-                // $tempFileName2 = 'PollyAudio' . $i . '.json';
-                // $tempFilePath2 = $filesFolder . '/' . $tempFileName2;
-                // br()->fs()->saveToFile($tempFilePath2, $marksDataRaw);
-                // $tempFileName3 = 'PollyAudio' . $i . '.fx.json';
-                // $tempFilePath3 = $filesFolder . '/' . $tempFileName3;
-                // br()->fs()->saveToFile($tempFilePath3, json_encode($marksDataNormalized));
               }
 
               $finalAudioFileName = 'PollyAudio_final.mp3';

@@ -257,96 +257,19 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider {
         throw new BrDBException($error);
       }
 
-      br()->log()->write($queryText, "QRY");
+      br()->log()->message('Executing query', [ 'sql' => $queryText ], 'internal');
 
-      try {
-        // moved to check problem line
-        $query = @sqlsrv_query($this->connection(), $queryText);
-        if ($query) {
-          if ($this->inTransaction()) {
-            $this->incTransactionBuffer($queryText);
-          }
-        } else {
-          $error = $this->getLastError();
-          throw new BrDBException($error);
+      $query = @sqlsrv_query($this->connection(), $queryText);
+      if ($query) {
+        if ($this->inTransaction()) {
+          $this->incTransactionBuffer($queryText);
         }
-      } catch (\Exception $e) {
-        $error  = $e->getMessage();
-        br()->log()->write($error, 'SEP');
-        $error .= "\n" . $queryText;
-        // if connection lost - we'll try to restore it first
-        if (preg_match('/Error while sending QUERY packet/', $e->getMessage()) ||
-            preg_match('/Error reading result set/', $e->getMessage()) ||
-            preg_match('/Lost connection to backend server/', $e->getMessage()) ||
-            preg_match('/Connection was killed/', $e->getMessage()) ||
-            preg_match('/failed to create new session/', $e->getMessage()) ||
-            preg_match('/WSREP has not yet prepared node for application use/', $e->getMessage()) ||
-            preg_match('/MySQL server has gone away/', $e->getMessage()) ||
-            preg_match('/Packets out of order/', $e->getMessage())) {
-          $this->connect();
-        }
-        // then we will try re-run queries
-        if (preg_match('/Error while sending QUERY packet/', $e->getMessage()) ||
-            preg_match('/Error reading result set/', $e->getMessage()) ||
-            preg_match('/Lost connection to backend server/', $e->getMessage()) ||
-            preg_match('/Connection was killed/', $e->getMessage()) ||
-            preg_match('/failed to create new session/', $e->getMessage()) ||
-            preg_match('/WSREP has not yet prepared node for application use/', $e->getMessage()) ||
-            preg_match('/MySQL server has gone away/', $e->getMessage()) ||
-            preg_match('/Packets out of order/', $e->getMessage()) ||
-            preg_match('/Lock wait timeout exceeded/', $e->getMessage()) ||
-            preg_match('/Deadlock: wsrep aborted transaction/', $e->getMessage()) ||
-            preg_match('/Deadlock found when trying to get lock/', $e->getMessage())) {
-          if ($this->inTransaction()) {
-            if ($this->isTransactionBufferEmpty()) {
-              br()->log()->write('Trying restart transaction and repeat query', 'SEP');
-              usleep(250000);
-              $this->rollbackTransaction();
-              $this->startTransaction();
-              $query = $this->runQueryEx($sql, $args, $iteration + 1, $e->getMessage(), $resultMode);
-            } else {
-              br()->log()->write('Automatic retrying was not possible - ' . $this->transactionBufferLength() . ' statement(s) in transaction buffer: ' . "\n"  . json_encode($this->transactionBuffer()), 'SEP');
-              if (preg_match('/Deadlock found when trying to get lock/', $error) ||
-                  preg_match('/Deadlock: wsrep aborted transaction/', $error)) {
-                throw new BrDBDeadLockException($error);
-              } else
-              if (preg_match('/Lock wait timeout exceeded/', $error)) {
-                throw new BrDBLockException($error);
-              } else
-              if (preg_match('/Packets out of order/', $error)) {
-                throw new BrDBEngineException($error);
-              } else
-              if (preg_match('/Error while sending QUERY packet/', $e->getMessage()) ||
-                  preg_match('/Error reading result set/', $e->getMessage()) ||
-                  preg_match('/Lost connection to backend server/', $e->getMessage()) ||
-                  preg_match('/Connection was killed/', $e->getMessage()) ||
-                  preg_match('/failed to create new session/', $e->getMessage()) ||
-                  preg_match('/WSREP has not yet prepared node for application use/', $e->getMessage()) ||
-                  preg_match('/MySQL server has gone away/', $e->getMessage())) {
-                throw new BrDBServerGoneAwayException($error);
-              }
-            }
-          } else {
-            br()->log()->write('Trying to repeat query.', 'SEP');
-            sleep(1);
-            $query = $this->runQueryEx($sql, $args, $iteration + 1, $e->getMessage(), $resultMode);
-          }
-        } else
-        if (preg_match('/1329: No data/', $e->getMessage())) {
-
-        } else
-        if (preg_match('/Duplicate entry/', $e->getMessage())) {
-          throw new BrDBUniqueException($error);
-        } else
-        if (preg_match('/Cannot delete or update a parent row/', $e->getMessage())) {
-          throw new BrDBForeignKeyException($error);
-        } else {
-          throw new BrDBException($error);
-        }
+      } else {
+        $error = $this->getLastError();
+        throw new BrDBException($error);
       }
 
-      br()->log()->write('Query complete', 'SEP');
-
+      br()->log()->message('Query complete', [ 'sql' => $queryText ], 'internal');
     } catch (\Exception $e) {
       $error = $e->getMessage();
       br()->trigger('br.db.query.error', $error);

@@ -11,14 +11,13 @@
 require_once(__DIR__ . '/BrightAutoload.php');
 
 /**
- * 
+ *
  * @param mixed $array
  * @param mixed $name
  * @param mixed $default
  * @return \Bright\BrCore|\Bright\BrArray|\Bright\BrString|NULL
  */
 function br($array = null, $name = null, $default = null) {
-
   if (func_num_args() === 0) {
     return \Bright\BrCore::getInstance();
   } else
@@ -49,31 +48,22 @@ function br($array = null, $name = null, $default = null) {
   } else {
     return $default;
   }
-
 }
 
 if (!function_exists('debug')) {
-
   function debug() {
-
     $args = func_get_args();
     foreach($args as $var) {
-      br()->log()->write($var, 'DBG');
+      br()->log()->debug($var);
     }
-
   }
-
 }
 
 if (!function_exists('logme')) {
-
   function logme() {
-
     $args = func_get_args();
     foreach($args as $var) {
-      br()->log()->write($var);
+      br()->log()->message($var);
     }
-
   }
-
 }

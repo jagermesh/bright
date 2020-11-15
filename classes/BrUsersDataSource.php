@@ -36,26 +36,26 @@ class BrUsersDataSource extends BrDataSource {
 
         $row = $dataSource->insert($params, $data);
 
-        br()->log()->write('User registered:');
-        br()->log()->write($row);
-        br()->log()->write($data);
+        br()->log()->message('User registered:');
+        br()->log()->message($row);
+        br()->log()->message($data);
 
         if ($mailTemplate = br()->auth()->getAttr('signup.mail.template')) {
           if ($email = br($row, $emailField)) {
             $user = $row;
             $user[$passwordField] = br($data, 'password');
             $message = br()->renderer()->fetch($mailTemplate, $user);
-            br()->log()->write('Sending signup mail to ' . $email);
+            br()->log()->message('Sending signup mail to ' . $email);
             if (br()->sendMail($email, br()->auth()->getAttr('signup.mail.subject'), $message, array('sender' => br()->auth()->getAttr('mail.from')))) {
-              br()->log()->write('Sent');
+              br()->log()->message('Sent');
             } else {
               throw new \Exception('Mail was not sent because of unknown error');
             }
           } else {
-            br()->log()->write('Signup mail was not sent - email field not found or empty');
+            br()->log()->message('Signup mail was not sent - email field not found or empty');
           }
         } else {
-          br()->log()->write('Signup mail was not sent - mail template not found or empty');
+          br()->log()->message('Signup mail was not sent - mail template not found or empty');
         }
 
         br()->auth()->login($row);
@@ -160,8 +160,8 @@ class BrUsersDataSource extends BrDataSource {
                 if ($message = br()->renderer()->fetch($mailTemplate, $user)) {
                   if (br()->sendMail($email, br()->auth()->getAttr('passwordReminder.verificationMail.subject'), $message, array('sender' => br()->auth()->getAttr('passwordReminder.verificationMail.from')))) {
                     br()->db()->runQuery('UPDATE ' . $usersTable . ' SET ' . $passwordResetField . ' = ? WHERE id = ?', $user[$passwordResetField], br()->db()->rowidValue($user));
-                    br()->log()->write('Password reset verification sent to ' . $email);
-                    br()->log()->write($user);
+                    br()->log()->message('Password reset verification sent to ' . $email);
+                    br()->log()->message($user);
                     return true;
                   } else {
                     throw new \Exception('Mail was not sent because of unknown error');

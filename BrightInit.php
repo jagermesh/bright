@@ -81,31 +81,15 @@ if (br()->isConsoleMode()) {
   }
 }
 
-if (br()->config()->get('Logger/RMQ/Active') && br()->config()->get('Logger/RMQ/Host') && br()->config()->get('Logger/RMQ/Port')) {
-  if (!br()->log()->isAdapterExists('Bright\\BrRMQLogAdapter')) {
-    br()->log()->addAdapter(new \Bright\BrRMQLogAdapter( array( 'host'            => br()->config()->get('Logger/RMQ/Host')
-                                                              , 'port'            => br()->config()->get('Logger/RMQ/Port')
-                                                              , 'login'           => br()->config()->get('Logger/RMQ/Login')
-                                                              , 'password'        => br()->config()->get('Logger/RMQ/Password')
-                                                              // optional
-                                                              , 'vhost'           => br()->config()->get('Logger/RMQ/VirtualHost')
-                                                              , 'exchangeName'    => br()->config()->get('Logger/RMQ/ExchangeName', 'logger')
-                                                              , 'exchangeType'    => br()->config()->get('Logger/RMQ/ExchangeType', 'topic')
-                                                              , 'exchangePassive' => br()->config()->get('Logger/RMQ/ExchangePassive')
-                                                              , 'routingKey'      => br()->config()->get('Logger/RMQ/RoutingKey')
-                                                              )));
-  }
-}
-
 if (br()->config()->get('Logger/Slack/Active') && br()->config()->get('Logger/Slack/WebHookUrl')) {
-  if (!br()->log()->isAdapterExists('Bright\\BrErrorSlackLogAdapter')) {
-    br()->log()->addAdapter(new \Bright\BrErrorSlackLogAdapter(br()->config()->get('Logger/Slack/WebHookUrl')));
+  if (!br()->log()->isAdapterExists('Bright\\BrSlackLogAdapter')) {
+    br()->log()->addAdapter(new \Bright\BrSlackLogAdapter(br()->config()->get('Logger/Slack/WebHookUrl')));
   }
 }
 
 if (br()->config()->get('Logger/Telegram/Active') && br()->config()->get('Logger/Telegram/Bot/ApiKey') && br()->config()->get('Logger/Telegram/Bot/Name') && br()->config()->get('Logger/Telegram/ChatIds')) {
-  if (!br()->log()->isAdapterExists('Bright\\BrErrorTelegramLogAdapter')) {
-    br()->log()->addAdapter(new \Bright\BrErrorTelegramLogAdapter(br()->config()->get('Logger/Telegram/Bot/ApiKey'), br()->config()->get('Logger/Telegram/Bot/Name'), br()->config()->get('Logger/Telegram/ChatIds')));
+  if (!br()->log()->isAdapterExists('Bright\\BrTelegramLogAdapter')) {
+    br()->log()->addAdapter(new \Bright\BrTelegramLogAdapter(br()->config()->get('Logger/Telegram/Bot/ApiKey'), br()->config()->get('Logger/Telegram/Bot/Name'), br()->config()->get('Logger/Telegram/ChatIds')));
   }
 }
 

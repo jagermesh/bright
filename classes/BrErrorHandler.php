@@ -13,17 +13,14 @@ namespace Bright;
 class BrErrorHandler extends BrObject {
 
   public function __construct() {
-
     error_reporting(E_ALL);
 
-    set_error_handler(array(&$this, 'errorHandler'));
-    set_exception_handler(array(&$this, 'exceptionHandler'));
-    register_shutdown_function(array(&$this, 'captureShutdown'));
-
+    set_error_handler([ &$this, 'errorHandler' ]);
+    set_exception_handler([ &$this, 'exceptionHandler' ]);
+    register_shutdown_function([ &$this, 'captureShutdown' ]);
   }
 
-  public function checkLoggers() {
-
+  private function checkLoggers() {
     if (br()->isConsoleMode()) {
       if (!br()->log()->isAdapterExists('Bright\\BrConsoleLogAdapter')) {
         br()->log()->addAdapter(new BrConsoleLogAdapter());
@@ -33,47 +30,42 @@ class BrErrorHandler extends BrObject {
         br()->log()->addAdapter(new BrWebLogAdapter());
       }
     }
-
   }
 
   public function handleError($errno, $errmsg, $errfile, $errline, $shutdown = false) {
-
     if ($this->isEnabled()) {
       if ((error_reporting() & $errno) == $errno) {
         $this->checkLoggers();
         if (br()->request()->isDevHost() || br()->isConsoleMode()) {
           ini_set('display_errors', true);
         }
-        switch ($errno) {
-          case E_ERROR:
-          case E_USER_NOTICE:
-          case E_USER_WARNING:
-          case E_USER_ERROR:
-            if ($shutdown) {
-              br()->log()->logException(new BrErrorException($errmsg, 0, $errno, $errfile, $errline));
-            } else {
-              throw new BrErrorException($errmsg, 0, $errno, $errfile, $errline);
-            }
+        if ($shutdown) {
+          br()->log()->error(new \ErrorException($errmsg, 0, $errno, $errfile, $errline));
+        } else {
+          $exception = new \ErrorException($errmsg, 0, $errno, $errfile, $errline);
+          switch ($errno) {
+            case E_ERROR:
+            case E_USER_NOTICE:
+            case E_USER_WARNING:
+            case E_USER_ERROR:
+              throw $exception;
             break;
           default:
-            if ($shutdown) {
-              br()->log()->logException(new BrErrorException($errmsg, 0, $errno, $errfile, $errline));
-            } else
             if (br()->request()->isDevHost() || (br()->isConsoleMode() && !br()->isJobMode())) {
-              throw new BrErrorException($errmsg, 0, $errno, $errfile, $errline);
+              throw $exception;
             } else {
-              br()->log()->logException(new BrErrorException($errmsg, 0, $errno, $errfile, $errline));
+              br()->log()->error($exception);
+              br()->response()->displayError($exception);
             }
             break;
+          }
         }
       }
 
     }
-
   }
 
   public function captureShutdown() {
-
     if ($error = error_get_last()) {
       if ($this->isEnabled()) {
         $errmsg  = $error['message'];
@@ -87,11 +79,9 @@ class BrErrorHandler extends BrObject {
         }
       }
     }
-
   }
 
   public function exceptionHandler($e) {
-
     if ($this->isEnabled()) {
       try {
         try {
@@ -101,16 +91,8 @@ class BrErrorHandler extends BrObject {
         }
         $this->checkLoggers();
         try {
-          if ($e instanceof BrAppException) {
-            if (br()->isConsoleMode()) {
-              br()->log()->write($e->getMessage(), 'RED');
-            } else {
-              $webLogAdapter = new BrWebLogAdapter();
-              $webLogAdapter->writeException($e, true);
-            }
-          } else {
-            br()->log()->logException($e, true);
-          }
+          br()->log()->error($e);
+          br()->response()->displayError($e);
         } catch (\Exception $e2) {
 
         }
@@ -121,13 +103,10 @@ class BrErrorHandler extends BrObject {
 
       }
     }
-
   }
 
   public function errorHandler($errno, $errmsg, $errfile, $errline, $vars) {
-
     $this->handleError($errno, $errmsg, $errfile, $errline, false);
-
   }
 
 }

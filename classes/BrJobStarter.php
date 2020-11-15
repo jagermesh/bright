@@ -51,13 +51,13 @@ class BrJobStarter {
         $job = new $className();
         try {
           if ($check) {
-            br()->log()->write('[' . $className . '] Check');
+            br()->log()->message('[' . $className . '] Check');
             $job->check();
           } else {
-            br()->log()->write('[' . $className . '] Run');
+            br()->log()->message('[' . $className . '] Run');
             $job->run($arguments);
           }
-          br()->log()->write('[' . $className . '] Done');
+          br()->log()->message('[' . $className . '] Done');
           @fclose($handle);
           @unlink(br()->OS()->lockFileName($tag));
           return true;
