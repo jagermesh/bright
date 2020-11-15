@@ -216,8 +216,6 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
         throw new BrDBException($error);
       }
 
-      br()->log()->message('Executing query', [ 'sql' => $queryText ], 'internal');
-
       try {
         // moved to check problem line
         $query = @mysqli_query($this->connection(), $queryText, $resultMode);
