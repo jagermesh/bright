@@ -4215,23 +4215,25 @@ THE SOFTWARE.
     }
 
     function downHandler(e) {
-      let target = e.target || e.srcElement;
-      let parent = target.parentNode;
+      if (e.button === 0) {
+        let target = e.target || e.srcElement;
+        let parent = target.parentNode;
 
-      if (target && (options.exclude.indexOf(target.tagName.toUpperCase()) == -1)) {
-        if (!parent || (options.exclude.indexOf(parent.tagName.toUpperCase()) == -1)) {  // img in a
-          dragObject = ctrl;
+        if (target && (options.exclude.indexOf(target.tagName.toUpperCase()) == -1)) {
+          if (!parent || (options.exclude.indexOf(parent.tagName.toUpperCase()) == -1)) {  // img in a
+            dragObject = ctrl;
 
-          let pageX = e.pageX || e.touches[0].pageX;
-          let pageY = e.pageY || e.touches[0].pageY;
+            let pageX = e.pageX || e.touches[0].pageX;
+            let pageY = e.pageY || e.touches[0].pageY;
 
-          ofs_x = dragObject.getBoundingClientRect().left - dragObject.offsetLeft;
-          ofs_y = dragObject.getBoundingClientRect().top  - dragObject.offsetTop;
+            ofs_x = dragObject.getBoundingClientRect().left - dragObject.offsetLeft;
+            ofs_y = dragObject.getBoundingClientRect().top  - dragObject.offsetTop;
 
-          pos_x = pageX - (dragObject.getBoundingClientRect().left + document.body.scrollLeft);
-          pos_y = pageY - (dragObject.getBoundingClientRect().top  + document.body.scrollTop);
+            pos_x = pageX - (dragObject.getBoundingClientRect().left + document.body.scrollLeft);
+            pos_y = pageY - (dragObject.getBoundingClientRect().top  + document.body.scrollTop);
 
-          e.preventDefault();
+            e.preventDefault();
+          }
         }
       }
     }

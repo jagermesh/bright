@@ -14,7 +14,7 @@
     "php": ">=7.1.0",
     "swiftmailer/swiftmailer": "^6.2",
     "mustache/mustache": "^2.13",
-    "longman/telegram-bot": "^0.63.0",
+    "longman/telegram-bot": "^0.64.0",
     "neitanod/forceutf8": "^2.0"
   },
   "require-dev": {
