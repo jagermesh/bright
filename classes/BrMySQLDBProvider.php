@@ -231,7 +231,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
         }
       } catch (\Exception $e) {
         $error  = $e->getMessage();
-        br()->log()->message($e);
+        // br()->log()->message($e);
         $error .= "\n" . $queryText;
         // if connection lost - we'll try to restore it first
         if (preg_match('/Error while sending QUERY packet/', $e->getMessage()) ||

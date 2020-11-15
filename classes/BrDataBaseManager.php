@@ -651,13 +651,9 @@ class BrDataBaseManager {
 
     $this->initAuditSubsystem();
 
-    try {
-      $this->deleteInsertAuditTrigger($tableName, false);
-      br()->db()->runQuery($this->generateInsertAuditTrigger($tableName));
-      br()->log()->message('[' . $tableName . '] Insert audited');
-    } catch (\Exception $e) {
-      br()->log()->error($e->getMessage());
-    }
+    $this->deleteInsertAuditTrigger($tableName, false);
+    br()->db()->runQuery($this->generateInsertAuditTrigger($tableName));
+    br()->log()->message('[' . $tableName . '] Insert audited');
 
   }
 
@@ -665,13 +661,9 @@ class BrDataBaseManager {
 
     $this->initAuditSubsystem();
 
-    try {
-      br()->db()->runQuery('DROP TRIGGER IF EXISTS aud_tai_' . $tableName);
-      if ($log) {
-        br()->log()->message('[' . $tableName . '] Insert not audited');
-      }
-    } catch (\Exception $e) {
-      br()->log()->error($e->getMessage());
+    br()->db()->runQuery('DROP TRIGGER IF EXISTS aud_tai_' . $tableName);
+    if ($log) {
+      br()->log()->message('[' . $tableName . '] Insert not audited');
     }
 
   }
@@ -680,13 +672,9 @@ class BrDataBaseManager {
 
     $this->initAuditSubsystem();
 
-    try {
-      $this->deleteUpdateAuditTrigger($tableName, false);
-      br()->db()->runQuery($this->generateUpdateAuditTrigger($tableName));
-      br()->log()->message('[' . $tableName . '] Update audited');
-    } catch (\Exception $e) {
-      br()->log()->error($e->getMessage());
-    }
+    $this->deleteUpdateAuditTrigger($tableName, false);
+    br()->db()->runQuery($this->generateUpdateAuditTrigger($tableName));
+    br()->log()->message('[' . $tableName . '] Update audited');
 
   }
 
@@ -694,13 +682,9 @@ class BrDataBaseManager {
 
     $this->initAuditSubsystem();
 
-    try {
-      br()->db()->runQuery('DROP TRIGGER IF EXISTS aud_tau_' . $tableName);
-      if ($log) {
-        br()->log()->message('[' . $tableName . '] Update not audited');
-      }
-    } catch (\Exception $e) {
-      br()->log()->error('[' . $tableName . '] Error. ' . $e->getMessage());
+    br()->db()->runQuery('DROP TRIGGER IF EXISTS aud_tau_' . $tableName);
+    if ($log) {
+      br()->log()->message('[' . $tableName . '] Update not audited');
     }
 
   }
@@ -709,13 +693,9 @@ class BrDataBaseManager {
 
     $this->initAuditSubsystem();
 
-    try {
-      $this->deleteDeleteAuditTrigger($tableName, false);
-      br()->db()->runQuery($this->generateDeleteAuditTrigger($tableName));
-      br()->log()->message('[' . $tableName . '] Delete audited');
-    } catch (\Exception $e) {
-      br()->log()->error('[' . $tableName . '] Error. ' . $e->getMessage());
-    }
+    $this->deleteDeleteAuditTrigger($tableName, false);
+    br()->db()->runQuery($this->generateDeleteAuditTrigger($tableName));
+    br()->log()->message('[' . $tableName . '] Delete audited');
 
   }
 
@@ -723,13 +703,9 @@ class BrDataBaseManager {
 
     $this->initAuditSubsystem();
 
-    try {
-      br()->db()->runQuery('DROP TRIGGER IF EXISTS aud_tad_' . $tableName);
-      if ($log) {
-        br()->log()->message('[' . $tableName . '] Delete not audited');
-      }
-    } catch (\Exception $e) {
-      br()->log()->error('[' . $tableName . '] Error. ' . $e->getMessage());
+    br()->db()->runQuery('DROP TRIGGER IF EXISTS aud_tad_' . $tableName);
+    if ($log) {
+      br()->log()->message('[' . $tableName . '] Delete not audited');
     }
 
   }
@@ -738,16 +714,12 @@ class BrDataBaseManager {
 
     $this->initAuditSubsystem();
 
-    try {
-      $this->deleteCascadeAuditTrigger($tableName, false);
-      if ($sql = $this->generateCascadeAuditTrigger($tableName)) {
-        br()->db()->runQuery($sql);
-        br()->log()->message('[' . $tableName . '] Cascade deletion audited');
-      } else {
-        br()->log()->message('[' . $tableName . '] Cascade deletion not applicable');
-      }
-    } catch (\Exception $e) {
-      br()->log()->error('[' . $tableName . '] Error. ' . $e->getMessage());
+    $this->deleteCascadeAuditTrigger($tableName, false);
+    if ($sql = $this->generateCascadeAuditTrigger($tableName)) {
+      br()->db()->runQuery($sql);
+      br()->log()->message('[' . $tableName . '] Cascade deletion audited');
+    } else {
+      br()->log()->message('[' . $tableName . '] Cascade deletion not applicable');
     }
 
   }
@@ -756,13 +728,9 @@ class BrDataBaseManager {
 
     $this->initAuditSubsystem();
 
-    try {
-      br()->db()->runQuery('DROP TRIGGER IF EXISTS csc_tbd_' . $tableName);
-      if ($log) {
-        br()->log()->message('[' . $tableName . '] Cascade deletion not audited');
-      }
-    } catch (\Exception $e) {
-      br()->log()->error('[' . $tableName . '] Error. ' . $e->getMessage());
+    br()->db()->runQuery('DROP TRIGGER IF EXISTS csc_tbd_' . $tableName);
+    if ($log) {
+      br()->log()->message('[' . $tableName . '] Cascade deletion not audited');
     }
 
   }
@@ -1010,8 +978,9 @@ class BrDataBaseManager {
                           , 'is_error'   => true
                           , 'is_warning' => false
                           );
+      } finally {
+        br()->log()->setLogPrefix('');
       }
-      br()->log()->setLogPrefix('');
     }
 
     $returnCode = 0;
@@ -1048,7 +1017,10 @@ class BrDataBaseManager {
             }
           } catch (\Exception $e) {
             $patchObjectsDeferred[] = $patch;
+          } finally {
+            br()->log()->setLogPrefix('');
           }
+
         }
 
         if (count($patchObjectsDeferred) > 0) {
@@ -1069,8 +1041,9 @@ class BrDataBaseManager {
                                   , 'is_error'   => true
                                   , 'is_warning' => false
                                   );
+              } finally {
+                br()->log()->setLogPrefix('');
               }
-              br()->log()->setLogPrefix('');
             }
           }
         }
