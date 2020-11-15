@@ -21,6 +21,7 @@ class BrGenericLogAdapter extends BrObject {
     $this->fiexdLogInfo = [
       'client_ip' => br()->request()->clientIP(),
       'pid' => br()->getProcessID(),
+      'sid' => session_id(),
     ];
 
     if (br()->isConsoleMode()) {
