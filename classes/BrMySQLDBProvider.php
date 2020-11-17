@@ -229,7 +229,6 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
         }
       } catch (\Exception $e) {
         $error  = $e->getMessage();
-        // br()->log()->message($e);
         $error .= "\n" . $queryText;
         // if connection lost - we'll try to restore it first
         if (preg_match('/Error while sending QUERY packet/', $e->getMessage()) ||
@@ -256,7 +255,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
             preg_match('/Deadlock found when trying to get lock/', $e->getMessage())) {
           if ($this->inTransaction()) {
             if ($this->isTransactionBufferEmpty()) {
-              br()->log()->message('Trying restart transaction and repeat query', [ 'sql' => $queryText ], 'internal');
+              br()->log()->message('Trying restart transaction and repeat query', [ 'sql' => $queryText ], 'query');
               usleep(250000);
               $this->rollbackTransaction();
               $this->startTransaction();
@@ -284,7 +283,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
               }
             }
           } else {
-            br()->log()->message('Trying to repeat query', [ 'sql' => $queryText ], 'internal');
+            br()->log()->message('Trying to repeat query', [ 'sql' => $queryText ], 'query');
             sleep(1);
             $query = $this->runQueryEx($sql, $args, $iteration + 1, $e->getMessage(), $resultMode);
           }
@@ -302,7 +301,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
         }
       }
 
-      br()->log()->message('Query complete', [ 'sql' => $queryText ], 'internal');
+      br()->log()->message('Query complete', [ 'sql' => $queryText ], 'query');
 
     } catch (\Exception $e) {
       $error = $e->getMessage();

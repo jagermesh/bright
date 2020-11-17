@@ -15,7 +15,6 @@ class BrSession extends BrSingleton {
   private $tag = '';
 
   public function __construct() {
-
     $this->tag = md5(__FILE__);
 
     if (!isset($_SESSION)) {
@@ -36,30 +35,28 @@ class BrSession extends BrSingleton {
     }
 
     parent::__construct();
-
   }
 
   static function configure() {
-
     if (!isset($_SESSION)) {
       @ini_set('session.gc_maxlifetime',  br()->config()->get('php/session.gc_maxlifetime', 3600));
       @ini_set('session.cache_expire',    br()->config()->get('php/session.cache_expire', 180));
       @ini_set('session.cookie_lifetime', br()->config()->get('php/session.cookie_lifetime', 0));
       @ini_set('session.cache_limiter',   br()->config()->get('php/session.cache_limiter', 'nocache'));
     }
-
   }
 
   public function regenerate($deleteOld = false) {
-
     if (!br()->isConsoleMode()) {
       session_regenerate_id($deleteOld);
     }
+  }
 
+  public function getId() {
+    return session_id();
   }
 
   public function get($name = null, $default = null) {
-
     if (isset($_SESSION)) {
       if ($name) {
         $name = $this->tag.':'.$name;
@@ -77,22 +74,18 @@ class BrSession extends BrSingleton {
     } else {
       return null;
     }
-
   }
 
   public function set($name, $value) {
-
     if (isset($_SESSION)) {
       $name = $this->tag.':'.$name;
       $_SESSION[$name] = $value;
     }
 
     return $value;
-
   }
 
   public function clear($name = null) {
-
     if (isset($_SESSION)) {
       if ($name) {
         if (is_callable($name)) {
@@ -118,7 +111,6 @@ class BrSession extends BrSingleton {
     }
 
     return true;
-
   }
 
 }

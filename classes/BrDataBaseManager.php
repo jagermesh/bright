@@ -915,7 +915,7 @@ class BrDataBaseManager {
       case 'force':
       case 'register':
         if ($regularRun) {
-          br()->log()->message('Error: please specify patch name', 'RED');
+          br()->log()->message('Error: please specify patch name');
           $showHelp = true;
         }
         break;

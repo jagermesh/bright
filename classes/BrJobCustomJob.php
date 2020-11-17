@@ -81,7 +81,7 @@ class BrJobCustomJob extends BrObject {
       if (is_writable($logFileName)) {
         $logFileName .= date('Y-m-d') . '/' . br()->fs()->normalizeFileName(trim($runCommand));
         if (br()->fs()->makeDir($logFileName)) {
-          $logFileName .= '/' . date('Y-m-d-H') . '.console.log';
+          $logFileName .= '/application.log';
         } else {
           $logFileName = '/dev/null';
         }

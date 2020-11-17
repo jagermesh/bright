@@ -1367,15 +1367,15 @@ class BrCore extends BrSingleton {
   }
 
   public function setTempPath($value) {
-    $this->tempPath = rtrim($value, '/') . '/';
+    // $this->tempPath = rtrim($value, '/') . '/';
   }
 
   public function getTempPath() {
-    if ($this->tempPath) {
-      $result = $this->tempPath;
-    } else {
-      $result = $this->getBasePath() . '_tmp/' . ($this->isConsoleMode() ? 'console/' : 'web/');
+    if (!$this->tempPath) {
+      $this->tempPath = $this->getBasePath() . '_tmp/' . ($this->isConsoleMode() ? 'console/' : 'web/') . (br()->config()->get('br/db') ? strtolower(br()->config()->get('br/db')['name']) . '/' : '');
     }
+
+    $result = $this->tempPath;
 
     if (!is_dir($result)) {
       br()->fs()->makeDir($result, 0777);
@@ -1396,15 +1396,15 @@ class BrCore extends BrSingleton {
   }
 
   public function setLogsPath($value) {
-    $this->logsPath = rtrim($value, '/') . '/';
+    // $this->logsPath = rtrim($value, '/') . '/';
   }
 
   public function getLogsPath() {
-    if ($this->logsPath) {
-      $result = $this->logsPath;
-    } else {
-      $result = $this->getBasePath() . '_logs/' . ($this->isConsoleMode() ? 'console/' : 'web/');
+    if (!$this->logsPath) {
+      $this->logsPath = $this->getBasePath() . '_logs/' . ($this->isConsoleMode() ? 'console/' : 'web/') . (br()->config()->get('br/db') ? strtolower(br()->config()->get('br/db')['name']) . '/' : '');
     }
+
+    $result = $this->logsPath;
 
     if (!is_dir($result)) {
       br()->fs()->makeDir($result, 0777);

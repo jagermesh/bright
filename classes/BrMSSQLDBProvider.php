@@ -97,19 +97,13 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider {
         throw new \Exception($errors[0]['code'] . ': ' . $errors[0]['message']);
       }
     } catch (\Exception $e) {
-      // if (preg_match('/Unknown database/', $e->getMessage()) || preg_match('/Access denied/', $e->getMessage())) {
-        $this->triggerSticky('connect.error', $e);
-        br()->triggerSticky('br.db.connect.error', $e);
-        if ($wasConnected) {
-          $this->triggerSticky('reconnect.error', $e);
-          br()->triggerSticky('br.db.reconnect.error', $e);
-        }
-        throw new BrDBConnectionErrorException($e->getMessage());
-      // } else {
-      //   $this->__connection = null;
-      //   usleep(250000);
-      //   $this->connect($iteration + 1, $e->getMessage());
-      // }
+      $this->triggerSticky('connect.error', $e);
+      br()->triggerSticky('br.db.connect.error', $e);
+      if ($wasConnected) {
+        $this->triggerSticky('reconnect.error', $e);
+        br()->triggerSticky('br.db.reconnect.error', $e);
+      }
+      throw new BrDBConnectionErrorException($e->getMessage());
     }
 
     return $this->__connection;
@@ -257,8 +251,6 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider {
         throw new BrDBException($error);
       }
 
-      br()->log()->message('Executing query', [ 'sql' => $queryText ], 'internal');
-
       $query = @sqlsrv_query($this->connection(), $queryText);
       if ($query) {
         if ($this->inTransaction()) {
@@ -269,7 +261,7 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider {
         throw new BrDBException($error);
       }
 
-      br()->log()->message('Query complete', [ 'sql' => $queryText ], 'internal');
+      br()->log()->message('Query complete', [ 'sql' => $queryText ], 'query');
     } catch (\Exception $e) {
       $error = $e->getMessage();
       br()->trigger('br.db.query.error', $error);

@@ -182,7 +182,7 @@ class BrDataBaseDictionary extends BrObject {
                           , br()->renderer()->fetchString( br()->fs()->loadFromFile(dirname(__DIR__) . '/templates/DataBaseDictionary.tpl')
                                                          , array( 'schema' => $schema2 )));
 
-    br()->log()->message('[' . br()->db()->getDataBaseName() . '] Dictionary file saved into ' . $fileName, 'GREEN');
+    br()->log()->message('[' . br()->db()->getDataBaseName() . '] Dictionary file saved into ' . $fileName);
 
   }
 

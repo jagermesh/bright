@@ -53,44 +53,33 @@ br()->require(br()->getBasePath() . 'config.php');
 // Core PHP settings - Secondary - End
 
 // Base Logging
-if (!br()->log()->isAdapterExists('Bright\\BrDebugFileLogAdapter')) {
-  br()->log()->addAdapter(new \Bright\BrDebugFileLogAdapter(br()->config()->get('Logger/File/LogsFolder', br()->getLogsPath())));
-}
-
-if (!br()->log()->isAdapterExists('Bright\\BrErrorFileLogAdapter')) {
-  br()->log()->addAdapter(new \Bright\BrErrorFileLogAdapter(br()->config()->get('Logger/File/LogsFolder', br()->getLogsPath())));
-}
-
 if (!br()->log()->isAdapterExists('Bright\\BrMailLogAdapter')) {
   br()->log()->addAdapter(new \Bright\BrMailLogAdapter());
 }
 
 if (br()->config()->get('Logger/File/Active')) {
-  if (!br()->log()->isAdapterExists('Bright\\BrFileLogAdapter')) {
-    br()->log()->addAdapter(new \Bright\BrFileLogAdapter(br()->config()->get('Logger/File/LogsFolder', br()->getLogsPath())));
+  br()->log()->addAdapter(new \Bright\BrApplicationFileLogAdapter([ 'organized' => true ]));
+  if (br()->request()->isDevHost()) {
+    br()->log()->addAdapter(new \Bright\BrDebugFileLogAdapter());
+    br()->log()->addAdapter(new \Bright\BrErrorFileLogAdapter());
   }
+}
+if (br()->config()->get('Logger/Kibana/Active')) {
+  br()->log()->addAdapter(new \Bright\BrApplicationFileLogAdapter([ 'format' => 'json' ]));
 }
 
 if (br()->isConsoleMode()) {
-  if (!br()->log()->isAdapterExists('Bright\\BrConsoleLogAdapter')) {
-    br()->log()->addAdapter(new \Bright\BrConsoleLogAdapter());
-  }
+  br()->log()->addAdapter(new \Bright\BrConsoleLogAdapter());
 } else {
-  if (!br()->log()->isAdapterExists('Bright\\BrWebLogAdapter')) {
-    br()->log()->addAdapter(new \Bright\BrWebLogAdapter());
-  }
+  br()->log()->addAdapter(new \Bright\BrWebLogAdapter());
 }
 
 if (br()->config()->get('Logger/Slack/Active') && br()->config()->get('Logger/Slack/WebHookUrl')) {
-  if (!br()->log()->isAdapterExists('Bright\\BrSlackLogAdapter')) {
-    br()->log()->addAdapter(new \Bright\BrSlackLogAdapter(br()->config()->get('Logger/Slack/WebHookUrl')));
-  }
+  br()->log()->addAdapter(new \Bright\BrSlackLogAdapter(br()->config()->get('Logger/Slack/WebHookUrl')));
 }
 
 if (br()->config()->get('Logger/Telegram/Active') && br()->config()->get('Logger/Telegram/Bot/ApiKey') && br()->config()->get('Logger/Telegram/Bot/Name') && br()->config()->get('Logger/Telegram/ChatIds')) {
-  if (!br()->log()->isAdapterExists('Bright\\BrTelegramLogAdapter')) {
-    br()->log()->addAdapter(new \Bright\BrTelegramLogAdapter(br()->config()->get('Logger/Telegram/Bot/ApiKey'), br()->config()->get('Logger/Telegram/Bot/Name'), br()->config()->get('Logger/Telegram/ChatIds')));
-  }
+  br()->log()->addAdapter(new \Bright\BrTelegramLogAdapter(br()->config()->get('Logger/Telegram/Bot/ApiKey'), br()->config()->get('Logger/Telegram/Bot/Name'), br()->config()->get('Logger/Telegram/ChatIds')));
 }
 
 br()->triggerSticky('after:br.init');

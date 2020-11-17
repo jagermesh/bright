@@ -217,7 +217,7 @@ class BrDataBasePatch {
 
     $stepName = $stepName ? $stepName : $this->stepNo;
 
-    br()->log()->message(br('=')->repeat(20) . ' ' . 'UP step "' . $stepName . '"' . ' ' . br('=')->repeat(20), 'YELLOW');
+    br()->log()->message(br('=')->repeat(20) . ' ' . 'UP step "' . $stepName . '"' . ' ' . br('=')->repeat(20));
     try {
       if (is_callable($sql)) {
         $sql();
@@ -227,7 +227,7 @@ class BrDataBasePatch {
       }
     } catch (\Exception $e) {
       $error = 'Error. UP step "' . $stepName . '":' . "\n\n" . $e->getMessage();
-      br()->log()->message(br('=')->repeat(20) . ' ' . 'DOWN step "' . $stepName . '"' . ' ' . br('=')->repeat(20), 'YELLOW');
+      br()->log()->message(br('=')->repeat(20) . ' ' . 'DOWN step "' . $stepName . '"' . ' ' . br('=')->repeat(20));
       try {
         $retry = $this->down($stepName, $e->getMessage());
       } catch (\Exception $e2) {
@@ -239,7 +239,7 @@ class BrDataBasePatch {
         case self::DO_CONTINUE:
           break;
         case self::DO_RETRY:
-          br()->log()->message($error, 'RED');
+          br()->log()->message($error);
           br()->log()->message('DOWN step "' . $stepName . '" requested rerun');
           try {
             if (is_callable($sql)) {
@@ -258,7 +258,7 @@ class BrDataBasePatch {
       }
     }
 
-    br()->log()->message(br()->db()->getAffectedRowsAmount() . ' row(s) affected', 'GREEN');
+    br()->log()->message(br()->db()->getAffectedRowsAmount() . ' row(s) affected');
 
     if (preg_match('/DROP.*?TABLE/', $sql) || preg_match('/CREATE.*?TABLE/', $sql) || preg_match('/ALTER.*?TABLE/', $sql)) {
       $this->dbManager->setAuditSubsystemInitialyzed(false);
