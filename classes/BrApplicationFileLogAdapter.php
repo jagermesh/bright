@@ -26,30 +26,29 @@ class BrApplicationFileLogAdapter extends BrGenericFileLogAdapter {
       $contentType[] = 'snapshot';
     }
     $info = $this->getLogInfo($messageOrObject, $params, $contentType);
-    $prefix = $this->getLogPrefix($info);
-    $prefixLength = strlen($prefix) + 1;
     if ($this->isJsonLogFormat()) {
-      $message = json_encode($info);
-      $this->writeToLogFile($message, $prefixLength);
+      $message = json_encode($info, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+      $this->writeToLogFile($message);
     } else {
+      $prefix = $this->getLogPrefix($info);
       if ($this->isSnapshotEventType($params)) {
-        $this->writeToLogFile($prefix . ' ' . str_pad('-', 200, '-'), $prefixLength);
+        $this->writeToLogFile(str_pad('-', 200, '-'), $prefix);
       }
-      $this->writeToLogFile($prefix . ' ' . $info['message'], $prefixLength);
+      $this->writeToLogFile($info['message'], $prefix);
       if ($this->isSnapshotEventType($params)) {
-        $message = json_encode($info, JSON_PRETTY_PRINT);
-        $this->writeToLogFile($prefix . ' ' . $message, $prefixLength);
+        $message = json_encode($info, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $this->writeToLogFile($message, $prefix);
       }
       if ($params) {
         if ($details = br($params, 'details', [])) {
           foreach($details as $key => $value) {
             $message = BrGenericLogAdapter::convertMessageOrObjectToText($value, true);
-            $this->writeToLogFile($prefix . ' ' . $message, $prefixLength);
+            $this->writeToLogFile($message, $prefix);
           }
         }
       }
       if ($this->isSnapshotEventType($params)) {
-        $this->writeToLogFile($prefix . ' ' . str_pad('-', 200, '-'), $prefixLength);
+        $this->writeToLogFile(str_pad('-', 200, '-'), $prefix);
       }
     }
   }
