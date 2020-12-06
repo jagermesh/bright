@@ -3,6 +3,12 @@
 
 class GitPreCommitHook {
 
+  private $isWindows;
+
+  public function __construct() {
+    $this->$isWindows = (substr(php_uname(), 0, 7) == "Windows");
+  }
+
   private function log($s) {
     echo($s . "\n");
   }
@@ -25,15 +31,22 @@ class GitPreCommitHook {
     $files  = array();
     $output = array();
     $retval = 0;
-
-    exec('git diff --cached --name-only --diff-filter=ACM | grep "' . $fileMask . '"', $files, $retval);
-
+    if ($this->$isWindows) {
+      $grep = 'findstr "' . $fileMask . '"';
+    } else {
+      $grep = 'grep "' . $fileMask . '$"';
+    }
+    $cmd = 'git diff --cached --name-only --diff-filter=ACM | ' . $grep;
+    exec($cmd, $files, $retval);
     if ($files) {
       $this->log('Running ' . $toolName . ' validation');
       foreach($files as $file) {
         $this->log('Checking: ' . $file);
-        $runCommand = $command . ' "' . $file . '"';
-        exec($runCommand . ' 2> /dev/null', $output, $retval);
+        $cmd = $command . ' "' . $file . '"';
+        if (!$this->$isWindows) {
+          $cmd = 'export PATH=/usr/local/bin:$PATH; ' . $cmd;
+        }
+        exec($cmd, $output, $retval);
         if ($retval !== 0) {
           $this->beginError();
           if ($output) {
@@ -43,7 +56,7 @@ class GitPreCommitHook {
               }
             }
           } else {
-            $this->log('Can not run "' . $runCommand . '", probably ' . $toolName . ' not installed');
+            $this->log('Command "' . $cmd . '" failed with code ' . $retval . ', probably ' . $toolName . ' not installed');
             $this->log('Please refer to this link about how to install ' . $toolName . ': ' . $installUrl);
           }
           $this->endError();
@@ -54,11 +67,11 @@ class GitPreCommitHook {
   }
 
   private function JSLint() {
-    $this->lint('.js$', 'jshint', 'JSHint', 'http://jshint.com/install/');
+    $this->lint('.js', 'jshint', 'JSHint', 'http://jshint.com/install/');
   }
 
   private function PHPLint() {
-    $this->lint('.php$', 'php -l', 'PHP', 'http://php.net/');
+    $this->lint('.php', 'php -l', 'PHP', 'http://php.net/');
   }
 
   function run() {

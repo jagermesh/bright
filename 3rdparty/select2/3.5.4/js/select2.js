@@ -238,7 +238,8 @@ the specific language governing permissions and limitations under the Apache Lic
     }
 
     function focus($el) {
-        if (!$el) return false;
+        let isTouchScreen = ('ontouchstart' in window) ? true : false;
+        if (!$el || isTouchScreen) return false;
         if ($el[0] === document.activeElement) return;
 
         /* set the focus in a 0 timeout - that way the focus is set after the processing
@@ -3670,7 +3671,8 @@ the specific language governing permissions and limitations under the Apache Lic
         createSearchChoicePosition: 'top',
         shouldFocusInput: function (instance) {
             // Never focus the input if search is disabled
-            if (instance.opts.minimumResultsForSearch < 0) {
+            let isTouchScreen = ('ontouchstart' in window) ? true : false;
+            if (instance.opts.minimumResultsForSearch < 0 || isTouchScreen) {
                 return false;
             }
 
