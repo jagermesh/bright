@@ -90,7 +90,9 @@ class BrErrorHandler extends BrObject {
         $this->checkLoggers();
         try {
           br()->log()->error($e);
-          br()->response()->displayError($e);
+          if (!br()->isConsoleMode()) {
+            br()->response()->displayError($e);
+          }
         } catch (\Exception $e2) {
 
         }
@@ -103,7 +105,7 @@ class BrErrorHandler extends BrObject {
     }
   }
 
-  public function errorHandler($errno, $errmsg, $errfile, $errline, $vars) {
+  public function errorHandler($errno, $errmsg, $errfile, $errline, $errcontext = null) {
     $this->handleError($errno, $errmsg, $errfile, $errline, false);
   }
 

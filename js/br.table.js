@@ -115,8 +115,8 @@
       tableCopy = table.clone();
       let theadCopy = tableCopy[0].getElementsByTagName('thead')[0];
       let tbodyCopy = tableCopy[0].getElementsByTagName('tbody')[0];
-      theadColsCopy = $(theadCopy).find('tr:first th');
-      tbodyColsCopy = $(tbodyCopy).find('tr:first td');
+      theadColsCopy = $(theadCopy).find('tr:first>th');
+      tbodyColsCopy = $(tbodyCopy).find('tr:first>td');
 
       theadCopy.style.display = '';
       theadCopy.style.overflow = '';
@@ -181,7 +181,7 @@
           this.style.maxWidth = w + 'px';
         });
 
-        let bodyCols   = table.find('tbody tr:first td');
+        let bodyCols   = table.find('tbody tr:first>td');
 
         bodyCols.each(function(idx) {
           let w = widths[idx].b;
