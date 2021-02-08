@@ -92,7 +92,9 @@
         _this.dataSource = br.dataSource(br.baseUrl + _this.options.entity);
       }
       _this.dataSource.on('error', function(operation, error) {
-        br.growlError(error);
+        if (error && (error.length > 0)) {
+          br.growlError(error);
+        }
       });
     } else {
       _this.dataSource = entity;
@@ -385,17 +387,20 @@
       br.attachDatePickers();
 
       if (_this.options.features.editor) {
-        let editorOptions = _this.options.editor || { noun: _this.options.noun };
-        _this.editor = _this.dataEditor = br.dataEditor(_this.options.selectors.editForm, _this.dataSource, editorOptions);
-        _this.editor.events.connectTo(_this.events);
+        let container = $(_this.options.selectors.editForm);
+        if (container.length > 0) {
+          let editorOptions = _this.options.editor || { noun: _this.options.noun };
+          _this.editor = _this.dataEditor = br.dataEditor(_this.options.selectors.editForm, _this.dataSource, editorOptions);
+          _this.editor.events.connectTo(_this.events);
 
-        $(findNode('.action-create')).show();
+          $(findNode('.action-create')).show();
 
-        $(document).on('click', selActionCRUD, function() {
-          const isCopy = $(this).hasClass('action-copy');
-          const rowid = $(this).closest('[data-rowid]').attr('data-rowid');
-          _this.editor.show(rowid, isCopy);
-        });
+          $(document).on('click', selActionCRUD, function() {
+            const isCopy = $(this).hasClass('action-copy');
+            const rowid = $(this).closest('[data-rowid]').attr('data-rowid');
+            _this.editor.show(rowid, isCopy);
+          });
+        }
       }
 
       // pager

@@ -255,7 +255,8 @@
     };
 
     _this.hasRow = function(rowid) {
-      let row = $(_this.selector).find('[data-rowid=' + rowid + ']');
+      let filter = `[data-rowid="${rowid}"]`;
+      let row = $(_this.selector).find(filter);
       return (row.length > 0);
     };
 
@@ -270,26 +271,36 @@
       options.disableEvents = true;
       options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
       let filter;
+      if (br.isArray(rowid)) {
+        filter = { rowid: rowid };
+      } else
       if (br.isObject(rowid)) {
         filter = rowid;
       } else {
         filter = { rowid: rowid };
       }
+      _this.events.triggerBefore('reloadRow', filter, options);
       _this.dataSource.select(filter, function(result, response) {
         if (!result || (response.length === 0)) {
-          _this.removeRow(rowid);
-        } else {
-          response = response[0];
-          if (_this.refreshRow(response, options)) {
+          if (br.isArray(rowid)) {
+            rowid.map(function(id) {
+              _this.removeRow(id);
+            });
           } else {
-            if (_this.isEmpty()) {
-              $(_this.selector).html('');
+            _this.removeRow(rowid);
+          }
+        } else {
+          response.map(function(row) {
+            if (!_this.refreshRow(row, options)) {
+              if (_this.isEmpty()) {
+                $(_this.selector).html('');
+              }
+              _this.addDataRow(row);
             }
-            _this.addDataRow(response);
-          }
-          if (typeof callback == 'function') {
-            callback.call(_this, result, response, true);
-          }
+            if (typeof callback == 'function') {
+              callback.call(_this, result, row, true);
+            }
+          });
         }
       }, options);
     };
@@ -304,7 +315,7 @@
     }
 
     _this.removeRow = function(rowid, options) {
-      let filter = '[data-rowid=' + rowid + ']';
+      let filter = `[data-rowid="${rowid}"]`;
       options = options || Object.create({});
       options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
       if (options.refreshSelector) {
@@ -346,7 +357,7 @@
     };
 
     _this.refreshRow = function(dataRow, options) {
-      let filter = '[data-rowid=' + dataRow.rowid + ']';
+      let filter = `[data-rowid="${dataRow.rowid}"]`;
       options = options || Object.create({});
       options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
       if (options.refreshSelector) {

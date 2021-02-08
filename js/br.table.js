@@ -171,7 +171,7 @@
 
         let widths = getWidths();
 
-        let headerCols = table.find('thead tr:first th');
+        let headerCols = table.find('thead tr:first>th');
 
         headerCols.each(function(idx) {
           let w = widths[idx].h;

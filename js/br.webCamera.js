@@ -25,11 +25,7 @@
     elem.remove();
 
     _this.isSupported = function() {
-      if (canvasSupported && (navigator.userAgent.search(/Chrome/) > -1 || navigator.userAgent.search(/Firefox/) > -1 || navigator.userAgent.search(/Safari/) > -1)) {
-        return true;
-      } else {
-        return false;
-      }
+      return canvasSupported;
     };
 
     _this.connect = function(webCam) {

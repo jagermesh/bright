@@ -58,17 +58,17 @@
       return result;
     };
 
-    function storageTag(c) {
+    function storageTag(ctrl) {
       let result = _this.storageTag;
       result = result + ':filter-value';
-      if (!br.isEmpty($(c).attr('id'))) {
-        result = result + ':' + $(c).attr('id');
+      if (!br.isEmpty($(ctrl).attr('id'))) {
+        result = result + ':' + $(ctrl).attr('id');
       } else
-      if (!br.isEmpty($(c).attr('name'))) {
-        result = result + ':' + $(c).attr('name');
+      if (!br.isEmpty($(ctrl).attr('name'))) {
+        result = result + ':' + $(ctrl).attr('name');
       }
-      if (!br.isEmpty($(c).attr('data-storage-key'))) {
-        result = result + ':' + $(c).attr('data-storage-key');
+      if (!br.isEmpty($(ctrl).attr('data-storage-key'))) {
+        result = result + ':' + $(ctrl).attr('data-storage-key');
       }
       return result;
     }
@@ -444,13 +444,17 @@
       return prevValue;
     };
 
+    _this.setSavedValue = function(value) {
+      if (_this.options.saveToSessionStorage) {
+        br.session.set(storageTag(_this.selector), value);
+      } else {
+        br.storage.set(storageTag(_this.selector), value);
+      }
+    };
+
     _this.selector.on('change', function() {
       if (_this.options.saveSelection) {
-        if (_this.options.saveToSessionStorage) {
-          br.session.set(storageTag(this), $(this).val());
-        } else {
-          br.storage.set(storageTag(this), $(this).val());
-        }
+        _this.setSavedValue(_this.val());
       }
       _this.events.trigger('change');
       beautify();

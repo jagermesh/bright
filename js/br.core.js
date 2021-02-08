@@ -117,7 +117,7 @@
   };
 
   window.br.isChrome = function() {
-    return !!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime) && !window.opera;
+    return !!window.chrome && !window.opera;
   };
 
   window.br.redirectBack = function(defaultHref, params) {

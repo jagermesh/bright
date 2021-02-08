@@ -446,7 +446,6 @@
 
     };
 
-
     _this.load = _this.select = function(filter, callback, options) {
 
       if (typeof filter == 'function') {
@@ -520,6 +519,29 @@
           disableEvents = options && options.disableEvents;
         }
 
+        function handleResponse(response) {
+          if (br.isArray(response)) {
+            for(let i = 0, length = response.length; i < length; i++) {
+              _this.events.trigger('calcFields', response[i]);
+            }
+          }
+          if (singleRespone && br.isArray(response)) {
+            if (response.length > 0) {
+              response = response[0];
+            } else {
+              reject({request: request, options: options, errorMessage: 'Record not found'});
+              return;
+            }
+          } else
+          if (!singleRespone && !br.isArray(response)) {
+            response = [response];
+          }
+          if (selectCount) {
+            response = parseInt(response);
+          }
+          resolve({request: request, options: options, response: response});
+        }
+
         if (proceed) {
           if (!br.isEmpty(_this.options.limit)) {
             request.__limit = _this.options.limit;
@@ -589,26 +611,7 @@
                                      , success: function(response) {
                                          try {
                                            _this.ajaxRequest = null;
-                                           if (br.isArray(response)) {
-                                             for(let i = 0, length = response.length; i < length; i++) {
-                                               _this.events.trigger('calcFields', response[i]);
-                                             }
-                                           }
-                                           if (singleRespone && br.isArray(response)) {
-                                             if (response.length > 0) {
-                                               response = response[0];
-                                             } else {
-                                               reject({request: request, options: options, errorMessage: 'Record not found'});
-                                               return;
-                                             }
-                                           } else
-                                           if (!singleRespone && !br.isArray(response)) {
-                                             response = [response];
-                                           }
-                                           if (selectCount) {
-                                             response = parseInt(response);
-                                           }
-                                           resolve({request: request, options: options, response: response});
+                                           handleResponse(response);
                                          } finally {
                                            selectOperationCounter--;
                                          }
@@ -625,6 +628,12 @@
                                          }
                                        }
                                      });
+        } else {
+          if (selectCount) {
+            handleResponse(0);
+          } else {
+            handleResponse([]);
+          }
         }
 
       }).then(function(data) {
