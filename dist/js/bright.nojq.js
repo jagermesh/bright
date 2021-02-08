@@ -938,11 +938,7 @@ THE SOFTWARE.
     elem.remove();
 
     _this.isSupported = function() {
-      if (canvasSupported && (navigator.userAgent.search(/Chrome/) > -1 || navigator.userAgent.search(/Firefox/) > -1 || navigator.userAgent.search(/Safari/) > -1)) {
-        return true;
-      } else {
-        return false;
-      }
+      return canvasSupported;
     };
 
     _this.connect = function(webCam) {
@@ -1131,7 +1127,7 @@ THE SOFTWARE.
   };
 
   window.br.isChrome = function() {
-    return !!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime) && !window.opera;
+    return !!window.chrome && !window.opera;
   };
 
   window.br.redirectBack = function(defaultHref, params) {
@@ -2312,7 +2308,6 @@ THE SOFTWARE.
 
     };
 
-
     _this.load = _this.select = function(filter, callback, options) {
 
       if (typeof filter == 'function') {
@@ -2386,6 +2381,29 @@ THE SOFTWARE.
           disableEvents = options && options.disableEvents;
         }
 
+        function handleResponse(response) {
+          if (br.isArray(response)) {
+            for(let i = 0, length = response.length; i < length; i++) {
+              _this.events.trigger('calcFields', response[i]);
+            }
+          }
+          if (singleRespone && br.isArray(response)) {
+            if (response.length > 0) {
+              response = response[0];
+            } else {
+              reject({request: request, options: options, errorMessage: 'Record not found'});
+              return;
+            }
+          } else
+          if (!singleRespone && !br.isArray(response)) {
+            response = [response];
+          }
+          if (selectCount) {
+            response = parseInt(response);
+          }
+          resolve({request: request, options: options, response: response});
+        }
+
         if (proceed) {
           if (!br.isEmpty(_this.options.limit)) {
             request.__limit = _this.options.limit;
@@ -2455,26 +2473,7 @@ THE SOFTWARE.
                                      , success: function(response) {
                                          try {
                                            _this.ajaxRequest = null;
-                                           if (br.isArray(response)) {
-                                             for(let i = 0, length = response.length; i < length; i++) {
-                                               _this.events.trigger('calcFields', response[i]);
-                                             }
-                                           }
-                                           if (singleRespone && br.isArray(response)) {
-                                             if (response.length > 0) {
-                                               response = response[0];
-                                             } else {
-                                               reject({request: request, options: options, errorMessage: 'Record not found'});
-                                               return;
-                                             }
-                                           } else
-                                           if (!singleRespone && !br.isArray(response)) {
-                                             response = [response];
-                                           }
-                                           if (selectCount) {
-                                             response = parseInt(response);
-                                           }
-                                           resolve({request: request, options: options, response: response});
+                                           handleResponse(response);
                                          } finally {
                                            selectOperationCounter--;
                                          }
@@ -2491,6 +2490,12 @@ THE SOFTWARE.
                                          }
                                        }
                                      });
+        } else {
+          if (selectCount) {
+            handleResponse(0);
+          } else {
+            handleResponse([]);
+          }
         }
 
       }).then(function(data) {
@@ -2796,7 +2801,7 @@ THE SOFTWARE.
 
         let widths = getWidths();
 
-        let headerCols = table.find('thead tr:first th');
+        let headerCols = table.find('thead tr:first>th');
 
         headerCols.each(function(idx) {
           let w = widths[idx].h;
@@ -3119,7 +3124,8 @@ THE SOFTWARE.
     };
 
     _this.hasRow = function(rowid) {
-      let row = $(_this.selector).find('[data-rowid=' + rowid + ']');
+      let filter = `[data-rowid="${rowid}"]`;
+      let row = $(_this.selector).find(filter);
       return (row.length > 0);
     };
 
@@ -3134,26 +3140,36 @@ THE SOFTWARE.
       options.disableEvents = true;
       options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
       let filter;
+      if (br.isArray(rowid)) {
+        filter = { rowid: rowid };
+      } else
       if (br.isObject(rowid)) {
         filter = rowid;
       } else {
         filter = { rowid: rowid };
       }
+      _this.events.triggerBefore('reloadRow', filter, options);
       _this.dataSource.select(filter, function(result, response) {
         if (!result || (response.length === 0)) {
-          _this.removeRow(rowid);
-        } else {
-          response = response[0];
-          if (_this.refreshRow(response, options)) {
+          if (br.isArray(rowid)) {
+            rowid.map(function(id) {
+              _this.removeRow(id);
+            });
           } else {
-            if (_this.isEmpty()) {
-              $(_this.selector).html('');
+            _this.removeRow(rowid);
+          }
+        } else {
+          response.map(function(row) {
+            if (!_this.refreshRow(row, options)) {
+              if (_this.isEmpty()) {
+                $(_this.selector).html('');
+              }
+              _this.addDataRow(row);
             }
-            _this.addDataRow(response);
-          }
-          if (typeof callback == 'function') {
-            callback.call(_this, result, response, true);
-          }
+            if (typeof callback == 'function') {
+              callback.call(_this, result, row, true);
+            }
+          });
         }
       }, options);
     };
@@ -3168,7 +3184,7 @@ THE SOFTWARE.
     }
 
     _this.removeRow = function(rowid, options) {
-      let filter = '[data-rowid=' + rowid + ']';
+      let filter = `[data-rowid="${rowid}"]`;
       options = options || Object.create({});
       options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
       if (options.refreshSelector) {
@@ -3210,7 +3226,7 @@ THE SOFTWARE.
     };
 
     _this.refreshRow = function(dataRow, options) {
-      let filter = '[data-rowid=' + dataRow.rowid + ']';
+      let filter = `[data-rowid="${dataRow.rowid}"]`;
       options = options || Object.create({});
       options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
       if (options.refreshSelector) {
@@ -3658,17 +3674,17 @@ THE SOFTWARE.
       return result;
     };
 
-    function storageTag(c) {
+    function storageTag(ctrl) {
       let result = _this.storageTag;
       result = result + ':filter-value';
-      if (!br.isEmpty($(c).attr('id'))) {
-        result = result + ':' + $(c).attr('id');
+      if (!br.isEmpty($(ctrl).attr('id'))) {
+        result = result + ':' + $(ctrl).attr('id');
       } else
-      if (!br.isEmpty($(c).attr('name'))) {
-        result = result + ':' + $(c).attr('name');
+      if (!br.isEmpty($(ctrl).attr('name'))) {
+        result = result + ':' + $(ctrl).attr('name');
       }
-      if (!br.isEmpty($(c).attr('data-storage-key'))) {
-        result = result + ':' + $(c).attr('data-storage-key');
+      if (!br.isEmpty($(ctrl).attr('data-storage-key'))) {
+        result = result + ':' + $(ctrl).attr('data-storage-key');
       }
       return result;
     }
@@ -4044,13 +4060,17 @@ THE SOFTWARE.
       return prevValue;
     };
 
+    _this.setSavedValue = function(value) {
+      if (_this.options.saveToSessionStorage) {
+        br.session.set(storageTag(_this.selector), value);
+      } else {
+        br.storage.set(storageTag(_this.selector), value);
+      }
+    };
+
     _this.selector.on('change', function() {
       if (_this.options.saveSelection) {
-        if (_this.options.saveToSessionStorage) {
-          br.session.set(storageTag(this), $(this).val());
-        } else {
-          br.storage.set(storageTag(this), $(this).val());
-        }
+        _this.setSavedValue(_this.val());
       }
       _this.events.trigger('change');
       beautify();
@@ -6574,7 +6594,9 @@ THE SOFTWARE.
         _this.dataSource = br.dataSource(br.baseUrl + _this.options.entity);
       }
       _this.dataSource.on('error', function(operation, error) {
-        br.growlError(error);
+        if (error && (error.length > 0)) {
+          br.growlError(error);
+        }
       });
     } else {
       _this.dataSource = entity;
@@ -6867,17 +6889,20 @@ THE SOFTWARE.
       br.attachDatePickers();
 
       if (_this.options.features.editor) {
-        let editorOptions = _this.options.editor || { noun: _this.options.noun };
-        _this.editor = _this.dataEditor = br.dataEditor(_this.options.selectors.editForm, _this.dataSource, editorOptions);
-        _this.editor.events.connectTo(_this.events);
+        let container = $(_this.options.selectors.editForm);
+        if (container.length > 0) {
+          let editorOptions = _this.options.editor || { noun: _this.options.noun };
+          _this.editor = _this.dataEditor = br.dataEditor(_this.options.selectors.editForm, _this.dataSource, editorOptions);
+          _this.editor.events.connectTo(_this.events);
 
-        $(findNode('.action-create')).show();
+          $(findNode('.action-create')).show();
 
-        $(document).on('click', selActionCRUD, function() {
-          const isCopy = $(this).hasClass('action-copy');
-          const rowid = $(this).closest('[data-rowid]').attr('data-rowid');
-          _this.editor.show(rowid, isCopy);
-        });
+          $(document).on('click', selActionCRUD, function() {
+            const isCopy = $(this).hasClass('action-copy');
+            const rowid = $(this).closest('[data-rowid]').attr('data-rowid');
+            _this.editor.show(rowid, isCopy);
+          });
+        }
       }
 
       // pager
