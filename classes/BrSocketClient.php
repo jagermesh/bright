@@ -12,23 +12,30 @@ namespace Bright;
 
 class BrSocketClient extends BrObject {
 
-  const EVENT        = 2;
+  const EVENT = 2;
 
   const MESSAGE = 4;
   const UPGRADE = 5;
 
-  const OPCODE_TEXT     = 0x1;
+  const OPCODE_TEXT = 0x1;
+
+  const CONNECT_TIMEOUT = 30;
+  const RECONNECT_TIMEOUT = 10;
 
   private $socket;
-  private $connected;
-  private $connecting;
+  private $connected = false;
+  private $connecting = false;
+  private $wasEverConnected = false;
+  private $initialConnection = true;
+  private $failedToConnect = false;
+  private $keepAlive = true;
 
   private $url;
   private $parsedUrl;
   private $pollingUrl;
   private $path = '/socket.io/?sid=$sid&EIO=3&transport=websocket';
 
-  public function __construct($url) {
+  public function __construct($url, $params = []) {
     $this->url = $url;
     $this->parsedUrl = parse_url($this->url);
     if (!@$this->parsedUrl['scheme']) {
@@ -42,6 +49,10 @@ class BrSocketClient extends BrObject {
     }
     $this->pollingUrl = $this->parsedUrl['scheme'] . '://' . $this->parsedUrl['host'] . ':' . $this->parsedUrl['port'];
     $this->socketUrl = $this->parsedUrl['host'] . ':' . $this->parsedUrl['port'];
+
+    if (array_key_exists('keepalive', $params)) {
+      $this->keepAlive = $params['keepalive'];
+    }
   }
 
   private function maskData($data, $maskKey) {
@@ -98,10 +109,6 @@ class BrSocketClient extends BrObject {
       $this->connect();
     }
     $payload = $this->encodeData($code . $message);
-    // echo("------- \n");
-    // echo($code . "\n");
-    // echo($message . "\n");
-    // echo($payload . "\n");
     $result = @fwrite($this->socket, (string)$payload);
     if (!$result) {
       $this->socket = null;
@@ -115,75 +122,84 @@ class BrSocketClient extends BrObject {
   }
 
   public function connect() {
-    if ($this->connecting) {
+    if ($this->connected || $this->connecting) {
+      return;
+    }
+    if (($this->wasEverConnected || $this->failedToConnect) && !$this->keepAlive) {
       return;
     }
     $this->connecting = true;
     try {
-      $errorNumber = null;
-      $errorString = null;
-      $context     = ['http' => []];
+      try {
+        $errorNumber = null;
+        $errorString = null;
 
-      $pollingUrl = $this->pollingUrl . '/socket.io/?use_b64=0&EIO=3&transport=polling';
+        $timeout = $this->wasEverConnected ? self::RECONNECT_TIMEOUT : self::CONNECT_TIMEOUT;
+        $context     = [ 'http' => [ 'timeout' => $timeout ] ];
 
-      $result = @file_get_contents($pollingUrl, false, stream_context_create($context));
+        $pollingUrl = $this->pollingUrl . '/socket.io/?use_b64=0&EIO=3&transport=polling';
+        $result = @file_get_contents($pollingUrl, false, stream_context_create($context));
 
-      if (!$result) {
-        throw new \Exception($pollingUrl . ': failed to open stream: Connection refused');
-      }
-
-      $cookies = [];
-      foreach ($http_response_header as $header) {
-        if (preg_match('/^Set-Cookie:\s*([^;]*)/i', $header, $matches)) {
-          $cookies[] = $matches[1];
-        }
-      }
-
-      $start   = strpos($result, '{');
-      $encoded = substr($result, $start, strrpos($result, '}') - $start + 1);
-      $decoded = json_decode($encoded, true);
-
-      $sid = $decoded['sid'];
-
-      $this->socket = stream_socket_client($this->socketUrl, $errorNumber, $errorString, 60, STREAM_CLIENT_CONNECT, stream_context_create($context));
-      // stream_set_blocking($this->socket, 0);
-
-      if ($this->socket) {
-        $hash = sha1(uniqid(mt_rand(), true), true);
-        $hash = substr($hash, 0, 16);
-        $key = base64_encode($hash);
-
-        $request = 'GET /socket.io/?sid=' . $sid . '&EIO=3&transport=websocket HTTP/1.1' . "\r\n" .
-                   'Host: ' . $this->socketUrl . "\r\n" .
-                   'Upgrade: WebSocket' . "\r\n" .
-                   'Connection: Upgrade' . "\r\n" .
-                   'Sec-WebSocket-Key: ' . $key . "\r\n"  .
-                   'Sec-WebSocket-Version: 13' . "\r\n" .
-                   'Origin: *' . "\r\n";
-
-        if ($cookies) {
-          $request .= 'Cookie: ' . implode('; ', $cookies) . "\r\n";
+        if (!$result) {
+          throw new \Exception($pollingUrl . ': failed to open stream: Connection refused');
         }
 
-        $request .= "\r\n";
-
-        fwrite($this->socket, $request);
-
-        $result = fread($this->socket, 12);
-
-        if ($result != 'HTTP/1.1 101') {
-          throw new \Exception('Unexpected server response. Expected "HTTP/1.1 101", Received "' . $result . '"');
+        $cookies = [];
+        foreach ($http_response_header as $header) {
+          if (preg_match('/^Set-Cookie:\s*([^;]*)/i', $header, $matches)) {
+            $cookies[] = $matches[1];
+          }
         }
 
-        $this->flush();
+        $start   = strpos($result, '{');
+        $encoded = substr($result, $start, strrpos($result, '}') - $start + 1);
+        $decoded = json_decode($encoded, true);
 
-        $this->write(self::UPGRADE);
+        $sid = $decoded['sid'];
 
-        $this->trigger('connect', $this);
+        $this->socket = stream_socket_client($this->socketUrl, $errorNumber, $errorString, $timeout, STREAM_CLIENT_CONNECT, stream_context_create($context));
 
-        $this->connected = true;
-      } else {
-        new \Exception('Can not connect to socket: ' . $errorString . "(" . $errorNumber . ")");
+        if ($this->socket) {
+          $hash = sha1(uniqid(mt_rand(), true), true);
+          $hash = substr($hash, 0, 16);
+          $key = base64_encode($hash);
+
+          $request = 'GET /socket.io/?sid=' . $sid . '&EIO=3&transport=websocket HTTP/1.1' . "\r\n" .
+                     'Host: ' . $this->socketUrl . "\r\n" .
+                     'Upgrade: WebSocket' . "\r\n" .
+                     'Connection: Upgrade' . "\r\n" .
+                     'Sec-WebSocket-Key: ' . $key . "\r\n"  .
+                     'Sec-WebSocket-Version: 13' . "\r\n" .
+                     'Origin: *' . "\r\n";
+
+          if ($cookies) {
+            $request .= 'Cookie: ' . implode('; ', $cookies) . "\r\n";
+          }
+
+          $request .= "\r\n";
+
+          fwrite($this->socket, $request);
+
+          $result = fread($this->socket, 12);
+
+          if ($result != 'HTTP/1.1 101') {
+            throw new \Exception('Unexpected server response. Expected "HTTP/1.1 101", Received "' . $result . '"');
+          }
+
+          $this->flush();
+
+          $this->write(self::UPGRADE);
+
+          $this->trigger('connect', $this);
+
+          $this->connected = true;
+          $this->wasEverConnected = true;
+        } else {
+          new \Exception('Can not connect to socket: ' . $errorString . "(" . $errorNumber . ")");
+        }
+      } catch (\Exception $e) {
+        $this->failedToConnect = true;
+        throw $e;
       }
     } finally {
       $this->connecting = false;

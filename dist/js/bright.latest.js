@@ -1691,54 +1691,58 @@ THE SOFTWARE.
 
   if (window.addEventListener) {
     window.addEventListener('error', function(event) {
+
       let data = {
-          message: event.message
-        , data: null
-        , filename: event.filename
-        , lineno: event.lineno
-        , colno: event.colno
-        , stack: event.error ? (event.error.stack || event.error.backtrace || event.error.stacktrace) : null
-        , location: document.location.toString()
+        message: event.message,
+        data: null,
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno,
+        stack: event.error ? (event.error.stack || event.error.backtrace || event.error.stacktrace) : null,
+        location: document.location.toString()
       };
 
-      let result = false;
+      if (data.message && (data.message != 'Script error.')) {
+        try {
+          let result = window.br.events.trigger('error', data);
+          if (result) {
+            event.preventDefault();
+          }
+        } catch (error) {
 
-      try {
-        result = window.br.events.trigger('error', data);
-      } catch (error) {
-
+        }
       }
 
-      if (result) {
-        event.preventDefault();
-      }
     });
 
     window.addEventListener('unhandledrejection', function(event) {
+
       let data = {
-          message: typeof event.reason == 'string' ? event.reason : null
-        , data: typeof event.reason == 'string' ?  null : event.reason
-        , filename: null
-        , lineno: null
-        , colno: null
-        , stack: null
-        , location: document.location.toString()
+        message: typeof event.reason == 'string' ? event.reason : null,
+        data: typeof event.reason == 'string' ? null : event.reason,
+        filename: null,
+        lineno: null,
+        colno: null,
+        stack: null,
+        location: document.location.toString()
       };
 
-      let result = false;
+      if (data.message && (data.message != 'Script error.')) {
+        let result = false;
+        try {
+          result = window.br.events.trigger('error', data);
+        } catch (error) {
 
-      try {
-        result = window.br.events.trigger('error', data);
-      } catch (error) {
-
+        }
       }
 
-      window.br.logWarning('Unhandled Promise Rejection:' + (typeof event.reason == 'string' ? ' ' + event.reason : ''));
-      if (typeof event.reason != 'string') {
-        window.br.logWarning(event.reason);
+      window.br.logWarning(`Unhandled Promise Rejection: ${data.message}`);
+      if (data.data) {
+        window.br.logWarning(data.data);
       }
 
       event.preventDefault();
+
     });
 
   }
@@ -1750,9 +1754,9 @@ THE SOFTWARE.
     prefix = prefix ? prefix : '';
     for(let name in obj) {
       if (br.isObject(obj[name])) {
-        result += printObject(obj[name], eol, prefix + name + '.');
+        result += printObject(obj[name], eol, `${prefix}${name}.`);
       } else {
-        result += prefix + name + ': ' + obj[name] + eol;
+        result += `${prefix}${name}: ${obj[name]}${eol}`;
       }
     }
 
