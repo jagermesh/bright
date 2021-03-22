@@ -12,13 +12,13 @@ namespace Bright;
 
 class BrCache extends BrObject {
 
-  static $instances = array();
+  static $instances = [];
   static $reconsider = true;
 
   public static function getInstance($name = null) {
     $name = $name ? $name : 'default';
     if (!array_key_exists($name, self::$instances)) {
-      $cacheConfig = array('engine' => $name);
+      $cacheConfig = [ 'engine' => $name ];
       if ($config = br()->config()->get('cache')) {
         if (br($config, $name)) {
           if (br($config[$name], 'engine')) {
@@ -49,20 +49,20 @@ class BrCache extends BrObject {
     return self::$instances[$name];
   }
 
-  private static function createInstance($engine = null, $cacheConfig = array()) {
+  private static function createInstance($engine = null, $cacheConfig = []) {
     $engine = $engine ? $engine : 'memory';
     switch($engine) {
-      case "memcache":
+      case 'memcache':
         return new BrMemCacheCacheProvider($cacheConfig);
-      case "file":
+      case 'file':
         return new BrFileCacheProvider($cacheConfig);
-      case "apc":
+      case 'apc':
         return new BrAPCCacheProvider($cacheConfig);
-      case "xcache":
+      case 'xcache':
         return new BrXCacheCacheProvider($cacheConfig);
-      case "redis":
+      case 'redis':
         return new BrRedisCacheProvider($cacheConfig);
-      case "memory":
+      case 'memory':
       default:
         return new BrMemoryCacheProvider($cacheConfig);
     }
@@ -71,13 +71,13 @@ class BrCache extends BrObject {
   public static function isSupported($engine = null) {
     $engine = $engine ? $engine : 'memory';
     switch ($engine) {
-      case "memcache":
+      case 'memcache':
         return BrMemCacheCacheProvider::isSupported();
-      case "apc":
+      case 'apc':
         return BrAPCCacheProvider::isSupported();
-      case "xcache":
+      case 'xcache':
         return BrXCacheCacheProvider::isSupported();
-      case "redis":
+      case 'redis':
         return BrRedisCacheProvider::isSupported();
       default:
         return true;

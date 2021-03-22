@@ -21,7 +21,7 @@ class BrCmd extends BrObject {
   public function getSwitches() {
     global $argv;
 
-    $result = array();
+    $result = [];
 
     foreach($argv as $value) {
       if (preg_match('/--([A-Z]+)=(.+)/ism', $value, $matches)) {

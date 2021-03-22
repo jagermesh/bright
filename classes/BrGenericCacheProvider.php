@@ -16,19 +16,15 @@ class BrGenericCacheProvider extends BrObject {
   private $cacheLifeTime = 300;
 
   public function __construct($cfg = array()) {
-
     if ($this->isSupported()) {
       $this->setDefaultNamePrefix(md5(__FILE__) . ':');
     } else {
       throw new BrException(get_class($this).' is not supported.');
     }
-
   }
 
   public static function isSupported() {
-
     return true;
-
   }
 
   public function reset() {
@@ -36,9 +32,7 @@ class BrGenericCacheProvider extends BrObject {
   }
 
   public function clear() {
-
     $this->reset();
-
   }
 
   public function exists($name) {
@@ -70,15 +64,11 @@ class BrGenericCacheProvider extends BrObject {
   // functions
 
   public function setCacheLifeTime($seconds) {
-
     $this->cacheLifeTime = $seconds;
-
   }
 
   public function getCacheLifeTime() {
-
     return $this->cacheLifeTime;
-
   }
 
   public function getService() {
@@ -86,22 +76,15 @@ class BrGenericCacheProvider extends BrObject {
   }
 
   public function safeName($name) {
-
     return $this->defaultNamePrefix . $name;
-
   }
 
   protected function setDefaultNamePrefix($value) {
-
     $this->defaultNamePrefix = $value;
-
   }
 
   protected function getDefaultNamePrefix() {
-
     return $this->defaultNamePrefix;
-
   }
 
 }
-

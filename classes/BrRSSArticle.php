@@ -12,7 +12,7 @@ namespace Bright;
 
 class BrRSSArticle extends BrObject {
 
-  public $Categories = array();
+  public $Categories = [];
 
 }
 

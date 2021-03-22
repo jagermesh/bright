@@ -14,12 +14,14 @@ class BrAWS extends BrObject {
   private function getS3Client() {
 
     if (!$this->S3Client) {
-      $this->S3Client = \Aws\S3\S3Client::factory(array( 'credentials' => array( 'key'     => br()->config()->get('AWS/S3/AccessKey',    br()->config()->get('AWS/S3AccessKey'))
-                                                                               , 'secret'  => br()->config()->get('AWS/S3/AccessSecret', br()->config()->get('AWS/S3AccessSecret'))
-                                                                               )
-                                                       , 'region'      => br()->config()->get('AWS/S3/Region', br()->config()->get('AWS/S3Region'))
-                                                       , 'version'     => 'latest'
-                                                       ));
+      $this->S3Client = new \Aws\S3\S3Client([
+        'credentials' => [
+          'key' => br()->config()->get('AWS/S3/AccessKey', br()->config()->get('AWS/S3AccessKey')),
+          'secret' => br()->config()->get('AWS/S3/AccessSecret', br()->config()->get('AWS/S3AccessSecret'))
+        ],
+        'region' => br()->config()->get('AWS/S3/Region', br()->config()->get('AWS/S3Region')),
+        'version' => 'latest'
+      ]);
     }
 
     return $this->S3Client;
@@ -37,9 +39,10 @@ class BrAWS extends BrObject {
     $url = preg_replace('~^s3://~', '', $url);
 
     if (preg_match('~([A-Z0-9.-]+)[/](.+)~i', $url, $matches)) {
-      return array( 'bucketName' => $matches[1]
-                  , 'objectPath' => $matches[2]
-                  );
+      return [
+        'bucketName' => $matches[1],
+        'objectPath' => $matches[2]
+      ];
     } else {
       throw new BrAppException('Incorrect object path: ' . $url);
     }
@@ -52,7 +55,7 @@ class BrAWS extends BrObject {
 
   }
 
-  public function uploadFile($source, $destination, $additionalParams = array(), $iteration = 0, $rerunError = null) {
+  public function uploadFile($source, $destination, $additionalParams = [], $iteration = 0, $rerunError = null) {
 
     if ($iteration > $this->rerunIterations) {
       throw new BrAppException($rerunError);
@@ -63,23 +66,29 @@ class BrAWS extends BrObject {
     try {
       $client = $this->getS3Client();
 
-      $params = array( 'Bucket'     => $dstStruct['bucketName']
-                     , 'Key'        => $dstStruct['objectPath']
-                     , 'SourceFile' => $source
-                     );
+      $params = [
+        'Bucket' => $dstStruct['bucketName'],
+        'Key' => $dstStruct['objectPath'],
+        'SourceFile' => $source
+      ];
 
       if ($contentType = br()->getContentTypeByExtension($destination)) {
         $params['ContentType'] = $contentType;
       } else
       if ($contentType = br()->getContentTypeByExtension($source)) {
         $params['ContentType'] = $contentType;
+      } else
+      if ($contentType = br()->getContentTypeByContent($source)) {
+        $params['ContentType'] = $contentType;
+      } else {
+        $params['ContentType'] = 'application/octet-stream';
       }
 
       if ($metadata = br($additionalParams, 'Metadata')) {
         $params['Metadata'] = $metadata;
       }
 
-      $result = $client->putObject($params);
+      $client->putObject($params);
 
       return $this->assembleUrl($dstStruct);
     } catch (\Aws\S3\Exception\PermanentRedirectException $e) {
@@ -98,7 +107,7 @@ class BrAWS extends BrObject {
 
   }
 
-  public function uploadData($content, $destination, $additionalParams = array()) {
+  public function uploadData($content, $destination, $additionalParams = []) {
 
     $tempFile = br()->createTempFile('AWSUPL');
 
@@ -108,7 +117,7 @@ class BrAWS extends BrObject {
 
   }
 
-  public function copyFile($source, $destination, $additionalParams = array(), $iteration = 0, $rerunError = null) {
+  public function copyFile($source, $destination, $additionalParams = [], $iteration = 0, $rerunError = null) {
 
     if ($iteration > $this->rerunIterations) {
       throw new BrAppException($rerunError);
@@ -120,23 +129,26 @@ class BrAWS extends BrObject {
     try {
       $client = $this->getS3Client();
 
-      $params = array( 'Bucket'     => $dstStruct['bucketName']
-                     , 'Key'        => $dstStruct['objectPath']
-                     , 'CopySource' => $srcStruct['bucketName'] . '/' . $srcStruct['objectPath']
-                     );
+      $params = [
+        'Bucket' => $dstStruct['bucketName'],
+        'Key' => $dstStruct['objectPath'],
+        'CopySource' => $srcStruct['bucketName'] . '/' . $srcStruct['objectPath']
+      ];
 
       if ($contentType = br()->getContentTypeByExtension($destination)) {
         $params['ContentType'] = $contentType;
       } else
       if ($contentType = br()->getContentTypeByExtension($source)) {
         $params['ContentType'] = $contentType;
+      } else {
+        $params['ContentType'] = 'application/octet-stream';
       }
 
       if ($metadata = br($additionalParams, 'Metadata')) {
         $params['Metadata'] = $metadata;
       }
 
-      $result = $client->copyObject($params);
+      $client->copyObject($params);
 
       return $this->assembleUrl($dstStruct);
     } catch (\Aws\S3\Exception\PermanentRedirectException $e) {
@@ -161,7 +173,7 @@ class BrAWS extends BrObject {
 
   }
 
-  public function deleteFile($source, $additionalParams = array(), $iteration = 0, $rerunError = null) {
+  public function deleteFile($source, $additionalParams = [], $iteration = 0, $rerunError = null) {
 
     if ($iteration > $this->rerunIterations) {
       throw new BrAppException($rerunError);
@@ -172,11 +184,12 @@ class BrAWS extends BrObject {
     try {
       $client = $this->getS3Client();
 
-      $params = array( 'Bucket'     => $srcStruct['bucketName']
-                     , 'Key'        => $srcStruct['objectPath']
-                     );
+      $params = [
+        'Bucket' => $srcStruct['bucketName'],
+        'Key' => $srcStruct['objectPath'],
+      ];
 
-      $result = $client->deleteObject($params);
+      $client->deleteObject($params);
 
       return $this->assembleUrl($srcStruct);
     } catch (\Aws\S3\Exception\S3Exception $e) {
@@ -203,15 +216,17 @@ class BrAWS extends BrObject {
     try {
       $client = $this->getS3Client();
 
-      $params = array( 'Bucket'     => $srcStruct['bucketName']
-                     , 'Key'        => $srcStruct['objectPath']
-                     );
+      $params = [
+        'Bucket' => $srcStruct['bucketName'],
+        'Key' => $srcStruct['objectPath'],
+      ];
 
       if ($result = $client->headObject($params)) {
-        return array ( 'fileSize' => $result['ContentLength']
-                     , 'fileType' => $result['ContentType']
-                     , 'url'      => $this->assembleUrl($srcStruct)
-                     );
+        return [
+          'fileSize' => $result['ContentLength'],
+          'fileType' => $result['ContentType'],
+          'url' => $this->assembleUrl($srcStruct)
+        ];
       } else {
         return false;
       }
@@ -229,16 +244,18 @@ class BrAWS extends BrObject {
     try {
       $client = $this->getS3Client();
 
-      $params = array( 'Bucket'     => $srcStruct['bucketName']
-                     , 'Key'        => $srcStruct['objectPath']
-                     );
+      $params = [
+        'Bucket' => $srcStruct['bucketName'],
+        'Key' => $srcStruct['objectPath'],
+      ];
 
       if ($result = $client->getObject($params)) {
-        return array ( 'fileSize' => $result['ContentLength']
-                     , 'fileType' => $result['ContentType']
-                     , 'url'      => $this->assembleUrl($srcStruct)
-                     , 'content'  => $result['Body']->getContents()
-                     );
+        return [
+          'fileSize' => $result['ContentLength'],
+          'fileType' => $result['ContentType'],
+          'url' => $this->assembleUrl($srcStruct),
+          'content' => $result['Body']->getContents()
+        ];
       } else {
         return false;
       }
@@ -256,11 +273,12 @@ class BrAWS extends BrObject {
     try {
       $client = $this->getS3Client();
 
-      $params = array( 'Bucket'     => $srcStruct['bucketName']
-                     , 'Key'        => $srcStruct['objectPath']
-                     );
+      $params = [
+        'Bucket' => $srcStruct['bucketName'],
+        'Key' => $srcStruct['objectPath'],
+      ];
 
-      $result = $client->headObject($params);
+      $client->headObject($params);
 
       return $this->assembleUrl($srcStruct);
     } catch (\Exception $e) {
@@ -269,7 +287,7 @@ class BrAWS extends BrObject {
 
   }
 
-  public function moveFile($source, $destination, $additionalParams = array()) {
+  public function moveFile($source, $destination, $additionalParams = []) {
 
     $result = $this->copyFile($source, $destination, $additionalParams);
     $this->deleteFile($source);
@@ -280,12 +298,14 @@ class BrAWS extends BrObject {
   private function getPollyClient() {
 
     if (!$this->pollyClient) {
-      $this->pollyClient = \Aws\Polly\PollyClient::factory(array( 'credentials' => array( 'key'     => br()->config()->get('AWS/Polly/AccessKey',    br()->config()->get('AWS/S3AccessKey'))
-                                                                                        , 'secret'  => br()->config()->get('AWS/Polly/AccessSecret', br()->config()->get('AWS/S3AccessSecret'))
-                                                                                        )
-                                                                , 'region'      => br()->config()->get('AWS/Polly/Region', br()->config()->get('AWS/S3Region'))
-                                                                , 'version'     => 'latest'
-                                                                ));
+      $this->pollyClient = new \Aws\Polly\PollyClient([
+        'credentials' => [
+          'key' => br()->config()->get('AWS/Polly/AccessKey', br()->config()->get('AWS/S3AccessKey')),
+          'secret'  => br()->config()->get('AWS/Polly/AccessSecret', br()->config()->get('AWS/S3AccessSecret'))
+        ],
+        'region' => br()->config()->get('AWS/Polly/Region', br()->config()->get('AWS/S3Region')),
+        'version' => 'latest'
+      ]);
     }
 
     return $this->pollyClient;
@@ -294,7 +314,7 @@ class BrAWS extends BrObject {
 
   protected function splitLongTextIntoChunks($string) {
 
-    $result = array();
+    $result = [];
 
     if ($string = trim($string)) {
       if ($encoding = mb_detect_encoding($string)) {
@@ -304,10 +324,7 @@ class BrAWS extends BrObject {
             break;
           }
           $dirtyChunk = mb_substr($string, 0, self::AMAZON_POLLY_MAX_CHARACTERS);
-          $furthestPositionOfSentenceStop = max( strrpos($dirtyChunk, '.')
-                                               , strrpos($dirtyChunk, '!')
-                                               , strrpos($dirtyChunk, '?')
-                                               );
+          $furthestPositionOfSentenceStop = max(strrpos($dirtyChunk, '.'), strrpos($dirtyChunk, '!'), strrpos($dirtyChunk, '?'));
           if (false === $furthestPositionOfSentenceStop) {
             $furthestPositionOfSentenceStop = mb_strlen($dirtyChunk, $encoding);
           }
@@ -359,28 +376,30 @@ class BrAWS extends BrObject {
 
   }
 
-  public function synthesizeSpeech($text, $additionalParams = array()) {
+  public function synthesizeSpeech($text, $additionalParams = []) {
 
     if ($chunks = $this->splitLongTextIntoChunks($text)) {
 
       $polly = $this->getPollyClient();
 
-      $promises = array();
+      $promises = [];
       foreach ($chunks as $chunk) {
-        $promises[] = $polly->synthesizeSpeechAsync( array( 'OutputFormat'  => 'mp3'
-                                                          , 'TextType'      => 'text'
-                                                          , 'Text'          => $chunk
-                                                          , 'VoiceId'       => br($additionalParams, 'voice',  'Salli')
-                                                          ));
-        $promises[] = $polly->synthesizeSpeechAsync( array( 'OutputFormat'    => 'json'
-                                                          , 'TextType'        => 'text'
-                                                          , 'Text'            => $chunk
-                                                          , 'VoiceId'         => br($additionalParams, 'voice',  'Salli')
-                                                          , 'SpeechMarkTypes' => array('word')
-                                                          ));
+        $promises[] = $polly->synthesizeSpeechAsync([
+          'OutputFormat'  => 'mp3',
+          'TextType' => 'text',
+          'Text' => $chunk,
+          'VoiceId' => br($additionalParams, 'voice',  'Salli')
+        ]);
+        $promises[] = $polly->synthesizeSpeechAsync([
+          'OutputFormat' => 'json',
+          'TextType' => 'text',
+          'Text' => $chunk,
+          'VoiceId' => br($additionalParams, 'voice',  'Salli'),
+          'SpeechMarkTypes' => [ 'word' ]
+        ]);
       }
 
-      if ($streams = \GuzzleHttp\Promise\unwrap($promises)) {
+      if ($streams = \GuzzleHttp\Promise\Utils::unwrap($promises)) {
 
         $audioStreams = [];
         $marksStreams = [];
@@ -400,20 +419,21 @@ class BrAWS extends BrObject {
           $audioSize = $audioStream->getSize();
           $marksData = $this->normalizeMarks($marksStream->getContents());
 
-          return array( 'text'      => $text
-                      , 'audioUrl'  => br()->AWS()->uploadData($auidoData, $additionalParams['audioUrl'], $additionalParams)
-                      , 'audioSize' => $audioSize
-                      , 'marksUrl'  => br()->AWS()->uploadData(json_encode($marksData), $additionalParams['marksUrl'], $additionalParams)
-                      , 'marks'     => $marksData
-                      , 'marksSize' => strlen(json_encode($marksData))
-                      );
+          return [
+            'text' => $text,
+            'audioUrl' => br()->AWS()->uploadData($auidoData, $additionalParams['audioUrl'], $additionalParams),
+            'audioSize' => $audioSize,
+            'marksUrl' => br()->AWS()->uploadData(json_encode($marksData), $additionalParams['marksUrl'], $additionalParams),
+            'marks' => $marksData,
+            'marksSize' => strlen(json_encode($marksData))
+          ];
         } else {
           $filesFolder = br()->getTempPath() . br()->guid();
           br()->fs()->createDir($filesFolder);
           try {
             $marksData   = [];
             $currentTime = 0;
-            $filesList = array();
+            $filesList = [];
             try {
               for($i = 0; $i < count($audioStreams); $i++) {
                 $tempFileName = 'PollyAudio' . $i . '.mp3';
@@ -432,20 +452,17 @@ class BrAWS extends BrObject {
               $finalAudioFilePath = $filesFolder . '/' . $finalAudioFileName;
 
               // have to do it to fix broken metadata in-between - then it plays well in Chrome
-              $command = sprintf( 'cd %s && ffmpeg -i "concat:%s" -codec:a libmp3lame -b:a 128k %s'
-                                , $filesFolder
-                                , br($filesList)->join('|')
-                                , $finalAudioFileName
-                                );
+              $command = sprintf('cd %s && ffmpeg -i "concat:%s" -codec:a libmp3lame -b:a 128k %s', $filesFolder, br($filesList)->join('|'), $finalAudioFileName);
               try {
                 exec($command);
-                return array( 'text'      => $text
-                            , 'audioUrl'  => br()->AWS()->uploadFile($finalAudioFilePath, $additionalParams['audioUrl'], $additionalParams)
-                            , 'audioSize' => filesize($finalAudioFilePath)
-                            , 'marksUrl'  => br()->AWS()->uploadData(json_encode($marksData), $additionalParams['marksUrl'], $additionalParams)
-                            , 'marks'     => $marksData
-                            , 'marksSize' => strlen(json_encode($marksData))
-                            );
+                return [
+                  'text' => $text,
+                  'audioUrl' => br()->AWS()->uploadFile($finalAudioFilePath, $additionalParams['audioUrl'], $additionalParams),
+                  'audioSize' => filesize($finalAudioFilePath),
+                  'marksUrl' => br()->AWS()->uploadData(json_encode($marksData), $additionalParams['marksUrl'], $additionalParams),
+                  'marks' => $marksData,
+                  'marksSize' => strlen(json_encode($marksData))
+                ];
               } finally {
                 unlink($finalAudioFilePath);
               }

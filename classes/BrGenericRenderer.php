@@ -12,52 +12,40 @@ namespace Bright;
 
 class BrGenericRenderer extends BrObject {
 
-  private $templates = array();
-  private $vars = array();
-  protected $params = array();
+  private $templates = [];
+  private $vars = [];
+
+  protected $params = [];
 
   public function getTemplates() {
-
     return $this->templates;
-
   }
 
   public function assign($name, $values) {
-
     $this->vars[$name] = $values;
-
   }
 
   public function getVar($name) {
-
     return br($this->vars, $name);
-
   }
 
   public function unassign($name) {
-
     unset($this->vars[$name]);
-
   }
 
   public function unassignByPattern($pattern) {
-
     foreach($this->vars as $key => $value) {
       if (preg_match($pattern, $key)) {
         unset($this->vars[$key]);
       }
     }
-
   }
 
   public function configure(array $params = []) {
-
     $this->params = $params;
-
   }
 
   private function fetchFile(string $templateName) {
-
     $result = '';
     $templateFile = $templateName;
     if (!file_exists($templateFile)) {
@@ -68,25 +56,22 @@ class BrGenericRenderer extends BrObject {
       @include($templateFile);
       $result = ob_get_contents();
       ob_end_clean();
-      return array('file' => $templateFile, 'content' => $result);
+      return [
+        'file' => $templateFile,
+        'content' => $result
+      ];
     }
 
     throw new \Exception('Template not found: ' . htmlspecialchars($templateName));
-
   }
 
   public function fetchString(string $string, array $subst = []) {
-
     $content = $this->compile($string, $subst);
-
     return $content;
-
   }
 
   public function display(string $templateName, array $subst = []) {
-
     br()->response()->sendAutodetect($this->fetch($templateName, $subst));
-
   }
 
   public function resetEngine() {
@@ -94,9 +79,6 @@ class BrGenericRenderer extends BrObject {
   }
 
   public function fetch(string $templateName, array $subst = [], bool $compile = true) {
-
-    // echo('<pre>fetch ' . $templateName . '</pre>');
-
     $template = $this->fetchFile($templateName);
 
     $templateFile = $template['file'];
@@ -119,11 +101,7 @@ class BrGenericRenderer extends BrObject {
         }
       }
       $includeFileName = dirname($templateFile) . '/' . $fileName;
-      // $template = $this->fetchFile($includeFileName);
       $subTemplate = $this->fetch($includeFileName, $internalSubst, $compileSubTemplate);
-      // if ($compileSubtemplate) {
-        // $template['content'] = $this->compile($template['content'], $internalSubst);
-      // }
       $content = str_replace($matches[0], $subTemplate, $content);
     }
 
@@ -132,33 +110,32 @@ class BrGenericRenderer extends BrObject {
     }
 
     return $content;
-
   }
 
   protected function compile(string $body, array $subst = []) {
-
     $localVars = array_merge($this->vars, $subst);
 
-    $localVars['br'] = array( 'request' => array( 'isDevHost'    => br()->request()->isDevHost()
-                                                , 'isLocalHost'  => br()->request()->isLocalHost()
-                                                , 'isProduction' => br()->request()->isProduction()
-                                                , 'isRest'       => br()->request()->isRest()
-                                                , 'host'         => br()->request()->host()
-                                                , 'domain'       => br()->request()->domain()
-                                                , 'url'          => br()->request()->url()
-                                                , 'get'          => br()->request()->get()
-                                                , 'post'         => br()->request()->post()
-                                                , 'brightUrl'    => br()->request()->brightUrl()
-                                                , 'baseUrl'      => br()->request()->baseUrl()
-                                                , 'clientIP'     => br()->request()->clientIP()
-                                                , 'referer'      => br()->request()->referer()
-                                                )
-                            , 'config'  => br()->config()->get()
-                            , 'core'    => br()->request()->brightUrl() . 'dist/js/bright.core.min.js'
-                            , 'lib'     => br()->request()->brightUrl() . 'dist/js/bright.latest.min.js'
-                            );
-
-    $localVars['br']['authorized'] = false;
+    $localVars['br'] = [
+      'request' => [
+        'isDevHost' => br()->request()->isDevHost(),
+        'isLocalHost' => br()->request()->isLocalHost(),
+        'isProduction' => br()->request()->isProduction(),
+        'isRest' => br()->request()->isRest(),
+        'host' => br()->request()->host(),
+        'domain' => br()->request()->domain(),
+        'url' => br()->request()->url(),
+        'get' => br()->request()->get(),
+        'post' => br()->request()->post(),
+        'brightUrl' => br()->request()->brightUrl(),
+        'baseUrl' => br()->request()->baseUrl(),
+        'clientIP' => br()->request()->clientIP(),
+        'referer' => br()->request()->referer(),
+      ],
+      'config' => br()->config()->get(),
+      'core' => br()->request()->brightUrl() . 'dist/js/bright.core.min.js',
+      'lib' => br()->request()->brightUrl() . 'dist/js/bright.latest.min.js',
+      'authorized' => false,
+    ];
 
     if (br()->auth()) {
       if ($localVars['br']['login'] = br()->auth()->getLogin()) {
@@ -167,28 +144,21 @@ class BrGenericRenderer extends BrObject {
     }
 
     $body = str_replace('[[br]]', '[[br.request.brightUrl]]', $body);
-
-    $body = str_replace('[[/]]',  '[[br.request.baseUrl]]', $body);
-
-    // for backward compatibility
-    $body = str_replace('{request.host}',   '[[br.request.host]]',   $body);
+    $body = str_replace('{br}', '[[br.request.brightUrl]]', $body);
+    $body = str_replace('[br]', '[[br.request.brightUrl]]', $body);
+    $body = str_replace('[[/]]', '[[br.request.baseUrl]]', $body);
+    $body = str_replace('{/}', '[[br.request.baseUrl]]', $body);
+    $body = str_replace('[/]', '[[br.request.baseUrl]]', $body);
+    $body = str_replace('{request.host}', '[[br.request.host]]',   $body);
     $body = str_replace('{request.domain}', '[[br.request.domain]]', $body);
-    $body = str_replace('{request.url}',    '[[br.request.url]]',    $body);
-
-    $body = str_replace('{br}',   '[[br.request.brightUrl]]', $body);
-    $body = str_replace('[br]',   '[[br.request.brightUrl]]', $body);
-
-    $body = str_replace('{/}',    '[[br.request.baseUrl]]', $body);
-    $body = str_replace('[/]',    '[[br.request.baseUrl]]', $body);
+    $body = str_replace('{request.url}', '[[br.request.url]]',    $body);
 
     preg_replace('/[{]config.([^}]+)[}]/', '[[br.config.$1]]', $body);
 
-    $localVars['get']        = $localVars['br']['request']['get'];
-    $localVars['config']     = $localVars['br']['config'];
-
-    $localVars['login']      = br($localVars['br'], 'login');
+    $localVars['get'] = $localVars['br']['request']['get'];
+    $localVars['config'] = $localVars['br']['config'];
+    $localVars['login'] = br($localVars['br'], 'login');
     $localVars['authorized'] = br($localVars['br'], 'authorized');
-    //
 
     $body = $this->render($body, $localVars);
 
@@ -218,7 +188,6 @@ class BrGenericRenderer extends BrObject {
     }
 
     return $body;
-
   }
 
 }

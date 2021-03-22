@@ -13,26 +13,21 @@ namespace Bright;
 class BrJobStarter {
 
   public function __construct() {
-
     $this->jobsFolder = br()->getScriptBasePath() . 'jobs/';
-
   }
 
   public function check() {
-
     $this->doit(true);
-
   }
 
   public function run() {
-
     $this->doit(false);
-
   }
 
   public function doit($check) {
-
-    if (!br()->isConsoleMode()) { br()->panic('Console mode only'); }
+    if (!br()->isConsoleMode()) {
+      br()->panic('Console mode only');
+    }
 
     $arguments = br()->getCommandLineArguments();
     if (@$arguments[0]) {
@@ -72,7 +67,6 @@ class BrJobStarter {
     } else {
       br()->panic('[ERROR] Job file not specified');
     }
-
   }
 
 }

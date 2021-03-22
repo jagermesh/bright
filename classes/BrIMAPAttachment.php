@@ -12,10 +12,15 @@ namespace Bright;
 
 class BrIMAPAttachment extends BrObject {
 
-  private $message, $partNo, $encoding, $fileName, $id, $size, $body = null;
+  private $message;
+  private $partNo;
+  private $encoding;
+  private $fileName;
+  private $id;
+  private $size;
+  private $body = null;
 
-  public function __construct($message, $partNo, $structure) {//$encoding, $fileName, $name, $id = null) {
-
+  public function __construct($message, $partNo, $structure) {
     parent::__construct();
 
     $this->message = $message;
@@ -41,42 +46,31 @@ class BrIMAPAttachment extends BrObject {
         }
       }
     }
-
   }
 
   public function getBody() {
-
     if ($this->body === null) {
       $this->body = imap_fetchbody($this->message->getMailbox(), $this->message->getUID(), $this->partNo, FT_UID);
       $this->body = BrIMAP::decode($this->body, $this->encoding);
     }
 
     return $this->body;
-
   }
 
   public function getFileName() {
-
     return $this->message->mimeDecode($this->fileName);
-
   }
 
   public function getFileExt() {
-
     return $this->message->mimeDecode(br()->fs()->fileExt($this->getFileName()));
-
   }
 
   public function getSize() {
-
     return $this->size;
-
   }
 
   public function getID() {
-
     return $this->id;
-
   }
 
 }

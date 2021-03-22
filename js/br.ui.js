@@ -82,8 +82,9 @@
     options.cancelTitle = options.cancelTitle || br.trn('Cancel');
     options.onConfirm = options.onConfirm || callback;
     options.cssClass = options.cssClass || '';
+    options.defaultButton = options.defaultButton || 'confirm';
 
-    let template = `<div class="br-modal-confirm modal ${options.cssClass}" role="dialog">`;
+    let template = `<div class="br-modal-confirm modal ${options.cssClass}" data-backdrop="static" role="dialog">`;
 
     let checkBoxes = '';
     if (options.checkBoxes) {
@@ -176,29 +177,26 @@
       }
     });
 
+    $(modal).on('shown.bs.modal', function(event) {
+      if ($(event.target).is(modal)) {
+        if (options.defaultButton) {
+          const btn = $(this).find(`.modal-footer a.btn[rel="${options.defaultButton}"]`);
+          if (btn.length > 0) {
+            btn.addClass('btn-primary');
+          }
+        }
+      }
+    });
+
     $(modal).on('hide.bs.modal', function(event) {
       if ($(event.target).is(modal)) {
         if (options.onHide) {
           options.onHide.call(this);
         }
-        if (remove) {
-          if (options.onCancel) {
-            const button = 'cancel';
-            const dontAsk = $('input[name=showDontAskMeAgain]', $(modal)).is(':checked');
-            options.onCancel(button, dontAsk);
-          }
-          modal.remove();
-        }
-      }
-    });
-
-    $(modal).on('shown.bs.modal', function(event) {
-      if ($(event.target).is(modal)) {
-        if (options.defaultButton) {
-          const btn = $(this).find('.modal-footer a.btn[rel=' + options.defaultButton + ']');
-          if (btn.length > 0) {
-            btn[0].focus();
-          }
+        if (remove && options.onCancel) {
+          const button = 'cancel';
+          const dontAsk = $('input[name="showDontAskMeAgain"]', $(modal)).is(':checked');
+          options.onCancel(button, dontAsk);
         }
       }
     });
@@ -365,6 +363,8 @@
   window.br.prompt = function(title, fields, callback, options) {
 
     options = options || {};
+    options.cancelTitle = options.cancelTitle || br.trn('Cancel');
+    options.okTitle = options.okTitle || br.trn('Ok');
 
     let inputs = Object.create({});
 
@@ -406,8 +406,8 @@
 
     template += `</div>
                  <div class="modal-footer">
-                   <a href="javascript:;" class="btn btn-sm btn-primary action-confirm-close" rel="confirm" >Ok</a>
-                   <a href="javascript:;" class="btn btn-sm btn-default btn-outline-secondary" data-dismiss="modal">&nbsp;${br.trn('Cancel')}&nbsp;</a>
+                   <a href="javascript:;" class="btn btn-sm btn-primary action-confirm-close" rel="confirm">${options.okTitle}</a>
+                   <a href="javascript:;" class="btn btn-sm btn-default action-confirm-cancel btn-outline-secondary">&nbsp;${options.cancelTitle}&nbsp;</a>
                  </div>
                </div>
              </div>
@@ -471,6 +471,17 @@
             notOkField[0].focus();
           }
         });
+        $(this).find('.action-confirm-cancel').click(function() {
+          remove = false;
+          modal.modal('hide');
+          if (options.onCancel) {
+            options.onCancel();
+          }
+          modal.remove();
+          if (oldActiveElement) {
+            oldActiveElement.focus();
+          }
+        });
       }
     });
 
@@ -484,6 +495,9 @@
       if ($(event.target).is(modal)) {
         if (options.onHide) {
           options.onHide.call(this);
+        }
+        if (remove && options.onCancel) {
+          options.onCancel();
         }
       }
     });

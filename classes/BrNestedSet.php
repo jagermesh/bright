@@ -17,22 +17,18 @@ class BrNestedSet extends BrObject {
   private $parentField;
   private $orderField;
   private $rangeField;
+  private $keys = [];
 
-  private $keys = array();
-
-  public function __construct($tableName, $params = array()) {
-
+  public function __construct($tableName, $params = []) {
     $this->tableName   = $tableName;
 
     $this->keyField    = br($params, 'keyField',    'id');
     $this->parentField = br($params, 'parentField', 'parent_id');
     $this->orderField  = br($params, 'orderField',  'name');
     $this->rangeField  = br($params, 'rangeField');
-
   }
 
   public function verify() {
-
     if (br()->db()->getRow('SELECT id FROM '.$this->tableName.' WHERE left_key >= right_key')) {
       throw new BrAppException('Nested set is broken: ' . 1);
     }
@@ -54,13 +50,9 @@ class BrNestedSet extends BrObject {
     }
 
     return true;
-
   }
 
   public function internalSetup($key = null, $left = 0, $level = 0, $check_only = false) {
-
-    global $db;
-
     if (in_array($key, $this->keys)) {
       br()->panic('Tree loop detected in '.$this->tableName);
     }
@@ -98,30 +90,21 @@ class BrNestedSet extends BrObject {
 
     // return the right value of this node + 1
     return $right + 1;
-
   }
 
   public function setup() {
-
-    $this->keys = array();
-
-    // br()->db()->startTransaction();
+    $this->keys = [];
 
     set_time_limit(0);
     ignore_user_abort(true);
 
     $this->internalSetup();
-
-    // br()->db()->commitTransaction();
-
   }
 
   public function getNodePosition($values) {
-
-    $node = array();
+    $node = [];
 
     if ($this->orderField) {
-
       $parentFilter = br($values, $this->parentField) ? br()->placeholder($this->parentField . ' = ?', $values[$this->parentField])
                                                       : $this->parentField . ' IS NULL'
                                                       ;
@@ -138,13 +121,10 @@ class BrNestedSet extends BrObject {
       }
       $sql .= ' ORDER BY ' . $this->orderField . ' DESC '
             . ' LIMIT 1';
-
       $node = br()->db()->getRow($sql);
-
     }
 
     if (!$node) {
-
       if (br($values, $this->parentField)) {
         $node = br()->db()->getRow('SELECT left_key + 1 left_key, level
                                       FROM '.$this->tableName.'
@@ -154,14 +134,12 @@ class BrNestedSet extends BrObject {
         $node['left_key'] = 1;
         $node['level'] = 0;
       }
-
     }
 
     return $node;
   }
 
   public function processInsert($values) {
-
     $node = $this->getNodePosition($values);
 
     $sql = br()->placeholder( 'UPDATE ' . $this->tableName . '
@@ -186,13 +164,10 @@ class BrNestedSet extends BrObject {
                         , $node['level'] + 1
                         , $values[$this->keyField]
                         );
-
   }
 
   public function processUpdate($old, $values) {
-
     if (br($old, $this->parentField) != br($values, $this->parentField) || br($old, $this->orderField) != br($values, $this->orderField)) {
-
       $level        = $old['level'];
       $left_key     = $old['left_key'];
       $right_key    = $old['right_key'];
@@ -255,12 +230,10 @@ class BrNestedSet extends BrObject {
       }
 
       br()->db()->runQuery($sql);
-
     }
   }
 
   public function processDelete($values) {
-
     $left_key  = $values['left_key'];
     $right_key = $values['right_key'];
 
@@ -277,7 +250,6 @@ class BrNestedSet extends BrObject {
       $sql .= br()->placeholder(' AND ' . $this->rangeField . ' = ?', br($values, $this->rangeField));
     }
     br()->db()->runQuery($sql);
-
   }
 
 }

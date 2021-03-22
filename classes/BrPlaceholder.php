@@ -13,15 +13,11 @@ namespace Bright;
 class BrPlaceholder extends BrObject {
 
   static function format() {
-
     return self::formatEx(func_get_args());
-
   }
 
   static function formatEx($args) {
-
     $result            = '';
-
     $template          = array_shift($args);
     $placeholders      = preg_split('~([?][@&%#nsiuap]?)~u', $template, null, PREG_SPLIT_DELIM_CAPTURE);
     $argsCount         = count($args);
@@ -44,6 +40,7 @@ class BrPlaceholder extends BrObject {
             $value = self::formatInteger($value);
             break;
           case '?a':
+          case '?@':
             $value = self::formatArray($value);
             break;
           case '?u':
@@ -61,52 +58,59 @@ class BrPlaceholder extends BrObject {
       }
       return $result;
     }
-
   }
 
   static function formatInteger($value) {
-
     if ($value === NULL) {
-      return 'NULL';
+      $value = 'NULL';
     } else
     if (is_numeric($value)) {
       if (is_float($value)) {
         $value = number_format($value, 0, '.', ''); // may lose precision on big numbers
       }
+      $value = str_replace(',', '.', $value);
     } else {
       throw new BrAppException('Integer placeholder expect numeric value, ' . gettype($value) . ' given');
     }
 
     return $value;
+  }
 
+  static function formatNumeric($value) {
+    if ($value === NULL) {
+      $value = 'NULL';
+    } else
+    if (is_numeric($value)) {
+      $value = str_replace(',', '.', $value);
+    } else {
+      throw new BrAppException('Integer placeholder expect numeric value, ' . gettype($value) . ' given');
+    }
+
+    return $value;
   }
 
   static function formatString($value) {
-
     if ($value === NULL) {
       return 'NULL';
     } else {
       return  "'" . addslashes($value) . "'";
     }
-
   }
 
-  protected function formatArray($value) {
-
+  static function formatArray($value) {
     if (!$value) {
       return 'NULL';
     } else
     if (is_array($value)) {
       $result = $comma = '';
       foreach ($value as $oneValue) {
-        $result .= $comma . $this->formatString($oneValue);
+        $result .= $comma . self::formatString($oneValue);
         $comma = ",";
       }
       return $result;
     } else {
       throw new BrAppException('Value for IN (?a) placeholder should be array');
     }
-
   }
 
 }

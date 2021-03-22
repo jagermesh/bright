@@ -14,12 +14,11 @@ class BrSamePatchException extends BrException {
 
 }
 
-
 class BrDataBasePatch {
 
   private $stepNo = 0;
   private $guid = null;
-  private $dependencies = array();
+  private $dependencies = [];
   private $className;
   private $patchFile;
 
@@ -30,48 +29,35 @@ class BrDataBasePatch {
   const DO_RETRY    = 2;
 
   public function __construct($patchFile, $dbManager) {
-
     $this->patchFile = $patchFile;
     $this->className = get_called_class();
     $this->patchHash = sha1_file($patchFile);
     $this->dbManager = $dbManager;
-
   }
 
   public function setGuid($value) {
-
     $this->guid = $value;
-
   }
 
   public function logPrefix() {
-
     return '[' . $this->className . ']';
-
   }
 
   public function addDependency($value) {
-
     $this->dependencies[] = $value;
-
   }
 
   public function checkDependencies() {
-
     foreach($this->dependencies as $dependency) {
-      if (br()->db()->getValue('SELECT id FROM br_db_patch WHERE guid = ?', $dependency)) {
-
-      } else {
+      if (!br()->db()->getValue('SELECT id FROM br_db_patch WHERE guid = ?', $dependency)) {
         throw new BrAppException('Error. Dependency not met: ' . $dependency);
       }
     }
 
     return true;
-
   }
 
   public function checkRequirements($regularRun = true, $command = 'run') {
-
     br()->assert($this->guid, 'Please generate GUID for this patch');
 
     if ($patch = br()->db()->getRow('SELECT * FROM br_db_patch WHERE guid = ?', $this->guid)) {
@@ -80,17 +66,18 @@ class BrDataBasePatch {
           case 'force':
             return true;
           case 'register':
-            br()->db()->runQuery( 'UPDATE br_db_patch
-                                      SET patch_file = ?
-                                        , patch_hash = ?
-                                        , body = ?
-                                        , re_installed_at = NOW()
-                                    WHERE guid = ?'
-                                , basename($this->patchFile)
-                                , $this->patchHash
-                                , br()->fs()->loadFromFile($this->patchFile)
-                                , $this->guid
-                                );
+            br()->db()->runQuery(
+              'UPDATE br_db_patch
+                  SET patch_file = ?
+                    , patch_hash = ?
+                    , body = ?
+                    , re_installed_at = NOW()
+                WHERE guid = ?',
+              basename($this->patchFile),
+              $this->patchHash,
+              br()->fs()->loadFromFile($this->patchFile),
+              $this->guid
+            );
             return false;
           default:
             if ($patch['patch_hash'] != $this->patchHash) {
@@ -110,71 +97,67 @@ class BrDataBasePatch {
       }
     } else
     if ($command == 'register') {
-      br()->db()->runQuery( 'INSERT IGNORE INTO br_db_patch (guid, patch_file, patch_hash, body, installed_at, re_installed_at) VALUES (?, ?, ?, ?, NOW(), NOW())'
-                          , $this->guid
-                          , basename($this->patchFile)
-                          , $this->patchHash
-                          , br()->fs()->loadFromFile($this->patchFile)
-                          );
+      br()->db()->runQuery(
+        'INSERT IGNORE INTO br_db_patch (guid, patch_file, patch_hash, body, installed_at, re_installed_at)
+         VALUES (?, ?, ?, ?, NOW(), NOW())',
+        $this->guid,
+        basename($this->patchFile),
+        $this->patchHash,
+        br()->fs()->loadFromFile($this->patchFile)
+      );
       return false;
     }
 
     return true;
-
   }
 
   public function run() {
-
     br()->log()->message('Apply');
 
     $this->up();
 
-    br()->db()->runQuery( 'INSERT INTO br_db_patch (guid, patch_file, patch_hash, body, installed_at) VALUES (?, ?, ?, ?, NOW())
-                               ON DUPLICATE KEY
-                           UPDATE patch_file = ?, patch_hash = ?, body = ?, re_installed_at = NOW()'
-                        , $this->guid, basename($this->patchFile), $this->patchHash, br()->fs()->loadFromFile($this->patchFile)
-                                     , basename($this->patchFile), $this->patchHash, br()->fs()->loadFromFile($this->patchFile)
-                        );
+    br()->db()->runQuery(
+      'INSERT INTO br_db_patch (guid, patch_file, patch_hash, body, installed_at) VALUES (?, ?, ?, ?, NOW())
+           ON DUPLICATE KEY
+       UPDATE patch_file = ?, patch_hash = ?, body = ?, re_installed_at = NOW()',
+      $this->guid,
+      basename($this->patchFile),
+      $this->patchHash,
+      br()->fs()->loadFromFile($this->patchFile),
+      basename($this->patchFile),
+      $this->patchHash,
+      br()->fs()->loadFromFile($this->patchFile)
+    );
 
     br()->log()->message('Applied');
 
     return true;
-
   }
 
   public function refreshTableSupport($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $isCascadeAudited = 1, $excludeFields = null) {
-
     return $this->dbManager->refreshTableSupport($tableName, $isInsertAudited, $isUpdateAudited, $isDeleteAudited, $isCascadeAudited, $excludeFields);
-
   }
 
   public function setupTableSupport($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $isCascadeAudited = 1, $excludeFields = null) {
-
     br()->log()->message(br('=')->repeat(80));
     br()->log()->message('setupTableSupport(' . $tableName . ', ' . $isInsertAudited . ', ' . $isUpdateAudited . ', ' . $isDeleteAudited . ', "' . $excludeFields . '")');
 
     return $this->dbManager->setupTableSupport($tableName, $isInsertAudited, $isUpdateAudited, $isDeleteAudited, $isCascadeAudited, $excludeFields);
-
   }
 
   public function execute($sql, $stepName = null) {
-
     $this->stepNo++;
 
     $stepName = $stepName ? $stepName : $this->stepNo;
 
     return $this->internalExecute($sql, $stepName, false);
-
   }
 
   public function executeScript($script, $stepName = null) {
-
     $this->stepNo++;
 
     $stepName = $stepName ? $stepName : $this->stepNo;
-
     $result = 0;
-
     if ($statements = $this->dbManager->parseScript($script)) {
       foreach($statements as $statement) {
         $result += $this->internalExecute($statement, $stepName, false);
@@ -183,17 +166,13 @@ class BrDataBasePatch {
     }
 
     return $result;
-
   }
 
   public function executeScriptFile($fileName, $stepName = null) {
-
     $this->stepNo++;
 
     $stepName = $stepName ? $stepName : $this->stepNo;
-
     $result = 0;
-
     if (file_exists($fileName)) {
       if ($script = br()->fs()->loadFromFile($fileName)) {
         $definer = '';
@@ -210,11 +189,9 @@ class BrDataBasePatch {
       $error = 'Error. UP step "' . $stepName . '":' . "\n\nScript file not found: " . $fileName;
       throw new BrAppException($error);
     }
-
   }
 
   private function internalExecute($sql, $stepName = null) {
-
     $stepName = $stepName ? $stepName : $this->stepNo;
 
     br()->log()->message(br('=')->repeat(20) . ' ' . 'UP step "' . $stepName . '"' . ' ' . br('=')->repeat(20));
@@ -265,24 +242,16 @@ class BrDataBasePatch {
     }
 
     return br()->db()->getAffectedRowsAmount();
-
   }
 
   static function generatePatchScript($name, $path) {
-
     $name = ucfirst($name);
     $fileName = $path . '/patches/Patch' . $name . '.php';
-
     if (file_exists($fileName)) {
       throw new BrAppException('Such patch already exists - ' . $fileName);
     } else {
-      br()->fs()->saveToFile( $fileName
-                            , br()->renderer()->fetchString( br()->fs()->loadFromFile(dirname(__DIR__) . '/templates/DataBasePatch.tpl')
-                                                           , array( 'guid' => br()->guid()
-                                                                  , 'name' => $name
-                                                                  )));
+      br()->fs()->saveToFile($fileName, br()->renderer()->fetchString( br()->fs()->loadFromFile(dirname(__DIR__) . '/templates/DataBasePatch.tpl'), [ 'guid' => br()->guid(), 'name' => $name ]));
     }
-
   }
 
 }

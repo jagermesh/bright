@@ -13,20 +13,18 @@ namespace Bright;
 class BrXMLParser extends BrObject {
 
   private $xmlParserError = null;
-  private $xmlParser      = null;
-  private $currentTag     = '';
-  private $currentState   = array();
-  private $context        = '';
+  private $xmlParser = null;
+  private $currentTag = '';
+  private $currentState = [];
+  private $context = '';
 
   public $result;
 
   public function parse($xml) {
-
-    $this->result       = array();
-
-    $this->context      = $xml;
-    $this->currentTag   = '';
-    $this->currentState = array();
+    $this->result = [];
+    $this->context = $xml;
+    $this->currentTag = '';
+    $this->currentState = [];
 
     $this->xmlParser    = xml_parser_create();
 
@@ -52,27 +50,21 @@ class BrXMLParser extends BrObject {
     } else
     if ($this->getCurrentState()) {
       $this->raiseError('Wrong ending state: ' . $this->getCurrentState());
-    } else {
-
     }
 
     $this->trigger('after:import');
 
     return $this->result;
-
   }
 
   public function printState() {
-
     br()->log('===========================================================================');
     br()->log('Current XML tag: ' . $this->currentTag);
     br()->log('Current path: '    . $this->getCurrentPath());
     br()->log('=================================== XML ===================================');
-
   }
 
   public function raiseError($error) {
-
     $this->printState();
 
     $numargs  = func_num_args();
@@ -82,81 +74,59 @@ class BrXMLParser extends BrObject {
     }
 
     throw new \Exception($error);
-
   }
 
   public function getArchiveName() {
-
     return $this->archiveName;
-
   }
 
   public function getCurrentTag() {
-
     return $this->currentTag;
-
   }
 
   public function setCurrentTag($value) {
-
     return ($this->currentTag = $value);
-
   }
 
   public function getCurrentState() {
-
     $result = array_pop($this->currentState);
     $this->currentState[] = $result;
-    return $result;
 
+    return $result;
   }
 
   public function getCurrentPath() {
-
     return implode('/', $this->currentState);
-
   }
 
   public function isAt($path) {
-
     return (strtolower($this->getCurrentPath()) == strtolower($path));
-
   }
 
   public function clearCurrentState() {
-
-    $result = array_pop($this->currentState);
-
+    return array_pop($this->currentState);
   }
 
   public function setCurrentState($value) {
-
     $this->currentState[] = $value;
-
   }
 
   public function startElement($parser, $name, $attrs = array()) {
-
     $this->setCurrentTag($name);
     $this->setCurrentState($name);
 
     $this->trigger('startElement', $name, $attrs);
-
   }
 
   public function content($parser, $data) {
-
     $this->trigger('content', $data);
-
   }
 
   public function endElement($parser, $name) {
-
     $this->trigger('endElement', $name);
 
     $this->clearCurrentState();
     $this->setCurrentTag('');
-
   }
 
 }

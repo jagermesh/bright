@@ -17,29 +17,22 @@ class BrIMAPMailMessage extends BrObject {
   private $headers;
   private $rawHeaders;
   private $overview;
-
   private $HTMLBody;
   private $textBody;
   private $attachments;
-
   private $structure = null;
-
-  // parser related
   private $parsed = false;
   private $parentPart = '';
 
   public function __construct($mailService, $path, $overview) {
-
     parent::__construct();
 
     $this->mailService = $mailService;
     $this->path = $path;
     $this->overview = $overview;
-
     $this->HTMLBody = new BrIMAPBody($this, true);
     $this->textBody = new BrIMAPBody($this, false);
-    $this->attachments = array();
-
+    $this->attachments = [];
   }
 
   public function getHTMLBody() {
@@ -132,7 +125,7 @@ class BrIMAPMailMessage extends BrObject {
     if (@$headers->to) {
       return $headers->to;
     } else {
-      return array();
+      return [];
     }
 
   }
@@ -150,7 +143,7 @@ class BrIMAPMailMessage extends BrObject {
     if (@$headers->cc) {
       return $headers->cc;
     } else {
-      return array();
+      return [];
     }
 
   }

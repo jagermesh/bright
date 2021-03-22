@@ -67,7 +67,7 @@ class BrJobCustomJob extends BrObject {
 
   public function spawn($check, $arguments = '') {
 
-    while (br()->OS()->findProcesses(array($this->runJobScript))->count() > $this->maxProcessesAmount) {
+    while (br()->OS()->findProcesses([ $this->runJobScript ])->count() > $this->maxProcessesAmount) {
       br()->log('[...] Too many processes started, maximum is ' . $this->maxProcessesAmount . '. Waiting to continue');
       sleep(10);
     }
@@ -103,7 +103,7 @@ class BrJobCustomJob extends BrObject {
 
     if ($list = $this->timeToStart()) {
       if (!is_array($list)) {
-        $list = array(null);
+        $list = [ null ];
       }
       foreach($list as $arguments) {
         $this->spawn(false, $arguments);
@@ -152,11 +152,13 @@ class BrJobCustomJob extends BrObject {
     if (file_exists($fileName)) {
       throw new BrAppException('Such job already exists - ' . $fileName);
     } else {
-      br()->fs()->saveToFile( $fileName
-                            , br()->renderer()->fetchString( br()->fs()->loadFromFile(dirname(__DIR__) . '/templates/Job.tpl')
-                                                           , array( 'guid' => br()->guid()
-                                                                  , 'name' => $name
-                                                                  )));
+      br()->fs()->saveToFile(
+        $fileName,
+        br()->renderer()->fetchString(
+          br()->fs()->loadFromFile(dirname(__DIR__) . '/templates/Job.tpl'),
+          [ 'guid' => br()->guid(), 'name' => $name ]
+        )
+      );
     }
 
   }

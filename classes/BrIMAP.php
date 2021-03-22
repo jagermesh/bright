@@ -15,7 +15,6 @@ class BrIMAP extends BrObject {
   private $hostName, $conectString, $userName, $password;
 
   public function __construct($hostName, $userName, $password, $protocol = 'ssl', $port = 993) {
-
     $this->hostName = $hostName;
     $this->connectString = '{' . $hostName;
     if ($port) {
@@ -29,33 +28,31 @@ class BrIMAP extends BrObject {
 
     $this->userName = $userName;
     $this->password = $password;
-
   }
 
   public function getFolders($mask = '*') {
-
-    $result = array();
+    $result = [];
 
     if ($list = imap_getmailboxes($this->openMailbox(), '{' . $this->hostName . '}', $mask)) {
       foreach ($list as $element) {
         $name = str_replace('{' . $this->hostName . '}', '', imap_utf7_decode($element->name));
         $path = br($name)->split($element->delimiter);
-        $result[] = array( 'name'       => $path[count($path) - 1]
-                         , 'path'       => $name
-                         , 'pathArray'  => $path
-                         , 'delimiter'  => $element->delimiter
-                         , 'attributes' => $element->attributes
-                         );
+        $result[] = [
+          'name' => $path[count($path) - 1],
+          'path' => $name,
+          'pathArray' => $path,
+          'delimiter' => $element->delimiter,
+          'attributes' => $element->attributes
+        ];
       }
     }
 
     return $result;
-
   }
 
   public function getMessages($path) {
+    $result = [];
 
-    $result = array();
     if ($mailbox = $this->openMailbox($path)) {
       if ($check = imap_check($mailbox)) {
         if ($messages = imap_fetch_overview($mailbox, '1:' . $check->Nmsgs, 0)) {
@@ -69,12 +66,11 @@ class BrIMAP extends BrObject {
     }
 
     return $result;
-
   }
 
   public function getSortedMessages($path) {
+    $result = [];
 
-    $result = array();
     if ($mailbox = $this->openMailbox($path)) {
       if ($sortedMessages = imap_sort($mailbox, SORTDATE, 0, SE_UID)) {
         for ($i = 0; $i < count($sortedMessages); $i++) {
@@ -88,21 +84,17 @@ class BrIMAP extends BrObject {
     }
 
     return $result;
-
   }
 
   public function openMailbox($mailbox = '') {
-
     if ($mailbox = @imap_open($this->connectString.$mailbox, $this->userName, $this->password, 0, 5)) {
       return $mailbox;
     } else {
       throw new \Exception(implode(', ', imap_errors()));
     }
-
   }
 
   public function createMailBox($folderName) {
-
     if ($mailbox = @imap_open($this->connectString, $this->userName, $this->password, 0, 5)) {
       if (imap_createmailbox($mailbox, imap_utf7_encode($this->connectString.$folderName))) {
 
@@ -112,19 +104,15 @@ class BrIMAP extends BrObject {
     } else {
       throw new \Exception(implode(', ', imap_errors()));
     }
-
   }
 
   public function expunge($path) {
-
     if ($mailbox = $this->openMailbox($path)) {
       imap_expunge($mailbox);
     }
-
   }
 
   static function decode($body, $encoding) {
-
     for ($i=0; $i < 256; $i++) {
       $c1 = dechex($i);
       if (strlen($c1)==1) {
@@ -136,12 +124,6 @@ class BrIMAP extends BrObject {
     }
 
     switch ($encoding) {
-      // case 0:
-      //   return imap_utf7_decode($body);
-      // case 1:
-      //   return imap_utf8($body);
-      // case 2:
-      //   return imap_binary($body);
       case 3:
         return imap_base64($body);
       case 4:
@@ -149,7 +131,6 @@ class BrIMAP extends BrObject {
     }
 
     return $body;
-
   }
 
 }

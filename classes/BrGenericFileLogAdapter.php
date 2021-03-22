@@ -30,7 +30,6 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter {
       $dateTime = new \DateTime();
       $this->fileName .= '_' . $dateTime->format('Y-m-d');
       $this->fileName .= '_' . $dateTime->format('H-00');
-
       if (br()->isConsoleMode()) {
         $this->fileName .= '_' . br()->getScriptName();
         if ($this->commandLineParams) {
@@ -105,12 +104,15 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter {
   }
 
   protected function getLogPrefix(array $info) {
-    return $info['timestamp'] . ' ' .
-           str_pad('+' . $info['timestamp_since_start'], 8, ' ', STR_PAD_LEFT) . ' ' .
-           str_pad('+' . $info['timestamp_since_prior'], 8, ' ', STR_PAD_LEFT) . ' ' .
-           str_pad($info['client_ip'], 15, ' ', STR_PAD_LEFT) . ' ' .
-           $info['sid'] . ' ' .
-           str_pad(substr($info['log_event'], 0, 8), 8, ' ', STR_PAD_LEFT);
+    return
+      $info['timestamp'] . ' ' .
+      str_pad($info['timestamp_since_start'], 8, ' ', STR_PAD_LEFT) . ' ' .
+      str_pad($info['timestamp_since_prior'], 8, ' ', STR_PAD_LEFT) . ' ' .
+      str_pad($info['mem_usage_since_start'], 8, ' ', STR_PAD_LEFT) . ' ' .
+      str_pad($info['mem_usage_since_prior'], 8, ' ', STR_PAD_LEFT) . ' ' .
+      str_pad($info['client_ip'], 15, ' ', STR_PAD_LEFT) . ' ' .
+      $info['sid'] . ' ' .
+      str_pad(substr($info['log_event'], 0, 8), 8, ' ', STR_PAD_LEFT);
   }
 
   protected function writeToLogFile(string $message, string $prefix = '') {

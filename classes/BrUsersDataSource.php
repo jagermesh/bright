@@ -13,7 +13,6 @@ namespace Bright;
 class BrUsersDataSource extends BrDataSource {
 
   function __construct() {
-
     $usersTable = 'none';
     $loginField = 'none';
 
@@ -22,18 +21,15 @@ class BrUsersDataSource extends BrDataSource {
       $loginField = br()->auth()->getAttr('usersTable.loginField');
     }
 
-    parent::__construct($usersTable, array('defaultOrder' => $loginField));
+    parent::__construct($usersTable, [ 'defaultOrder' => $loginField ]);
 
     $this->on('signup', function($dataSource, $params) {
-
       $loginField    = br()->auth()->getAttr('usersTable.loginField');
       $passwordField = br()->auth()->getAttr('usersTable.passwordField');
       $emailField    = br()->auth()->getAttr('usersTable.emailField');
 
       if (br()->auth()->getAttr('signup.enabled')) {
-
-        $data = array();
-
+        $data = [];
         $row = $dataSource->insert($params, $data);
 
         br()->log()->message('User registered:');
@@ -46,7 +42,7 @@ class BrUsersDataSource extends BrDataSource {
             $user[$passwordField] = br($data, 'password');
             $message = br()->renderer()->fetch($mailTemplate, $user);
             br()->log()->message('Sending signup mail to ' . $email);
-            if (br()->sendMail($email, br()->auth()->getAttr('signup.mail.subject'), $message, array('sender' => br()->auth()->getAttr('mail.from')))) {
+            if (br()->sendMail($email, br()->auth()->getAttr('signup.mail.subject'), $message, [ 'sender' => br()->auth()->getAttr('mail.from') ])) {
               br()->log()->message('Sent');
             } else {
               throw new \Exception('Mail was not sent because of unknown error');
@@ -59,42 +55,34 @@ class BrUsersDataSource extends BrDataSource {
         }
 
         br()->auth()->login($row);
-
         $row = $dataSource->selectOne(br()->db()->rowidValue($row));
-
         unset($row[$passwordField]);
-
         br()->auth()->trigger('after:signup', $row);
 
         return $row;
-
       } else {
-
         throw new \Exception('Sorry. Signup is currently disabled.');
-
       }
-
     });
 
     $this->on('login', function($dataSource, $params) {
-
       $loginField      = br()->auth()->getAttr('usersTable.loginField');
       $passwordField   = br()->auth()->getAttr('usersTable.passwordField');
       $plainPasswords  = br()->auth()->getAttr('plainPasswords');
 
-      $filter = array();
-
+      $filter = [];
       try {
         if (br($params, $loginField) && br($params, $passwordField)) {
           if (!$plainPasswords) {
             $params[$passwordField] = md5($params[$passwordField]);
           }
-          $filter = array( $loginField    => $params[$loginField]
-                         , $passwordField => $params[$passwordField]
-                         );
-          $order  = array();
+          $filter = [
+            $loginField    => $params[$loginField],
+            $passwordField => $params[$passwordField]
+          ];
+          $order = [];
           $dataSource->callEvent('before:loginSelectUser', $params, $filter, $order);
-          if ($row = $dataSource->selectOne($filter, array(), $order)) {
+          if ($row = $dataSource->selectOne($filter, [], $order)) {
             $row[$passwordField] = $params[$passwordField];
             $row = $dataSource->loginUser($row, $params);
             return $row;
@@ -117,31 +105,24 @@ class BrUsersDataSource extends BrDataSource {
         $dataSource->callEvent('loginError', $params);
         throw new \Exception($params['error']);
       }
-
     });
 
     $this->on('logout', function($dataSource, $params) {
-
       br()->auth()->logout();
 
       return true;
-
     });
 
     $this->on('getCurrentUser', function($dataSource, $params) {
-
       if ($login = br()->auth()->getLogin()) {
         return $dataSource->selectOne($login['id']);
       }
 
       return false;
-
     });
 
     $this->on('remindPassword', function($dataSource, $params) {
-
       if (br()->auth()->getAttr('passwordReminder.enabled')) {
-
         $usersTable         = br()->auth()->getAttr('usersTable.name');
         $loginField         = br()->auth()->getAttr('usersTable.loginField');
         $loginFieldLabel    = br()->auth()->getAttr('usersTable.loginFieldLabel');
@@ -150,15 +131,14 @@ class BrUsersDataSource extends BrDataSource {
         $plainPasswords     = br()->auth()->getAttr('plainPasswords');
 
         if ($login = br($params, $loginField)) {
-          if ($user = $dataSource->selectOne(array($loginField => $login))) {
+          if ($user = $dataSource->selectOne([ $loginField => $login ])) {
             if ($email = br($user, $emailField)) {
               if ($mailTemplate = br()->auth()->getAttr('passwordReminder.verificationMail.template')) {
-
                 $user[$passwordResetField] = br()->guid();
                 $user['passwordResetUrl']  = br()->request()->host() . br()->request()->baseUrl() . 'api/users/resetPassword/' . $user[$passwordResetField];
 
                 if ($message = br()->renderer()->fetch($mailTemplate, $user)) {
-                  if (br()->sendMail($email, br()->auth()->getAttr('passwordReminder.verificationMail.subject'), $message, array('sender' => br()->auth()->getAttr('passwordReminder.verificationMail.from')))) {
+                  if (br()->sendMail($email, br()->auth()->getAttr('passwordReminder.verificationMail.subject'), $message, [ 'sender' => br()->auth()->getAttr('passwordReminder.verificationMail.from') ])) {
                     br()->db()->runQuery('UPDATE ' . $usersTable . ' SET ' . $passwordResetField . ' = ? WHERE id = ?', $user[$passwordResetField], br()->db()->rowidValue($user));
                     br()->log()->message('Password reset verification sent to ' . $email);
                     br()->log()->message($user);
@@ -184,15 +164,12 @@ class BrUsersDataSource extends BrDataSource {
       } else {
         throw new BrAppException('Sorry. Password reminder is currently disabled.');
       }
-
     });
 
     // DML Events
     $this->before('select', function($dataSource, &$filter, $t, $options) {
-
       // add security checks only for REST calls
       if (br($options, 'source') == 'RESTBinder') {
-
         if ($security = br()->auth()->getAttr('usersAPI.select')) {
 
         } else {
@@ -212,25 +189,21 @@ class BrUsersDataSource extends BrDataSource {
         if (strpos($security, 'anyone') === false) {
           throw new \Exception('You are not allowed to see users');
         }
-
       }
-
     });
 
     $this->on('calcFields', function($dataSource, &$row) {
-
       $passwordField = br()->auth()->getAttr('usersTable.passwordField');
 
       unset($row[$passwordField]);
 
-      $row['__permissions'] = array( 'canUpdate' => $dataSource->canUpdate($row)
-                                   , 'canRemove' => $dataSource->canRemove($row)
-                                   );
-
+      $row['__permissions'] = [
+        'canUpdate' => $dataSource->canUpdate($row),
+        'canRemove' => $dataSource->canRemove($row)
+      ];
     });
 
     $this->before('insert', function($dataSource, &$row, &$data) {
-
       $loginField         = br()->auth()->getAttr('usersTable.loginField');
       $loginFieldLabel    = br()->auth()->getAttr('usersTable.loginFieldLabel');
       $emailField         = br()->auth()->getAttr('usersTable.emailField');
@@ -282,7 +255,7 @@ class BrUsersDataSource extends BrDataSource {
       // we are here so let's work
       if ($login = trim(br()->html2text(br($row, $loginField)))) {
         $row[$loginField] = $login;
-        if ($user = $dataSource->selectOne(array($loginField => $login))) {
+        if ($user = $dataSource->selectOne([ $loginField => $login ])) {
           throw new BrAppException('Such user already exists');
         } else {
           if ($password) {
@@ -295,11 +268,9 @@ class BrUsersDataSource extends BrDataSource {
       } else {
         throw new BrAppException('Please enter ' . $loginFieldLabel);
       }
-
     });
 
     $this->before('update', function($dataSource, &$row, $t, $old) {
-
       if ($login = br()->auth()->getLogin()) {
         $security = br()->auth()->getAttr('usersAPI.update');
         if (strpos($security, 'anyone') === false) {
@@ -319,7 +290,7 @@ class BrUsersDataSource extends BrDataSource {
       if (array_key_exists($loginField, $row)) {
         if ($login = trim(br()->html2text($row[$loginField]))) {
           $row[$loginField] = $login;
-          if ($user = $dataSource->selectOne(array($loginField => $login, br()->db()->rowidField() => array('$ne' => br()->db()->rowid($row))))) {
+          if ($user = $dataSource->selectOne([ $loginField => $login, br()->db()->rowidField() => [ '$ne' => br()->db()->rowid($row) ] ])) {
             throw new BrAppException('Such user already exists');
           } else {
           }
@@ -341,11 +312,9 @@ class BrUsersDataSource extends BrDataSource {
           $row[$passwordField] = $old[$passwordField];
         }
       }
-
     });
 
     $this->before('remove', function($dataSource, $row) {
-
       if ($login = br()->auth()->getLogin()) {
         $security = br()->auth()->getAttr('usersAPI.remove');
         if (strpos($security, 'anyone') === false) {
@@ -356,13 +325,11 @@ class BrUsersDataSource extends BrDataSource {
       } else {
         throw new BrAppException('Access denied');
       }
-
     });
 
   }
 
-  public function canUpdate($row, $new = array()) {
-
+  public function canUpdate($row, $new = []) {
     if ($login = br()->auth()->getLogin()) {
       $security = br()->auth()->getAttr('usersAPI.update');
       if (strpos($security, 'anyone') === false) {
@@ -375,11 +342,9 @@ class BrUsersDataSource extends BrDataSource {
     }
 
     return true;
-
   }
 
   public function canRemove($row) {
-
     if ($login = br()->auth()->getLogin()) {
       $security = br()->auth()->getAttr('usersAPI.remove');
       if (strpos($security, 'anyone') === false) {
@@ -392,11 +357,9 @@ class BrUsersDataSource extends BrDataSource {
     }
 
     return true;
-
   }
 
-  public function loginUser($row, $params = array()) {
-
+  public function loginUser($row, $params = []) {
     if ($this->invokeMethodExists('checkLoginPrivilege')) {
       $this->invoke('checkLoginPrivilege', $row);
     }
@@ -420,7 +383,6 @@ class BrUsersDataSource extends BrDataSource {
     } else {
       throw new BrAppException('Access denied');
     }
-
   }
 
 }

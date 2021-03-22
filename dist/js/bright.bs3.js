@@ -4649,8 +4649,9 @@ THE SOFTWARE.
     options.cancelTitle = options.cancelTitle || br.trn('Cancel');
     options.onConfirm = options.onConfirm || callback;
     options.cssClass = options.cssClass || '';
+    options.defaultButton = options.defaultButton || 'confirm';
 
-    let template = `<div class="br-modal-confirm modal ${options.cssClass}" role="dialog">`;
+    let template = `<div class="br-modal-confirm modal ${options.cssClass}" data-backdrop="static" role="dialog">`;
 
     let checkBoxes = '';
     if (options.checkBoxes) {
@@ -4743,29 +4744,26 @@ THE SOFTWARE.
       }
     });
 
+    $(modal).on('shown.bs.modal', function(event) {
+      if ($(event.target).is(modal)) {
+        if (options.defaultButton) {
+          const btn = $(this).find(`.modal-footer a.btn[rel="${options.defaultButton}"]`);
+          if (btn.length > 0) {
+            btn.addClass('btn-primary');
+          }
+        }
+      }
+    });
+
     $(modal).on('hide.bs.modal', function(event) {
       if ($(event.target).is(modal)) {
         if (options.onHide) {
           options.onHide.call(this);
         }
-        if (remove) {
-          if (options.onCancel) {
-            const button = 'cancel';
-            const dontAsk = $('input[name=showDontAskMeAgain]', $(modal)).is(':checked');
-            options.onCancel(button, dontAsk);
-          }
-          modal.remove();
-        }
-      }
-    });
-
-    $(modal).on('shown.bs.modal', function(event) {
-      if ($(event.target).is(modal)) {
-        if (options.defaultButton) {
-          const btn = $(this).find('.modal-footer a.btn[rel=' + options.defaultButton + ']');
-          if (btn.length > 0) {
-            btn[0].focus();
-          }
+        if (remove && options.onCancel) {
+          const button = 'cancel';
+          const dontAsk = $('input[name="showDontAskMeAgain"]', $(modal)).is(':checked');
+          options.onCancel(button, dontAsk);
         }
       }
     });
@@ -4932,6 +4930,8 @@ THE SOFTWARE.
   window.br.prompt = function(title, fields, callback, options) {
 
     options = options || {};
+    options.cancelTitle = options.cancelTitle || br.trn('Cancel');
+    options.okTitle = options.okTitle || br.trn('Ok');
 
     let inputs = Object.create({});
 
@@ -4973,8 +4973,8 @@ THE SOFTWARE.
 
     template += `</div>
                  <div class="modal-footer">
-                   <a href="javascript:;" class="btn btn-sm btn-primary action-confirm-close" rel="confirm" >Ok</a>
-                   <a href="javascript:;" class="btn btn-sm btn-default btn-outline-secondary" data-dismiss="modal">&nbsp;${br.trn('Cancel')}&nbsp;</a>
+                   <a href="javascript:;" class="btn btn-sm btn-primary action-confirm-close" rel="confirm">${options.okTitle}</a>
+                   <a href="javascript:;" class="btn btn-sm btn-default action-confirm-cancel btn-outline-secondary">&nbsp;${options.cancelTitle}&nbsp;</a>
                  </div>
                </div>
              </div>
@@ -5038,6 +5038,17 @@ THE SOFTWARE.
             notOkField[0].focus();
           }
         });
+        $(this).find('.action-confirm-cancel').click(function() {
+          remove = false;
+          modal.modal('hide');
+          if (options.onCancel) {
+            options.onCancel();
+          }
+          modal.remove();
+          if (oldActiveElement) {
+            oldActiveElement.focus();
+          }
+        });
       }
     });
 
@@ -5051,6 +5062,9 @@ THE SOFTWARE.
       if ($(event.target).is(modal)) {
         if (options.onHide) {
           options.onHide.call(this);
+        }
+        if (remove && options.onCancel) {
+          options.onCancel();
         }
       }
     });
@@ -7022,6 +7036,7 @@ THE SOFTWARE.
 
       _this.events.on('selectionChanged', function(count) {
         if (count > 0) {
+          $(findNode('.selection-count')).text(count);
           $(findNode('.selection-stat')).text(count + ' record(s) selected');
           $(findNode('.selection-stat')).show();
           $(findNode('.action-clear-selection')).show();
@@ -7035,6 +7050,7 @@ THE SOFTWARE.
             $(findNode('.action-delete-selected')).hide();
           }
         } else {
+          $(findNode('.selection-count')).text('0');
           $(findNode('.selection-stat')).hide();
           $(findNode('.action-clear-selection')).hide();
           $(findNode('.action-delete-selected')).hide();
@@ -7110,7 +7126,7 @@ THE SOFTWARE.
           let s = '';
           let f1 = false;
           let f2 = false;
-          let r = 5;
+          let r = 3;
           let el = false;
           for(let i = 1; i <= totalPages; i++) {
             if ((i <= r) || ((i > currentPage - r) && (i < currentPage + r)) || (i > (totalPages - r))) {
@@ -7214,25 +7230,31 @@ THE SOFTWARE.
       _this.events.trigger('selectionChanged', _this.selection.get().length);
     };
 
-    _this.clearSelection = function() {
+    _this.clearSelection = function(disableEvents) {
       _this.selection.clear();
       $(findNode('.action-select-row')).prop('checked', false);
       $(findNode('tr.row-selected')).removeClass('row-selected');
       $(findNode('.action-select-all')).prop('checked', false);
-      _this.events.trigger('selectionChanged', _this.selection.get().length);
+      if (!disableEvents) {
+        _this.events.trigger('selectionChanged', _this.selection.get().length);
+      }
     };
 
     _this.getSelection = function() {
       return _this.selection.get();
     };
 
-    _this.setSelection = function(selection) {
+    _this.setSelection = function(selection, disableEvents) {
       if (selection) {
         for(let i = 0, length = selection.length; i < length; i++) {
           _this.selectRow(selection[i], true);
           _this.selection.append(selection[i]);
         }
-        _this.events.trigger('selectionChanged', _this.selection.get().length);
+        if (!disableEvents) {
+          _this.events.trigger('selectionChanged', _this.selection.get().length);
+        }
+      } else {
+        _this.clearSelection(disableEvents);
       }
     };
 

@@ -10,74 +10,59 @@
 
 namespace Bright;
 
-class BrRabbitMQ extends BrSingleton {
+class BrRabbitMQ extends BrObject {
 
   private $connection;
   private $channel;
-  private $exchanges = array();
+  private $exchanges = [];
 
-  public function __construct() {
-
-    parent::__construct();
-
-  }
-
-  public function connect($params = array()) {
-
+  public function connect($params = []) {
     if (!$this->connection) {
-      $this->connection = new \PhpAmqpLib\Connection\AMQPConnection( br($params, 'host', 'localhost')
-                                                                   , br($params, 'port', 5672)
-                                                                   , br($params, 'login', 'guest')
-                                                                   , br($params, 'password', 'guest')
-                                                                   , br($params, 'vhost', '/')
-                                                                   );
+      $this->connection = new \PhpAmqpLib\Connection\AMQPConnection(
+        br($params, 'host', 'localhost'),
+        br($params, 'port', 5672),
+        br($params, 'login', 'guest'),
+        br($params, 'password', 'guest'),
+        br($params, 'vhost', '/')
+      );
     }
     if (!$this->channel) {
       $this->channel = $this->connection->channel();
     }
 
     return $this;
-
   }
 
   public function createExchange($exchangeName, $type = 'direct', $passive = false, $durable = false, $auto_delete = false) {
-
     $this->connect();
     $this->channel->exchange_declare($exchangeName, $type, $passive, $durable, $auto_delete);
-
     $this->exchanges[] = $exchangeName;
 
     return $this;
-
   }
 
   public function createQueue($queueName, $a = false, $b = false, $c = true, $d = false) {
-
     $this->connect();
     $this->channel->queue_declare($queueName, $a, $b, $c, $d);
 
     return $this;
-
   }
 
   public function sendMessage($exchangeName, $message, $routingKey = null) {
-
     $this->connect();
-    $msg = new \PhpAmqpLib\Message\AMQPMessage( json_encode($message)
-                                              , array( 'content_type' => 'application/json'
-                                                     , 'delivery_mode' => 2
-                                                     ));
+    $msg = new \PhpAmqpLib\Message\AMQPMessage( json_encode($message), [
+      'content_type' => 'application/json',
+      'delivery_mode' => 2
+    ]);
     if (!in_array($exchangeName, $this->exchanges)) {
       $this->createExchange($exchangeName, 'topic');
     }
     $this->channel->basic_publish($msg, $exchangeName, $routingKey);
 
     return $this;
-
   }
 
-  public function receiveOneMessage($exchangeName, $bindingKey, $callback = null, $params = array()) {
-
+  public function receiveOneMessage($exchangeName, $bindingKey, $callback = null, $params = []) {
     if (is_callable($bindingKey)) {
       $params = $callback;
       $callback = $bindingKey;
@@ -108,11 +93,9 @@ class BrRabbitMQ extends BrSingleton {
     $this->channel->basic_cancel($consumerTag);
 
     return $this;
-
   }
 
-  public function receiveMessages($exchangeName, $bindingKey, $callback = null, $params = array()) {
-
+  public function receiveMessages($exchangeName, $bindingKey, $callback = null, $params = []) {
     if (is_callable($bindingKey)) {
       $params = $callback;
       $callback = $bindingKey;
@@ -142,11 +125,9 @@ class BrRabbitMQ extends BrSingleton {
     $this->channel->basic_cancel($consumerTag);
 
     return $this;
-
   }
 
   public function close() {
-
     if ($this->channel) {
       $this->channel->close();
       $this->connection->close();
@@ -155,7 +136,6 @@ class BrRabbitMQ extends BrSingleton {
     }
 
     return $this;
-
   }
 
 }

@@ -27,7 +27,7 @@ class BrDataBase extends BrObject {
       $hash = md5(serialize($config));
       if (!array_key_exists($hash, self::$instances)) {
         self::$instances[$hash]['initialized'] = true;
-        self::$instances[$hash]['provider']    = null;
+        self::$instances[$hash]['provider'] = null;
         switch($config['engine']) {
           case 'mysql':
           case 'mysqli':
@@ -41,7 +41,6 @@ class BrDataBase extends BrObject {
             break;
         }
       }
-
       return self::$instances[$hash]['provider'];
     } else {
       return null;

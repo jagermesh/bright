@@ -22,13 +22,10 @@ class BrFTP extends BrRemoteConnection {
   private $reconnectsAmount = 10;
 
   public function __construct() {
-
     parent::__construct();
-
   }
 
   public function connect($hostName, $userName, $password, $port = 21, $passiveMode = true) {
-
     $this->currentHostName    = $hostName;
     $this->currentUserName    = $userName;
     $this->currentPassword    = $password;
@@ -36,7 +33,6 @@ class BrFTP extends BrRemoteConnection {
     $this->currentPassiveMode = $passiveMode;
 
     $_this = $this;
-
     try {
       $this->retry(function($iteration) use ($_this, $hostName, $userName, $password, $port, $passiveMode) {
         br()->log('Connecting to ' . $userName . '@' . $hostName . ($iteration > 1 ? ' (' . $iteration . ')' : ''));
@@ -57,59 +53,44 @@ class BrFTP extends BrRemoteConnection {
     } catch (\Exception $e) {
       throw new BrRemoteConnectionErrorException($e->getMessage());
     }
-
   }
 
   public function disconnect() {
-
     try {
       ftp_close($this->connectionId);
     } catch (\Exception $e) {
 
     }
-
   }
 
   public function reset() {
-
     $dir = $this->currentDirectory;
     $this->disconnect();
     $this->connect($this->currentHostName, $this->currentUserName, $this->currentPassword, $this->currentPort, $this->currentPassiveMode);
     $this->changeDir($dir);
-
   }
 
   public function getCurrentDir() {
-
     return $this->getServerDir();
-
   }
 
   public function getServerDir() {
-
     return rtrim(str_replace('\\', '/', ftp_pwd($this->connectionId)), '/') . '/';
-
   }
 
   public function changeDir($directory) {
-
     if (ftp_chdir($this->connectionId, $directory)) {
       $this->currentDirectory = $this->getServerDir();
     } else {
       throw new \Exception('Can not change remote directory to ' . $directory);
     }
-
   }
 
   public function iterateDir($mask, $callback = null) {
-
-    if (gettype($mask) == 'string') {
-
-    } else {
+    if (gettype($mask) != 'string') {
       $callback = $mask;
       $mask = null;
     }
-
     if ($ftpRAWList = ftp_rawlist($this->connectionId, $this->currentDirectory)) {
       if (is_array($ftpRAWList)) {
         foreach($ftpRAWList as $line) {
@@ -124,80 +105,57 @@ class BrFTP extends BrRemoteConnection {
         }
       }
     }
-
   }
 
   public function uploadFile($sourceFilePath, $targetFileName = null, $mode = FTP_BINARY) {
-
     if (!$targetFileName) {
       $targetFileName = br()->fs()->fileName($sourceFilePath);
     }
-
     $targetFileNamePartial = $targetFileName . '.partial';
-
     if (ftp_put($this->connectionId, $targetFileNamePartial, $sourceFilePath, $mode)) {
       if ($this->renameFile($targetFileNamePartial, $targetFileName)) {
         return true;
       }
     }
-
     throw new \Exception('Can not upload file ' . $sourceFilePath);
-
   }
 
   public function deleteFile($fileName) {
-
     return @ftp_delete($this->connectionId, $fileName);
-
   }
 
   public function renameFile($oldFileName, $newFileName) {
-
     return @ftp_rename($this->connectionId, $oldFileName, $newFileName);
-
   }
 
   public function makeDir($name) {
-
     return @ftp_mkdir($this->connectionId, $name);
-
   }
 
   public function downloadFile($sourceFileName, $targetFilePath, $targetFileName = null, $mode = FTP_BINARY) {
-
     $targetFilePath = br()->fs()->normalizePath($targetFilePath);
-
     if (!$targetFileName) {
       $targetFileName = $sourceFileName;
     }
-
     $targetFileNamePartial = $targetFileName . '.partial';
-
     if (ftp_get($this->connectionId, $targetFilePath . $targetFileNamePartial, $sourceFileName, $mode)) {
       if (rename($targetFilePath . $targetFileNamePartial, $targetFilePath . $targetFileName)) {
         return true;
       }
     }
-
     throw new \Exception('Can not download file ' . $sourceFileName);
-
   }
 
   public function isFileExists($fileName) {
-
     $exists = false;
     $this->iterateDir($fileName, function() use (&$exists) {
       $exists = true;
     });
     return $exists;
-
   }
 
   public function getLastError() {
-
     return '';
-
   }
 
 }
-

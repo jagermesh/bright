@@ -131,7 +131,6 @@ class BrGenericSQLProviderCursor implements \Iterator {
   }
 
   public function getSQL() {
-
     $sql = $this->sql;
     if (strlen($this->limit)) {
       $sql = $this->provider->getLimitSQL($sql, $this->skip, $this->limit);
@@ -141,13 +140,11 @@ class BrGenericSQLProviderCursor implements \Iterator {
     } else {
       return $sql;
     }
-
   }
 
   // private
 
   private function getData() {
-
     if ($this->position == -1) {
       if (strlen($this->limit)) {
         $this->sql = $this->provider->getLimitSQL($this->sql, $this->skip, $this->limit);
@@ -156,7 +153,6 @@ class BrGenericSQLProviderCursor implements \Iterator {
       $this->row = $this->provider->selectNext($this->query);
       $this->position = 0;
     }
-
   }
 
 }

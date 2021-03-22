@@ -514,6 +514,7 @@
 
       _this.events.on('selectionChanged', function(count) {
         if (count > 0) {
+          $(findNode('.selection-count')).text(count);
           $(findNode('.selection-stat')).text(count + ' record(s) selected');
           $(findNode('.selection-stat')).show();
           $(findNode('.action-clear-selection')).show();
@@ -527,6 +528,7 @@
             $(findNode('.action-delete-selected')).hide();
           }
         } else {
+          $(findNode('.selection-count')).text('0');
           $(findNode('.selection-stat')).hide();
           $(findNode('.action-clear-selection')).hide();
           $(findNode('.action-delete-selected')).hide();
@@ -602,7 +604,7 @@
           let s = '';
           let f1 = false;
           let f2 = false;
-          let r = 5;
+          let r = 3;
           let el = false;
           for(let i = 1; i <= totalPages; i++) {
             if ((i <= r) || ((i > currentPage - r) && (i < currentPage + r)) || (i > (totalPages - r))) {
@@ -706,25 +708,31 @@
       _this.events.trigger('selectionChanged', _this.selection.get().length);
     };
 
-    _this.clearSelection = function() {
+    _this.clearSelection = function(disableEvents) {
       _this.selection.clear();
       $(findNode('.action-select-row')).prop('checked', false);
       $(findNode('tr.row-selected')).removeClass('row-selected');
       $(findNode('.action-select-all')).prop('checked', false);
-      _this.events.trigger('selectionChanged', _this.selection.get().length);
+      if (!disableEvents) {
+        _this.events.trigger('selectionChanged', _this.selection.get().length);
+      }
     };
 
     _this.getSelection = function() {
       return _this.selection.get();
     };
 
-    _this.setSelection = function(selection) {
+    _this.setSelection = function(selection, disableEvents) {
       if (selection) {
         for(let i = 0, length = selection.length; i < length; i++) {
           _this.selectRow(selection[i], true);
           _this.selection.append(selection[i]);
         }
-        _this.events.trigger('selectionChanged', _this.selection.get().length);
+        if (!disableEvents) {
+          _this.events.trigger('selectionChanged', _this.selection.get().length);
+        }
+      } else {
+        _this.clearSelection(disableEvents);
       }
     };
 

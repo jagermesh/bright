@@ -10,7 +10,7 @@
 
 namespace Bright;
 
-class BrApplication extends BrSingleton {
+class BrApplication extends BrObject {
 
   private $renderer;
 
@@ -18,8 +18,7 @@ class BrApplication extends BrSingleton {
     parent::__construct();
 
     br()->log()->message('Application started', [], 'snapshot');
-    br()->profiler()->logStart('Application');
-    register_shutdown_function(array(&$this, 'captureShutdown'));
+    register_shutdown_function([ &$this, 'captureShutdown' ]);
 
     if (!br()->isConsoleMode()) {
       if ($token = br()->request()->param('__loginToken')) {
@@ -47,7 +46,7 @@ class BrApplication extends BrSingleton {
         $scriptName = 'index.php';
       }
 
-      $targetScripts = array();
+      $targetScripts = [];
       // if script is html - try to find regarding php
       if ($path = br()->request()->relativeUrl()) {
         // as is
@@ -80,7 +79,6 @@ class BrApplication extends BrSingleton {
   }
 
   public function captureShutdown() {
-    br()->profiler()->logFinish('Application');
     br()->log()->message('Application finished', [], 'snapshot');
   }
 

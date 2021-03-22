@@ -21,7 +21,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
   public function __construct($config) {
     $this->config = $config;
 
-    register_shutdown_function(array(&$this, "captureShutdown"));
+    register_shutdown_function([ &$this, "captureShutdown" ]);
   }
 
   public function connection() {
@@ -51,16 +51,16 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
       throw $e;
     }
 
-    $hostName      = br($this->config, 'hostname');
+    $hostName  = br($this->config, 'hostname');
     $dataBaseNames = br(br($this->config, 'name'))->split();
-    $userName      = br($this->config, 'username');
-    $password      = br($this->config, 'password');
+    $userName = br($this->config, 'username');
+    $password = br($this->config, 'password');
 
     if (preg_match('/(.+?)[:]([0-9]+)$/', $hostName, $matches)) {
-      $hostName    = $matches[1];
-      $port        = $matches[2];
+      $hostName = $matches[1];
+      $port = $matches[2];
     } else {
-      $port        = br($this->config, 'port');
+      $port = br($this->config, 'port');
     }
 
     try {
@@ -123,7 +123,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     parent::rollbackTransaction($force);
   }
 
-  public function selectNext($query, $options = array()) {
+  public function selectNext($query, $options = []) {
     $result = mysqli_fetch_assoc($query);
     if (!br($options, 'doNotChangeCase')) {
       if (is_array($result)) {
@@ -177,17 +177,17 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
   }
 
   public function getQueryStructure($query) {
-    $field_defs = array();
+    $field_defs = [];
     if ($query = $this->runQueryEx($query)) {
       while ($finfo = mysqli_fetch_field($query)) {
-        $field_defs[strtolower($finfo->name)] = array( "length" => $finfo->max_length
-                                                     , "type"   => $finfo->type
-                                                     , "flags"  => $finfo->flags
-                                                     );
+        $field_defs[strtolower($finfo->name)] = [
+          'length' => $finfo->max_length,
+          'type' => $finfo->type,
+          'flags' => $finfo->flags
+        ];
       }
       mysqli_free_result($query);
     }
-
     $field_defs = array_change_key_case($field_defs, CASE_LOWER);
     foreach($field_defs as $field => $defs) {
       $field_defs[$field]['genericType'] = $this->toGenericDataType($field_defs[$field]['type']);
@@ -196,7 +196,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     return $field_defs;
   }
 
-  public function runQueryEx($sql, $args = array(), $iteration = 0, $rerunError = null, $resultMode = MYSQLI_STORE_RESULT) {
+  public function runQueryEx($sql, $args = [], $iteration = 0, $rerunError = null, $resultMode = MYSQLI_STORE_RESULT) {
     try {
       // check connection
       $this->connection();

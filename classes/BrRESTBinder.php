@@ -20,89 +20,71 @@ class BrRESTBinder extends BrObject {
 
   }
 
-  public function route($path, $dataSource = null, $options = array()) {
-
+  public function route($path, $dataSource = null, $options = []) {
     if (!br()->request()->routeComplete()) {
-
       if (is_object($path)) {
-
         $path->doRouting();
-
       } else {
-
         $method = strtolower(br()->request()->get('crossdomain', br()->request()->method()));
-
         switch($method) {
-          case "put":
+          case 'put':
             return $this->routeAsPUT($path, $dataSource, $options);
             break;
-          case "post":
+          case 'post':
             return $this->routeAsPOST($path, $dataSource, $options);
             break;
-          case "delete":
+          case 'delete':
             return $this->routeAsDELETE($path, $dataSource, $options);
             break;
           default:
             return $this->routeAsGET($path, $dataSource, $options);
             break;
         }
-
       }
-
     }
 
     return $this;
-
   }
 
-  public function routeGET($path, $dataSource, $options = array()) {
-
+  public function routeGET($path, $dataSource, $options = []) {
     $method = strtolower(br()->request()->get('crossdomain', br()->request()->method()));
     if (!$method || ($method == 'get')) {
       $this->routeAsGET($path, $dataSource, $options);
     }
 
     return $this;
-
   }
 
-  public function routePOST($path, $dataSource, $options = array()) {
-
+  public function routePOST($path, $dataSource, $options = []) {
     $method = strtolower(br()->request()->get('crossdomain', br()->request()->method()));
     if ($method == 'post') {
       $this->routeAsPOST($path, $dataSource, $options);
     }
 
     return $this;
-
   }
 
-  public function routePUT($path, $dataSource, $options = array()) {
-
+  public function routePUT($path, $dataSource, $options = []) {
     $method = strtolower(br()->request()->get('crossdomain', br()->request()->method()));
     if ($method == 'put') {
       $this->routeAsPUT($path, $dataSource, $options);
     }
 
     return $this;
-
   }
 
-  public function routeDELETE($path, $dataSource, $options = array()) {
-
+  public function routeDELETE($path, $dataSource, $options = []) {
     $method = strtolower(br()->request()->get('crossdomain', br()->request()->method()));
     if ($method == 'delete') {
       $this->routeAsDELETE($path, $dataSource, $options);
     }
 
     return $this;
-
   }
 
   private function checkPermissions($options, $methods) {
-
     $securityRules = br($options, 'security');
-    $result        = 'login';
+    $result = 'login';
 
     if (is_array($securityRules)) {
       $found = false;
@@ -139,11 +121,9 @@ class BrRESTBinder extends BrObject {
     if ($result && !br()->auth()->isLoggedIn()) {
       br()->response()->sendNotAuthorized();
     }
-
   }
 
-  public function routeAsGET($path, $dataSource, $options = array()) {
-
+  public function routeAsGET($path, $dataSource, $options = []) {
     if (br()->request()->isAt($path)) {
 
       br()->request()->setIsRest(true);
@@ -158,12 +138,12 @@ class BrRESTBinder extends BrObject {
         $event = 'selectOne';
       }
 
-      $this->checkPermissions($options, array($event, 'select'));
+      $this->checkPermissions($options, [ $event, 'select' ]);
 
-      $dataSourceOptions = array();
+      $dataSourceOptions = [];
       $dataSourceOptions['source'] = 'RESTBinder';
 
-      $filter = array();
+      $filter = [];
 
       if ($rowid = br()->request()->get('rowid')) {
         $filter[br()->db()->rowidField()] = br($rowid)->split();
@@ -183,7 +163,7 @@ class BrRESTBinder extends BrObject {
 
       if ($filterMappings = br($options, 'filterMappings')) {
         foreach($filterMappings as $mapping) {
-          $get = is_array($mapping['get'])?$mapping['get']:array($mapping['get']);
+          $get = is_array($mapping['get']) ? $mapping['get'] : [ $mapping['get'] ];
           foreach($get as $getParam) {
             $value = br()->request()->get($getParam);
             if (is_string($value) && strlen($value)) {
@@ -192,45 +172,45 @@ class BrRESTBinder extends BrObject {
             if ($value || (is_string($value) && strlen($value))) {
               $fields = br($mapping, 'field', br($mapping, 'fields', $getParam));
               switch(br($mapping, 'type', '=')) {
-                case "=":
+                case '=':
                   if (is_array($value)) {
                     if (br($mapping, 'options') == 'passthru') {
                       $filter[$fields] = $value;
                     } else {
-                      $subFilter = array();
+                      $subFilter = [];
                       foreach($value as $name => $singleValue) {
                         $name = (string)$name;
                         switch ($name) {
                           case '$nn':
-                            $subFilter[] = array('$nn' => '');
+                            $subFilter[] = [ '$nn' => '' ];
                             break;
                           case '$ne':
                             if (is_scalar($singleValue) || (is_array($singleValue) && br($singleValue)->isRegularArray())) {
-                              $subFilter[] = array('$ne' => $singleValue);
+                              $subFilter[] = [ '$ne' => $singleValue ];
                             }
                             break;
                           case '<':
                           case '$lt':
                             if (is_scalar($singleValue)) {
-                              $subFilter[] = array('$lt' => $singleValue);
+                              $subFilter[] = [ '$lt' => $singleValue ];
                             }
                             break;
                           case '>':
                           case '$gt':
                             if (is_scalar($singleValue)) {
-                              $subFilter[] = array('$gt' => $singleValue);
+                              $subFilter[] = [ '$gt' => $singleValue ];
                             }
                             break;
                           case '<=':
                           case '$lte':
                             if (is_scalar($singleValue)) {
-                              $subFilter[] = array('$lte' => $singleValue);
+                              $subFilter[] = [ '$lte' => $singleValue ];
                             }
                             break;
                           case '>=':
                           case '$gte':
                             if (is_scalar($singleValue)) {
-                              $subFilter[] = array('$gte' => $singleValue);
+                              $subFilter[] = [ '$gte' => $singleValue ];
                             }
                             break;
                           default:
@@ -252,67 +232,60 @@ class BrRESTBinder extends BrObject {
                     $filter[$fields] = $value;
                   }
                   break;
-                case "regexp":
+                case 'regexp':
                   if (is_array($fields)) {
-                    $subFilter = array();
+                    $subFilter = [];
                     foreach($fields as $field) {
-                      $subFilter[] = array($field => br()->db()->regexpCondition($value));
+                      $subFilter[] = [ $field => br()->db()->regexpCondition($value) ];
                     }
                     $filter['$or'] = $subFilter;
                   } else {
                     $filter[$fields] = br()->db()->regexpCondition($value);
                   }
                   break;
-                case "like":
+                case 'like':
                   if (is_array($fields)) {
-                    $subFilter = array();
+                    $subFilter = [];
                     foreach($fields as $field) {
-                      $subFilter[] = array($field => array('$like' => $value));
+                      $subFilter[] = [ $field => [ '$like' => $value ] ];
                     }
                     $filter['$or'] = $subFilter;
                   } else {
-                    $filter[$fields] = array('$like' => $value);
+                    $filter[$fields] = [ '$like' => $value ];
                   }
                   break;
-                case "contains":
+                case 'contains':
                   if (is_array($fields)) {
-                    $subFilter = array();
+                    $subFilter = [];
                     foreach($fields as $field) {
-                      $subFilter[] = array($field => array('$contains' => $value));
+                      $subFilter[] = [ $field => [ '$contains' => $value ] ];
                     }
                     $filter['$or'] = $subFilter;
                   } else {
-                    $filter[$fields] = array('$contains' => $value);
+                    $filter[$fields] = [ '$contains' => $value ];
                   }
                   break;
-                case "fulltext":
+                case 'fulltext':
                   if (is_array($fields)) {
-                    $subFilter = array();
+                    $subFilter = [];
                     foreach($fields as $field) {
-                      $subFilter[] = array($field => $value);
+                      $subFilter[] = [ $field => $value ];
                     }
                     $filter['$fulltext'] = $subFilter;
                   } else {
-                    $filter[$fields] = array('$fulltext' => $value);
+                    $filter[$fields] = [ '$fulltext' => $value ];
                   }
                   break;
-                case "filter":
+                case 'filter':
                   $filters = br($mapping, 'filters', br($mapping, 'filter'));
                   if (!is_array($filters)) {
-                    $filters = array($filters);
+                    $filters = [ $filters ];
                   }
                   foreach($filters as $filter) {
                     foreach($filter as $filterField => $filterValue) {
                       $filter[$filterField] = $filterValue;
                     }
                   }
-                  break;
-                case "date:month":
-                  $startMonth = new \MongoDate(strtotime($value.'-01'));
-                  $dateTime = new BrDateTime($startMonth->sec);
-                  $dateTime->incMonth();
-                  $endMonth = new \MongoDate($dateTime->asDate());
-                  $filter[$fields] = array('$gte' => $startMonth, '$lt' => $endMonth);
                   break;
               }
             }
@@ -362,9 +335,9 @@ class BrRESTBinder extends BrObject {
 
       if ($order = br()->request()->get('__order')) {
         if (!is_array($order)) {
-          $order = array($order => 1);
+          $order = [ $order => BrCore::BR_ORDER_ASC ];
         }
-        $verifiedOrder = array();
+        $verifiedOrder = [];
         foreach($order as $name => $direction) {
           if (preg_match('#^[.A-Za-z_0-9]+$#', $name)) {
             $verifiedOrder[$name] = $direction;
@@ -372,14 +345,14 @@ class BrRESTBinder extends BrObject {
         }
         $dataSourceOrder = $verifiedOrder;
       } else {
-        $dataSourceOrder = array();
+        $dataSourceOrder = [];
       }
 
       if ($fields = br()->request()->get('__fields')) {
         if (!is_array($fields)) {
-          $fields = array($fields);
+          $fields = [ $fields ];
         }
-        $verifiedFields = array();
+        $verifiedFields = [];
         foreach($fields as $name) {
           if (preg_match('#^[.A-Za-z_0-9]+$#', $name)) {
             $verifiedFields[] = $name;
@@ -387,7 +360,7 @@ class BrRESTBinder extends BrObject {
         }
         $dataSourceFields = $verifiedFields;
       } else {
-        $dataSourceFields = array();
+        $dataSourceFields = [];
       }
 
       try {
@@ -397,7 +370,7 @@ class BrRESTBinder extends BrObject {
           if (!$filter && !$allowEmptyFilter) {
             $result = 0;
           } else {
-            $result = $dataSource->selectCount($filter, array(), array(), array('source' => 'RESTBinder'));
+            $result = $dataSource->selectCount($filter, [], [], [ 'source' => 'RESTBinder' ]);
           }
         } else {
           $allowEmptyFilter = br($options, 'allowEmptyFilter');
@@ -407,7 +380,7 @@ class BrRESTBinder extends BrObject {
           }
 
           if ($selectOne) {
-            $result = $dataSource->selectOne($filter, $dataSourceFields, array(), $dataSourceOptions);
+            $result = $dataSource->selectOne($filter, $dataSourceFields, [], $dataSourceOptions);
             if (!$result) {
               br()->response()->send404('Record not found');
             }
@@ -427,11 +400,9 @@ class BrRESTBinder extends BrObject {
     }
 
     return $this;
-
   }
 
-  public function routeAsPOST($path, $dataSource, $options = array()) {
-
+  public function routeAsPOST($path, $dataSource, $options = []) {
     if (br()->request()->isAt(rtrim($path, '/'))) {
 
       br()->request()->setIsRest(true);
@@ -441,7 +412,7 @@ class BrRESTBinder extends BrObject {
         $dataSource = new $dataSource();
       }
 
-      $dataSourceOptions = array();
+      $dataSourceOptions = [];
       $dataSourceOptions['source'] = 'RESTBinder';
 
       $method = $method = br()->request()->get('__method');
@@ -452,10 +423,9 @@ class BrRESTBinder extends BrObject {
       }
 
       if ($method) {
+        $this->checkPermissions($options, [ $method, 'invoke' ]);
 
-        $this->checkPermissions($options, array($method, 'invoke'));
-
-        $row = array();
+        $row = [];
         if (br()->request()->isPOST()) {
           $data = br()->request()->post();
         } else {
@@ -480,8 +450,8 @@ class BrRESTBinder extends BrObject {
           }
         }
         try {
-          $t = array();
-          $result = $dataSource->invoke($method, $row, $t, $dataSourceOptions);
+          $transientData = [];
+          $result = $dataSource->invoke($method, $row, $transientData, $dataSourceOptions);
           if (br()->request()->get('crossdomain')) {
             br()->response()->sendJSONP($result);
           } else {
@@ -493,9 +463,9 @@ class BrRESTBinder extends BrObject {
 
       } else
       if ($matches = br()->request()->isAt(rtrim($path, '/') . '/(' . $this->idRegExp . ')')) {
-        $this->checkPermissions($options, array('update'));
+        $this->checkPermissions($options, [ 'update' ]);
 
-        $row = array();
+        $row = [];
         if (br()->request()->isPOST()) {
           $data = br()->request()->post();
         } else {
@@ -529,8 +499,8 @@ class BrRESTBinder extends BrObject {
           unset($row['id']);
         }
         try {
-          $t = array();
-          $result = $dataSource->update($matches[1], $row, $t, $dataSourceOptions);
+          $transientData = [];
+          $result = $dataSource->update($matches[1], $row, $transientData, $dataSourceOptions);
           if (br()->request()->get('crossdomain')) {
             br()->response()->sendJSONP($result);
           } else {
@@ -549,11 +519,9 @@ class BrRESTBinder extends BrObject {
     }
 
     return $this;
-
   }
 
-  public function routeAsPUT($path, $dataSource, $options = array()) {
-
+  public function routeAsPUT($path, $dataSource, $options = []) {
     if ($matches = br()->request()->isAt($path)) {
 
       br()->request()->setIsRest(true);
@@ -563,12 +531,12 @@ class BrRESTBinder extends BrObject {
         $dataSource = new $dataSource();
       }
 
-      $dataSourceOptions = array();
+      $dataSourceOptions = [];
       $dataSourceOptions['source'] = 'RESTBinder';
 
-      $this->checkPermissions($options, array('insert'));
+      $this->checkPermissions($options, [ 'insert' ]);
 
-      $row = array();
+      $row = [];
       if (br()->request()->isPUT()) {
         $data = br()->request()->put();
       } else
@@ -605,8 +573,8 @@ class BrRESTBinder extends BrObject {
         unset($row['id']);
       }
       try {
-        $t = array();
-        $result = $dataSource->insert($row, $t, $dataSourceOptions);
+        $transientData = [];
+        $result = $dataSource->insert($row, $transientData, $dataSourceOptions);
         if (br()->request()->get('crossdomain')) {
           br()->response()->sendJSONP($result);
         } else {
@@ -618,11 +586,9 @@ class BrRESTBinder extends BrObject {
     }
 
     return $this;
-
   }
 
-  public function routeAsDELETE($path, $dataSource, $options = array()) {
-
+  public function routeAsDELETE($path, $dataSource, $options = []) {
     if ($matches = br()->request()->isAt($path)) {
 
       br()->request()->setIsRest(true);
@@ -632,11 +598,11 @@ class BrRESTBinder extends BrObject {
         $dataSource = new $dataSource();
       }
 
-      $dataSourceOptions = array();
+      $dataSourceOptions = [];
       $dataSourceOptions['source'] = 'RESTBinder';
 
       if ($matches = br()->request()->isAt(rtrim($path, '/') . '/(' . $this->idRegExp . ')')) {
-        $this->checkPermissions($options, array('remove', 'delete'));
+        $this->checkPermissions($options, [ 'remove', 'delete' ]);
 
         if (br()->request()->isPUT() || br()->request()->isDELETE()) {
           $data = br()->request()->put();
@@ -670,8 +636,8 @@ class BrRESTBinder extends BrObject {
         }
 
         try {
-          $t = array();
-          $result = $dataSource->remove($matches[1], $t, $dataSourceOptions);
+          $transientData = [];
+          $result = $dataSource->remove($matches[1], $transientData, $dataSourceOptions);
           if (br()->request()->get('crossdomain')) {
             br()->response()->sendJSONP($result);
           } else {
@@ -690,11 +656,9 @@ class BrRESTBinder extends BrObject {
     }
 
     return $this;
-
   }
 
   public function returnException($e) {
-
     $msg = $e->getMessage();
     $outputSent = false;
     if ($e instanceof BrAppException) {
@@ -714,11 +678,9 @@ class BrRESTBinder extends BrObject {
       $message = '';
     }
     br()->response()->sendBadRequest($message);
-
   }
 
   public function route404($path) {
-
     if (!br()->request()->routeComplete()) {
       if (br()->request()->isAt($path)) {
         br()->request()->continueRoute(false);
@@ -727,7 +689,6 @@ class BrRESTBinder extends BrObject {
     }
 
     return $this;
-
   }
 
 }

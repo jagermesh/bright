@@ -10,54 +10,38 @@
 
 namespace Bright;
 
-class BrGenericAuthProvider extends BrSingleton {
+class BrGenericAuthProvider extends BrObject {
 
   function __construct($config = array()) {
-
     $this->setAttributes($config);
-
   }
 
   function getAuthTag() {
-
     return '_br01';
-
   }
 
   function isLoggedIn() {
-
     return !!br()->session()->get('login');
-
   }
 
   function getSessionLogin() {
-
     return br()->session()->get('login');
-
   }
 
   function checkLogin($returnNotAuthorized = true) {
-
     if ($login = $this->getSessionLogin()) {
       $this->login($login);
     }
-
     return $login;
-
   }
 
   function setLogin($attributeName, $value) {
-
     $data = $this->getLogin();
-
     $data[$attributeName] = $value;
-
     return br()->session()->set('login', $data);
-
   }
 
   function getLogin($attributeName = null, $default = null) {
-
     if ($login = $this->getSessionLogin()) {
       if ($attributeName) {
         return br($login, $attributeName, $default);
@@ -68,13 +52,10 @@ class BrGenericAuthProvider extends BrSingleton {
     if ($attributeName) {
       return $default;
     }
-
     return null;
-
   }
 
   function validateLogin($login, $remember = false) {
-
     try {
       $this->trigger('checkLoginPrivilege', $login);
       $this->trigger('setLogin', $login);
@@ -84,66 +65,43 @@ class BrGenericAuthProvider extends BrSingleton {
       $this->logout();
       throw $e;
     }
-
   }
   function login($login, $remember = false) {
-
     $login = $this->validateLogin($login);
-
     if ($remember) {
       $password = $login['password'];
       $token    = sha1(md5(sha1($password)));
-      $cookie   = array( 'login'    => $login['login']
-                       , 'token'    => $token
-                       );
+      $cookie   = [
+        'login' => $login['login'],
+        'token' => $token
+      ];
       if (!br()->isConsoleMode()) {
-        setcookie( $this->getAuthTag()
-                 , base64_encode(json_encode($cookie))
-                 , time() + 60*60*24*30
-                 , br()->request()->baseUrl()
-                 , br()->request()->domain()
-                 );
+        setcookie($this->getAuthTag(), base64_encode(json_encode($cookie)), time() + 60*60*24*30, br()->request()->baseUrl(), br()->request()->domain());
       }
     }
-
     return $login;
-
   }
 
   function logout() {
-
     if (!br()->isConsoleMode()) {
-      setcookie( $this->getAuthTag()
-               , ''
-               , time() - 60*60*24*30
-               , br()->request()->baseUrl()
-               , br()->request()->domain()
-               );
+      setcookie($this->getAuthTag(), '', time() - 60*60*24*30, br()->request()->baseUrl(), br()->request()->domain());
     }
-
     if ($login = $this->getLogin()) {
       $this->trigger('logout', $login);
-
       br()->session()->clear('login');
-
       br()->session()->regenerate(true);
     }
-
     return true;
-
   }
 
   function findLogin($options = array()) {
-
     // Check permissions
     $userId = br($options, 'userId');
-
     if (!$userId) {
       if ($login = $this->getLogin()) {
         $userId = $login['rowid'];
       }
     }
-
     if (!$userId) {
       if ($this->trigger('findLogin', $options)) {
         if ($login = $this->getLogin()) {
@@ -151,9 +109,7 @@ class BrGenericAuthProvider extends BrSingleton {
         }
       }
     }
-
     return $userId;
-
   }
 
 }

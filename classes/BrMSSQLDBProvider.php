@@ -19,24 +19,19 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider {
   private $rerunIterations     = 30;
 
   public function __construct($config) {
-
     $this->config = $config;
-    register_shutdown_function(array(&$this, 'captureShutdown'));
-
+    register_shutdown_function([ &$this, 'captureShutdown' ]);
   }
 
   public function connection() {
-
     if ($this->__connection) {
       return $this->__connection;
     } else {
       return $this->connect();
     }
-
   }
 
   public function connect($iteration = 0, $rerunError = null) {
-
     $wasConnected = !!$this->__connection;
 
     if ($this->__connection) {
@@ -54,16 +49,16 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider {
       throw $e;
     }
 
-    $hostName      = br($this->config, 'hostname');
+    $hostName = br($this->config, 'hostname');
     $dataBaseNames = br(br($this->config, 'name'))->split();
-    $userName      = br($this->config, 'username');
-    $password      = br($this->config, 'password');
+    $userName = br($this->config, 'username');
+    $password = br($this->config, 'password');
 
     if (preg_match('/(.+?)[:]([0-9]+)$/', $hostName, $matches)) {
-      $hostName    = $matches[1];
-      $port        = $matches[2];
+      $hostName = $matches[1];
+      $port = $matches[2];
     } else {
-      $port        = br($this->config, 'port');
+      $port = br($this->config, 'port');
     }
 
     try {
@@ -107,11 +102,9 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider {
     }
 
     return $this->__connection;
-
   }
 
   public function startTransaction($force = false) {
-
     if ($this->__connection) {
       sqlsrv_begin_transaction($this->__connection);
 
@@ -119,11 +112,9 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider {
     } else {
       throw new BrDBServerGoneAwayException('MSSQL server has gone away');
     }
-
   }
 
   public function commitTransaction($force = false) {
-
     if ($this->__connection) {
       sqlsrv_commit($this->__connection);
 
@@ -131,11 +122,9 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider {
     } else {
       throw new BrDBServerGoneAwayException('MSSQL server has gone away');
     }
-
   }
 
   public function rollbackTransaction($force = false) {
-
     if ($this->__connection) {
       sqlsrv_rollback($this->__connection);
 
@@ -143,35 +132,25 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider {
     } else {
       throw new BrDBServerGoneAwayException('MSSQL server has gone away');
     }
-
   }
 
-  public function selectNext($query, $options = array()) {
-
+  public function selectNext($query, $options = []) {
     return sqlsrv_fetch_array($query, SQLSRV_FETCH_ASSOC);
-
   }
 
   public function isEmptyDate($date) {
-
     return (($date == "0000-00-00") or ($date == "0000-00-00 00:00:00") or !$date);
-
   }
 
   public function toDateTime($date) {
-
     return date('Y-m-d H:i:s', $date);
-
   }
 
   public function toDate($date) {
-
     return date('Y-m-d', $date);
-
   }
 
   public function getLastError() {
-
     if ($errors = sqlsrv_errors()) {
       foreach( $errors as $error ) {
         return $error['code'] . ': ' . $error[ 'message'];
@@ -179,59 +158,49 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider {
     } else {
       return 'MSSQL server has gone away';
     }
-
   }
 
   public function getLastId() {
-
     if ($this->__connection) {
       return mysqli_insert_id($this->__connection);
     } else {
       throw new BrDBServerGoneAwayException('MSSQL server has gone away');
     }
-
   }
 
   public function getAffectedRowsAmount($query) {
-
     if ($this->__connection && $query) {
       return sqlsrv_rows_affected($query);
     } else {
       throw new BrDBServerGoneAwayException('MSSQL server has gone away');
     }
-
   }
 
   public function getTableStructure($tableName) {
-
     return $this->getQueryStructure('SELECT * FROM '. $tableName .' LIMIT 1');
-
   }
 
   public function getQueryStructure($query) {
-
-    $field_defs = array();
+    $field_defs = [];
     if ($query = $this->runQueryEx($query)) {
       while ($finfo = mysqli_fetch_field($query)) {
-        $field_defs[strtolower($finfo->name)] = array( "length" => $finfo->max_length
-                                                     , "type"   => $finfo->type
-                                                     , "flags"  => $finfo->flags
-                                                     );
+        $field_defs[strtolower($finfo->name)] = [
+          'length' => $finfo->max_length,
+          'type' => $finfo->type,
+          'flags' => $finfo->flags
+        ];
       }
       mysqli_free_result($query);
     }
-
     $field_defs = array_change_key_case($field_defs, CASE_LOWER);
     foreach($field_defs as $field => $defs) {
       $field_defs[$field]['genericType'] = $this->toGenericDataType($field_defs[$field]['type']);
     }
 
     return $field_defs;
-
   }
 
-  public function runQueryEx($sql, $args = array(), $iteration = 0, $rerunError = null) {
-
+  public function runQueryEx($sql, $args = [], $iteration = 0, $rerunError = null) {
     try {
       // check connection
       $this->connection();
@@ -269,11 +238,9 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider {
     }
 
     return $query;
-
   }
 
   public function getRowsAmountEx($sql, $args) {
-
     $countSQL = $this->getCountSQL($sql);
     try {
       $query = $this->runQueryEx($countSQL, $args);
@@ -285,23 +252,18 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider {
     } catch (\Exception $e) {
       return sqlsrv_num_rows($this->runQueryEx($sql, $args));
     }
-
   }
 
   public function disconnect() {
-
     if ($this->__connection) {
       @sqlsrv_close($this->__connection);
     }
 
     $this->__connection = null;
-
   }
 
   public function captureShutdown() {
-
     $this->disconnect();
-
   }
 
 }

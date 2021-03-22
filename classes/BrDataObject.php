@@ -18,30 +18,23 @@ class BrDataObject extends BrObject {
   protected $uniqueKey = array();
 
   function __construct($tableName) {
-
     $this->tableName = $tableName;
-
   }
 
   public function keyValue() {
-
     if ($this->primaryKey) {
       return $this->get($this->primaryKey);
     } else {
       throw new BrDataObjectException('Primary key not defined');
     }
-
   }
 
   public function load($row) {
-
     $this->setData($row);
     return $this->keyValue();
-
   }
 
   public function save($ignoreErrors = false) {
-
     $doUpdate = false;
     $doInsert = false;
 
@@ -85,21 +78,16 @@ class BrDataObject extends BrObject {
     }
 
     return $this->key();
-
   }
 
   public function copy($obj) {
-
     $this->setData($Obj->getData());
     $this->unSet($this->primaryKey);
-
   }
 
   public function delete() {
-
     br()->db()->delete($this->tableName, $this->keyValue());
     $this->setData();
-
   }
 
   protected function doBeforeSave() {
@@ -122,7 +110,6 @@ class BrDataObject extends BrObject {
 
   // Static
   static function put($values, $ignoreErrors = false) {
-
     $className = get_called_class();
 
     $object = new $className();
@@ -132,22 +119,18 @@ class BrDataObject extends BrObject {
     $object->save($ignoreErrors);
 
     return $object;
-
   }
 
   static function findByKeyValue($keyValue) {
-
     $className = get_called_class();
     $object = new $className();
     $filter = array($object->primaryKey => $keyValue);
     unset($object);
 
     return $className::Find($filter);
-
   }
 
   static function find($filter = array()) {
-
     $className = get_called_class();
     $object = new $className();
 
@@ -157,7 +140,6 @@ class BrDataObject extends BrObject {
       unset($object);
       return null;
     }
-
   }
 
 }

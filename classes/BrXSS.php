@@ -12,12 +12,13 @@ namespace Bright;
 
 require_once(dirname(__DIR__) . '/3rdparty/phpQuery/latest/phpQuery.php');
 
-class BrXSS extends BrSingleton {
+class BrXSS extends BrObject {
 
-  private $allowedDomains = [ 'playposit.com', 'vimeo.com', 'youtu.be', 'youtube.com', 'flickr.com', 'soundcloud.com', 'edpuzzle.com', 'docs.google.com', 'drive.google.com' ];
+  private $allowedDomains = [
+    'playposit.com', 'vimeo.com', 'youtu.be', 'youtube.com', 'flickr.com', 'soundcloud.com', 'edpuzzle.com', 'docs.google.com', 'drive.google.com'
+  ];
 
   public function cleanUp($html, $callback = null) {
-
     if (is_array($html)) {
       foreach($html as $key => $value) {
         $proceed = true;
@@ -80,7 +81,6 @@ class BrXSS extends BrSingleton {
     }
 
     return $html;
-
   }
 
 }

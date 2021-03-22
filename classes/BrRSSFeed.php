@@ -12,28 +12,23 @@ namespace Bright;
 
 class BrRSSFeed extends BrObject {
 
-  public $Articles = array();
+  public $articles = [];
   public $XMLParserError = null;
 
   private $XMLParser = null;
-  private $Article = null;
-  private $CurrentTag = null;
-  private $InsideData = false;
-  private $InsideArticle = false;
+  private $article = null;
+  private $currentTag = null;
+  private $insideData = false;
+  private $insideArticle = false;
 
   public function parseUrl($Url) {
-
-    if ($Content = @get_file_contents($Url)) {
-
-      return $this->Parse($Conent);
-
+    if ($content = @get_file_contents($Url)) {
+      return $this->Parse($conent);
     }
-
   }
 
-  public function parse($Content) {
-
-    $this->Articles = array();
+  public function parse($content) {
+    $this->articles = [];
 
     $this->XMLParser = xml_parser_create();
 
@@ -44,7 +39,7 @@ class BrRSSFeed extends BrObject {
     xml_set_character_data_handler($this->XMLParser, 'content');
 
     try {
-      if (!xml_parse($this->XMLParser, $Content)) {
+      if (!xml_parse($this->XMLParser, $content)) {
         $this->XMLParserError = 'Line '.xml_get_current_line_number($this->XMLParser).': '.(xml_get_error_code($this->XMLParser)?xml_error_string(xml_get_error_code($this->XMLParser)):'Unknown error');
       }
     } catch (\Exception $e) {
@@ -53,71 +48,64 @@ class BrRSSFeed extends BrObject {
 
     xml_parser_free($this->XMLParser);
 
-    return (!$this->XMLParserError && count($this->Articles));
-
+    return (!$this->XMLParserError && count($this->articles));
   }
 
-  public function start_element($parser, $name, $attrs = array()) {
-
-    if ($this->InsideArticle) {
-      $this->CurrentTag = $name;
+  public function start_element($parser, $name, $attrs = []) {
+    if ($this->insideArticle) {
+      $this->currentTag = $name;
     }
 
     switch ($name) {
       case 'ITEM':
-        $this->Article = new BrRSSArticle();
-        $this->InsideArticle = true;
+        $this->article = new BrRSSArticle();
+        $this->insideArticle = true;
         break;
     }
-
   }
 
   public function content($parser, $data) {
-
-    if ($this->InsideArticle) {
-      switch ($this->CurrentTag) {
+    if ($this->insideArticle) {
+      switch ($this->currentTag) {
         case 'TITLE':
-          $this->Article->Title .= $data;
+          $this->article->Title .= $data;
           break;
         case 'LINK':
-          $this->Article->Link = $data;
+          $this->article->Link = $data;
           break;
         case 'GUID':
-          $this->Article->GUID = $data;
+          $this->article->GUID = $data;
           break;
         case 'DESCRIPTION':
         case 'FULLTEXT':
-          $this->Article->Description .= $data;
+          $this->article->Description .= $data;
           break;
         case 'PUBDATE':
-          $this->Article->PubDate = strtotime($data);
+          $this->article->PubDate = strtotime($data);
           break;
         case 'COMMENTS':
-          $this->Article->Comments = $data;
+          $this->article->Comments = $data;
           break;
         case 'AUTHOR':
-          $this->Article->Author = $data;
+          $this->article->Author = $data;
           break;
         case 'CATEGORY':
-          $this->Article->Categories[] = $data;
+          $this->article->Categories[] = $data;
           break;
       }
-      $this->InsideData = true;
+      $this->insideData = true;
     }
-
   }
 
   public function end_element($parser, $name) {
-
     switch ($name) {
       case 'ITEM':
-        $this->Articles[] = $this->Article;
-        $this->InsideArticle = false;
+        $this->articles[] = $this->article;
+        $this->insideArticle = false;
         break;
     }
-    $this->InsideData = false;
-    $this->CurrentTag = null;
-
+    $this->insideData = false;
+    $this->currentTag = null;
   }
 
 }

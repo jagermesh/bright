@@ -15,17 +15,14 @@ class BrRESTUsersBinder extends BrRESTBinder {
   private $params;
   private $usersDataSource;
 
-  public function __construct($usersDataSource, $params = array()) {
-
+  public function __construct($usersDataSource, $params = []) {
     $this->usersDataSource = $usersDataSource;
     $this->params = $params;
 
     parent::__construct();
-
   }
 
   public function doRouting() {
-
     if (br()->auth()) {
       $loginField = br()->auth()->getAttr('usersTable.loginField');
 
@@ -47,11 +44,11 @@ class BrRESTUsersBinder extends BrRESTBinder {
                   } else {
                     $finalPassword = md5($password);
                   }
-                  $data = array();
+                  $data = [];
                   $data['password'] = $password;
                   $data['loginUrl'] = br()->request()->host() . br()->request()->baseUrl() . 'login.html?login=' . $user['login'] . '&' . 'from=passwordRemind';
-                  if ($message = br()->renderer()->fetch($mailTemplate, array('user' => $user, 'data' => $data))) {
-                    if (br()->sendMail($email, br()->auth()->getAttr('passwordReminder.passwordMail.subject'), $message, array('sender' => br()->auth()->getAttr('passwordReminder.passwordMail.from')))) {
+                  if ($message = br()->renderer()->fetch($mailTemplate, [ 'user' => $user, 'data' => $data ])) {
+                    if (br()->sendMail($email, br()->auth()->getAttr('passwordReminder.passwordMail.subject'), $message, [ 'sender' => br()->auth()->getAttr('passwordReminder.passwordMail.from') ])) {
                       br()->db()->runQuery('UPDATE ' . $usersTable . ' SET ' . $passwordResetField . ' = null, ' . $passwordField . ' = ?& WHERE id = ?', $finalPassword, $user['id']);
                       br()->log()->message('New password sent to ' . $email);
                       br()->log()->message($user);
@@ -75,24 +72,29 @@ class BrRESTUsersBinder extends BrRESTBinder {
             }
           });
 
-      parent::route( '/api/users/'
-                   , $this->usersDataSource
-                   , array( 'security' => array( 'invoke' => ''
-                                               , '.*'     => 'login'
-                                               )
-                          , 'filterMappings' => array( array( 'get'    => 'keyword'
-                                                            , 'type'   => 'regexp'
-                                                            , 'fields' => array($loginField)
-                                                            )
-                                                     , array( 'get'    => 'status'
-                                                            , 'field'  => 'status'
-                                                            )
-                                                     )
-                          , 'allowEmptyFilter' => true
-                          )
-                   );
+      parent::route(
+        '/api/users/',
+        $this->usersDataSource,
+        [
+          'security' => [
+            'invoke' => '',
+            '.*' => 'login'
+          ],
+          'filterMappings' => [
+            [
+              'get' => 'keyword',
+              'type' => 'regexp',
+              'fields' => array($loginField)
+            ],
+            [
+              'get'    => 'status',
+              'field'  => 'status'
+            ]
+          ],
+          'allowEmptyFilter' => true
+        ]
+      );
     }
-
   }
 
 }

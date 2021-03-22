@@ -17,7 +17,6 @@ class BrFileUploadHandler extends BrGenericUploadHandler {
    * @return boolean TRUE on success
    */
   public function save($srcFilePath, $path) {
-
     if (br($this->options, 'basePath')) {
       $dstPath = rtrim($this->options['basePath'], '/') . '/' . ltrim(rtrim($path, '/'), '/') . '/';
     } else {
@@ -30,12 +29,14 @@ class BrFileUploadHandler extends BrGenericUploadHandler {
     $dstFileHref  = br()->request()->host() . $dstFileUrl;
     br()->fs()->createDir(br()->fs()->filePath($dstFilePath));
     rename($srcFilePath, $dstFilePath);
-    return array( 'fileName' => $dstFileName
-                , 'url'      => $dstFileUrl
-                , 'href'     => $dstFileHref
-                , 'internal' => array('filePath' => $dstFilePath)
-                );
-
+    return [
+      'fileName' => $dstFileName,
+      'url'      => $dstFileUrl,
+      'href'     => $dstFileHref,
+      'internal' => [
+        'filePath' => $dstFilePath
+      ]
+    ];
   }
 
 }

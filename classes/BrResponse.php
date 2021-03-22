@@ -10,18 +10,15 @@
 
 namespace Bright;
 
-class BrResponse extends BrSingleton {
+class BrResponse extends BrObject {
 
   private $systemStylesInjected = false;
 
   public function __construct() {
-
     parent::__construct();
-
   }
 
   public function sendJSON($response, $alreadyPacked = false) {
-
     if ($alreadyPacked) {
       $responseJSON = $response;
     } else {
@@ -37,11 +34,9 @@ class BrResponse extends BrSingleton {
     echo($responseJSON);
 
     exit();
-
   }
 
   public function sendJSONP($response, $callback = null) {
-
     $callback = $callback ? $callback : br()->request()->get('callback');
 
     $responseJSON = br($response)->toJSON();
@@ -57,11 +52,9 @@ class BrResponse extends BrSingleton {
     echo($responseFull);
 
     exit();
-
   }
 
   public function sendHTML($response) {
-
     if (!headers_sent()) {
       header('Cache-Control: no-cache, no-store, must-revalidate');
       header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
@@ -69,11 +62,9 @@ class BrResponse extends BrSingleton {
     }
 
     echo($response);
-
   }
 
   public function sendXML($data) {
-
     if (!headers_sent()) {
       header('Cache-Control: no-cache, no-store, must-revalidate');
       header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
@@ -83,22 +74,18 @@ class BrResponse extends BrSingleton {
     echo($data);
 
     exit();
-
   }
 
   public function sendAutodetect($response) {
-
     if (!headers_sent()) {
       header('Cache-Control: no-cache, no-store, must-revalidate');
       header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
     }
 
     echo($response);
-
   }
 
   private function internalRedirect($url, $permanent, $saveCaller = false, $timedOut = false) {
-
     if (!preg_match('~^/~', $url) && !preg_match('~^http[s]?://~', $url)) {
       $url = br()->request()->baseUrl().$url;
     }
@@ -122,23 +109,17 @@ class BrResponse extends BrSingleton {
     }
 
     exit();
-
   }
 
   public function redirect($url, $saveCaller = false, $timedOut = false) {
-
     $this->internalRedirect($url, false, $saveCaller, $timedOut);
-
   }
 
   public function redirectPermanent($url) {
-
     $this->internalRedirect($url, true);
-
   }
 
   public function send404($message = null) {
-
     if (!headers_sent()) {
       header('HTTP/1.0 404 Not Found');
     }
@@ -151,11 +132,9 @@ class BrResponse extends BrSingleton {
     }
 
     exit();
-
   }
 
   public function sendBadRequest($message = null) {
-
     if (!headers_sent()) {
       header('HTTP/1.0 400 Bad Request');
     }
@@ -167,11 +146,9 @@ class BrResponse extends BrSingleton {
     }
 
     exit();
-
   }
 
   public function sendNotAuthorized($error = null) {
-
     if (!headers_sent()) {
       header('HTTP/1.0 401 Not Authorized');
     }
@@ -183,11 +160,9 @@ class BrResponse extends BrSingleton {
     }
 
     exit();
-
   }
 
   public function sendNoContent($error = null) {
-
     if (!headers_sent()) {
       header('HTTP/1.0 204 No Content');
     }
@@ -197,11 +172,9 @@ class BrResponse extends BrSingleton {
     }
 
     exit();
-
   }
 
   public function sendForbidden($error = null) {
-
     if (!headers_sent()) {
       header('HTTP/1.0 403 Forbidden');
     }
@@ -211,11 +184,9 @@ class BrResponse extends BrSingleton {
     }
 
     exit();
-
   }
 
   public function sendMethodNotAllowed($error = null) {
-
     if (!headers_sent()) {
       header('HTTP/1.0 405 Method Not Allowed');
     }
@@ -225,51 +196,41 @@ class BrResponse extends BrSingleton {
     }
 
     exit();
-
   }
 
   public function sendCreated() {
-
     if (!headers_sent()) {
       header('HTTP/1.0 201 Created');
     }
 
     exit();
-
   }
 
   public function sendNotModified() {
-
     if (!headers_sent()) {
       header('HTTP/1.0 304 Not Modified');
     }
 
     exit();
-
   }
 
   public function sendInternalServerError() {
-
     if (!headers_sent()) {
       header('HTTP/1.0 500 Internal Server Error');
     }
 
     exit();
-
   }
 
   public function sendServiceUnavailable() {
-
     if (!headers_sent()) {
       header('HTTP/1.0 503 Service unavailable');
     }
 
     exit();
-
   }
 
   public function sendConflict($response = null) {
-
     if (!headers_sent()) {
       header('HTTP/1.0 409 Conflict');
     }
@@ -279,17 +240,13 @@ class BrResponse extends BrSingleton {
     }
 
     exit();
-
   }
 
   public function send($response = null) {
-
     $this->sendSuccess($response);
-
   }
 
   public function sendSuccess($response = null) {
-
     if (!headers_sent()) {
       header('Cache-Control: no-cache, no-store, must-revalidate');
       header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
@@ -302,11 +259,9 @@ class BrResponse extends BrSingleton {
     }
 
     exit();
-
   }
 
   public function sendCacheHeaders($ageMin = 30) {
-
     $etag = md5(@$_SERVER['QUERY_STRING']);
     $if_none_match = (isset($_SERVER['HTTP_IF_NONE_MATCH']) ? $_SERVER['HTTP_IF_NONE_MATCH'] : false);
 
@@ -315,14 +270,12 @@ class BrResponse extends BrSingleton {
       exit;
     }
 
-    header('Etag: "' . $etag . '"');
-
     $ageSec = $ageMin * 60;
     $expires = gmdate('D, d M Y H:i:s', time() + $ageSec) . ' GMT';
 
+    header('Etag: "' . $etag . '"');
     header('Expires: ' . $expires);
     header('Cache-Control: public, max-age=' . $ageSec . ', no-transform');
-
   }
 
   public function injectSystemStyles() {

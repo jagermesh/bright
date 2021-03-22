@@ -8,8 +8,7 @@ class BrEventBusClient extends BrEventBusEngine {
   private $connection;
   private $messages = [];
 
-  function sendAsync($action, $data = array(), $additionalRequestParams = array()) {
-
+  function sendAsync($action, $data = [], $additionalRequestParams = []) {
     // if ($this->url) {
     //   \Ratchet\Client\connect($this->url)->then(function($connection) use ($action, $data, $additionalRequestParams) {
     //     $connection->send($this->packMessage($action, $data, $additionalRequestParams));
@@ -18,11 +17,9 @@ class BrEventBusClient extends BrEventBusEngine {
     // }
 
     $this->sendSync($action, $data, $additionalRequestParams);
-
   }
 
-  function sendUntill($action, $data = array(), $additionalRequestParams = array(), $onMessage = null) {
-
+  function sendUntill($action, $data = [], $additionalRequestParams = [], $onMessage = null) {
     if ($this->url) {
       $loop = \React\EventLoop\Factory::create();
       $reactConnector = new \React\Socket\Connector($loop, [ 'timeout' => 10 ]);
@@ -58,11 +55,9 @@ class BrEventBusClient extends BrEventBusEngine {
     } else {
       $onMessage(true, 'Event Bus endpoint url not configured');
     }
-
   }
 
-  function sendSync($action, $data = array(), $additionalRequestParams = array()) {
-
+  function sendSync($action, $data = [], $additionalRequestParams = []) {
     if ($this->url) {
       try {
         // if (!$this->client) {

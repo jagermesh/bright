@@ -10,7 +10,10 @@
 
 namespace Bright;
 
-class BrCore extends BrSingleton {
+class BrCore extends BrObject {
+
+  const BR_ORDER_ASC  =  1;
+  const BR_ORDER_DESC = -1;
 
   private $processId      = null;
   private $basePath       = null;
@@ -1237,6 +1240,8 @@ class BrCore extends BrSingleton {
     E_DEPRECATED => "Deprecated",
   );
 
+  private $trafficUnits = [ 'b', 'Kb', 'Mb', 'Gb', 'Tb', 'Pb' ];
+
   public function __construct() {
     $this->brightPath = rtrim(dirname(__DIR__), '/') . '/';
 
@@ -1366,10 +1371,6 @@ class BrCore extends BrSingleton {
     return $result;
   }
 
-  public function setTempPath($value) {
-    // $this->tempPath = rtrim($value, '/') . '/';
-  }
-
   public function getTempPath() {
     if (!$this->tempPath) {
       $this->tempPath = $this->getBasePath() . '_tmp/' . ($this->isConsoleMode() ? 'console/' : 'web/') . (br()->config()->get('br/db') ? strtolower(br()->config()->get('br/db')['name']) . '/' : '');
@@ -1393,10 +1394,6 @@ class BrCore extends BrSingleton {
     }
 
     return $result;
-  }
-
-  public function setLogsPath($value) {
-    // $this->logsPath = rtrim($value, '/') . '/';
   }
 
   public function getLogsPath() {
@@ -1458,10 +1455,13 @@ class BrCore extends BrSingleton {
   // statics
 
   public function __call($name, $arguments) {
-    // echo('Bright\Br' . ucwords($name));
-    return call_user_func_array(array('Bright\Br' . ucwords($name), 'getInstance'), $arguments);
+    return call_user_func_array([ 'Bright\Br' . ucwords($name), 'getInstance' ], $arguments);
   }
 
+  /**
+   *
+   * @return \Bright\BrLog
+   */
   public function log() {
     $log = BrLog::getInstance();
 
@@ -1561,9 +1561,8 @@ class BrCore extends BrSingleton {
     $this->threadMode = true;
   }
 
-  public function getMicrotime(){
-    list($usec, $sec) = explode(" ",microtime());
-    return ((float)$usec + (float)$sec);
+  public function getMicrotime() {
+    return hrtime(true)/1e+9;
   }
 
   public function placeholder() {
@@ -1571,74 +1570,20 @@ class BrCore extends BrSingleton {
     $tmpl = array_shift($args);
     $result = $this->placeholderEx($tmpl, $args, $error);
     if ($result === false) {
-      return 'ERROR:'.$error;
+      return 'ERROR:' . $error;
     } else {
       return $result;
     }
+  }
+
+  public function getUnifiedTimestamp() {
+    return (new \DateTime())->format('Y-m-d\TH:i:s.u\Z');
   }
 
   public function assert($value, $error = null) {
     if (!$value) {
       throw new BrAppException($error ? $error : 'Assertion error');
     }
-  }
-
-  public function formatDuration($duration) {
-    $secs = $mins = $hrs = 0;
-    if ($duration < 60) {
-      $secs = $duration;
-    } else
-    if ($duration < 60*60) {
-      $mins = floor($duration/60);
-      $secs = $duration - $mins*60;
-    } else {
-      $hrs  = floor($duration/60/60);
-      $mins = ($duration - $hrs*60*60)/60;
-      $secs = $duration - $hrs*60*60 - $mins*60;
-    }
-
-    $result = '';
-
-    if ($secs) {
-      $result = br()->smartRound(number_format($secs, 3), 3);
-    }
-    if ($mins) {
-      $result = $mins.($result?':'.$result:'');
-    }
-    if ($hrs) {
-      $result = $hrs.($result?':'.$result:'');
-    }
-
-    return trim($result);
-  }
-
-  public function durationToString($duration) {
-    $secs = $mins = $hrs = 0;
-    if ($duration < 60) {
-      $secs = $duration;
-    } else
-    if ($duration < 60*60) {
-      $mins = floor($duration/60);
-      $secs = $duration - $mins*60;
-    } else {
-      $hrs  = floor($duration/60/60);
-      $mins = ($duration - $hrs*60*60)/60;
-      $secs = $duration - $hrs*60*60 - $mins*60;
-    }
-
-    $result = '';
-
-    if ($secs) {
-      $result = br()->smartRound(number_format($secs, 3), 3) . ' '.'secs';
-    }
-    if ($mins) {
-      $result = round($mins).' '.'mins'.' '.$result;
-    }
-    if ($hrs) {
-      $result = $hrs.' '.'hrs'.' '.$result;
-    }
-
-    return trim($result);
   }
 
   private function placeholderCompile($tmpl) {
@@ -2071,20 +2016,58 @@ class BrCore extends BrSingleton {
   }
 
   public function getContentTypeByExtension($fileName) {
-    $fileExt = strtolower(br()->fs()->fileExt($fileName));
+    return br($this->mimeTypes, strtolower(br()->fs()->fileExt($fileName)));
+  }
 
-    return br($this->mimeTypes, $fileExt, 'application/octet-stream');
+  public function getContentTypeByContent($fileName) {
+    if (file_exists($fileName)) {
+      return br($this->mimeTypes, strtolower(br()->images()->getFormat($fileName)));
+    }
   }
 
   // utils
 
-  public function formatBytes($size) {
-    if ($size > 0) {
-      $unit = array('b', 'kb', 'mb', 'gb', 'tb', 'pb');
-      return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
+  public function formatDuration($duration, $params = []) {
+    $includeSign = br($params, 'includeSign');
+    $withUnits = br($params, 'withUnits');
+
+    $secs = $mins = $hrs = 0;
+    if ($duration < 60) {
+      $secs = $duration;
+    } else
+    if ($duration < 60*60) {
+      $mins = floor($duration/60);
+      $secs = $duration - $mins*60;
     } else {
-      return '0 b';
+      $hrs = floor($duration/60/60);
+      $mins = floor(($duration - $hrs*60*60)/60);
+      $secs = $duration - $hrs*60*60 - $mins*60;
     }
+    if ($hrs) {
+      return ($includeSign ? ($duration > 0 ? '+' : '') : '') . $hrs . ($withUnits ? ' hrs ' : ':') . str_pad($mins, 2, '0') . ($withUnits ? ' mins ' : ':') . number_format(br()->smartRound($secs, 3), 3) . ($withUnits ? ' secs' : '');
+    }
+    if ($mins) {
+      return ($includeSign ? ($duration > 0 ? '+' : '') : '') . $mins . ($withUnits ? ' mins ' : ':') . number_format(br()->smartRound($secs, 3), 3) . ($withUnits ? ' secs' : '');
+    }
+    return ($includeSign ? ($duration > 0 ? '+' : '') : '') . number_format(br()->smartRound($secs, 3), 3) . ($withUnits ? ' secs' : '');
+  }
+
+  public function formatBytes($size, $params = []) {
+    $includeSign = br($params, 'includeSign');
+    $compact = br($params, 'compact');
+
+    $abs = abs($size);
+    if ($abs > 0) {
+      $unit = ($abs < 1024 ? 0 : ($abs < 1024*1024 ? 1 : ($abs < 1024*1024*1024 ? 2 : ($abs < 1024*1024*1024*1024 ? 3 : ($abs < 1024*1024*1024*1024*1024 ? 4 : floor(log($abs, 1024)))))));
+      return ($includeSign ? ($size > 0 ? '+' : '') : '') . ($size < 0 ? '-': '') . @round($abs / pow(1024, $unit), 2) . ($compact ? '' : ' ') . $this->trafficUnits[$unit];
+    } else {
+      return '0b';
+    }
+  }
+
+  public function formatDate($format, $datetime = null) {
+    $datetime = ($datetime ? $datetime : 'now');
+    return (new \DateTime((is_numeric($datetime)?'@':'').$datetime))->format($format);
   }
 
   public function smartRound($value, $precision = 2) {
@@ -2102,7 +2085,7 @@ class BrCore extends BrSingleton {
   }
 
   public function getMemoryUsage() {
-    return $this->formatTraffic(memory_get_usage(true));
+    return $this->formatBytes(memory_get_usage(true));
   }
 
   public function getProcessId() {
@@ -2175,27 +2158,12 @@ class BrCore extends BrSingleton {
     $str .= '){' . PHP_EOL;
     $lines = file($r->getFileName());
     for($l = $r->getStartLine(); $l < $r->getEndLine(); $l++) {
-        $str .= $lines[$l];
+      $str .= $lines[$l];
     }
     return $str;
   }
 
-  // needs to be removed
-
-  public function callerScript() {
-    return $this->getScriptPath();
-  }
-
-  public function scriptName() {
-    return $this->getScriptName();
-  }
-
-  public function relativePath() {
-    return $this->getRelativePath();
-  }
-
   public function exec($cmd, $whatToReturn = '') {
-
     $tempFile1 = br()->createTempFile('cmd1', '.log');
     $tempFile2 = br()->createTempFile('cmd2', '.log');
 
@@ -2214,10 +2182,11 @@ class BrCore extends BrSingleton {
     $log = br()->fs()->loadFromFile($tempFile1);
     $err = br()->fs()->loadFromFile($tempFile2);
 
-    $result = [ 'stdout'   => $log
-              , 'stderr'   => $err
-              , 'exitCode' => $retval
-              ];
+    $result = [
+      'stdout' => $log,
+      'stderr' => $err,
+      'exitCode' => $retval
+    ];
 
     if ($whatToReturn == 'all') {
       return $result;
@@ -2233,20 +2202,32 @@ class BrCore extends BrSingleton {
     }
 
     return $log;
-
   }
 
-  function getUnifiedTimestamp() {
-    $dateTime = new \DateTime();
-    return $dateTime->format('Y-m-d\TH:i:s.u\Z');
-  }
-
-  function getErrorSeverityName($severity) {
+  public function getErrorSeverityName($severity) {
     return br($this->severityNames, $severity, 'Error');
   }
 
-  function isFatalErrorSeverity($severity) {
-    return (($severity == E_ERROR) || ($severity == E_USER_ERROR));
+  // needs to be removed
+
+  public function setTempPath($value) {
+    // $this->tempPath = rtrim($value, '/') . '/';
+  }
+
+  public function setLogsPath($value) {
+    // $this->logsPath = rtrim($value, '/') . '/';
+  }
+
+  public function callerScript() {
+    return $this->getScriptPath();
+  }
+
+  public function scriptName() {
+    return $this->getScriptName();
+  }
+
+  public function relativePath() {
+    return $this->getRelativePath();
   }
 
 }

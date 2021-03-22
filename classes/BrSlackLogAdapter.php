@@ -64,7 +64,6 @@ class BrSlackLogAdapter extends BrGenericLogAdapter {
 
             $info = $this->getLogInfo($messageOrObject, $params, [ 'snapshot' ]);
             $message = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, true);
-
             $payload = [
               'text' => '*' . $subject . '*' . "\n" .
                json_encode($info, JSON_PRETTY_PRINT),
@@ -74,7 +73,6 @@ class BrSlackLogAdapter extends BrGenericLogAdapter {
                 ]
               ]
             ];
-
             $requestParams = [
               'connect_timeout' => 5,
               'read_timeout' => 5,

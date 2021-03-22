@@ -25,7 +25,7 @@ class BriCalEvent extends BrObject {
   private $priority;
   private $class;
   private $alarm;
-  private $attachments = array();
+  private $attachments = [];
   private $allDayEvent = false;
 
   public function __construct($title, $dateStart, $dateEnd = null) {
@@ -122,9 +122,10 @@ class BriCalEvent extends BrObject {
 
   public function addAttachment($name, $url) {
 
-    $this->attachments[] = array( 'name' => $name
-                                , 'url'  => $url
-                                );
+    $this->attachments[] = [
+      'name' => $name,
+      'url' => $url
+    ];
 
   }
 

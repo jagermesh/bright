@@ -13,22 +13,16 @@ namespace Bright;
 class BrOS extends BrObject {
 
   public function execute($command) {
-
     exec($command, $output);
     return $output;
-
   }
 
   public function killProcess($pid) {
-
     $this->execute('kill ' . $pid);
-
     return !$this->isValidProcessId($pid);
-
   }
 
   public function getCoresAmount() {
-
     $result = 0;
 
     if (is_readable('/proc/cpuinfo')) {
@@ -43,25 +37,19 @@ class BrOS extends BrObject {
         $result = $matches[1];
       }
     }
-
-    if ($result > 0) {
-
-    } else {
+    if ($result <= 0) {
       $result = 1;
     }
 
     return $result;
-
   }
 
   public function findProcesses($masks, $regexp = false) {
-
-    $result = array();
+    $result = [];
 
     if (!is_array($masks)) {
-      $masks = array($masks);
+      $masks = [ $masks ];
     }
-
     $output = $this->execute('ps ax 2>&1');
     foreach($masks as $mask) {
       $mask = trim($mask);
@@ -89,27 +77,21 @@ class BrOS extends BrObject {
     }
 
     return new \ArrayObject($result);
-
   }
 
   public function isValidProcessId($pid) {
-
     $output = $this->execute('ps -p ' . $pid);
 
     return (count($output) > 1);
-
   }
 
   public function nohup($command) {
-
     $output = $this->execute('nohup '.$command.' >/dev/null 2>&1 & echo $!');
 
     return (int)$output[0];
-
   }
 
   public function isPHPScriptRunning($scriptCommand) {
-
     $scriptCommand = trim($scriptCommand);
     exec("ps ax 2>&1", $output);
     foreach ($output as $line) {
@@ -122,27 +104,22 @@ class BrOS extends BrObject {
     }
 
     return false;
-
   }
 
   public function lockFileName($scriptCommand = null) {
-
     if ($scriptCommand) {
       return rtrim(sys_get_temp_dir(), '/') . '/' . md5($scriptCommand) . '.lock';
     } else {
       return rtrim(sys_get_temp_dir(), '/') . '/' . md5(br()->getScriptPath()) . '.lock';
     }
-
   }
 
   public function lockIfRunning($scriptCommand = null) {
-
     $lockFile = $this->lockFileName($scriptCommand);
 
     if (file_exists($lockFile)) {
       @chmod($lockFile, 0666);
     }
-
     if ($handle = @fopen($lockFile, 'w+')) {
       if (@flock($handle, LOCK_EX | LOCK_NB)) {
         @fwrite($handle, $scriptCommand);
@@ -154,7 +131,6 @@ class BrOS extends BrObject {
     } else {
       throw new BrAppException('Can not acquire script lock, trying to lock ' . $lockFile);
     }
-
   }
 
 }

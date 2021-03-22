@@ -17,20 +17,15 @@ class BriCal extends BrObject {
   private $calendarEvents = array();
 
   public function __construct($calendarName = 'GENERIC', $calendarUID = null) {
-
     $this->calendarName = $calendarName;
     $this->calendarUID = $calendarUID ? $calendarUID : preg_replace('/[^A-Z0-9]/i', '', $this->calendarName);
-
   }
 
   public function addEvent($event) {
-
     $this->calendarEvents[] = $event;
-
   }
 
   public function display($fileName = 'calendar.ics') {
-
     $ics = $this->render();
 
     header("Pragma: public");
@@ -44,11 +39,9 @@ class BriCal extends BrObject {
     header("Content-Length: " . strlen($ics));
 
     echo($ics);
-
   }
 
   public function formatOffset($offset) {
-
     $offset = $offset/60/60;
     $neg = preg_match('/^[-]/', $offset);
     $offset = ltrim(ltrim($offset, '-'), '+');
@@ -71,11 +64,9 @@ class BriCal extends BrObject {
     }
 
     return $offset;
-
   }
 
   public function render() {
-
     $timeZone = date_default_timezone_get();
 
     $result = "BEGIN:VCALENDAR\r\n"
@@ -188,16 +179,6 @@ class BriCal extends BrObject {
       if ($attachments) {
         $result .= $attachments;
       }
-      // $result .= 'X-ALT-DESC;FMTTYPE=text/html:<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">'
-      //          . '<HTML>'
-      //          . '  <HEAD>'
-      //          . '    <META NAME="Generator" CONTENT="MS Exchange Server version 08.01.0240.003">'
-      //          . '    <TITLE></TITLE>'
-      //          . '  </HEAD>'
-      //          . '  <BODY>'
-      //          . $descriptionHTML
-      //          . '  </BODY>'
-      //          . '</HTML>'."\r\n";
       if ($event->getOrganizer()) {
         $result .= "ORGANIZER:".$event->getOrganizer()."\r\n";
       }
@@ -227,7 +208,6 @@ class BriCal extends BrObject {
     $result .= "END:VCALENDAR";
 
     return $result;
-
   }
 
 }

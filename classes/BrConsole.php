@@ -10,7 +10,7 @@
 
 namespace Bright;
 
-class BrConsole extends BrSingleton {
+class BrConsole extends BrObject {
 
   public function red($message) {
     return chr(27) . '[31m' . $message . chr(27) . '[0m';
@@ -39,4 +39,3 @@ class BrConsole extends BrSingleton {
   }
 
 }
-

@@ -12,7 +12,7 @@ namespace Bright;
 
 class BrAuth extends BrObject {
 
-  static $instances = array();
+  static $instances = [];
 
   public static function getInstance($name = null) {
     $name = $name ? $name : 'br/auth';

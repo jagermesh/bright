@@ -20,9 +20,9 @@ class BrTelegramLogAdapter extends BrGenericLogAdapter {
   private $telegram;
 
   public function __construct($apiKey, $username, $chatIds) {
-    $this->apiKey   = $apiKey;
+    $this->apiKey = $apiKey;
     $this->username = $username;
-    $this->chatIds  = br($chatIds)->split();
+    $this->chatIds = br($chatIds)->split();
 
     $this->telegram = new \Longman\TelegramBot\Telegram($this->apiKey, $this->username);
 

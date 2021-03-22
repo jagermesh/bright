@@ -14,40 +14,29 @@ class BrCSVParser extends BrObject {
 
   private $delimiter = ',';
   private $enclosure = '"';
-  private $enclosureArr = array('"',"'");
+  private $enclosureArr = [ '"', "'" ];
 
   public function setDelimiter($delimiter) {
-
     $this->delimiter = $delimiter;
-
   }
 
   public function parse($fileName) {
-
-    $result = array();
+    $result = [];
 
     $this->iterate($fileName, function($values) use (&$result) {
-
       $result[] = $values;
-
     });
 
     return $result;
-
   }
 
   public function iterate($fileName, $callback) {
-
     ini_set('auto_detect_line_endings', true);
 
     $linesAmount = 0;
-
     if (file_exists($fileName)) {
-
       if ($handle = fopen($fileName, 'r')) {
-
         $encoding = '';
-
         $line = fgets($handle);
         if (substr_count($line, "\t") > 1) {
           $this->delimiter = "\t";
@@ -86,11 +75,11 @@ class BrCSVParser extends BrObject {
           }
         }
 
-        $enclosures = array( "\\" . $this->enclosure, $this->enclosure . $this->enclosure);
+        $enclosures = [ "\\" . $this->enclosure, $this->enclosure . $this->enclosure ];
 
-        $enclosuresArr = array();
+        $enclosuresArr = [];
         foreach ($this->enclosureArr as $enclosure) {
-          $enclosuresArr[] = array( "\\" . $enclosure, $enclosure . $enclosure);
+          $enclosuresArr[] = [ "\\" . $enclosure, $enclosure . $enclosure ];
         }
 
         while (($line = fgets($handle)) !== FALSE) {
@@ -138,20 +127,15 @@ class BrCSVParser extends BrObject {
               $line = str_getcsv($line[0], $this->delimiter, $this->enclosureArr[$ind]);
             }
           }
-          $values = array();
-
+          $values = [];
           foreach($line as $col) {
-
             if (strlen($col)) {
               $col = str_replace($enclosuresArr[$ind], $this->enclosureArr[$ind], $col);
               $col = trim($col, '"\' ');
             }
             $values[] = $col;
-
           }
-
           $linesAmount++;
-
           $callback($values, $linesAmount);
         }
 
@@ -160,16 +144,11 @@ class BrCSVParser extends BrObject {
         return $linesAmount;
 
       } else {
-
         throw new \Exception("Could not open file " . $fileName. " for reading.");
-
       }
     } else {
-
       throw new \Exception("File " . $fileName . " does not exist.");
-
     }
-
   }
 
 }

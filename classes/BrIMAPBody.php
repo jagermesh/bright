@@ -14,21 +14,23 @@ require_once(dirname(__DIR__) . '/3rdparty/phpQuery/latest/phpQuery.php');
 
 class BrIMAPBody extends BrObject {
 
-  private $message, $parts, $inlines, $charset, $isHTML, $body = null;
+  private $message;
+  private $parts;
+  private $inlines;
+  private $charset;
+  private $isHTML;
+  private $body = null;
 
   public function __construct($message, $isHTML) {
-
     parent::__construct();
 
     $this->isHTML = $isHTML;
     $this->message = $message;
-    $this->inlines = array();
-    $this->parts   = array();
-
+    $this->inlines = [];
+    $this->parts = [];
   }
 
   public function configure($partNo, $structure) {
-
     $encoding = $structure->encoding;
     $charset = '';
 
@@ -40,15 +42,14 @@ class BrIMAPBody extends BrObject {
       }
     }
 
-    $this->parts[] = array( 'partNo'    => $partNo
-                          , 'charset'   => $charset
-                          , 'encoding'  => $encoding
-                          );
-
+    $this->parts[] = [
+      'partNo' => $partNo,
+      'charset' => $charset,
+      'encoding'  => $encoding
+    ];
   }
 
   public function getBody() {
-
     if ($this->parts && ($this->body === null)) {
       foreach($this->parts as $part) {
         $partNo = $part['partNo'];
@@ -91,19 +92,14 @@ class BrIMAPBody extends BrObject {
     }
 
     return $this->body;
-
   }
 
   public function addInline($inline) {
-
     $this->inlines[] = $inline;
-
   }
 
   public function getInlines() {
-
     return $this->inlines;
-
   }
 
 }

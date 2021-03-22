@@ -50,7 +50,7 @@ class BrMongoProviderTable extends MongoCollection {
   public function update($values, $filter, $options = []) {
     if (!is_array($filter)) {
       $rowid = $filter;
-      $filter = array();
+      $filter = [];
       $filter[br()->db()->rowidField()] = br()->db()->rowid($rowid);
     }
     br()->log()->message('Executing update', [ 'values' => $values, 'filter' => $filter, 'options' => $options ], 'internal');

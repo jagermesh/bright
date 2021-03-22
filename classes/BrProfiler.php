@@ -10,7 +10,7 @@
 
 namespace Bright;
 
-class BrProfiler extends BrSingleton {
+class BrProfiler extends BrObject {
 
   private $completedMetrics = [];
   private $activeMetrics = [];
@@ -32,18 +32,14 @@ class BrProfiler extends BrSingleton {
       'memory' => 0,
       'duration' => 0,
     ];
-
     if ($metric = br($this->activeMetrics, $name)) {
       $result['memory'] = (memory_get_usage(true) - $metric['memory']);
       $result['duration'] = (br()->getMicroTime() - $metric['time']);
-
       if (!isset($this->completedMetrics[$name])) {
         $this->completedMetrics[$name] = [];
       }
-
       $this->completedMetrics[$name][] = $result;
     }
-
     unset($this->activeMetrics[$name]);
 
     return $result;
@@ -85,25 +81,25 @@ class BrProfiler extends BrSingleton {
     br()->log()->message('Started: ' . $name, $details, 'profiler');
   }
 
-  public function logStatistic($name) {
+  public function logStatistic($name, $tag = 'profiler') {
     $metric = $this->getStatistic($name);
     if ($metric['count'] > 1) {
       $details = [
         'operation' => $name,
-        'total_duration' => br()->durationToString($metric['totalDuration']),
-        'total_memory' => br()->formatTraffic($metric['totalMemory']),
-        'avg_duration' => br()->durationToString($metric['avgDuration']),
-        'avg_memory' => br()->formatTraffic($metric['avgMemory']),
+        'total_duration' => br()->formatDuration($metric['totalDuration'], [ 'withUnits' => true ]),
+        'total_memory' => br()->formatBytes($metric['totalMemory']),
+        'avg_duration' => br()->formatDuration($metric['avgDuration'], [ 'withUnits' => true ]),
+        'avg_memory' => br()->formatBytes($metric['avgMemory']),
       ];
       br()->log()->message(
         'Statistic: ' . $name .
         ' (cnt '            . $metric['count'] .
-        ', total duration ' . br()->durationToString($metric['totalDuration']) .
-        ', total memory '   . br()->formatTraffic($metric['totalMemory']) .
-        ', avg duration '   . br()->durationToString($metric['avgDuration']) .
-        ', avg memory '     . br()->formatTraffic($metric['avgMemory']) . ')',
+        ', total duration ' . br()->formatDuration($metric['totalDuration'], [ 'withUnits' => true ]) .
+        ', total memory '   . br()->formatBytes($metric['totalMemory']) .
+        ', avg duration '   . br()->formatDuration($metric['avgDuration'], [ 'withUnits' => true ]) .
+        ', avg memory '     . br()->formatBytes($metric['avgMemory']) . ')',
         $details,
-        'profiler'
+        $tag
       );
     }
   }
@@ -112,14 +108,15 @@ class BrProfiler extends BrSingleton {
     $metric = $this->finish($name);
     $details = [
       'operation' => $name,
-      'duration' => br()->durationToString($metric['duration']),
+      'duration' => br()->formatDuration($metric['duration'], [ 'withUnits' => true ]),
       'memory' => br()->formatTraffic($metric['memory']),
     ];
-    br()->log()->message('Finished: ' . $name . ' (' . br()->durationToString($metric['duration']) . ', ' . br()->formatTraffic($metric['memory']) . ')', $details, 'profiler');
+    br()->log()->message('Finished: ' . $name . ' (' . br()->formatDuration($metric['duration'], [ 'withUnits' => true ]) . ', ' . br()->formatBytes($metric['memory']) . ')', $details, 'profiler');
     $this->logStatistic($name);
     if ($comment) {
       br()->log()->message('Comment: ' . $name . ': ' . $comment, $details, 'profiler');
     }
+
     return $this->getStatistic($name);
   }
 

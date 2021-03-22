@@ -12,8 +12,7 @@ namespace Bright;
 
 class BrDBUsersAuthProvider extends BrGenericAuthProvider {
 
-  function __construct($config = array()) {
-
+  function __construct($config = []) {
     parent::__construct($config);
 
     $this->setAttr('plainPasswords', br()->config()->get('br/auth/plainPasswords', $this->getAttr('plainPasswords')));
@@ -92,11 +91,9 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
     } else {
       $this->setAttr('passwordReminder.enabled', false);
     }
-
   }
 
   function checkLogin($returnNotAuthorized = true) {
-
     $usersTable    = $this->getAttr('usersTable.name');
     $loginField    = $this->getAttr('usersTable.loginField');
     $passwordField = $this->getAttr('usersTable.passwordField');
@@ -136,11 +133,9 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
     }
 
     return $login;
-
   }
 
   function validateLogin($login, $remember = false) {
-
     $usersTable    = $this->getAttr('usersTable.name');
     $loginField    = $this->getAttr('usersTable.loginField');
     $passwordField = $this->getAttr('usersTable.passwordField');
@@ -158,11 +153,9 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
       $this->logout();
       throw $e;
     }
-
   }
 
   function login($login, $remember = false) {
-
     $usersTable    = $this->getAttr('usersTable.name');
     $loginField    = $this->getAttr('usersTable.loginField');
     $passwordField = $this->getAttr('usersTable.passwordField');
@@ -193,7 +186,6 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider {
       $this->logout();
       throw $e;
     }
-
   }
 
 }

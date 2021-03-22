@@ -29,7 +29,6 @@ class BrSocketClient extends BrObject {
   private $initialConnection = true;
   private $failedToConnect = false;
   private $keepAlive = true;
-
   private $url;
   private $parsedUrl;
   private $pollingUrl;
@@ -57,12 +56,12 @@ class BrSocketClient extends BrObject {
 
   private function maskData($data, $maskKey) {
     $masked = '';
-    $data   = str_split($data);
-    $key    = str_split($maskKey);
-
+    $data = str_split($data);
+    $key = str_split($maskKey);
     foreach ($data as $i => $letter) {
       $masked .= $letter ^ $key[$i % 4];
     }
+
     return $masked;
   }
 

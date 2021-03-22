@@ -66,9 +66,9 @@ class BrAPCCacheProvider extends BrGenericCacheProvider {
     $result = apc_fetch($name);
 
     if ($result === FALSE) {
-      $result = array('success' => false);
+      $result = [ 'success' => false ];
     } else {
-      $result = array('success' => true, 'value' => unserialize($result));
+      $result = [ 'success' => true, 'value' => unserialize($result) ];
     }
 
     return $result;

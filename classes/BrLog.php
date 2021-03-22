@@ -10,15 +10,20 @@
 
 namespace Bright;
 
-class BrLog extends BrSingleton {
+class BrLog extends BrObject {
 
   private $initTime = null;
   private $initMicroTimeStr = null;
   private $initMicroTime = null;
   private $savedMicroTime = null;
+  private $initMemory = null;
+  private $savedMemory = null;
   private $logLevel = 0;
   private $logPrefix = '';
-  private $adapters = array();
+  private $adapters = [];
+
+  static public $LOG_MEMORY = true;
+  static public $LOG_TIME = true;
 
   public function __construct() {
     parent::__construct();
@@ -26,6 +31,8 @@ class BrLog extends BrSingleton {
     $this->initTime = br()->getUnifiedTimestamp();
     $this->initMicroTime = br()->getMicrotime();
     $this->savedMicroTime = $this->initMicroTime;
+    $this->initMemory = memory_get_usage(true);
+    $this->savedMemory = $this->initMemory;
     if (br()->config()->has('br/log/enabled')) {
       if (!br()->config()->get('br/log/enabled')) {
         $this->disable();
@@ -82,11 +89,37 @@ class BrLog extends BrSingleton {
 
   private function writeToAdapters($messageOrObject, $params = []) {
     if ($this->isEnabled()) {
-      $params['timestamp_init'] = $this->initTime;
-      $params['timestamp_since_start'] = br()->formatDuration(br()->getMicrotime() - $this->initMicroTime);
-      $params['timestamp_since_prior'] = br()->formatDuration(br()->getMicrotime() - $this->savedMicroTime);
       $params['log_level'] = $this->logLevel;
-      $this->savedMicroTime = br()->getMicrotime();
+
+      if (self::$LOG_TIME) {
+        $unifiedTimestamp = br()->getUnifiedTimestamp();
+        $microTime = br()->getMicrotime();
+        $params['timestamp'] = $unifiedTimestamp;
+        $params['timestamp_init'] = $this->initTime;
+        $params['timestamp_since_start'] = '';//br()->formatDuration($microTime - $this->initMicroTime, [ 'includeSign' => true ]);
+        $params['timestamp_since_prior'] = '';//br()->formatDuration($microTime - $this->savedMicroTime, [ 'includeSign' => true ]);
+        $this->savedMicroTime = $microTime;
+      } else {
+        $params['timestamp'] = '';
+        $params['timestamp_init'] = '';
+        $params['timestamp_since_start'] = '';
+        $params['timestamp_since_prior'] = '';
+      }
+
+      if (self::$LOG_MEMORY) {
+        $memUsage = memory_get_usage(true);
+        $params['mem_usage'] = $memUsage;
+        $params['mem_usage_init'] = $this->initMemory;
+        $params['mem_usage_since_start'] = br()->formatBytes($memUsage - $this->initMemory, [ 'includeSign' => true, 'compact' => true ]);
+        $params['mem_usage_since_prior'] = br()->formatBytes($memUsage - $this->savedMemory, [ 'includeSign' => true, 'compact' => true ]);
+        $this->savedMemory = $memUsage;
+      } else {
+        $params['mem_usage'] = '';
+        $params['mem_usage_init'] = '';
+        $params['mem_usage_since_start'] = '';
+        $params['mem_usage_since_prior'] = '';
+      }
+
       foreach ($this->adapters as $adapter) {
         if ($adapter->isEnabled()) {
           $adapter->write($messageOrObject, $params);

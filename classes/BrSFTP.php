@@ -22,13 +22,10 @@ class BrSFTP extends BrRemoteConnection {
   private $reconnectsAmount = 25;
 
   public function __construct() {
-
     parent::__construct();
-
   }
 
   public function connectWithKey($hostName, $userName, $keyFileName, $port = 22, $keyFilePassword = '') {
-
     $key = new \phpseclib\Crypt\RSA();
     if ($keyFilePassword) {
       $key->setPassword($keyFilePassword);
@@ -36,11 +33,9 @@ class BrSFTP extends BrRemoteConnection {
     $key->loadKey(file_get_contents($keyFileName));
 
     $this->connect($hostName, $userName, $key, $port);
-
   }
 
   public function connect($hostName, $userName, $password, $port = 22) {
-
     $this->currentHostName = $hostName;
     $this->currentUserName = $userName;
     $this->currentPassword = $password;
@@ -61,55 +56,41 @@ class BrSFTP extends BrRemoteConnection {
     } catch (\Exception $e) {
       throw new BrRemoteConnectionErrorException($e->getMessage());
     }
-
   }
 
   public function disconnect() {
-
     try {
       $this->connection = null;
     } catch (\Exception $e) {
 
     }
-
   }
 
   public function reset() {
-
     $dir = $this->currentDirectory;
     $this->disconnect();
     $this->connect($this->currentHostName, $this->currentUserName, $this->currentPassword, $this->currentPort);
     $this->changeDir($dir);
-
   }
 
   public function changeDir($directory) {
-
     if ($this->connection->chdir($directory)) {
       $this->currentDirectory = $this->getServerDir();
     } else {
       throw new \Exception('Can not change remote directory to ' . $directory);
     }
-
   }
 
   public function getCurrentDir() {
-
     return $this->getServerDir();
-
   }
 
   public function getServerDir() {
-
     return rtrim(str_replace('\\', '/', $this->connection->pwd()), '/') . '/';
-
   }
 
-  public function iterateDir($mask, $callback = null, $options = array()) {
-
-    if (gettype($mask) == 'string') {
-
-    } else {
+  public function iterateDir($mask, $callback = null, $options = []) {
+    if (gettype($mask) != 'string') {
       $options  = $callback;
       $callback = $mask;
       $mask     = null;
@@ -154,7 +135,7 @@ class BrSFTP extends BrRemoteConnection {
           }
         } else {
           foreach($ftpRAWList as $name) {
-            $ftpFileObject = new BrSFTPFileObject($name, array());
+            $ftpFileObject = new BrSFTPFileObject($name, []);
             $proceed = true;
             if ($mask) {
               $proceed = preg_match('#' . $mask . '#', $ftpFileObject->name());
@@ -166,11 +147,9 @@ class BrSFTP extends BrRemoteConnection {
         }
       }
     }
-
   }
 
   public function uploadFile($sourceFilePath, $targetFileName = null, $mode = FTP_BINARY) {
-
     if (!$targetFileName) {
       $targetFileName = br()->fs()->fileName($targetFileName);
     }
@@ -193,35 +172,25 @@ class BrSFTP extends BrRemoteConnection {
     } else {
       throw new \Exception('Can not upload file ' . $sourceFilePath);
     }
-
   }
 
   public function deleteFile($fileName) {
-
     return $this->connection->delete($fileName);
-
   }
 
   public function renameFile($oldFileName, $newFileName) {
-
     return $this->connection->rename($oldFileName, $newFileName);
-
   }
 
   public function makeDir($name) {
-
-    if ($name[0] == '/') {
-
-    } else {
+    if ($name[0] != '/') {
       $name = $this->currentDirectory . $name;
     }
 
     return $this->connection->mkdir($name);
-
   }
 
   public function downloadFile($sourceFileName, $targetFilePath, $targetFileName = null, $mode = FTP_BINARY) {
-
     $targetFilePath = br()->fs()->normalizePath($targetFilePath);
 
     if (!$targetFileName) {
@@ -237,24 +206,18 @@ class BrSFTP extends BrRemoteConnection {
     }
 
     throw new BrFileNotFoundException('Can not download file ' . $sourceFileName);
-
   }
 
   public function isFileExists($fileName) {
-
     $exists = false;
     $this->iterateDir($fileName, function() use (&$exists) {
       $exists = true;
     });
     return $exists;
-
   }
 
   public function getLastError() {
-
     return $this->connection->getLastSFTPError();
-
   }
 
 }
-

@@ -67,3 +67,9 @@ if (!function_exists('logme')) {
     }
   }
 }
+
+if (!function_exists('hrtime')) {
+  function hrtime() {
+    return microtime(true)*1e+9;
+  }
+}

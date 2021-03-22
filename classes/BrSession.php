@@ -10,7 +10,7 @@
 
 namespace Bright;
 
-class BrSession extends BrSingleton {
+class BrSession extends BrObject {
 
   private $tag = '';
 
@@ -25,7 +25,7 @@ class BrSession extends BrSingleton {
           if (!@session_start()) {
             if (br()->isConsoleMode()) {
               global $_SESSION;
-              $_SESSION = array();
+              $_SESSION = [];
             }
           }
         });
@@ -62,7 +62,7 @@ class BrSession extends BrSingleton {
         $name = $this->tag.':'.$name;
         return br($_SESSION, $name, $default);
       } else {
-        $result = array();
+        $result = [];
         foreach($_SESSION as $varName => $value) {
           if (strpos($varName, $this->tag.':') === 0) {
             $localName = substr($varName, strlen($this->tag.':'));
@@ -114,4 +114,3 @@ class BrSession extends BrSingleton {
   }
 
 }
-

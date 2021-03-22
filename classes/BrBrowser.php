@@ -35,7 +35,7 @@ class BrBrowser extends BrObject {
     return $contents;
   }
 
-  public function post($url, $data = array()) {
+  public function post($url, $data = []) {
     $client = new \GuzzleHttp\Client();
     $requestParams = $this->getDefaultRequestsParams();
     $requestParams['form_params'] = $data;
@@ -63,7 +63,7 @@ class BrBrowser extends BrObject {
   }
 
   public function extractMetaTags($url) {
-    $result = array();
+    $result = [];
 
     if ($body = $this->get($url)) {
       if (preg_match('/<title>([^>]*)<\/title>/si', $body, $matches)) {

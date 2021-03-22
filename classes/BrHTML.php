@@ -12,23 +12,18 @@ namespace Bright;
 
 require_once(dirname(__DIR__) . '/3rdparty/phpQuery/latest/phpQuery.php');
 
-class BrHTML extends BrSingleton {
+class BrHTML extends BrObject {
 
   public function isHtml($text) {
-
     return preg_match('~<[/]?[\w][^>]*?>~i', $text) ||
            preg_match('~&[a-z#0-9]+;~i', $text);
-
   }
 
   public function XSSCleanUp($html, $callback = null) {
-
     return br()->XSS()->cleanUp($html, $callback);
-
   }
 
   public function tidyUp($inHtml) {
-
     $result = trim($inHtml);
 
     if (br()->HTML()->isHtml($inHtml)) {
@@ -48,11 +43,9 @@ class BrHTML extends BrSingleton {
     }
 
     return $result;
-
   }
 
   public function cleanUpEndOfText($html) {
-
     $s = $html;
     while (true) {
       $html = preg_replace('|<br[ /]*>$|i', '', $s);
@@ -63,11 +56,9 @@ class BrHTML extends BrSingleton {
     }
 
     return $html;
-
   }
 
   public function cleanUp($html) {
-
     $html = str_replace('{cke_protected}{C}', '', $html);
 
     $html = preg_replace('|<!--.+?-->|ism', '', $html);
@@ -92,11 +83,9 @@ class BrHTML extends BrSingleton {
     }
 
     return $html;
-
   }
 
   public function cleanUpSpaces($html) {
-
     $result = '';
 
     $lines = preg_split('~[\n\r]+~', $html);
@@ -128,11 +117,9 @@ class BrHTML extends BrSingleton {
     $result = trim($result);
 
     return $result;
-
   }
 
   public function toOutput($html) {
-
     $flags = ENT_COMPAT;
     if (defined('ENT_HTML401')) {
       $flags = $flags | ENT_HTML401;
@@ -140,11 +127,9 @@ class BrHTML extends BrSingleton {
     $html = htmlspecialchars($html, $flags, 'UTF-8');
 
     return $html;
-
   }
 
   public function toText($html, $smart = false) {
-
     if ($smart) {
       $html = preg_replace('~<div[^>]*?>~ism', "\n", $html);
     }
@@ -172,11 +157,9 @@ class BrHTML extends BrSingleton {
     $html = html_entity_decode($html, $flags, 'UTF-8');
 
     return trim($html);
-
   }
 
   public function fromText($html) {
-
     $flags = ENT_COMPAT;
     if (defined('ENT_HTML401')) {
       $flags = $flags | ENT_HTML401;
@@ -186,19 +169,16 @@ class BrHTML extends BrSingleton {
     $html = preg_replace("/\r/ism", '', $html);
 
     return trim($html);
-
   }
 
   public function decodeNumEntities($html) {
-
     $html = preg_replace_callback("/(&#[0-9]+;)/", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $html);
     $html = preg_replace_callback("/(&#x[0-9A-Z]+;)/i", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $html);
-    return $html;
 
+    return $html;
   }
 
   public function unicodeToNamedEntities($html) {
-
     if (strlen($html) > 0) {
       $html = json_encode($html);
       $html = preg_replace('/\\\u([0-9a-z]{4})/', '&#x$1;', $html );
@@ -234,31 +214,23 @@ class BrHTML extends BrSingleton {
     return trim($html);
   }
 
-
   function parseStyle($value) {
-
     $result = [];
-
     preg_match_all("/([\w-]+)\s*:\s*([^;]+)\s*;?/", $value, $matches, PREG_SET_ORDER);
-
     foreach ($matches as $match) {
       $result[$match[1]] = $match[2];
     }
 
     return $result;
-
   }
 
   function packStyle($value) {
-
     $result = [];
-
     foreach($value as $name => $value) {
       $result[] = $name . ':' . $value;
     }
 
     return br($result)->join(';');
-
   }
 
 }

@@ -12,12 +12,9 @@ namespace Bright;
 
 class BrS3ImageUploadHandler extends BrGenericUploadHandler {
 
-  public function __construct($params = array()) {
-
-    $params['allowedExtensions'] = array('jpeg', 'jpg', 'gif', 'png', 'svg');
-
+  public function __construct($params = []) {
+    $params['allowedExtensions'] = [ 'jpeg', 'jpg', 'gif', 'png', 'svg' ];
     parent::__construct($params);
-
   }
 
   /**
@@ -25,15 +22,15 @@ class BrS3ImageUploadHandler extends BrGenericUploadHandler {
    * @return boolean TRUE on success
    */
   public function save($srcFilePath, $path) {
-
     $dstFileName = br()->fs()->normalizeFileName(br()->fs()->fileName($this->getFileName()));
     $dstFilePath = '/' . rtrim(ltrim($path, '/'), '/') . '/' . md5_file($srcFilePath) . '/' . $dstFileName;
     $url = br()->AWS()->uploadFile($srcFilePath, $this->options['bucketName'] . $dstFilePath);
 
-    $result = array( 'fileName' => $dstFileName
-                   , 'url'      => $dstFilePath
-                   , 'href'     => $url
-                   );
+    $result = [
+      'fileName' => $dstFileName,
+      'url' => $dstFilePath,
+      'href' => $url
+    ];
 
     if (br()->request()->get('tw') && br()->request()->get('th')) {
       if ($thumbnail = br()->images()->generateThumbnail($srcFilePath, br()->request()->get('tw'), br()->request()->get('th'))) {
@@ -46,7 +43,6 @@ class BrS3ImageUploadHandler extends BrGenericUploadHandler {
     }
 
     return $result;
-
   }
 
 }

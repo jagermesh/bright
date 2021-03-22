@@ -21,13 +21,12 @@ class BrDataBaseManager {
 
   private $auditSubsystemInitialized     = false;
   private $migrationSubsystemInitialized = false;
-  private $cascadeSubsystemInitialized   = false;
 
   private $definer;
 
   public function parseScript($script) {
+    $result = [];
 
-    $result = array();
     $delimiter = ';';
     while(strlen($script) && preg_match('/((DELIMITER)[ ]+([^\n\r])|[' . $delimiter . ']|$)/is', $script, $matches, PREG_OFFSET_CAPTURE)) {
       if (count($matches) > 2) {
@@ -42,11 +41,9 @@ class BrDataBaseManager {
     }
 
     return $result;
-
   }
 
   public function executeScript($script) {
-
     $result = 0;
 
     if ($statements = $this->parseScript($script)) {
@@ -57,11 +54,9 @@ class BrDataBaseManager {
     }
 
     return $result;
-
   }
 
   public function executeScriptFile($fileName) {
-
     $result = 0;
 
     if (file_exists($fileName)) {
@@ -79,12 +74,9 @@ class BrDataBaseManager {
     } else {
       throw new BrAppException('Script file not found: ' . $fileName);
     }
-
   }
 
   private function internalExecute($sql) {
-
-
     br()->db()->runQuery($sql);
 
     if (preg_match('/DROP.*?TABLE/', $sql) || preg_match('/CREATE.*?TABLE/', $sql) || preg_match('/ALTER.*?TABLE/', $sql)) {
@@ -92,17 +84,13 @@ class BrDataBaseManager {
     }
 
     return br()->db()->getAffectedRowsAmount();
-
   }
 
   public function setAuditSubsystemInitialyzed($value) {
-
     $this->auditSubsystemInitialized = $value;
-
   }
 
   public function initAuditSubsystem() {
-
     if ($this->auditSubsystemInitialized) {
       return true;
     }
@@ -117,24 +105,25 @@ class BrDataBaseManager {
           $check = br()->db()->getValue('DESC ' . $this->auditChangeTable);
         } catch (\Exception $e) {
           if (stripos($e->getMessage(), "doesn't exist")) {
-            br()->db()->runQuery( 'CREATE TABLE ' . $this->auditChangeTable . ' (
-                                     id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
-                                   , action_date TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP()
-                                   , table_name  VARCHAR(100)    NOT NULL
-                                   , action_name CHAR(1)         NOT NULL
-                                   , object_id   INTEGER         NOT NULL
-                                   , author_id   INTEGER
-                                   , ip_address  VARCHAR(250)
-                                   , context     VARCHAR(250)
-                                   , INDEX idx_' . $this->auditChangeTable . '_date (action_date)
-                                   , INDEX idx_' . $this->auditChangeTable . '_table (table_name)
-                                   , INDEX idx_' . $this->auditChangeTable . '_action (action_name)
-                                   , INDEX idx_' . $this->auditChangeTable . '_object (object_id)
-                                   , INDEX idx_' . $this->auditChangeTable . '_author (author_id)
-                                   , INDEX idx_' . $this->auditChangeTable . '_ip_address (ip_address)
-                                   , INDEX idx_' . $this->auditChangeTable . '_context (context)
-                                   ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC'
-                                );
+            br()->db()->runQuery(
+              'CREATE TABLE ' . $this->auditChangeTable . ' (
+                   id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
+                 , action_date TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP()
+                 , table_name  VARCHAR(100)    NOT NULL
+                 , action_name CHAR(1)         NOT NULL
+                 , object_id   INTEGER         NOT NULL
+                 , author_id   INTEGER
+                 , ip_address  VARCHAR(250)
+                 , context     VARCHAR(250)
+                 , INDEX idx_' . $this->auditChangeTable . '_date (action_date)
+                 , INDEX idx_' . $this->auditChangeTable . '_table (table_name)
+                 , INDEX idx_' . $this->auditChangeTable . '_action (action_name)
+                 , INDEX idx_' . $this->auditChangeTable . '_object (object_id)
+                 , INDEX idx_' . $this->auditChangeTable . '_author (author_id)
+                 , INDEX idx_' . $this->auditChangeTable . '_ip_address (ip_address)
+                 , INDEX idx_' . $this->auditChangeTable . '_context (context)
+               ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC'
+            );
           } else {
             throw $e;
           }
@@ -154,16 +143,17 @@ class BrDataBaseManager {
           $check = br()->db()->getValue('DESC ' . $this->auditChangeLogTable);
         } catch (\Exception $e) {
           if (stripos($e->getMessage(), "doesn't exist")) {
-            br()->db()->runQuery( 'CREATE TABLE ' . $this->auditChangeLogTable . ' (
-                                     id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
-                                   , change_id  BIGINT UNSIGNED NOT NULL
-                                   , field_name VARCHAR(100)    NOT NULL
-                                   , old_value  LONGTEXT
-                                   , new_value  LONGTEXT
-                                   , INDEX idx_audit_change_log_field_name (field_name)
-                                   , CONSTRAINT fk_' . $this->auditChangeLogTable . '_change_id FOREIGN KEY (change_id) REFERENCES ' . $this->auditChangeTable . ' (id) ON DELETE CASCADE
-                                   ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC'
-                                );
+            br()->db()->runQuery(
+              'CREATE TABLE ' . $this->auditChangeLogTable . ' (
+                   id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
+                 , change_id  BIGINT UNSIGNED NOT NULL
+                 , field_name VARCHAR(100)    NOT NULL
+                 , old_value  LONGTEXT
+                 , new_value  LONGTEXT
+                 , INDEX idx_audit_change_log_field_name (field_name)
+                 , CONSTRAINT fk_' . $this->auditChangeLogTable . '_change_id FOREIGN KEY (change_id) REFERENCES ' . $this->auditChangeTable . ' (id) ON DELETE CASCADE
+               ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC'
+            );
           } else {
             throw $e;
           }
@@ -183,17 +173,18 @@ class BrDataBaseManager {
           $check = br()->db()->getValue('DESC ' . $this->auditTablesTable);
         } catch (\Exception $e) {
           if (stripos($e->getMessage(), "doesn't exist")) {
-            br()->db()->runQuery( 'CREATE TABLE br_audit_tables (
-                                     id                 BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
-                                   , name               VARCHAR(250)    NOT NULL
-                                   , is_insert_audited  TINYINT(1)      NOT NULL DEFAULT 1
-                                   , is_update_audited  TINYINT(1)      NOT NULL DEFAULT 1
-                                   , is_delete_audited  TINYINT(1)      NOT NULL DEFAULT 1
-                                   , is_cascade_audited TINYINT(1)     NOT NULL DEFAULT 1
-                                   , exclude_fields     LONGTEXT
-                                   , UNIQUE INDEX un_' . $this->auditTablesTable . '_name (name)
-                                   ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC'
-                                );
+            br()->db()->runQuery(
+              'CREATE TABLE ' . $this->auditTablesTable . ' (
+                   id                 BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
+                 , name               VARCHAR(250)    NOT NULL
+                 , is_insert_audited  TINYINT(1)      NOT NULL DEFAULT 1
+                 , is_update_audited  TINYINT(1)      NOT NULL DEFAULT 1
+                 , is_delete_audited  TINYINT(1)      NOT NULL DEFAULT 1
+                 , is_cascade_audited TINYINT(1)      NOT NULL DEFAULT 1
+                 , exclude_fields     LONGTEXT
+                 , UNIQUE INDEX un_' . $this->auditTablesTable . '_name (name)
+               ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC'
+            );
           } else {
             throw $e;
           }
@@ -207,24 +198,28 @@ class BrDataBaseManager {
       $check = br()->db()->getValue('SELECT is_insert_audited FROM ' . $this->auditTablesTable . ' LIMIT 1');
     } catch (\Exception $e) {
       if (stripos($e->getMessage(), 'Unknown column')) {
-        br()->db()->runQuery('ALTER TABLE ' . $this->auditTablesTable . ' ADD is_insert_audited  TINYINT(1) NOT NULL DEFAULT 1
-                                                                        , ADD is_update_audited  TINYINT(1) NOT NULL DEFAULT 1
-                                                                        , ADD is_delete_audited  TINYINT(1) NOT NULL DEFAULT 1
-                                                                        , ADD is_cascade_audited TINYINT(1) NOT NULL DEFAULT 1');
-        br()->db()->runQuery('UPDATE ' . $this->auditTablesTable . ' SET is_insert_audited = IF(is_audited & 4 = 4, 1, 0)
-                                                                       , is_update_audited = IF(is_audited & 2 = 2, 1, 0)
-                                                                       , is_delete_audited = IF(is_audited & 1 = 1, 1, 0)');
+        br()->db()->runQuery(
+          'ALTER TABLE ' . $this->auditTablesTable . ' ADD is_insert_audited  TINYINT(1) NOT NULL DEFAULT 1
+                                                     , ADD is_update_audited  TINYINT(1) NOT NULL DEFAULT 1
+                                                     , ADD is_delete_audited  TINYINT(1) NOT NULL DEFAULT 1
+                                                     , ADD is_cascade_audited TINYINT(1) NOT NULL DEFAULT 1'
+        );
+        br()->db()->runQuery(
+          'UPDATE ' . $this->auditTablesTable . ' SET is_insert_audited = IF(is_audited & 4 = 4, 1, 0)
+                                                    , is_update_audited = IF(is_audited & 2 = 2, 1, 0)
+                                                    , is_delete_audited = IF(is_audited & 1 = 1, 1, 0)'
+        );
         br()->db()->runQuery('ALTER TABLE ' . $this->auditTablesTable . ' DROP is_audited');
-
         try {
           if (br()->db()->getValue('SELECT 1 FROM br_cascade_triggers LIMIT 1')) {
-            br()->db()->runQuery( 'INSERT IGNORE INTO ' . $this->auditTablesTable . ' (name, is_cascade_audited)
-                                   SELECT table_name
-                                        , IF(skip = 0, 1, 0)
-                                     FROM br_cascade_triggers
-                                       ON DUPLICATE KEY
-                                   UPDATE is_cascade_audited = VALUES(is_cascade_audited)'
-                                );
+            br()->db()->runQuery(
+              'INSERT IGNORE INTO ' . $this->auditTablesTable . ' (name, is_cascade_audited)
+               SELECT table_name
+                    , IF(skip = 0, 1, 0)
+                 FROM br_cascade_triggers
+                   ON DUPLICATE KEY
+               UPDATE is_cascade_audited = VALUES(is_cascade_audited)'
+            );
             br()->db()->runQuery('DROP TABLE br_cascade_triggers');
           }
         } catch (\Exception $e) {
@@ -243,91 +238,99 @@ class BrDataBaseManager {
       $check = br()->db()->getValue('DESC br_constraint_keys');
     } catch (\Exception $e) {
       if (stripos($e->getMessage(), "doesn't exist")) {
-        br()->db()->runQuery( 'CREATE TABLE br_constraint_keys (
-                                 id                     BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
-                               , constraint_catalog     VARCHAR(250) NOT NULL
-                               , constraint_schema      VARCHAR(64)  NOT NULL
-                               , constraint_name        VARCHAR(64)  NOT NULL
-                               , table_name             VARCHAR(64)  NOT NULL
-                               , column_name            VARCHAR(64)  NOT NULL
-                               , referenced_column_name VARCHAR(64)
-                               , INDEX idx_br_constraint_keys1 (constraint_schema, constraint_name, constraint_catalog)
-                              ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC'
-                            );
+        br()->db()->runQuery(
+          'CREATE TABLE br_constraint_keys (
+               id                     BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
+             , constraint_catalog     VARCHAR(250) NOT NULL
+             , constraint_schema      VARCHAR(64)  NOT NULL
+             , constraint_name        VARCHAR(64)  NOT NULL
+             , table_name             VARCHAR(64)  NOT NULL
+             , column_name            VARCHAR(64)  NOT NULL
+             , referenced_column_name VARCHAR(64)
+             , INDEX idx_br_constraint_keys1 (constraint_schema, constraint_name, constraint_catalog)
+           ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC'
+        );
       } else {
         throw $e;
       }
     }
 
-    br()->db()->runQuery( 'TRUNCATE TABLE br_constraint_keys');
-    br()->db()->runQuery( 'INSERT
-                             INTO br_constraint_keys (constraint_catalog, constraint_schema, constraint_name, table_name, column_name, referenced_column_name)
-                           SELECT constraint_catalog, constraint_schema, constraint_name, table_name, column_name, referenced_column_name
-                             FROM information_schema.key_column_usage
-                            WHERE constraint_schema = ?'
-                        , br()->config()->get('br/db.name')
-                        );
+    br()->db()->runQuery('TRUNCATE TABLE br_constraint_keys');
+
+    br()->db()->runQuery(
+      'INSERT
+         INTO br_constraint_keys (constraint_catalog, constraint_schema, constraint_name, table_name, column_name, referenced_column_name)
+       SELECT constraint_catalog, constraint_schema, constraint_name, table_name, column_name, referenced_column_name
+         FROM information_schema.key_column_usage
+        WHERE constraint_schema = ?',
+      br()->config()->get('br/db.name')
+    );
 
     try {
       $check = br()->db()->getValue('DESC br_constraint_refs');
     } catch (\Exception $e) {
       if (stripos($e->getMessage(), "doesn't exist")) {
-        br()->db()->runQuery( 'CREATE TABLE br_constraint_refs (
-                                 id                    BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
-                               , constraint_catalog    VARCHAR(250)    NOT NULL
-                               , constraint_schema     VARCHAR(64)     NOT NULL
-                               , constraint_name       VARCHAR(64)     NOT NULL
-                               , delete_rule           VARCHAR(64)     NOT NULL
-                               , referenced_table_name VARCHAR(64)     NOT NULL
-                               , INDEX idx_br_constraint_refs1 (constraint_schema, constraint_name, constraint_catalog)
-                               , INDEX idx_br_constraint_refs2 (constraint_schema, delete_rule, referenced_table_name)
-                               ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC'
-                            );
+        br()->db()->runQuery(
+          'CREATE TABLE br_constraint_refs (
+               id                    BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
+             , constraint_catalog    VARCHAR(250)    NOT NULL
+             , constraint_schema     VARCHAR(64)     NOT NULL
+             , constraint_name       VARCHAR(64)     NOT NULL
+             , delete_rule           VARCHAR(64)     NOT NULL
+             , referenced_table_name VARCHAR(64)     NOT NULL
+             , INDEX idx_br_constraint_refs1 (constraint_schema, constraint_name, constraint_catalog)
+             , INDEX idx_br_constraint_refs2 (constraint_schema, delete_rule, referenced_table_name)
+           ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC'
+        );
       } else {
         throw $e;
       }
     }
 
-    br()->db()->runQuery( 'TRUNCATE TABLE br_constraint_refs');
-    br()->db()->runQuery( 'INSERT
-                             INTO br_constraint_refs (constraint_catalog, constraint_schema, constraint_name, delete_rule, referenced_table_name)
-                           SELECT constraint_catalog, constraint_schema, constraint_name, delete_rule, referenced_table_name
-                             FROM information_schema.referential_constraints
-                            WHERE constraint_schema = ?'
-                        , br()->config()->get('br/db.name')
-                        );
+    br()->db()->runQuery('TRUNCATE TABLE br_constraint_refs');
+
+    br()->db()->runQuery(
+      'INSERT
+         INTO br_constraint_refs (constraint_catalog, constraint_schema, constraint_name, delete_rule, referenced_table_name)
+       SELECT constraint_catalog, constraint_schema, constraint_name, delete_rule, referenced_table_name
+         FROM information_schema.referential_constraints
+        WHERE constraint_schema = ?',
+      br()->config()->get('br/db.name')
+    );
 
     try {
       $check = br()->db()->getValue('DESC br_db_triggers');
     } catch (\Exception $e) {
       if (stripos($e->getMessage(), "doesn't exist")) {
-        br()->db()->runQuery( 'CREATE TABLE br_db_triggers (
-                                 id                    BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
-                               , event_object_schema   VARCHAR(250)    NOT NULL
-                               , event_object_table    VARCHAR(64)     NOT NULL
-                               , action_timing         VARCHAR(64)     NOT NULL
-                               , event_manipulation    VARCHAR(64)     NOT NULL
-                               , INDEX idx_br_db_triggers1 (event_object_schema, event_object_table, action_timing, event_manipulation)
-                               ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC'
-                            );
+        br()->db()->runQuery(
+          'CREATE TABLE br_db_triggers (
+               id                    BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
+             , event_object_schema   VARCHAR(250)    NOT NULL
+             , event_object_table    VARCHAR(64)     NOT NULL
+             , action_timing         VARCHAR(64)     NOT NULL
+             , event_manipulation    VARCHAR(64)     NOT NULL
+             , INDEX idx_br_db_triggers1 (event_object_schema, event_object_table, action_timing, event_manipulation)
+           ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC'
+        );
       } else {
         throw $e;
       }
     }
 
-    br()->db()->runQuery( 'TRUNCATE TABLE br_db_triggers');
-    br()->db()->runQuery( 'INSERT
-                             INTO br_db_triggers (event_object_schema, event_object_table, action_timing, event_manipulation)
-                           SELECT event_object_schema, event_object_table, action_timing, event_manipulation
-                             FROM information_schema.triggers
-                            WHERE event_object_schema = ?'
-                        , br()->config()->get('br/db.name')
-                        );
+    br()->db()->runQuery('TRUNCATE TABLE br_db_triggers');
+
+    br()->db()->runQuery(
+      'INSERT
+         INTO br_db_triggers (event_object_schema, event_object_table, action_timing, event_manipulation)
+       SELECT event_object_schema, event_object_table, action_timing, event_manipulation
+         FROM information_schema.triggers
+        WHERE event_object_schema = ?',
+      br()->config()->get('br/db.name')
+    );
 
     br()->db()->runQuery( 'DROP VIEW IF EXISTS v_missing_audit');
     br()->db()->runQuery( 'DROP VIEW IF EXISTS view_br_missing_audit');
     br()->db()->runQuery( 'DROP VIEW IF EXISTS view_br_audit_tables');
-
 
     $sql  = 'CREATE ';
     if ($this->getDefiner()) {
@@ -375,73 +378,68 @@ class BrDataBaseManager {
                 AND tbl.table_name NOT LIKE "audit_%"
                 AND tbl.table_name NOT LIKE "br_%"';
 
-    br()->db()->runQuery( $sql
-                        , br()->config()->get('br/db.name')
-                        );
+    br()->db()->runQuery($sql, br()->config()->get('br/db.name'));
 
-    br()->db()->runQuery( 'INSERT IGNORE INTO ' . $this->auditTablesTable . ' (name, is_insert_audited, is_update_audited, is_delete_audited, is_cascade_audited)
-                           SELECT name
-                                , is_insert_audited
-                                , is_update_audited
-                                , is_delete_audited
-                                , is_cascade_audited
-                             FROM view_br_audit_tables
-                            WHERE is_registered = 0'
-                        );
+    br()->db()->runQuery(
+      'INSERT IGNORE INTO ' . $this->auditTablesTable . ' (name, is_insert_audited, is_update_audited, is_delete_audited, is_cascade_audited)
+       SELECT name
+            , is_insert_audited
+            , is_update_audited
+            , is_delete_audited
+            , is_cascade_audited
+         FROM view_br_audit_tables
+        WHERE is_registered = 0'
+    );
 
-    br()->db()->runQuery( ' DELETE atb
-                              FROM ' . $this->auditTablesTable . ' atb
-                             WHERE NOT EXISTS (SELECT 1
-                                                 FROM information_schema.tables tbl
-                                                WHERE tbl.table_schema = ?
-                                                  AND atb.name = tbl.table_name)'
-                        , br()->config()->get('br/db.name')
-                        );
+    br()->db()->runQuery(
+      'DELETE atb
+         FROM ' . $this->auditTablesTable . ' atb
+        WHERE NOT EXISTS (SELECT 1
+                            FROM information_schema.tables tbl
+                           WHERE tbl.table_schema = ?
+                             AND atb.name = tbl.table_name)',
+      br()->config()->get('br/db.name')
+    );
 
     $this->auditSubsystemInitialized = true;
-
   }
 
   public function initMigrationsSubsystem() {
-
     if ($this->migrationSubsystemInitialized) {
       return true;
     }
 
     try {
-      $check = br()->db()->getValue('DESC br_db_patch');
+      $check = br()->db()->getValue('DESC ' . $this->patchesTable);
     } catch (\Exception $e) {
       if (stripos($e->getMessage(), "doesn't exist")) {
-        br()->db()->runQuery( 'CREATE TABLE br_db_patch (
-                                 id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
-                               , guid            VARCHAR(50)     NOT NULL
-                               , patch_file      TEXT            NOT NULL
-                               , patch_hash      VARCHAR(250)    NOT NULL
-                               , body            LONGTEXT        NOT NULL
-                               , installed_at    DATETIME        NOT NULL
-                               , re_installed_at DATETIME
-                               , UNIQUE INDEX un_bd_db_patch_guid (guid)
-                               ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC'
-                            );
+        br()->db()->runQuery(
+          'CREATE TABLE ' . $this->patchesTable . ' (
+               id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
+             , guid            VARCHAR(50)     NOT NULL
+             , patch_file      TEXT            NOT NULL
+             , patch_hash      VARCHAR(250)    NOT NULL
+             , body            LONGTEXT        NOT NULL
+             , installed_at    DATETIME        NOT NULL
+             , re_installed_at DATETIME
+             , UNIQUE INDEX un_bd_db_patch_guid (guid)
+           ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC'
+        );
       } else {
         throw $e;
       }
     }
 
     $this->migrationSubsystemInitialized = true;
-
   }
 
   private function getAuditExcludeFields($tableName) {
-
     $this->initAuditSubsystem();
 
     return br(br()->db()->getValue('SELECT exclude_fields FROM ' . $this->auditTablesTable . ' WHERE name = ?', $tableName))->split();
-
   }
 
   private function getAuditFields($tableName) {
-
     $this->initAuditSubsystem();
 
     $excludeFields = $this->getAuditExcludeFields($tableName);
@@ -449,7 +447,7 @@ class BrDataBaseManager {
 
     $desc = br()->db()->getCachedRows('DESC ' . $tableName);
 
-    $fields = array();
+    $fields = [];
     foreach($desc as $field) {
       if (!in_array($field['field'], $excludeFields)) {
         $fields[] = $field['field'];
@@ -457,11 +455,9 @@ class BrDataBaseManager {
     }
 
     return $fields;
-
   }
 
   private function generateInsertAuditTrigger($tableName) {
-
     $this->initAuditSubsystem();
 
     $fields = $this->getAuditFields($tableName);
@@ -486,11 +482,9 @@ class BrDataBaseManager {
     $sql .= 'END' . "\n";
 
     return $sql;
-
   }
 
   private function generateUpdateAuditTrigger($tableName) {
-
     $this->initAuditSubsystem();
 
     $fields = $this->getAuditFields($tableName);
@@ -529,11 +523,9 @@ class BrDataBaseManager {
     $sql .= 'END' . "\n";
 
     return $sql;
-
   }
 
   private function generateDeleteAuditTrigger($tableName) {
-
     $this->initAuditSubsystem();
 
     $fields = $this->getAuditFields($tableName);
@@ -558,11 +550,9 @@ class BrDataBaseManager {
     $sql .= 'END' . "\n";
 
     return $sql;
-
   }
 
   private function generateCascadeAuditTrigger($tableName) {
-
     $this->initAuditSubsystem();
 
     $sql  = 'CREATE ';
@@ -576,25 +566,27 @@ class BrDataBaseManager {
 
     $sql2 = '';
 
-    if ($constraints = br()->db()->getRows( 'SELECT ctr.constraint_schema, ctr.constraint_name, ctr.constraint_catalog
-                                               FROM br_constraint_refs ctr
-                                              WHERE ctr.constraint_schema     = ?
-                                                AND ctr.delete_rule           = ?
-                                                AND ctr.referenced_table_name = ?'
-                                          , br()->db()->getDataBaseName()
-                                          , 'CASCADE'
-                                          , $tableName
-                                          )) {
+    if ($constraints = br()->db()->getRows(
+      'SELECT ctr.constraint_schema, ctr.constraint_name, ctr.constraint_catalog
+         FROM br_constraint_refs ctr
+        WHERE ctr.constraint_schema     = ?
+          AND ctr.delete_rule           = ?
+          AND ctr.referenced_table_name = ?',
+      br()->db()->getDataBaseName(),
+      'CASCADE',
+      $tableName
+    )) {
       foreach($constraints as $constraint) {
-        if ($definitions = br()->db()->getRows( 'SELECT usg.table_name, usg.column_name, usg.referenced_column_name
-                                                   FROM br_constraint_keys usg
-                                                  WHERE usg.constraint_schema  = ?
-                                                    AND usg.constraint_name    = ?
-                                                    AND usg.constraint_catalog = ?'
-                                              , $constraint['constraint_schema']
-                                              , $constraint['constraint_name']
-                                              , $constraint['constraint_catalog']
-                                              )) {
+        if ($definitions = br()->db()->getRows(
+          'SELECT usg.table_name, usg.column_name, usg.referenced_column_name
+             FROM br_constraint_keys usg
+            WHERE usg.constraint_schema  = ?
+              AND usg.constraint_name    = ?
+              AND usg.constraint_catalog = ?',
+          $constraint['constraint_schema'],
+          $constraint['constraint_name'],
+          $constraint['constraint_catalog']
+        )) {
           foreach($definitions as $definition) {
             if ($definition['table_name'] != $tableName) {
               $sql2 .= '    IF (@BR_CSC_' . $definition['table_name'] . ' IS NULL) THEN' . "\n";
@@ -606,25 +598,27 @@ class BrDataBaseManager {
       }
     }
 
-    if ($constraints = br()->db()->getRows( 'SELECT ctr.constraint_schema, ctr.constraint_name, ctr.constraint_catalog
-                                               FROM br_constraint_refs ctr
-                                              WHERE ctr.constraint_schema     = ?
-                                                AND ctr.delete_rule           = ?
-                                                AND ctr.referenced_table_name = ?'
-                                          , br()->db()->getDataBaseName()
-                                          , 'SET NULL'
-                                          , $tableName
-                                          )) {
+    if ($constraints = br()->db()->getRows(
+      'SELECT ctr.constraint_schema, ctr.constraint_name, ctr.constraint_catalog
+         FROM br_constraint_refs ctr
+        WHERE ctr.constraint_schema     = ?
+          AND ctr.delete_rule           = ?
+          AND ctr.referenced_table_name = ?',
+      br()->db()->getDataBaseName(),
+      'SET NULL',
+      $tableName
+    )) {
       foreach($constraints as $constraint) {
-        if ($definitions = br()->db()->getRows( 'SELECT usg.table_name, usg.column_name, usg.referenced_column_name
-                                                   FROM br_constraint_keys usg
-                                                  WHERE usg.constraint_schema = ?
-                                                    AND usg.constraint_name = ?
-                                                    AND usg.constraint_catalog = ?'
-                                              , $constraint['constraint_schema']
-                                              , $constraint['constraint_name']
-                                              , $constraint['constraint_catalog']
-                                              )) {
+        if ($definitions = br()->db()->getRows(
+          'SELECT usg.table_name, usg.column_name, usg.referenced_column_name
+             FROM br_constraint_keys usg
+            WHERE usg.constraint_schema = ?
+              AND usg.constraint_name = ?
+              AND usg.constraint_catalog = ?',
+          $constraint['constraint_schema'],
+          $constraint['constraint_name'],
+          $constraint['constraint_catalog']
+        )) {
           foreach($definitions as $definition) {
             if ($definition['table_name'] != $tableName) {
               $sql2 .= '    IF (@BR_CSC_' . $definition['table_name'] . ' IS NULL) THEN' . "\n";
@@ -644,74 +638,60 @@ class BrDataBaseManager {
     } else {
       return false;
     }
-
   }
 
   private function createInsertAuditTrigger($tableName) {
-
     $this->initAuditSubsystem();
 
     $this->deleteInsertAuditTrigger($tableName, false);
     br()->db()->runQuery($this->generateInsertAuditTrigger($tableName));
     br()->log()->message('[' . $tableName . '] Insert audited');
-
   }
 
   private function deleteInsertAuditTrigger($tableName, $log = true) {
-
     $this->initAuditSubsystem();
 
     br()->db()->runQuery('DROP TRIGGER IF EXISTS aud_tai_' . $tableName);
     if ($log) {
       br()->log()->message('[' . $tableName . '] Insert not audited');
     }
-
   }
 
   private function createUpdateAuditTrigger($tableName) {
-
     $this->initAuditSubsystem();
 
     $this->deleteUpdateAuditTrigger($tableName, false);
     br()->db()->runQuery($this->generateUpdateAuditTrigger($tableName));
     br()->log()->message('[' . $tableName . '] Update audited');
-
   }
 
   private function deleteUpdateAuditTrigger($tableName, $log = true) {
-
     $this->initAuditSubsystem();
 
     br()->db()->runQuery('DROP TRIGGER IF EXISTS aud_tau_' . $tableName);
     if ($log) {
       br()->log()->message('[' . $tableName . '] Update not audited');
     }
-
   }
 
   private function createDeleteAuditTrigger($tableName) {
-
     $this->initAuditSubsystem();
 
     $this->deleteDeleteAuditTrigger($tableName, false);
     br()->db()->runQuery($this->generateDeleteAuditTrigger($tableName));
     br()->log()->message('[' . $tableName . '] Delete audited');
-
   }
 
   private function deleteDeleteAuditTrigger($tableName, $log = true) {
-
     $this->initAuditSubsystem();
 
     br()->db()->runQuery('DROP TRIGGER IF EXISTS aud_tad_' . $tableName);
     if ($log) {
       br()->log()->message('[' . $tableName . '] Delete not audited');
     }
-
   }
 
   public function createCascadeAuditTrigger($tableName) {
-
     $this->initAuditSubsystem();
 
     $this->deleteCascadeAuditTrigger($tableName, false);
@@ -721,22 +701,18 @@ class BrDataBaseManager {
     } else {
       br()->log()->message('[' . $tableName . '] Cascade deletion not applicable');
     }
-
   }
 
   private function deleteCascadeAuditTrigger($tableName, $log = true) {
-
     $this->initAuditSubsystem();
 
     br()->db()->runQuery('DROP TRIGGER IF EXISTS csc_tbd_' . $tableName);
     if ($log) {
       br()->log()->message('[' . $tableName . '] Cascade deletion not audited');
     }
-
   }
 
   public function createAuditTriggers($tableName) {
-
     $this->initAuditSubsystem();
 
     $this->deleteAuditTriggers($tableName, true);
@@ -755,22 +731,18 @@ class BrDataBaseManager {
         $this->createCascadeAuditTrigger($table['name']);
       }
     }
-
   }
 
   public function deleteAuditTriggers($tableName, $log = true) {
-
     $this->initAuditSubsystem();
 
     $this->deleteInsertAuditTrigger($tableName, $log);
     $this->deleteUpdateAuditTrigger($tableName, $log);
     $this->deleteDeleteAuditTrigger($tableName, $log);
     $this->deleteCascadeAuditTrigger($tableName, $log);
-
   }
 
   public function printAuditTriggers($tableName) {
-
     $this->initAuditSubsystem();
 
     if ($table = br()->db()->getCachedRow('SELECT * FROM ' . $this->auditTablesTable . ' WHERE name LIKE ?', $tableName)) {
@@ -779,53 +751,49 @@ class BrDataBaseManager {
       br()->log()->message($this->generateDeleteAuditTrigger($table['name']));
       br()->log()->message($this->generateCascadeAuditTrigger($table['name']));
     }
-
   }
 
   public function refreshTableSupport($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $isCascadeAudited = 1, $excludeFields = null) {
-
     $this->initAuditSubsystem();
 
-    br()->db()->runQuery( 'INSERT IGNORE INTO ' . $this->auditTablesTable . ' (name, is_insert_audited, is_update_audited, is_delete_audited, is_cascade_audited, exclude_fields)
-                           VALUES (?, ?, ?, ?, ?, ?)'
-                        , $tableName
-                        , $isInsertAudited
-                        , $isUpdateAudited
-                        , $isDeleteAudited
-                        , $isCascadeAudited
-                        , $excludeFields
-                        );
+    br()->db()->runQuery(
+      'INSERT IGNORE INTO ' . $this->auditTablesTable . ' (name, is_insert_audited, is_update_audited, is_delete_audited, is_cascade_audited, exclude_fields)
+       VALUES (?, ?, ?, ?, ?, ?)',
+      $tableName,
+      $isInsertAudited,
+      $isUpdateAudited,
+      $isDeleteAudited,
+      $isCascadeAudited,
+      $excludeFields
+    );
 
     $this->createAuditTriggers($tableName);
-
   }
 
   public function setupTableSupport($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $isCascadeAudited = 1, $excludeFields = null) {
-
     $this->initAuditSubsystem();
 
-    br()->db()->runQuery( 'INSERT INTO ' . $this->auditTablesTable . ' (name, is_insert_audited, is_update_audited, is_delete_audited, is_cascade_audited, exclude_fields)
-                           VALUES (?, ?, ?, ?, ?, ?)
-                               ON DUPLICATE KEY
-                           UPDATE is_insert_audited  = VALUES(is_insert_audited)
-                                , is_update_audited  = VALUES(is_update_audited)
-                                , is_delete_audited  = VALUES(is_delete_audited)
-                                , is_cascade_audited = VALUES(is_cascade_audited)
-                                , exclude_fields     = VALUES(is_insert_audited)'
-                        , $tableName
-                        , $isInsertAudited
-                        , $isUpdateAudited
-                        , $isDeleteAudited
-                        , $isCascadeAudited
-                        , $excludeFields
-                        );
+    br()->db()->runQuery(
+      'INSERT INTO ' . $this->auditTablesTable . ' (name, is_insert_audited, is_update_audited, is_delete_audited, is_cascade_audited, exclude_fields)
+       VALUES (?, ?, ?, ?, ?, ?)
+           ON DUPLICATE KEY
+       UPDATE is_insert_audited  = VALUES(is_insert_audited)
+            , is_update_audited  = VALUES(is_update_audited)
+            , is_delete_audited  = VALUES(is_delete_audited)
+            , is_cascade_audited = VALUES(is_cascade_audited)
+            , exclude_fields     = VALUES(is_insert_audited)',
+      $tableName,
+      $isInsertAudited,
+      $isUpdateAudited,
+      $isDeleteAudited,
+      $isCascadeAudited,
+      $excludeFields
+    );
 
     $this->createAuditTriggers($tableName);
-
   }
 
   public function runAuditCommand($scriptFile) {
-
     $this->initAuditSubsystem();
 
     $command   = br()->cmd()->getParam(1, 'setup');
@@ -888,11 +856,9 @@ class BrDataBaseManager {
           break;
       }
     }
-
   }
 
-  public function runMigrationCommand($scriptFile, $results = array()) {
-
+  public function runMigrationCommand($scriptFile, $results = []) {
     $this->initMigrationsSubsystem();
 
     $command   = br()->cmd()->getParam(1, 'run');
@@ -930,13 +896,14 @@ class BrDataBaseManager {
         break;
     }
 
-    $patches      = array();
-    $patchObjects = array();
+    $patches      = [];
+    $patchObjects = [];
 
     br()->fs()->iterateDir(br()->getScriptBasePath() . 'patches/', '^' . $patchName . '$', function($patchFile) use (&$patches) {
-      $patches[] = array( 'classFile' => $patchFile->nameWithPath()
-                        , 'className' => br()->fs()->fileNameOnly($patchFile->name())
-                        );
+      $patches[] = [
+        'classFile' => $patchFile->nameWithPath(),
+        'className' => br()->fs()->fileNameOnly($patchFile->name())
+      ];
     });
 
     if (count($patches) === 0) {
@@ -969,15 +936,17 @@ class BrDataBaseManager {
           $patchObjects[] = $patch;
         }
       } catch (BrSamePatchException $e) {
-        $results[] = array( 'message'    => $patch->logPrefix() . ' ' . $e->getMessage()
-                          , 'is_warning' => true
-                          , 'is_error'   => false
-                          );
+        $results[] = [
+          'message' => $patch->logPrefix() . ' ' . $e->getMessage(),
+          'is_warning' => true,
+          'is_error' => false
+        ];
       } catch (\Exception $e) {
-        $results[] = array( 'message'    => $patch->logPrefix() . ' ' . $e->getMessage()
-                          , 'is_error'   => true
-                          , 'is_warning' => false
-                          );
+        $results[] = [
+          'message' => $patch->logPrefix() . ' ' . $e->getMessage(),
+          'is_error' => true,
+          'is_warning' => false
+        ];
       } finally {
         br()->log()->setLogPrefix('');
       }
@@ -986,7 +955,6 @@ class BrDataBaseManager {
     $returnCode = 0;
 
     if ($command == 'check') {
-
       if ($patchObjects) {
         foreach($patchObjects as $patch) {
           br()->log()->message('[' . get_class($patch) . '] Pending');
@@ -995,12 +963,10 @@ class BrDataBaseManager {
       } else {
         br()->log()->message('No patches to run');
       }
-
     } else {
-
       if ($patchObjects) {
-        $patchObjectsDeferred = array();
-        $patchObjectsExecuted = array();
+        $patchObjectsDeferred = [];
+        $patchObjectsExecuted = [];
         foreach($patchObjects as $patch) {
           br()->log()->setLogPrefix('[' . get_class($patch) . ']');
           try {
@@ -1010,10 +976,11 @@ class BrDataBaseManager {
               $patchObjectsExecuted[] = $patch;
             } catch (\Exception $e) {
               br()->log()->error($e->getMessage());
-              $results[] = array( 'message'    => $patch->logPrefix() . ' ' . $e->getMessage()
-                                , 'is_error'   => true
-                                , 'is_warning' => false
-                                );
+              $results[] = [
+                'message' => $patch->logPrefix() . ' ' . $e->getMessage(),
+                'is_error' => true,
+                'is_warning' => false
+              ];
             }
           } catch (\Exception $e) {
             $patchObjectsDeferred[] = $patch;
@@ -1032,15 +999,17 @@ class BrDataBaseManager {
               try {
                 $patch->checkDependencies();
               } catch (BrSamePatchException $e) {
-                $results[] = array( 'message'    => $patch->logPrefix() . ' ' . $e->getMessage()
-                                  , 'is_warning' => true
-                                  , 'is_error'   => false
-                                  );
+                $results[] = [
+                  'message' => $patch->logPrefix() . ' ' . $e->getMessage(),
+                  'is_warning' => true,
+                  'is_error' => false
+                ];
               } catch (\Exception $e) {
-                $results[] = array( 'message'    => $patch->logPrefix() . ' ' . $e->getMessage()
-                                  , 'is_error'   => true
-                                  , 'is_warning' => false
-                                  );
+                $results[] = [
+                  'message' => $patch->logPrefix() . ' ' . $e->getMessage(),
+                  'is_error' => true,
+                  'is_warning' => false
+                ];
               } finally {
                 br()->log()->setLogPrefix('');
               }
@@ -1063,7 +1032,6 @@ class BrDataBaseManager {
           br()->log()->message(br()->console()->green($result['message']));
         }
       }
-
     }
 
     if ($returnCode > 0) {
@@ -1071,19 +1039,14 @@ class BrDataBaseManager {
     }
 
     return true;
-
   }
 
   public function setDefiner($value) {
-
     $this->definer = $value;
-
   }
 
   public function getDefiner() {
-
     return $this->definer;
-
   }
 
 }

@@ -7,66 +7,57 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
   protected $clients = [];
 
   public function __construct($params = array()) {
-
     parent::__construct($params);
-
   }
 
   protected function log($message) {
-
     br()->log('[' . strftime('%Y-%m-%d %H:%M:%S', time()) . '] ' . $message);
-
   }
 
   protected function getLogPrefix($clientData) {
-
     return '[' . $clientData['clientIP'] . '] [' . $clientData['clientUID'] . '] ';
-
   }
 
   public function start($params = array()) {
-
     $wsServer = new \Ratchet\WebSocket\WsServer($this);
 
     $this->log('Listen on port ' . $this->port);
 
     $httpServer = \Ratchet\Server\IoServer::factory(new \Ratchet\Http\HttpServer($wsServer), $this->port);
     $httpServer->run();
-
   }
 
   public function onOpen(\Ratchet\ConnectionInterface $from) {
-
     $clientHash = spl_object_hash($from);
 
     $headers  = $from->httpRequest->getHeaders();
     $header   = br($headers, 'X-Real-IP', br($headers, 'X-Forwarded-For'));
     $clientIP = br($header, 0, $from->remoteAddress);
 
-    $clientData = array( 'connection' => $from
-                       , 'hash'       => $clientHash
-                       , 'clientUID'  => br()->guid()
-                       , 'clientIP'   => $clientIP
-                       , 'events'     => []
-                       , 'spaces'     => []
-                       , 'userInfo'   => []
-                       );
+    $clientData = [
+      'connection' => $from,
+      'hash'       => $clientHash,
+      'clientUID'  => br()->guid(),
+      'clientIP'   => $clientIP,
+      'events'     => [],
+      'spaces'     => [],
+      'userInfo'   => []
+    ];
 
     $this->clients[$clientHash] = $clientData;
 
-    $message = json_encode([ 'action'       => 'eventBus.registered'
-                           , 'clientUID'    => $clientData['clientUID']
-                           , 'clientsCount' => count($this->clients)
-                           ]);
+    $message = json_encode([
+      'action'       => 'eventBus.registered',
+      'clientUID'    => $clientData['clientUID'],
+      'clientsCount' => count($this->clients)
+    ]);
 
     $from->send($message);
 
     $this->log($this->getLogPrefix($clientData) . 'Client connected (' . count($this->clients) . ')');
-
   }
 
   public function onMessage(\Ratchet\ConnectionInterface $connection, $message) {
-
     $clientHash = spl_object_hash($connection);
 
     if ($clientData = $this->clients[$clientHash]) {
@@ -93,10 +84,11 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
                 $clientData['spaces']   = $spaces;
                 $clientData['userInfo'] = br($data, 'userInfo', []);
                 $this->clients[$clientHash] = $clientData;
-                $message = json_encode([ 'action' => 'eventBus.subscribed'
-                                       , 'events' => $events
-                                       , 'spaces' => $spaces
-                                       ]);
+                $message = json_encode([
+                  'action' => 'eventBus.subscribed',
+                  'events' => $events,
+                  'spaces' => $spaces
+                ]);
                 $connection->send($message);
                 $this->broadcastUsersList($clientData);
               } else {
@@ -130,13 +122,10 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
       } else {
         $this->log($this->getLogPrefix($clientData) . 'Wrong message format, attribute missing: action.');
       }
-
     }
-
   }
 
   public function onClose(\Ratchet\ConnectionInterface $connection) {
-
     $clientHash = spl_object_hash($connection);
 
     $clientData = $this->clients[$clientHash];
@@ -147,19 +136,14 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
     $this->broadcastUsersList($clientData);
 
     $this->log($this->getLogPrefix($clientData) . 'Disconnected (' . count($this->clients) . ')');
-
   }
 
   public function onError(\Ratchet\ConnectionInterface $from, \Exception $e) {
-
     $this->log('Error: ' . $e->getMessage());
-
     $from->close();
-
   }
 
   protected function broadcastUsersList($clientData) {
-
     $spaces = br($clientData, 'spaces');
     if ($spaces) {
       $users = [];
@@ -182,12 +166,14 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
           if ($tmpClientData['spaces']) {
             foreach($tmpClientData['spaces'] as $spaceName) {
               if (in_array($spaceName, $spaces)) {
-                $message = json_encode([ 'action'    => 'eventBus.usersList'
-                                       , 'spaceName' => $spaceName
-                                       , 'data' => [ 'users' => $users
-                                                   , 'count' => count($users)
-                                                   ]
-                                       ]);
+                $message = json_encode([
+                  'action'    => 'eventBus.usersList',
+                  'spaceName' => $spaceName,
+                  'data' => [
+                    'users' => $users,
+                    'count' => count($users)
+                  ]
+                ]);
                 $tmpClientData['connection']->send($message);
               }
             }
@@ -195,7 +181,6 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
         }
       }
     }
-
   }
 
 }

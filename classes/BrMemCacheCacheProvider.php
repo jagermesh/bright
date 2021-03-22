@@ -17,8 +17,7 @@ class BrMemCacheCacheProvider extends BrGenericCacheProvider {
 
   private $memCache = null;
 
-  public function __construct($cfg = array()) {
-
+  public function __construct($cfg = []) {
     parent::__construct($cfg);
 
     $hostname = br($cfg, 'hostname', self::DEFAULT_HOST_NAME);
@@ -33,31 +32,23 @@ class BrMemCacheCacheProvider extends BrGenericCacheProvider {
     if (!$this->memCache->connect($hostname, $port)) {
       throw new BrException('Can not connect to MemCache server ' . $hostname . ':' . $port);
     }
-
   }
 
   public static function isSupported() {
-
     return class_exists('Memcache');
-
   }
 
   public function reset() {
-
     return $this->memCache->flush();
-
   }
 
   public function exists($name) {
-
     $name = $this->safeName($name);
 
     return ($this->memCache->get($name) !== FALSE);
-
   }
 
   public function get($name, $default = null, $saveDefault = false) {
-
     $name = $this->safeName($name);
 
     $result = $this->memCache->get($name);
@@ -72,45 +63,40 @@ class BrMemCacheCacheProvider extends BrGenericCacheProvider {
     }
 
     return $result;
-
   }
 
   public function getEx($name) {
-
     $name = $this->safeName($name);
 
     $result = $this->memCache->get($name);
 
     if ($result === false) {
-      $result = array('success' => false);
+      $result = [ 'success' => false ];
     } else {
-      $result = array('success' => true, 'value' => unserialize($result));
+      $result = [ 'success' => true, 'value' => unserialize($result) ];
     }
 
     return $result;
-
   }
 
   public function set($name, $value, $cacheLifeTime = null) {
-
     $name = $this->safeName($name);
 
-    if (!$cacheLifeTime) { $cacheLifeTime = $this->getCacheLifeTime(); }
+    if (!$cacheLifeTime) {
+      $cacheLifeTime = $this->getCacheLifeTime();
+    }
 
     if ($this->memCache->set($name, serialize($value), false, $cacheLifeTime)) {
       return $value;
     } else {
       return false;
     }
-
   }
 
   public function remove($name) {
-
     $name = $this->safeName($name);
 
     return $this->memCache->delete($name);
-
   }
 
 }

@@ -17,13 +17,11 @@ class BrWebLogAdapter extends BrGenericLogAdapter {
       if (!br()->isConsoleMode() && (br()->request()->isLocalHost() || br()->request()->isDevHost())) {
         try {
           br()->response()->injectSystemStyles();
-
           $data = [
             'debug' => [
               'message' => htmlspecialchars(BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, true))
             ]
           ];
-
           br()->renderer()->display(dirname(__DIR__) . '/templates/DebugMessage.html', $data);
         } catch (\Exception $e) {
 

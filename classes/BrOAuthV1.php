@@ -11,16 +11,13 @@ class BrOAuthV1 extends BrRemoteConnection {
   public $debugMode = false;
 
   public function __construct($key, $secret, $signatureMethod = 'SHA1') {
-
     $this->OAuthKey = $key;
     $this->OAuthSecret = $secret;
 
     $this->setSignatureMethod($signatureMethod);
-
   }
 
   private function generateBaseString($method, $url, $params) {
-
     $url = parse_url($url);
     if (isset($url['query'])) {
       parse_str($url['query'], $params2);
@@ -36,26 +33,22 @@ class BrOAuthV1 extends BrRemoteConnection {
     }
 
     return substr($baseStr, 0, -3);
-
   }
 
   public function setSignatureMethod($setMethod = 'SHA1') {
-
     $this->signatureMethod = $setMethod;
-
   }
 
-  public function sign($method, $url, $params = array(), $content = '') {
-
-    $oauth = array( 'oauth_consumer_key'     => $this->OAuthKey
-                  , 'oauth_signature_method' => 'HMAC-' . $this->signatureMethod
-                  , 'oauth_timestamp'        => time()
-                  , 'oauth_nonce'            => md5(mt_rand())
-                  , 'oauth_version'          => '1.0'
-                  , 'oauth_callback'         => 'about:blank'
-                  , 'oauth_body_hash'        => base64_encode(sha1($content, true))
-                  );
-
+  public function sign($method, $url, $params = [], $content = '') {
+    $oauth = [
+      'oauth_consumer_key' => $this->OAuthKey,
+      'oauth_signature_method' => 'HMAC-' . $this->signatureMethod,
+      'oauth_timestamp' => time(),
+      'oauth_nonce' => md5(mt_rand()),
+      'oauth_version' => '1.0',
+      'oauth_callback' => 'about:blank',
+      'oauth_body_hash' => base64_encode(sha1($content, true))
+    ];
     $oauth = array_merge($oauth, $params);
     $baseStr = $this->generateBaseString($method, $url, $oauth);
     $oauth['oauth_signature'] = base64_encode(hash_hmac($this->signatureMethod, $baseStr, $this->OAuthSecret . '&', true));
@@ -64,18 +57,15 @@ class BrOAuthV1 extends BrRemoteConnection {
     foreach ($oauth as $key => $value) {
       $authHeader .= rawurlencode($key) . '="' . rawurlencode($value) . '", ';
     }
-    return substr($authHeader, 0, -2);
 
+    return substr($authHeader, 0, -2);
   }
 
-  public function sendSignedRequest($method, $url, $params = array(), $content = '', array $additionalHeaders = array()) {
-
+  public function sendSignedRequest($method, $url, $params = [], $content = '', array $additionalHeaders = []) {
     $checkurl = parse_url($url);
 
     if (br($checkurl,'scheme') && br($checkurl,'host') && br($checkurl,'path')) {
-
       $curl = curl_init();
-
       switch ($method) {
         case 'PUT':
           curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PUT');
@@ -91,8 +81,7 @@ class BrOAuthV1 extends BrRemoteConnection {
           curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'DELETE');
           break;
       }
-
-      $headers = array();
+      $headers = [];
       $headers[] = 'Cache-Control: no-cache';
       $headers[] = 'Authorization: ' . $this->sign($method, $url, $params, $content);
       $headers[] = 'Content-type: application/json;charset=UTF-8';
@@ -118,9 +107,9 @@ class BrOAuthV1 extends BrRemoteConnection {
         logme('Payload: ' . $content);
       }
 
-      $rawResponse  = curl_exec($curl);
+      $rawResponse = curl_exec($curl);
       $responseCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-      $response     = @json_decode($rawResponse, true);
+      $response = @json_decode($rawResponse, true);
 
       if (br(br($response,'errors'),0)) {
         $response['errors'][0]['errorCode'] = $responseCode;
@@ -135,10 +124,14 @@ class BrOAuthV1 extends BrRemoteConnection {
 
       return $response;
     } else {
-      return array('errors' => array(0 => array('description' => 'Not a valid host name. ' . $url)));
+      return [
+        'errors' => [
+          0 => [
+            'description' => 'Not a valid host name. ' . $url
+          ]
+        ]
+      ];
     }
-
-
   }
 
 }

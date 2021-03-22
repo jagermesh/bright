@@ -10,7 +10,7 @@
 
 namespace Bright;
 
-class BrConfig extends BrSingleton {
+class BrConfig extends BrObject {
 
   public function set($name, $value) {
     $this->setAttr($name, $value);

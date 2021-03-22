@@ -17,13 +17,10 @@ class BrGenericUploadHandler {
   protected $sizeLimit;
 
   public function __construct($options = array()) {
-
     $this->options = $options;
-
   }
 
   public function getFileSize() {
-
     if (isset($_GET['qqfile'])) {
       if (isset($_SERVER['CONTENT_LENGTH'])){
         return (int)$_SERVER['CONTENT_LENGTH'];
@@ -36,11 +33,9 @@ class BrGenericUploadHandler {
     } else {
       throw new \Exception('Can not detect uploaded file');
     }
-
   }
 
   public function getFileName() {
-
     if (isset($_GET['qqfile'])) {
       return $_GET['qqfile'];
     } else
@@ -52,11 +47,9 @@ class BrGenericUploadHandler {
     } else {
       throw new \Exception('Can not detect uploaded file');
     }
-
   }
 
   public function getUploadedFile() {
-
     if (isset($_GET['qqfile'])) {
       $tempFile = br()->createTempFile('UPL');
       $input = fopen('php://input', 'r');
@@ -74,11 +67,9 @@ class BrGenericUploadHandler {
     } else {
       throw new \Exception('Can not detect uploaded file');
     }
-
   }
 
   public function handle($callback = null) {
-
     // list of valid extensions, ex. array("jpeg", "xml", "bmp")
     $this->allowedExtensions = br($this->options, 'allowedExtensions', array());
     $this->allowedExtensions = array_map('strtolower', $this->allowedExtensions);
@@ -124,25 +115,27 @@ class BrGenericUploadHandler {
       }
 
       if ($saveResult = $this->save($this->getUploadedFile(), $path)) {
-        $result = array( 'success'          => true
-                       , 'originalFileName' => $this->getFileName()
-                       , 'fileSize'         => $this->getFileSize()
-                       , 'fileSizeStr'      => br()->formatBytes($this->getFileSize())
-                       );
+        $result = [
+          'success'          => true,
+          'originalFileName' => $this->getFileName(),
+          'fileSize'         => $this->getFileSize(),
+          'fileSizeStr'      => br()->formatBytes($this->getFileSize())
+        ];
         foreach($saveResult as $name => $value) {
           $result[$name] = $value;
         }
       } else {
-        $result = array( 'success' => false
-                       , 'error'   => 'Could not save uploaded file. The upload was cancelled, or server error encountered'
-                       );
+        $result = [
+          'success' => false,
+          'error'   => 'Could not save uploaded file. The upload was cancelled, or server error encountered'
+        ];
       }
-
       unset($result['internal']);
     } catch (\Exception $e) {
-      $result = array( 'success' => false
-                     , 'error'   => $e->getMessage()
-                     );
+      $result = [
+        'success' => false,
+        'error'   => $e->getMessage()
+      ];
     }
 
     if ($callback) {
@@ -150,7 +143,6 @@ class BrGenericUploadHandler {
     }
 
     br()->response()->sendJSON($result);
-
   }
 
 }

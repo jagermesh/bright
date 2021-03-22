@@ -42,6 +42,12 @@ class BrGenericLogAdapter extends BrObject {
         'request_type' => br()->request()->method(),
         'url' => br()->request()->url(),
       ];
+      if ($parsedUrl = @parse_url(br()->request()->url(), PHP_URL_QUERY)) {
+        parse_str($parsedUrl, $getParams);
+        if ($getParams) {
+          $this->logSnapshot['url_query'] = $getParams;
+        }
+      }
       if (br()->request()->referer()) {
         $this->logSnapshot['referer'] = br()->request()->referer();
       }
@@ -119,11 +125,16 @@ class BrGenericLogAdapter extends BrObject {
     return ($params['log_event'] == 'snapshot');
   }
 
+  protected function isProfilerEventType($params) {
+    return ($params['log_event'] == 'profiler');
+  }
+
   protected function isRegularEventType($params) {
     return $this->isDebugEventType($params) ||
            $this->isErrorEventType($params) ||
            $this->isWarningEventType($params) ||
-           $this->isMessageEventType($params);
+           $this->isMessageEventType($params) ||
+           $this->isProfilerEventType($params);
   }
 
   protected function getLogInfo($messageOrObject, $params, $contentType = []) {
@@ -131,17 +142,20 @@ class BrGenericLogAdapter extends BrObject {
     $withSnapshot = in_array('snapshot', $contentType);
 
     $result = [
-      'timestamp' => br()->getUnifiedTimestamp(),
+      'log_event' => $params['log_event'],
+      'timestamp_init' => $params['timestamp_init'],
+      'timestamp' => $params['timestamp'],
+      'timestamp_since_start' => $params['timestamp_since_start'],
+      'timestamp_since_prior' => $params['timestamp_since_prior'],
+      'mem_usage_init' => $params['mem_usage_init'],
+      'mem_usage' => $params['mem_usage'],
+      'mem_usage_since_start' => $params['mem_usage_since_start'],
+      'mem_usage_since_prior' => $params['mem_usage_since_prior'],
     ];
 
     if ($withMessage) {
       $result['message'] = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, true);
     }
-
-    $result['log_event'] = $params['log_event'];
-    $result['timestamp_init'] = $params['timestamp_init'];
-    $result['timestamp_since_start'] = $params['timestamp_since_start'];
-    $result['timestamp_since_prior'] = $params['timestamp_since_prior'];
 
     if (br($params,  'details')) {
       $result['details'] = $params['details'];
