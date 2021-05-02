@@ -23,6 +23,7 @@
   },
   "scripts": {
     "build": "npm install && gulp build",
-    "update": "npm update && gulp build"
+    "update": "npm update && gulp build",
+    "test": "npm install && gulp build && composer install && gulp test"
   }
 }

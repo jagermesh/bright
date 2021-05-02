@@ -113,7 +113,7 @@ const configs = {
   },
   shell: {
     chmod: 'chmod 644 dist/js/*.js && chmod 644 dist/css/*.css',
-    tests: 'php vendor/codeception/codeception/codecept run'
+    test: 'php vendor/codeception/codeception/codecept run'
   }
 };
 
@@ -183,9 +183,9 @@ gulp.task('shell:chmod', function() {
     .pipe(shell(configs.shell.chmod));
 });
 
-gulp.task('shell:tests', function() {
+gulp.task('shell:test', function() {
   return gulp.src('gulpfile.js', {read: false})
-    .pipe(shell(configs.shell.tests));
+    .pipe(shell(configs.shell.test));
 });
 
 gulp.task('build',
@@ -206,9 +206,15 @@ gulp.task('css',
   )
 );
 
+gulp.task('test',
+  gulp.series(
+    'shell:test'
+  )
+);
+
 gulp.task('default',
   gulp.series(
     'build',
-    'shell:tests'
+    'shell:test'
   )
 );

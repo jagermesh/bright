@@ -105,7 +105,7 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
                     if ($tmpClientData['events']) {
                       if ($clientUID != $tmpClientData['clientUID']) {
                         foreach($tmpClientData['events'] as $event) {
-                          if (preg_match('#^' . $event . '$#ism', $action)) {
+                          if ((strtolower(trim($event)) == strtolower(trim($action))) || @preg_match('#^' . $event . '$#ism', $action)) {
                             $tmpClientData['connection']->send($message);
                           }
                         }

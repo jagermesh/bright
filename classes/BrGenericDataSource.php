@@ -26,7 +26,7 @@ class BrGenericDataSource extends BrObject {
 
   private $__transactionalDML      = true;
 
-  public function __construct($options = array()) {
+  public function __construct($options = []) {
 
     parent::__construct();
 
@@ -69,15 +69,15 @@ class BrGenericDataSource extends BrObject {
 
   }
 
-  public function setDefaultOrder($value = array()) {
+  public function setDefaultOrder($value = []) {
 
     $this->defaultOrder = $value;
 
   }
 
-  public function existsOne($filter = array()) {
+  public function existsOne($filter = []) {
 
-    if ($row = $this->selectOne($filter, array(), array(), array('noCalcFields' => true))) {
+    if ($row = $this->selectOne($filter, [], [], [ 'noCalcFields' => true ])) {
       return true;
     } else {
       return false;
@@ -85,9 +85,9 @@ class BrGenericDataSource extends BrObject {
 
   }
 
-  public function existsOneCached($filter = array()) {
+  public function existsOneCached($filter = []) {
 
-    if ($row = $this->selectOneCached($filter, array(), array(), array('noCalcFields' => true))) {
+    if ($row = $this->selectOneCached($filter, [], [], [ 'noCalcFields' => true ])) {
       return true;
     } else {
       return false;
@@ -95,10 +95,10 @@ class BrGenericDataSource extends BrObject {
 
   }
 
-  public function selectOneCached($filter = array(), $fields = array(), $order = array(), $options = array()) {
+  public function selectOneCached($filter = [], $fields = [], $order = [], $options = []) {
 
     if (!is_array($filter)) {
-      $filter = array($this->getDb()->rowidField() => $this->getDb()->rowid($filter));
+      $filter = [ $this->getDb()->rowidField() => $this->getDb()->rowid($filter) ];
     }
 
     $options['limit'] = 1;
@@ -118,7 +118,7 @@ class BrGenericDataSource extends BrObject {
 
   }
 
-  public function selectCached($filter = array(), $fields = array(), $order = array(), $options = array()) {
+  public function selectCached($filter = [], $fields = [], $order = [], $options = []) {
 
     $cacheTag = 'DataSource:selectCached:' . get_class($this) . md5(serialize($filter) . serialize($fields) . serialize($order) . serialize($options));
 
@@ -133,7 +133,7 @@ class BrGenericDataSource extends BrObject {
 
   }
 
-  public function selectCountCached($filter = array(), $fields = array(), $order = array(), $options = array()) {
+  public function selectCountCached($filter = [], $fields = [], $order = [], $options = []) {
 
     $options['result'] = 'count';
 
@@ -151,10 +151,10 @@ class BrGenericDataSource extends BrObject {
 
   }
 
-  public function selectOne($filter = array(), $fields = array(), $order = array(), $options = array()) {
+  public function selectOne($filter = [], $fields = [], $order = [], $options = []) {
 
     if (!is_array($filter)) {
-      $filter = array($this->getDb()->rowidField() => $this->getDb()->rowid($filter));
+      $filter = [ $this->getDb()->rowidField() => $this->getDb()->rowid($filter) ];
     }
 
     $options['limit'] = 1;
@@ -167,21 +167,21 @@ class BrGenericDataSource extends BrObject {
 
   }
 
-  public function selectCount($filter = array(), $fields = array(), $order = array(), $options = array()) {
+  public function selectCount($filter = [], $fields = [], $order = [], $options = []) {
 
     $options['result'] = 'count';
 
-    return $this->select($filter, array(), array(), $options);
+    return $this->select($filter, [], [], $options);
 
   }
 
-  public function select($filter = array(), $fields = array(), $order = array(), $options = array()) {
+  public function select($filter = [], $fields = [], $order = [], $options = []) {
 
     return $this->internalSelect($filter, $fields, $order, $options);
 
   }
 
-  public function find($filter = array(), $fields = array(), $order = array(), $options = array()) {
+  public function find($filter = [], $fields = [], $order = [], $options = []) {
 
     $data = $this->internalSelect($filter, $fields, $order, $options);
 
@@ -189,7 +189,7 @@ class BrGenericDataSource extends BrObject {
 
   }
 
-  protected function internalSelect($filter = array(), $fields = array(), $order = array(), $options = array()) {
+  protected function internalSelect($filter = [], $fields = [], $order = [], $options = []) {
 
     $countOnly = (br($options, 'result') == 'count');
 
@@ -203,7 +203,7 @@ class BrGenericDataSource extends BrObject {
     $options['limit'] = $this->limit;
     $options['skip']  = $this->skip;
 
-    $transientData = array();
+    $transientData = [];
 
     $this->lastSelectAmount = null;
     $this->priorAdjancedRecord = null;
@@ -227,7 +227,7 @@ class BrGenericDataSource extends BrObject {
 
   }
 
-  public function update($rowid, $row, &$transientData = array()) {
+  public function update($rowid, $row, &$transientData = []) {
 
     $row['rowid'] = $rowid;
 
@@ -237,7 +237,7 @@ class BrGenericDataSource extends BrObject {
 
   }
 
-  public function insert($row = array(), &$transientData = array()) {
+  public function insert($row = [], &$transientData = []) {
 
     $this->validateInsert($row);
 
@@ -245,9 +245,9 @@ class BrGenericDataSource extends BrObject {
 
   }
 
-  public function remove($rowid, &$transientData = array()) {
+  public function remove($rowid, &$transientData = []) {
 
-    $row = array('rowid' => $rowid);
+    $row = [ 'rowid' => $rowid ];
 
     $this->validateRemove($row);
 
@@ -261,7 +261,7 @@ class BrGenericDataSource extends BrObject {
 
   }
 
-  public function invoke($method, $params, &$transientData = array(), $optionsParam = array(), $iteration = 0, $rerunError = null) {
+  public function invoke($method, $params, &$transientData = [], $optionsParam = [], $iteration = 0, $rerunError = null) {
 
     if ($iteration > $this->rerunIterations) {
       throw new BrDBException($rerunError);
@@ -286,10 +286,10 @@ class BrGenericDataSource extends BrObject {
           throw new \Exception('Method [' . $method . '] not supported');
         }
 
-        $options               = $optionsParam;
-        $options['operation']  = $method;
-        $options['dataSets']   = br(br($options, 'dataSets'))->split();
-        $options['clientUID']  = br($options, 'clientUID');
+        $options              = $optionsParam;
+        $options['operation'] = $method;
+        $options['dataSets']  = br(br($options, 'dataSets'))->split();
+        $options['clientUID'] = br($options, 'clientUID');
 
         try {
           try {
@@ -372,13 +372,13 @@ class BrGenericDataSource extends BrObject {
   }
 
   // validation
-  public function canInsert($row = array()) {
+  public function canInsert($row = []) {
 
     return true;
 
   }
 
-  public function canUpdate($row, $new = array()) {
+  public function canUpdate($row, $new = []) {
 
     return true;
 
@@ -390,13 +390,13 @@ class BrGenericDataSource extends BrObject {
 
   }
 
-  public function canSelect($filter = array()) {
+  public function canSelect($filter = []) {
 
     return true;
 
   }
 
-  protected function validateInsert($row = array()) {
+  protected function validateInsert($row = []) {
 
     if (!$this->canInsert($row)) {
       throw new BrAppException('Access denied');
@@ -404,7 +404,7 @@ class BrGenericDataSource extends BrObject {
 
   }
 
-  protected function validateUpdate($row, $new = array()) {
+  protected function validateUpdate($row, $new = []) {
 
     if (!$this->canUpdate($row, $new)) {
       throw new BrAppException('Access denied');

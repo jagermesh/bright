@@ -223,10 +223,7 @@ class BrRESTBinder extends BrObject {
                       $filter[$fields] = $subFilter;
                     }
                   } else
-                  if ($value == 'null') {
-                    $filter[$fields] = null;
-                  } else
-                  if ($value == '$null') {
+                  if (($value == 'null') || ($value == '$null')) {
                     $filter[$fields] = null;
                   } else {
                     $filter[$fields] = $value;

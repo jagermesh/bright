@@ -96,8 +96,8 @@ class BrLog extends BrObject {
         $microTime = br()->getMicrotime();
         $params['timestamp'] = $unifiedTimestamp;
         $params['timestamp_init'] = $this->initTime;
-        $params['timestamp_since_start'] = '';//br()->formatDuration($microTime - $this->initMicroTime, [ 'includeSign' => true ]);
-        $params['timestamp_since_prior'] = '';//br()->formatDuration($microTime - $this->savedMicroTime, [ 'includeSign' => true ]);
+        $params['timestamp_since_start'] = br()->formatDuration($microTime - $this->initMicroTime, [ 'includeSign' => true ]);
+        $params['timestamp_since_prior'] = br()->formatDuration($microTime - $this->savedMicroTime, [ 'includeSign' => true ]);
         $this->savedMicroTime = $microTime;
       } else {
         $params['timestamp'] = '';

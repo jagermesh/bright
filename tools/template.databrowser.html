@@ -14,19 +14,13 @@
       </tr>
     </script>
 
-    <script class="data-empty-template" type="text/template">
-      <tr>
-        <td colspan="7">
-          <h2 class="centered">No items in this view</h2>
-        </td>
-      </tr>
-    </script>
+{@browser-no-data.html edoc-browser-cols="20"}
 
     <div class="container-fluid container-box">
 
       <div class="row-fluid">
         <div class="span12">
-          <h1>[[entityName]] <small class="filter-description"></small></h1>
+          <h1>[[entityName]]</h1>
         </div>
       </div>
 
@@ -58,7 +52,8 @@
             <div class="pull-left filter-block">
               <label>Search</label>
               <div class="input-append">
-                <input type="text" class="input-medium data-filter" title="Search by" placeholder="search text" name="keyword" data-click-on-enter=".action-refresh" /><button class="btn action-refresh" type="button"><i class="icon-search"></i></button>
+                <input type="text" class="input-medium data-filter" title="Search by" placeholder="search text" name="keyword" data-click-on-enter=".navbar .action-refresh" />
+                <button class="btn action-refresh" type="button"><i class="icon-search"></i></button>
                 <button class="btn action-clear-one-filter" rel="keyword" type="button"><i class="icon-remove"></i></button>
               </div>
             </div>

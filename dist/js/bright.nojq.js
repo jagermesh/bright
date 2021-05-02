@@ -1980,12 +1980,6 @@ THE SOFTWARE.
             request.__clientUID = options.clientUID;
           }
 
-          for(let paramName in request) {
-            if (request[paramName] === null) {
-              request[paramName] = 'null';
-            }
-          }
-
           $.ajax({ type: _this.options.crossdomain ? 'GET' : 'PUT'
                  , data: request
                  , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
@@ -2078,12 +2072,6 @@ THE SOFTWARE.
 
           if (options && options.clientUID) {
             request.__clientUID = options.clientUID;
-          }
-
-          for(let paramName in request) {
-            if (request[paramName] === null) {
-              request[paramName] = 'null';
-            }
           }
 
           $.ajax({ type: _this.options.crossdomain ? 'GET' : 'POST'
@@ -2180,12 +2168,6 @@ THE SOFTWARE.
 
           if (options && options.clientUID) {
             request.__clientUID = options.clientUID;
-          }
-
-          for(let paramName in request) {
-            if (request[paramName] === null) {
-              request[paramName] = 'null';
-            }
           }
 
           $.ajax({ type: _this.options.crossdomain ? 'GET' : 'DELETE'
@@ -2572,12 +2554,6 @@ THE SOFTWARE.
 
         if (options && options.clientUID) {
           request.__clientUID = options.clientUID;
-        }
-
-        for(let paramName in request) {
-          if (request[paramName] === null) {
-            request[paramName] = 'null';
-          }
         }
 
         $.ajax({ type: _this.options.crossdomain ? 'GET' : 'POST'
@@ -3127,10 +3103,16 @@ THE SOFTWARE.
       return renderedRow.renderedRow;
     };
 
-    _this.hasRow = function(rowid) {
+
+    _this.hasRow = function(rowid, options) {
       let filter = `[data-rowid="${rowid}"]`;
-      let row = $(_this.selector).find(filter);
-      return (row.length > 0);
+      options = options || Object.create({});
+      options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
+      if (options.refreshSelector) {
+        filter = options.refreshSelector + filter;
+      }
+      let existingRows = $(_this.selector).find(filter);
+      return (existingRows.length > 0);
     };
 
     _this.reloadRow = function(rowid, callback, options) {
@@ -3201,9 +3183,6 @@ THE SOFTWARE.
         row.remove();
         checkForEmptyGrid();
         _this.events.triggerAfter('remove', rowid, row);
-      } else
-      if (!_this.options.singleRowMode) {
-        _this.dataSource.select();
       }
     };
 
@@ -3436,12 +3415,7 @@ THE SOFTWARE.
         });
 
         _this.dataSource.on('update', function(data) {
-          if (_this.refreshRow(data, _this.options)) {
-
-          } else
-          if (!_this.options.singleRowMode) {
-            _this.dataSource.select();
-          }
+          _this.refreshRow(data, _this.options);
         });
 
         _this.dataSource.on('remove', function(rowid) {
@@ -4866,7 +4840,7 @@ THE SOFTWARE.
 
     if ($('#br_modalInform').length > 0) {
       const currentMessage = $('#br_modalInform .modal-body').html();
-      if (currentMessage.indexOf(message) == -1) {
+      if ((currentMessage.indexOf(message) == -1) && !options.replace) {
         message = message + '<br /><br />' + currentMessage;
       }
       $('#br_modalInform').off('hide.bs.modal');
@@ -5513,13 +5487,14 @@ THE SOFTWARE.
           }
         }
         if (!fromBrDataCombo) {
-          if (!br.isEmpty(element.val())) {
+          // if (!br.isEmpty(element.val())) {
             if (element.data('select2')) {
               if ((element.attr('multiple') != 'multiple')) {
+                // br.log(element);
                 element.select2('val', element.val());
               }
             }
-          }
+          // }
         }
       }
     });
@@ -5655,59 +5630,51 @@ THE SOFTWARE.
         const detachedMenuHolder = detachedMenu.data('detachedMenuHolder');
         const alignRight = detachedMenu.hasClass('br-dropdown-detached-right-aligned');
         const menu = detachedMenu.find('.dropdown-menu');
-        let css = Object.create({
-          top: detachedMenuHolder.offset().top + detachedMenuHolder.height()
+        const maxHeight = $(window).height() - (detachedMenuHolder.offset().top + detachedMenuHolder.height()) - 10;
+        const css = Object.create({
+          top: detachedMenuHolder.offset().top + detachedMenuHolder.height(),
+          right: (alignRight ? ($(window).width() - detachedMenuHolder.offset().left - detachedMenuHolder.width()) + menu.width() : detachedMenuHolder.offset().left)
         });
-        if (alignRight) {
-          css.right = ($(window).width() - detachedMenuHolder.offset().left - detachedMenuHolder.width()) + menu.width();
-        } else {
-          css.left = detachedMenuHolder.offset().left;
-        }
         detachedMenu.css(css);
+        menu.css('max-height', `${maxHeight}px`);
+        menu.css('overflow-y', `auto`);
       });
     });
 
     $(document).on('shown.bs.dropdown', function(event) {
       $('.br-dropdown-detached:visible').hide();
-      const target = $(event.target);
-      if (target.hasClass('br-dropdown-detachable')) {
-        const alignRight = target.hasClass('br-dropdown-detachable-right-aligned');
-        let detachedMenu = target.data('detachedMenu');
-        let css = Object.create({
+      const detachedMenuHolder = $(event.target);
+      if (detachedMenuHolder.hasClass('br-dropdown-detachable')) {
+        const alignRight = detachedMenuHolder.hasClass('br-dropdown-detachable-right-aligned');
+        const menu = $(detachedMenuHolder.find('.dropdown-menu'));
+        let detachedMenu = detachedMenuHolder.data('detachedMenu');
+        const maxHeight = $(window).height() - (detachedMenuHolder.offset().top + detachedMenuHolder.height()) - 10;
+        const css = Object.create({
           position: 'absolute',
-          top: target.offset().top + target.height()
+          top: detachedMenuHolder.offset().top + detachedMenuHolder.height(),
+          right: (alignRight ? ($(window).width() - detachedMenuHolder.offset().left - detachedMenuHolder.width()) + menu.width() : detachedMenuHolder.offset().left),
         });
         if (detachedMenu) {
-          if (alignRight) {
-            css.right = ($(window).width() - target.offset().left - target.width()) + detachedMenu.data('detachedMenuWidth');
-          } else {
-            css.left = target.offset().left;
-          }
           detachedMenu.css(css);
           detachedMenu.addClass('open');
           detachedMenu.show();
-        } else {
-          let menu = $(target.find('.dropdown-menu'));
-          if (menu.length) {
-            if (alignRight) {
-              css.right = ($(window).width() - target.offset().left - target.width()) + menu.width();
-            } else {
-              css.left = target.offset().left;
-            }
-            detachedMenu = $('<div class="dropdown br-dropdown-detached" style="min-height:1px;"></div>');
-            if (alignRight) {
-              detachedMenu.addClass('br-dropdown-detached-right-aligned');
-            }
-            detachedMenu.append(menu.detach());
-            detachedMenu.css(css);
-            $('body').append(detachedMenu);
-            menu.show();
-
-            detachedMenu.data('detachedMenuHolder', target);
-            detachedMenu.data('detachedMenuWidth', menu.width());
-            target.data('detachedMenu', detachedMenu);
+        } else
+        if (menu.length > 0) {
+          detachedMenu = $('<div class="dropdown br-dropdown-detached" style="min-height:1px;"></div>');
+          if (alignRight) {
+            detachedMenu.addClass('br-dropdown-detached-right-aligned');
           }
+          detachedMenu.append(menu.detach());
+          detachedMenu.css(css);
+          $('body').append(detachedMenu);
+          menu.show();
+
+          detachedMenu.data('detachedMenuHolder', detachedMenuHolder);
+          detachedMenu.data('detachedMenuWidth', menu.width());
+          detachedMenuHolder.data('detachedMenu', detachedMenu);
         }
+        menu.css('max-height', `${maxHeight}px`);
+        menu.css('overflow-y', `auto`);
       }
     });
 
@@ -6719,8 +6686,8 @@ THE SOFTWARE.
       _this.dataGrid.reloadRow(rowid, callback, options);
     };
 
-    _this.hasRow = function(rowid) {
-      return _this.dataGrid.hasRow(rowid);
+    _this.hasRow = function(rowid, options) {
+      return _this.dataGrid.hasRow(rowid, options);
     };
 
     _this.removeRow = function(rowid) {

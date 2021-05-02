@@ -427,6 +427,10 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider {
 
   }
 
+  public function generateDictionaryScript($scriptFile) {
+
+  }
+
   // protected
 
   protected function getCountSQL($sql) {

@@ -10,30 +10,28 @@
 
 namespace Bright;
 
-class BrGenericSQLProviderTable {
+class BrGenericSQLProviderTable extends BrObject {
 
   private $tableName;
   private $tableAlias;
   private $indexHint;
   private $provider;
+  private $dataBaseDictionary;
 
-  public function __construct(&$provider, $tableName, $params = array()) {
-
+  public function __construct(&$provider, $tableName, $params = []) {
     $this->tableName  = $tableName;
     $this->tableAlias = br($params, 'tableAlias');
     $this->indexHint  = br($params, 'indexHint');
     $this->provider   = $provider;
-
   }
 
-  public function find($filter = array(), $fields = array(), $distinct = false) {
-
+  public function select($filter = [], $fields = [], $distinct = false) {
     $where = '';
     $joins = '';
-    $joinsTables = array();
-    $args = array();
+    $joinsTables = [];
+    $args = [];
 
-    $filter = array('$and' => $filter);
+    $filter = [ '$and' => $filter ];
 
     if ($this->tableAlias) {
       $tableName = $this->tableAlias;
@@ -76,47 +74,40 @@ class BrGenericSQLProviderTable {
     }
 
     return new BrGenericSQLProviderCursor($sql, $args, $this->provider);
-
   }
 
-  public function findOne($filter = array()) {
-
-    if ($rows = $this->find($filter)) {
+  public function selectOne($filter = []) {
+    if ($rows = $this->select($filter)) {
       foreach($rows as $row) {
         return $row;
       }
     }
   }
 
-  public function insert(&$values, $dataTypes = null) {
-
-    $this->provider->validate($this->tableName, $values);
+  public function insert(&$values) {
+    $values = $this->validateRow($values);
+    $dataTypes = $this->getDataTypes();
 
     $fields_str = '';
     $values_str = '';
 
     foreach($values as $field => $value) {
-      if (is_array($value)) {
-
-      }
       $fields_str .= ($fields_str?',':'').$field;
       $values_str .= ($values_str?',':'').'?';
-      if (is_array($dataTypes)) {
-        if (br($dataTypes, $field) == 's') {
-          $values_str .= '&';
-        }
+      if (br($dataTypes, $field) == BrGenericDBProvider::DATA_TYPE_STRING) {
+        $values_str .= '&';
       }
     }
     $sql = 'INSERT INTO '.$this->tableName.' ('.$fields_str.') VALUES ('.$values_str.')';
 
-    $args = array();
+    $args = [];
     foreach($values as $field => $value) {
       array_push($args, $value);
     }
 
     $this->provider->runQueryEx($sql, $args);
     if ($newId = $this->provider->getLastId()) {
-      if ($newValues = $this->findOne(array($this->provider->rowidField() => $newId))) {
+      if ($newValues = $this->selectOne([ $this->provider->rowidField() => $newId ])) {
         $values = $newValues;
         return $newId;
       } else {
@@ -125,45 +116,32 @@ class BrGenericSQLProviderTable {
     } else {
       throw new \Exception('Can not get ID of inserted record');
     }
-
   }
 
-  public function insertIgnore(&$values, $dataTypes = null, $fallbackSql = null) {
-
-    $this->provider->validate($this->tableName, $values);
+  public function insertIgnore(&$values, $fallbackSql = null) {
+    $values = $this->validateRow($values);
+    $dataTypes = $this->getDataTypes();
 
     $fields_str = '';
     $values_str = '';
 
-    if ($dataTypes) {
-      if (!is_array($dataTypes)) {
-        $fallbackSql = $dataTypes;
-        $dataTypes = null;
-      }
-    }
-
     foreach($values as $field => $value) {
-      if (is_array($value)) {
-
-      }
       $fields_str .= ($fields_str?',':'').$field;
       $values_str .= ($values_str?',':'').'?';
-      if (is_array($dataTypes)) {
-        if (br($dataTypes, $field) == 's') {
-          $values_str .= '&';
-        }
+      if (br($dataTypes, $field) == BrGenericDBProvider::DATA_TYPE_STRING) {
+        $values_str .= '&';
       }
     }
     $sql = 'INSERT IGNORE INTO ' . $this->tableName . ' (' . $fields_str . ') VALUES (' . $values_str . ')';
 
-    $args = array();
+    $args = [];
     foreach($values as $field => $value) {
       array_push($args, $value);
     }
 
     $this->provider->runQueryEx($sql, $args);
     if ($newId = $this->provider->getLastId()) {
-      if ($newValues = $this->findOne(array($this->provider->rowidField() => $newId))) {
+      if ($newValues = $this->selectOne([ $this->provider->rowidField() => $newId ])) {
         $values = $newValues;
       }
       return $newId;
@@ -173,50 +151,43 @@ class BrGenericSQLProviderTable {
     } else {
       return null;
     }
-
   }
 
-  public function replace(&$values, $dataTypes = null) {
-
-    $this->provider->validate($this->tableName, $values);
+  public function replace(&$values) {
+    $values = $this->validateRow($values);
+    $dataTypes = $this->getDataTypes();
 
     $fields_str = '';
     $values_str = '';
 
     foreach($values as $field => $value) {
-      if (is_array($value)) {
-
-      }
       $fields_str .= ($fields_str?',':'') . $field;
       $values_str .= ($values_str?',':'') . '?';
-      if (is_array($dataTypes)) {
-        if (br($dataTypes, $field) == 's') {
-          $values_str .= '&';
-        }
+      if (br($dataTypes, $field) == BrGenericDBProvider::DATA_TYPE_STRING) {
+        $values_str .= '&';
       }
     }
     $sql = 'REPLACE INTO ' . $this->tableName . ' (' . $fields_str . ') VALUES (' . $values_str . ')';
 
-    $args = array();
+    $args = [];
     foreach($values as $field => $value) {
       array_push($args, $value);
     }
 
     $this->provider->runQueryEx($sql, $args);
     if ($newId = $this->provider->getLastId()) {
-      if ($newValues = $this->findOne(array($this->provider->rowidField() => $newId))) {
+      if ($newValues = $this->selectOne([ $this->provider->rowidField() => $newId ])) {
         $values = $newValues;
         return $newId;
       } else {
         throw new \Exception('Can not find inserted record');
       }
     }
-
   }
 
-  public function save($values, $dataTypes = null) {
-
-    $this->provider->validate($this->tableName, $values);
+  public function update($values, $filter) {
+    $values = $this->validateRow($values);
+    $dataTypes = $this->getDataTypes();
 
     $fields_str = '';
     $values_str = '';
@@ -225,49 +196,8 @@ class BrGenericSQLProviderTable {
     foreach($values as $field => $value) {
       if ($field != $this->provider->rowidField()) {
         $sql .= $field . ' = ?';
-        if (is_array($dataTypes)) {
-          if (br($dataTypes, $field) == 's') {
-            $sql .= '&';
-          }
-        }
-        $sql .= ', ';
-      }
-    }
-    $sql = rtrim($sql, ', ');
-    $sql .= ' WHERE ' . $this->provider->rowidField() . ' = ?';
-
-    $args = array();
-    $key = null;
-    foreach($values as $field => $value) {
-      if ($field != $this->provider->rowidField()) {
-        array_push($args, $value);
-      } else {
-        $key = $value;
-      }
-    }
-    array_push($args, $key);
-
-    $this->provider->runQueryEx($sql, $args);
-
-    return $values[$this->provider->rowidField()];
-
-  }
-
-  public function update($values, $filter, $dataTypes = null) {
-
-    $this->provider->validate($this->tableName, $values);
-
-    $fields_str = '';
-    $values_str = '';
-
-    $sql = 'UPDATE ' . $this->tableName . ' SET ';
-    foreach($values as $field => $value) {
-      if ($field != $this->provider->rowidField()) {
-        $sql .= $field . ' = ?';
-        if (is_array($dataTypes)) {
-          if (br($dataTypes, $field) == 's') {
-            $sql .= '&';
-          }
+        if (br($dataTypes, $field) == BrGenericDBProvider::DATA_TYPE_STRING) {
+          $sql .= '&';
         }
         $sql .= ', ';
       }
@@ -298,7 +228,7 @@ class BrGenericSQLProviderTable {
       throw new \Exception('Update without WHERE statements are not supported');
     }
 
-    $args = array();
+    $args = [];
 
     foreach($values as $field => $value) {
       if ($field != $this->provider->rowidField()) {
@@ -318,19 +248,17 @@ class BrGenericSQLProviderTable {
     $this->provider->runQueryEx($sql, $args);
 
     return true;
-
   }
 
   public function remove($filter) {
-
     $where = '';
     $joins = '';
-    $args = array();
+    $args = [];
 
     if ($filter) {
       if (is_array($filter)) {
-        $joinsTables = array();
-        $filter = array('$and' => $filter);
+        $joinsTables = [];
+        $filter = [ '$and' => $filter ];
         $this->compileFilter($filter, $this->tableName, '', ' AND ', $joins, $joinsTables, $where, $args);
       } else {
         $where .= ' AND ' . $this->provider->rowidField() . ' = ?';
@@ -348,21 +276,17 @@ class BrGenericSQLProviderTable {
     }
 
     return $this->provider->runQueryEx($sql, $args);
-
   }
 
   // private
 
   private function compileJoin($filter, $tableName, $fieldName, $link, &$joins, &$joinsTables, &$where, &$args, $joinType = 'INNER') {
-
     $first = true;
     $initialJoinTableName = '';
     foreach($filter as $joinTableName => $joinField) {
       if ($first) {
         $initialJoinTableName = $joinTableName;
-        if (in_array($joinTableName, $joinsTables)) {
-          // already joined
-        } else {
+        if (!in_array($joinTableName, $joinsTables)) {
           $joinsTables[] = $joinTableName;
           $tmp = br($joinTableName)->split(' ');
           if (count($tmp) > 1) {
@@ -491,11 +415,9 @@ class BrGenericSQLProviderTable {
         }
       }
     }
-
   }
 
   private function compileExists($filter, $tableName, $fieldName, $link, &$joins, &$joinsTables, &$where, &$args) {
-
     $where .= $link.' EXISTS (';
     if (is_array($filter)) {
       if ($existsSql = br($filter, '$sql')) {
@@ -504,11 +426,9 @@ class BrGenericSQLProviderTable {
     } else {
       $where .= str_replace('$', $tableName, $filter) . ')';
     }
-
   }
 
   private function compileNotExists($filter, $tableName, $fieldName, $link, &$joins, &$joinsTables, &$where, &$args) {
-
     $where .= $link.' NOT EXISTS (';
     if (is_array($filter)) {
       if ($existsSql = br($filter, '$sql')) {
@@ -517,11 +437,9 @@ class BrGenericSQLProviderTable {
     } else {
       $where .= str_replace('$', $tableName, $filter) . ')';
     }
-
   }
 
   private function compileFilter($filter, $tableName, $fieldName, $link, &$joins, &$joinsTables, &$where, &$args) {
-
     foreach($filter as $currentFieldName => $filterValue) {
       $currentFieldName = (string)$currentFieldName;
       if (strpos($currentFieldName, '.') === false) {
@@ -753,8 +671,40 @@ class BrGenericSQLProviderTable {
           }
           break;
       }
-
     }
+  }
+
+  private function getDatabaseDictionary() {
+    if (!$this->dataBaseDictionary) {
+      $dataBaseDictionaryFile = br()->getBasePath() . 'database/schema/UserDefinedDataBaseDictionary.php';
+      if (file_exists($dataBaseDictionaryFile)) {
+        require_once($dataBaseDictionaryFile);
+        $this->dataBaseDictionary = \UserDefinedDataBaseDictionary::getInstance();
+      } else {
+        $dataBaseDictionaryFile = br()->getBasePath() . 'database/schema/DataBaseDictionary.php';
+        if (file_exists($dataBaseDictionaryFile)) {
+          require_once($dataBaseDictionaryFile);
+          $this->dataBaseDictionary = \DataBaseDictionary::getInstance();
+        } else {
+          $this->dataBaseDictionary = \BrFakeDatabaseDictionary::getInstance();
+        }
+      }
+    }
+    return $this->dataBaseDictionary;
+  }
+
+  private function validateRow(&$row) {
+    return $this->getDatabaseDictionary()->validate($this->tableName, $row);
+  }
+
+  private function getDataTypes() {
+    $result = [];
+    if ($structure = $this->getDatabaseDictionary()->getStructure($this->tableName)) {
+      foreach($structure as $fieldName => $desc) {
+        $result[$fieldName] = $this->provider->internalDataTypeToGenericDataType($desc['data_type']);
+      }
+    }
+    return $result;
   }
 
 }

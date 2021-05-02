@@ -199,8 +199,8 @@
       _this.dataGrid.reloadRow(rowid, callback, options);
     };
 
-    _this.hasRow = function(rowid) {
-      return _this.dataGrid.hasRow(rowid);
+    _this.hasRow = function(rowid, options) {
+      return _this.dataGrid.hasRow(rowid, options);
     };
 
     _this.removeRow = function(rowid) {

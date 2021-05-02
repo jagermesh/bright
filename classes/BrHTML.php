@@ -28,15 +28,15 @@ class BrHTML extends BrObject {
 
     if (br()->HTML()->isHtml($inHtml)) {
       try {
-        try {
-          $doc = \phpQuery::newDocument($result);
-          $outHtml = trim($doc->html());
-          if ($inHtml != $outHtml) {
-            $result = $outHtml;
-          }
-        } catch (\Exception $e) {
+        $doc = \phpQuery::newDocument($result);
 
+        $outHtml = trim($doc->html());
+
+        if ($inHtml != $outHtml) {
+          $result = $outHtml;
         }
+      } catch (\Exception $e) {
+
       } finally {
         \phpQuery::unloadDocuments();
       }

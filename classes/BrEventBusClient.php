@@ -60,10 +60,10 @@ class BrEventBusClient extends BrEventBusEngine {
   function sendSync($action, $data = [], $additionalRequestParams = []) {
     if ($this->url) {
       try {
-        // if (!$this->client) {
-          $this->client = new \WebSocket\Client($this->url);
-        // }
+        br()->log()->message('Sending message through ' . $this->url, [], 'ebs');
+        $this->client = new \WebSocket\Client($this->url);
         $this->client->send($this->packMessage($action, $data, $additionalRequestParams));
+        br()->log()->message('Message sent', [], 'ebs');
       } catch (\Exception $e) {
         br()->log()->error($e);
       }

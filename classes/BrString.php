@@ -442,14 +442,13 @@ class BrString extends BrGenericDataType {
           $doc = \phpQuery::newDocument($html);
 
           foreach($doc->find('td,th,col') as $el) {
-            if ($style = pq($el)->attr('style')) {
-              $style = preg_replace('#width[^:]*:[^;]+#ism', '', $style);
-              pq($el)->attr('style', $style);
-            }
-            pq($el)->attr('width', '');
+            pq($el)->css('width', '');
+            pq($el)->removeAttr('width');
           }
 
           $html = $doc->html();
+        } catch (\Exception $e) {
+
         } finally {
           \phpQuery::unloadDocuments();
         }

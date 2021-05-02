@@ -91,12 +91,12 @@ class BrGenericRenderer extends BrObject {
       $fileName = $matches[2];
       if (preg_match('/^([^ ]+?)[ ](.+)/', $fileName, $matches2)) {
         $fileName = $matches2[1];
-        $compileSubTemplate = true;
-        $varGroups = br($matches2[2])->split(' ');
-        foreach($varGroups as $varGroup) {
-          $vars = br($varGroup)->split('=');
-          if (count($vars) == 2) {
-            $internalSubst[$vars[0]] = trim($vars[1], '"');
+        if ($fileSubsts = br($matches2, 2)) {
+          if (preg_match_all('/([A-Z-.]+)="([^"]+)"/ism', $fileSubsts, $matches3, PREG_SET_ORDER)) {
+            $compileSubTemplate = true;
+            foreach($matches3 as $match3) {
+              $internalSubst[$match3[1]] = $match3[2];
+            }
           }
         }
       }

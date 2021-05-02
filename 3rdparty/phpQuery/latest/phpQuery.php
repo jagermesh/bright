@@ -2482,13 +2482,22 @@ class phpQueryObject
 	 * @return phpQuery|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
 	 * @todo
 	 */
-	public function css($param, $value = '') {
+	public function css($param, $value = null) {
 		$style = $this->parseCSS($this->attr('style'));
-		if (empty($value)) {
-			return @$style[$param];
+		if (is_null($value)) {
+			return trim(@$style[$param]);
 		}
-		$style[$param] = $value;
-		$this->attr('style', $this->saveCss($style));
+		if (strlen($value)) {
+			$style[$param] = $value;
+		} else {
+			unset($style[$param]);
+		}
+		$savedStyle = trim($this->saveCss($style));
+		if (strlen($savedStyle)) {
+			$this->attr('style', $savedStyle);
+		} else {
+			$this->removeAttr('style');
+		}
 		return $this;
 	}
 

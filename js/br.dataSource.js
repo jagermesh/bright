@@ -114,12 +114,6 @@
             request.__clientUID = options.clientUID;
           }
 
-          for(let paramName in request) {
-            if (request[paramName] === null) {
-              request[paramName] = 'null';
-            }
-          }
-
           $.ajax({ type: _this.options.crossdomain ? 'GET' : 'PUT'
                  , data: request
                  , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
@@ -212,12 +206,6 @@
 
           if (options && options.clientUID) {
             request.__clientUID = options.clientUID;
-          }
-
-          for(let paramName in request) {
-            if (request[paramName] === null) {
-              request[paramName] = 'null';
-            }
           }
 
           $.ajax({ type: _this.options.crossdomain ? 'GET' : 'POST'
@@ -314,12 +302,6 @@
 
           if (options && options.clientUID) {
             request.__clientUID = options.clientUID;
-          }
-
-          for(let paramName in request) {
-            if (request[paramName] === null) {
-              request[paramName] = 'null';
-            }
           }
 
           $.ajax({ type: _this.options.crossdomain ? 'GET' : 'DELETE'
@@ -706,12 +688,6 @@
 
         if (options && options.clientUID) {
           request.__clientUID = options.clientUID;
-        }
-
-        for(let paramName in request) {
-          if (request[paramName] === null) {
-            request[paramName] = 'null';
-          }
         }
 
         $.ajax({ type: _this.options.crossdomain ? 'GET' : 'POST'

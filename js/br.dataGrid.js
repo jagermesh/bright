@@ -254,10 +254,16 @@
       return renderedRow.renderedRow;
     };
 
-    _this.hasRow = function(rowid) {
+
+    _this.hasRow = function(rowid, options) {
       let filter = `[data-rowid="${rowid}"]`;
-      let row = $(_this.selector).find(filter);
-      return (row.length > 0);
+      options = options || Object.create({});
+      options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
+      if (options.refreshSelector) {
+        filter = options.refreshSelector + filter;
+      }
+      let existingRows = $(_this.selector).find(filter);
+      return (existingRows.length > 0);
     };
 
     _this.reloadRow = function(rowid, callback, options) {
@@ -328,9 +334,6 @@
         row.remove();
         checkForEmptyGrid();
         _this.events.triggerAfter('remove', rowid, row);
-      } else
-      if (!_this.options.singleRowMode) {
-        _this.dataSource.select();
       }
     };
 
@@ -563,12 +566,7 @@
         });
 
         _this.dataSource.on('update', function(data) {
-          if (_this.refreshRow(data, _this.options)) {
-
-          } else
-          if (!_this.options.singleRowMode) {
-            _this.dataSource.select();
-          }
+          _this.refreshRow(data, _this.options);
         });
 
         _this.dataSource.on('remove', function(rowid) {

@@ -17,9 +17,9 @@ class BrDataSource extends BrGenericDataSource {
   private $dbIndexHint;
   private $DMLType;
 
-  public function __construct($dbEntity, $options = array()) {
+  public function __construct($dbEntity, $options = []) {
 
-    $this->dbEntity = $dbEntity;
+    $this->setDbEntity($dbEntity);
 
     parent::__construct($options);
 
@@ -35,11 +35,27 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
+  public function setDbEntity($newValue) {
+
+    $this->dbEntity = $newValue;
+
+    return $this->dbEntity;
+
+  }
+
   public function dbEntityAlias($newValue = null) {
 
     if ($newValue) {
       $this->dbEntityAlias = $newValue;
     }
+
+    return $this->dbEntityAlias;
+
+  }
+
+  public function setDbEntityAlias($newValue) {
+
+    $this->dbEntityAlias = $newValue;
 
     return $this->dbEntityAlias;
 
@@ -61,7 +77,7 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
-  protected function internalSelect($filter = array(), $fields = array(), $order = array(), $options = array()) {
+  protected function internalSelect($filter = [], $fields = [], $order = [], $options = []) {
 
     $this->DMLType = '';
 
@@ -88,7 +104,7 @@ class BrDataSource extends BrGenericDataSource {
     $options['excludeFields'] = br(br($options, 'excludeFields'))->split();
     $options['order']         = $order;
 
-    $transientData = array();
+    $transientData = [];
 
     $this->callEvent('before:select', $filter, $transientData, $options);
 
@@ -119,13 +135,13 @@ class BrDataSource extends BrGenericDataSource {
       }
     }
 
-    if ($groupBy = br($options, 'groupBy', array())) {
+    if ($groupBy = br($options, 'groupBy', [])) {
       if (!is_array($groupBy)) {
         $groupBy = array($groupBy);
       }
     }
 
-    if ($having = br($options, 'having', array())) {
+    if ($having = br($options, 'having', [])) {
       if (!is_array($having)) {
         $having = array($having);
       }
@@ -136,7 +152,7 @@ class BrDataSource extends BrGenericDataSource {
     $result = $this->callEvent('select', $filter, $transientData, $options);
 
     if (is_null($result)) {
-      $result = array();
+      $result = [];
 
       $this->lastSelectAmount = 0;
 
@@ -146,11 +162,7 @@ class BrDataSource extends BrGenericDataSource {
 
         try {
 
-          if ($distinct) {
-            $cursor = $table->find($filter, $fields, true);
-          } else {
-            $cursor = $table->find($filter, $fields);
-          }
+          $cursor = $table->select($filter, $fields, $distinct);
 
           if ($groupBy && is_array($groupBy)) {
             $cursor = $cursor->group($groupBy);
@@ -278,7 +290,7 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
-  public function getCursor($filter = array(), $fields = array(), $order = array(), $options = array()) {
+  public function getCursor($filter = [], $fields = [], $order = [], $options = []) {
 
     $options['result'] = 'cursor';
 
@@ -286,7 +298,7 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
-  public function getStatement($filter = array(), $fields = array(), $order = array(), $options = array()) {
+  public function getStatement($filter = [], $fields = [], $order = [], $options = []) {
 
     $options['result'] = 'statement';
 
@@ -294,7 +306,7 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
-  public function getSQL($filter = array(), $fields = array(), $order = array(), $options = array()) {
+  public function getSQL($filter = [], $fields = [], $order = [], $options = []) {
 
     $options['result'] = 'sql';
 
@@ -302,7 +314,7 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
-  public function insert($rowParam = array(), &$transientData = array(), $optionsParam = array(), $iteration = 0, $rerunError = null) {
+  public function insert($rowParam = [], &$transientData = [], $optionsParam = [], $iteration = 0, $rerunError = null) {
 
     if ($iteration > $this->rerunIterations) {
       throw new BrDBException($rerunError);
@@ -319,9 +331,9 @@ class BrDataSource extends BrGenericDataSource {
     $options['dataSets']   = br(br($options, 'dataSets'))->split();
     $options['clientUID']  = br($options, 'clientUID');
     $options['renderMode'] = br($options, 'renderMode');
-    $options['filter']     = array();
+    $options['filter']     = [];
 
-    $old = array();
+    $old = [];
 
     $this->callEvent('before:insert', $row, $transientData, $old, $options);
 
@@ -337,11 +349,7 @@ class BrDataSource extends BrGenericDataSource {
           }
           if ($row) {
             $table = $this->getDb()->table($this->dbEntity());
-            if (br($options, 'dataTypes')) {
-              $table->insert($row, br($options, 'dataTypes'));
-            } else {
-              $table->insert($row);
-            }
+            $table->insert($row);
             $result = $row;
             $this->callEvent('after:insert', $result, $transientData, $old, $options);
             $result['rowid'] = $this->getDb()->rowidValue($result);
@@ -389,7 +397,7 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
-  public function update($rowid, $rowParam, &$transientData = array(), $optionsParam = array(), $iteration = 0, $rerunError = null) {
+  public function update($rowid, $rowParam, &$transientData = [], $optionsParam = [], $iteration = 0, $rerunError = null) {
 
     if ($iteration > $this->rerunIterations) {
       throw new BrDBException($rerunError);
@@ -406,14 +414,14 @@ class BrDataSource extends BrGenericDataSource {
     $options['dataSets']   = br(br($options, 'dataSets'))->split();
     $options['clientUID']  = br($options, 'clientUID');
     $options['renderMode'] = br($options, 'renderMode');
-    $options['filter']     = array();
+    $options['filter']     = [];
 
     $table = $this->getDb()->table($this->dbEntity());
 
-    $filter = array();
+    $filter = [];
     $filter[$this->getDb()->rowidField()] = $this->getDb()->rowid($rowid);
 
-    if ($currentRow = $table->findOne($filter)) {
+    if ($currentRow = $table->selectOne($filter)) {
       try {
         try {
           if ($this->transactionalDML()) {
@@ -432,16 +440,16 @@ class BrDataSource extends BrGenericDataSource {
 
           $result = $this->callEvent('update', $new, $transientData, $old, $options);
           if (is_null($result)) {
-            $changes = array();
+            $changes = [];
             foreach($new as $name => $value) {
               if (!array_key_exists($name, $old) || ($new[$name] !== $old[$name])) {
                 $changes[$name] = $value;
               }
             }
             if ($changes) {
-              $table->update($changes, $rowid, br($options, 'dataTypes'));
+              $table->update($changes, $rowid);
             } else {
-              $new = $table->findOne($filter);
+              $new = $table->selectOne($filter);
             }
             $result = $new;
             $this->callEvent('after:update', $result, $transientData, $old, $options);
@@ -493,7 +501,7 @@ class BrDataSource extends BrGenericDataSource {
 
   }
 
-  public function remove($rowid, &$transientData = array(), $optionsParam = array(), $iteration = 0, $rerunError = null) {
+  public function remove($rowid, &$transientData = [], $optionsParam = [], $iteration = 0, $rerunError = null) {
 
     if ($iteration > $this->rerunIterations) {
       throw new BrDBException($rerunError);
@@ -508,16 +516,16 @@ class BrDataSource extends BrGenericDataSource {
     $options['dataSets']   = br(br($options, 'dataSets'))->split();
     $options['clientUID']  = br($options, 'clientUID');
     $options['renderMode'] = br($options, 'renderMode');
-    $options['filter']     = array();
+    $options['filter']     = [];
 
     $table = $this->getDb()->table($this->dbEntity());
 
-    $filter = array();
+    $filter = [];
     $filter[$this->getDb()->rowidField()] = $this->getDb()->rowid($rowid);
 
     $result = $filter;
 
-    if ($crow = $table->findOne($filter)) {
+    if ($crow = $table->selectOne($filter)) {
       try {
         try {
           if ($this->transactionalDML()) {

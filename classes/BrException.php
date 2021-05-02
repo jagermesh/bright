@@ -70,10 +70,6 @@ class BrDBAppException extends BrAppException {
 
 }
 
-class BrDataObjectException extends BrException {
-
-}
-
 class BrDBForeignKeyException extends BrDBAppException {
 
   function __construct($message = '') {

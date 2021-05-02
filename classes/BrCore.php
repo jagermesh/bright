@@ -1643,14 +1643,15 @@ class BrCore extends BrObject {
 
     list ($compiled, $tmpl, $has_named) = $compiled;
 
-    if ($has_named)
+    if ($has_named) {
       $args = @$args[0];
+    }
 
     $p   = 0;
     $out = '';
     $error = false;
 
-    foreach ($compiled as $num=>$e) {
+    foreach ($compiled as $num => $e) {
 
       list ($key, $type, $start, $length) = $e;
 
@@ -1662,13 +1663,15 @@ class BrCore extends BrObject {
 
       do {
 
-        if (!isset($args[$key]))
+        if (!isset($args[$key])) {
           $args[$key] = "";
+        }
 
         if ($type === '#') {
           $repl = @constant($key);
-          if (NULL === $repl)
+          if (NULL === $repl) {
             $error = $errmsg = "UNKNOWN_CONSTANT_$key";
+          }
           break;
         }
 
@@ -1694,7 +1697,8 @@ class BrCore extends BrObject {
           if (strlen($a) === 0) {
             $repl = "null";
           } else {
-            $repl = (preg_match('#^[-]?([1-9][0-9]*|[0-9])($|[.,][0-9]+$)#', $a)) ? str_replace(',', '.', $a) : "'".addslashes($a)."'";
+            $tmpVal = str_replace(',', '.', $a);
+            $repl = (is_numeric($tmpVal) ? $tmpVal : "'" . addslashes($a) . "'");
           }
           break;
         }
@@ -1707,9 +1711,10 @@ class BrCore extends BrObject {
         if (($type === '@') || ($type === '@&')) {
           foreach ($a as $v) {
             if ($type === '@&') {
-              $repl .= ($repl===''? "" : ",").("'".addslashes($v)."'");
+              $repl .= ($repl === ''? "" : ",") . ("'" . addslashes($v) . "'");
             } else {
-              $repl .= ($repl===''? "" : ",").(preg_match('#^[-]?([1-9][0-9]*|[0-9])($|[.,][0-9]+$)#', $v) ? str_replace(',', '.', $v):"'".addslashes($v)."'");
+              $tmpVal = str_replace(',', '.', $v);
+              $repl .= ($repl === ''? "" : ",") . (is_numeric($tmpVal) ? $tmpVal : "'" . addslashes($v) . "'");
             }
           }
         } else
@@ -1739,12 +1744,12 @@ class BrCore extends BrObject {
 
       } while (false);
 
-      if ($errmsg)
+      if ($errmsg) {
         $compiled[$num]['error'] = $errmsg;
-
-      if (!$error)
+      }
+      if (!$error) {
         $out .= $repl;
-
+      }
     }
     $out .= substr($tmpl, $p);
 
@@ -2066,8 +2071,15 @@ class BrCore extends BrObject {
   }
 
   public function formatDate($format, $datetime = null) {
-    $datetime = ($datetime ? $datetime : 'now');
-    return (new \DateTime((is_numeric($datetime)?'@':'').$datetime))->format($format);
+    try {
+      $datetime = ($datetime ? $datetime : 'now');
+      if (!is_numeric($datetime)) {
+        $datetime = preg_replace('/([0-9])((A|P)M)/i', '$1 $2', $datetime);
+      }
+      return (new \DateTime((is_numeric($datetime)?'@':'').$datetime))->format($format);
+    } catch (\Exception $e) {
+      throw new BrAppException('Wrong date: ' . $datetime);
+    }
   }
 
   public function smartRound($value, $precision = 2) {

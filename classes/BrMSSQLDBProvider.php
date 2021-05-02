@@ -266,4 +266,8 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider {
     $this->disconnect();
   }
 
+  public function internalDataTypeToGenericDataType($type) {
+    return self::DATA_TYPE_UNKNOWN;
+  }
+
 }

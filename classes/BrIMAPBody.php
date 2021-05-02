@@ -69,19 +69,17 @@ class BrIMAPBody extends BrObject {
 
         if ($this->isHTML && $body) {
           try {
-            try {
-              $doc = \phpQuery::newDocument($body);
+            $doc = \phpQuery::newDocument($body);
 
-              $bodyTag = $doc->find('body');
+            $bodyTag = $doc->find('body');
 
-              if ($bodyTag->length() > 0) {
-                $body = trim(pq($bodyTag)->html());
-              } else {
-                $body = trim($doc->html());
-              }
-            } catch (\Exception $e) {
-
+            if ($bodyTag->length() > 0) {
+              $body = trim(pq($bodyTag)->html());
+            } else {
+              $body = trim($doc->html());
             }
+          } catch (\Exception $e) {
+
           } finally {
             \phpQuery::unloadDocuments();
           }
