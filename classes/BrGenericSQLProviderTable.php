@@ -686,7 +686,7 @@ class BrGenericSQLProviderTable extends BrObject {
           require_once($dataBaseDictionaryFile);
           $this->dataBaseDictionary = \DataBaseDictionary::getInstance();
         } else {
-          $this->dataBaseDictionary = \BrFakeDatabaseDictionary::getInstance();
+          $this->dataBaseDictionary = BrFakeDatabaseDictionary::getInstance();
         }
       }
     }

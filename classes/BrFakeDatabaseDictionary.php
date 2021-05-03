@@ -12,10 +12,11 @@ namespace Bright;
 
 class BrFakeDatabaseDictionary extends BrObject implements IDataBaseDictionary {
 
-  public function validate($tableName, &$row) {
+  public function validate($tableName, $row) {
+    return $row;
   }
 
-  public function getDataTypes($tableName) {
+  public function getStructure($tableName) {
     return [];
   }
 
