@@ -1091,7 +1091,7 @@
         const detachedMenuHolder = detachedMenu.data('detachedMenuHolder');
         const alignRight = detachedMenu.hasClass('br-dropdown-detached-right-aligned');
         const menu = detachedMenu.find('.dropdown-menu');
-        const maxHeight = $(window).height() - (detachedMenuHolder.offset().top + detachedMenuHolder.height()) - 10;
+        const maxHeight = $(window).height() - (detachedMenuHolder.offset().top + detachedMenuHolder.height()) - 30;
         const css = Object.create({
           top: detachedMenuHolder.offset().top + detachedMenuHolder.height(),
           right: (alignRight ? ($(window).width() - detachedMenuHolder.offset().left - detachedMenuHolder.width()) + menu.width() : detachedMenuHolder.offset().left)
@@ -1109,7 +1109,7 @@
         const alignRight = detachedMenuHolder.hasClass('br-dropdown-detachable-right-aligned');
         const menu = $(detachedMenuHolder.find('.dropdown-menu'));
         let detachedMenu = detachedMenuHolder.data('detachedMenu');
-        const maxHeight = $(window).height() - (detachedMenuHolder.offset().top + detachedMenuHolder.height()) - 10;
+        const maxHeight = $(window).height() - (detachedMenuHolder.offset().top + detachedMenuHolder.height()) - 30;
         const css = Object.create({
           position: 'absolute',
           top: detachedMenuHolder.offset().top + detachedMenuHolder.height(),
