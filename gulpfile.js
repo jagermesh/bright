@@ -5,7 +5,7 @@
 const gulp = require('gulp');
 const concat = require('gulp-concat');
 const terser = require('gulp-terser');
-const sass = require('gulp-sass');
+const sass = require('gulp-sass-universal');
 const jshint = require('gulp-jshint');
 const phplint = require('gulp-phplint');
 const rename = require('gulp-rename');
@@ -153,7 +153,7 @@ gulp.task('uglify:dist', function() {
 
 gulp.task('sass', function() {
   return gulp.src(configs.sass.src)
-    .pipe(sass().on('error', sass.logError))
+    .pipe(sass())
     .pipe(gulp.dest(configs.sass.dest));
 });
 

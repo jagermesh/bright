@@ -4665,8 +4665,10 @@ THE SOFTWARE.
       const target   = (options.yesLink && !options.targetSamePage ? '_blank' : '');
       template += `<a href="${yesLink}" target="${target}" class="btn btn-sm btn-primary action-confirm-close" rel="confirm">&nbsp;${yesTitle}&nbsp;</a>`;
     } else {
+      let idx = 0;
       for(let inputName in buttons) {
-        template += `<a href="javascript:;" class="btn btn-sm btn-default action-confirm-close" rel="${inputName}">&nbsp;${buttons[inputName]}&nbsp;</a>`;
+        template += `<a href="javascript:;" class="btn btn-sm ${idx === 0 ? 'btn-primary' : 'btn-default'} action-confirm-close" rel="${inputName}">&nbsp;${buttons[inputName]}&nbsp;</a>`;
+        idx++;
       }
     }
     template += `<a href="javascript:;" class="btn btn-sm btn-default action-confirm-cancel" rel="cancel">&nbsp;${options.cancelTitle}&nbsp;</a>
@@ -5519,31 +5521,31 @@ THE SOFTWARE.
     const tabbableElements = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, *[tabindex], *[contenteditable]';
 
     function disableTabbingOnPage(except) {
-      $.each($(tabbableElements), function (idx, item) {
-        const el = $(item);
-        if (!el.closest(except).length) {
-          const tabindex = el.attr('tabindex');
-          if (tabindex) {
-            el.attr('data-prev-tabindex', tabindex);
-          }
-          el.attr('tabindex', '-1');
-        }
-      });
+      // $.each($(tabbableElements), function (idx, item) {
+      //   const el = $(item);
+      //   if (!el.closest(except).length) {
+      //     const tabindex = el.attr('tabindex');
+      //     if (tabindex) {
+      //       el.attr('data-prev-tabindex', tabindex);
+      //     }
+      //     el.attr('tabindex', '-1');
+      //   }
+      // });
     }
 
     function reEnableTabbingOnPage(except) {
-      $.each($(tabbableElements), function (idx, item) {
-        const el = $(item);
-        if (!el.closest(except).length) {
-          const prevTabindex = el.attr('data-prev-tabindex');
-          if (prevTabindex) {
-            el.attr('tabindex', prevTabindex);
-          } else {
-            el.removeAttr('tabindex');
-          }
-          el.removeAttr('data-prev-tabindex');
-        }
-      });
+      // $.each($(tabbableElements), function (idx, item) {
+      //   const el = $(item);
+      //   if (!el.closest(except).length) {
+      //     const prevTabindex = el.attr('data-prev-tabindex');
+      //     if (prevTabindex) {
+      //       el.attr('tabindex', prevTabindex);
+      //     } else {
+      //       el.removeAttr('tabindex');
+      //     }
+      //     el.removeAttr('data-prev-tabindex');
+      //   }
+      // });
     }
 
     function configureAutosize(control) {

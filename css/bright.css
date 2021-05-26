@@ -1,14 +1,18 @@
 .template {
-  display: none; }
+  display: none;
+}
 
 .centered {
-  text-align: center !important; }
+  text-align: center !important;
+}
 
 .left-aligned {
-  text-align: left !important; }
+  text-align: left !important;
+}
 
 .right-aligned {
-  text-align: right !important; }
+  text-align: right !important;
+}
 
 a.justified, select.justified, textarea.justified, audio.justified, input.justified, div.justified {
   width: 100%;
@@ -17,31 +21,39 @@ a.justified, select.justified, textarea.justified, audio.justified, input.justif
   -moz-box-sizing: border-box;
   -ms-box-sizing: border-box;
   margin-top: 2px;
-  margin-bottom: 2px; }
+  margin-bottom: 2px;
+}
 
 input.justified, div.justified {
-  height: 2em; }
+  height: 2em;
+}
 
 td.optimal-width, th.optimal-width {
   width: 10px;
-  white-space: nowrap; }
+  white-space: nowrap;
+}
 
 span.required {
   color: red;
   margin-right: 5px;
-  font-weight: bold; }
+  font-weight: bold;
+}
 
 .br-template {
-  display: none; }
+  display: none;
+}
 
 .br-centered {
-  text-align: center !important; }
+  text-align: center !important;
+}
 
 .br-left-aligned {
-  text-align: left !important; }
+  text-align: left !important;
+}
 
 .br-right-aligned {
-  text-align: right !important; }
+  text-align: right !important;
+}
 
 textarea.br-justified {
   width: 100%;
@@ -50,7 +62,8 @@ textarea.br-justified {
   -moz-box-sizing: border-box;
   -ms-box-sizing: border-box;
   margin-top: 2px;
-  margin-bottom: 2px; }
+  margin-bottom: 2px;
+}
 
 input.br-justified, div.br-justified {
   width: 100%;
@@ -60,7 +73,8 @@ input.br-justified, div.br-justified {
   -moz-box-sizing: border-box;
   -ms-box-sizing: border-box;
   margin-top: 2px;
-  margin-bottom: 2px; }
+  margin-bottom: 2px;
+}
 
 select.br-justified {
   width: 100%;
@@ -69,7 +83,8 @@ select.br-justified {
   -moz-box-sizing: border-box;
   -ms-box-sizing: border-box;
   margin-top: 2px;
-  margin-bottom: 2px; }
+  margin-bottom: 2px;
+}
 
 a.br-justified {
   width: 100%;
@@ -78,78 +93,115 @@ a.br-justified {
   -moz-box-sizing: border-box;
   -ms-box-sizing: border-box;
   margin-top: 2px;
-  margin-bottom: 2px; }
+  margin-bottom: 2px;
+}
 
 td.br-optimal-width, th.br-optimal-width {
   width: 10px;
-  white-space: nowrap; }
+  white-space: nowrap;
+}
 
 span.br-required {
   color: red;
   margin-right: 5px;
-  font-weight: bold; }
+  font-weight: bold;
+}
 
 .br-full-height {
-  height: 100%; }
+  height: 100%;
+}
 
 .br-full-width {
-  width: 100%; }
+  width: 100%;
+}
 
 .br-scrollable {
   height: 100%;
-  overflow: auto; }
+  overflow: auto;
+}
 
 @media print {
   .br-container {
     margin-top: 0px !important;
-    height: auto !important; }
+    height: auto !important;
+  }
+
   .br-scrollable {
     height: auto;
-    overflow: visible; } }
-
+    overflow: visible;
+  }
+}
 .br-ajax-dropdown li {
-  white-space: nowrap; }
+  white-space: nowrap;
+}
 
 .br-ajax-dropdown li a {
   line-height: 14px !important;
-  font-size: 10pt; }
+  font-size: 10pt;
+}
 
 .br-ajax-dropdown li.group-item {
   padding-left: 20px;
   padding-right: 20px;
-  cursor: pointer; }
+  cursor: pointer;
+}
 
 @media print {
   .br-no-print {
-    display: none; }
-  .br-print-only {
-    display: inline; } }
+    display: none;
+  }
 
+  .br-print-only {
+    display: inline;
+  }
+}
 .br-editable {
-  border: 1px solid transparent; }
+  border: 1px solid transparent;
+}
 
 .br-editable:hover {
   border: 1px dashed orange;
-  cursor: text; }
+  cursor: text;
+}
 
 div.br-editable, span.br-editable {
-  padding: 2px; }
+  padding: 2px;
+}
 
 .br-filters-panel {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  align-items: flex-end; }
+  align-items: flex-end;
+}
 
 .br-filters-panel .br-filter-block {
   padding-right: 10px;
-  padding-bottom: 10px; }
+  padding-bottom: 10px;
+}
 
 .br-filters-panel .br-filter-block label {
-  color: black; }
+  color: black;
+}
 
 .br-filters-panel .br-filter-block .input-append {
-  margin-bottom: 0; }
+  margin-bottom: 0;
+}
 
 .br-filters-panel .br-filter-block-wide {
-  flex-grow: 1; }
+  flex-grow: 1;
+}
+
+.br-progress-bar {
+  background-color: lightblue;
+}
+
+.br-progress-bar .br-progress-bar-meter {
+  color: white;
+  mix-blend-mode: difference;
+  width: 100px;
+  text-align: center;
+  border: 1px solid orangered;
+  margin: -1px;
+  border-radius: 2px;
+}

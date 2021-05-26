@@ -97,7 +97,8 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
       } else {
         $this->__connection = null;
         usleep(250000);
-        $this->connect($iteration + 1, $e->getMessage());
+        $error = $e->getMessage() . ' (' . $userName . '@'. $hostName . ':' . $port . '/' . $dataBaseName . ')';
+        $this->connect($iteration + 1, $error);
       }
     }
 

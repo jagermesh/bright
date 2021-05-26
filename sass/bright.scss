@@ -159,3 +159,15 @@ div.br-editable, span.br-editable {
 .br-filters-panel .br-filter-block-wide {
   flex-grow: 1;
 }
+.br-progress-bar {
+  background-color:lightblue;
+}
+.br-progress-bar .br-progress-bar-meter {
+  color:white;
+  mix-blend-mode:difference;
+  width:100px;
+  text-align:center;
+  border: 1px solid orangered;
+  margin: -1px;
+  border-radius: 2px;
+}
