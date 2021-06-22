@@ -24,7 +24,7 @@ class PatchCreate extends \Bright\BrDataBasePatch {
                      , is_active TINYINT(1) NOT NULL DEFAULT 1
                      , UNIQUE KEY un_br_user_email (email)
                      , UNIQUE KEY un_br_user_login (login)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC');
+                    ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC');
 
     $this->execute( 'INSERT IGNORE INTO br_user(id, login, password, name) VALUES (1, "admin", md5("test"), "Admin")');
 

@@ -3096,6 +3096,47 @@ THE SOFTWARE.
       return renderedRow.renderedRow;
     };
 
+    _this.refreshRow = function(dataRow, options, isUpdate) {
+      let filter = `[data-rowid="${dataRow.rowid}"]`;
+      options = options || Object.create({});
+      options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
+      if (options.refreshSelector) {
+        filter = options.refreshSelector + filter;
+      }
+
+      let existingRows = $(_this.selector).find(filter);
+      if (existingRows.length > 0) {
+        let renderedRow = _this.renderRow(dataRow);
+        if (renderedRow.renderedRow) {
+          if (_this.options.storeDataRow) {
+            renderedRow.renderedRow.data('data-row', renderedRow.dataRow);
+          }
+          _this.events.triggerBefore('update', renderedRow.dataRow, existingRows, renderedRow.renderedRow, isUpdate);
+          _this.events.trigger('update', renderedRow.dataRow, existingRows, renderedRow.renderedRow, isUpdate);
+          let resultingRows = [];
+          if (renderedRow.renderedRow.length > 1) {
+            let row = renderedRow.renderedRow.clone();
+            $(existingRows[0]).before(row);
+            resultingRows.push(row);
+          } else {
+            existingRows.each(function() {
+              let row = renderedRow.renderedRow.clone();
+              $(this).before(row);
+              resultingRows.push(row);
+            });
+          }
+          let resultingRowsJq = $(resultingRows).map(function() { return this.toArray(); });
+          _this.events.triggerAfter('renderRow', renderedRow.dataRow, existingRows, resultingRowsJq);
+          _this.events.triggerAfter('update', renderedRow.dataRow, existingRows, resultingRowsJq, isUpdate);
+          existingRows.remove();
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    };
 
     _this.hasRow = function(rowid, options) {
       let filter = `[data-rowid="${rowid}"]`;
@@ -3199,47 +3240,6 @@ THE SOFTWARE.
         throw data;
       });
 
-    };
-
-    _this.refreshRow = function(dataRow, options) {
-      let filter = `[data-rowid="${dataRow.rowid}"]`;
-      options = options || Object.create({});
-      options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
-      if (options.refreshSelector) {
-        filter = options.refreshSelector + filter;
-      }
-      let existingRows = $(_this.selector).find(filter);
-      if (existingRows.length > 0) {
-        let renderedRow = _this.renderRow(dataRow);
-        if (renderedRow.renderedRow) {
-          if (_this.options.storeDataRow) {
-            renderedRow.renderedRow.data('data-row', renderedRow.dataRow);
-          }
-          _this.events.triggerBefore('update', renderedRow.dataRow);
-          _this.events.trigger('update', renderedRow.dataRow, existingRows);
-          let resultingRows = [];
-          if (renderedRow.renderedRow.length > 1) {
-            let row = renderedRow.renderedRow.clone();
-            $(existingRows[0]).before(row);
-            resultingRows.push(row);
-          } else {
-            existingRows.each(function() {
-              let row = renderedRow.renderedRow.clone();
-              $(this).before(row);
-              resultingRows.push(row);
-            });
-          }
-          existingRows.remove();
-          let resultingRowsJq = $(resultingRows).map(function() { return this.toArray(); });
-          _this.events.triggerAfter('renderRow', renderedRow.dataRow, resultingRowsJq);
-          _this.events.triggerAfter('update', renderedRow.dataRow, resultingRowsJq);
-          return true;
-        } else {
-          return false;
-        }
-      } else {
-        return false;
-      }
     };
 
     _this.loadMore = function(callback) {
@@ -3408,7 +3408,7 @@ THE SOFTWARE.
         });
 
         _this.dataSource.on('update', function(data) {
-          _this.refreshRow(data, _this.options);
+          _this.refreshRow(data, _this.options, true);
         });
 
         _this.dataSource.on('remove', function(rowid) {
@@ -6015,23 +6015,23 @@ THE SOFTWARE.
     };
 
     _this.editorConfigure = function(isCopy) {
-      let s = '';
+      let title = '';
       if (_this.options.title) {
-        s = _this.options.title;
+        title = _this.options.title;
       } else
       if (editorRowid) {
         if (isCopy) {
-          s = 'Copy ' + _this.options.noun;
+          title = `Copy ${_this.options.noun}`;
         } else {
-          s = 'Edit ' + _this.options.noun;
+          title = `Edit ${_this.options.noun}`;
           if (!_this.options.hideRowid) {
-            s = s + ' (#' + editorRowid + ')';
+            title += ` (#${editorRowid})`;
           }
         }
       } else {
-        s = 'Create ' + _this.options.noun;
+        title = `Create ${_this.options.noun}`;
       }
-      _this.container.find('.operation').text(s);
+      _this.container.find('.operation').text(title);
     };
 
     function editorShown() {
@@ -6164,7 +6164,7 @@ THE SOFTWARE.
       }
     };
 
-    _this.show = function(rowid, isCopy) {
+    _this.show = function(rowid, isCopy, params) {
       closeConfirmationTmp = br.isCloseConfirmationRequired();
       editorRowid = null;
       editorRowData = null;
@@ -6194,13 +6194,13 @@ THE SOFTWARE.
         _this.dataSource.selectOne(request, function(result, data) {
           if (result) {
             editorRowData = data;
-            _this.events.triggerBefore('editor.show', data, isCopy);
+            _this.events.triggerBefore('editor.show', data, isCopy, params);
             _this.editorConfigure(isCopy);
             _this.fillControls(data);
             if (isCopy) {
               editorRowid = null;
             }
-            _this.events.trigger('editor.show', data, isCopy);
+            _this.events.trigger('editor.show', data, isCopy, params);
             br.attachDatePickers(_this.inputsContainer);
             if (_this.container.hasClass('modal')) {
               _this.container.modal('show');
@@ -6216,11 +6216,11 @@ THE SOFTWARE.
           }
         }, options);
       } else {
-        _this.events.triggerBefore('editor.show');
+        _this.events.triggerBefore('editor.show', null, isCopy, params);
         _this.editorConfigure(isCopy);
         _this.fillDefaults();
         _this.fillControls(defaultValues);
-        _this.events.trigger('editor.show', defaultValues);
+        _this.events.trigger('editor.show', defaultValues, isCopy, params);
         br.attachDatePickers(_this.inputsContainer);
         if (_this.container.hasClass('modal')) {
           _this.container.modal('show');
@@ -7420,7 +7420,7 @@ THE SOFTWARE.
   const invokerTemplate = br.compile('<div class="dropdown br-ajax-dropdown"><a href="javascript:;" class="br-ex-action-change-menu-menu" style="cursor:pointer;"><span class="br-ex-current-value">{{&value}}</span> <b class="caret"></b></a></div>');
   const menuItemTemplateStr = '<li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>';
   const menuItemTemplate = br.compile('<li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>');
-  const dropDownTemplate = '<div class="dropdown br-ajax-dropdown" style="position:absolute;z-index:1050;"><a style="display:none;" href="javascript:;" role="button" data-toggle="dropdown" class="dropdown-toggle br-ex-action-change-menu-menu" style="cursor:pointer;"><span>{{value}}</span> <b class="caret"></b></a><ul class="dropdown-menu" role="menu" style="overflow:auto;"></ul></div>';
+  const dropDownTemplate = '<div class="dropdown br-ajax-dropdown" style="position:absolute;z-index:99999;"><a style="display:none;" href="javascript:;" role="button" data-toggle="dropdown" class="dropdown-toggle br-ex-action-change-menu-menu" style="cursor:pointer;"><span>{{value}}</span> <b class="caret"></b></a><ul class="dropdown-menu" role="menu" style="overflow:auto;"></ul></div>';
 
   function showDropDownMenu(invoker, response, rowid, menuElement, dataSource, fieldName, options) {
     const dropDown = $(dropDownTemplate);
@@ -7431,7 +7431,7 @@ THE SOFTWARE.
       let data = Object.create({});
       data[fieldName] = value;
       if (options.onClick) {
-        options.onClick.call($(this), dataSource, rowid, data, menuElement);
+        options.onClick.call(invoker, dataSource, rowid, data, menuElement);
       } else {
         dataSource.update(rowid, data, function(result, response) {
           if (result) {
@@ -7498,8 +7498,10 @@ THE SOFTWARE.
     } else {
       $this.data('BrExChangeMenu', true);
       let value = $this.text().trim();
-      if ((value.length === 0) || (value == '(click to change)')) {
-        value = '<span style="color:#AAA;">(click to change)</span>';
+      if (!options.hideHint) {
+        if ((value.length === 0) || (value == '(click to change)')) {
+          value = '<span style="color:#AAA;">(click to change)</span>';
+        }
       }
       const invoker = $(invokerTemplate({ value: value }));
       if (options.onSetupInvoker) {

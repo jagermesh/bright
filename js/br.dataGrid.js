@@ -254,6 +254,47 @@
       return renderedRow.renderedRow;
     };
 
+    _this.refreshRow = function(dataRow, options, isUpdate) {
+      let filter = `[data-rowid="${dataRow.rowid}"]`;
+      options = options || Object.create({});
+      options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
+      if (options.refreshSelector) {
+        filter = options.refreshSelector + filter;
+      }
+
+      let existingRows = $(_this.selector).find(filter);
+      if (existingRows.length > 0) {
+        let renderedRow = _this.renderRow(dataRow);
+        if (renderedRow.renderedRow) {
+          if (_this.options.storeDataRow) {
+            renderedRow.renderedRow.data('data-row', renderedRow.dataRow);
+          }
+          _this.events.triggerBefore('update', renderedRow.dataRow, existingRows, renderedRow.renderedRow, isUpdate);
+          _this.events.trigger('update', renderedRow.dataRow, existingRows, renderedRow.renderedRow, isUpdate);
+          let resultingRows = [];
+          if (renderedRow.renderedRow.length > 1) {
+            let row = renderedRow.renderedRow.clone();
+            $(existingRows[0]).before(row);
+            resultingRows.push(row);
+          } else {
+            existingRows.each(function() {
+              let row = renderedRow.renderedRow.clone();
+              $(this).before(row);
+              resultingRows.push(row);
+            });
+          }
+          let resultingRowsJq = $(resultingRows).map(function() { return this.toArray(); });
+          _this.events.triggerAfter('renderRow', renderedRow.dataRow, existingRows, resultingRowsJq);
+          _this.events.triggerAfter('update', renderedRow.dataRow, existingRows, resultingRowsJq, isUpdate);
+          existingRows.remove();
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    };
 
     _this.hasRow = function(rowid, options) {
       let filter = `[data-rowid="${rowid}"]`;
@@ -357,47 +398,6 @@
         throw data;
       });
 
-    };
-
-    _this.refreshRow = function(dataRow, options) {
-      let filter = `[data-rowid="${dataRow.rowid}"]`;
-      options = options || Object.create({});
-      options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
-      if (options.refreshSelector) {
-        filter = options.refreshSelector + filter;
-      }
-      let existingRows = $(_this.selector).find(filter);
-      if (existingRows.length > 0) {
-        let renderedRow = _this.renderRow(dataRow);
-        if (renderedRow.renderedRow) {
-          if (_this.options.storeDataRow) {
-            renderedRow.renderedRow.data('data-row', renderedRow.dataRow);
-          }
-          _this.events.triggerBefore('update', renderedRow.dataRow);
-          _this.events.trigger('update', renderedRow.dataRow, existingRows);
-          let resultingRows = [];
-          if (renderedRow.renderedRow.length > 1) {
-            let row = renderedRow.renderedRow.clone();
-            $(existingRows[0]).before(row);
-            resultingRows.push(row);
-          } else {
-            existingRows.each(function() {
-              let row = renderedRow.renderedRow.clone();
-              $(this).before(row);
-              resultingRows.push(row);
-            });
-          }
-          existingRows.remove();
-          let resultingRowsJq = $(resultingRows).map(function() { return this.toArray(); });
-          _this.events.triggerAfter('renderRow', renderedRow.dataRow, resultingRowsJq);
-          _this.events.triggerAfter('update', renderedRow.dataRow, resultingRowsJq);
-          return true;
-        } else {
-          return false;
-        }
-      } else {
-        return false;
-      }
     };
 
     _this.loadMore = function(callback) {
@@ -566,7 +566,7 @@
         });
 
         _this.dataSource.on('update', function(data) {
-          _this.refreshRow(data, _this.options);
+          _this.refreshRow(data, _this.options, true);
         });
 
         _this.dataSource.on('remove', function(rowid) {

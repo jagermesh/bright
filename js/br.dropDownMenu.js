@@ -14,7 +14,7 @@
   const invokerTemplate = br.compile('<div class="dropdown br-ajax-dropdown"><a href="javascript:;" class="br-ex-action-change-menu-menu" style="cursor:pointer;"><span class="br-ex-current-value">{{&value}}</span> <b class="caret"></b></a></div>');
   const menuItemTemplateStr = '<li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>';
   const menuItemTemplate = br.compile('<li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>');
-  const dropDownTemplate = '<div class="dropdown br-ajax-dropdown" style="position:absolute;z-index:1050;"><a style="display:none;" href="javascript:;" role="button" data-toggle="dropdown" class="dropdown-toggle br-ex-action-change-menu-menu" style="cursor:pointer;"><span>{{value}}</span> <b class="caret"></b></a><ul class="dropdown-menu" role="menu" style="overflow:auto;"></ul></div>';
+  const dropDownTemplate = '<div class="dropdown br-ajax-dropdown" style="position:absolute;z-index:99999;"><a style="display:none;" href="javascript:;" role="button" data-toggle="dropdown" class="dropdown-toggle br-ex-action-change-menu-menu" style="cursor:pointer;"><span>{{value}}</span> <b class="caret"></b></a><ul class="dropdown-menu" role="menu" style="overflow:auto;"></ul></div>';
 
   function showDropDownMenu(invoker, response, rowid, menuElement, dataSource, fieldName, options) {
     const dropDown = $(dropDownTemplate);
@@ -25,7 +25,7 @@
       let data = Object.create({});
       data[fieldName] = value;
       if (options.onClick) {
-        options.onClick.call($(this), dataSource, rowid, data, menuElement);
+        options.onClick.call(invoker, dataSource, rowid, data, menuElement);
       } else {
         dataSource.update(rowid, data, function(result, response) {
           if (result) {
@@ -92,8 +92,10 @@
     } else {
       $this.data('BrExChangeMenu', true);
       let value = $this.text().trim();
-      if ((value.length === 0) || (value == '(click to change)')) {
-        value = '<span style="color:#AAA;">(click to change)</span>';
+      if (!options.hideHint) {
+        if ((value.length === 0) || (value == '(click to change)')) {
+          value = '<span style="color:#AAA;">(click to change)</span>';
+        }
       }
       const invoker = $(invokerTemplate({ value: value }));
       if (options.onSetupInvoker) {

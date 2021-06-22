@@ -462,4 +462,8 @@ class BrString extends BrGenericDataType {
     return (new \DateTime((is_numeric($this->value)?'@':'').$this->value))->format($format);
   }
 
+  public function isNumeric() {
+    return (is_numeric($this->value) && (($this->value * 1) == $this->value) && ($this->value * 1 != INF));
+  }
+
 }

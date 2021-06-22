@@ -1698,7 +1698,7 @@ class BrCore extends BrObject {
             $repl = "null";
           } else {
             $tmpVal = str_replace(',', '.', $a);
-            $repl = (is_numeric($tmpVal) ? $tmpVal : "'" . addslashes($a) . "'");
+            $repl = (br($tmpVal)->isNumeric() ? $tmpVal : "'" . addslashes($a) . "'");
           }
           break;
         }
@@ -1714,7 +1714,7 @@ class BrCore extends BrObject {
               $repl .= ($repl === ''? "" : ",") . ("'" . addslashes($v) . "'");
             } else {
               $tmpVal = str_replace(',', '.', $v);
-              $repl .= ($repl === ''? "" : ",") . (is_numeric($tmpVal) ? $tmpVal : "'" . addslashes($v) . "'");
+              $repl .= ($repl === ''? "" : ",") . (br($tmpVal)->isNumeric() ? $tmpVal : "'" . addslashes($v) . "'");
             }
           }
         } else
@@ -2073,10 +2073,10 @@ class BrCore extends BrObject {
   public function formatDate($format, $datetime = null) {
     try {
       $datetime = ($datetime ? $datetime : 'now');
-      if (!is_numeric($datetime)) {
+      if (!br($datetime)->isNumeric()) {
         $datetime = preg_replace('/([0-9])((A|P)M)/i', '$1 $2', $datetime);
       }
-      return (new \DateTime((is_numeric($datetime)?'@':'').$datetime))->format($format);
+      return (new \DateTime((br($datetime)->isNumeric() ? '@' : '') . $datetime))->format($format);
     } catch (\Exception $e) {
       throw new BrAppException('Wrong date: ' . $datetime);
     }

@@ -89,23 +89,23 @@
     };
 
     _this.editorConfigure = function(isCopy) {
-      let s = '';
+      let title = '';
       if (_this.options.title) {
-        s = _this.options.title;
+        title = _this.options.title;
       } else
       if (editorRowid) {
         if (isCopy) {
-          s = 'Copy ' + _this.options.noun;
+          title = `Copy ${_this.options.noun}`;
         } else {
-          s = 'Edit ' + _this.options.noun;
+          title = `Edit ${_this.options.noun}`;
           if (!_this.options.hideRowid) {
-            s = s + ' (#' + editorRowid + ')';
+            title += ` (#${editorRowid})`;
           }
         }
       } else {
-        s = 'Create ' + _this.options.noun;
+        title = `Create ${_this.options.noun}`;
       }
-      _this.container.find('.operation').text(s);
+      _this.container.find('.operation').text(title);
     };
 
     function editorShown() {
@@ -238,7 +238,7 @@
       }
     };
 
-    _this.show = function(rowid, isCopy) {
+    _this.show = function(rowid, isCopy, params) {
       closeConfirmationTmp = br.isCloseConfirmationRequired();
       editorRowid = null;
       editorRowData = null;
@@ -268,13 +268,13 @@
         _this.dataSource.selectOne(request, function(result, data) {
           if (result) {
             editorRowData = data;
-            _this.events.triggerBefore('editor.show', data, isCopy);
+            _this.events.triggerBefore('editor.show', data, isCopy, params);
             _this.editorConfigure(isCopy);
             _this.fillControls(data);
             if (isCopy) {
               editorRowid = null;
             }
-            _this.events.trigger('editor.show', data, isCopy);
+            _this.events.trigger('editor.show', data, isCopy, params);
             br.attachDatePickers(_this.inputsContainer);
             if (_this.container.hasClass('modal')) {
               _this.container.modal('show');
@@ -290,11 +290,11 @@
           }
         }, options);
       } else {
-        _this.events.triggerBefore('editor.show');
+        _this.events.triggerBefore('editor.show', null, isCopy, params);
         _this.editorConfigure(isCopy);
         _this.fillDefaults();
         _this.fillControls(defaultValues);
-        _this.events.trigger('editor.show', defaultValues);
+        _this.events.trigger('editor.show', defaultValues, isCopy, params);
         br.attachDatePickers(_this.inputsContainer);
         if (_this.container.hasClass('modal')) {
           _this.container.modal('show');

@@ -20,7 +20,6 @@ class BrFormatDateTest extends \Codeception\Test\Unit
   public function testArray()
   {
 
-
     $this->assertEquals('10:00 AM', br()->formatDate('h:i A', '10:00 AM'));
     $this->assertEquals('10:00 PM', br()->formatDate('h:i A', '10:00 PM'));
     $this->assertEquals('01/01/2021 10:00 AM', br()->formatDate('m/d/Y h:i A', '01/01/2021 10:00 AM'));
