@@ -11,10 +11,10 @@
     "gulp-sass-universal": "^1.0.1",
     "gulp-shell": "^0.8.0",
     "gulp-terser": "^2.0.1",
-    "jshint": "^2.12.0",
+    "jshint": "^2.13.0",
     "merge-stream": "^2.0.0",
     "phplint": "^2.0.5",
-    "sass": "^1.33.0",
+    "sass": "^1.35.1",
     "terser": "^5.7.0"
   },
   "repository": {

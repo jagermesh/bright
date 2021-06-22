@@ -283,4 +283,8 @@ class BrArray extends BrGenericDataType {
     return count($result) === 0;
   }
 
+  public function isNumeric() {
+    return false;
+  }
+
 }
