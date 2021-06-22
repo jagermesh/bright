@@ -448,10 +448,10 @@ class BrDataSource extends BrGenericDataSource {
             }
             if ($changes) {
               $table->update($changes, $rowid);
-            } else {
-              $new = $table->selectOne($filter);
-            }
-            $result = $new;
+            }// else {
+            // $new = $table->selectOne($filter);
+            //}
+            $result = $table->selectOne($filter, [], [], $options);
             $this->callEvent('after:update', $result, $transientData, $old, $options);
             $result['rowid'] = $this->getDb()->rowidValue($result);
             if (!br($options, 'noCalcFields')) {

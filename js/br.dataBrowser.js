@@ -18,8 +18,6 @@
     let pagerSetUp = false;
     let headerContainer = 'body';
     let selectionQueue = [];
-    let pageNavIsSlider = false;
-    let pageSizeIsSlider = false;
     let pagerInitialized = false;
 
     _this.options = options || Object.create({});
@@ -69,6 +67,10 @@
 
     _this.options.selectors.dataTable = findNode(_this.options.selectors.dataTable || '.data-table');
     _this.options.selectors.editForm = _this.options.selectors.editForm || '';
+
+    _this.getTableContainer = function() {
+      return $(_this.options.selectors.dataTable);
+    };
 
     if (_this.options.selectors.editForm === '') {
       if (_this.options.selectors.container === '') {
@@ -538,128 +540,67 @@
       return this;
     };
 
-    function initPager() {
-
-      if (pagerInitialized) {
-        return;
-      }
-
-      if ($.fn.slider) {
-        $(findNode('.pager-page-slider')).each(function() {
-          pageNavIsSlider = true;
-          $(this).slider({
-              min: 1
-            , value: 1
-            , change: function(event, ui) {
-                const value = $(findNode('.pager-page-slider')).slider('option', 'value');
-                if (value > 0) {
-                  const newSkip = _this.limit * (value - 1);
-                  if (newSkip != _this.skip) {
-                    _this.skip = _this.limit * (value - 1);
-                    _this.setStored('pager_PageNo', _this.skip);
-                    _this.refresh({}, null, true);
-                  }
-                }
-              }
-          });
-        });
-
-        $(findNode('.pager-page-size-slider')).each(function() {
-          pageSizeIsSlider = true;
-          $(this).slider({
-              min: _this.defaultLimit
-            , value: _this.limit
-            , max: _this.defaultLimit * 20
-            , step: _this.defaultLimit
-            , change: function(event, ui) {
-                _this.limit = $(findNode('.pager-page-size-slider')).slider('option', 'value');
-                _this.setStored('pager_PageSize', _this.limit);
-                $(findNode('.pager-page-slider')).slider('option', 'value', 1);
-                $(findNode('.pager-page-slider')).slider('option', 'max', Math.ceil(_this.recordsAmount / _this.limit));
-                _this.refresh({}, null, true);
-              }
-          });
-        });
-      }
-
-      pagerInitialized = true;
-
-    }
-
     function internalUpdatePager() {
-
       if (!_this.dataGrid.isDisconnected()) {
-
-        initPager();
-
         const totalPages = Math.ceil(_this.recordsAmount / _this.limit);
         const currentPage = Math.ceil(_this.skip / _this.limit) + 1;
 
-        if (pageNavIsSlider) {
-          $(findNode('.pager-page-slider')).slider('option', 'max', totalPages);
-          $(findNode('.pager-page-slider')).slider('option', 'value', currentPage);
-        } else {
-          const $pc = $(findNode('.pager-page-navigation'));
-          $pc.html('');
-          let s = '';
-          let f1 = false;
-          let f2 = false;
-          let r = 3;
-          let el = false;
-          for(let i = 1; i <= totalPages; i++) {
-            if ((i <= r) || ((i > currentPage - r) && (i < currentPage + r)) || (i > (totalPages - r))) {
-              if (i == currentPage) {
-                s = s + '<strong class="pager-nav-element">' + i+ '</strong>';
-              } else {
-                el = true;
-                s = s + '<a href="javascript:;" class="pager-action-navigate pager-nav-element" data-page="'+ i + '">' + i+ '</a>';
-              }
-            } else
-            if (!f1 && i < currentPage) {
-              s = s + '...';
-              f1 = true;
-            } else
-            if (!f2 && i > currentPage) {
-              s = s + '...';
-              f2 = true;
+        let $pc = $(findNode('.pager-page-navigation'));
+        $pc.html('');
+        let s = '';
+        let f1 = false;
+        let f2 = false;
+        let r = 3;
+        let el = false;
+        for(let i = 1; i <= totalPages; i++) {
+          if ((i <= r) || ((i > currentPage - r) && (i < currentPage + r)) || (i > (totalPages - r))) {
+            if (i == currentPage) {
+              s = s + '<strong class="pager-nav-element">' + i+ '</strong>';
+            } else {
+              el = true;
+              s = s + '<a href="javascript:;" class="pager-action-navigate pager-nav-element" data-page="'+ i + '">' + i+ '</a>';
             }
-          }
-          if (el) {
-            $pc.html(s);
-            $(findNode('.pager-nav-element')).show();
-          } else {
-            $(findNode('.pager-nav-element')).css('display', 'none');
+          } else
+          if (!f1 && i < currentPage) {
+            s = s + '...';
+            f1 = true;
+          } else
+          if (!f2 && i > currentPage) {
+            s = s + '...';
+            f2 = true;
           }
         }
-
-        if (pageSizeIsSlider) {
-
+        if (el) {
+          $pc.html(s);
+          $(findNode('.pager-nav-element')).show();
         } else {
-          const $pc = $(findNode('.pager-page-size-navigation'));
-          $pc.html('');
-          let s = '';
-          const sizes = _this.options.pageSizes;
-          for(let i = 0, length = sizes.length; i < length; i++) {
-            let size = sizes[i];
-            let dsize = size;
-            if (size >= _this.recordsAmount) {
-              dsize = _this.recordsAmount;
-            }
-            if (size == _this.limit) {
-              s = s + '<strong class="pager-nav-element">' + dsize + '</strong>';
-            } else {
-              s = s + '<a href="javascript:;" class="pager-action-page-size pager-size-element" data-size="' + size + '">' + dsize + '</a>';
-            }
-            if (size >= _this.recordsAmount) {
-              break;
-            }
+          $(findNode('.pager-nav-element')).css('display', 'none');
+        }
+
+        $pc = $(findNode('.pager-page-size-navigation'));
+        $pc.html('');
+        s = '';
+        const sizes = _this.options.pageSizes;
+        for(let i = 0, length = sizes.length; i < length; i++) {
+          let size = sizes[i];
+          let dsize = size;
+          if (size >= _this.recordsAmount) {
+            dsize = _this.recordsAmount;
           }
-          if (s.length > 0) {
-            $pc.html(s);
-            $(findNode('.pager-page-size-container')).show();
+          if (size == _this.limit) {
+            s = s + '<strong class="pager-nav-element">' + dsize + '</strong>';
           } else {
-            $(findNode('.pager-page-size-container')).css('display', 'none');
+            s = s + '<a href="javascript:;" class="pager-action-page-size pager-size-element" data-size="' + size + '">' + dsize + '</a>';
           }
+          if (size >= _this.recordsAmount) {
+            break;
+          }
+        }
+        if (s.length > 0) {
+          $pc.html(s);
+          $(findNode('.pager-page-size-container')).show();
+        } else {
+          $(findNode('.pager-page-size-container')).css('display', 'none');
         }
 
         const min = (_this.skip + 1);
@@ -697,6 +638,11 @@
       }
 
     }
+
+    _this.reset = function() {
+      _this.getTableContainer().html('');
+      $(findNode('.pager-control')).hide();
+    };
 
     _this.restoreSelection = function(selection) {
       if (!selection) {
@@ -771,7 +717,6 @@
     };
 
     function internalRefresh(deferred, filter, callback) {
-
       if (deferred) {
         _this.dataSource.selectDeferred(filter, callback);
       } else {
@@ -784,7 +729,6 @@
           _this.dataSource.select(filter, callback);
         }
       }
-
     }
 
     _this.unSelectRow = function(rowid, multiple) {
@@ -837,7 +781,6 @@
     };
 
     _this.refreshDeferred = function(filter, callback, doNotResetPager) {
-
       if (typeof filter == 'function') {
         doNotResetPager = callback;
         callback = filter;
@@ -871,11 +814,9 @@
         }
         throw data;
       });
-
     };
 
     _this.load = _this.refresh = function(filter, callback, doNotResetPager) {
-
       if (typeof filter == 'function') {
         doNotResetPager = callback;
         callback = filter;
@@ -909,11 +850,9 @@
         }
         throw data;
       });
-
     };
 
     return _this.init();
-
   }
 
   window.br.dataBrowser = function (entity, options) {

@@ -191,25 +191,31 @@
     };
 
     _this.fillDefaults = function() {
-      _this.inputsContainer.find('input.data-field[type=checkbox]').each(function() {
+      _this.inputsContainer.find('input.data-field[type="checkbox"]').each(function() {
         $(this).prop('checked', !!$(this).attr('data-default-checked'));
+      });
+      _this.inputsContainer.find('select.data-field').each(function() {
+        const this_ = $(this);
+        if (!this_.val() && this_.attr('data-default')) {
+          br.setValue(this_, this_.attr('data-default'));
+        }
       });
     };
 
     _this.fillControls = function(data) {
       if (data) {
-        for(var i in data) {
-          _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio][name=' + i + '],input.data-field[name=' + i + '],select.data-field[name=' + i + '],textarea.data-field[name=' + i + ']').each(function() {
+        for(let name in data) {
+          _this.inputsContainer.find(`div.data-field[data-toggle="buttons-radio"][name="${name}"],input.data-field[name="${name}"],select.data-field[name="${name}"],textarea.data-field[name="${name}"]`).each(function() {
             let input = $(this);
             if (input.attr('data-toggle') == 'buttons-radio') {
-              let val = br.isNull(data[i]) ? '' : data[i];
-              input.find('button[value="' + val + '"]').addClass('active');
+              let val = br.isNull(data[name]) ? '' : data[name];
+              input.find(`button[value="${val}"]`).addClass('active');
             } else
             if (input.attr('type') == 'checkbox') {
-              input.prop('checked', br.toInt(data[i]) == 1);
+              input.prop('checked', br.toInt(data[name]) == 1);
             } else
             if (input.attr('type') == 'radio') {
-              input.prop('checked', br.toInt(data[i]) == br.toInt(input.val()));
+              input.prop('checked', br.toInt(data[name]) == br.toInt(input.val()));
             } else {
               let ckeditorInstance = input.data('ckeditorInstance');
               if (ckeditorInstance) {
@@ -223,9 +229,9 @@
                           }
                         }
                       });
-                })(input, ckeditorInstance, data[i]);
+                })(input, ckeditorInstance, data[name]);
               } else {
-                br.setValue(input, data[i]);
+                br.setValue(input, data[name]);
               }
             }
           });

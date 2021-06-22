@@ -336,6 +336,9 @@
           } else {
             _this.removeRow(rowid);
           }
+          if (typeof callback == 'function') {
+            callback.call(_this, result, null);
+          }
         } else {
           response.map(function(row) {
             if (!_this.refreshRow(row, options)) {

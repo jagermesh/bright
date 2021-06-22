@@ -105,7 +105,7 @@ class BrDBUniqueKeyException extends BrDBRecoverableException {
 class BrDBUniqueException extends BrDBAppException {
 
   function __construct($message = '') {
-    parent::__construct($message ? $message : 'Unique constraint violated');
+    parent::__construct($message ? $message : 'Unique constraint violated - such item already exists');
   }
 
 }
