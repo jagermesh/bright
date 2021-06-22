@@ -12,6 +12,12 @@ namespace Bright;
 
 class BrBrowser extends BrObject {
 
+  static $defaultRequestParams = [
+    'connect_timeout' => 5,
+    'read_timeout' => 5,
+    'timeout' => 30,
+  ];
+
   public function check($url) {
     $headers = @get_headers($url);
 
@@ -19,12 +25,11 @@ class BrBrowser extends BrObject {
   }
 
   private function getDefaultRequestsParams() {
-    return [
-      'connect_timeout' => 5,
-      'read_timeout' => 5,
-      'timeout' => 5,
-    ];
+    return self::$defaultRequestParams;
+  }
 
+  public static function setDefaultRequestsParam($name, $value) {
+    return self::$defaultRequestParams[$name] = $value;
   }
 
   public function get($url) {
@@ -44,9 +49,11 @@ class BrBrowser extends BrObject {
     return $contents;
   }
 
-  public function download($url, $filePath) {
+  public function download($url, $filePath = null) {
     $contents = $this->get($url);
-    file_put_contents($filePath, $this->get($url));
+    if ($filePath) {
+      file_put_contents($filePath, $contents);
+    }
     return $contents;
   }
 

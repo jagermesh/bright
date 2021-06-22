@@ -131,6 +131,11 @@ class BrArray extends BrGenericDataType {
           $result[$name] = $value;
         }
       } else
+      if (br($value)->isNumeric() && br($array2[$name])->isNumeric()) {
+        if (abs($value-$array2[$name]) > 0.00001) {
+          $result[$name] = $value;
+        }
+      } else
       if ($value != $array2[$name]) {
         $result[$name] = $value;
       }

@@ -10,17 +10,15 @@
 /* global google */
 
 ;(function ($, window) {
-
-  window.br = window.br || Object.create({});
+  window.br = window.br || {};
 
   function BrGoogleMap(selector, options) {
-
     const _this = this;
 
     _this.events = br.eventQueue(this);
     _this.before = function(event, callback) { this.events.before(event, callback); };
-    _this.on     = function(event, callback) { this.events.on(event, callback); };
-    _this.after  = function(event, callback) { this.events.after(event, callback); };
+    _this.on = function(event, callback) { this.events.on(event, callback); };
+    _this.after = function(event, callback) { this.events.after(event, callback); };
 
     if (!google.maps.Polygon.prototype.getBounds) {
       google.maps.Polygon.prototype.getBounds = function(latLng) {
@@ -52,37 +50,18 @@
     if (typeof options.rotateControl == 'undefined') { options.rotateControl = true; }
     if (typeof options.mapType == 'undefined') { options.mapType = google.maps.MapTypeId.ROADMAP; }
 
-    _this.mapOptions = { zoom: options.zoom
-                       , maxZoom: options.maxZoom
-                       , center: options.mapCenter
-                       , mapTypeId: options.mapType
-                       , mapTypeControl: options.mapTypeControl
-                       , mapTypeControlOptions: {
-                             style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR
-                           , position: google.maps.ControlPosition.BOTTOM_LEFT
-                         }
-                       , panControl: options.panControl
-                       , panControlOptions: {
-                           position: google.maps.ControlPosition.RIGHT_BOTTOM
-                         }
-                       , zoomControl: options.zoomControl
-                       , zoomControlOptions: {
-                             style: google.maps.ZoomControlStyle.LARGE
-                           , position: google.maps.ControlPosition.LEFT_CENTER
-                         }
-                       , scaleControl: options.scaleControl
-                       , scaleControlOptions: {
-                           position: google.maps.ControlPosition.LEFT_CENTER
-                         }
-                       , streetViewControl: options.streetViewControl
-                       , streetViewControlOptions: {
-                           position: google.maps.ControlPosition.LEFT_BOTTOM
-                         }
-                       , rotateControl: options.rotateControl
-                       , rotateControlOptions: {
-                           position: google.maps.ControlPosition.LEFT_CENTER
-                         }
-                       };
+    _this.mapOptions = {
+      zoom: options.zoom,
+      maxZoom: options.maxZoom,
+      center: options.mapCenter,
+      mapTypeId: options.mapType,
+      mapTypeControl: options.mapTypeControl,
+      panControl: options.panControl,
+      zoomControl: options.zoomControl,
+      scaleControl: options.scaleControl,
+      streetViewControl: options.streetViewControl,
+      rotateControl: options.rotateControl
+    };
 
     if (options.maxZoom) {
       _this.mapOptions.maxZoom = options.maxZoom;
@@ -97,9 +76,9 @@
     _this.weatherLayer = null;
     _this.travelMode = google.maps.DirectionsTravelMode.DRIVING;
 
-    _this.markers  = [];
+    _this.markers = [];
     _this.polygons = [];
-    _this.layers   = [];
+    _this.layers = [];
 
     google.maps.event.addListener(_this.map, 'click', function(event) {
       _this.events.trigger('click', event);
@@ -172,9 +151,7 @@
 
     _this.showWeather = function(show) {
       if (show && !_this.weatherVisible()) {
-        _this.weatherLayer = new google.maps.weather.WeatherLayer({
-          //temperatureUnits: google.maps.weather.TemperatureUnit.CELSIUS
-        });
+        _this.weatherLayer = new google.maps.weather.WeatherLayer();
         _this.weatherLayer.setMap(_this.map);
       } else
       if (!show && _this.weatherVisible()) {
@@ -283,11 +260,12 @@
         if (status == google.maps.GeocoderStatus.OK) {
           let points = [];
           for (let i = 0; i < results.length; i++) {
-            points.push({ lat: results[i].geometry.location.lat()
-                        , lng: results[i].geometry.location.lng()
-                        , name: results[i].formatted_address
-                        , raw: results[i]
-                        });
+            points.push({
+              lat: results[i].geometry.location.lat(),
+              lng: results[i].geometry.location.lng(),
+              name: results[i].formatted_address,
+              raw: results[i]
+            });
           }
           if (typeof callback == 'function') {
             callback.call(_this, points.length > 0, points);
@@ -322,10 +300,10 @@
       }
       if ((origin !== null) && (destination !== null)) {
         let request = {
-            origin: origin
-          , destination: destination
-          , waypoints: waypoints
-          , travelMode: _this.travelMode
+          origin: origin,
+          destination: destination,
+          waypoints: waypoints,
+          travelMode: _this.travelMode
         };
         _this.directionsService.route(request, function(response, status) {
           if (status == google.maps.DirectionsStatus.OK) {
@@ -359,10 +337,11 @@
     };
 
     _this.pointToFeature = function(lng, lat, properties) {
-      let geoJson = { type: 'Feature'
-                    , geometry: { type: 'Point', 'coordinates': [ lng, lat ] }
-                    , properties: Object.assign({ latitude: lat, longitude: lng, "marker-size": "medium", "marker-symbol": "triangle" }, properties)
-                    };
+      let geoJson = {
+        type: 'Feature',
+        geometry: { type: 'Point', 'coordinates': [ lng, lat ] },
+        properties: Object.assign({ latitude: lat, longitude: lng, "marker-size": "medium", "marker-symbol": "triangle" }, properties)
+      };
       return geoJson;
     };
 
@@ -378,8 +357,13 @@
         geoJson = geoString;
       }
 
-      let getJsonStyle = Object.assign({ strokeColor: '#999', strokeOpacity: 1, strokeWeight: 0.5 }, params.style);
-      let getJsonCustom = Object.create({});
+      let getJsonStyle = Object.assign({
+        strokeColor: '#999',
+        strokeOpacity: 1,
+        strokeWeight: 0.5
+      }, params.style);
+
+      let getJsonCustom = {};
 
       getJsonCustom.id   = params.id;
       getJsonCustom.data = params.data;
@@ -437,15 +421,17 @@
     // markers
 
     _this.addMarker = function(lat, lng, params, tag, custom) {
-      let markerParams = Object.create({});
-      markerParams.icon = params.icon || null;
-      markerParams.draggable = params.draggable || false;
+      let inputParams = params || {};
+      let markerParams = {};
+      markerParams.icon = inputParams.icon || null;
+      markerParams.draggable = inputParams.draggable || false;
       let latLng = new google.maps.LatLng(lat, lng);
-      let marker = new google.maps.Marker({ position: latLng
-                                          , map: this.map
-                                          , icon: markerParams.icon
-                                          , draggable: markerParams.draggable
-                                          });
+      let marker = new google.maps.Marker({
+        position: latLng,
+        map: this.map,
+        icon: markerParams.icon,
+        draggable: markerParams.draggable
+      });
       marker.custom = custom || { };
       marker.tag    = tag;
       _this.markers.push(marker);
@@ -495,14 +481,13 @@
         let array_length = array.length;
         if (Array.prototype.map && (array.map === Array.prototype.map)) {
           array_return = Array.prototype.map.call(array, function(item) {
-            var callback_params = original_callback_params;
+            const callback_params = original_callback_params;
             callback_params.splice(0, 0, item);
-
             return callback.apply(this, callback_params);
           });
         } else {
           for (let i = 0; i < array_length; i++) {
-            var callback_params = original_callback_params;
+            const callback_params = original_callback_params;
             callback_params.splice(0, 0, array[i]);
             array_return.push(callback.apply(this, callback_params));
           }
@@ -532,15 +517,14 @@
         for (let i = 0; i < coords.length; i++) {
           if (coords[i].length > 0 && typeof(coords[i][0]) == "object") {
             coords[i] = arrayToLatLng(coords[i], useGeoJSON);
-          }
-          else {
+          } else {
             coords[i] = coordsToLatLngs(coords[i], useGeoJSON);
           }
         }
         return coords;
       }
-      params = params || Object.create({});
-      let polygonParams = Object.create({});
+      params = params || {};
+      let polygonParams = {};
       let coordinates = JSON.parse(JSON.stringify(geoData));
       polygonParams.paths = arrayFlat(arrayMap(coordinates, arrayToLatLng, true));
       polygonParams.strokeColor = params.strokeColor || '#999';
@@ -591,7 +575,6 @@
     }
 
     return _this;
-
   }
 
   window.br.googleMap = function (selector, options) {

@@ -131,19 +131,19 @@ class BrDataSource extends BrGenericDataSource {
     }
     if ($sortOrder) {
       if (!is_array($sortOrder)) {
-        $sortOrder = array($sortOrder => 1);
+        $sortOrder = [ $sortOrder => BrConst::SORT_ASC ];
       }
     }
 
     if ($groupBy = br($options, 'groupBy', [])) {
       if (!is_array($groupBy)) {
-        $groupBy = array($groupBy);
+        $groupBy = [ $groupBy ];
       }
     }
 
     if ($having = br($options, 'having', [])) {
       if (!is_array($having)) {
-        $having = array($having);
+        $having = [ $having ];
       }
     }
 
@@ -176,10 +176,10 @@ class BrDataSource extends BrGenericDataSource {
             foreach($sortOrder as $fieldName => $direction) {
               switch(strtolower($direction)) {
                 case 'asc':
-                  $sortOrder[$fieldName] = 1;
+                  $sortOrder[$fieldName] = BrConst::SORT_ASC;
                   break;
                 case 'desc':
-                  $sortOrder[$fieldName] = -1;
+                  $sortOrder[$fieldName] = BrConst::SORT_DESC;
                   break;
                 default:
                   $sortOrder[$fieldName] = (int)$direction;
