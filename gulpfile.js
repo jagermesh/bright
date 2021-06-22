@@ -31,8 +31,8 @@ const configs = {
       { dest: '3rdparty/gritter/latest/js/',
         src: [ '3rdparty/gritter/latest/js/jquery.gritter.js' ]
       },
-      { dest: '3rdparty/handlebars/4.1.2/js/',
-        src: [ '3rdparty/handlebars/4.1.2/js/handlebars.js' ]
+      { dest: '3rdparty/handlebars/4.7.7/js/',
+        src: [ '3rdparty/handlebars/4.7.7/js/handlebars.js' ]
       },
       { dest: '3rdparty/handlebars/latest/js/',
         src: [ '3rdparty/handlebars/latest/js/handlebars.js' ]
