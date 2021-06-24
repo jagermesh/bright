@@ -8119,14 +8119,13 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         }
       });
       _this.markers = _this.markers.filter(function(marker) {
-        return (!tag || (marker.tag == tag));
+        return !!marker.getMap();
       });
     };
 
     // polygons
 
     _this.addGeoJSONPolygon = function(geoData, params, tag, custom) {
-
       function arrayMap(array, callback) {
         let original_callback_params = Array.prototype.slice.call(arguments, 2);
         let array_return = [];
@@ -8216,7 +8215,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         }
       });
       _this.polygons = _this.polygons.filter(function(polygon) {
-        return (!tag || (polygon.tag == tag));
+        return !!polygon.getMap();
       });
     };
 
