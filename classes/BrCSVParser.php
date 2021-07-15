@@ -40,6 +40,9 @@ class BrCSVParser extends BrObject {
         $line = fgets($handle);
         if (substr_count($line, "\t") > 1) {
           $this->delimiter = "\t";
+        } else
+        if (substr_count($line, '|') > 1) {
+          $this->delimiter = '|';
         }
 
         fseek($handle, 0);

@@ -20,7 +20,7 @@ class BrJobCustomJob extends BrObject {
   private $checkJobCommand;
 
   private $coresAmount;
-  private $maxProcessesAmountMultiplier = 8;
+  private $maxProcessesAmountMultiplier = 16;
   private $maxProcessesAmount;
 
   protected $lastRunFile;
@@ -122,10 +122,10 @@ class BrJobCustomJob extends BrObject {
 
   }
 
-  public function timeToStart($period = 5) {
+  public function timeToStart($periodMin = 5) {
 
     if (file_exists($this->lastRunFile)) {
-      return time() - filemtime($this->lastRunFile) > $period * 60;
+      return time() - filemtime($this->lastRunFile) > $periodMin * 60;
     } else {
       return true;
     }
