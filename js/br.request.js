@@ -100,6 +100,29 @@
       return _this;
     };
 
+    _this.setHash = function(paramName, paramValue) {
+      let params = document.location.hash.replace('#', '').split('&').filter((item) => !!item);
+      let values = {};
+      params.map(function(item) {
+        const pairs = item.split('=');
+        if (pairs.length == 2) {
+          values[pairs[0]] = pairs[1];
+        }
+      });
+      if (br.isObject(paramName)) {
+        for(let name in paramName) {
+          values[name] = paramName[name];
+        }
+      } else {
+        values[paramName] = paramValue;
+      }
+      let hash = '#';
+      for(let name in values) {
+        hash += `${name}=${values[name]}&`;
+      }
+      document.location.hash = hash;
+    };
+
   }
 
   window.br.request = new BrRequest();

@@ -263,6 +263,10 @@
       return -1;
     };
 
+    _this.has = function(key, arrayValue) {
+      return (_this.indexOf(key, arrayValue) != -1);
+    };
+
   }
 
   window.br.storage = new BrStorage(window.localStorage);
