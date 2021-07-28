@@ -118,6 +118,15 @@
           try { focusedInput[0].focus(); } catch (e) { }
         }
       }
+      if ($.fn.bootstrapDatepicker) {
+        try {
+          $('input.bootstrap-datepicker', _this.container).each(function(){
+            $(this).bootstrapDatepicker('update');
+          });
+        } catch (error) {
+          br.logError(error);
+        }
+      }
       _this.events.trigger('editor.shown');
       br.resetCloseConfirmation();
     }
@@ -194,7 +203,7 @@
       _this.inputsContainer.find('input.data-field[type="checkbox"]').each(function() {
         $(this).prop('checked', !!$(this).attr('data-default-checked'));
       });
-      _this.inputsContainer.find('select.data-field').each(function() {
+      _this.inputsContainer.find('input.data-field,select.data-field').each(function() {
         const this_ = $(this);
         if (!this_.val() && this_.attr('data-default')) {
           br.setValue(this_, this_.attr('data-default'));

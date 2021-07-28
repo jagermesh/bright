@@ -3152,6 +3152,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         } else {
           _this.prepend(renderedRow.renderedRow);
         }
+        _this.checkForEmptyGrid();
         if (!disableEvents) {
           _this.events.triggerAfter('renderRow', renderedRow.dataRow, renderedRow.renderedRow);
           _this.events.triggerAfter('insert', renderedRow.dataRow, renderedRow.renderedRow);
@@ -3190,7 +3191,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             });
           }
           let resultingRowsJq = $(resultingRows).map(function() { return this.toArray(); });
-          _this.events.triggerAfter('renderRow', renderedRow.dataRow, existingRows, resultingRowsJq);
+          _this.events.triggerAfter('renderRow', renderedRow.dataRow, resultingRowsJq, existingRows);
           _this.events.triggerAfter('update', renderedRow.dataRow, existingRows, resultingRowsJq, isUpdate);
           existingRows.remove();
           return true;
@@ -3261,14 +3262,27 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       }, options);
     };
 
-    function checkForEmptyGrid() {
+    function addNoDataRow() {
+      const noDataRow = $(_this.templates.noData());
+      noDataRow.addClass('br-no-data');
+      $(_this.selector).html('');
+      $(_this.selector).append(noDataRow);
+    }
+
+    function removeNoDataRow() {
+      $(_this.selector).find('.br-no-data').remove();
+    }
+
+    _this.checkForEmptyGrid = function() {
       if (_this.isEmpty()) {
         _this.events.triggerBefore('nodata');
-        $(_this.selector).html(_this.templates.noData());
+        addNoDataRow();
         _this.events.trigger('nodata');
         _this.events.triggerAfter('nodata');
+      } else {
+        removeNoDataRow();
       }
-    }
+    };
 
     _this.removeRow = function(rowid, options) {
       let filter = `[data-rowid="${rowid}"]`;
@@ -3282,13 +3296,12 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         _this.events.triggerBefore('remove', rowid);
         _this.events.trigger('remove', rowid, row);
         row.remove();
-        checkForEmptyGrid();
+        _this.checkForEmptyGrid();
         _this.events.triggerAfter('remove', rowid, row);
       }
     };
 
     _this.load = _this.refresh = function(callback) {
-
       return new Promise(function(resolve, reject) {
         _this.dataSource.select().then(resolve, reject);
       }).then(function(data) {
@@ -3306,7 +3319,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         }
         throw data;
       });
-
     };
 
     _this.loadMore = function(callback) {
@@ -3581,10 +3593,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
                 }
               }
             } else {
-              $selector.html(_this.templates.noData());
+              addNoDataRow();
             }
           } else {
-            $selector.html(_this.templates.noData());
+            addNoDataRow();
           }
         } else {
           if (data && (data.length > 0)) {
@@ -3631,11 +3643,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             }
           } else
           if (!loadingMoreData) {
-            $selector.html(_this.templates.noData());
+            addNoDataRow();
           }
         }
       } else {
-        $selector.html(_this.templates.noData());
+        addNoDataRow();
       }
       _this.events.trigger('change', data, 'render');
       _this.events.triggerAfter('change', data, 'render');
@@ -5368,106 +5380,83 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   };
 
   window.br.resizeModalPopup = function(modal) {
-
     const mh = $(window).height() - $(modal).find('.modal-header').outerHeight() - $(modal).find('.modal-footer').outerHeight() - 90;
 
     $(modal).find('.modal-body').css('max-height', mh + 'px');
     $(modal).find('.modal-body').css('overflow-y', 'auto');
     $(modal).trigger('bs.body.resize');
-
   };
 
-  function attachjQueryUIDatePickers(selector) {
-
-    if ($.ui !== undefined) {
-      $(selector).each(function() {
-        if ($(this).attr('data-format')) {
-          $(this).datepicker({ dateFormat: $(this).attr('data-format') });
-        } else {
-          $(this).datepicker({ });
-        }
-      });
-    }
-
-  }
-
   function attachBootstrapDatePickers(selector) {
-
-    try {
-      $(selector).each(function() {
-        $(this).bootstrapDatepicker({
-          todayBtn: 'linked'
-        , clearBtn: true
-        , multidate: false
-        , autoclose: true
-        , todayHighlight: true
-        , orientation: ($(this).attr('data-dp-orientation') ? $(this).attr('data-dp-orientation') : 'top')
-        }).on('show', function(evt) {
-          if (!evt.date) {
-            if ($(this).val()) {
-              $(this).bootstrapDatepicker('update', $(this).val());
+    if ($.fn.bootstrapDatepicker) {
+      try {
+        $(selector).each(function() {
+          $(this).bootstrapDatepicker({
+            todayBtn: 'linked',
+            clearBtn: true,
+            multidate: false,
+            autoclose: true,
+            todayHighlight: true,
+            orientation: ($(this).attr('data-dp-orientation') ? $(this).attr('data-dp-orientation') : 'top')
+          }).on('show', function(evt) {
+            if (!evt.date) {
+              if ($(this).val()) {
+                $(this).bootstrapDatepicker('update', $(this).val());
+              }
             }
-          }
+          });
         });
-      });
-    } catch (e) {
-      br.log('[ERROR] bootstrapDatePicker expected but script was not loaded');
+      } catch (error) {
+        br.logError(`Can not bind bootstrap date picker: ${error}`);
+      }
     }
-
   }
 
   function attachBootstrapDateTimePickers(selector) {
-
-    try {
-      $(selector).each(function() {
-        $(this).datetimepicker({
-            format: 'mm/dd/yyyy HH:ii P'
-          , autoclose: true
-          , todayBtn: true
-          , pickerPosition: 'bottom-left'
-          , minuteStep: 5
-          , showMeridian: true
-          , useCurrent: false
-          , todayHighlight: false
-        }).on('show', function() {
-          // $(this).datetimepicker('update', $(this).val());
+    if ($.fn.datetimepicker) {
+      try {
+        $(selector).each(function() {
+          $(this).datetimepicker({
+            format: 'mm/dd/yyyy HH:ii P',
+            autoclose: true,
+            todayBtn: true,
+            pickerPosition: 'bottom-left',
+            minuteStep: 5,
+            showMeridian: true,
+            useCurrent: false,
+            todayHighlight: false
+          }).on('show', function() {
+            // $(this).datetimepicker('update', $(this).val());
+          });
         });
-      });
-    } catch (e) {
-      br.log('[ERROR] bootstrapDateTimePicker expected but script was not loaded');
+      } catch (error) {
+        br.logError(`Can not bind bootstrap date time picker: ${error}`);
+      }
     }
-
   }
 
   window.br.attachDatePickers = function (container) {
-
     if (container) {
-      attachjQueryUIDatePickers($('input.datepicker', container));
       attachBootstrapDatePickers($('input.bootstrap-datepicker', container));
       attachBootstrapDateTimePickers($('input.bootstrap-datetimepicker', container));
     } else {
-      attachjQueryUIDatePickers($('input.datepicker'));
       attachBootstrapDatePickers($('input.bootstrap-datepicker'));
       attachBootstrapDateTimePickers($('input.bootstrap-datetimepicker'));
     }
-
   };
 
   window.br.handleClick = function(control, promise) {
-
-    $(control).addClass('disabled').attr('disabled', 'disabled');
+    $(control).addClass('disabled').prop('disabled', true);
 
     promise.then(function() {
-      $(control).removeClass('disabled').removeAttr('disabled');
+      $(control).removeClass('disabled').prop('disabled', false);
     }).catch(function(error) {
-      $(control).removeClass('disabled').removeAttr('disabled');
+      $(control).removeClass('disabled').prop('disabled', false);
       br.growlError(error);
     });
-
   };
 
   window.br.sortTable = function(table, order) {
-
     function getValuesComparison(a, b, columnIndex, direction) {
       const td1 = $($('td', $(a))[columnIndex]);
       const td2 = $($('td', $(b))[columnIndex]);
@@ -5511,7 +5500,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       });
       resolve();
     });
-
   };
 
   window.br.setValue = function(selector, value, fromBrDataCombo) {
@@ -6111,6 +6099,15 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           try { focusedInput[0].focus(); } catch (e) { }
         }
       }
+      if ($.fn.bootstrapDatepicker) {
+        try {
+          $('input.bootstrap-datepicker', _this.container).each(function(){
+            $(this).bootstrapDatepicker('update');
+          });
+        } catch (error) {
+          br.logError(error);
+        }
+      }
       _this.events.trigger('editor.shown');
       br.resetCloseConfirmation();
     }
@@ -6187,7 +6184,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       _this.inputsContainer.find('input.data-field[type="checkbox"]').each(function() {
         $(this).prop('checked', !!$(this).attr('data-default-checked'));
       });
-      _this.inputsContainer.find('select.data-field').each(function() {
+      _this.inputsContainer.find('input.data-field,select.data-field').each(function() {
         const this_ = $(this);
         if (!this_.val() && this_.attr('data-default')) {
           br.setValue(this_, this_.attr('data-default'));

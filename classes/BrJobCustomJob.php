@@ -78,8 +78,8 @@ class BrJobCustomJob extends BrObject {
     br()->log('[CHK] Checking ' . $runCommandWithPath);
     if (br()->OS()->findProcesses($runCommandWithPath)->count() == 0) {
       $logFileName = br()->getLogsPath();
-      if (is_writable($logFileName)) {
-        $logFileName .= date('Y-m-d') . '/' . br()->fs()->normalizeFileName(trim($runCommand));
+      if (is_writable($logFileName) && br()->config()->get('Logger/File/Active')) {
+        $logFileName .= date('Y-m-d') . '/' . date('H-00') . '/' . br()->fs()->normalizeFileName(trim($runCommand));
         if (br()->fs()->makeDir($logFileName)) {
           $logFileName .= '/application.log';
         } else {

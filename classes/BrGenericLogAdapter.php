@@ -30,7 +30,7 @@ class BrGenericLogAdapter extends BrObject {
 
     $this->logSnapshot = [
       'script_name' => br()->getScriptName(),
-      'server_ip' => gethostbyname(php_uname('n')),
+      'server_ip' => gethostbyname(gethostname()),
     ];
 
     if (br()->isConsoleMode()) {

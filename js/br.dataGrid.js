@@ -246,6 +246,7 @@
         } else {
           _this.prepend(renderedRow.renderedRow);
         }
+        _this.checkForEmptyGrid();
         if (!disableEvents) {
           _this.events.triggerAfter('renderRow', renderedRow.dataRow, renderedRow.renderedRow);
           _this.events.triggerAfter('insert', renderedRow.dataRow, renderedRow.renderedRow);
@@ -284,7 +285,7 @@
             });
           }
           let resultingRowsJq = $(resultingRows).map(function() { return this.toArray(); });
-          _this.events.triggerAfter('renderRow', renderedRow.dataRow, existingRows, resultingRowsJq);
+          _this.events.triggerAfter('renderRow', renderedRow.dataRow, resultingRowsJq, existingRows);
           _this.events.triggerAfter('update', renderedRow.dataRow, existingRows, resultingRowsJq, isUpdate);
           existingRows.remove();
           return true;
@@ -355,14 +356,27 @@
       }, options);
     };
 
-    function checkForEmptyGrid() {
+    function addNoDataRow() {
+      const noDataRow = $(_this.templates.noData());
+      noDataRow.addClass('br-no-data');
+      $(_this.selector).html('');
+      $(_this.selector).append(noDataRow);
+    }
+
+    function removeNoDataRow() {
+      $(_this.selector).find('.br-no-data').remove();
+    }
+
+    _this.checkForEmptyGrid = function() {
       if (_this.isEmpty()) {
         _this.events.triggerBefore('nodata');
-        $(_this.selector).html(_this.templates.noData());
+        addNoDataRow();
         _this.events.trigger('nodata');
         _this.events.triggerAfter('nodata');
+      } else {
+        removeNoDataRow();
       }
-    }
+    };
 
     _this.removeRow = function(rowid, options) {
       let filter = `[data-rowid="${rowid}"]`;
@@ -376,13 +390,12 @@
         _this.events.triggerBefore('remove', rowid);
         _this.events.trigger('remove', rowid, row);
         row.remove();
-        checkForEmptyGrid();
+        _this.checkForEmptyGrid();
         _this.events.triggerAfter('remove', rowid, row);
       }
     };
 
     _this.load = _this.refresh = function(callback) {
-
       return new Promise(function(resolve, reject) {
         _this.dataSource.select().then(resolve, reject);
       }).then(function(data) {
@@ -400,7 +413,6 @@
         }
         throw data;
       });
-
     };
 
     _this.loadMore = function(callback) {
@@ -675,10 +687,10 @@
                 }
               }
             } else {
-              $selector.html(_this.templates.noData());
+              addNoDataRow();
             }
           } else {
-            $selector.html(_this.templates.noData());
+            addNoDataRow();
           }
         } else {
           if (data && (data.length > 0)) {
@@ -725,11 +737,11 @@
             }
           } else
           if (!loadingMoreData) {
-            $selector.html(_this.templates.noData());
+            addNoDataRow();
           }
         }
       } else {
-        $selector.html(_this.templates.noData());
+        addNoDataRow();
       }
       _this.events.trigger('change', data, 'render');
       _this.events.triggerAfter('change', data, 'render');

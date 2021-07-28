@@ -769,106 +769,83 @@
   };
 
   window.br.resizeModalPopup = function(modal) {
-
     const mh = $(window).height() - $(modal).find('.modal-header').outerHeight() - $(modal).find('.modal-footer').outerHeight() - 90;
 
     $(modal).find('.modal-body').css('max-height', mh + 'px');
     $(modal).find('.modal-body').css('overflow-y', 'auto');
     $(modal).trigger('bs.body.resize');
-
   };
 
-  function attachjQueryUIDatePickers(selector) {
-
-    if ($.ui !== undefined) {
-      $(selector).each(function() {
-        if ($(this).attr('data-format')) {
-          $(this).datepicker({ dateFormat: $(this).attr('data-format') });
-        } else {
-          $(this).datepicker({ });
-        }
-      });
-    }
-
-  }
-
   function attachBootstrapDatePickers(selector) {
-
-    try {
-      $(selector).each(function() {
-        $(this).bootstrapDatepicker({
-          todayBtn: 'linked'
-        , clearBtn: true
-        , multidate: false
-        , autoclose: true
-        , todayHighlight: true
-        , orientation: ($(this).attr('data-dp-orientation') ? $(this).attr('data-dp-orientation') : 'top')
-        }).on('show', function(evt) {
-          if (!evt.date) {
-            if ($(this).val()) {
-              $(this).bootstrapDatepicker('update', $(this).val());
+    if ($.fn.bootstrapDatepicker) {
+      try {
+        $(selector).each(function() {
+          $(this).bootstrapDatepicker({
+            todayBtn: 'linked',
+            clearBtn: true,
+            multidate: false,
+            autoclose: true,
+            todayHighlight: true,
+            orientation: ($(this).attr('data-dp-orientation') ? $(this).attr('data-dp-orientation') : 'top')
+          }).on('show', function(evt) {
+            if (!evt.date) {
+              if ($(this).val()) {
+                $(this).bootstrapDatepicker('update', $(this).val());
+              }
             }
-          }
+          });
         });
-      });
-    } catch (e) {
-      br.log('[ERROR] bootstrapDatePicker expected but script was not loaded');
+      } catch (error) {
+        br.logError(`Can not bind bootstrap date picker: ${error}`);
+      }
     }
-
   }
 
   function attachBootstrapDateTimePickers(selector) {
-
-    try {
-      $(selector).each(function() {
-        $(this).datetimepicker({
-            format: 'mm/dd/yyyy HH:ii P'
-          , autoclose: true
-          , todayBtn: true
-          , pickerPosition: 'bottom-left'
-          , minuteStep: 5
-          , showMeridian: true
-          , useCurrent: false
-          , todayHighlight: false
-        }).on('show', function() {
-          // $(this).datetimepicker('update', $(this).val());
+    if ($.fn.datetimepicker) {
+      try {
+        $(selector).each(function() {
+          $(this).datetimepicker({
+            format: 'mm/dd/yyyy HH:ii P',
+            autoclose: true,
+            todayBtn: true,
+            pickerPosition: 'bottom-left',
+            minuteStep: 5,
+            showMeridian: true,
+            useCurrent: false,
+            todayHighlight: false
+          }).on('show', function() {
+            // $(this).datetimepicker('update', $(this).val());
+          });
         });
-      });
-    } catch (e) {
-      br.log('[ERROR] bootstrapDateTimePicker expected but script was not loaded');
+      } catch (error) {
+        br.logError(`Can not bind bootstrap date time picker: ${error}`);
+      }
     }
-
   }
 
   window.br.attachDatePickers = function (container) {
-
     if (container) {
-      attachjQueryUIDatePickers($('input.datepicker', container));
       attachBootstrapDatePickers($('input.bootstrap-datepicker', container));
       attachBootstrapDateTimePickers($('input.bootstrap-datetimepicker', container));
     } else {
-      attachjQueryUIDatePickers($('input.datepicker'));
       attachBootstrapDatePickers($('input.bootstrap-datepicker'));
       attachBootstrapDateTimePickers($('input.bootstrap-datetimepicker'));
     }
-
   };
 
   window.br.handleClick = function(control, promise) {
-
-    $(control).addClass('disabled').attr('disabled', 'disabled');
+    $(control).addClass('disabled').prop('disabled', true);
 
     promise.then(function() {
-      $(control).removeClass('disabled').removeAttr('disabled');
+      $(control).removeClass('disabled').prop('disabled', false);
     }).catch(function(error) {
-      $(control).removeClass('disabled').removeAttr('disabled');
+      $(control).removeClass('disabled').prop('disabled', false);
       br.growlError(error);
     });
-
   };
 
   window.br.sortTable = function(table, order) {
-
     function getValuesComparison(a, b, columnIndex, direction) {
       const td1 = $($('td', $(a))[columnIndex]);
       const td2 = $($('td', $(b))[columnIndex]);
@@ -912,7 +889,6 @@
       });
       resolve();
     });
-
   };
 
   window.br.setValue = function(selector, value, fromBrDataCombo) {
