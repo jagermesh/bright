@@ -12,21 +12,23 @@
   window.br = window.br || Object.create({});
 
   function BrDraggable(ctrl, options) {
-
     const _this = this;
 
     let dragObject = null;
     let dragHandler = null;
     let pos_y, pos_x, ofs_x, ofs_y;
 
-    options = options || Object.create({});
-    options.exclude = [ 'INPUT', 'TEXTAREA', 'SELECT', 'A', 'BUTTON' ];
+    _this.options = Object.assign({
+      exclude: [ 'INPUT', 'TEXTAREA', 'SELECT', 'A', 'BUTTON' ]
+    }, options);
 
     function setPosition(element, left, top) {
       element.style.marginTop = '0px';
       element.style.marginLeft = '0px';
       element.style.left = left + 'px';
       element.style.top = top + 'px';
+      element.style.right = '';
+      element.style.bottom = '';
     }
 
     function downHandler(e) {
@@ -34,8 +36,8 @@
         let target = e.target || e.srcElement;
         let parent = target.parentNode;
 
-        if (target && (options.exclude.indexOf(target.tagName.toUpperCase()) == -1)) {
-          if (!parent || (options.exclude.indexOf(parent.tagName.toUpperCase()) == -1)) {  // img in a
+        if (target && (_this.options.exclude.indexOf(target.tagName.toUpperCase()) == -1)) {
+          if (!parent || (_this.options.exclude.indexOf(parent.tagName.toUpperCase()) == -1)) {  // img in a
             dragObject = ctrl;
 
             let pageX = e.pageX || e.touches[0].pageX;
@@ -70,8 +72,8 @@
         }
 
         setPosition(dragObject, left, top);
-        if (options.ondrag) {
-          options.ondrag.call(e);
+        if (_this.options.ondrag) {
+          _this.options.ondrag.call(e);
         }
       }
     }
@@ -82,14 +84,13 @@
       }
     }
 
-    if (options.handler) {
-      dragHandler = ctrl.querySelector(options.handler);
+    if (_this.options.handler) {
+      dragHandler = ctrl.querySelector(_this.options.handler);
     } else {
       dragHandler = ctrl;
     }
 
     if (dragHandler) {
-
       dragHandler.style.cursor = 'move';
       ctrl.style.position = 'fixed';
 
@@ -122,11 +123,9 @@
       });
 
       dragHandler.__br_draggable = _this;
-
     }
 
     return _this;
-
   }
 
   window.br.draggable = function (selector, options) {

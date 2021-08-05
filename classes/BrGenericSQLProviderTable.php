@@ -84,7 +84,7 @@ class BrGenericSQLProviderTable extends BrObject {
     }
   }
 
-  public function insert(&$values) {
+  private function internaleInsert(&$values, $ignoreDuplicate = false) {
     $values = $this->validateRow($values);
     $dataTypes = $this->getDataTypes();
 
@@ -92,65 +92,43 @@ class BrGenericSQLProviderTable extends BrObject {
     $values_str = '';
 
     foreach($values as $field => $value) {
-      $fields_str .= ($fields_str?',':'').$field;
-      $values_str .= ($values_str?',':'').'?';
+      $fields_str .= ($fields_str ? ',' : '') . $field;
+      $values_str .= ($values_str ? ',' : '') . '?';
       if (br($dataTypes, $field) == BrGenericDBProvider::DATA_TYPE_STRING) {
         $values_str .= '&';
       }
     }
-    $sql = 'INSERT INTO '.$this->tableName.' ('.$fields_str.') VALUES ('.$values_str.')';
+
+    $sql = '
+      INSERT INTO ' . $this->tableName . ' (' . $fields_str . ') VALUES (' . $values_str . ')
+    ';
+
+    if ($ignoreDuplicate) {
+      $sql .= '
+            ON DUPLICATE KEY
+        UPDATE id = LAST_INSERT_ID(id)
+      ';
+    }
 
     $args = [];
     foreach($values as $field => $value) {
-      array_push($args, $value);
+      $args[] = $value;
     }
 
     $this->provider->runQueryEx($sql, $args);
-    if ($newId = $this->provider->getLastId()) {
-      if ($newValues = $this->selectOne([ $this->provider->rowidField() => $newId ])) {
-        $values = $newValues;
-        return $newId;
-      } else {
-        throw new \Exception('Can not find inserted record');
-      }
-    } else {
-      throw new \Exception('Can not get ID of inserted record');
+    $newId = $this->provider->getLastId();
+    if ($newValues = $this->selectOne([ $this->provider->rowidField() => $newId ])) {
+      $values = $newValues;
     }
+    return $newId;
   }
 
-  public function insertIgnore(&$values, $fallbackSql = null) {
-    $values = $this->validateRow($values);
-    $dataTypes = $this->getDataTypes();
+  public function insert(&$values) {
+    return $this->internaleInsert($values);
+  }
 
-    $fields_str = '';
-    $values_str = '';
-
-    foreach($values as $field => $value) {
-      $fields_str .= ($fields_str?',':'').$field;
-      $values_str .= ($values_str?',':'').'?';
-      if (br($dataTypes, $field) == BrGenericDBProvider::DATA_TYPE_STRING) {
-        $values_str .= '&';
-      }
-    }
-    $sql = 'INSERT IGNORE INTO ' . $this->tableName . ' (' . $fields_str . ') VALUES (' . $values_str . ')';
-
-    $args = [];
-    foreach($values as $field => $value) {
-      array_push($args, $value);
-    }
-
-    $this->provider->runQueryEx($sql, $args);
-    if ($newId = $this->provider->getLastId()) {
-      if ($newValues = $this->selectOne([ $this->provider->rowidField() => $newId ])) {
-        $values = $newValues;
-      }
-      return $newId;
-    } else
-    if ($fallbackSql) {
-      return $this->provider->getValue($fallbackSql);
-    } else {
-      return null;
-    }
+  public function insertIgnore(&$values) {
+    return $this->internaleInsert($values, true);
   }
 
   public function replace(&$values) {
@@ -171,7 +149,7 @@ class BrGenericSQLProviderTable extends BrObject {
 
     $args = [];
     foreach($values as $field => $value) {
-      array_push($args, $value);
+      $args[] = $value;
     }
 
     $this->provider->runQueryEx($sql, $args);
@@ -232,17 +210,17 @@ class BrGenericSQLProviderTable extends BrObject {
 
     foreach($values as $field => $value) {
       if ($field != $this->provider->rowidField()) {
-        array_push($args, $value);
+        $args[] = $value;
       }
     }
 
     if (is_array($filter)) {
       foreach($filter as $field => $value) {
-        array_push($args, $value);
+        $args[] = $value;
       }
     } else
     if ($filter) {
-      array_push($args, $filter);
+      $args[] = $filter;
     }
 
     $this->provider->runQueryEx($sql, $args);
@@ -269,8 +247,10 @@ class BrGenericSQLProviderTable extends BrObject {
     }
 
     if ($where) {
-      $sql = 'DELETE ';
-      $sql .= ' FROM '.$this->tableName.$joins.' WHERE 1=1 '.$where;
+      $sql = '
+        DELETE
+          FROM ' . $this->tableName . $joins . '
+         WHERE 1=1 ' . $where;
     } else {
       throw new \Exception('It is not allowed to invoke remove method without passing filter condition');
     }

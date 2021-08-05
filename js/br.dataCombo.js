@@ -284,30 +284,22 @@
     });
 
     function renderRow(data) {
-      let s = '';
-      if (!br.isEmpty(_this.options.groupField) && br.toInt(data[_this.options.groupField]) > 0) {
-        s = s + '<optgroup';
-      } else {
-        s = s + '<option';
+      let content = '';
+      const isGroup = !br.isEmpty(_this.options.groupField) && br.toInt(data[_this.options.groupField]) > 0;
+      const isDisabled = !br.isEmpty(_this.options.disabledField) && br.toInt(data[_this.options.disabledField]) > 0;
+      content += `<option value="${data[_this.options.valueField]}"`;
+      if (isDisabled) {
+        content += ` disabled="disabled"`;
       }
-      s = s + ' value="' + data[_this.options.valueField] + '"';
-      if (!br.isEmpty(_this.options.disabledField) && br.toInt(data[_this.options.disabledField]) > 0) {
-        s = s + ' disabled="disabled"';
-      }
-      s = s + '>';
+      content += '>';
       if (!br.isEmpty(_this.options.levelField)) {
         const margin = (br.toInt(data[_this.options.levelField]) - 1) * 4;
         for(let k = 0; k < margin; k++) {
-          s = s + '&nbsp;';
+          content += '&nbsp;';
         }
       }
-      s = s + getName(data);
-      if (!br.isEmpty(_this.options.groupField) && br.toInt(data[_this.options.groupField]) > 0) {
-        s = s + '</optgroup>';
-      } else {
-        s = s + '</option>';
-      }
-      return s;
+      content += `${getName(data)}</option>`;
+      return content;
     }
 
     function render(data) {

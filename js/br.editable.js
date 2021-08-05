@@ -12,12 +12,12 @@
   window.br = window.br || Object.create({});
 
   function BrEditable(ctrl, options) {
-
     const _this = this;
 
     if (br.isFunction(options)) {
       options = { onSave: options };
     }
+
     _this.options = options || Object.create({});
     _this.ctrl = $(ctrl);
     _this.editor = null;
@@ -25,35 +25,27 @@
 
     _this.click = function(element, e) {
       if (!_this.activated()) {
-        let content = '';
-        if (typeof _this.ctrl.attr('data-editable') != 'undefined') {
-          content = _this.ctrl.attr('data-editable');
-        } else {
-          content = _this.ctrl.text();
-        }
+        let content = ((typeof _this.ctrl.attr('data-editable') != 'undefined') ? _this.ctrl.attr('data-editable') : _this.ctrl.text());
         _this.ctrl.data('brEditable-original-html', _this.ctrl.html());
         _this.ctrl.data('brEditable-original-width', _this.ctrl.css('width'));
         _this.ctrl.text('');
-        let isTextarea = (_this.ctrl.attr('data-editable-type') == 'textarea');
-        if (isTextarea) {
-          _this.editor = $('<textarea rows="3"></textarea>');
-        } else {
-          _this.editor = $('<input type="text" />');
-        }
+        _this.editor = ((_this.ctrl.attr('data-editable-type') == 'textarea') ? $('<textarea rows="3"></textarea>') : $('<input type="text" />'));
         _this.editor.addClass('form-control');
         _this.editor.addClass('br-editable-control');
-        _this.editor.css({ 'width': '100%'
-                         , 'height': '100%'
-                         , 'min-height': '30px'
-                         , 'font-size': _this.ctrl.css('font-size')
-                         , 'font-weight': _this.ctrl.css('font-weight')
-                         , 'box-sizing': '100%'
-                         , '-webkit-box-sizing': 'border-box'
-                         , '-moz-box-sizing': 'border-box'
-                         , '-ms-box-sizing': 'border-box'
-                         , 'margin-top': '2px'
-                         , 'margin-bottom': '2px'
-                         });
+        _this.editor.css({
+          'width': '100%',
+          'height': '100%',
+          'min-height': '30px',
+          'min-width': '60px',
+          'font-size': _this.ctrl.css('font-size'),
+          'font-weight': _this.ctrl.css('font-weight'),
+          'box-sizing': '100%',
+          '-webkit-box-sizing': 'border-box',
+          '-moz-box-sizing': 'border-box',
+          '-ms-box-sizing': 'border-box',
+          'margin-top': '2px',
+          'margin-bottom': '2px'
+        });
         if (_this.ctrl.attr('data-editable-style')) {
           _this.editor.attr('style', _this.ctrl.attr('data-editable-style'));
         }
@@ -155,7 +147,6 @@
     };
 
     return _this;
-
   }
 
   window.br.editable = function(selector, callback, value) {
@@ -166,12 +157,7 @@
       let instance = $(selector).data('brEditable-editable');
       switch (callback) {
         case 'exists':
-          if (instance) {
-            return true;
-          } else {
-            return false;
-          }
-          break;
+          return !!instance;
         case 'get':
         case 'apply':
         case 'save':

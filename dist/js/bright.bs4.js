@@ -3953,30 +3953,22 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     });
 
     function renderRow(data) {
-      let s = '';
-      if (!br.isEmpty(_this.options.groupField) && br.toInt(data[_this.options.groupField]) > 0) {
-        s = s + '<optgroup';
-      } else {
-        s = s + '<option';
+      let content = '';
+      const isGroup = !br.isEmpty(_this.options.groupField) && br.toInt(data[_this.options.groupField]) > 0;
+      const isDisabled = !br.isEmpty(_this.options.disabledField) && br.toInt(data[_this.options.disabledField]) > 0;
+      content += `<option value="${data[_this.options.valueField]}"`;
+      if (isDisabled) {
+        content += ` disabled="disabled"`;
       }
-      s = s + ' value="' + data[_this.options.valueField] + '"';
-      if (!br.isEmpty(_this.options.disabledField) && br.toInt(data[_this.options.disabledField]) > 0) {
-        s = s + ' disabled="disabled"';
-      }
-      s = s + '>';
+      content += '>';
       if (!br.isEmpty(_this.options.levelField)) {
         const margin = (br.toInt(data[_this.options.levelField]) - 1) * 4;
         for(let k = 0; k < margin; k++) {
-          s = s + '&nbsp;';
+          content += '&nbsp;';
         }
       }
-      s = s + getName(data);
-      if (!br.isEmpty(_this.options.groupField) && br.toInt(data[_this.options.groupField]) > 0) {
-        s = s + '</optgroup>';
-      } else {
-        s = s + '</option>';
-      }
-      return s;
+      content += `${getName(data)}</option>`;
+      return content;
     }
 
     function render(data) {
@@ -4274,21 +4266,23 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   window.br = window.br || Object.create({});
 
   function BrDraggable(ctrl, options) {
-
     const _this = this;
 
     let dragObject = null;
     let dragHandler = null;
     let pos_y, pos_x, ofs_x, ofs_y;
 
-    options = options || Object.create({});
-    options.exclude = [ 'INPUT', 'TEXTAREA', 'SELECT', 'A', 'BUTTON' ];
+    _this.options = Object.assign({
+      exclude: [ 'INPUT', 'TEXTAREA', 'SELECT', 'A', 'BUTTON' ]
+    }, options);
 
     function setPosition(element, left, top) {
       element.style.marginTop = '0px';
       element.style.marginLeft = '0px';
       element.style.left = left + 'px';
       element.style.top = top + 'px';
+      element.style.right = '';
+      element.style.bottom = '';
     }
 
     function downHandler(e) {
@@ -4296,8 +4290,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         let target = e.target || e.srcElement;
         let parent = target.parentNode;
 
-        if (target && (options.exclude.indexOf(target.tagName.toUpperCase()) == -1)) {
-          if (!parent || (options.exclude.indexOf(parent.tagName.toUpperCase()) == -1)) {  // img in a
+        if (target && (_this.options.exclude.indexOf(target.tagName.toUpperCase()) == -1)) {
+          if (!parent || (_this.options.exclude.indexOf(parent.tagName.toUpperCase()) == -1)) {  // img in a
             dragObject = ctrl;
 
             let pageX = e.pageX || e.touches[0].pageX;
@@ -4332,8 +4326,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         }
 
         setPosition(dragObject, left, top);
-        if (options.ondrag) {
-          options.ondrag.call(e);
+        if (_this.options.ondrag) {
+          _this.options.ondrag.call(e);
         }
       }
     }
@@ -4344,14 +4338,13 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       }
     }
 
-    if (options.handler) {
-      dragHandler = ctrl.querySelector(options.handler);
+    if (_this.options.handler) {
+      dragHandler = ctrl.querySelector(_this.options.handler);
     } else {
       dragHandler = ctrl;
     }
 
     if (dragHandler) {
-
       dragHandler.style.cursor = 'move';
       ctrl.style.position = 'fixed';
 
@@ -4384,11 +4377,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       });
 
       dragHandler.__br_draggable = _this;
-
     }
 
     return _this;
-
   }
 
   window.br.draggable = function (selector, options) {
@@ -4418,12 +4409,12 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   window.br = window.br || Object.create({});
 
   function BrEditable(ctrl, options) {
-
     const _this = this;
 
     if (br.isFunction(options)) {
       options = { onSave: options };
     }
+
     _this.options = options || Object.create({});
     _this.ctrl = $(ctrl);
     _this.editor = null;
@@ -4431,35 +4422,27 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     _this.click = function(element, e) {
       if (!_this.activated()) {
-        let content = '';
-        if (typeof _this.ctrl.attr('data-editable') != 'undefined') {
-          content = _this.ctrl.attr('data-editable');
-        } else {
-          content = _this.ctrl.text();
-        }
+        let content = ((typeof _this.ctrl.attr('data-editable') != 'undefined') ? _this.ctrl.attr('data-editable') : _this.ctrl.text());
         _this.ctrl.data('brEditable-original-html', _this.ctrl.html());
         _this.ctrl.data('brEditable-original-width', _this.ctrl.css('width'));
         _this.ctrl.text('');
-        let isTextarea = (_this.ctrl.attr('data-editable-type') == 'textarea');
-        if (isTextarea) {
-          _this.editor = $('<textarea rows="3"></textarea>');
-        } else {
-          _this.editor = $('<input type="text" />');
-        }
+        _this.editor = ((_this.ctrl.attr('data-editable-type') == 'textarea') ? $('<textarea rows="3"></textarea>') : $('<input type="text" />'));
         _this.editor.addClass('form-control');
         _this.editor.addClass('br-editable-control');
-        _this.editor.css({ 'width': '100%'
-                         , 'height': '100%'
-                         , 'min-height': '30px'
-                         , 'font-size': _this.ctrl.css('font-size')
-                         , 'font-weight': _this.ctrl.css('font-weight')
-                         , 'box-sizing': '100%'
-                         , '-webkit-box-sizing': 'border-box'
-                         , '-moz-box-sizing': 'border-box'
-                         , '-ms-box-sizing': 'border-box'
-                         , 'margin-top': '2px'
-                         , 'margin-bottom': '2px'
-                         });
+        _this.editor.css({
+          'width': '100%',
+          'height': '100%',
+          'min-height': '30px',
+          'min-width': '60px',
+          'font-size': _this.ctrl.css('font-size'),
+          'font-weight': _this.ctrl.css('font-weight'),
+          'box-sizing': '100%',
+          '-webkit-box-sizing': 'border-box',
+          '-moz-box-sizing': 'border-box',
+          '-ms-box-sizing': 'border-box',
+          'margin-top': '2px',
+          'margin-bottom': '2px'
+        });
         if (_this.ctrl.attr('data-editable-style')) {
           _this.editor.attr('style', _this.ctrl.attr('data-editable-style'));
         }
@@ -4561,7 +4544,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     };
 
     return _this;
-
   }
 
   window.br.editable = function(selector, callback, value) {
@@ -4572,12 +4554,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       let instance = $(selector).data('brEditable-editable');
       switch (callback) {
         case 'exists':
-          if (instance) {
-            return true;
-          } else {
-            return false;
-          }
-          break;
+          return !!instance;
         case 'get':
         case 'apply':
         case 'save':
