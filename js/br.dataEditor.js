@@ -22,6 +22,7 @@
     let closeConfirmationTmp;
     let saving = false;
     let savingAndClosing = false;
+    let workMode = false;
 
     _this.options = options || {};
     _this.options.noun = _this.options.noun || '';
@@ -72,10 +73,12 @@
 
     _this.lock = function() {
       $(_this.options.selectors.save, _this.container).addClass('disabled');
+      $('.action-save-related', _this.container).addClass('disabled');
     };
 
     _this.unlock = function() {
       $(_this.options.selectors.save, _this.container).removeClass('disabled');
+      $('.action-save-related', _this.container).removeClass('disabled');
       br.resetCloseConfirmation();
     };
 
@@ -88,22 +91,35 @@
       }
     };
 
-    _this.editorConfigure = function(isCopy) {
+    _this.updateEditorTitle = function() {
       let title = '';
       if (_this.options.title) {
         title = _this.options.title;
       } else
       if (editorRowid) {
-        if (isCopy) {
-          title = `Copy ${_this.options.noun}`;
-        } else {
-          title = `Edit ${_this.options.noun}`;
-          if (!_this.options.hideRowid) {
-            title += ` (#${editorRowid})`;
-          }
+        switch(workMode) {
+          case 'copy':
+            title = `Copy ${_this.options.noun}`;
+            break;
+          case 'view':
+            title = `View ${_this.options.noun}`;
+            if (!_this.options.hideRowid) {
+              title += ` (#${editorRowid})`;
+            }
+            break;
+          default:
+            title = `Edit ${_this.options.noun}`;
+            if (!_this.options.hideRowid) {
+              title += ` (#${editorRowid})`;
+            }
+            break;
         }
       } else {
         title = `Create ${_this.options.noun}`;
+      }
+      let rowName = _this.container.find('input.data-field[name="name"]').val();
+      if (rowName) {
+        title += ` ${rowName}`;
       }
       _this.container.find('.operation').text(title);
     };
@@ -140,7 +156,6 @@
     }
 
     _this.init = function() {
-
       if (_this.container.hasClass('modal')) {
         _this.container.on('shown.bs.modal', function(event) {
           if ($(event.target).is(_this.container)) {
@@ -188,15 +203,20 @@
       });
 
       $(_this.inputsContainer).on('change', 'select.data-field,input.data-field,textarea.data-field', function(event) {
+        if ($(this).attr('name') == 'name') {
+          _this.updateEditorTitle();
+        }
         br.confirmClose();
       });
 
       $(_this.inputsContainer).on('input', 'select.data-field,input.data-field,textarea.data-field', function(event) {
+        if ($(this).attr('name') == 'name') {
+          _this.updateEditorTitle();
+        }
         br.confirmClose();
       });
 
       return _this;
-
     };
 
     _this.fillDefaults = function() {
@@ -253,17 +273,15 @@
       }
     };
 
-    _this.show = function(rowid, isCopy, params) {
+    _this.show = function(rowid, params) {
+      let editorParams = Object.assign({
+        mode: br.isNumber(rowid) ? 'edit' : 'insert',
+        defaults: null
+      }, params);
+      workMode = editorParams.mode;
       closeConfirmationTmp = br.isCloseConfirmationRequired();
-      editorRowid = null;
-      editorRowData = null;
-      let defaultValues = null;
-      if (br.isNumber(rowid)) {
-        editorRowid = rowid;
-      } else
-      if (br.isObject(rowid)) {
-        defaultValues = rowid;
-      }
+      editorRowid = br.isNumber(rowid) ? rowid : null;
+      editorRowData = br.isObject(rowid) ? rowid : null;
       _this.inputsContainer.find('select.data-field').each(function() {
         br.setValue($(this), '');
       });
@@ -276,20 +294,39 @@
         ctrl.html('').hide();
       }
 
+      if (workMode == 'view') {
+        _this.inputsContainer.find('input,select,textarea').each(function() {
+          $(this).attr('wasAvailable', !$(this).prop('disabled'));
+          $(this).prop('readonly', true);
+          $(this).prop('disabled', true);
+        });
+        $(_this.options.selectors.save, _this.container).hide();
+        $('.action-save-related', _this.container).hide();
+      } else {
+        _this.inputsContainer.find('input,select,textarea').each(function() {
+          if ($(this).attr('wasAvailable')) {
+            $(this).prop('readonly', false);
+            $(this).prop('disabled', false);
+          }
+        });
+        $(_this.options.selectors.save, _this.container).show();
+        $('.action-save-related', _this.container).show();
+      }
+
       if (editorRowid) {
-        let request = { rowid: editorRowid };
-        let options = { disableEvents: true };
-        _this.events.triggerBefore('editor.loadData', request, options);
-        _this.dataSource.selectOne(request, function(result, data) {
+        let dataSourceRequest = { rowid: editorRowid };
+        let dataSourceOptions = { disableEvents: true };
+        _this.events.triggerBefore('editor.loadData', dataSourceRequest, dataSourceOptions);
+        _this.dataSource.selectOne(dataSourceRequest, function(result, response) {
           if (result) {
-            editorRowData = data;
-            _this.events.triggerBefore('editor.show', data, isCopy, params);
-            _this.editorConfigure(isCopy);
-            _this.fillControls(data);
-            if (isCopy) {
+            editorRowData = response;
+            _this.events.triggerBefore('editor.show', editorRowData, (workMode == 'copy'), editorParams.defaults);
+            _this.fillControls(editorRowData);
+            if (workMode == 'copy') {
               editorRowid = null;
             }
-            _this.events.trigger('editor.show', data, isCopy, params);
+            _this.updateEditorTitle();
+            _this.events.trigger('editor.show', editorRowData, (workMode == 'copy'), editorParams.defaults);
             br.attachDatePickers(_this.inputsContainer);
             if (_this.container.hasClass('modal')) {
               _this.container.modal('show');
@@ -298,18 +335,18 @@
             }
           } else {
             if (_this.container.hasClass('modal')) {
-              _this.showError(data);
+              _this.showError(editorRowData);
             } else {
               br.backToCaller(_this.options.returnUrl, true);
             }
           }
-        }, options);
+        }, dataSourceOptions);
       } else {
-        _this.events.triggerBefore('editor.show', null, isCopy, params);
-        _this.editorConfigure(isCopy);
+        _this.events.triggerBefore('editor.show', editorRowData, (workMode == 'copy'), editorParams.defaults);
         _this.fillDefaults();
-        _this.fillControls(defaultValues);
-        _this.events.trigger('editor.show', defaultValues, isCopy, params);
+        _this.fillControls(editorParams.defaults);
+        _this.updateEditorTitle();
+        _this.events.trigger('editor.show', editorRowData, (workMode == 'copy'), editorParams.defaults);
         br.attachDatePickers(_this.inputsContainer);
         if (_this.container.hasClass('modal')) {
           _this.container.modal('show');
@@ -340,21 +377,36 @@
       return saving && savingAndClosing;
     };
 
+    _this.saveIfInsert = function(successCallback, errorCallback) {
+      if (_this.isInsertMode()) {
+        _this.save(false, successCallback, errorCallback);
+      } else
+      if (br.isFunction(successCallback)) {
+        successCallback();
+      }
+    };
+
     _this.save = function(andClose, successCallback, errorCallback, silent) {
       if (br.isFunction(andClose)) {
-        errorCallback   = successCallback;
+        errorCallback = successCallback;
         successCallback = andClose;
-        andClose        = false;
+        andClose = false;
         // if function invoked with callabacks I'll consider that it msut save silently
-        silent          = true;
+        silent  = true;
       }
-      if (!br.isFunction(successCallback)) {
-        successCallback = null;
+      if (workMode == 'view') {
+        if (br.isFunction(successCallback)) {
+          successCallback();
+        }
+      } else {
+        if (!br.isFunction(successCallback)) {
+          successCallback = null;
+        }
+        if (!br.isFunction(errorCallback)) {
+          errorCallback = null;
+        }
+        return internalSave(andClose, successCallback, errorCallback, silent);
       }
-      if (!br.isFunction(errorCallback)) {
-        errorCallback = null;
-      }
-      return internalSave(andClose, successCallback, errorCallback, silent);
     };
 
     function saveContinue(andClose, successCallback, errorCallback, silent, data) {
@@ -418,7 +470,7 @@
                 br.resetCloseConfirmation();
                 editorRowid = response.rowid;
                 editorRowData = response;
-                _this.editorConfigure(false);
+                _this.updateEditorTitle();
                 _this.events.triggerAfter('editor.insert', true, response);
                 _this.events.triggerAfter('editor.save', true, response);
                 if (andClose) {

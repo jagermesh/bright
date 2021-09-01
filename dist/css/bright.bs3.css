@@ -23,7 +23,6 @@
   left: 20px;
 }
 .gritter-item-wrapper {
-  /*opacity: 0.8;*/
   background-color: #5bb2de;
   color: white;
   border-radius: 6px;
@@ -31,12 +30,14 @@
   margin:0 0 10px 0;
 }
 .gritter-item-wrapper.gritter-red {
-  /*opacity: 0.8;*/
   background-color: red !important;
   border: 1px solid red;
 }
+.gritter-item-wrapper.gritter-orange {
+  background-color: orange !important;
+  border: 1px solid orange;
+}
 .gritter-item-wrapper.gritter-light {
-  /*opacity: 0.8;*/
   background-color: #5bb2de;
   border: 1px solid #5bb2de;
 }

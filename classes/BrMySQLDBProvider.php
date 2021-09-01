@@ -300,10 +300,9 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
           throw new BrDBException($error);
         }
       }
-
       br()->log()->message('Query complete', [ 'sql' => $queryText ], 'query');
-
     } catch (\Exception $e) {
+      br()->log()->message('Query error', [ 'sql' => $queryText ], 'query');
       $error = $e->getMessage();
       br()->trigger('br.db.query.error', $error);
       throw $e;

@@ -15,53 +15,77 @@
 
   window.br.bootstrapVersion = 0;
 
-  window.br.showError = function(s) {
-    alert(s);
+  window.br.showError = function(message) {
+    if (!br.isEmpty(message)) {
+      alert(message);
+    }
   };
 
-  window.br.growlError = function(s, image) {
-    if (!br.isEmpty(s)) {
+  window.br.showMessage = function(message) {
+    if (!br.isEmpty(message)) {
+      alert(message);
+    }
+  };
+
+  window.br.growlError = function(message, image) {
+    if (!br.isEmpty(message)) {
       if (typeof $.gritter != 'undefined') {
         $.gritter.add({
-            title: br.trn('Error')
-          , text: s
-          , class_name: 'gritter-red'
-          , image: image
+          title: br.trn('Error'),
+          text: message,
+          class_name: 'gritter-red',
+          image: image
         });
       } else
       if (typeof window.humane != 'undefined') {
-        humane.log(s, { addnCls: 'humane-jackedup-error humane-original-error'
-                      , timeout: 5000
-                      });
+        humane.log(message, {
+          addnCls: 'humane-jackedup-error humane-original-error',
+          timeout: 5000
+        });
       } else {
-        alert(s);
+        alert(message);
       }
     }
   };
 
-  window.br.showMessage = function(s) {
-    if (!br.isEmpty(s)) {
-      alert(s);
+  window.br.growlWarning = function(message, image) {
+    if (!br.isEmpty(message)) {
+      if (typeof $.gritter != 'undefined') {
+        $.gritter.add({
+          title: br.trn('Warning'),
+          text: message,
+          class_name: 'gritter-orange',
+          image: image
+        });
+      } else
+      if (typeof window.humane != 'undefined') {
+        humane.log(message, {
+          addnCls: 'humane-jackedup-error humane-original-error',
+          timeout: 5000
+        });
+      } else {
+        alert(message);
+      }
     }
   };
 
-  window.br.growlMessage = function(s, title, image) {
-    if (!br.isEmpty(s)) {
+  window.br.growlMessage = function(message, title, image) {
+    if (!br.isEmpty(message)) {
       if (typeof $.gritter != 'undefined') {
         if (br.isEmpty(title)) {
           title = ' ';
         }
         $.gritter.add({
-            title: title
-          , text: s
-          , class_name: 'gritter-light'
-          , image: image
+          title: title,
+          text: message,
+          class_name: 'gritter-light',
+          image: image
         });
       } else
       if (typeof window.humane != 'undefined') {
-        humane.log(s);
+        humane.log(message);
       } else {
-        alert(s);
+        alert(message);
       }
     }
   };

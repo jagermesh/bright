@@ -238,7 +238,7 @@ class BrDataBasePatch {
     br()->log()->message(br()->db()->getAffectedRowsAmount() . ' row(s) affected');
 
     if (preg_match('/DROP.*?TABLE/', $sql) || preg_match('/CREATE.*?TABLE/', $sql) || preg_match('/ALTER.*?TABLE/', $sql)) {
-      $this->dbManager->setAuditSubsystemInitialyzed(false);
+      $this->dbManager->setAuditSubsystemInitialized(false);
     }
 
     return br()->db()->getAffectedRowsAmount();

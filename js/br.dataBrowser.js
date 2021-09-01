@@ -85,7 +85,7 @@
     _this.options.templates.groupRow = _this.options.templates.groupRow || '.data-group-row-template';
     _this.options.templates.noData = _this.options.templates.noData || '.data-empty-template';
 
-    const selActionCRUD = findNode('.action-edit') + ',' + findNode('.action-create') + ',' + findNode('.action-copy');
+    const selActionCRUD = `${findNode('.action-edit')},${findNode('.action-view')},${findNode('.action-create')},${findNode('.action-copy')}`;
 
     if (typeof entity == 'string') {
       if (_this.options.entity.indexOf('/') == -1) {
@@ -398,9 +398,9 @@
           $(findNode('.action-create')).show();
 
           $(document).on('click', selActionCRUD, function() {
-            const isCopy = $(this).hasClass('action-copy');
             const rowid = $(this).closest('[data-rowid]').attr('data-rowid');
-            _this.editor.show(rowid, isCopy);
+            const mode = ($(this).hasClass('action-copy') ? 'copy' : ($(this).hasClass('action-view') ? 'view' : (rowid ? 'edit' : 'insert')));
+            _this.editor.show(rowid, { mode: mode });
           });
         }
       }

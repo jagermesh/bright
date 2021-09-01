@@ -86,7 +86,7 @@ class BrDataBaseManager {
     return br()->db()->getAffectedRowsAmount();
   }
 
-  public function setAuditSubsystemInitialyzed($value) {
+  public function setAuditSubsystemInitialized($value) {
     $this->auditSubsystemInitialized = $value;
   }
 
@@ -445,7 +445,7 @@ class BrDataBaseManager {
     $excludeFields = $this->getAuditExcludeFields($tableName);
     $excludeFields[] = 'id';
 
-    $desc = br()->db()->getCachedRows('DESC ' . $tableName);
+    $desc = br()->db()->getRows('DESC ' . $tableName);
 
     $fields = [];
     foreach($desc as $field) {
