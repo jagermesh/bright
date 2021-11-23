@@ -10,66 +10,90 @@
 
 namespace Bright;
 
-class BrBrowser extends BrObject {
-
-  static $defaultRequestParams = [
+class BrBrowser extends BrObject
+{
+  private static $defaultRequestParams = [
     'connect_timeout' => 5,
     'read_timeout' => 5,
     'timeout' => 30,
   ];
 
-  public function check($url) {
+  public function check($url)
+  {
     $headers = @get_headers($url);
 
     return !preg_match('~HTTP/[0-9]+[.][0-9]+ 4.*?$~', @$headers[0]);
   }
 
-  private function getDefaultRequestsParams() {
+  private function getDefaultRequestsParams(): array
+  {
     return self::$defaultRequestParams;
   }
 
-  public static function setDefaultRequestsParam($name, $value) {
+  public static function setDefaultRequestsParam($name, $value)
+  {
     return self::$defaultRequestParams[$name] = $value;
   }
 
-  public function get($url) {
+  public function head($url, $params = [])
+  {
     $client = new \GuzzleHttp\Client();
     $requestParams = $this->getDefaultRequestsParams();
-    $response = $client->request('GET', $url, $requestParams);
-    $contents = $response->getBody()->getContents();
-    return $contents;
+    foreach($params as $name => $value) {
+      $requestParams[$name] = $value;
+    }
+    br()->log()->message('Getting headers for ' . $url . ' (' . json_encode($requestParams) . ')');
+    $response = $client->request('HEAD', $url, $requestParams);
+    return $response->getHeaders();
   }
 
-  public function post($url, $data = []) {
+  public function get($url, $params = [])
+  {
+    $client = new \GuzzleHttp\Client();
+    $requestParams = $this->getDefaultRequestsParams();
+    foreach($params as $name => $value) {
+      $requestParams[$name] = $value;
+    }
+    br()->log()->message('Downloading ' . $url . ' (' . json_encode($requestParams) . ')');
+    $response = $client->request('GET', $url, $requestParams);
+    return $response->getBody()->getContents();
+  }
+
+  public function post($url, $data = [])
+  {
     $client = new \GuzzleHttp\Client();
     $requestParams = $this->getDefaultRequestsParams();
     $requestParams['form_params'] = $data;
     $response = $client->request('POST', $url, $requestParams);
-    $contents = $response->getBody()->getContents();
-    return $contents;
+    return $response->getBody()->getContents();
   }
 
-  public function download($url, $filePath = null) {
-    $contents = $this->get($url);
-    if ($filePath) {
-      file_put_contents($filePath, $contents);
+  public function download($url, $filePath, $params = [])
+  {
+    $client = new \GuzzleHttp\Client();
+    $requestParams = $this->getDefaultRequestsParams();
+    $requestParams['sink'] = $filePath;
+    foreach($params as $name => $value) {
+      $requestParams[$name] = $value;
     }
-    return $contents;
+    br()->log()->message('Downloading ' . $url . ' (' . json_encode($requestParams) . ') into ' . $filePath);
+    $client->request('GET', $url, $requestParams);
+    return filesize($filePath);
   }
 
-  public function downloadUntilDone($url, $filePath) {
-    $contents = $this->retry(function() use ($url, $filePath) {
+  public function downloadUntilDone($url, $filePath)
+  {
+    return $this->retry(function () use ($url, $filePath) {
       try {
         return $this->download($url, $filePath);
       } catch (\GuzzleHttp\Exception\BadResponseException $e) {
         throw new \Bright\BrNonRecoverableException($e->getResponse()->getBody()->getContents());
       }
     });
-
-    return $contents;
   }
 
-  public function extractMetaTags($url) {
+  public function extractMetaTags($url): array
+  {
     $result = [];
 
     if ($body = $this->get($url)) {
@@ -86,9 +110,8 @@ class BrBrowser extends BrObject {
     return $result;
   }
 
-  public function responseCode() {
+  public function responseCode()
+  {
     return $this->responseCode;
   }
-
 }
-

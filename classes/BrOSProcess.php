@@ -10,24 +10,38 @@
 
 namespace Bright;
 
-class BrOSProcess extends BrObject {
+class BrOSProcess extends BrObject
+{
+  private $pid;
+  private $command;
 
-  private $_pid;
-  private $_command;
+  public function __construct($pid, $command)
+  {
+    parent::__construct();
 
-  public function __construct($pid, $command) {
-    $this->_pid     = $pid;
-    $this->_command = $command;
+    $this->pid = $pid;
+    $this->command = $command;
   }
 
-  public function kill() {
-    br()->OS()->execute('kill ' . $this->_pid);
+  public function kill(): bool
+  {
+    br()->OS()->execute('kill ' . $this->pid);
 
     return !$this->isValid();
   }
 
-  public function isValid() {
-    return br()->OS()->isValidProcessId($this->_pid);
+  public function isValid()
+  {
+    return br()->OS()->isValidProcessId($this->pid);
   }
 
+  public function getPID(): int
+  {
+    return $this->pid;
+  }
+
+  public function getCommand(): string
+  {
+    return $this->command;
+  }
 }

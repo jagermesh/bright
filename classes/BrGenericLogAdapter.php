@@ -10,18 +10,64 @@
 
 namespace Bright;
 
-class BrGenericLogAdapter extends BrObject {
+class BrGenericLogAdapter extends BrObject
+{
+  const CLIENT_IP = 'client_ip';
+  const PID = 'pid';
+  const SID = 'sid';
+  const SCRIPT_NAME = 'script_name';
+  const SERVER_IP = 'server_ip';
+  const COMMAND_LINE = 'command_line';
+  const REQUEST_TYPE = 'request_type';
+  const URL = 'url';
+  const URL_QUERY = 'url_query';
+  const REFERER = 'referer';
+  const PASSWORD = 'password';
+  const PASWD = 'paswd';
+  const REQUEST_DATA = 'request_data';
+  const DB_NAME = 'name';
+  const DB_HOSTNAME = 'hostname';
+  const DB = 'db';
+  const USER_ID = 'user_id';
+  const USER_NAME = 'user_name';
+  const USER_LOGIN = 'user_login';
+  const USER_EMAIL = 'user_email';
+  const AUTH = 'auth';
+  const LOG_EVENT = 'log_event';
 
-  protected $fiexdLogInfo;
+  const EVENT_TYPE_DEBUG = 'debug';
+  const EVENT_TYPE_ERROR = 'error';
+  const EVENT_TYPE_WARNING = 'warning';
+  const EVENT_TYPE_MESSAGE = 'message';
+  const EVENT_TYPE_SNAPSHOT = 'snapshot';
+  const EVENT_TYPE_PROFILER = 'profiler';
+
+  const DETAILS = 'details';
+
+  const TIMESTAMP_INIT = 'timestamp_init';
+  const TIMESTAMP = 'timestamp';
+  const TIMESTAMP_SINCE_START = 'timestamp_since_start';
+  const TIMESTAMP_SINCE_PRIOR = 'timestamp_since_prior';
+
+  const MEM_USAGE_INIT = 'mem_usage_init';
+  const MEM_USAGE = 'mem_usage';
+  const MEM_USAGE_SINCE_START = 'mem_usage_since_start';
+  const MEM_USAGE_SINCE_PRIOR = 'mem_usage_since_prior';
+
+  const USER_FIELD_NAME = 'name';
+  const USER_FIELD_ID = 'id';
+
+  protected $fixedLogInfo;
   protected $logSnapshot;
 
-  public function __construct() {
+  public function __construct()
+  {
     parent::__construct();
 
-    $this->fiexdLogInfo = [
-      'client_ip' => br()->request()->clientIP(),
-      'pid' => br()->getProcessID(),
-      'sid' => br()->session()->getId(),
+    $this->fixedLogInfo = [
+      self::CLIENT_IP => br()->request()->clientIP(),
+      self::PID => br()->getProcessID(),
+      self::SID => br()->session()->getId(),
     ];
 
     if (br()->isConsoleMode()) {
@@ -29,34 +75,34 @@ class BrGenericLogAdapter extends BrObject {
     }
 
     $this->logSnapshot = [
-      'script_name' => br()->getScriptName(),
-      'server_ip' => gethostbyname(gethostname()),
+      self::SCRIPT_NAME => br()->getScriptName(),
+      self::SERVER_IP => gethostbyname(gethostname()),
     ];
 
     if (br()->isConsoleMode()) {
       if ($commandLine = br(br()->getCommandLineArguments())->join(' ')) {
-        $this->logSnapshot['command_line'] = $commandLine;
+        $this->logSnapshot[self::COMMAND_LINE] = $commandLine;
       }
     } else {
       $this->logSnapshot += [
-        'request_type' => br()->request()->method(),
-        'url' => br()->request()->url(),
+        self::REQUEST_TYPE => br()->request()->method(),
+        self::URL => br()->request()->url(),
       ];
       if ($parsedUrl = @parse_url(br()->request()->url(), PHP_URL_QUERY)) {
         parse_str($parsedUrl, $getParams);
         if ($getParams) {
-          $this->logSnapshot['url_query'] = $getParams;
+          $this->logSnapshot[self::URL_QUERY] = $getParams;
         }
       }
       if (br()->request()->referer()) {
-        $this->logSnapshot['referer'] = br()->request()->referer();
+        $this->logSnapshot[self::REFERER] = br()->request()->referer();
       }
       $requestData = br()->request()->post();
       if (!$requestData) {
         $requestData = br()->request()->put();
       }
-      unset($requestData['password']);
-      unset($requestData['paswd']);
+      unset($requestData[self::PASSWORD]);
+      unset($requestData[self::PASWD]);
       if ($requestData) {
         foreach ($requestData as $key => $value) {
           $requestData[$key] = BrGenericLogAdapter::convertMessageOrObjectToText($requestData[$key], false);
@@ -66,102 +112,113 @@ class BrGenericLogAdapter extends BrObject {
             $requestData[$key] = mb_substr($requestData[$key], 0, 512) . ' (' . $remain . ' byte' . $suffix . ' more...)';
           }
         }
-        $this->logSnapshot['request_data'] = $requestData;
+        $this->logSnapshot[self::REQUEST_DATA] = $requestData;
       }
     }
 
-    if (br()->config()->get('br/db')) {
-      $this->logSnapshot['db'] = [
-        'name' => br(br()->config()->get('br/db'), 'name'),
-        'hostname' => br(br()->config()->get('br/db'), 'hostname'),
+    if (br()->config()->get(BrConst::CONFIG_OPTION_DB)) {
+      $this->logSnapshot[self::DB] = [
+        self::DB_NAME => br()->config()->get(BrConst::CONFIG_OPTION_DB_NAME),
+        self::DB_HOSTNAME => br()->config()->get(BrConst::CONFIG_OPTION_DB_HOSTNAME),
       ];
     }
 
     if (br()->auth()) {
       if ($login = br()->auth()->getSessionLogin()) {
         $auth = [
-          'user_id' => br($login, 'id')
+          self::USER_ID => br($login, self::USER_FIELD_ID)
         ];
-        if (br($login, 'name')) {
-          $auth['user_name'] = br($login, 'name');
+        if (br($login, self::USER_FIELD_NAME)) {
+          $auth[self::USER_NAME] = br($login, self::USER_FIELD_NAME);
         }
-        if ($loginField = br()->auth()->getAttr('usersTable.loginField')) {
+        if ($loginField = br()->auth()->getAttr(BrDBUsersAuthProvider::USERS_TABLE_LOGIN_FIELD)) {
           if (br($login, $loginField)) {
-            $auth['user_login'] = br($login, $loginField);
+            $auth[self::USER_LOGIN] = br($login, $loginField);
           }
         }
-        if ($emailField = br()->auth()->getAttr('usersTable.emailField')) {
+        if ($emailField = br()->auth()->getAttr(BrDBUsersAuthProvider::USERS_TABLE_EMAIL_FIELD)) {
           if (br($login, $loginField)) {
             if (br($login, $loginField)) {
-              $auth['user_email'] = br($login, $emailField);
+              $auth[self::USER_EMAIL] = br($login, $emailField);
             }
           }
         }
-        $this->logSnapshot['auth'] = $auth;
+        $this->logSnapshot[self::AUTH] = $auth;
       }
     }
   }
 
-  public function write($messageOrObject, $params) {
+  public function write($messageOrObject, $params)
+  {
+    // must be implemented in descendant class
   }
 
-  protected function isDebugEventType($params) {
-    return ($params['log_event'] == 'debug');
+  protected function isDebugEventType($params): bool
+  {
+    return ($params[self::LOG_EVENT] == self::EVENT_TYPE_DEBUG);
   }
 
-  protected function isErrorEventType($params) {
-    return ($params['log_event'] == 'error');
+  protected function isErrorEventType($params): bool
+  {
+    return ($params[self::LOG_EVENT] == self::EVENT_TYPE_ERROR);
   }
 
-  protected function isWarningEventType($params) {
-    return ($params['log_event'] == 'warning');
+  protected function isWarningEventType($params): bool
+  {
+    return ($params[self::LOG_EVENT] == self::EVENT_TYPE_WARNING);
   }
 
-  protected function isMessageEventType($params) {
-    return ($params['log_event'] == 'message');
+  protected function isMessageEventType($params): bool
+  {
+    return ($params[self::LOG_EVENT] == self::EVENT_TYPE_MESSAGE);
   }
 
-  protected function isSnapshotEventType($params) {
-    return ($params['log_event'] == 'snapshot');
+  protected function isSnapshotEventType($params): bool
+  {
+    return ($params[self::LOG_EVENT] == self::EVENT_TYPE_SNAPSHOT);
   }
 
-  protected function isProfilerEventType($params) {
-    return ($params['log_event'] == 'profiler');
+  protected function isProfilerEventType($params): bool
+  {
+    return ($params[self::LOG_EVENT] == self::EVENT_TYPE_PROFILER);
   }
 
-  protected function isRegularEventType($params) {
-    return $this->isDebugEventType($params) ||
-           $this->isErrorEventType($params) ||
-           $this->isWarningEventType($params) ||
-           $this->isMessageEventType($params) ||
-           $this->isProfilerEventType($params);
+  protected function isRegularEventType($params): bool
+  {
+    return
+      $this->isDebugEventType($params) ||
+      $this->isErrorEventType($params) ||
+      $this->isWarningEventType($params) ||
+      $this->isMessageEventType($params) ||
+      $this->isProfilerEventType($params);
   }
 
-  protected function getLogInfo($messageOrObject, $params, $contentType = []) {
-    $withMessage = in_array('message', $contentType);
-    $withSnapshot = in_array('snapshot', $contentType);
+  protected function getLogInfo($messageOrObject, $params, $contentType = []): array
+  {
+    $withMessage = in_array(self::EVENT_TYPE_MESSAGE, $contentType);
+    $withSnapshot = in_array(self::EVENT_TYPE_SNAPSHOT, $contentType);
 
     $result = [
-      'log_event' => $params['log_event'],
-      'timestamp_init' => $params['timestamp_init'],
-      'timestamp' => $params['timestamp'],
-      'timestamp_since_start' => $params['timestamp_since_start'],
-      'timestamp_since_prior' => $params['timestamp_since_prior'],
-      'mem_usage_init' => $params['mem_usage_init'],
-      'mem_usage' => $params['mem_usage'],
-      'mem_usage_since_start' => $params['mem_usage_since_start'],
-      'mem_usage_since_prior' => $params['mem_usage_since_prior'],
+      self::LOG_EVENT => $params[self::LOG_EVENT],
+      self::TIMESTAMP_INIT => $params[self::TIMESTAMP_INIT],
+      self::TIMESTAMP => $params[self::TIMESTAMP],
+      self::TIMESTAMP_SINCE_START => $params[self::TIMESTAMP_SINCE_START],
+      self::TIMESTAMP_SINCE_PRIOR => $params[self::TIMESTAMP_SINCE_PRIOR],
+      self::MEM_USAGE_INIT => $params[self::MEM_USAGE_INIT],
+      self::MEM_USAGE => $params[self::MEM_USAGE],
+      self::MEM_USAGE_SINCE_START => $params[self::MEM_USAGE_SINCE_START],
+      self::MEM_USAGE_SINCE_PRIOR => $params[self::MEM_USAGE_SINCE_PRIOR],
     ];
 
     if ($withMessage) {
-      $result['message'] = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, true);
+      $result[self::EVENT_TYPE_MESSAGE] = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, true);
     }
 
-    if (br($params,  'details')) {
-      $result['details'] = $params['details'];
+    if (br($params, self::DETAILS)) {
+      $result[self::DETAILS] = $params[self::DETAILS];
     }
 
-    $result += $this->fiexdLogInfo;
+    $result += $this->fixedLogInfo;
 
     if ($withSnapshot) {
       $result += $this->logSnapshot;
@@ -170,25 +227,24 @@ class BrGenericLogAdapter extends BrObject {
     return $result;
   }
 
-  static public function convertMessageOrObjectToText($messageOrObject, $includeStackTrace = false) {
+  public static function convertMessageOrObjectToText($messageOrObject, $includeStackTrace = false): string
+  {
     $result = '';
+
     if (is_scalar($messageOrObject)) {
-      $result .= $messageOrObject;
-    } else
-    if (is_array($messageOrObject)) {
+      $result .= trim($messageOrObject);
+    } elseif (is_array($messageOrObject)) {
       $result .= @print_r($messageOrObject, true);
-    } else
-    if ($messageOrObject instanceof \Throwable) {
+    } elseif ($messageOrObject instanceof \Throwable) {
       $exceptionMessage = BrErrorsFormatter::getStackTraceFromException($messageOrObject);
       $result .= $messageOrObject->getMessage();
       if ($includeStackTrace) {
         $result .= "\n\n" . $exceptionMessage;
       }
-    } else
-    if (is_object($messageOrObject)) {
+    } elseif (is_object($messageOrObject)) {
       $result .= @print_r($messageOrObject, true);
-    };
-    return $result;
-  }
+    }
 
+    return trim($result);
+  }
 }

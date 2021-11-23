@@ -2,33 +2,28 @@
 
 namespace Bright;
 
-class BrEventBusClient extends BrEventBusEngine {
+class BrEventBusClient extends BrEventBusEngine
+{
 
-  private $client;
-  private $connection;
-  private $messages = [];
-
-  function sendAsync($action, $data = [], $additionalRequestParams = []) {
-    // if ($this->url) {
-    //   \Ratchet\Client\connect($this->url)->then(function($connection) use ($action, $data, $additionalRequestParams) {
-    //     $connection->send($this->packMessage($action, $data, $additionalRequestParams));
-    //     $connection->close();
-    //   });
-    // }
-
+  /**
+   * @throws \Exception
+   */
+  public function sendAsync($action, $data = [], $additionalRequestParams = [])
+  {
     $this->sendSync($action, $data, $additionalRequestParams);
   }
 
-  function sendUntill($action, $data = [], $additionalRequestParams = [], $onMessage = null) {
+  public function sendUntill($action, $data = [], $additionalRequestParams = [], $onMessage = null)
+  {
     if ($this->url) {
       $loop = \React\EventLoop\Factory::create();
       $reactConnector = new \React\Socket\Connector($loop, [ 'timeout' => 10 ]);
       $connector = new \Ratchet\Client\Connector($loop, $reactConnector);
 
       $connector($this->url)->then(
-        function(\Ratchet\Client\WebSocket $connection) use ($action, $data, $additionalRequestParams, $onMessage, $loop) {
+        function (\Ratchet\Client\WebSocket $connection) use ($action, $data, $additionalRequestParams, $onMessage, $loop) {
           $counter = 5;
-          $timer = $loop->addPeriodicTimer(1.0, function($timer) use ($loop, &$counter) {
+          $timer = $loop->addPeriodicTimer(1.0, function ($timer) use ($loop, &$counter) {
             if ($counter > 0) {
               --$counter;
             } else {
@@ -36,15 +31,15 @@ class BrEventBusClient extends BrEventBusEngine {
               $loop->stop();
             }
           });
-          $connection->on('message', function($message) use ($onMessage, $connection, $loop, $timer) {
+          $connection->on('message', function ($message) use ($onMessage, $connection, $loop, $timer) {
             if ($onMessage(false, $message)) {
               $loop->cancelTimer($timer);
               $connection->close();
             }
           });
           $connection->send($this->packMessage($action, $data, $additionalRequestParams));
-        }
-      , function(\Exception $e) use ($onMessage, $loop) {
+        },
+        function (\Exception $e) use ($onMessage, $loop) {
           br()->log()->error($e);
           $onMessage(true, $e->getMessage());
           $loop->stop();
@@ -57,18 +52,23 @@ class BrEventBusClient extends BrEventBusEngine {
     }
   }
 
-  function sendSync($action, $data = [], $additionalRequestParams = []) {
+  /**
+   * @throws \Exception
+   */
+  public function sendSync($action, $data = [], $additionalRequestParams = [], $stopOnError = false)
+  {
     if ($this->url) {
       try {
         br()->log()->message('Sending message through ' . $this->url, [], 'ebs');
-        $this->client = new \WebSocket\Client($this->url);
-        $this->client->send($this->packMessage($action, $data, $additionalRequestParams));
+        $client = new \WebSocket\Client($this->url);
+        $client->send($this->packMessage($action, $data, $additionalRequestParams));
         br()->log()->message('Message sent', [], 'ebs');
       } catch (\Exception $e) {
+        if ($stopOnError) {
+          throw $e;
+        }
         br()->log()->error($e);
       }
     }
-
   }
-
 }

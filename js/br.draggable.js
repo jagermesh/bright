@@ -7,7 +7,7 @@
  *
  */
 
-;(function ($, window) {
+;(function($, window) {
 
   window.br = window.br || Object.create({});
 
@@ -98,28 +98,28 @@
         return dragHandler.__br_draggable;
       }
 
-      dragHandler.addEventListener('mousedown', function(e) {
-        downHandler(e);
+      dragHandler.addEventListener('mousedown', function(event) {
+        downHandler(event);
       });
 
-      window.addEventListener('mousemove', function(e) {
-        moveHandler(e);
+      window.addEventListener('mousemove', function(event) {
+        moveHandler(event);
       });
 
-      window.addEventListener('mouseup', function(e) {
-        upHandler(e);
+      window.addEventListener('mouseup', function(event) {
+        upHandler(event);
       });
 
-      dragHandler.addEventListener('touchstart', function(e) {
-        downHandler(e);
+      dragHandler.addEventListener('touchstart', function(event) {
+        downHandler(event);
       });
 
-      window.addEventListener('touchmove', function(e) {
-        moveHandler(e);
+      window.addEventListener('touchmove', function(event) {
+        moveHandler(event);
       });
 
-      window.addEventListener('touchend', function(e) {
-        upHandler(e);
+      window.addEventListener('touchend', function(event) {
+        upHandler(event);
       });
 
       dragHandler.__br_draggable = _this;

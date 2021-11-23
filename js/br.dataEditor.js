@@ -7,7 +7,7 @@
  *
  */
 
-;(function ($, window) {
+;(function($, window) {
 
   window.br = window.br || Object.create({});
 
@@ -17,7 +17,6 @@
 
     let editorRowid = null;
     let editorRowData = null;
-    let active = false;
     let cancelled = false;
     let closeConfirmationTmp;
     let saving = false;
@@ -202,18 +201,19 @@
         }
       });
 
-      $(_this.inputsContainer).on('change', 'select.data-field,input.data-field,textarea.data-field', function(event) {
-        if ($(this).attr('name') == 'name') {
+      const updateEditorTitle = function(el) {
+        if (el.attr('name') == 'name') {
           _this.updateEditorTitle();
         }
         br.confirmClose();
+      };
+
+      $(_this.inputsContainer).on('change', 'select.data-field,input.data-field,textarea.data-field', function(event) {
+        updateEditorTitle($(this));
       });
 
       $(_this.inputsContainer).on('input', 'select.data-field,input.data-field,textarea.data-field', function(event) {
-        if ($(this).attr('name') == 'name') {
-          _this.updateEditorTitle();
-        }
-        br.confirmClose();
+        updateEditorTitle($(this));
       });
 
       return _this;
@@ -248,17 +248,17 @@
             } else {
               let ckeditorInstance = input.data('ckeditorInstance');
               if (ckeditorInstance) {
-                (function(input, ckeditorInstance, data) {
-                  ckeditorInstance.setData(data
-                    , { noSnapshot: true
-                      , callback: function(aa) {
-                          if (ckeditorInstance.getData() != data) {
-                            // not sure why but setData is not wroking sometimes, so need to run again :(
-                            ckeditorInstance.setData(data, { noSnapshot: true });
-                          }
-                        }
-                      });
-                })(input, ckeditorInstance, data[name]);
+                (function(ckeditorInstance0, data0) {
+                  ckeditorInstance0.setData(data0, {
+                    noSnapshot: true,
+                    callback: function(aa) {
+                      if (ckeditorInstance0.getData() != data0) {
+                        // not sure why but setData is not wroking sometimes, so need to run again :(
+                        ckeditorInstance0.setData(data0, { noSnapshot: true });
+                      }
+                    }
+                  });
+                })(ckeditorInstance, data[name]);
               } else {
                 br.setValue(input, data[name]);
               }
@@ -276,7 +276,8 @@
     _this.show = function(rowid, params) {
       let editorParams = Object.assign({
         mode: br.isNumber(rowid) ? 'edit' : 'insert',
-        defaults: null
+        defaults: null,
+        params: {}
       }, params);
       workMode = editorParams.mode;
       closeConfirmationTmp = br.isCloseConfirmationRequired();
@@ -299,6 +300,10 @@
           $(this).attr('wasAvailable', !$(this).prop('disabled'));
           $(this).prop('readonly', true);
           $(this).prop('disabled', true);
+          let ckeditorInstance = $(this).data('ckeditorInstance');
+          if (ckeditorInstance) {
+            ckeditorInstance.setReadOnly(true);
+          }
         });
         $(_this.options.selectors.save, _this.container).hide();
         $('.action-save-related', _this.container).hide();
@@ -307,6 +312,10 @@
           if ($(this).attr('wasAvailable')) {
             $(this).prop('readonly', false);
             $(this).prop('disabled', false);
+            let ckeditorInstance = $(this).data('ckeditorInstance');
+            if (ckeditorInstance) {
+              ckeditorInstance.setReadOnly(false);
+            }
           }
         });
         $(_this.options.selectors.save, _this.container).show();
@@ -320,13 +329,13 @@
         _this.dataSource.selectOne(dataSourceRequest, function(result, response) {
           if (result) {
             editorRowData = response;
-            _this.events.triggerBefore('editor.show', editorRowData, (workMode == 'copy'), editorParams.defaults);
+            _this.events.triggerBefore('editor.show', editorRowData, (workMode == 'copy'), editorParams.defaults, editorParams.params);
             _this.fillControls(editorRowData);
             if (workMode == 'copy') {
               editorRowid = null;
             }
             _this.updateEditorTitle();
-            _this.events.trigger('editor.show', editorRowData, (workMode == 'copy'), editorParams.defaults);
+            _this.events.trigger('editor.show', editorRowData, (workMode == 'copy'), editorParams.defaults, editorParams.params);
             br.attachDatePickers(_this.inputsContainer);
             if (_this.container.hasClass('modal')) {
               _this.container.modal('show');
@@ -342,11 +351,11 @@
           }
         }, dataSourceOptions);
       } else {
-        _this.events.triggerBefore('editor.show', editorRowData, (workMode == 'copy'), editorParams.defaults);
+        _this.events.triggerBefore('editor.show', editorRowData, (workMode == 'copy'), editorParams.defaults, editorParams.params);
         _this.fillDefaults();
         _this.fillControls(editorParams.defaults);
         _this.updateEditorTitle();
-        _this.events.trigger('editor.show', editorRowData, (workMode == 'copy'), editorParams.defaults);
+        _this.events.trigger('editor.show', editorRowData, (workMode == 'copy'), editorParams.defaults, editorParams.params);
         br.attachDatePickers(_this.inputsContainer);
         if (_this.container.hasClass('modal')) {
           _this.container.modal('show');
@@ -410,15 +419,13 @@
     };
 
     function saveContinue(andClose, successCallback, errorCallback, silent, data) {
-
       savingAndClosing = andClose;
 
-      let op = editorRowid ? 'update' : 'insert';
-      let ok = true;
+      let operation = editorRowid ? 'update' : 'insert';
 
       try {
-        let options = Object.create({});
-        _this.events.trigger('editor.save', op, data, options);
+        let saveOptions = {};
+        _this.events.trigger('editor.save', operation, data, saveOptions);
         if (editorRowid) {
           _this.events.triggerBefore('editor.update', data, options);
           _this.dataSource.update(editorRowid, data, function(result, response) {
@@ -450,7 +457,7 @@
                 }
               } else {
                 _this.events.triggerAfter('editor.update', false, response);
-                _this.events.triggerAfter('editor.save', false, response, op);
+                _this.events.triggerAfter('editor.save', false, response, operation);
                 if (!_this.dataSource.events.has('error')) {
                   _this.showError(response);
                 }
@@ -461,9 +468,9 @@
             } finally {
               saving = false;
             }
-          }, options);
+          }, saveOptions);
         } else {
-          _this.events.triggerBefore('editor.insert', data, options);
+          _this.events.triggerBefore('editor.insert', data, saveOptions);
           _this.dataSource.insert(data, function(result, response) {
             try {
               if (result) {
@@ -494,7 +501,7 @@
                 }
               } else {
                 _this.events.triggerAfter('editor.insert', false, response);
-                _this.events.triggerAfter('editor.save', false, response, op);
+                _this.events.triggerAfter('editor.save', false, response, operation);
                 if (!_this.dataSource.events.has('error')) {
                   _this.showError(response);
                 }
@@ -505,7 +512,7 @@
             } finally {
               saving = false;
             }
-          }, options);
+          }, saveOptions);
         }
       } catch (error) {
         _this.showError(error.message);
@@ -527,7 +534,7 @@
         saving = true;
       }
 
-      let data = Object.create({ });
+      let data = {};
       let errors = [];
       try {
         $(_this.options.selectors.errorMessage, _this.container).hide();
@@ -581,23 +588,22 @@
           }
           saving = false;
         } else {
-          let op = editorRowid ? 'update' : 'insert';
-          let ok = true;
+          let operation = editorRowid ? 'update' : 'insert';
           if (_this.events.has('editor.save', 'pause')) {
-            _this.events.triggerPause( 'editor.save'
-                                     , { continue: function(data) {
-                                           saveContinue(andClose, successCallback, errorCallback, silent, data);
-                                         }
-                                       , cancel: function(error) {
-                                           if (errorCallback) {
-                                             errorCallback.call(_this, data, error);
-                                           }
-                                           saving = false;
-                                         }
-                                       }
-                                     , op
-                                     , data
-                                     );
+            _this.events.triggerPause('editor.save', {
+                continue: function(data0) {
+                  saveContinue(andClose, successCallback, errorCallback, silent, data0);
+                },
+                cancel: function(error) {
+                  if (errorCallback) {
+                    errorCallback.call(_this, data, error);
+                  }
+                  saving = false;
+                }
+              },
+              operation,
+              data
+            );
           } else {
             saveContinue(andClose, successCallback, errorCallback, silent, data);
           }

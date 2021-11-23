@@ -10,17 +10,17 @@
 
 namespace Bright;
 
-class BrCore extends BrObject {
-
-  const BR_ORDER_ASC  =  1;
-  const BR_ORDER_DESC = -1;
+class BrCore extends BrObject
+{
+  const HRS = 'hrs';
+  const MINS = 'mins';
+  const SECS = 'secs';
 
   private $processId      = null;
   private $basePath       = null;
   private $basePathEx     = null;
   private $scriptBasePath = null;
   private $brightPath     = null;
-  private $relativePath   = null;
   private $scriptName     = null;
   private $threadMode     = false;
   private $tempFiles      = array();
@@ -32,7 +32,6 @@ class BrCore extends BrObject {
   private $appPath         = null;
   private $apiPath         = null;
   private $logsPath        = null;
-  private $cachePath       = null;
   private $dataSourcesPath = null;
 
   private $mimeTypes = [
@@ -1224,7 +1223,7 @@ class BrCore extends BrObject {
     'zsh' => 'text/x-scriptzsh',
   ];
 
-  private $severityNames = array(
+  private $severityNames = [
     E_ERROR => "Error",
     E_WARNING => "Warning",
     E_PARSE => "Parsing Error",
@@ -1238,11 +1237,12 @@ class BrCore extends BrObject {
     E_USER_NOTICE => "User Notice",
     E_STRICT => "Runtime Notice",
     E_DEPRECATED => "Deprecated",
-  );
+  ];
 
   private $trafficUnits = [ 'b', 'Kb', 'Mb', 'Gb', 'Tb', 'Pb' ];
 
-  public function __construct() {
+  public function __construct()
+  {
     $this->brightPath = rtrim(dirname(__DIR__), '/') . '/';
 
     if (strpos(__DIR__, '/vendor/')) {
@@ -1259,29 +1259,35 @@ class BrCore extends BrObject {
     register_shutdown_function(array(&$this, 'captureShutdown'));
   }
 
-  public function saveCallerScript($value) {
+  public function saveCallerScript($value)
+  {
     $this->scriptPath = $value;
     $this->scriptBasePath = rtrim(dirname($value), '/') . '/';
     $this->scriptName = $this->fs()->fileName($value);
   }
 
-  public function getScriptPath() {
+  public function getScriptPath()
+  {
     return $this->scriptPath;
   }
 
-  public function getScriptBasePath() {
+  public function getScriptBasePath()
+  {
     return $this->scriptBasePath;
   }
 
-  public function getBrightPath() {
+  public function getBrightPath()
+  {
     return $this->brightPath;
   }
 
-  public function getScriptName() {
+  public function getScriptName()
+  {
     return $this->scriptName;
   }
 
-  public function getBasePath() {
+  public function getBasePath()
+  {
     if ($this->basePathEx) {
       $result = $this->basePathEx;
     } else {
@@ -1291,11 +1297,13 @@ class BrCore extends BrObject {
     return $result;
   }
 
-  public function setBasePath($value) {
+  public function setBasePath($value)
+  {
     $this->basePathEx = rtrim($value, '/') . '/';
   }
 
-  private function removePrefix($s1, $s2) {
+  private function removePrefix($s1, $s2)
+  {
     if (strpos($s1, $s2) === 0) {
       $result = substr($s1, strlen($s2));
     } else {
@@ -1311,15 +1319,18 @@ class BrCore extends BrObject {
     return $result;
   }
 
-  public function getRelativePath() {
+  public function getRelativePath()
+  {
     return $this->removePrefix($this->getBrightPath(), $this->getBasePath());
   }
 
-  public function setApiPath($value) {
+  public function setApiPath($value)
+  {
     $this->apiPath = rtrim($value, '/') . '/';
   }
 
-  public function getApiPath() {
+  public function getApiPath()
+  {
     if ($this->apiPath) {
       $result = $this->apiPath;
     } else {
@@ -1329,11 +1340,13 @@ class BrCore extends BrObject {
     return $result;
   }
 
-  public function setAppPath($value) {
+  public function setAppPath($value)
+  {
     $this->appPath = $value;
   }
 
-  public function getAppPath() {
+  public function getAppPath()
+  {
     if ($this->appPath) {
       $result = $this->appPath;
     } else {
@@ -1343,11 +1356,13 @@ class BrCore extends BrObject {
     return $result;
   }
 
-  public function setDataSourcesPath($value) {
+  public function setDataSourcesPath($value)
+  {
     $this->dataSourcesPath = rtrim($value, '/') . '/';
   }
 
-  public function getDataSourcesPath() {
+  public function getDataSourcesPath()
+  {
     if ($this->dataSourcesPath) {
       $result = $this->dataSourcesPath;
     } else {
@@ -1357,11 +1372,13 @@ class BrCore extends BrObject {
     return $result;
   }
 
-  public function setTemplatesPath($value) {
+  public function setTemplatesPath($value)
+  {
     $this->templatesPath = rtrim($value, '/') . '/';
   }
 
-  public function getTemplatesPath() {
+  public function getTemplatesPath()
+  {
     if ($this->templatesPath) {
       $result = $this->templatesPath;
     } else {
@@ -1371,9 +1388,11 @@ class BrCore extends BrObject {
     return $result;
   }
 
-  public function getTempPath() {
+  public function getTempPath()
+  {
     if (!$this->tempPath) {
-      $this->tempPath = $this->getBasePath() . '_tmp/' . ($this->isConsoleMode() ? 'console/' : 'web/') . (br()->config()->get('br/db') ? strtolower(br()->config()->get('br/db')['name']) . '/' : '');
+      $this->tempPath = $this->getBasePath() . '_tmp/' . ($this->isConsoleMode() ? 'console/' : 'web/') .
+        (br()->config()->get(BrConst::CONFIG_OPTION_DB_NAME) ? strtolower(br()->config()->get(BrConst::CONFIG_OPTION_DB_NAME)) . '/' : '');
     }
 
     $result = $this->tempPath;
@@ -1385,7 +1404,7 @@ class BrCore extends BrObject {
     if (!is_dir($result) || !is_writable($result)) {
       $result = rtrim(sys_get_temp_dir(), '/') . '/';
       if ($this->tempPath) {
-        $result .= md5($this->tempPath) . '/';
+        $result .= hash('sha256', $this->tempPath) . '/';
       }
     }
 
@@ -1396,9 +1415,11 @@ class BrCore extends BrObject {
     return $result;
   }
 
-  public function getLogsPath() {
+  public function getLogsPath()
+  {
     if (!$this->logsPath) {
-      $this->logsPath = $this->getBasePath() . '_logs/' . ($this->isConsoleMode() ? 'console/' : 'web/') . (br()->config()->get('br/db') ? strtolower(br()->config()->get('br/db')['name']) . '/' : '');
+      $this->logsPath = $this->getBasePath() . '_logs/' . ($this->isConsoleMode() ? 'console/' : 'web/') .
+        (br()->config()->get(BrConst::CONFIG_OPTION_DB_NAME) ? strtolower(br()->config()->get(BrConst::CONFIG_OPTION_DB_NAME)) . '/' : '');
     }
 
     $result = $this->logsPath;
@@ -1410,7 +1431,7 @@ class BrCore extends BrObject {
     if (!is_dir($result) || !is_writable($result)) {
       $result = rtrim(sys_get_temp_dir(), '/') . '/';
       if ($this->logsPath) {
-        $result .= md5($this->logsPath) . '/';
+        $result .= hash('sha256', $this->logsPath) . '/';
       }
     }
 
@@ -1423,27 +1444,33 @@ class BrCore extends BrObject {
 
   // at
 
-  public function atBasePath($path) {
+  public function atBasePath($path)
+  {
     return $this->getBasePath() . ltrim($path, '/');
   }
 
-  public function atScriptBasePath($path) {
+  public function atScriptBasePath($path)
+  {
     return $this->getScriptBasePath() . ltrim($path, '/');
   }
 
-  public function atAppPath($path) {
+  public function atAppPath($path)
+  {
     return $this->getAppPath() . ltrim($path, '/');
   }
 
-  public function atAPIPath($path) {
+  public function atAPIPath($path)
+  {
     return $this->getApiPath() . ltrim($path, '/');
   }
 
-  public function atTemplatesPath($path) {
+  public function atTemplatesPath($path)
+  {
     return $this->getTemplatesPath() . ltrim($path, '/');
   }
 
-  public function require($path) {
+  public function require($path)
+  {
     if (file_exists($path)) {
       require_once($path);
       return true;
@@ -1454,7 +1481,8 @@ class BrCore extends BrObject {
 
   // statics
 
-  public function __call($name, $arguments) {
+  public function __call($name, $arguments)
+  {
     return call_user_func_array([ 'Bright\Br' . ucwords($name), 'getInstance' ], $arguments);
   }
 
@@ -1462,7 +1490,8 @@ class BrCore extends BrObject {
    *
    * @return \Bright\BrLog
    */
-  public function log() {
+  public function log()
+  {
     $log = BrLog::getInstance();
 
     $args = func_get_args();
@@ -1479,7 +1508,8 @@ class BrCore extends BrObject {
    * @param mixed $defaultValue
    * @return \Bright\BrConfig|mixed
    */
-  public function config($name = null, $defaultValue = null) {
+  public function config($name = null, $defaultValue = null)
+  {
     $config = BrConfig::getInstance();
 
     if ($name) {
@@ -1489,39 +1519,48 @@ class BrCore extends BrObject {
     }
   }
 
-  public function session() {
+  public function session()
+  {
     return call_user_func_array(array('Bright\BrSession', 'getInstance'), func_get_args());
   }
 
-  public function colors() {
+  public function colors()
+  {
     return call_user_func_array(array('Bright\BrColors', 'getInstance'), func_get_args());
   }
 
-  public function cmd() {
+  public function cmd()
+  {
     return call_user_func_array(array('Bright\BrCmd', 'getInstance'), func_get_args());
   }
 
-  public function rabbitMQ() {
+  public function rabbitMQ()
+  {
     return call_user_func_array(array('Bright\BrRabbitMQ', 'getInstance'), func_get_args());
   }
 
-  public function fs() {
+  public function fs()
+  {
     return call_user_func_array(array('Bright\BrFileSystem', 'getInstance'), func_get_args());
   }
 
-  public function console() {
+  public function console()
+  {
     return call_user_func_array(array('Bright\BrConsole', 'getInstance'), func_get_args());
   }
 
-  public function auth() {
+  public function auth()
+  {
     return call_user_func_array(array('Bright\BrAuth', 'getInstance'), func_get_args());
   }
 
-  public function errorHandler() {
+  public function errorHandler()
+  {
     return call_user_func_array(array('Bright\BrErrorHandler', 'getInstance'), func_get_args());
   }
 
-  public function db($name = null) {
+  public function db($name = null)
+  {
     return call_user_func_array(array('Bright\BrDataBase', 'getInstance'), func_get_args());
   }
 
@@ -1529,23 +1568,28 @@ class BrCore extends BrObject {
    * Get Instance of BrRequest
    * @return \Bright\BrRequest
    */
-  public function request() {
+  public function request()
+  {
     return call_user_func_array(array('Bright\BrRequest', 'getInstance'), func_get_args());
   }
 
-  public function xss() {
+  public function xss()
+  {
     return call_user_func_array(array('Bright\BrXSS', 'getInstance'), func_get_args());
   }
 
-  public function html() {
+  public function html()
+  {
     return call_user_func_array(array('Bright\BrHTML', 'getInstance'), func_get_args());
   }
 
-  public function isConsoleMode() {
+  public function isConsoleMode()
+  {
     return !isset($_SERVER) || (!array_key_exists('REQUEST_METHOD', $_SERVER));
   }
 
-  public function isJobMode() {
+  public function isJobMode()
+  {
     $result = $this->isConsoleMode();
 
     $this->trigger('checkJobMode', $result);
@@ -1553,19 +1597,23 @@ class BrCore extends BrObject {
     return $result;
   }
 
-  public function isThreadMode() {
+  public function isThreadMode()
+  {
     return $this->threadMode;
   }
 
-  public function setThreadMode() {
+  public function setThreadMode()
+  {
     $this->threadMode = true;
   }
 
-  public function getMicrotime() {
+  public function getMicrotime()
+  {
     return hrtime(true)/1e+9;
   }
 
-  public function placeholder() {
+  public function placeholder()
+  {
     $args = func_get_args();
     $tmpl = array_shift($args);
     $result = $this->placeholderEx($tmpl, $args, $error);
@@ -1576,24 +1624,26 @@ class BrCore extends BrObject {
     }
   }
 
-  public function getUnifiedTimestamp() {
+  public function getUnifiedTimestamp()
+  {
     return (new \DateTime())->format('Y-m-d\TH:i:s.u\Z');
   }
 
-  public function assert($value, $error = null) {
+  public function assert($value, $error = null)
+  {
     if (!$value) {
       throw new BrAppException($error ? $error : 'Assertion error');
     }
   }
 
-  private function placeholderCompile($tmpl) {
+  private function placeholderCompile($tmpl)
+  {
     $compiled  = array();
     $p         = 0;
     $i         = 0;
     $has_named = false;
 
     while (false !== ($start = $p = strpos($tmpl, "?", $p))) {
-
       switch ($c = substr($tmpl, ++$p, 1)) {
         case '&':
         case '%':
@@ -1612,29 +1662,26 @@ class BrCore extends BrObject {
       }
 
       if (preg_match('/^((?:[^\s[:punct:]]|_)+)/', substr($tmpl, $p), $pock)) {
-
         $key = $pock[1];
         if ($type != '#') {
           $has_named = true;
         }
         $p += strlen($key);
-
       } else {
-
         $key = $i;
         if ($type != '#') {
           $i++;
         }
-
       }
 
-      $compiled[] = array($key, $type, $start, $p - $start);
+      $compiled[] = [ $key, $type, $start, $p - $start ];
     }
 
-    return array($compiled, $tmpl, $has_named);
+    return [ $compiled, $tmpl, $has_named ];
   }
 
-  public function placeholderEx($tmpl, $args, &$errormsg) {
+  public function placeholderEx($tmpl, $args, &$errormsg)
+  {
     if (is_array($tmpl)) {
       $compiled = $tmpl;
     } else {
@@ -1652,7 +1699,6 @@ class BrCore extends BrObject {
     $error = false;
 
     foreach ($compiled as $num => $e) {
-
       list ($key, $type, $start, $length) = $e;
 
       $out .= substr($tmpl, $p, $start - $p);
@@ -1662,14 +1708,13 @@ class BrCore extends BrObject {
       $errmsg = '';
 
       do {
-
         if (!isset($args[$key])) {
           $args[$key] = "";
         }
 
         if ($type === '#') {
           $repl = @constant($key);
-          if (NULL === $repl) {
+          if (null === $repl) {
             $error = $errmsg = "UNKNOWN_CONSTANT_$key";
           }
           break;
@@ -1720,7 +1765,7 @@ class BrCore extends BrObject {
         } else
         if ($type === '%') {
           $lerror = array();
-          foreach ($a as $k=>$v) {
+          foreach ($a as $k => $v) {
             if (!is_string($k)) {
               $lerror[$k] = "NOT_A_STRING_KEY_{$k}_FOR_PLACEHOLDER_$key";
             } else {
@@ -1730,7 +1775,7 @@ class BrCore extends BrObject {
           }
           if (count($lerror)) {
             $repl = '';
-            foreach ($a as $k=>$v) {
+            foreach ($a as $k => $v) {
               if (isset($lerror[$k])) {
                 $repl .= ($repl===''? "" : ", ").$lerror[$k];
               } else {
@@ -1741,7 +1786,6 @@ class BrCore extends BrObject {
             $error = $errmsg = $repl;
           }
         }
-
       } while (false);
 
       if ($errmsg) {
@@ -1756,7 +1800,7 @@ class BrCore extends BrObject {
     if ($error) {
       $out = '';
       $p   = 0;
-      foreach ($compiled as $num=>$e) {
+      foreach ($compiled as $num => $e) {
         list ($key, $type, $start, $length) = $e;
         $out .= substr($tmpl, $p, $start - $p);
         $p = $start + $length;
@@ -1775,11 +1819,13 @@ class BrCore extends BrObject {
     }
   }
 
-  public function panic($error = null) {
+  public function panic($error = null)
+  {
     throw new BrAppException($error ? $error : "Critical error");
   }
 
-  public function halt($check, $error = null) {
+  public function halt($check, $error = null)
+  {
     if (!$error) {
       $error = $check;
       $check = false;
@@ -1789,7 +1835,8 @@ class BrCore extends BrObject {
     }
   }
 
-  public function fromJSON($json, $default = null) {
+  public function fromJSON($json, $default = null)
+  {
     $result = json_decode($json, true);
     if (!$result) {
       $result = $default;
@@ -1797,23 +1844,23 @@ class BrCore extends BrObject {
     return $result;
   }
 
-  public function toJSON($data) {
+  public function toJSON($data)
+  {
     return json_encode($data);
   }
 
-  public function defaultConfig() {
-
-  }
-
-  public function html2text($html) {
+  public function html2text($html)
+  {
     return $this->HTML()->toText($html);
   }
 
-  public function text2html($html) {
+  public function text2html($html)
+  {
     return $this->HTML()->fromText($html);
   }
 
-  public function getCommandLineArguments($asString = false) {
+  public function getCommandLineArguments($asString = false)
+  {
     global $argv;
 
     $result = array();
@@ -1831,39 +1878,42 @@ class BrCore extends BrObject {
     }
   }
 
-  public function guid() {
-    return sprintf( '%04x%04x-%04x-%03x4-%04x-%04x%04x%04x'
-                  , mt_rand(0, 65535)
-                  , mt_rand(0, 65535)
-                  , mt_rand(0, 65535)
-                  , mt_rand(0, 4095)
-                  , bindec(substr_replace(sprintf('%016b', mt_rand(0, 65535)), '01', 6, 2))
-                  , mt_rand(0, 65535)
-                  , mt_rand(0, 65535)
-                  , mt_rand(0, 65535)
-                  );
+  public function guid()
+  {
+    return sprintf(
+      '%04x%04x-%04x-%03x4-%04x-%04x%04x%04x',
+      random_int(0, 65535),
+      random_int(0, 65535),
+      random_int(0, 65535),
+      random_int(0, 4095),
+      bindec(substr_replace(sprintf('%016b', random_int(0, 65535)), '01', 6, 2)),
+      random_int(0, 65535),
+      random_int(0, 65535),
+      random_int(0, 65535)
+    );
   }
 
-  public function encryptInt($num) {
-    $rand1 = rand(100, 999);
-    $rand2 = rand(100, 999);
+  public function encryptInt($num)
+  {
+    $rand1 = random_int(100, 999);
+    $rand2 = random_int(100, 999);
     $key1 = ($num + $rand1) * $rand2;
     $key2 = ($num + $rand2) * $rand1;
     $result = $rand1.$rand2.$key1.$key2;
     $rand1_len = chr(ord('A') + strlen($rand1));
     $rand2_len = chr(ord('D') + strlen($rand2));
     $key1_len  = chr(ord('G') + strlen($key1));
-    $rand1_pos = rand(0, floor(strlen($result)/3));
+    $rand1_pos = random_int(0, floor(strlen($result)/3));
     $result1 = substr_replace($result, $rand1_len, $rand1_pos, 0);
-    $rand2_pos = rand($rand1_pos + 1, floor(2*strlen($result1)/3));
+    $rand2_pos = random_int($rand1_pos + 1, floor(2*strlen($result1)/3));
     $result2 = substr_replace($result1, $rand2_len, $rand2_pos, 0);
-    $key1_pos  = rand($rand2_pos + 1, strlen($result2)-1);
-    $result3 = substr_replace($result2, $key1_len, $key1_pos, 0);
+    $key1_pos  = random_int($rand2_pos + 1, strlen($result2)-1);
 
-    return $result3;
+    return  substr_replace($result2, $key1_len, $key1_pos, 0);
   }
 
-  public function decryptInt($num) {
+  public function decryptInt($num)
+  {
     if (preg_match('/([A-Z]).*([A-Z]).*([A-Z])/', $num, $matches)) {
       $rand1_len = ord($matches[1]) - ord('A');
       $rand2_len = ord($matches[2]) - ord('D');
@@ -1880,21 +1930,17 @@ class BrCore extends BrObject {
         $num2 = $key2 / $rand1 - $rand2;
         if ($num1 == $num2) {
           return $num1;
-        } else {
-          return null;
         }
-      } else {
-        return null;
       }
-    } else {
-      return null;
     }
+    return null;
   }
 
-  public function sendMail($emails, $subject, $body, $params = array(), $callback = null) {
+  public function sendMail($emails, $subject, $body, $params = [], $callback = null)
+  {
     if (is_callable($params)) {
       $callback = $params;
-      $params = array();
+      $params = [];
     }
 
     br()->log()->message('Sending mail to ' . br($emails)->join());
@@ -1902,7 +1948,6 @@ class BrCore extends BrObject {
     $message = new \Swift_Message();
 
     if ($emails = br($emails)->split()) {
-
       foreach($emails as $email) {
         $emailsArray = br(trim($email))->split();
         foreach($emailsArray as $oneEMail) {
@@ -1916,7 +1961,6 @@ class BrCore extends BrObject {
         $message->addFrom($from, $fromName);
         $message->addReplyTo($from, $fromName);
       }
-
     }
 
     if (br($params, 'cc')) {
@@ -1975,7 +2019,7 @@ class BrCore extends BrObject {
           $transport->setUsername($username);
           $transport->setPassword($password);
         }
-        if ($secure = br($params, 'secure', br()->config()->get('br/mail/SMTP/secure'))) {
+        if (br($params, 'secure', br()->config()->get('br/mail/SMTP/secure'))) {
           $transport->setEncryption('ssl');
         }
         if ($encryption = br($params, 'secure', br()->config()->get('br/mail/SMTP/encryption'))) {
@@ -1998,7 +2042,8 @@ class BrCore extends BrObject {
     return true;
   }
 
-  public function inc(&$var, $secondVar, $glue = ', ') {
+  public function inc(&$var, $secondVar, $glue = ', ')
+  {
     if (is_integer($var)) {
       $var = $var + $secondVar;
     } else {
@@ -2008,7 +2053,8 @@ class BrCore extends BrObject {
     return $var;
   }
 
-  public function stripSlashes(&$element) {
+  public function stripSlashes(&$element)
+  {
     if (is_array($element)) {
       foreach($element as $key => $value) {
         $this->stripSlashes($element[$key]);
@@ -2020,11 +2066,13 @@ class BrCore extends BrObject {
     return $element;
   }
 
-  public function getContentTypeByExtension($fileName) {
+  public function getContentTypeByExtension($fileName)
+  {
     return br($this->mimeTypes, strtolower(br()->fs()->fileExt($fileName)));
   }
 
-  public function getContentTypeByContent($fileName) {
+  public function getContentTypeByContent($fileName)
+  {
     if (file_exists($fileName)) {
       return br($this->mimeTypes, strtolower(br()->images()->getFormat($fileName)));
     }
@@ -2032,7 +2080,8 @@ class BrCore extends BrObject {
 
   // utils
 
-  public function formatDuration($duration, $params = []) {
+  public function formatDuration($duration, $params = [])
+  {
     $includeSign = br($params, 'includeSign');
     $withUnits = br($params, 'withUnits');
 
@@ -2049,40 +2098,74 @@ class BrCore extends BrObject {
       $secs = $duration - $hrs*60*60 - $mins*60;
     }
     if ($hrs) {
-      return ($includeSign ? ($duration > 0 ? '+' : '') : '') . $hrs . ($withUnits ? ' hrs ' : ':') . str_pad($mins, 2, '0') . ($withUnits ? ' mins ' : ':') . number_format(br()->smartRound($secs, 3), 3) . ($withUnits ? ' secs' : '');
+      return
+        ($includeSign ? ($duration > 0 ? '+' : '') : '') . $hrs .
+        ($withUnits ? ' ' . self::HRS . ' ' : ':') . str_pad($mins, 2, '0') .
+        ($withUnits ? ' ' . self::MINS . ' ' : ':') . number_format(br()->smartRound($secs, 3), 3) .
+        ($withUnits ? ' ' . self::SECS . '' : '');
     }
     if ($mins) {
-      return ($includeSign ? ($duration > 0 ? '+' : '') : '') . $mins . ($withUnits ? ' mins ' : ':') . number_format(br()->smartRound($secs, 3), 3) . ($withUnits ? ' secs' : '');
+      return
+        ($includeSign ? ($duration > 0 ? '+' : '') : '') . $mins .
+        ($withUnits ? ' ' . self::MINS . ' ' : ':') . number_format(br()->smartRound($secs, 3), 3) .
+        ($withUnits ? ' ' . self::SECS . '' : '');
     }
-    return ($includeSign ? ($duration > 0 ? '+' : '') : '') . number_format(br()->smartRound($secs, 3), 3) . ($withUnits ? ' secs' : '');
+    return
+      ($includeSign ? ($duration > 0 ? '+' : '') : '') . number_format(br()->smartRound($secs, 3), 3) .
+      ($withUnits ? ' ' . self::SECS . '' : '');
   }
 
-  public function formatBytes($size, $params = []) {
+  public function formatBytes($size, $params = [])
+  {
     $includeSign = br($params, 'includeSign');
     $compact = br($params, 'compact');
 
     $abs = abs($size);
     if ($abs > 0) {
-      $unit = ($abs < 1024 ? 0 : ($abs < 1024*1024 ? 1 : ($abs < 1024*1024*1024 ? 2 : ($abs < 1024*1024*1024*1024 ? 3 : ($abs < 1024*1024*1024*1024*1024 ? 4 : floor(log($abs, 1024)))))));
-      return ($includeSign ? ($size > 0 ? '+' : '') : '') . ($size < 0 ? '-': '') . @round($abs / pow(1024, $unit), 2) . ($compact ? '' : ' ') . $this->trafficUnits[$unit];
+      $unit =
+        ($abs < 1024 ? 0 :
+          ($abs < 1024*1024 ? 1 :
+            ($abs < 1024*1024*1024 ? 2 :
+              ($abs < 1024*1024*1024*1024 ? 3 :
+                ($abs < 1024*1024*1024*1024*1024 ? 4 :
+                  floor(log($abs, 1024)))))));
+      return
+        ($includeSign ? ($size > 0 ? '+' : '') : '') .
+        ($size < 0 ? '-': '') . @round($abs / pow(1024, $unit), 2) .
+        ($compact ? '' : ' ') .
+        $this->trafficUnits[$unit];
     } else {
       return '0b';
     }
   }
 
-  public function formatDate($format, $datetime = null) {
+  public function formatDate($outputFormat, $datetime = null, $params = [])
+  {
     try {
+      $minYear = br($params, 'minYear');
+      $inputFormat = br($params, 'inputFormat');
       $datetime = ($datetime ? $datetime : 'now');
-      if (!br($datetime)->isNumeric()) {
-        $datetime = preg_replace('/([0-9])((A|P)M)/i', '$1 $2', $datetime);
+      if (($inputFormat == 'us') && !br($datetime)->isNumeric()) {
+        $datetime = str_replace('-', '/', $datetime);
       }
-      return (new \DateTime((br($datetime)->isNumeric() ? '@' : '') . $datetime))->format($format);
+      if (br($datetime)->isNumeric()) {
+        $date = new \DateTime();
+        $date->setTimestamp($datetime);
+      } else {
+        $datetime = preg_replace('/([0-9])((A|P)M)/i', '$1 $2', $datetime);
+        $date = new \DateTime($datetime);
+      }
+      if ($minYear && ($date->format('Y') < $minYear)) {
+        throw new BrAppException('Wrong date: ' . $datetime);
+      }
+      return $date->format($outputFormat);
     } catch (\Exception $e) {
       throw new BrAppException('Wrong date: ' . $datetime);
     }
   }
 
-  public function smartRound($value, $precision = 2) {
+  public function smartRound($value, $precision = 2)
+  {
     $value = round($value, $precision);
 
     if (strpos($value, '.') !== false) {
@@ -2092,15 +2175,18 @@ class BrCore extends BrObject {
     }
   }
 
-  public function formatTraffic($size) {
+  public function formatTraffic($size)
+  {
     return $this->formatBytes($size);
   }
 
-  public function getMemoryUsage() {
+  public function getMemoryUsage()
+  {
     return $this->formatBytes(memory_get_usage(true));
   }
 
-  public function getProcessId() {
+  public function getProcessId()
+  {
     if ($this->processId === null) {
       $this->processId = getmypid();
     }
@@ -2108,7 +2194,8 @@ class BrCore extends BrObject {
     return $this->processId;
   }
 
-  public function trn($phrase = null) {
+  public function trn($phrase = null)
+  {
     $trn = BrTrn::getInstance();
 
     if ($phrase) {
@@ -2118,19 +2205,22 @@ class BrCore extends BrObject {
     }
   }
 
-  public function captureShutdown() {
+  public function captureShutdown()
+  {
     foreach($this->tempFiles as $fileName) {
       @unlink($fileName);
     }
   }
 
-  public function getTempFile($fileName) {
+  public function getTempFile($fileName)
+  {
     $this->tempFiles[] = $this->getTempPath() . $fileName;
 
     return $this->getTempPath() . $fileName;
   }
 
-  public function createTempFile($prefix, $extension = '', $register = true) {
+  public function createTempFile($prefix, $extension = '', $register = true)
+  {
     $fileName = @tempnam($this->getTempPath(), $prefix);
     @chmod($fileName, 0666);
 
@@ -2146,25 +2236,26 @@ class BrCore extends BrObject {
     return $fileName;
   }
 
-  public function closureDump($c) {
+  public function closureDump($c)
+  {
     $str = 'function (';
     $r = new \ReflectionFunction($c);
     $params = array();
     foreach($r->getParameters() as $p) {
-        $s = '';
-        if($p->isArray()) {
-            $s .= 'array ';
-        } else if($p->getClass()) {
-            $s .= $p->getClass()->name . ' ';
-        }
-        if($p->isPassedByReference()){
-            $s .= '&';
-        }
-        $s .= '$' . $p->name;
-        if($p->isOptional()) {
-            $s .= ' = ' . var_export($p->getDefaultValue(), TRUE);
-        }
-        $params []= $s;
+      $s = '';
+      if ($p->isArray()) {
+        $s .= 'array ';
+      } elseif ($p->getClass()) {
+        $s .= $p->getClass()->name . ' ';
+      }
+      if ($p->isPassedByReference()) {
+        $s .= '&';
+      }
+      $s .= '$' . $p->name;
+      if ($p->isOptional()) {
+        $s .= ' = ' . var_export($p->getDefaultValue(), true);
+      }
+      $params []= $s;
     }
     $str .= implode(', ', $params);
     $str .= '){' . PHP_EOL;
@@ -2175,7 +2266,8 @@ class BrCore extends BrObject {
     return $str;
   }
 
-  public function exec($cmd, $whatToReturn = '') {
+  public function exec($cmd, $whatToReturn = '')
+  {
     $tempFile1 = br()->createTempFile('cmd1', '.log');
     $tempFile2 = br()->createTempFile('cmd2', '.log');
 
@@ -2183,13 +2275,9 @@ class BrCore extends BrObject {
 
     br()->log('[EXEC]' . ' ' . $runCmd);
 
-    $line = exec($runCmd, $stdout, $retval);
+    exec($runCmd, $stdout, $retval);
 
-    if ($retval) {
-      br()->log('[EXEC]' . ' Result: ' . $retval);
-    } else {
-      br()->log('[EXEC]' . ' Result: ' . $retval);
-    }
+    br()->log('[EXEC]' . ' Result: ' . $retval);
 
     $log = br()->fs()->loadFromFile($tempFile1);
     $err = br()->fs()->loadFromFile($tempFile2);
@@ -2209,37 +2297,27 @@ class BrCore extends BrObject {
     }
 
     if ($retval) {
-      $error = $err ? $err : ($log ? $log : 'Can not run shell command ' . $cmd);
-      throw new \Bright\BrAppException($error);
+      if ($err) {
+        $error = $err;
+      } else
+      if ($log) {
+        $error = $log;
+      } else {
+        $error = 'Can not run shell command ' . $cmd;
+      }
+      throw new \Exception($error);
     }
 
     return $log;
   }
 
-  public function getErrorSeverityName($severity) {
+  public function getErrorSeverityName($severity)
+  {
     return br($this->severityNames, $severity, 'Error');
   }
 
-  // needs to be removed
-
-  public function setTempPath($value) {
-    // $this->tempPath = rtrim($value, '/') . '/';
+  public function getShortClassName($obj)
+  {
+    return (new \ReflectionClass($obj))->getShortName();
   }
-
-  public function setLogsPath($value) {
-    // $this->logsPath = rtrim($value, '/') . '/';
-  }
-
-  public function callerScript() {
-    return $this->getScriptPath();
-  }
-
-  public function scriptName() {
-    return $this->getScriptName();
-  }
-
-  public function relativePath() {
-    return $this->getRelativePath();
-  }
-
 }

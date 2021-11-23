@@ -10,26 +10,26 @@
 
 namespace Bright;
 
-class BrMongoDBProvider extends BrGenericDBProvider {
-
-  public function __construct($cfg) {
+class BrMongoDBProvider extends BrGenericDBProvider
+{
+  public function __construct($settings)
+  {
     $this->connection = new \Mongo();
-    $this->database = $this->connection->{$cfg['name']};
+    $this->database = $this->connection->{$settings['name']};
   }
 
-  public function connect($iteration = 0, $rerunError = null) {
-
-  }
-
-  public function table($name) {
+  public function table($name)
+  {
     return new BrMongoProviderTable($this, $name);
   }
 
-  public function command($command) {
+  public function command($command)
+  {
     return $this->database->command($command);
   }
 
-  public function rowidValue($row) {
+  public function rowidValue($row)
+  {
     if (is_array($row)) {
       return (string)$row['_id'];
     } else {
@@ -37,7 +37,8 @@ class BrMongoDBProvider extends BrGenericDBProvider {
     }
   }
 
-  public function rowid($row) {
+  public function rowid($row)
+  {
     if (is_array($row)) {
       return $row['_id'];
     } else {
@@ -49,17 +50,18 @@ class BrMongoDBProvider extends BrGenericDBProvider {
     }
   }
 
-  public function rowidField() {
+  public function rowidField()
+  {
     return '_id';
   }
 
-  public function regexpCondition($value) {
-    return new \MongoRegex("/.*".$value.".*/i");
+  public function regexpCondition($value)
+  {
+    return new \MongoRegex("/.*" . $value . ".*/i");
   }
 
-  public function toDateTime($date) {
+  public function toDateTime($date)
+  {
     return new \MongoDate($date);
   }
-
 }
-

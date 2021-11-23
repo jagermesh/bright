@@ -7,22 +7,27 @@
  *
  */
 
-;(function ($, window) {
+;(function($, window) {
 
   window.br = window.br || Object.create({});
 
-  function BrDataSource(restServiceUrl, options) {
-
+  function BrDataSource(restServiceUrl, settings) {
     const _this = this;
 
-    _this.options = options || Object.create({});
-    _this.options.restServiceUrl = restServiceUrl;
-    _this.options.restServiceUrlNormalized = restServiceUrl;
-    _this.options.refreshDelay = _this.options.refreshDelay || 1500;
+    _this.options = Object.assign({}, settings);
 
-    if (!restServiceUrl.match(/[.]json$/) && !restServiceUrl.match(/\/$/)) {
-      _this.options.restServiceUrlNormalized = restServiceUrl + '/';
-    }
+    _this.setApiUrl = function(url) {
+      _this.options.restServiceUrl = url;
+      _this.options.restServiceUrlNormalized = url;
+      _this.options.refreshDelay = _this.options.refreshDelay || 1500;
+
+      if (!url.match(/[.]json$/) && !url.match(/\/$/)) {
+        _this.options.restServiceUrlNormalized = `${url}/`;
+      }
+    };
+
+    _this.setApiUrl(restServiceUrl);
+    _this.options.refreshDelay = _this.options.refreshDelay || 1500;
 
     _this.ajaxRequest = null;
     _this.name = '-';
@@ -30,7 +35,7 @@
 
     _this.events = br.eventQueue(_this);
     _this.before = function(event, callback) { _this.events.before(event, callback); };
-    _this.on     = function(event, callback) { _this.events.on(event, callback); };
+    _this.on = function(event, callback) { _this.events.on(event, callback); };
     _this.after  = function(event, callback) { _this.events.after(event, callback); };
 
     let selectOperationCounter = 0;
@@ -42,56 +47,49 @@
     }
 
     _this.getClientUID = function() {
-
       if (!_this.clientUID) {
-        _this.clientUID = Math.round(Math.random() * 100000);
+        _this.clientUID = br.randomInt();
       }
 
       return _this.clientUID;
-
     };
 
     _this.setClientUID = function(clientUID) {
-
       _this.clientUID = clientUID;
-
     };
 
-
     _this.doingSelect = function() {
-
       return selectOperationCounter > 0;
-
     };
 
     _this.requestInProgress = function() {
-
       return (_this.ajaxRequest !== null);
-
     };
 
     _this.abortRequest = function() {
-
       if (_this.ajaxRequest !== null) {
         _this.ajaxRequest.abort();
       }
 
       return this;
+    };
 
+    const handleError = function(request, options, jqXHR, reject) {
+      if (!br.isUnloading()) {
+        let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+        reject({request: request, options: options, errorMessage: errorMessage});
+      }
     };
 
     _this.insert = function(item, callback, options) {
-
       options = options || Object.create({});
 
       let disableEvents = options && options.disableEvents;
 
       return new Promise(function(resolve, reject) {
-
         let request = item;
 
         try {
-
           if (!disableEvents) {
             _this.events.triggerBefore('request', request, options);
             _this.events.triggerBefore('insert', request, options);
@@ -114,37 +112,34 @@
             request.__clientUID = options.clientUID;
           }
 
-          $.ajax({ type: _this.options.crossdomain ? 'GET' : 'PUT'
-                 , data: request
-                 , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
-                 , url: _this.options.restServiceUrl + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-                 , headers: requestHeaders
-                 , success: function(response) {
-                     let result, errorMessage;
-                     if (response) {
-                       result = true;
-                     } else {
-                       result = false;
-                       errorMessage = 'Empty response. Was expecting new created records with ROWID.';
-                     }
-                     if (result) {
-                       resolve({request: request, options: options, response: response});
-                     } else {
-                       reject({request: request, options: options, errorMessage: errorMessage});
-                     }
-                   }
-                 , error: function(jqXHR, textStatus, errorThrown) {
-                     if (!br.isUnloading()) {
-                       let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                       reject({request: request, options: options, errorMessage: errorMessage});
-                     }
-                   }
-                 });
+          $.ajax({
+            type: _this.options.crossdomain ? 'GET' : 'PUT',
+            data: request,
+            dataType: _this.options.crossdomain ? 'jsonp' : 'json',
+            url: _this.options.restServiceUrl + (_this.options.authToken ? '?token=' + _this.options.authToken : ''),
+            headers: requestHeaders,
+            success: function(response) {
+              let result, errorMessage;
+              if (response) {
+                result = true;
+              } else {
+                result = false;
+                errorMessage = 'Empty response. Was expecting new created records with ROWID.';
+              }
+              if (result) {
+                resolve({request: request, options: options, response: response});
+              } else {
+                reject({request: request, options: options, errorMessage: errorMessage});
+              }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              handleError(request, options, jqXHR, reject);
+            }
+          });
 
         } catch (errorMessage) {
           reject({request: request, options: options, errorMessage: errorMessage});
         }
-
       }).then(function(data) {
         try {
           if (!disableEvents) {
@@ -171,21 +166,17 @@
           throw data;
         }
       });
-
     };
 
     _this.update = function(rowid, item, callback, options) {
-
       options = options || Object.create({});
 
       let disableEvents = options && options.disableEvents;
 
       return new Promise(function(resolve, reject) {
-
         let request = item;
 
         try {
-
           if (!disableEvents) {
             _this.events.triggerBefore('request', request, options);
             _this.events.triggerBefore('update', request, options, rowid);
@@ -208,33 +199,29 @@
             request.__clientUID = options.clientUID;
           }
 
-          $.ajax({ type: _this.options.crossdomain ? 'GET' : 'POST'
-                 , data: request
-                 , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
-                 , url: _this.options.restServiceUrlNormalized + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-                 , headers: requestHeaders
-                 , success: function(response) {
-                     let operation = 'update';
-                     if (response) {
-                       let res = _this.events.trigger('removeAfterUpdate', item, response);
-                       if ((res !== null) && res) {
-                         operation = 'remove';
-                       }
-                     }
-                     resolve({operation: operation, request: request, options: options, response: response});
-                   }
-                 , error: function(jqXHR, textStatus, errorThrown) {
-                     if (!br.isUnloading()) {
-                       let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                       reject({request: request, options: options, errorMessage: errorMessage});
-                     }
-                   }
-                 });
-
+          $.ajax({
+            type: _this.options.crossdomain ? 'GET' : 'POST',
+            data: request,
+            dataType: _this.options.crossdomain ? 'jsonp' : 'json',
+            url: _this.options.restServiceUrlNormalized + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : ''),
+            headers: requestHeaders,
+            success: function(response) {
+              let operation = 'update';
+              if (response) {
+                let res = _this.events.trigger('removeAfterUpdate', item, response);
+                if ((res !== null) && res) {
+                  operation = 'remove';
+                }
+              }
+              resolve({operation: operation, request: request, options: options, response: response});
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              handleError(request, options, jqXHR, reject);
+            }
+          });
         } catch (errorMessage) {
           reject({request: request, options: options, errorMessage: errorMessage});
         }
-
       }).then(function(data) {
         try {
           try {
@@ -271,17 +258,14 @@
     };
 
     _this.remove = function(rowid, callback, options) {
-
       options = options || Object.create({});
 
       let disableEvents = options && options.disableEvents;
 
       return new Promise(function(resolve, reject) {
-
         let request = Object.create({});
 
         try {
-
           if (!disableEvents) {
             _this.events.triggerBefore('request', request, options, rowid);
             _this.events.triggerBefore('remove', request, options, rowid);
@@ -304,26 +288,25 @@
             request.__clientUID = options.clientUID;
           }
 
-          $.ajax({ type: _this.options.crossdomain ? 'GET' : 'DELETE'
-                 , data: request
-                 , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
-                 , url: _this.options.restServiceUrlNormalized + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-                 , headers: requestHeaders
-                 , success: function(response) {
-                     resolve({rowid: rowid, request: request, options: options, response: response});
-                   }
-                 , error: function(jqXHR, textStatus, errorThrown) {
-                     if (!br.isUnloading()) {
-                       let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                       reject({rowid: rowid, request: request, options: options, errorMessage: errorMessage});
-                     }
-                   }
-                 });
-
+          $.ajax({
+            type: _this.options.crossdomain ? 'GET' : 'DELETE',
+            data: request,
+            dataType: _this.options.crossdomain ? 'jsonp' : 'json',
+            url: _this.options.restServiceUrlNormalized + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : ''),
+            headers: requestHeaders,
+            success: function(response) {
+              resolve({rowid: rowid, request: request, options: options, response: response});
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              if (!br.isUnloading()) {
+                let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                reject({rowid: rowid, request: request, options: options, errorMessage: errorMessage});
+              }
+            }
+          });
         } catch (errorMessage) {
           reject({rowid: rowid, request: request, options: options, errorMessage: errorMessage});
         }
-
       }).then(function(data) {
         try {
           if (!disableEvents) {
@@ -354,7 +337,6 @@
     };
 
     _this.selectCount = function(filter, callback, options) {
-
       if (typeof filter == 'function') {
         options = callback;
         callback = filter;
@@ -367,39 +349,32 @@
       }
       newFilter.__result = 'count';
 
-      options = options || {};
-      options.selectCount = true;
+      let requestOptions = Object.assign({ selectCount: true }, options);
 
-      return _this.select(newFilter, callback, options);
-
+      return _this.select(newFilter, callback, requestOptions);
     };
 
     _this.selectOne = function(filter, callback, options) {
-
       if (typeof filter == 'function') {
         options = callback;
         callback = filter;
         filter = Object.create({});
       }
 
-      options = options || Object.create({});
-      options.selectOne = true;
-      options.limit = 1;
+      let requestOptions = Object.assign({ selectOne: true, limit: 1 }, options);
 
       if (!br.isEmpty(filter)) {
         if (br.isNumber(filter)) {
-          return _this.select({ rowid: filter }, callback, options);
+          return _this.select({ rowid: filter }, callback, requestOptions);
         } else {
-          return _this.select(filter, callback, options);
+          return _this.select(filter, callback, requestOptions);
         }
       } else {
-        return _this.select(filter, callback, options);
+        return _this.select(filter, callback, requestOptions);
       }
-
     };
 
     _this.selectDeferred = _this.deferredSelect = function(filter, callback, msec) {
-
       return new Promise(function(resolve, reject) {
         msec = msec || _this.options.refreshDelay;
         let savedFilter = Object.create({});
@@ -425,11 +400,9 @@
         }
         throw data;
       });
-
     };
 
     _this.load = _this.select = function(filter, callback, options) {
-
       if (typeof filter == 'function') {
         options = callback;
         callback = filter;
@@ -585,31 +558,32 @@
             }
           }
 
-          _this.ajaxRequest = $.ajax({ type: 'GET'
-                                     , data: request
-                                     , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
-                                     , url: url + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-                                     , headers: requestHeaders
-                                     , success: function(response) {
-                                         try {
-                                           _this.ajaxRequest = null;
-                                           handleResponse(response);
-                                         } finally {
-                                           selectOperationCounter--;
-                                         }
-                                       }
-                                     , error: function(jqXHR, textStatus, errorThrown) {
-                                         try {
-                                           _this.ajaxRequest = null;
-                                           if (!br.isUnloading()) {
-                                             var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                                             reject({request: request, options: options, errorMessage: errorMessage});
-                                           }
-                                         } finally {
-                                           selectOperationCounter--;
-                                         }
-                                       }
-                                     });
+          _this.ajaxRequest = $.ajax({
+            type: 'GET',
+            data: request,
+            dataType: _this.options.crossdomain ? 'jsonp' : 'json',
+            url: url + (_this.options.authToken ? '?token=' + _this.options.authToken : ''),
+            headers: requestHeaders,
+            success: function(response) {
+              try {
+                _this.ajaxRequest = null;
+                handleResponse(response);
+              } finally {
+                selectOperationCounter--;
+              }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              try {
+                _this.ajaxRequest = null;
+                if (!br.isUnloading()) {
+                  var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                  reject({request: request, options: options, errorMessage: errorMessage});
+                }
+              } finally {
+                selectOperationCounter--;
+              }
+            }
+          });
         } else {
           if (selectCount) {
             handleResponse(0);
@@ -617,7 +591,6 @@
             handleResponse([]);
           }
         }
-
       }).then(function(data) {
         try {
           if (!disableEvents) {
@@ -647,7 +620,6 @@
     };
 
     _this.invoke = function(method, params, callback, options) {
-
       if (typeof params == 'function') {
         options  = callback;
         callback = params;
@@ -664,7 +636,6 @@
       let disableEvents = options && options.disableEvents;
 
       return new Promise(function(resolve, reject) {
-
         let request = params || Object.create({});
 
         if (!disableEvents) {
@@ -690,22 +661,22 @@
           request.__clientUID = options.clientUID;
         }
 
-        $.ajax({ type: _this.options.crossdomain ? 'GET' : 'POST'
-               , data: request
-               , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
-               , url: _this.options.restServiceUrlNormalized + method + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-               , headers: requestHeaders
-               , success: function(response) {
-                   resolve({method: method, request: request, options: options, response: response});
-                 }
-               , error: function(jqXHR, textStatus, errorThrown) {
-                   if (!br.isUnloading()) {
-                     let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                     reject({method: method, request: request, options: options, errorMessage: errorMessage});
-                   }
-                 }
-               });
-
+        $.ajax({
+          type: _this.options.crossdomain ? 'GET' : 'POST',
+          data: request,
+          dataType: _this.options.crossdomain ? 'jsonp' : 'json',
+          url: _this.options.restServiceUrlNormalized + method + (_this.options.authToken ? '?token=' + _this.options.authToken : ''),
+          headers: requestHeaders,
+          success: function(response) {
+            resolve({method: method, request: request, options: options, response: response});
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+            if (!br.isUnloading()) {
+              let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+              reject({method: method, request: request, options: options, errorMessage: errorMessage});
+            }
+          }
+        });
       }).then(function(data) {
         try {
           if (!disableEvents) {
@@ -731,7 +702,6 @@
           throw data;
         }
       });
-
     };
 
   }

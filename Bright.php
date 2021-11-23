@@ -10,4 +10,4 @@
 
 require_once(__DIR__ . '/BrightInit.php');
 
-new \Bright\BrApplication();
+$app = new \Bright\BrApplication();

@@ -10,9 +10,10 @@
 
 namespace Bright;
 
-class BrErrorHandler extends BrObject {
-
-  public function __construct() {
+class BrErrorHandler extends BrObject
+{
+  public function __construct()
+  {
     error_reporting(E_ALL);
 
     set_error_handler([ &$this, 'errorHandler' ]);
@@ -20,19 +21,20 @@ class BrErrorHandler extends BrObject {
     register_shutdown_function([ &$this, 'captureShutdown' ]);
   }
 
-  private function checkLoggers() {
+  private function checkLoggers()
+  {
     if (br()->isConsoleMode()) {
       if (!br()->log()->isAdapterExists('Bright\\BrConsoleLogAdapter')) {
         br()->log()->addAdapter(new BrConsoleLogAdapter());
       }
-    } else {
-      if (!br()->log()->isAdapterExists('Bright\\BrWebLogAdapter')) {
-        br()->log()->addAdapter(new BrWebLogAdapter());
-      }
+    } else
+    if (!br()->log()->isAdapterExists('Bright\\BrWebLogAdapter')) {
+      br()->log()->addAdapter(new BrWebLogAdapter());
     }
   }
 
-  public function handleError($errno, $errmsg, $errfile, $errline, $shutdown = false) {
+  public function handleError($errno, $errmsg, $errfile, $errline, $shutdown = false)
+  {
     if ($this->isEnabled()) {
       if ((error_reporting() & $errno) == $errno) {
         $this->checkLoggers();
@@ -63,7 +65,8 @@ class BrErrorHandler extends BrObject {
     }
   }
 
-  public function captureShutdown() {
+  public function captureShutdown()
+  {
     if ($error = error_get_last()) {
       if ($this->isEnabled()) {
         $errmsg  = $error['message'];
@@ -79,13 +82,14 @@ class BrErrorHandler extends BrObject {
     }
   }
 
-  public function exceptionHandler($e) {
+  public function exceptionHandler($e)
+  {
     if ($this->isEnabled()) {
       try {
         try {
           br()->trigger('br.exception', $e);
         } catch (\Exception $tmp) {
-
+          // skip error in triggering error event
         }
         $this->checkLoggers();
         try {
@@ -94,19 +98,19 @@ class BrErrorHandler extends BrObject {
             br()->response()->displayError($e);
           }
         } catch (\Exception $e2) {
-
+          // skip error in displaying error
         }
         if (br()->isConsoleMode()) {
           exit(1);
         }
       } catch (\Exception $e2) {
-
+        // skip other unexpected errors
       }
     }
   }
 
-  public function errorHandler($errno, $errmsg, $errfile, $errline, $errcontext = null) {
+  public function errorHandler($errno, $errmsg, $errfile, $errline)
+  {
     $this->handleError($errno, $errmsg, $errfile, $errline, false);
   }
-
 }

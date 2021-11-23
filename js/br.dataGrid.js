@@ -7,47 +7,47 @@
  *
  */
 
-;(function ($, window) {
+;(function($, window) {
 
   window.br = window.br || Object.create({});
 
-  function BrDataGrid(selector, rowTemplate, dataSource, options) {
+  function BrDataGrid(containerSelector, rowTemplate, dataSource, settings) {
 
     const _this = this;
 
-    _this.selector = selector;
+    _this.selector = containerSelector;
 
-    _this.options = options || Object.create({});
+    _this.options = Object.assign({}, settings);
 
-    _this.options.templates          = _this.options.templates || Object.create({});
+    _this.options.templates = _this.options.templates || Object.create({});
 
-    _this.options.templates.noData   = _this.options.templates.noData || '.data-empty-template';
+    _this.options.templates.noData = _this.options.templates.noData || '.data-empty-template';
 
-    _this.options.templates.row      = $(rowTemplate).html();
+    _this.options.templates.row = $(rowTemplate).html();
     _this.options.templates.groupRow = _this.options.templates.groupRow ? $(_this.options.templates.groupRow).html() : '';
-    _this.options.templates.header   = _this.options.templates.header   ? $(_this.options.templates.header).html() : '';
-    _this.options.templates.footer   = _this.options.templates.footer   ? $(_this.options.templates.footer).html() : '';
-    _this.options.templates.noData   = _this.options.templates.noData   ? $(_this.options.templates.noData).html() : '';
+    _this.options.templates.header = _this.options.templates.header ? $(_this.options.templates.header).html() : '';
+    _this.options.templates.footer = _this.options.templates.footer ? $(_this.options.templates.footer).html() : '';
+    _this.options.templates.noData = _this.options.templates.noData ? $(_this.options.templates.noData).html() : '';
 
-    _this.options.templates.row      = _this.options.templates.row      || '';
+    _this.options.templates.row = _this.options.templates.row || '';
     _this.options.templates.groupRow = _this.options.templates.groupRow || '';
-    _this.options.templates.header   = _this.options.templates.header   || '';
-    _this.options.templates.footer   = _this.options.templates.footer   || '';
-    _this.options.templates.noData   = _this.options.templates.noData   || '';
+    _this.options.templates.header = _this.options.templates.header || '';
+    _this.options.templates.footer = _this.options.templates.footer || '';
+    _this.options.templates.noData = _this.options.templates.noData || '';
 
-    _this.templates = Object.create({});
+    _this.templates = {};
 
-    _this.templates.row      = _this.options.templates.row.length > 0      ? br.compile(_this.options.templates.row)      : function() { return ''; };
+    _this.templates.row = _this.options.templates.row.length > 0 ? br.compile(_this.options.templates.row) : function() { return ''; };
     _this.templates.groupRow = _this.options.templates.groupRow.length > 0 ? br.compile(_this.options.templates.groupRow) : function() { return ''; };
-    _this.templates.header   = _this.options.templates.header.length > 0   ? br.compile(_this.options.templates.header)   : function() { return ''; };
-    _this.templates.footer   = _this.options.templates.footer.length > 0   ? br.compile(_this.options.templates.footer)   : function() { return ''; };
-    _this.templates.noData   = _this.options.templates.noData.length > 0   ? br.compile(_this.options.templates.noData)   : function() { return ''; };
+    _this.templates.header = _this.options.templates.header.length > 0 ? br.compile(_this.options.templates.header) : function() { return ''; };
+    _this.templates.footer = _this.options.templates.footer.length > 0 ? br.compile(_this.options.templates.footer) : function() { return ''; };
+    _this.templates.noData = _this.options.templates.noData.length > 0 ? br.compile(_this.options.templates.noData) : function() { return ''; };
 
-    _this.options.selectors          = _this.options.selectors || Object.create({});
+    _this.options.selectors = _this.options.selectors || Object.create({});
 
-    _this.options.selectors.header   = _this.options.selectors.header || _this.options.headersSelector || _this.selector;
-    _this.options.selectors.footer   = _this.options.selectors.footer || _this.options.footersSelector || _this.selector;
-    _this.options.selectors.remove   = _this.options.selectors.remove || _this.options.deleteSelector  || '.action-delete';
+    _this.options.selectors.header = _this.options.selectors.header || _this.options.headersSelector || _this.selector;
+    _this.options.selectors.footer = _this.options.selectors.footer || _this.options.footersSelector || _this.selector;
+    _this.options.selectors.remove = _this.options.selectors.remove || _this.options.deleteSelector || '.action-delete';
 
     _this.options.dataSource = dataSource;
 
@@ -60,7 +60,7 @@
     _this.after  = function(event, callback) { _this.events.after(event, callback); };
 
     if (_this.options.fixedHeader) {
-      _this.table = br.table($(_this.selector).closest('table'), options);
+      _this.table = br.table($(_this.selector).closest('table'), settings);
     }
 
     let noMoreData = false;
@@ -416,9 +416,7 @@
     };
 
     _this.loadMore = function(callback) {
-      if (noMoreData || _this.loadingMoreData) {
-
-      } else {
+      if (!(noMoreData || _this.loadingMoreData)) {
         _this.loadingMoreData = true;
         _this.dataSource.select(Object.create({}), function(result, response) {
           if (typeof callback == 'function') { callback.call(_this, result, response); }
@@ -700,17 +698,18 @@
             for (let i = 0, length = data.length; i < length; i++) {
               if (data[i]) {
                 if (br.isArray(group)) {
-                  for (let k = 0, length = group.length; k < length; k++) {
+                  let length = group.length;
+                  for (let k = 0; k < length; k++) {
                     groupFieldName = group[k].fieldName;
                     if (group[k].group && (groupValues[groupFieldName] != data[i][groupFieldName])) {
-                      for(let j = k, length = group.length; j < length; j++) {
+                      for(let j = k; j < length; j++) {
                         groupFieldName = group[j].fieldName;
                         groupValues[groupFieldName] = undefined;
                       }
                       break;
                     }
                   }
-                  for (let k = 0, length = group.length; k < length; k++) {
+                  for (let k = 0; k < length; k++) {
                     groupFieldName = group[k].fieldName;
                     if (group[k].group && (groupValues[groupFieldName] != data[i][groupFieldName])) {
                       groupValues[groupFieldName] = data[i][groupFieldName];

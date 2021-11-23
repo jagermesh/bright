@@ -10,18 +10,20 @@
 
 namespace Bright;
 
-class BrApplication extends BrObject {
+class BrApplication extends BrObject
+{
+  const DEFAULT_SCRIPT_FILE = 'index.php';
 
-  private $renderer;
-
-  public function __construct() {
+  public function __construct()
+  {
     parent::__construct();
 
-    br()->log()->message('Application started', [], 'snapshot');
-    register_shutdown_function([ &$this, 'captureShutdown' ]);
+    br()->log()->message('Application started', [], BrConst::LOG_EVENT_SNAPSHOT);
+
+    register_shutdown_function([&$this, 'captureShutdown']);
 
     if (!br()->isConsoleMode()) {
-      if ($token = br()->request()->param('__loginToken')) {
+      if (br()->request()->param(BrConst::REST_OPTION_LOGIN_TOKEN)) {
         br()->auth()->logout();
       }
 
@@ -35,24 +37,22 @@ class BrApplication extends BrObject {
 
       $asis = br()->atBasePath(br()->request()->relativeUrl() . $scriptName);
 
-      if (preg_match('/[.]htm[l]?$/', $asis)) {
-        if (file_exists($asis)) {
-          br()->renderer()->display($asis);
-          exit();
-        }
+      if (preg_match('/[.]htm[l]?$/', $asis) && file_exists($asis)) {
+        br()->renderer()->display($asis);
+        exit();
       }
 
       if (preg_match('/[.]html$/', $scriptName)) {
-        $scriptName = 'index.php';
+        $scriptName = self::DEFAULT_SCRIPT_FILE;
       }
 
       $targetScripts = [];
       // if script is html - try to find regarding php
       if ($path = br()->request()->relativeUrl()) {
         // as is
-        $targetScripts[] = br()->atBasePath($path.$scriptName);
-        $targetScripts[] = br()->atAppPath($path.$scriptName);
-        while(($path = dirname($path)) != '.') {
+        $targetScripts[] = br()->atBasePath($path . $scriptName);
+        $targetScripts[] = br()->atAppPath($path . $scriptName);
+        while (($path = dirname($path)) != '.') {
           $targetScripts[] = br()->atBasePath($path . '/' . $scriptName);
           $targetScripts[] = br()->atAppPath($path . '/' . $scriptName);
         }
@@ -64,11 +64,11 @@ class BrApplication extends BrObject {
       $targetScripts[] = br()->atAppPath('404.php');
       $targetScripts[] = br()->atBasePath('404.php');
       // run default routing file
-      if ($scriptName != 'index.php') {
-        $targetScripts[] = br()->atAppPath('index.php');
+      if ($scriptName != self::DEFAULT_SCRIPT_FILE) {
+        $targetScripts[] = br()->atAppPath(self::DEFAULT_SCRIPT_FILE);
       }
 
-      foreach($targetScripts as $script) {
+      foreach ($targetScripts as $script) {
         if (br()->fs()->fileExists($script)) {
           br()->log()->message('Controller: ' . $script);
           require_once($script);
@@ -78,8 +78,8 @@ class BrApplication extends BrObject {
     }
   }
 
-  public function captureShutdown() {
-    br()->log()->message('Application finished', [], 'snapshot');
+  public function captureShutdown()
+  {
+    br()->log()->message('Application finished', [], BrConst::LOG_EVENT_SNAPSHOT);
   }
-
 }

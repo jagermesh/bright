@@ -10,11 +10,10 @@
 
 namespace Bright;
 
-class BrDebugFileLogAdapter extends BrGenericFileLogAdapter {
-
-  private $writingHeader = false;
-
-  public function __construct($params = []) {
+class BrDebugFileLogAdapter extends BrGenericFileLogAdapter
+{
+  public function __construct($params = [])
+  {
     if (!is_array($params)) {
       $params = [];
     }
@@ -22,7 +21,8 @@ class BrDebugFileLogAdapter extends BrGenericFileLogAdapter {
     parent::__construct($params);
   }
 
-  public function write($messageOrObject, $params) {
+  public function write($messageOrObject, $params)
+  {
     if ($this->isDebugEventType($params)) {
       $info = $this->getLogInfo($messageOrObject, $params, [ 'snapshot' ]);
       $message = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, true);
@@ -31,5 +31,4 @@ class BrDebugFileLogAdapter extends BrGenericFileLogAdapter {
       $this->writeToLogFile($logMessage, $prefix);
     }
   }
-
 }

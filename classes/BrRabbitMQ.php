@@ -10,13 +10,14 @@
 
 namespace Bright;
 
-class BrRabbitMQ extends BrObject {
-
+class BrRabbitMQ extends BrObject
+{
   private $connection;
   private $channel;
   private $exchanges = [];
 
-  public function connect($params = []) {
+  public function connect($params = [])
+  {
     if (!$this->connection) {
       $this->connection = new \PhpAmqpLib\Connection\AMQPConnection(
         br($params, 'host', 'localhost'),
@@ -33,7 +34,8 @@ class BrRabbitMQ extends BrObject {
     return $this;
   }
 
-  public function createExchange($exchangeName, $type = 'direct', $passive = false, $durable = false, $auto_delete = false) {
+  public function createExchange($exchangeName, $type = 'direct', $passive = false, $durable = false, $auto_delete = false)
+  {
     $this->connect();
     $this->channel->exchange_declare($exchangeName, $type, $passive, $durable, $auto_delete);
     $this->exchanges[] = $exchangeName;
@@ -41,16 +43,18 @@ class BrRabbitMQ extends BrObject {
     return $this;
   }
 
-  public function createQueue($queueName, $a = false, $b = false, $c = true, $d = false) {
+  public function createQueue($queueName, $a = false, $b = false, $c = true, $d = false)
+  {
     $this->connect();
     $this->channel->queue_declare($queueName, $a, $b, $c, $d);
 
     return $this;
   }
 
-  public function sendMessage($exchangeName, $message, $routingKey = null) {
+  public function sendMessage($exchangeName, $message, $routingKey = null)
+  {
     $this->connect();
-    $msg = new \PhpAmqpLib\Message\AMQPMessage( json_encode($message), [
+    $msg = new \PhpAmqpLib\Message\AMQPMessage(json_encode($message), [
       'content_type' => 'application/json',
       'delivery_mode' => 2
     ]);
@@ -62,7 +66,8 @@ class BrRabbitMQ extends BrObject {
     return $this;
   }
 
-  public function receiveOneMessage($exchangeName, $bindingKey, $callback = null, $params = []) {
+  public function receiveOneMessage($exchangeName, $bindingKey, $callback = null, $params = [])
+  {
     if (is_callable($bindingKey)) {
       $params = $callback;
       $callback = $bindingKey;
@@ -70,9 +75,7 @@ class BrRabbitMQ extends BrObject {
     }
 
     $this->connect();
-    if ($queueName = br($params, 'queueName')) {
-
-    } else {
+    if (!($queueName = br($params, 'queueName'))) {
       list($queueName, ,) = $this->channel->queue_declare('', false, false, true, false);
     }
     $consumerTag = br($params, 'consumerTag', 'unknown');
@@ -80,7 +83,7 @@ class BrRabbitMQ extends BrObject {
 
     $aborted = false;
 
-    $this->channel->basic_consume($queueName, $consumerTag, false, false, false, false, function($msg) use ($callback, &$aborted) {
+    $this->channel->basic_consume($queueName, $consumerTag, false, false, false, false, function ($msg) use ($callback, &$aborted) {
       $callback($msg->body);
       $msg->delivery_info['channel']->basic_ack($msg->delivery_info['delivery_tag']);
       $aborted = true;
@@ -95,7 +98,8 @@ class BrRabbitMQ extends BrObject {
     return $this;
   }
 
-  public function receiveMessages($exchangeName, $bindingKey, $callback = null, $params = []) {
+  public function receiveMessages($exchangeName, $bindingKey, $callback = null, $params = [])
+  {
     if (is_callable($bindingKey)) {
       $params = $callback;
       $callback = $bindingKey;
@@ -103,9 +107,7 @@ class BrRabbitMQ extends BrObject {
     }
 
     $this->connect();
-    if ($queueName = br($params, 'queueName')) {
-
-    } else {
+    if (!($queueName = br($params, 'queueName'))) {
       list($queueName, ,) = $this->channel->queue_declare('', false, false, true, false);
     }
     $consumerTag = br($params, 'consumerTag', 'unknown');
@@ -113,7 +115,7 @@ class BrRabbitMQ extends BrObject {
 
     $aborted = false;
 
-    $this->channel->basic_consume($queueName, $consumerTag, false, false, false, false, function($msg) use ($callback, &$aborted) {
+    $this->channel->basic_consume($queueName, $consumerTag, false, false, false, false, function ($msg) use ($callback, &$aborted) {
       $callback($msg->body, $aborted);
       $msg->delivery_info['channel']->basic_ack($msg->delivery_info['delivery_tag']);
     });
@@ -127,7 +129,8 @@ class BrRabbitMQ extends BrObject {
     return $this;
   }
 
-  public function close() {
+  public function close()
+  {
     if ($this->channel) {
       $this->channel->close();
       $this->connection->close();
@@ -137,5 +140,4 @@ class BrRabbitMQ extends BrObject {
 
     return $this;
   }
-
 }

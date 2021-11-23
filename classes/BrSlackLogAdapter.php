@@ -10,31 +10,34 @@
 
 namespace Bright;
 
-class BrSlackLogAdapter extends BrGenericLogAdapter {
-
+class BrSlackLogAdapter extends BrGenericLogAdapter
+{
   private $cache;
   private $cacheInitialized = false;
   private $webHookUrl;
 
-  public function __construct($webHookUrl) {
+  public function __construct($webHookUrl)
+  {
     $this->webHookUrl = $webHookUrl;
 
     parent::__construct();
   }
 
-  private function initCache() {
+  private function initCache()
+  {
     if (!$this->cacheInitialized) {
       try {
         $this->cache = new BrFileCacheProvider();
         $this->cache->setCacheLifeTime(300);
         $this->cacheInitialized = true;
       } catch (\Exception $e) {
-
+        // no luck
       }
     }
   }
 
-  public function write($messageOrObject, $params) {
+  public function write($messageOrObject, $params)
+  {
     if ($this->webHookUrl) {
       if ($this->isErrorEventType($params) || $this->isDebugEventType($params)) {
         if (!(br()->request()->isLocalHost() && !br()->isConsoleMode())) {
@@ -47,7 +50,7 @@ class BrSlackLogAdapter extends BrGenericLogAdapter {
 
             $this->initCache();
 
-            $cacheTag = md5(get_class($this) . '|' . $excerpt);
+            $cacheTag = hash('sha256', get_class($this) . '|' . $excerpt);
             if ($this->cache) {
               if ($this->cache->get($cacheTag)) {
                 return;
@@ -84,11 +87,10 @@ class BrSlackLogAdapter extends BrGenericLogAdapter {
             $client = new \GuzzleHttp\Client();
             $client->request('POST', $this->webHookUrl, $requestParams);
           } catch (\Exception $e) {
-
+            // no luck
           }
         }
       }
     }
   }
-
 }

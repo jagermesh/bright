@@ -10,15 +10,15 @@
 
 namespace Bright;
 
-require_once(dirname(__DIR__) . '/3rdparty/phpQuery/latest/phpQuery.php');
-
-class BrXSS extends BrObject {
-
+class BrXSS extends BrObject
+{
   private $allowedDomains = [
-    'playposit.com', 'vimeo.com', 'youtu.be', 'youtube.com', 'flickr.com', 'soundcloud.com', 'edpuzzle.com', 'docs.google.com', 'drive.google.com'
+    'playposit.com', 'vimeo.com', 'youtu.be', 'youtube.com', 'flickr.com', 'soundcloud.com',
+    'edpuzzle.com', 'docs.google.com', 'drive.google.com'
   ];
 
-  public function cleanUp($html, $callback = null) {
+  public function cleanUp($html, $callback = null)
+  {
     if (is_array($html)) {
       foreach($html as $key => $value) {
         $proceed = true;
@@ -33,6 +33,7 @@ class BrXSS extends BrObject {
       if (br()->HTML()->isHtml($html)) {
         $jsonArray = is_array(@json_decode($html, true));
         if (!$jsonArray) {
+          require_once(dirname(__DIR__) . '/3rdparty/phpQuery/latest/phpQuery.php');
           try {
             $doc = \phpQuery::newDocument($html);
 
@@ -44,15 +45,8 @@ class BrXSS extends BrObject {
               pq($el)->css('position', '');
               if ($attrs = pq($el)->attr('*')) {
                 foreach ($attrs as $name => $value) {
-                  if (stripos($name, 'on') === 0) {
-                    if (strtolower(trim($value)) != 'javascript:;') {
-                      pq($el)->removeAttr($name);
-                    }
-                  } else
-                  if (stripos(trim($value), 'javascript:') === 0) {
-                    if (strtolower(trim($value)) != 'javascript:;') {
-                      pq($el)->removeAttr($name);
-                    }
+                  if (((stripos($name, 'on') === 0) && (strtolower(trim($value)) != 'javascript:;')) || (stripos(trim($value), 'javascript:') === 0)) {
+                    pq($el)->removeAttr($name);
                   }
                 }
               }
@@ -76,7 +70,7 @@ class BrXSS extends BrObject {
               $html = $htmlAfter;
             }
           } catch (\Exception $e) {
-
+            // no luck
           } finally {
             \phpQuery::unloadDocuments();
           }
@@ -86,5 +80,4 @@ class BrXSS extends BrObject {
 
     return $html;
   }
-
 }

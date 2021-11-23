@@ -10,8 +10,8 @@
 
 namespace Bright;
 
-class BrSocketClient extends BrObject {
-
+class BrSocketClient extends BrObject
+{
   const EVENT = 2;
 
   const MESSAGE = 4;
@@ -26,15 +26,14 @@ class BrSocketClient extends BrObject {
   private $connected = false;
   private $connecting = false;
   private $wasEverConnected = false;
-  private $initialConnection = true;
   private $failedToConnect = false;
   private $keepAlive = true;
   private $url;
   private $parsedUrl;
   private $pollingUrl;
-  private $path = '/socket.io/?sid=$sid&EIO=3&transport=websocket';
 
-  public function __construct($url, $params = []) {
+  public function __construct($url, $params = [])
+  {
     $this->url = $url;
     $this->parsedUrl = parse_url($this->url);
     if (!@$this->parsedUrl['scheme']) {
@@ -54,7 +53,8 @@ class BrSocketClient extends BrObject {
     }
   }
 
-  private function maskData($data, $maskKey) {
+  private function maskData($data, $maskKey)
+  {
     $masked = '';
     $data = str_split($data);
     $key = str_split($maskKey);
@@ -65,23 +65,23 @@ class BrSocketClient extends BrObject {
     return $masked;
   }
 
-  private function encodeData($data, $mask = true) {
-    $pack   = '';
+  private function encodeData($data, $mask = true)
+  {
+    $pack = '';
     $length = strlen($data);
 
     if (0xFFFF < $length) {
-      $pack   = pack('NN', ($length & 0xFFFFFFFF00000000) >> 0b100000, $length & 0x00000000FFFFFFFF);
+      $pack = pack('NN', ($length & 0xFFFFFFFF00000000) >> 0b100000, $length & 0x00000000FFFFFFFF);
       $length = 0x007F;
-    } else
-    if (0x007D < $length) {
-      $pack   = pack('n*', $length);
+    } elseif (0x007D < $length) {
+      $pack = pack('n*', $length);
       $length = 0x007E;
     }
 
     $fin = 0b1; // only one frame is necessary
     $rsv = [0b0, 0b0, 0b0]; // rsv1, rsv2, rsv3
 
-    $payload = ($fin     << 0b001) | $rsv[0];
+    $payload = ($fin << 0b001) | $rsv[0];
     $payload = ($payload << 0b001) | $rsv[1];
     $payload = ($payload << 0b001) | $rsv[2];
     $payload = ($payload << 0b100) | self::OPCODE_TEXT;
@@ -99,11 +99,13 @@ class BrSocketClient extends BrObject {
     return $payload . $data;
   }
 
-  public function emit($event, array $args) {
+  public function emit($event, array $args)
+  {
     return $this->write(self::MESSAGE, self::EVENT . json_encode([$event, $args]));
   }
 
-  private function write($code, $message = null) {
+  private function write($code, $message = null)
+  {
     if (!$this->socket) {
       $this->connect();
     }
@@ -112,15 +114,20 @@ class BrSocketClient extends BrObject {
     if (!$result) {
       $this->socket = null;
       $this->connected = false;
-      throw new \Exception('Socket connection broken');
+      throw new BrSocketConnectionException('Socket connection broken');
+    }
+    return true;
+  }
+
+  private function flush()
+  {
+    while (trim(fgets($this->socket))) {
+      // fake
     }
   }
 
-  private function flush() {
-    while (trim(fgets($this->socket)));
-  }
-
-  public function connect() {
+  public function connect()
+  {
     if ($this->connected || $this->connecting) {
       return;
     }
@@ -134,13 +141,13 @@ class BrSocketClient extends BrObject {
         $errorString = null;
 
         $timeout = $this->wasEverConnected ? self::RECONNECT_TIMEOUT : self::CONNECT_TIMEOUT;
-        $context     = [ 'http' => [ 'timeout' => $timeout ] ];
+        $context = ['http' => ['timeout' => $timeout]];
 
-        $pollingUrl = $this->pollingUrl . '/socket.io/?use_b64=0&EIO=3&transport=polling';
-        $result = @file_get_contents($pollingUrl, false, stream_context_create($context));
+        $workingPollingUrl = $this->pollingUrl . '/socket.io/?use_b64=0&EIO=3&transport=polling';
+        $result = @file_get_contents($workingPollingUrl, false, stream_context_create($context));
 
         if (!$result) {
-          throw new \Exception($pollingUrl . ': failed to open stream: Connection refused');
+          throw new BrSocketConnectionException($workingPollingUrl . ': failed to open stream: Connection refused');
         }
 
         $cookies = [];
@@ -150,7 +157,7 @@ class BrSocketClient extends BrObject {
           }
         }
 
-        $start   = strpos($result, '{');
+        $start = strpos($result, '{');
         $encoded = substr($result, $start, strrpos($result, '}') - $start + 1);
         $decoded = json_decode($encoded, true);
 
@@ -159,17 +166,17 @@ class BrSocketClient extends BrObject {
         $this->socket = stream_socket_client($this->socketUrl, $errorNumber, $errorString, $timeout, STREAM_CLIENT_CONNECT, stream_context_create($context));
 
         if ($this->socket) {
-          $hash = sha1(uniqid(mt_rand(), true), true);
+          $hash = hash('sha256', uniqid(random_int(0, PHP_INT_MAX), true));
           $hash = substr($hash, 0, 16);
           $key = base64_encode($hash);
 
           $request = 'GET /socket.io/?sid=' . $sid . '&EIO=3&transport=websocket HTTP/1.1' . "\r\n" .
-                     'Host: ' . $this->socketUrl . "\r\n" .
-                     'Upgrade: WebSocket' . "\r\n" .
-                     'Connection: Upgrade' . "\r\n" .
-                     'Sec-WebSocket-Key: ' . $key . "\r\n"  .
-                     'Sec-WebSocket-Version: 13' . "\r\n" .
-                     'Origin: *' . "\r\n";
+            'Host: ' . $this->socketUrl . "\r\n" .
+            'Upgrade: WebSocket' . "\r\n" .
+            'Connection: Upgrade' . "\r\n" .
+            'Sec-WebSocket-Key: ' . $key . "\r\n" .
+            'Sec-WebSocket-Version: 13' . "\r\n" .
+            'Origin: *' . "\r\n";
 
           if ($cookies) {
             $request .= 'Cookie: ' . implode('; ', $cookies) . "\r\n";
@@ -182,7 +189,7 @@ class BrSocketClient extends BrObject {
           $result = fread($this->socket, 12);
 
           if ($result != 'HTTP/1.1 101') {
-            throw new \Exception('Unexpected server response. Expected "HTTP/1.1 101", Received "' . $result . '"');
+            throw new BrSocketConnectionException('Unexpected server response. Expected "HTTP/1.1 101", Received "' . $result . '"');
           }
 
           $this->flush();
@@ -194,7 +201,7 @@ class BrSocketClient extends BrObject {
           $this->connected = true;
           $this->wasEverConnected = true;
         } else {
-          new \Exception('Can not connect to socket: ' . $errorString . "(" . $errorNumber . ")");
+          throw new BrSocketConnectionException('Can not connect to socket: ' . $errorString . "(" . $errorNumber . ")");
         }
       } catch (\Exception $e) {
         $this->failedToConnect = true;
@@ -205,7 +212,8 @@ class BrSocketClient extends BrObject {
     }
   }
 
-  public function disconnect() {
+  public function disconnect()
+  {
     if ($this->socket) {
       @fclose($this->socket);
       $this->socket = null;
@@ -214,8 +222,8 @@ class BrSocketClient extends BrObject {
     }
   }
 
-  public function isConnected() {
+  public function isConnected()
+  {
     return $this->connected;
   }
-
 }

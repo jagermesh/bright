@@ -10,17 +10,22 @@
 
 namespace Bright;
 
-class BrPlaceholder extends BrObject {
-
-  static function format() {
+class BrPlaceholder extends BrObject
+{
+  /**
+   * @throws BrAppException
+   */
+  public static function format(): string
+  {
     return self::formatEx(func_get_args());
   }
 
-  static function formatEx($args) {
-    $result            = '';
-    $template          = array_shift($args);
-    $placeholders      = preg_split('~([?][@&%#nsiuap]?)~u', $template, null, PREG_SPLIT_DELIM_CAPTURE);
-    $argsCount         = count($args);
+  public static function formatEx($args): string
+  {
+    $result = '';
+    $template = array_shift($args);
+    $placeholders = preg_split('~([?][@&%#nsiuap]?)~u', $template, null, PREG_SPLIT_DELIM_CAPTURE);
+    $argsCount = count($args);
     $placeholdersCount = floor(count($placeholders) / 2);
 
     if ($argsCount != $placeholdersCount) {
@@ -31,27 +36,27 @@ class BrPlaceholder extends BrObject {
           $result .= $placeholder;
           continue;
         }
-        $value = array_shift($args);
+        $rawValue = array_shift($args);
         switch ($placeholder) {
           case '?n':
-            $value = self::formatNumeric($value);
+            $value = self::formatNumeric($rawValue);
             break;
           case '?i':
-            $value = self::formatInteger($value);
+            $value = self::formatInteger($rawValue);
             break;
           case '?a':
           case '?@':
-            $value = self::formatArray($value);
+            $value = self::formatArray($rawValue);
             break;
           case '?u':
-            $value = self::formatSet($value);
+            $value = self::formatSet($rawValue);
             break;
           case '?p':
-            $value = $value;
+            $value = $rawValue;
             break;
           case '?s':
           default:
-            $value = self::formatString($value);
+            $value = self::formatString($rawValue);
             break;
         }
         $result .= $value;
@@ -60,8 +65,12 @@ class BrPlaceholder extends BrObject {
     }
   }
 
-  static function formatInteger($value) {
-    if ($value === NULL) {
+  /**
+   * @throws BrAppException
+   */
+  private static function formatInteger($value)
+  {
+    if ($value === null) {
       $value = 'NULL';
     } else
     if (is_numeric($value)) {
@@ -76,8 +85,12 @@ class BrPlaceholder extends BrObject {
     return $value;
   }
 
-  static function formatNumeric($value) {
-    if ($value === NULL) {
+  /**
+   * @throws BrAppException
+   */
+  private static function formatNumeric($value)
+  {
+    if ($value === null) {
       $value = 'NULL';
     } else
     if (is_numeric($value)) {
@@ -89,15 +102,20 @@ class BrPlaceholder extends BrObject {
     return $value;
   }
 
-  static function formatString($value) {
-    if ($value === NULL) {
+  private static function formatString($value): string
+  {
+    if ($value === null) {
       return 'NULL';
     } else {
       return  "'" . addslashes($value) . "'";
     }
   }
 
-  static function formatArray($value) {
+  /**
+   * @throws BrAppException
+   */
+  private static function formatArray($value): string
+  {
     if (!$value) {
       return 'NULL';
     } else
@@ -112,5 +130,4 @@ class BrPlaceholder extends BrObject {
       throw new BrAppException('Value for IN (?a) placeholder should be array');
     }
   }
-
 }

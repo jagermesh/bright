@@ -10,15 +10,16 @@
 
 namespace Bright;
 
-class BrS3FileUploadHandler extends BrGenericUploadHandler {
-
+class BrS3FileUploadHandler extends BrGenericUploadHandler
+{
   /**
    * Save the file to the specified path
    * @return boolean TRUE on success
    */
-  public function save($srcFilePath, $path) {
+  public function save($srcFilePath, $path)
+  {
     $dstFileName = br()->fs()->normalizeFileName(br()->fs()->fileName($this->getFileName()));
-    $dstFilePath = '/' . rtrim(ltrim($path, '/'), '/') . '/' . md5_file($srcFilePath) . '/' . $dstFileName;
+    $dstFilePath = '/' . rtrim(ltrim($path, '/'), '/') . '/' . hash_file('sha256', $srcFilePath) . '/' . $dstFileName;
     $url = br()->AWS()->uploadFile($srcFilePath, $this->options['bucketName'] . $dstFilePath);
     return [
       'fileName' => $dstFileName,
@@ -26,5 +27,4 @@ class BrS3FileUploadHandler extends BrGenericUploadHandler {
       'href' => $url
     ];
   }
-
 }

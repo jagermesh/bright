@@ -10,8 +10,8 @@
 
 namespace Bright;
 
-class BrTelegramLogAdapter extends BrGenericLogAdapter {
-
+class BrTelegramLogAdapter extends BrGenericLogAdapter
+{
   private $cache;
   private $cacheInitialized = false;
   private $apiKey;
@@ -19,7 +19,8 @@ class BrTelegramLogAdapter extends BrGenericLogAdapter {
   private $chatIds;
   private $telegram;
 
-  public function __construct($apiKey, $username, $chatIds) {
+  public function __construct($apiKey, $username, $chatIds)
+  {
     $this->apiKey = $apiKey;
     $this->username = $username;
     $this->chatIds = br($chatIds)->split();
@@ -29,19 +30,21 @@ class BrTelegramLogAdapter extends BrGenericLogAdapter {
     parent::__construct();
   }
 
-  private function initCache() {
+  private function initCache()
+  {
     if (!$this->cacheInitialized) {
       try {
         $this->cache = new BrFileCacheProvider();
         $this->cache->setCacheLifeTime(300);
         $this->cacheInitialized = true;
       } catch (\Exception $e) {
-
+        // no luck
       }
     }
   }
 
-  public function write($messageOrObject, $params) {
+  public function write($messageOrObject, $params)
+  {
     if ($this->apiKey && $this->username && $this->chatIds) {
       if ($this->isErrorEventType($params) || $this->isDebugEventType($params)) {
         if (!(br()->request()->isLocalHost() && !br()->isConsoleMode())) {
@@ -54,7 +57,7 @@ class BrTelegramLogAdapter extends BrGenericLogAdapter {
 
             $this->initCache();
 
-            $cacheTag = md5(get_class($this) . '|' . $excerpt);
+            $cacheTag = hash('sha256', get_class($this) . '|' . $excerpt);
             if ($this->cache) {
               if ($this->cache->get($cacheTag)) {
                 return;
@@ -64,29 +67,27 @@ class BrTelegramLogAdapter extends BrGenericLogAdapter {
 
             if ($this->isErrorEventType($params)) {
               $subject = 'Error report: ' . $excerpt;
-            } else
-            if ($this->isDebugEventType($params)) {
+            } elseif ($this->isDebugEventType($params)) {
               $subject = 'Debug message: ' . $excerpt;
             }
 
-            $info = $this->getLogInfo($messageOrObject, $params, [ 'snapshot' ]);
+            $info = $this->getLogInfo($messageOrObject, $params, ['snapshot']);
             $message = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, true);
 
-            foreach($this->chatIds as $chatId) {
+            foreach ($this->chatIds as $chatId) {
               $payload = [
                 'chat_id' => $chatId,
                 'text' => '*' . $subject . '*' . "\n" .
-                json_encode($info, JSON_PRETTY_PRINT) .
-                $message,
+                  json_encode($info, JSON_PRETTY_PRINT) .
+                  $message,
               ];
               \Longman\TelegramBot\Request::sendMessage($payload);
             }
           } catch (\Exception $e) {
-
+            // no luck
           }
         }
       }
     }
   }
-
 }

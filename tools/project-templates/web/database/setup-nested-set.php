@@ -2,7 +2,9 @@
 
 require_once(dirname(__DIR__) . '/vendor/jagermesh/bright/Bright.php');
 
-if (!br()->isConsoleMode()) { br()->panic('Console mode only'); }
+if (!br()->isConsoleMode()) {
+  br()->panic('Console mode only');
+}
 $handle = br()->OS()->lockIfRunning(br()->getScriptPath());
 
 $tableName = br()->cmd()->getParam(1);
@@ -14,7 +16,8 @@ if (!$tableName) {
 }
 
 if ($showHelp) {
-  br()->log()->message('Usage: php ' . basename(__FILE__) . ' tableName [--createStructure] [--nameField=name] [--rangeField=] [--orderField=name] [--parentField=parent_id]');
+  br()->log()->message('Usage: php ' . basename(__FILE__) .
+    ' tableName [--createStructure] [--nameField=name] [--rangeField=] [--orderField=name] [--parentField=parent_id]');
   exit();
 }
 

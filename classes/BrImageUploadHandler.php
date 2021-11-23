@@ -10,9 +10,10 @@
 
 namespace Bright;
 
-class BrImageUploadHandler extends BrFileUploadHandler {
-
-  public function __construct($options = []) {
+class BrImageUploadHandler extends BrFileUploadHandler
+{
+  public function __construct($options = [])
+  {
     $options['allowedExtensions'] = [ 'jpeg', 'jpg', 'gif', 'png', 'svg' ];
 
     parent::__construct($options);
@@ -22,7 +23,8 @@ class BrImageUploadHandler extends BrFileUploadHandler {
    * Save the file to the specified path
    * @return boolean TRUE on success
    */
-  public function save($srcFilePath, $path) {
+  public function save($srcFilePath, $path)
+  {
     if ($result = parent::save($srcFilePath, $path)) {
       if (br()->request()->get('tw') && br()->request()->get('th')) {
         $result['thumbnail'] = br()->images()->generateThumbnail($result['internal']['filePath'], br()->request()->get('tw'), br()->request()->get('th'));
@@ -31,6 +33,4 @@ class BrImageUploadHandler extends BrFileUploadHandler {
 
     return $result;
   }
-
 }
-

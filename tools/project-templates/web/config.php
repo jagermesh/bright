@@ -27,16 +27,9 @@ br()->auth()->setAttr('usersAPI.insert', 'anyone');
 br()->auth()->setAttr('usersAPI.remove', 'anyone');
 br()->auth()->setAttr('usersAPI.update', 'anyone');
 
-// globals
-br()->config()->set('br/tempPath', __DIR__ . '/_tmp/' . (br()->isConsoleMode() ? 'console/' : 'web/') . (br()->config()->get('br/db') ? strtolower(br()->config()->get('br/db')['name']) . '/' : ''));
-
 // loggers
-br()->config()->set('Logger/File/LogsFolder', __DIR__ . '/_logs/' . (br()->isConsoleMode() ? 'console/' : 'web/') . (br()->config()->get('br/db') ? strtolower(br()->config()->get('br/db')['name']) . '/' : ''));
-br()->config()->set('Logger/File/Active', true);
+br()->config()->set(\Bright\BrConst::CONFIG_OPTION_LOGGER_FILE_ACTIVE, true);
 
-br()->auth()->on('setLogin', function($auth, &$login) {
-
-  $usersDataSource = new \DataSources\UsersDataSource();
-  $login = $usersDataSource->selectOne($login['id']);
-
+br()->auth()->on('setLogin', function ($auth, &$login) {
+  $login = \DataSources\UsersDataSource::getInstance()->selectOne($login['id']);
 });

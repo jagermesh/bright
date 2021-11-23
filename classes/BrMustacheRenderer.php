@@ -10,22 +10,25 @@
 
 namespace Bright;
 
-class BrMustacheRenderer extends BrGenericRenderer {
-
+class BrMustacheRenderer extends BrGenericRenderer
+{
   private $mustache;
 
-  public function __construct() {
+  public function __construct()
+  {
     parent::__construct();
+
     $this->resetEngine();
   }
 
-  protected function render($template, $variables) {
+  protected function render($template, $variables)
+  {
     return $this->mustache->render($template, $variables);
   }
 
-  public function resetEngine() {
+  public function resetEngine()
+  {
     $this->mustache = null;
     $this->mustache = new \Mustache_Engine([ 'delimiters' => br($this->params, 'delimiters', '[[ ]]') ]);
   }
-
 }

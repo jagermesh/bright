@@ -10,18 +10,20 @@
 
 namespace Bright;
 
-class BrImages extends BrObject {
-
-  public function isValid($path) {
+class BrImages extends BrObject
+{
+  public function isValid($path)
+  {
     try {
-      new BrImage($path);
-      return true;
+      $image = new BrImage($path);
+      return is_object($image);
     } catch (\Exception $e) {
       return false;
     }
   }
 
-  public function getFormat($path) {
+  public function getFormat($path)
+  {
     try {
       $image = new BrImage($path);
       return $image->format();
@@ -30,7 +32,8 @@ class BrImages extends BrObject {
     }
   }
 
-  public function getHeight($path) {
+  public function getHeight($path)
+  {
     try {
       $image = new BrImage($path);
       return $image->height();
@@ -39,7 +42,8 @@ class BrImages extends BrObject {
     }
   }
 
-  public function getWidth($path) {
+  public function getWidth($path)
+  {
     try {
       $image = new BrImage($path);
       return $image->width();
@@ -48,14 +52,15 @@ class BrImages extends BrObject {
     }
   }
 
-  public function generateThumbnails($src, $thumbnails = null) {
+  public function generateThumbnails($src, $thumbnails = null)
+  {
     $result = [];
 
     if ($thumbnails) {
       if (!is_array($thumbnails)) {
         $dimensions = preg_split('~[,;]~', $thumbnails);
         $thumbnails = [];
-        foreach($dimensions as $dimension) {
+        foreach ($dimensions as $dimension) {
           $dimension = trim($dimension);
           if (preg_match('~([0-9]+)x([0-9]+)~i', $dimension, $matches)) {
             $thumbnails[$dimension] = [
@@ -66,7 +71,7 @@ class BrImages extends BrObject {
         }
       }
 
-      foreach($thumbnails as $thumbnail_code => $thumbnail_desc) {
+      foreach ($thumbnails as $thumbnail_desc) {
         $result[] = $this->generateThumbnail($src, $thumbnail_desc['width'], $thumbnail_desc['height']);
       }
     }
@@ -74,7 +79,8 @@ class BrImages extends BrObject {
     return $result;
   }
 
-  public function generateThumbnail($src, $w, $h, $relativePath = null) {
+  public function generateThumbnail($src, $w, $h, $relativePath = null)
+  {
     $path = $src;
 
     if (!preg_match('~^/~', $path) && !preg_match('~[A-Z]:\\\~', $path)) {
@@ -100,7 +106,7 @@ class BrImages extends BrObject {
 
     br()->fs()->makeDir($dstPath);
 
-    $dstPath .= '/'.$pathinfo['basename'];
+    $dstPath .= '/' . $pathinfo['basename'];
 
     if (file_exists($dstPath)) {
       return $dst;
@@ -113,5 +119,4 @@ class BrImages extends BrObject {
       return $dst;
     }
   }
-
 }

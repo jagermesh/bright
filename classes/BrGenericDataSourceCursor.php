@@ -10,13 +10,14 @@
 
 namespace Bright;
 
-class BrGenericDataSourceCursor implements Iterator {
-
+class BrGenericDataSourceCursor implements Iterator
+{
   private $dataSource;
   private $data;
   private $position;
 
-  public function __construct(&$dataSource, $data) {
+  public function __construct(&$dataSource, $data)
+  {
     $this->dataSource = $dataSource;
     $this->data = [];
     foreach($data as $row) {
@@ -25,24 +26,28 @@ class BrGenericDataSourceCursor implements Iterator {
     $this->position = 0;
   }
 
-  public function current() {
+  public function current()
+  {
     return $this->data[$this->position];
   }
 
-  public function key() {
+  public function key(): int
+  {
     return $this->position;
   }
 
-  public function next() {
+  public function next()
+  {
     ++$this->position;
   }
 
-  public function rewind() {
+  public function rewind()
+  {
     $this->position = 0;
   }
 
-  public function valid() {
+  public function valid(): bool
+  {
     return isset($this->data[$this->position]);
   }
-
 }

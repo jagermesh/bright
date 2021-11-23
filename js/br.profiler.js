@@ -16,7 +16,6 @@
   function BrProfiler() {
 
     function stopwatch() {
-
       this.start_time = 0;
       this.stop_time = 0;
       this.run_time = 0;
@@ -42,11 +41,9 @@
       };
 
       return this;
-
     }
 
     function buffer(size) {
-
       this.arr = new Int32Array(size);
       this.begin = 0;
       this.end = -1;
@@ -74,11 +71,10 @@
       };
 
       return this;
-
     }
 
-    var count_frames = 0;
-    var ringbuff = new buffer(20);
+    let count_frames = 0;
+    let ringbuff = new buffer(20);
 
     this.fps = 0.0;
     this.timers = [];
@@ -90,46 +86,44 @@
 
     this.new_frame = function() {
       ++count_frames;
-      var i = 0;
-      var n = this.timers.length | 0;
-      for(i = 0; i < n; ++i) {
-          var sw = this.timers[i][1];
+      let n = this.timers.length | 0;
+      for (let i = 0; i < n; ++i) {
+          let sw = this.timers[i][1];
           sw.reset();
       }
 
-      if(count_frames >= 1) {
-          this.frame_timer.stop();
-          ringbuff.push_back(this.frame_timer.get_runtime());
-          var size = ringbuff.size();
-          var sum = 0;
-          for(i = 0; i < size; ++i) {
-              sum += ringbuff.get(i);
-          }
-          this.fps = size / sum * 1000;
-          this.frame_timer.start();
+      if (count_frames >= 1) {
+        this.frame_timer.stop();
+        ringbuff.push_back(this.frame_timer.get_runtime());
+        let size = ringbuff.size();
+        let sum = 0;
+        for (let i = 0; i < size; ++i) {
+          sum += ringbuff.get(i);
+        }
+        this.fps = size / sum * 1000;
+        this.frame_timer.start();
       }
     };
 
     this.find_task = function(subj) {
-      var n = this.timers.length | 0;
-      var i = 0;
-      for(i = 0; i < n; ++i) {
-          var pair = this.timers[i];
-          if(pair[0] === subj) {
-              return pair;
-          }
+      let n = this.timers.length | 0;
+      for (let i = 0; i < n; ++i) {
+        let pair = this.timers[i];
+        if (pair[0] === subj) {
+          return pair;
+        }
       }
       this.add(subj);
       return this.find_task(subj);
     };
 
     this.start = function(subj) {
-      var task = this.find_task(subj);
+      let task = this.find_task(subj);
       task[1].start();
     };
 
     this.stop = function(subj, printToConsole) {
-      var task = this.find_task(subj);
+      let task = this.find_task(subj);
       task[1].stop();
       if (printToConsole) {
         br.log(task[0] + ": " + task[1].get_runtime() + "ms");
@@ -137,14 +131,13 @@
     };
 
     this.log = function(printToConsole) {
-      var n = this.timers.length | 0;
-      var i = 0;
-      var str = "<strong>FPS: " + this.fps.toFixed(2) + "</strong>";
-      var str2 = "FPS: " + this.fps.toFixed(2);
-      for(i = 0; i < n; ++i) {
-          var pair = this.timers[i];
-          str += "<br/>" + pair[0] + ": " + pair[1].get_runtime() + "ms";
-          str2 += ", " + pair[0] + ": " + pair[1].get_runtime() + "ms";
+      let n = this.timers.length | 0;
+      let str = "<strong>FPS: " + this.fps.toFixed(2) + "</strong>";
+      let str2 = "FPS: " + this.fps.toFixed(2);
+      for(let i = 0; i < n; ++i) {
+        let pair = this.timers[i];
+        str += "<br/>" + pair[0] + ": " + pair[1].get_runtime() + "ms";
+        str2 += ", " + pair[0] + ": " + pair[1].get_runtime() + "ms";
       }
       if (printToConsole) {
         br.log(str2);
@@ -153,7 +146,6 @@
     };
 
     return this;
-
   }
 
   let profiler;

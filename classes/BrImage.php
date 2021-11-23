@@ -10,23 +10,14 @@
 
 namespace Bright;
 
-class BrImage extends BrObject {
-
+class BrImage extends BrObject
+{
   private $filePath;
   private $image;
   private $format;
-  private $dpi;
 
-  public function imageLibSupported() {
-
-    return ((function_exists('ImageCreateFromGIF')) &&
-            (function_exists('ImageCreateFromJPEG')) &&
-            (function_exists('ImageCreateFromPNG')));
-
-  }
-
-  public function __construct($path) {
-
+  public function __construct($path)
+  {
     $this->image = null;
 
     $oldErrorReporting = error_reporting();
@@ -50,10 +41,10 @@ class BrImage extends BrObject {
             $this->format = 'gif';
           }
           break;
+        default:
+          break;
       }
-      if ($this->image) {
-
-      } else {
+      if (!$this->image) {
         $this->image = @ImageCreateFromPNG($path);
         if ($this->image) {
           $this->format = 'png';
@@ -70,55 +61,56 @@ class BrImage extends BrObject {
         }
       }
     } else {
-      throw new \Exception('It seems GD is not installed.');
+      throw new BrImageException('It seems GD is not installed.');
     }
 
     if ($this->image) {
       $this->width = imagesx($this->image);
       $this->height = imagesy($this->image);
     } else {
-      throw new \Exception($path . ' is not valid image file.');
+      throw new BrImageException($path . ' is not valid image file.');
     }
 
     $this->filePath = $path;
 
     error_reporting($oldErrorReporting);
-
   }
 
-  public function image() {
+  public function imageLibSupported()
+  {
+    return (
+      function_exists('ImageCreateFromGIF') &&
+      function_exists('ImageCreateFromJPEG') &&
+      function_exists('ImageCreateFromPNG')
+    );
+  }
 
+  public function image()
+  {
     return $this->image;
-
   }
 
-  public function format() {
-
+  public function format()
+  {
     return $this->format;
-
   }
 
-  public function width() {
-
+  public function width()
+  {
     return $this->width;
-
   }
 
-  public function height() {
-
+  public function height()
+  {
     return $this->height;
-
   }
 
-  public function generateThumbnail($w, $h, $dstPath) {
-
+  public function generateThumbnail($w, $h, $dstPath)
+  {
     $cw = $this->width();
     $ch = $this->height();
 
-    $format = $this->format();
-    $image = $this->image();
-
-    if ($cw > $w) {
+    if (($cw > $w) || ($ch <= $h)) {
       $new_width = $w;
       $new_height = round($ch * ($new_width * 100 / $cw) / 100);
 
@@ -137,15 +129,6 @@ class BrImage extends BrObject {
         $new_width = $w;
         $new_height = round($new_height * ($new_width * 100 / $new_width_before) / 100);
       }
-    } else {
-      $new_width = $w;
-      $new_height = round($ch * ($new_width * 100 / $cw) / 100);
-
-      if ($new_height > $h) {
-        $new_height_before = $new_height;
-        $new_height = $h;
-        $new_width = round($new_width * ($new_height * 100 / $new_height_before) / 100);
-      }
     }
 
     if (function_exists('ImageCreateTrueColor')) {
@@ -155,39 +138,19 @@ class BrImage extends BrObject {
     }
 
     if (function_exists('imagecopyresampled')) {
-      if (($format == 'png') || ($format == 'gif')) {
+      if (($this->format() == 'png') || ($this->format() == 'gif')) {
         imagecolortransparent($new_image, imagecolorallocatealpha($new_image, 0, 0, 0, 127));
       } else {
         imagecolortransparent($new_image, imagecolorallocate($new_image, 0, 0, 0));
       }
       imagealphablending($new_image, false);
       imagesavealpha($new_image, true);
-      @imagecopyresampled ( $new_image
-                          , $image
-                          , 0
-                          , 0
-                          , 0
-                          , 0
-                          , $new_width
-                          , $new_height
-                          , $cw
-                          , $ch
-                          );
+      @imagecopyresampled($new_image, $this->image(), 0, 0, 0, 0, $new_width, $new_height, $cw, $ch);
     } else {
-      @imagecopyresized ( $new_image
-                        , $image
-                        , 0
-                        , 0
-                        , 0
-                        , 0
-                        , $new_width
-                        , $new_height
-                        , $cw
-                        , $ch
-                        );
+      @imagecopyresized($new_image, $this->image(), 0, 0, 0, 0, $new_width, $new_height, $cw, $ch);
     }
 
-    switch ($format) {
+    switch ($this->format()) {
       case 'jpg':
         imageJPEG($new_image, $dstPath, 750);
         break;
@@ -198,11 +161,7 @@ class BrImage extends BrObject {
         imageGIF($new_image, $dstPath);
         break;
       default:
-        throw new \Exception('Unknown image format');
-        break;
+        throw new BrImageException('Unknown image format');
     }
-
   }
-
 }
-

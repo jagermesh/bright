@@ -10,8 +10,8 @@
 
 namespace Bright;
 
-class BrIMAPAttachment extends BrObject {
-
+class BrIMAPAttachment extends BrObject
+{
   private $message;
   private $partNo;
   private $encoding;
@@ -20,7 +20,8 @@ class BrIMAPAttachment extends BrObject {
   private $size;
   private $body = null;
 
-  public function __construct($message, $partNo, $structure) {
+  public function __construct($message, $partNo, $structure)
+  {
     parent::__construct();
 
     $this->message = $message;
@@ -33,14 +34,14 @@ class BrIMAPAttachment extends BrObject {
     $this->encoding = $structure->encoding;
 
     if ($structure->ifdparameters) {
-      foreach($structure->dparameters as $object) {
+      foreach ($structure->dparameters as $object) {
         if (strtolower($object->attribute) == 'filename') {
           $this->fileName = $object->value;
         }
       }
     }
     if (!$this->fileName && $structure->ifparameters) {
-      foreach($structure->parameters as $object) {
+      foreach ($structure->parameters as $object) {
         if (strtolower($object->attribute) == 'name') {
           $this->fileName = $object->value;
         }
@@ -48,7 +49,8 @@ class BrIMAPAttachment extends BrObject {
     }
   }
 
-  public function getBody() {
+  public function getBody()
+  {
     if ($this->body === null) {
       $this->body = imap_fetchbody($this->message->getMailbox(), $this->message->getUID(), $this->partNo, FT_UID);
       $this->body = BrIMAP::decode($this->body, $this->encoding);
@@ -57,20 +59,23 @@ class BrIMAPAttachment extends BrObject {
     return $this->body;
   }
 
-  public function getFileName() {
+  public function getFileName()
+  {
     return $this->message->mimeDecode($this->fileName);
   }
 
-  public function getFileExt() {
+  public function getFileExt()
+  {
     return $this->message->mimeDecode(br()->fs()->fileExt($this->getFileName()));
   }
 
-  public function getSize() {
+  public function getSize()
+  {
     return $this->size;
   }
 
-  public function getID() {
+  public function getID()
+  {
     return $this->id;
   }
-
 }

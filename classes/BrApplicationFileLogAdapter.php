@@ -10,9 +10,10 @@
 
 namespace Bright;
 
-class BrApplicationFileLogAdapter extends BrGenericFileLogAdapter {
-
-  public function __construct($params = []) {
+class BrApplicationFileLogAdapter extends BrGenericFileLogAdapter
+{
+  public function __construct($params = [])
+  {
     if (!is_array($params)) {
       $params = [];
     }
@@ -20,10 +21,11 @@ class BrApplicationFileLogAdapter extends BrGenericFileLogAdapter {
     parent::__construct($params);
   }
 
-  public function write($messageOrObject, $params) {
+  public function write($messageOrObject, $params)
+  {
     $contentType = [ 'message' ];
     if ($this->isSnapshotEventType($params)) {
-      $contentType[] = 'snapshot';
+      $contentType[] = BrConst::LOG_EVENT_SNAPSHOT;
     }
     $info = $this->getLogInfo($messageOrObject, $params, $contentType);
     if ($this->isJsonLogFormat()) {
@@ -39,12 +41,10 @@ class BrApplicationFileLogAdapter extends BrGenericFileLogAdapter {
         $message = json_encode($info, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         $this->writeToLogFile($message, $prefix);
       }
-      if ($params) {
-        if ($details = br($params, 'details', [])) {
-          foreach($details as $key => $value) {
-            $message = BrGenericLogAdapter::convertMessageOrObjectToText($value, true);
-            $this->writeToLogFile($message, $prefix);
-          }
+      if ($params && ($details = br($params, 'details', []))) {
+        foreach($details as $value) {
+          $message = BrGenericLogAdapter::convertMessageOrObjectToText($value, true);
+          $this->writeToLogFile($message, $prefix);
         }
       }
       if ($this->isSnapshotEventType($params)) {
@@ -52,5 +52,4 @@ class BrApplicationFileLogAdapter extends BrGenericFileLogAdapter {
       }
     }
   }
-
 }

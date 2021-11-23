@@ -2,19 +2,21 @@
 
 namespace Bright;
 
-class BrEventBusEngine extends BrObject {
-
+class BrEventBusEngine extends BrObject
+{
   protected $url;
   protected $secret;
   protected $port;
 
-  function __construct($params = []) {
-    $this->url    = br($params, 'url',    br()->config()->get('EventBus/Url'));
+  public function __construct($params = [])
+  {
+    $this->url = br($params, 'url', br()->config()->get('EventBus/LocalUrl') ? br()->config()->get('EventBus/LocalUrl') : br()->config()->get('EventBus/Url'));
     $this->secret = br($params, 'secret', br()->config()->get('EventBus/Secret'));
-    $this->port   = br($params, 'port',   br()->config()->get('EventBus/Port'));
+    $this->port = br($params, 'port', br()->config()->get('EventBus/Port'));
   }
 
-  protected function packMessage($action, $data = [], $additionalRequesParams = []) {
+  protected function packMessage($action, $data = [], $additionalRequesParams = [])
+  {
     $message           = $additionalRequesParams;
     $message['secret'] = $this->secret;
     $message['action'] = $action;
@@ -22,5 +24,4 @@ class BrEventBusEngine extends BrObject {
 
     return json_encode($message);
   }
-
 }

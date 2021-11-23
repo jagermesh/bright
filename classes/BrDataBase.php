@@ -10,12 +10,11 @@
 
 namespace Bright;
 
-class BrDataBase extends BrObject {
-
-  static $instances = [];
-
-  public static function getInstance($name = null) {
-    $name = $name ? $name : 'br/db';
+class BrDataBase extends BrObject
+{
+  public static function getInstance($name = null)
+  {
+    $name = $name ? $name : BrConst::CONFIG_OPTION_DB;
 
     if (is_array($name)) {
       $config = $name;
@@ -24,7 +23,7 @@ class BrDataBase extends BrObject {
     }
 
     if ($config && br($config, 'engine')) {
-      $hash = md5(serialize($config));
+      $hash = hash('sha256', serialize($config));
       if (!array_key_exists($hash, self::$instances)) {
         self::$instances[$hash]['initialized'] = true;
         self::$instances[$hash]['provider'] = null;
@@ -39,6 +38,8 @@ class BrDataBase extends BrObject {
           case 'mssql':
             self::$instances[$hash]['provider'] = new BrMSSQLDBProvider($config);
             break;
+          default:
+            throw new BrDataBaseException('Unknown DB engine ' . $config['engine']);
         }
       }
       return self::$instances[$hash]['provider'];
@@ -46,5 +47,4 @@ class BrDataBase extends BrObject {
       return null;
     }
   }
-
 }

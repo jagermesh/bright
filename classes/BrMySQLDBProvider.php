@@ -10,50 +10,69 @@
 
 namespace Bright;
 
-class BrMySQLDBProvider extends BrGenericSQLDBProvider {
+class BrMySQLDBProvider extends BrGenericSQLDBProvider
+{
+  const ERROR_REGEXP = '/%s/';
 
-  private $__connection;
-  private $errorRedirect;
+  const ERROR_ERROR_WHILE_SENDING_QUERY_PACKET = 'Error while sending QUERY packet';
+  const ERROR_ERROR_READING_RESULT_SET = 'Error reading result set';
+  const ERROR_LOST_CONNECTION_TO_BACKEND_SERVER = 'Lost connection to backend server';
+  const ERROR_CONNECTION_WAS_KILLED = 'Connection was killed';
+  const ERROR_FAILED_TO_CREATE_NEW_SESSION = 'failed to create new session';
+  const ERROR_WSREP_HAS_NOT_YET_PREPARED_NODE_FOR_APPLICATION_USE = 'WSREP has not yet prepared node for application use';
+  const ERROR_PACKETS_OUT_OF_ORDER = 'Packets out of order';
+  const ERROR_LOCK_WAIT_TIMEOUT_EXCEEDED = 'Lock wait timeout exceeded';
+  const ERROR_DEADLOCK_WSREP_ABORTED_TRANSACTION = 'Deadlock: wsrep aborted transaction';
+  const ERROR_DEADLOCK_FOUND_WHEN_TRYING_TO_GET_LOCK = 'Deadlock found when trying to get lock';
+  const ERROR_NO_DATA = '1329: No data';
+  const ERROR_DUPLICATE_ENTRY = 'Duplicate entry';
+  const ERROR_CANNOT_DELETE_OR_UPDATE_A_PARENT_ROW = 'Cannot delete or update a parent row';
+  const ERROR_MY_SQL_SERVER_HAS_GONE_AWAY = 'MySQL server has gone away';
+  const ERROR_UNKNOWN_DATABASE = 'Unknown database';
+  const ERROR_ACCESS_DENIED = 'Access denied';
+
+  private $connection;
   private $config;
   private $reconnectIterations = 50;
-  private $rerunIterations     = 30;
+  private $rerunIterations = 30;
 
-  public function __construct($config) {
+  public function __construct($config)
+  {
     $this->config = $config;
 
-    register_shutdown_function([ &$this, "captureShutdown" ]);
+    register_shutdown_function([&$this, 'captureShutdown']);
   }
 
-  public function connection() {
-    if ($this->__connection) {
-      return $this->__connection;
-    } else {
+  public function establishConnection()
+  {
+    if (!$this->connection) {
       return $this->connect();
     }
   }
 
-  public function connect($iteration = 0, $rerunError = null) {
-    $wasConnected = !!$this->__connection;
+  public function connect($iteration = 0, $rerunError = null)
+  {
+    $wasConnected = !empty($this->connection);
 
-    if ($this->__connection) {
+    if ($this->connection) {
       $this->disconnect();
     }
 
     if ($iteration > $this->reconnectIterations) {
       $e = new BrDBConnectionErrorException($rerunError);
-      $this->triggerSticky('connect.error', $e);
-      br()->triggerSticky('br.db.connect.error', $e);
+      $this->triggerSticky(BrConst::EVENT_CONNECT_ERROR, $e);
+      br()->triggerSticky(BrConst::EVENT_BR_DB_CONNECT_ERROR, $e);
       if ($wasConnected) {
-        $this->triggerSticky('reconnect.error', $e);
-        br()->triggerSticky('br.db.reconnect.error', $e);
+        $this->triggerSticky(BrConst::EVENT_RECONNECT_ERROR, $e);
+        br()->triggerSticky(BrConst::EVENT_BR_DB_RECONNECT_ERROR, $e);
       }
       throw $e;
     }
 
-    $hostName  = br($this->config, 'hostname');
-    $dataBaseNames = br(br($this->config, 'name'))->split();
+    $hostName = br($this->config, 'hostname');
     $userName = br($this->config, 'username');
     $password = br($this->config, 'password');
+    $dataBaseNames = br(br($this->config, 'name'))->split();
 
     if (preg_match('/(.+?)[:]([0-9]+)$/', $hostName, $matches)) {
       $hostName = $matches[1];
@@ -63,67 +82,74 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     }
 
     try {
-      foreach($dataBaseNames as $dataBaseName) {
-        if ($this->__connection = @mysqli_connect($hostName, $userName, $password, $dataBaseName, $port)) {
+      foreach ($dataBaseNames as $dataBaseName) {
+        if ($this->connection = @mysqli_connect($hostName, $userName, $password, $dataBaseName, $port)) {
           $this->setDataBaseName($dataBaseName);
           break;
         }
       }
-      if ($this->__connection) {
+      if ($this->connection) {
         if (br($this->config, 'charset')) {
           $this->runQuery('SET NAMES ?', $this->config['charset']);
         }
-        $this->version = mysqli_get_server_info($this->__connection);
+        $this->version = mysqli_get_server_info($this->connection);
 
-        $this->triggerSticky('after:connect');
-        br()->triggerSticky('after:br.db.connect');
+        $this->triggerSticky(sprintf(BrConst::EVENT_AFTER, BrConst::EVENT_CONNECT));
+        br()->triggerSticky(sprintf(BrConst::EVENT_AFTER, BrConst::EVENT_BR_DB_CONNECT));
 
         if ($wasConnected) {
-          $this->triggerSticky('after:reconnect');
-          br()->triggerSticky('after:br.db.reconnect');
+          $this->triggerSticky(sprintf(BrConst::EVENT_AFTER, BrConst::EVENT_RECONNECT));
+          br()->triggerSticky(sprintf(BrConst::EVENT_AFTER, BrConst::EVENT_BR_DB_RECONNECT));
         }
       } else {
-        throw new \Exception(mysqli_connect_errno() . ': ' . mysqli_connect_error());
+        throw new BrMySQLDBProviderException(mysqli_connect_errno() . ': ' . mysqli_connect_error());
       }
     } catch (\Exception $e) {
-      if (preg_match('/Unknown database/', $e->getMessage()) || preg_match('/Access denied/', $e->getMessage())) {
-        $this->triggerSticky('connect.error', $e);
-        br()->triggerSticky('br.db.connect.error', $e);
+      if (
+        preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_UNKNOWN_DATABASE), $e->getMessage()) ||
+        preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_ACCESS_DENIED), $e->getMessage())
+      ) {
+        $this->triggerSticky(BrConst::EVENT_CONNECT_ERROR, $e);
+        br()->triggerSticky(BrConst::EVENT_BR_DB_CONNECT_ERROR, $e);
         if ($wasConnected) {
-          $this->triggerSticky('reconnect.error', $e);
-          br()->triggerSticky('br.db.reconnect.error', $e);
+          $this->triggerSticky(BrConst::EVENT_RECONNECT_ERROR, $e);
+          br()->triggerSticky(BrConst::EVENT_BR_DB_RECONNECT_ERROR, $e);
         }
         throw new BrDBConnectionErrorException($e->getMessage());
       } else {
-        $this->__connection = null;
+        $this->connection = null;
         usleep(250000);
-        $error = $e->getMessage() . ' (' . $userName . '@'. $hostName . ':' . $port . '/' . $dataBaseName . ')';
+        $error = $e->getMessage() . ' (' . $userName . '@' . $hostName . ':' . $port . '' . $dataBaseName . ')';
         $this->connect($iteration + 1, $error);
       }
     }
 
-    return $this->__connection;
+    return $this->connection;
   }
 
-  public function startTransaction($force = false) {
+  public function startTransaction($force = false)
+  {
     $this->runQuery('START TRANSACTION');
 
     parent::startTransaction($force);
   }
 
-  public function commitTransaction($force = false) {
+  public function commitTransaction($force = false)
+  {
     $this->runQuery('COMMIT');
 
     parent::commitTransaction($force);
   }
 
-  public function rollbackTransaction($force = false) {
+  public function rollbackTransaction($force = false)
+  {
     $this->runQuery('ROLLBACK');
 
     parent::rollbackTransaction($force);
   }
 
-  public function selectNext($query, $options = []) {
+  public function selectNext($query, $options = [])
+  {
     $result = mysqli_fetch_assoc($query);
     if (!br($options, 'doNotChangeCase')) {
       if (is_array($result)) {
@@ -134,49 +160,57 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     return $result;
   }
 
-  public function isEmptyDate($date) {
-    return (($date == "0000-00-00") or ($date == "0000-00-00 00:00:00") or !$date);
+  public function isEmptyDate($date)
+  {
+    return (($date == "0000-00-00") || ($date == "0000-00-00 00:00:00") || !$date);
   }
 
-  public function toDateTime($date) {
+  public function toDateTime($date)
+  {
     return date('Y-m-d H:i:s', $date);
   }
 
-  public function toDate($date) {
+  public function toDate($date)
+  {
     return date('Y-m-d', $date);
   }
 
-  public function getLastError() {
-    if ($this->__connection) {
-      if (mysqli_errno($this->__connection)) {
-        return mysqli_errno($this->__connection) . ': ' . mysqli_error($this->__connection);
+  public function getLastError()
+  {
+    if ($this->connection) {
+      if (mysqli_errno($this->connection)) {
+        return mysqli_errno($this->connection) . ': ' . mysqli_error($this->connection);
       }
     } else {
-      return 'MySQL server has gone away';
+      return self::ERROR_MY_SQL_SERVER_HAS_GONE_AWAY;
     }
   }
 
-  public function getLastId() {
-    if ($this->__connection) {
-      return mysqli_insert_id($this->__connection);
+  public function getLastId()
+  {
+    if ($this->connection) {
+      return mysqli_insert_id($this->connection);
     } else {
-      throw new BrDBServerGoneAwayException('MySQL server has gone away');
+      throw new BrDBServerGoneAwayException(self::ERROR_MY_SQL_SERVER_HAS_GONE_AWAY);
     }
   }
 
-  public function getAffectedRowsAmount() {
-    if ($this->__connection) {
-      return mysqli_affected_rows($this->__connection);
+  public function getAffectedRowsAmount()
+  {
+    if ($this->connection) {
+      return mysqli_affected_rows($this->connection);
     } else {
-      throw new BrDBServerGoneAwayException('MySQL server has gone away');
+      throw new BrDBServerGoneAwayException(self::ERROR_MY_SQL_SERVER_HAS_GONE_AWAY);
     }
   }
 
-  public function getTableStructure($tableName) {
-    return $this->getQueryStructure('SELECT * FROM '. $tableName .' LIMIT 1');
+  public function getTableStructure($tableName)
+  {
+    return $this->getQueryStructure('SELECT * FROM ' . $tableName . ' LIMIT 1');
   }
 
-  public function getQueryStructure($query) {
+  public function getQueryStructure($query)
+  {
     $field_defs = [];
     if ($query = $this->runQueryEx($query)) {
       while ($finfo = mysqli_fetch_field($query)) {
@@ -189,17 +223,18 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
       mysqli_free_result($query);
     }
     $field_defs = array_change_key_case($field_defs, CASE_LOWER);
-    foreach($field_defs as $field => $defs) {
+    foreach ($field_defs as $field => $defs) {
       $field_defs[$field]['genericType'] = $this->toGenericDataType($field_defs[$field]['type']);
     }
 
     return $field_defs;
   }
 
-  public function runQueryEx($sql, $args = [], $iteration = 0, $rerunError = null, $resultMode = MYSQLI_STORE_RESULT) {
+  public function runQueryEx($sql, $args = [], $iteration = 0, $rerunError = null, $resultMode = MYSQLI_STORE_RESULT)
+  {
     try {
       // check connection
-      $this->connection();
+      $this->establishConnection();
 
       if (count($args) > 0) {
         $queryText = br()->placeholderEx($sql, $args, $error);
@@ -218,9 +253,9 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
       try {
         // moved to check problem line
-        $query = @mysqli_query($this->connection(), $queryText, $resultMode);
+        $query = @mysqli_query($this->connection, $queryText, $resultMode);
         if ($query) {
-          if ($this->inTransaction()) {
+          if ($this->isInTransaction()) {
             $this->incTransactionBuffer($queryText);
           }
         } else {
@@ -228,96 +263,98 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
           throw new BrDBException($error);
         }
       } catch (\Exception $e) {
-        $error  = $e->getMessage();
+        $error = $e->getMessage();
         $error .= "\n" . $queryText;
         // if connection lost - we'll try to restore it first
-        if (preg_match('/Error while sending QUERY packet/', $e->getMessage()) ||
-            preg_match('/Error reading result set/', $e->getMessage()) ||
-            preg_match('/Lost connection to backend server/', $e->getMessage()) ||
-            preg_match('/Connection was killed/', $e->getMessage()) ||
-            preg_match('/failed to create new session/', $e->getMessage()) ||
-            preg_match('/WSREP has not yet prepared node for application use/', $e->getMessage()) ||
-            preg_match('/MySQL server has gone away/', $e->getMessage()) ||
-            preg_match('/Packets out of order/', $e->getMessage())) {
+        if (
+          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_ERROR_WHILE_SENDING_QUERY_PACKET), $e->getMessage()) ||
+          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_ERROR_READING_RESULT_SET), $e->getMessage()) ||
+          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_LOST_CONNECTION_TO_BACKEND_SERVER), $e->getMessage()) ||
+          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_CONNECTION_WAS_KILLED), $e->getMessage()) ||
+          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_FAILED_TO_CREATE_NEW_SESSION), $e->getMessage()) ||
+          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_WSREP_HAS_NOT_YET_PREPARED_NODE_FOR_APPLICATION_USE), $e->getMessage()) ||
+          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_MY_SQL_SERVER_HAS_GONE_AWAY), $e->getMessage()) ||
+          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_PACKETS_OUT_OF_ORDER), $e->getMessage())
+        ) {
           $this->connect();
         }
         // then we will try re-run queries
-        if (preg_match('/Error while sending QUERY packet/', $e->getMessage()) ||
-            preg_match('/Error reading result set/', $e->getMessage()) ||
-            preg_match('/Lost connection to backend server/', $e->getMessage()) ||
-            preg_match('/Connection was killed/', $e->getMessage()) ||
-            preg_match('/failed to create new session/', $e->getMessage()) ||
-            preg_match('/WSREP has not yet prepared node for application use/', $e->getMessage()) ||
-            preg_match('/MySQL server has gone away/', $e->getMessage()) ||
-            preg_match('/Packets out of order/', $e->getMessage()) ||
-            preg_match('/Lock wait timeout exceeded/', $e->getMessage()) ||
-            preg_match('/Deadlock: wsrep aborted transaction/', $e->getMessage()) ||
-            preg_match('/Deadlock found when trying to get lock/', $e->getMessage())) {
-          if ($this->inTransaction()) {
+        if (
+          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_ERROR_WHILE_SENDING_QUERY_PACKET), $e->getMessage()) ||
+          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_ERROR_READING_RESULT_SET), $e->getMessage()) ||
+          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_LOST_CONNECTION_TO_BACKEND_SERVER), $e->getMessage()) ||
+          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_CONNECTION_WAS_KILLED), $e->getMessage()) ||
+          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_FAILED_TO_CREATE_NEW_SESSION), $e->getMessage()) ||
+          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_WSREP_HAS_NOT_YET_PREPARED_NODE_FOR_APPLICATION_USE), $e->getMessage()) ||
+          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_MY_SQL_SERVER_HAS_GONE_AWAY), $e->getMessage()) ||
+          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_PACKETS_OUT_OF_ORDER), $e->getMessage()) ||
+          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_LOCK_WAIT_TIMEOUT_EXCEEDED), $e->getMessage()) ||
+          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_DEADLOCK_WSREP_ABORTED_TRANSACTION), $e->getMessage()) ||
+          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_DEADLOCK_FOUND_WHEN_TRYING_TO_GET_LOCK), $e->getMessage())
+        ) {
+          if ($this->isInTransaction()) {
             if ($this->isTransactionBufferEmpty()) {
-              br()->log()->message('Trying restart transaction and repeat query', [ 'sql' => $queryText ], 'query');
+              br()->log()->message('Trying restart transaction and repeat query', ['sql' => $queryText], 'query');
               usleep(250000);
               $this->rollbackTransaction();
               $this->startTransaction();
               $query = $this->runQueryEx($sql, $args, $iteration + 1, $e->getMessage(), $resultMode);
             } else {
-              br()->log()->message('Automatic retrying was not possible - ' . $this->transactionBufferLength() . ' statement(s) in transaction buffer: ' . "\n"  . json_encode($this->transactionBuffer()));
-              if (preg_match('/Deadlock found when trying to get lock/', $error) ||
-                  preg_match('/Deadlock: wsrep aborted transaction/', $error)) {
+              br()->log()->message('Automatic retrying was not possible - ' . $this->transactionBufferLength() .
+                ' statement(s) in transaction buffer: ' . "\n" . json_encode($this->getTransactionBuffer()));
+              if (preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_DEADLOCK_FOUND_WHEN_TRYING_TO_GET_LOCK), $error) ||
+                preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_DEADLOCK_WSREP_ABORTED_TRANSACTION), $error)) {
                 throw new BrDBDeadLockException($error);
-              } else
-              if (preg_match('/Lock wait timeout exceeded/', $error)) {
+              } elseif (preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_LOCK_WAIT_TIMEOUT_EXCEEDED), $error)) {
                 throw new BrDBLockException($error);
-              } else
-              if (preg_match('/Packets out of order/', $error)) {
+              } elseif (preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_PACKETS_OUT_OF_ORDER), $error)) {
                 throw new BrDBEngineException($error);
-              } else
-              if (preg_match('/Error while sending QUERY packet/', $e->getMessage()) ||
-                  preg_match('/Error reading result set/', $e->getMessage()) ||
-                  preg_match('/Lost connection to backend server/', $e->getMessage()) ||
-                  preg_match('/Connection was killed/', $e->getMessage()) ||
-                  preg_match('/failed to create new session/', $e->getMessage()) ||
-                  preg_match('/WSREP has not yet prepared node for application use/', $e->getMessage()) ||
-                  preg_match('/MySQL server has gone away/', $e->getMessage())) {
+              } elseif (
+                preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_ERROR_WHILE_SENDING_QUERY_PACKET), $e->getMessage()) ||
+                preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_ERROR_READING_RESULT_SET), $e->getMessage()) ||
+                preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_LOST_CONNECTION_TO_BACKEND_SERVER), $e->getMessage()) ||
+                preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_CONNECTION_WAS_KILLED), $e->getMessage()) ||
+                preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_FAILED_TO_CREATE_NEW_SESSION), $e->getMessage()) ||
+                preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_WSREP_HAS_NOT_YET_PREPARED_NODE_FOR_APPLICATION_USE), $e->getMessage()) ||
+                preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_MY_SQL_SERVER_HAS_GONE_AWAY), $e->getMessage())
+              ) {
                 throw new BrDBServerGoneAwayException($error);
               }
             }
           } else {
-            br()->log()->message('Trying to repeat query', [ 'sql' => $queryText ], 'query');
+            br()->log()->message('Trying to repeat query', ['sql' => $queryText], 'query');
             sleep(1);
             $query = $this->runQueryEx($sql, $args, $iteration + 1, $e->getMessage(), $resultMode);
           }
-        } else
-        if (preg_match('/1329: No data/', $e->getMessage())) {
-
-        } else
-        if (preg_match('/Duplicate entry/', $e->getMessage())) {
+        } elseif (preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_NO_DATA), $e->getMessage())) {
+          // it's ok
+        } elseif (preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_DUPLICATE_ENTRY), $e->getMessage())) {
           throw new BrDBUniqueException($error);
-        } else
-        if (preg_match('/Cannot delete or update a parent row/', $e->getMessage())) {
+        } elseif (preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_CANNOT_DELETE_OR_UPDATE_A_PARENT_ROW), $e->getMessage())) {
           throw new BrDBForeignKeyException($error);
         } else {
           throw new BrDBException($error);
         }
       }
-      br()->log()->message('Query complete', [ 'sql' => $queryText ], 'query');
+      br()->log()->message('Query complete', ['sql' => $queryText], 'query');
     } catch (\Exception $e) {
-      br()->log()->message('Query error', [ 'sql' => $queryText ], 'query');
+      br()->log()->message('Query error', ['sql' => ($queryText ?? '')], 'query');
       $error = $e->getMessage();
-      br()->trigger('br.db.query.error', $error);
+      br()->trigger(BrConst::EVENT_BR_DB_QUERY_ERROR, $error);
       throw $e;
     }
 
     return $query;
   }
 
-  public function getRowsAmountEx($sql, $args) {
+  public function getRowsAmountEx($sql, $args)
+  {
     $countSQL = $this->getCountSQL($sql);
     try {
       $query = $this->runQueryEx($countSQL, $args);
       if ($row = $this->selectNext($query)) {
         return array_shift($row);
-      } else  {
+      } else {
         return mysqli_num_rows($this->runQueryEx($sql, $args));
       }
     } catch (\Exception $e) {
@@ -325,19 +362,22 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     }
   }
 
-  public function disconnect() {
-    if ($this->__connection) {
-      @mysqli_close($this->__connection);
+  public function disconnect()
+  {
+    if ($this->connection) {
+      @mysqli_close($this->connection);
     }
 
-    $this->__connection = null;
+    $this->connection = null;
   }
 
-  public function captureShutdown() {
+  public function captureShutdown()
+  {
     $this->disconnect();
   }
 
-  public function internalDataTypeToGenericDataType($type) {
+  public function internalDataTypeToGenericDataType($type)
+  {
     switch (strtolower($type)) {
       case "date";
         return self::DATA_TYPE_DATE;
@@ -368,64 +408,77 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
     }
   }
 
-  public function generateDictionaryScript($scriptFile) {
+  public function generateDictionaryScript($scriptFile)
+  {
     br()->log()->message('[' . br()->db()->getDataBaseName() . '] Generating dictionary file');
 
-    $sql = br()->placeholder(
-      'SELECT col.*
-            , col.table_name
-            , col.column_name
-            , UPPER(col.data_type) data_type
-            , IF(UPPER(col.data_type) = "BIGINT" OR UPPER(col.data_type) = "INT" OR UPPER(col.data_type) = "MEDIUMINT" OR UPPER(col.data_type) = "SMALLINT" OR UPPER(col.data_type) = "TINYINT", 1, 0) is_integer
-            , IF(UPPER(col.data_type) = "DECIMAL" OR UPPER(col.data_type) = "NUMERIC" OR UPPER(col.data_type) = "FLOAT" OR UPPER(col.data_type) = "DOUBLE", 1, 0) is_decimal
-            , CASE WHEN UPPER(col.data_type) = "BIGINT"    THEN IF(INSTR(col.column_type, "unsigned") > 0, 0, -9223372036854775808)
-                   WHEN UPPER(col.data_type) = "INT"       THEN IF(INSTR(col.column_type, "unsigned") > 0, 0, -2147483648)
-                   WHEN UPPER(col.data_type) = "MEDIUMINT" THEN IF(INSTR(col.column_type, "unsigned") > 0, 0, -8388608)
-                   WHEN UPPER(col.data_type) = "SMALLINT"  THEN IF(INSTR(col.column_type, "unsigned") > 0, 0, -32768)
-                   WHEN UPPER(col.data_type) = "TINYINT"   THEN IF(INSTR(col.column_type, "unsigned") > 0, 0, -128)
-                   WHEN UPPER(col.data_type) = "DECIMAL"
-                     OR UPPER(col.data_type) = "NUMERIC"
-                     OR UPPER(col.data_type) = "FLOAT"
-                     OR UPPER(col.data_type) = "DOUBLE"    THEN IF(INSTR(col.column_type, "unsigned") > 0, 0, CONCAT("-", REPEAT("9", col.numeric_precision - IFNULL(col.numeric_scale, 0)), IF(col.numeric_scale IS NOT NULL, CONCAT(".", REPEAT("9", col.numeric_scale)), "")))
-                   ELSE 0
-              END min_value
-            , CASE WHEN UPPER(col.data_type) = "BIGINT"    THEN IF(INSTR(col.column_type, "unsigned") > 0, 18446744073709551615, 9223372036854775807)
-                   WHEN UPPER(col.data_type) = "INT"       THEN IF(INSTR(col.column_type, "unsigned") > 0, 4294967295, 2147483647)
-                   WHEN UPPER(col.data_type) = "MEDIUMINT" THEN IF(INSTR(col.column_type, "unsigned") > 0, 16777215, 8388607)
-                   WHEN UPPER(col.data_type) = "SMALLINT"  THEN IF(INSTR(col.column_type, "unsigned") > 0, 65535, 32767)
-                   WHEN UPPER(col.data_type) = "TINYINT"   THEN IF(INSTR(col.column_type, "unsigned") > 0, 255, 127)
-                   WHEN UPPER(col.data_type) = "DECIMAL"
-                     OR UPPER(col.data_type) = "NUMERIC"
-                     OR UPPER(col.data_type) = "FLOAT"
-                     OR UPPER(col.data_type) = "DOUBLE"    THEN CONCAT(REPEAT("9", col.numeric_precision - IFNULL(col.numeric_scale, 0)), IF(col.numeric_scale IS NOT NULL, CONCAT(".", REPEAT("9", col.numeric_scale)), ""))
-                   ELSE 0
-              END max_value
-            , IF(col.is_nullable = "NO" AND column_default IS NULL, 1, 0) required
-            , IF(col.is_nullable = "NO" AND column_default IS NULL, 1, 0) min_length
-            , IFNULL( col.character_maximum_length
-                    , CASE WHEN UPPER(col.data_type) = "TIMESTAMP"
-                             OR UPPER(col.data_type) = "DATETIME"  THEN LENGTH("2017-01-01 10:00:00")
-                           WHEN UPPER(col.data_type) = "DATE"      THEN LENGTH("2017-01-01")
-                           WHEN UPPER(col.data_type) = "TIME"      THEN LENGTH("10:00:00")
-                           WHEN UPPER(col.data_type) = "BIGINT"    THEN LENGTH(IF(INSTR(col.column_type, "unsigned") > 0, 18446744073709551615, 9223372036854775807))
-                           WHEN UPPER(col.data_type) = "INT"       THEN LENGTH(IF(INSTR(col.column_type, "unsigned") > 0, 4294967295, 2147483647))
-                           WHEN UPPER(col.data_type) = "MEDIUMINT" THEN LENGTH(IF(INSTR(col.column_type, "unsigned") > 0, 16777215, 8388607))
-                           WHEN UPPER(col.data_type) = "SMALLINT"  THEN LENGTH(IF(INSTR(col.column_type, "unsigned") > 0, 65535, 32767))
-                           WHEN UPPER(col.data_type) = "TINYINT"   THEN LENGTH(IF(INSTR(col.column_type, "unsigned") > 0, 255, 127))
-                           ELSE 256
-                      END) max_length
-            , col.column_comment
-         FROM information_schema.columns col
-        WHERE col.table_schema = ?
-          AND col.table_name NOT LIKE "tmp%"
-          AND col.table_name NOT LIKE "backup%"
-          AND col.table_name NOT LIKE "view_%"
-          AND col.table_name NOT LIKE "viev_%"
-          AND col.table_name NOT LIKE "v_%"
-          AND col.table_name NOT LIKE "shared_%"
-          AND col.table_name NOT LIKE "audit_%"
-          AND col.table_name NOT LIKE "br_%"
-        ORDER BY col.table_name, col.column_name',
+    $sql = br()->placeholder('
+      SELECT col.*
+           , col.table_name
+           , col.column_name
+           , UPPER(col.data_type) data_type
+           , IF(UPPER(col.data_type) = "BIGINT" OR
+                UPPER(col.data_type) = "INT" OR
+                UPPER(col.data_type) = "MEDIUMINT" OR
+                UPPER(col.data_type) = "SMALLINT" OR
+                UPPER(col.data_type) = "TINYINT", 1, 0) is_integer
+           , IF(UPPER(col.data_type) = "DECIMAL" OR
+                UPPER(col.data_type) = "NUMERIC" OR
+                UPPER(col.data_type) = "FLOAT" OR
+                UPPER(col.data_type) = "DOUBLE", 1, 0) is_decimal
+           , CASE WHEN UPPER(col.data_type) = "BIGINT"    THEN IF(INSTR(col.column_type, "unsigned") > 0, 0, -9223372036854775808)
+                  WHEN UPPER(col.data_type) = "INT"       THEN IF(INSTR(col.column_type, "unsigned") > 0, 0, -2147483648)
+                  WHEN UPPER(col.data_type) = "MEDIUMINT" THEN IF(INSTR(col.column_type, "unsigned") > 0, 0, -8388608)
+                  WHEN UPPER(col.data_type) = "SMALLINT"  THEN IF(INSTR(col.column_type, "unsigned") > 0, 0, -32768)
+                  WHEN UPPER(col.data_type) = "TINYINT"   THEN IF(INSTR(col.column_type, "unsigned") > 0, 0, -128)
+                  WHEN UPPER(col.data_type) = "DECIMAL"
+                    OR UPPER(col.data_type) = "NUMERIC"
+                    OR UPPER(col.data_type) = "FLOAT"
+                    OR UPPER(col.data_type) = "DOUBLE"    THEN IF(INSTR(col.column_type, "unsigned") > 0, 0,
+                      CONCAT("-", REPEAT("9", col.numeric_precision - IFNULL(col.numeric_scale, 0)),
+                        IF(col.numeric_scale IS NOT NULL, CONCAT(".", REPEAT("9", col.numeric_scale)), "")))
+                  ELSE 0
+             END min_value
+           , CASE WHEN UPPER(col.data_type) = "BIGINT"    THEN IF(INSTR(col.column_type, "unsigned") > 0, 18446744073709551615, 9223372036854775807)
+                  WHEN UPPER(col.data_type) = "INT"       THEN IF(INSTR(col.column_type, "unsigned") > 0, 4294967295, 2147483647)
+                  WHEN UPPER(col.data_type) = "MEDIUMINT" THEN IF(INSTR(col.column_type, "unsigned") > 0, 16777215, 8388607)
+                  WHEN UPPER(col.data_type) = "SMALLINT"  THEN IF(INSTR(col.column_type, "unsigned") > 0, 65535, 32767)
+                  WHEN UPPER(col.data_type) = "TINYINT"   THEN IF(INSTR(col.column_type, "unsigned") > 0, 255, 127)
+                  WHEN UPPER(col.data_type) = "DECIMAL"
+                    OR UPPER(col.data_type) = "NUMERIC"
+                    OR UPPER(col.data_type) = "FLOAT"
+                    OR UPPER(col.data_type) = "DOUBLE"    THEN CONCAT(REPEAT("9", col.numeric_precision - IFNULL(col.numeric_scale, 0)),
+                      IF(col.numeric_scale IS NOT NULL, CONCAT(".", REPEAT("9", col.numeric_scale)), ""))
+                  ELSE 0
+             END max_value
+           , IF(col.is_nullable = "NO" AND column_default IS NULL, 1, 0) required
+           , IF(col.is_nullable = "NO" AND column_default IS NULL, 1, 0) min_length
+           , IFNULL( col.character_maximum_length
+                   , CASE WHEN UPPER(col.data_type) = "TIMESTAMP"
+                            OR UPPER(col.data_type) = "DATETIME"  THEN LENGTH("2017-01-01 10:00:00")
+                          WHEN UPPER(col.data_type) = "DATE"      THEN LENGTH("2017-01-01")
+                          WHEN UPPER(col.data_type) = "TIME"      THEN LENGTH("10:00:00")
+                          WHEN UPPER(col.data_type) = "BIGINT"    THEN LENGTH(IF(INSTR(col.column_type, "unsigned") > 0,
+                                                                         18446744073709551615, 9223372036854775807))
+                          WHEN UPPER(col.data_type) = "INT"       THEN LENGTH(IF(INSTR(col.column_type, "unsigned") > 0, 4294967295, 2147483647))
+                          WHEN UPPER(col.data_type) = "MEDIUMINT" THEN LENGTH(IF(INSTR(col.column_type, "unsigned") > 0, 16777215, 8388607))
+                          WHEN UPPER(col.data_type) = "SMALLINT"  THEN LENGTH(IF(INSTR(col.column_type, "unsigned") > 0, 65535, 32767))
+                          WHEN UPPER(col.data_type) = "TINYINT"   THEN LENGTH(IF(INSTR(col.column_type, "unsigned") > 0, 255, 127))
+                          ELSE 256
+                     END) max_length
+           , col.column_comment
+        FROM information_schema.columns col
+       WHERE col.table_schema = ?
+         AND col.table_name NOT LIKE "tmp%"
+         AND col.table_name NOT LIKE "backup%"
+         AND col.table_name NOT LIKE "view_%"
+         AND col.table_name NOT LIKE "viev_%"
+         AND col.table_name NOT LIKE "v_%"
+         AND col.table_name NOT LIKE "shared_%"
+         AND col.table_name NOT LIKE "audit_%"
+         AND col.table_name NOT LIKE "br_%"
+       ORDER BY col.table_name, col.column_name
+    ',
       br()->db()->getDataBaseName()
     );
 
@@ -433,47 +486,48 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider {
 
     $schema = [];
 
-    foreach($columns as $column) {
+    foreach ($columns as $column) {
       $column['table_name'] = strtolower($column['table_name']);
       $column['column_name'] = strtolower($column['column_name']);
       if (!array_key_exists($column['table_name'], $schema)) {
         $schema[$column['table_name']] = [];
       }
       $schema[$column['table_name']][$column['column_name']] = [
-        'data_type'      => strtoupper($column['data_type']),
-        'data_type_id'   => $this->internalDataTypeToGenericDataType($column['data_type']),
-        'required'       => $column['required'],
-        'min_length'     => $column['min_length'],
-        'max_length'     => $column['max_length'],
+        'data_type' => strtoupper($column['data_type']),
+        'data_type_id' => $this->internalDataTypeToGenericDataType($column['data_type']),
+        'required' => $column['required'],
+        'min_length' => $column['min_length'],
+        'max_length' => $column['max_length'],
         'column_comment' => $column['column_comment'],
-        'min_value'      => $column['min_value'],
-        'max_value'      => $column['max_value'],
-        'is_numeric'     => ($column['is_integer'] || $column['is_decimal'] ? 1 : 0),
+        'min_value' => $column['min_value'],
+        'max_value' => $column['max_value'],
+        'is_numeric' => ($column['is_integer'] || $column['is_decimal'] ? 1 : 0),
       ];
     }
 
     $schema2 = [];
 
-    foreach($schema as $table_name => $table_struct) {
+    foreach ($schema as $table_name => $table_struct) {
       $table_data = [];
-      foreach($table_struct as $field_name => $field_data) {
+      foreach ($table_struct as $field_name => $field_data) {
         $table_data[] = [
-          'is_first'   => (count($table_data) === 0),
+          'is_first' => empty($table_data),
           'field_name' => $field_name,
           'field_data' => $field_data
         ];
       }
       $schema2[] = [
-        'is_first'   => (count($schema2) === 0),
+        'is_first' => empty($schema2),
         'table_name' => $table_name,
         'table_data' => $table_data
       ];
     }
 
     $fileName = br()->fs()->filePath($scriptFile) . 'schema/DataBaseDictionary.php';
-    br()->fs()->saveToFile($fileName, br()->renderer()->fetchString( br()->fs()->loadFromFile(dirname(__DIR__) . '/templates/DataBaseDictionary.tpl'), [ 'schema' => $schema2 ]));
+    br()->fs()->saveToFile($fileName, br()->renderer()->fetchString(br()->fs()->loadFromFile(dirname(__DIR__) . '/templates/DataBaseDictionary.tpl'), [
+      'schema' => $schema2
+    ]));
 
     br()->log()->message('[' . br()->db()->getDataBaseName() . '] Dictionary file saved into ' . $fileName);
   }
-
 }

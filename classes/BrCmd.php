@@ -10,15 +10,17 @@
 
 namespace Bright;
 
-class BrCmd extends BrObject {
-
-  public function getParam($index, $default = '') {
+class BrCmd extends BrObject
+{
+  public function getParam($index, $default = '')
+  {
     global $argv;
 
     return br($argv, $index, $default);
   }
 
-  public function getSwitches() {
+  public function getSwitches()
+  {
     global $argv;
 
     $result = [];
@@ -34,5 +36,4 @@ class BrCmd extends BrObject {
 
     return $result;
   }
-
 }

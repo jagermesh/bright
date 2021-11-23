@@ -10,8 +10,8 @@
 
 namespace Bright;
 
-class BrFTP extends BrRemoteConnection {
-
+class BrFTP extends BrRemoteConnection
+{
   private $connectionId;
   private $currentDirectory = '/';
   private $currentHostName;
@@ -19,13 +19,9 @@ class BrFTP extends BrRemoteConnection {
   private $currentPassword;
   private $currentPort;
   private $currentPassiveMode;
-  private $reconnectsAmount = 10;
 
-  public function __construct() {
-    parent::__construct();
-  }
-
-  public function connect($hostName, $userName, $password, $port = 21, $passiveMode = true) {
+  public function connect($hostName, $userName, $password, $port = 21, $passiveMode = true)
+  {
     $this->currentHostName    = $hostName;
     $this->currentUserName    = $userName;
     $this->currentPassword    = $password;
@@ -34,20 +30,20 @@ class BrFTP extends BrRemoteConnection {
 
     $_this = $this;
     try {
-      $this->retry(function($iteration) use ($_this, $hostName, $userName, $password, $port, $passiveMode) {
+      $this->retry(function ($iteration) use ($_this, $hostName, $userName, $password, $port, $passiveMode) {
         br()->log('Connecting to ' . $userName . '@' . $hostName . ($iteration > 1 ? ' (' . $iteration . ')' : ''));
         if ($_this->connectionId = ftp_connect($hostName, $port)) {
           if (ftp_login($_this->connectionId, $userName, $password)) {
             if (ftp_pasv($_this->connectionId, $passiveMode ? true : false)) {
               $_this->currentDirectory = $_this->getServerDir();
             } else {
-              throw new \Exception('Can not switch passive mode to ' . $passiveMode);
+              throw new BrFTPException('Can not switch passive mode to ' . $passiveMode);
             }
           } else {
-            throw new \Exception('Can not connect to ' . $hostName . ' as ' . $userName);
+            throw new BrFTPException('Can not connect to ' . $hostName . ' as ' . $userName);
           }
         } else {
-          throw new \Exception('Can not connect to ' . $hostName);
+          throw new BrFTPException('Can not connect to ' . $hostName);
         }
       });
     } catch (\Exception $e) {
@@ -55,38 +51,44 @@ class BrFTP extends BrRemoteConnection {
     }
   }
 
-  public function disconnect() {
+  public function disconnect()
+  {
     try {
       ftp_close($this->connectionId);
     } catch (\Exception $e) {
-
+      // we don't care about error here
     }
   }
 
-  public function reset() {
+  public function reset()
+  {
     $dir = $this->currentDirectory;
     $this->disconnect();
     $this->connect($this->currentHostName, $this->currentUserName, $this->currentPassword, $this->currentPort, $this->currentPassiveMode);
     $this->changeDir($dir);
   }
 
-  public function getCurrentDir() {
+  public function getCurrentDir()
+  {
     return $this->getServerDir();
   }
 
-  public function getServerDir() {
+  public function getServerDir()
+  {
     return rtrim(str_replace('\\', '/', ftp_pwd($this->connectionId)), '/') . '/';
   }
 
-  public function changeDir($directory) {
+  public function changeDir($directory)
+  {
     if (ftp_chdir($this->connectionId, $directory)) {
       $this->currentDirectory = $this->getServerDir();
     } else {
-      throw new \Exception('Can not change remote directory to ' . $directory);
+      throw new BrFTPException('Can not change remote directory to ' . $directory);
     }
   }
 
-  public function iterateDir($mask, $callback = null) {
+  public function iterateDir($mask, $callback = null)
+  {
     if (gettype($mask) != 'string') {
       $callback = $mask;
       $mask = null;
@@ -107,7 +109,8 @@ class BrFTP extends BrRemoteConnection {
     }
   }
 
-  public function uploadFile($sourceFilePath, $targetFileName = null, $mode = FTP_BINARY) {
+  public function uploadFile($sourceFilePath, $targetFileName = null, $mode = FTP_BINARY)
+  {
     if (!$targetFileName) {
       $targetFileName = br()->fs()->fileName($sourceFilePath);
     }
@@ -117,22 +120,26 @@ class BrFTP extends BrRemoteConnection {
         return true;
       }
     }
-    throw new \Exception('Can not upload file ' . $sourceFilePath);
+    throw new BrFTPException('Can not upload file ' . $sourceFilePath);
   }
 
-  public function deleteFile($fileName) {
+  public function deleteFile($fileName)
+  {
     return @ftp_delete($this->connectionId, $fileName);
   }
 
-  public function renameFile($oldFileName, $newFileName) {
+  public function renameFile($oldFileName, $newFileName)
+  {
     return @ftp_rename($this->connectionId, $oldFileName, $newFileName);
   }
 
-  public function makeDir($name) {
+  public function makeDir($name)
+  {
     return @ftp_mkdir($this->connectionId, $name);
   }
 
-  public function downloadFile($sourceFileName, $targetFilePath, $targetFileName = null, $mode = FTP_BINARY) {
+  public function downloadFile($sourceFileName, $targetFilePath, $targetFileName = null, $mode = FTP_BINARY)
+  {
     $targetFilePath = br()->fs()->normalizePath($targetFilePath);
     if (!$targetFileName) {
       $targetFileName = $sourceFileName;
@@ -143,19 +150,20 @@ class BrFTP extends BrRemoteConnection {
         return true;
       }
     }
-    throw new \Exception('Can not download file ' . $sourceFileName);
+    throw new BrFTPException('Can not download file ' . $sourceFileName);
   }
 
-  public function isFileExists($fileName) {
+  public function isFileExists($fileName)
+  {
     $exists = false;
-    $this->iterateDir($fileName, function() use (&$exists) {
+    $this->iterateDir($fileName, function () use (&$exists) {
       $exists = true;
     });
     return $exists;
   }
 
-  public function getLastError() {
+  public function getLastError()
+  {
     return '';
   }
-
 }

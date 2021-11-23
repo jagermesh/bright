@@ -10,20 +10,21 @@
 
 namespace Bright;
 
-class BrDataSource extends BrGenericDataSource {
-
+class BrDataSource extends BrGenericDataSource
+{
   private $dbEntity;
   private $dbEntityAlias;
   private $dbIndexHint;
-  private $DMLType;
 
-  public function __construct($dbEntity, $options = []) {
+  public function __construct($dbEntity, $options = [])
+  {
     $this->setDbEntity($dbEntity);
 
     parent::__construct($options);
   }
 
-  public function dbEntity($newValue = null) {
+  public function dbEntity($newValue = null)
+  {
     if ($newValue) {
       $this->dbEntity = $newValue;
     }
@@ -31,13 +32,15 @@ class BrDataSource extends BrGenericDataSource {
     return $this->dbEntity;
   }
 
-  public function setDbEntity($newValue) {
+  public function setDbEntity($newValue)
+  {
     $this->dbEntity = $newValue;
 
     return $this->dbEntity;
   }
 
-  public function dbEntityAlias($newValue = null) {
+  public function dbEntityAlias($newValue = null)
+  {
     if ($newValue) {
       $this->dbEntityAlias = $newValue;
     }
@@ -45,13 +48,15 @@ class BrDataSource extends BrGenericDataSource {
     return $this->dbEntityAlias;
   }
 
-  public function setDbEntityAlias($newValue) {
+  public function setDbEntityAlias($newValue)
+  {
     $this->dbEntityAlias = $newValue;
 
     return $this->dbEntityAlias;
   }
 
-  public function dbIndexHint($newValue = null) {
+  public function dbIndexHint($newValue = null)
+  {
     if ($newValue) {
       $this->dbIndexHint = $newValue;
     }
@@ -59,54 +64,49 @@ class BrDataSource extends BrGenericDataSource {
     return $this->dbIndexHint;
   }
 
-  public function getDMLType() {
-    return $this->DMLType;
-  }
+  protected function internalSelect($filter = [], $fields = [], $order = [], $options = [])
+  {
+    $countOnly = (br($options, BrConst::DATASOURCE_OPTION_RESULT) == BrConst::DATASOURCE_RESULT_TYPE_COUNT);
+    $returnCursor = (br($options, BrConst::DATASOURCE_OPTION_RESULT) == BrConst::DATASOURCE_RESULT_TYPE_CURSOR);
+    $returnStatement = (br($options, BrConst::DATASOURCE_OPTION_RESULT) == BrConst::DATASOURCE_RESULT_TYPE_STATEMENT);
+    $returnSQL = (br($options, BrConst::DATASOURCE_OPTION_RESULT) == BrConst::DATASOURCE_RESULT_TYPE_SQL);
 
-  protected function internalSelect($filter = [], $fields = [], $order = [], $options = []) {
-    $this->DMLType = '';
-
-    $countOnly = (br($options, 'result') == 'count');
-    $returnCursor = (br($options, 'result') == 'cursor');
-    $returnStatement = (br($options, 'result') == 'statement');
-    $returnSQL = (br($options, 'result') == 'sql');
-
-    $this->limit = br($options, 'limit');
-    $this->skip = br($options, 'skip', 0);
+    $this->limit = br($options, BrConst::DATASOURCE_OPTION_LIMIT);
+    $this->skip = br($options, BrConst::DATASOURCE_OPTION_SKIP, 0);
 
     if (!$this->skip || ($this->skip < 0)) {
       $this->skip = 0;
     }
 
-    $options['limit'] = $this->limit;
-    $options['skip'] = $this->skip;
-    $options['operation'] = 'select';
-    $options['dataSets'] = br(br($options, 'dataSets'))->split();
-    $options['clientUID'] = br($options, 'clientUID');
-    $options['renderMode'] = br($options, 'renderMode');
-    $options['filter'] = $filter;
-    $options['fields'] = $fields ? $fields : [];
-    $options['excludeFields'] = br(br($options, 'excludeFields'))->split();
-    $options['order'] = $order ? $order : [];
+    $options[BrConst::DATASOURCE_OPTION_LIMIT] = $this->limit;
+    $options[BrConst::DATASOURCE_OPTION_SKIP] = $this->skip;
+    $options[BrConst::DATASOURCE_OPTION_OPERATION] = BrConst::DATASOURCE_OPERATION_SELECT;
+    $options[BrConst::DATASOURCE_OPTION_DATASETS] = br(br($options, BrConst::DATASOURCE_OPTION_DATASETS))->split();
+    $options[BrConst::DATASOURCE_OPTION_CLIENTUID] = br($options, BrConst::DATASOURCE_OPTION_CLIENTUID);
+    $options[BrConst::DATASOURCE_OPTION_RENDER_MODE] = br($options, BrConst::DATASOURCE_OPTION_RENDER_MODE);
+    $options[BrConst::DATASOURCE_OPTION_FILTER] = $filter;
+    $options[BrConst::DATASOURCE_OPTION_FIELDS] = $fields ? $fields : [];
+    $options[BrConst::DATASOURCE_OPTION_EXCLUDE_FIELDS] = br(br($options, BrConst::DATASOURCE_OPTION_EXCLUDE_FIELDS))->split();
+    $options[BrConst::DATASOURCE_OPTION_ORDER] = $order ? $order : [];
 
     $transientData = [];
 
-    $this->callEvent('before:select', $filter, $transientData, $options);
+    $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_BEFORE, BrConst::DATASOURCE_EVENT_SELECT), $filter, $transientData, $options);
 
-    $this->limit = $options['limit'];
-    $this->skip = $options['skip'];
+    $this->limit = $options[BrConst::DATASOURCE_OPTION_LIMIT];
+    $this->skip = $options[BrConst::DATASOURCE_OPTION_SKIP];
 
-    if (br($options, 'fields')) {
-      $fields = array_unique(array_merge($fields, $options['fields']));
+    if (br($options, BrConst::DATASOURCE_OPTION_FIELDS)) {
+      $fields = array_unique(array_merge($fields, $options[BrConst::DATASOURCE_OPTION_FIELDS]));
     }
 
-    $distinct = br($options, 'distinct');
+    $distinct = br($options, BrConst::DATASOURCE_OPTION_DISTINCT);
 
     $this->lastSelectAmount = null;
     $this->priorAdjancedRecord = null;
     $this->nextAdjancedRecord = null;
 
-    $sortOrder = br($options, 'order', br($options, 'orderBy', []));
+    $sortOrder = br($options, BrConst::DATASOURCE_OPTION_ORDER, br($options, BrConst::DATASOURCE_OPTION_ORDER_BY, []));
 
     if (!$sortOrder) {
       $sortOrder = $order;
@@ -114,30 +114,24 @@ class BrDataSource extends BrGenericDataSource {
     if (!$sortOrder) {
       $sortOrder = $this->defaultOrder;
     }
-    if ($sortOrder) {
-      if (!is_array($sortOrder)) {
-        $sortOrder = [ $sortOrder => BrConst::SORT_ASC ];
-      }
+    if ($sortOrder && !is_array($sortOrder)) {
+      $sortOrder = [ $sortOrder => BrConst::SORT_ASC ];
     }
-    if ($groupBy = br($options, 'groupBy', [])) {
-      if (!is_array($groupBy)) {
-        $groupBy = [ $groupBy ];
-      }
+    if (($groupBy = br($options, BrConst::DATASOURCE_OPTION_GROUP_BY, [])) && !is_array($groupBy)) {
+      $groupBy = [ $groupBy ];
     }
-    if ($having = br($options, 'having', [])) {
-      if (!is_array($having)) {
-        $having = [ $having ];
-      }
+    if (($having = br($options, BrConst::DATASOURCE_OPTION_HAVING, [])) && !is_array($having)) {
+      $having = [ $having ];
     }
 
     $this->validateSelect($filter);
 
-    $result = $this->callEvent('select', $filter, $transientData, $options);
+    $result = $this->callEvent(BrConst::DATASOURCE_EVENT_SELECT, $filter, $transientData, $options);
 
     if (is_null($result)) {
       $result = [];
       $this->lastSelectAmount = 0;
-      $table = $this->getDb()->table($this->dbEntity(), $this->dbEntityAlias(), [ 'indexHint' => $this->dbIndexHint ]);
+      $table = $this->getDb()->table($this->dbEntity(), $this->dbEntityAlias(), [ BrConst::DATASOURCE_OPTION_INDEX_HINT => $this->dbIndexHint ]);
       if (!strlen($this->limit) || ($this->limit > 0)) {
         try {
           $cursor = $table->select($filter, $fields, $distinct);
@@ -153,10 +147,10 @@ class BrDataSource extends BrGenericDataSource {
           if (!$countOnly && $sortOrder && is_array($sortOrder)) {
             foreach($sortOrder as $fieldName => $direction) {
               switch(strtolower($direction)) {
-                case 'asc':
+                case BrConst::DATASOURCE_OPTION_SORT_ASC:
                   $sortOrder[$fieldName] = BrConst::SORT_ASC;
                   break;
-                case 'desc':
+                case BrConst::DATASOURCE_OPTION_SORT_DESC:
                   $sortOrder[$fieldName] = BrConst::SORT_DESC;
                   break;
                 default:
@@ -194,7 +188,7 @@ class BrDataSource extends BrGenericDataSource {
             $result = $cursor->count();
           } else
           if ($returnCursor) {
-            return new BrDataSourceCursor($this->getDb(), $cursor->rewind(), $this, $transientData, $options);
+            return new BrDataSourceCursor($this, $cursor->rewind(), $transientData, $options);
           } else
           if ($returnSQL) {
             return $cursor->getSQL();
@@ -205,9 +199,9 @@ class BrDataSource extends BrGenericDataSource {
             $idx = 1;
             $this->lastSelectAmount = 0;
             foreach($cursor as $row) {
-              $row['rowid'] = $this->getDb()->rowidValue($row, $this->rowidFieldName);
-              if ($options['excludeFields']) {
-                foreach($options['excludeFields'] as $excludeFieldName) {
+              $row[BrConst::DATASOURCE_SYSTEM_FIELD_ROWID] = $this->getDb()->rowidValue($row, $this->rowidFieldName);
+              if ($options[BrConst::DATASOURCE_OPTION_EXCLUDE_FIELDS]) {
+                foreach($options[BrConst::DATASOURCE_OPTION_EXCLUDE_FIELDS] as $excludeFieldName) {
                   unset($row[$excludeFieldName]);
                 }
               }
@@ -226,18 +220,24 @@ class BrDataSource extends BrGenericDataSource {
               }
               $idx++;
             }
-            if (!br($options, 'noCalcFields')) {
-              $this->callEvent('prepareCalcFields', $result, $transientData, $options);
+            if (!br($options, BrConst::DATASOURCE_OPTION_NO_CALC_FIELDS)) {
+              $this->callEvent(BrConst::DATASOURCE_EVENT_PREPARE_CALC_FIELDS, $result, $transientData, $options);
               foreach($result as $key => $row) {
-                $this->callEvent('calcFields', $row, $transientData, $options);
+                $this->callEvent(BrConst::DATASOURCE_EVENT_CALC_FIELDS, $row, $transientData, $options);
+                $result[$key] = $row;
+              }
+            }
+            if ($this->invokeMethodExists(BrConst::DATASOURCE_METHOD_PROTECT_FIELDS)) {
+              foreach($result as $key => $row) {
+                $this->callEvent(BrConst::DATASOURCE_METHOD_PROTECT_FIELDS, $row, $transientData, $options);
                 $result[$key] = $row;
               }
             }
           }
         } catch (\Exception $e) {
-          $operation = 'select';
+          $operation = BrConst::DATASOURCE_OPERATION_SELECT;
           $error = $e->getMessage();
-          $this->trigger('error', $error, $operation, $e);
+          $this->trigger(BrConst::DATASOURCE_EVENT_ERROR, $error, $operation, $e);
           throw $e;
         }
       }
@@ -245,90 +245,106 @@ class BrDataSource extends BrGenericDataSource {
       if (!$countOnly && is_array($result)) {
         $this->lastSelectAmount = 0;
         foreach($result as $key => $row) {
-          $row['rowid'] = $this->getDb()->rowidValue($row, $this->rowidFieldName);
+          $row[BrConst::DATASOURCE_SYSTEM_FIELD_ROWID] = $this->getDb()->rowidValue($row, $this->rowidFieldName);
           $result[$key] = $row;
           $this->lastSelectAmount++;
         }
-        if (!br($options, 'noCalcFields')) {
-          $this->callEvent('prepareCalcFields', $result, $transientData, $options);
+        if (!br($options, BrConst::DATASOURCE_OPTION_NO_CALC_FIELDS)) {
+          $this->callEvent(BrConst::DATASOURCE_EVENT_PREPARE_CALC_FIELDS, $result, $transientData, $options);
           foreach($result as $key => $row) {
-            $this->callEvent('calcFields', $row, $transientData, $options);
+            $this->callEvent(BrConst::DATASOURCE_EVENT_CALC_FIELDS, $row, $transientData, $options);
+            $result[$key] = $row;
+          }
+        }
+        if ($this->invokeMethodExists(BrConst::DATASOURCE_METHOD_PROTECT_FIELDS)) {
+          foreach($result as $key => $row) {
+            $this->callEvent(BrConst::DATASOURCE_METHOD_PROTECT_FIELDS, $row, $transientData, $options);
             $result[$key] = $row;
           }
         }
       }
     }
 
-    $this->callEvent('after:select', $result, $transientData, $options);
+    $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, BrConst::DATASOURCE_EVENT_SELECT), $result, $transientData, $options);
 
     return $result;
   }
 
-  public function getCursor($filter = [], $fields = [], $order = [], $options = []) {
-    $options['result'] = 'cursor';
+  public function getCursor($filter = [], $fields = [], $order = [], $options = [])
+  {
+    $options[BrConst::DATASOURCE_OPTION_RESULT] = BrConst::DATASOURCE_RESULT_TYPE_CURSOR;
 
     return $this->internalSelect($filter, $fields, $order, $options);
   }
 
-  public function getStatement($filter = [], $fields = [], $order = [], $options = []) {
-    $options['result'] = 'statement';
+  public function getStatement($filter = [], $fields = [], $order = [], $options = [])
+  {
+    $options[BrConst::DATASOURCE_OPTION_RESULT] = BrConst::DATASOURCE_RESULT_TYPE_STATEMENT;
 
     return $this->internalSelect($filter, $fields, $order, $options);
   }
 
-  public function getSQL($filter = [], $fields = [], $order = [], $options = []) {
-    $options['result'] = 'sql';
+  public function getSQL($filter = [], $fields = [], $order = [], $options = [])
+  {
+    $options[BrConst::DATASOURCE_OPTION_RESULT] = BrConst::DATASOURCE_RESULT_TYPE_SQL;
 
     return $this->internalSelect($filter, $fields, $order, $options);
   }
 
-  public function insert($rowParam = [], &$transientData = [], $optionsParam = [], $iteration = 0, $rerunError = null) {
+  public function insert($rowParam = [], &$transientData = [], $optionsParam = [], $iteration = 0, $rerunError = null)
+  {
     if ($iteration > $this->rerunIterations) {
       throw new BrDBException($rerunError);
     }
 
     $startMarker = time();
 
-    $this->DMLType = 'insert';
-
     $row = $rowParam;
 
     $options = $optionsParam;
-    $options['operation'] = 'insert';
-    $options['dataSets'] = br(br($options, 'dataSets'))->split();
-    $options['clientUID']  = br($options, 'clientUID');
-    $options['renderMode'] = br($options, 'renderMode');
-    $options['filter'] = [];
+    $options[BrConst::DATASOURCE_OPTION_OPERATION] = BrConst::DATASOURCE_OPERATION_INSERT;
+    $options[BrConst::DATASOURCE_OPTION_DATASETS] = br(br($options, BrConst::DATASOURCE_OPTION_DATASETS))->split();
+    $options[BrConst::DATASOURCE_OPTION_CLIENTUID]  = br($options, BrConst::DATASOURCE_OPTION_CLIENTUID);
+    $options[BrConst::DATASOURCE_OPTION_RENDER_MODE] = br($options, BrConst::DATASOURCE_OPTION_RENDER_MODE);
+    $options[BrConst::DATASOURCE_OPTION_FILTER] = [];
 
     $old = [];
 
-    $this->callEvent('before:insert', $row, $transientData, $old, $options);
+    $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_BEFORE, BrConst::DATASOURCE_EVENT_INSERT), $row, $transientData, $old, $options);
 
     $this->validateInsert($row);
 
-    $result = $this->callEvent('insert', $row, $transientData, $old, $options);
+    $result = $this->callEvent(BrConst::DATASOURCE_EVENT_INSERT, $row, $transientData, $old, $options);
 
     if (is_null($result)) {
       try {
         try {
-          if ($this->transactionalDML()) {
+          if ($this->isTransactionalDML()) {
             $this->getDb()->startTransaction();
           }
           if ($row) {
             $table = $this->getDb()->table($this->dbEntity());
-            $table->insert($row);
-            $result = $row;
-            $this->callEvent('after:insert', $result, $transientData, $old, $options);
-            $result['rowid'] = $this->getDb()->rowidValue($result);
-            if (!br($options, 'noCalcFields')) {
-              $resultsArr = [$result];
-              $this->callEvent('prepareCalcFields', $resultsArr, $transientData, $options);
-              $this->callEvent('calcFields', $result, $transientData, $options);
+            $rowid = $table->insert($row);
+            $tmpOptions = $options;
+            $tmpOptions[BrConst::DATASOURCE_OPTION_NO_CALC_FIELDS] = true;
+            $result = $this->selectOne($rowid, [], [], $tmpOptions);
+            if (!$result) {
+              $result = $row;
             }
-            if ($this->transactionalDML()) {
+            $result[BrConst::DATASOURCE_SYSTEM_FIELD_ROWID] = $this->getDb()->rowidValue($result);
+            $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, BrConst::DATASOURCE_EVENT_INSERT), $result, $transientData, $old, $options);
+            if ($result && !br($options, BrConst::DATASOURCE_OPTION_NO_CALC_FIELDS)) {
+              $resultsArr = [$result];
+              $this->callEvent(BrConst::DATASOURCE_EVENT_PREPARE_CALC_FIELDS, $resultsArr, $transientData, $options);
+              $this->callEvent(BrConst::DATASOURCE_EVENT_CALC_FIELDS, $result, $transientData, $options);
+            }
+            if ($this->invokeMethodExists(BrConst::DATASOURCE_METHOD_PROTECT_FIELDS)) {
+              $this->callEvent(BrConst::DATASOURCE_METHOD_PROTECT_FIELDS, $result, $transientData, $options);
+            }
+            if ($this->isTransactionalDML()) {
               $this->getDb()->commitTransaction();
             }
-            $this->callEvent('after:commit', $result, $transientData, $old, $options);
+            $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, BrConst::DATASOURCE_EVENT_COMMIT), $result, $transientData, $old, $options);
           } else {
             throw new BrDBException('Empty insert request');
           }
@@ -338,19 +354,19 @@ class BrDataSource extends BrGenericDataSource {
             br()->log('Too much time passed since the beginning of the operation: ' . (time() - $startMarker ) . 's');
             throw $e;
           }
-          if ($this->transactionalDML()) {
+          if ($this->isTransactionalDML()) {
             $this->getDb()->rollbackTransaction();
           }
           usleep(250000);
           return $this->insert($rowParam, $transientData, $optionsParam, $iteration + 1, $e->getMessage());
         }
       } catch (\Exception $e) {
-        if ($this->transactionalDML()) {
+        if ($this->isTransactionalDML()) {
           $this->getDb()->rollbackTransaction();
         }
-        $operation = 'insert';
+        $operation = BrConst::DATASOURCE_OPERATION_INSERT;
         $error = $e->getMessage();
-        $result = $this->trigger('error', $error, $operation, $e, $row);
+        $result = $this->trigger(BrConst::DATASOURCE_EVENT_ERROR, $error, $operation, $e, $row);
         if (is_null($result)) {
           if ($e instanceof BrDBUniqueException) {
             throw new BrDBUniqueException();
@@ -363,23 +379,22 @@ class BrDataSource extends BrGenericDataSource {
     return $result;
   }
 
-  public function update($rowid, $rowParam, &$transientData = [], $optionsParam = [], $iteration = 0, $rerunError = null) {
+  public function update($rowid, $rowParam, &$transientData = [], $optionsParam = [], $iteration = 0, $rerunError = null)
+  {
     if ($iteration > $this->rerunIterations) {
       throw new BrDBException($rerunError);
     }
 
     $startMarker = time();
 
-    $this->DMLType = 'update';
-
     $row = $rowParam;
 
     $options = $optionsParam;
-    $options['operation'] = 'update';
-    $options['dataSets'] = br(br($options, 'dataSets'))->split();
-    $options['clientUID'] = br($options, 'clientUID');
-    $options['renderMode'] = br($options, 'renderMode');
-    $options['filter'] = [];
+    $options[BrConst::DATASOURCE_OPTION_OPERATION] = BrConst::DATASOURCE_OPERATION_UPDATE;
+    $options[BrConst::DATASOURCE_OPTION_DATASETS] = br(br($options, BrConst::DATASOURCE_OPTION_DATASETS))->split();
+    $options[BrConst::DATASOURCE_OPTION_CLIENTUID] = br($options, BrConst::DATASOURCE_OPTION_CLIENTUID);
+    $options[BrConst::DATASOURCE_OPTION_RENDER_MODE] = br($options, BrConst::DATASOURCE_OPTION_RENDER_MODE);
+    $options[BrConst::DATASOURCE_OPTION_FILTER] = [];
 
     $table = $this->getDb()->table($this->dbEntity());
 
@@ -389,7 +404,7 @@ class BrDataSource extends BrGenericDataSource {
     if ($currentRow = $table->selectOne($filter)) {
       try {
         try {
-          if ($this->transactionalDML()) {
+          if ($this->isTransactionalDML()) {
             $this->getDb()->startTransaction();
           }
 
@@ -399,11 +414,11 @@ class BrDataSource extends BrGenericDataSource {
             $new[$name] = $value;
           }
 
-          $this->callEvent('before:update', $new, $transientData, $old, $options);
+          $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_BEFORE, BrConst::DATASOURCE_EVENT_UPDATE), $new, $transientData, $old, $options);
 
           $this->validateUpdate($old, $new);
 
-          $result = $this->callEvent('update', $new, $transientData, $old, $options);
+          $result = $this->callEvent(BrConst::DATASOURCE_EVENT_UPDATE, $new, $transientData, $old, $options);
           if (is_null($result)) {
             $changes = [];
             foreach($new as $name => $value) {
@@ -414,48 +429,54 @@ class BrDataSource extends BrGenericDataSource {
             if ($changes) {
               $table->update($changes, $rowid);
             }
-            $result = $this->selectOne($filter, [], [], $options);
+            $tmpOptions = $options;
+            $tmpOptions[BrConst::DATASOURCE_OPTION_NO_CALC_FIELDS] = true;
+            $result = $this->selectOne($rowid, [], [], $tmpOptions);
             if (!$result) {
-              $result = $table->selectOne($filter);
-              if (!br($options, 'noCalcFields')) {
-                $resultsArr = [$result];
-                $this->callEvent('prepareCalcFields', $resultsArr, $transientData, $options);
-                $this->callEvent('calcFields', $result, $transientData, $options);
-              }
+              $result = $new;
             }
-            $this->callEvent('after:update', $result, $transientData, $old, $options);
-            $result['rowid'] = $this->getDb()->rowidValue($result);
+            $result[BrConst::DATASOURCE_SYSTEM_FIELD_ROWID] = $this->getDb()->rowidValue($result);
+            $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, BrConst::DATASOURCE_EVENT_UPDATE), $result, $transientData, $old, $options);
+            if ($result && !br($options, BrConst::DATASOURCE_OPTION_NO_CALC_FIELDS)) {
+              $resultsArr = [$result];
+              $this->callEvent(BrConst::DATASOURCE_EVENT_PREPARE_CALC_FIELDS, $resultsArr, $transientData, $options);
+              $this->callEvent(BrConst::DATASOURCE_EVENT_CALC_FIELDS, $result, $transientData, $options);
+            }
+            if ($this->invokeMethodExists(BrConst::DATASOURCE_METHOD_PROTECT_FIELDS)) {
+              $this->callEvent(BrConst::DATASOURCE_METHOD_PROTECT_FIELDS, $result, $transientData, $options);
+            }
           }
-          if ($this->transactionalDML()) {
+          if ($this->isTransactionalDML()) {
             $this->getDb()->commitTransaction();
           }
-          $this->callEvent('after:commit', $result, $transientData, $old, $options);
+          $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, BrConst::DATASOURCE_EVENT_COMMIT), $result, $transientData, $old, $options);
         } catch (BrDBRecoverableException $e) {
           br()->log('Repeating update... (' . $iteration . ') because of ' . $e->getMessage());
           if (time() - $startMarker > $this->rerunTimeLimit) {
             br()->log('Too much time passed since the beginning of the operation: ' . (time() - $startMarker ) . 's');
             throw $e;
           }
-          if ($this->transactionalDML()) {
+          if ($this->isTransactionalDML()) {
             $this->getDb()->rollbackTransaction();
           }
           usleep(250000);
           return $this->update($rowid, $rowParam, $transientData, $optionsParam, $iteration + 1, $e->getMessage());
         }
       } catch (\Exception $e) {
-        if ($this->transactionalDML()) {
+        if ($this->isTransactionalDML()) {
           $this->getDb()->rollbackTransaction();
         }
-        $operation = 'update';
+        $operation = BrConst::DATASOURCE_OPERATION_UPDATE;
         $error = $e->getMessage();
-        $result = $this->trigger('error', $error, $operation, $e, $new);
+        $result = $this->trigger(BrConst::DATASOURCE_EVENT_ERROR, $error, $operation, $e, $new);
         if (is_null($result)) {
           if ($e instanceof BrDBUniqueException) {
             throw new BrDBUniqueException();
           }
           if (preg_match("/Data truncated for column '([a-z_]+)'/i", $error, $matches)) {
             br()->log()->error($e);
-            throw new BrAppException('Wrong value for field ' . br()->config()->get('dbSchema.' . $this->dbEntity() . '.' . $matches[1] . '.displayName', $matches[1]));
+            throw new BrAppException('Wrong value for field ' .
+              br()->config()->get('dbSchema.' . $this->dbEntity() . '.' . $matches[1] . '.displayName', $matches[1]));
           }
           throw $e;
         }
@@ -466,21 +487,20 @@ class BrDataSource extends BrGenericDataSource {
     throw new BrDBNotFoundException();
   }
 
-  public function remove($rowid, &$transientData = [], $optionsParam = [], $iteration = 0, $rerunError = null) {
+  public function remove($rowid, &$transientData = [], $optionsParam = [], $iteration = 0, $rerunError = null)
+  {
     if ($iteration > $this->rerunIterations) {
       throw new BrDBException($rerunError);
     }
 
     $startMarker = time();
 
-    $this->DMLType = 'remove';
-
     $options = $optionsParam;
-    $options['operation'] = 'remove';
-    $options['dataSets'] = br(br($options, 'dataSets'))->split();
-    $options['clientUID'] = br($options, 'clientUID');
-    $options['renderMode'] = br($options, 'renderMode');
-    $options['filter'] = [];
+    $options[BrConst::DATASOURCE_OPTION_OPERATION] = BrConst::DATASOURCE_OPERATION_DELETE;
+    $options[BrConst::DATASOURCE_OPTION_DATASETS] = br(br($options, BrConst::DATASOURCE_OPTION_DATASETS))->split();
+    $options[BrConst::DATASOURCE_OPTION_CLIENTUID] = br($options, BrConst::DATASOURCE_OPTION_CLIENTUID);
+    $options[BrConst::DATASOURCE_OPTION_RENDER_MODE] = br($options, BrConst::DATASOURCE_OPTION_RENDER_MODE);
+    $options[BrConst::DATASOURCE_OPTION_FILTER] = [];
 
     $table = $this->getDb()->table($this->dbEntity());
 
@@ -492,49 +512,52 @@ class BrDataSource extends BrGenericDataSource {
     if ($crow = $table->selectOne($filter)) {
       try {
         try {
-          if ($this->transactionalDML()) {
+          if ($this->isTransactionalDML()) {
             $this->getDb()->startTransaction();
           }
 
-          $this->callEvent('before:remove', $crow, $transientData, $options);
+          $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_BEFORE, BrConst::DATASOURCE_EVENT_DELETE), $crow, $transientData, $options);
 
           $this->validateRemove($crow);
 
-          $result = $this->callEvent('remove', $crow, $transientData, $options);
+          $result = $this->callEvent(BrConst::DATASOURCE_EVENT_DELETE, $crow, $transientData, $options);
           if (is_null($result)) {
             $table->remove($filter);
             $result = $crow;
-            $this->callEvent('after:remove', $result, $transientData, $options);
-            $result['rowid'] = $this->getDb()->rowidValue($result);
-            if (!br($options, 'noCalcFields')) {
+            $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, BrConst::DATASOURCE_EVENT_DELETE), $result, $transientData, $options);
+            $result[BrConst::DATASOURCE_SYSTEM_FIELD_ROWID] = $this->getDb()->rowidValue($result);
+            if (!br($options, BrConst::DATASOURCE_OPTION_NO_CALC_FIELDS)) {
               $resultsArr = [$result];
-              $this->callEvent('prepareCalcFields', $resultsArr, $transientData, $options);
-              $this->callEvent('calcFields', $result, $transientData, $options);
+              $this->callEvent(BrConst::DATASOURCE_EVENT_PREPARE_CALC_FIELDS, $resultsArr, $transientData, $options);
+              $this->callEvent(BrConst::DATASOURCE_EVENT_CALC_FIELDS, $result, $transientData, $options);
+            }
+            if ($this->invokeMethodExists(BrConst::DATASOURCE_METHOD_PROTECT_FIELDS)) {
+              $this->callEvent(BrConst::DATASOURCE_METHOD_PROTECT_FIELDS, $result, $transientData, $options);
             }
           }
-          if ($this->transactionalDML()) {
+          if ($this->isTransactionalDML()) {
             $this->getDb()->commitTransaction();
           }
-          $this->callEvent('after:commit', $result, $transientData, $crow, $options);
+          $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, BrConst::DATASOURCE_EVENT_COMMIT), $result, $transientData, $crow, $options);
         } catch (BrDBRecoverableException $e) {
           br()->log('Repeating remove... (' . $iteration . ') because of ' . $e->getMessage());
           if (time() - $startMarker > $this->rerunTimeLimit) {
             br()->log('Too much time passed since the beginning of the operation: ' . (time() - $startMarker ) . 's');
             throw $e;
           }
-          if ($this->transactionalDML()) {
+          if ($this->isTransactionalDML()) {
             $this->getDb()->rollbackTransaction();
           }
           usleep(250000);
           return $this->remove($rowid, $transientData, $optionsParam, $iteration + 1, $e->getMessage());
         }
       } catch (\Exception $e) {
-        if ($this->transactionalDML()) {
+        if ($this->isTransactionalDML()) {
           $this->getDb()->rollbackTransaction();
         }
-        $operation = 'remove';
+        $operation = BrConst::DATASOURCE_OPERATION_DELETE;
         $error = $e->getMessage();
-        $result = $this->trigger('error', $error, $operation, $e, $crow);
+        $result = $this->trigger(BrConst::DATASOURCE_EVENT_ERROR, $error, $operation, $e, $crow);
         if (is_null($result)) {
           if ($e instanceof BrDBForeignKeyException) {
             throw new BrDBForeignKeyException();
@@ -546,5 +569,4 @@ class BrDataSource extends BrGenericDataSource {
 
     return $result;
   }
-
 }

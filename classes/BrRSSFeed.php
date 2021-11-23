@@ -10,8 +10,8 @@
 
 namespace Bright;
 
-class BrRSSFeed extends BrObject {
-
+class BrRSSFeed extends BrObject
+{
   public $articles = [];
   public $XMLParserError = null;
 
@@ -21,26 +21,29 @@ class BrRSSFeed extends BrObject {
   private $insideData = false;
   private $insideArticle = false;
 
-  public function parseUrl($Url) {
+  public function parseUrl($Url)
+  {
     if ($content = @get_file_contents($Url)) {
-      return $this->Parse($conent);
+      return $this->Parse($content);
     }
   }
 
-  public function parse($content) {
+  public function parse($content)
+  {
     $this->articles = [];
 
     $this->XMLParser = xml_parser_create();
 
-    xml_parser_set_option($this->XMLParser, XML_OPTION_TARGET_ENCODING, "UTF-8").
+    xml_parser_set_option($this->XMLParser, XML_OPTION_TARGET_ENCODING, "UTF-8");
 
     xml_set_object($this->XMLParser, $this);
-    xml_set_element_handler($this->XMLParser, 'start_element', 'end_element');
+    xml_set_element_handler($this->XMLParser, 'startElement', 'endElement');
     xml_set_character_data_handler($this->XMLParser, 'content');
 
     try {
       if (!xml_parse($this->XMLParser, $content)) {
-        $this->XMLParserError = 'Line '.xml_get_current_line_number($this->XMLParser).': '.(xml_get_error_code($this->XMLParser)?xml_error_string(xml_get_error_code($this->XMLParser)):'Unknown error');
+        $this->XMLParserError = 'Line ' . xml_get_current_line_number($this->XMLParser) . ': ' .
+          (xml_get_error_code($this->XMLParser) ? xml_error_string(xml_get_error_code($this->XMLParser)) : 'Unknown error');
       }
     } catch (\Exception $e) {
       $this->XMLParserError = $e->getMessage();
@@ -51,7 +54,8 @@ class BrRSSFeed extends BrObject {
     return (!$this->XMLParserError && count($this->articles));
   }
 
-  public function start_element($parser, $name, $attrs = []) {
+  public function startElement($parser, $name, $attrs = [])
+  {
     if ($this->insideArticle) {
       $this->currentTag = $name;
     }
@@ -61,10 +65,13 @@ class BrRSSFeed extends BrObject {
         $this->article = new BrRSSArticle();
         $this->insideArticle = true;
         break;
+      default:
+        break;
     }
   }
 
-  public function content($parser, $data) {
+  public function content($parser, $data)
+  {
     if ($this->insideArticle) {
       switch ($this->currentTag) {
         case 'TITLE':
@@ -92,20 +99,24 @@ class BrRSSFeed extends BrObject {
         case 'CATEGORY':
           $this->article->Categories[] = $data;
           break;
+        default:
+          break;
       }
       $this->insideData = true;
     }
   }
 
-  public function end_element($parser, $name) {
+  public function endElement($parser, $name)
+  {
     switch ($name) {
       case 'ITEM':
         $this->articles[] = $this->article;
         $this->insideArticle = false;
         break;
+      default:
+        break;
     }
     $this->insideData = false;
     $this->currentTag = null;
   }
-
 }

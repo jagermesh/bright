@@ -46,7 +46,7 @@ cp config.db.example.php config.db.php
 <pre>
 &lt;?php
 
-br()->config()->set( 'br/db'
+br()->config()->set( \Bright\BrConst::CONFIG_OPTION_DB
                  , array( 'engine'     => 'mysql'
                         , 'hostname'   => 'localhost'
                         , 'name'       => 'bright_site'

@@ -1,37 +1,43 @@
-#!/usr/bin/php
+#!/usr/local/bin/php
 <?php
 
-class GitPreCommitHook {
-
+class GitPreCommitHook
+{
   private $isWindows;
 
-  public function __construct() {
-    $this->$isWindows = (substr(php_uname(), 0, 7) == "Windows");
+  public function __construct()
+  {
+    $this->isWindows = (substr(php_uname(), 0, 7) == "Windows");
   }
 
-  private function log($s) {
+  private function log($s)
+  {
     echo($s . "\n");
   }
 
-  private function beginError() {
+  private function beginError()
+  {
     echo(chr(27) . '[31m' . "\n");
   }
 
-  private function endError() {
+  private function endError()
+  {
     echo(chr(27) . '[0m' . "\n");
   }
 
-  private function logError($s) {
+  private function logError($s)
+  {
     $this->beginError();
     echo($s . "\n");
     $this->endError();
   }
 
-  private function lint($fileMask, $command, $toolName, $installUrl) {
-    $files  = array();
-    $output = array();
+  private function lint($fileMask, $command, $toolName, $installUrl)
+  {
+    $files  = [];
+    $output = [];
     $retval = 0;
-    if ($this->$isWindows) {
+    if ($this->isWindows) {
       $grep = 'findstr "' . $fileMask . '"';
     } else {
       $grep = 'grep "' . $fileMask . '$"';
@@ -41,45 +47,61 @@ class GitPreCommitHook {
     if ($files) {
       $this->log('Running ' . $toolName . ' validation');
       foreach($files as $file) {
-        $this->log('Checking: ' . $file);
-        $cmd = $command . ' "' . $file . '"';
-        if (!$this->$isWindows) {
-          $cmd = 'export PATH=/usr/local/bin:$PATH; ' . $cmd;
-        }
-        exec($cmd, $output, $retval);
-        if ($retval !== 0) {
-          $this->beginError();
-          if ($output) {
-            foreach($output as $line) {
-              if ($line) {
-                $this->log($line);
-              }
-            }
-          } else {
-            $this->log('Command "' . $cmd . '" failed with code ' . $retval . ', probably ' . $toolName . ' not installed');
-            $this->log('Please refer to this link about how to install ' . $toolName . ': ' . $installUrl);
+        if (!preg_match('~/vendor/~i', $file)) {
+          $cmd = $command . ' "' . $file . '"';
+          if (!$this->isWindows) {
+            $cmd = 'export PATH=/usr/local/bin:$PATH; ' . $cmd;
           }
-          $this->endError();
-          exit(1);
+          $this->log($cmd);
+          exec($cmd, $output, $retval);
+          if ($retval !== 0) {
+            $this->beginError();
+            if ($output) {
+              foreach($output as $line) {
+                if ($line) {
+                  $this->log($line);
+                }
+              }
+            } else {
+              $this->log('Command "' . $cmd . '" failed with code ' . $retval . ', probably ' . $toolName . ' not installed');
+              $this->log('Please refer to this link about how to install ' . $toolName . ': ' . $installUrl);
+            }
+            $this->endError();
+            exit(1);
+          }
         }
       }
     }
   }
 
-  private function JSLint() {
-    $this->lint('.js', 'jshint', 'JSHint', 'http://jshint.com/install/');
+  private function JSLint()
+  {
+    $this->lint('.js', 'jshint', 'JSHint', 'https://jshint.com/install/');
   }
 
-  private function PHPLint() {
-    $this->lint('.php', 'php -l', 'PHP', 'http://php.net/');
+  private function PHPLint()
+  {
+    $this->lint('.php', 'php -l', 'PHP', 'https://php.net/');
   }
 
-  function run() {
+  private function PHPCS()
+  {
+    $this->lint('.php', dirname(dirname(__DIR__)) . '/vendor/bin/phpcs', 'PHPCS', 'https://github.com/squizlabs/PHP_CodeSniffer');
+  }
+
+  private function PHPCBF()
+  {
+    $this->lint('.php', dirname(dirname(__DIR__)) . '/vendor/bin/phpcbf', 'PHPCBF', 'https://github.com/squizlabs/PHP_CodeSniffer');
+  }
+
+  public function run()
+  {
     $this->JSLint();
     $this->PHPLint();
+    $this->PHPCBF();
+    // $this->PHPCS();
   }
-
 }
 
-$gitPreCommitHook = new GitPreCommitHook();
+$gitPreCommitHook = new \GitPreCommitHook();
 $gitPreCommitHook->run();

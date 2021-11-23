@@ -10,31 +10,35 @@
 
 namespace Bright;
 
-class BrDataSourceCursor {
-
+class BrDataSourceCursor extends BrObject
+{
   private $cursor;
   private $dataSource;
   private $transientData;
   private $options;
-  private $db;
 
-  public function __construct($db, $cursor, $dataSource, $transientData, $options) {
-    $this->cursor        = $cursor;
-    $this->dataSource    = $dataSource;
+  public function __construct($dataSource, $cursor, $transientData, $options)
+  {
+    $this->cursor = $cursor;
+    $this->dataSource = $dataSource;
     $this->transientData = $transientData;
-    $this->options       = $options;
-    $this->db            = $db;
+    $this->options = $options;
   }
 
-  public function selectNext() {
+  public function selectNext()
+  {
     if ($row = $this->cursor->next()) {
-      $row['rowid'] = $this->getDb()->rowidValue($row, $this->dataSource->rowidFieldName());
+      $row[BrConst::DATASOURCE_SYSTEM_FIELD_ROWID] = $this->getDb()->rowidValue($row, $this->dataSource->rowidFieldName());
       $resultsArr = [$row];
-      $this->dataSource->callEvent('prepareCalcFields', $resultsArr, $this->transientData, $this->options);
-      $this->dataSource->callEvent('calcFields', $row, $this->transientData, $this->options);
+      if (!br($this->options, BrConst::DATASOURCE_OPTION_NO_CALC_FIELDS)) {
+        $this->dataSource->callEvent(BrConst::DATASOURCE_METHOD_PREPARE_CALC_FIELDS, $resultsArr, $this->transientData, $this->options);
+        $this->dataSource->callEvent(BrConst::DATASOURCE_METHOD_CALC_FIELDS, $row, $this->transientData, $this->options);
+      }
+      if ($this->dataSource->invokeMethodExists(BrConst::DATASOURCE_METHOD_PROTECT_FIELDS)) {
+        $this->dataSource->callEvent(BrConst::DATASOURCE_METHOD_PROTECT_FIELDS, $row, $this->transientData, $this->options);
+      }
     }
 
     return $row;
   }
-
 }

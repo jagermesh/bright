@@ -7,11 +7,11 @@
  *
  */
 
-;(function ($, window) {
+;(function($, window) {
 
   window.br = window.br || Object.create({});
 
-  function BrDataCombo(selector, dataSource, options) {
+  function BrDataCombo(selector) {
 
     const _this = this;
 
@@ -56,6 +56,10 @@
         }
       });
       return result;
+    };
+
+    _this.getContainer = function() {
+      return _this.selector;
     };
 
     function storageTag(ctrl) {
@@ -285,7 +289,6 @@
 
     function renderRow(data) {
       let content = '';
-      const isGroup = !br.isEmpty(_this.options.groupField) && br.toInt(data[_this.options.groupField]) > 0;
       const isDisabled = !br.isEmpty(_this.options.disabledField) && br.toInt(data[_this.options.disabledField]) > 0;
       content += `<option value="${data[_this.options.valueField]}"`;
       if (isDisabled) {
@@ -329,9 +332,7 @@
           let template = '';
           let cbObj = {};
           cbObj.data = data;
-          if (_this.options.hideEmptyValue || (_this.options.autoSelectSingle && (data.length == 1))) {
-
-          } else {
+          if (!(_this.options.hideEmptyValue || (_this.options.autoSelectSingle && (data.length == 1)))) {
             cbObj.s = template;
             _this.events.triggerBefore('generateEmptyOption', cbObj, _selector);
             template = cbObj.s;
@@ -576,7 +577,7 @@
   window.br.dataCombo = function (selector, dataSource, options) {
     let instance = $(selector).data('BrDataCombo');
     if (!instance) {
-      instance = new BrDataCombo(selector, dataSource, options);
+      instance = new BrDataCombo(selector);
     }
     return instance.applyOptions(dataSource, options);
   };

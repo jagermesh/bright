@@ -2,23 +2,29 @@
 
 namespace Bright;
 
-class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageComponentInterface {
+class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageComponentInterface
+{
+  const EVENT_SUBSCRIBE = 'eventBus.subscribe';
 
   protected $clients = [];
 
-  public function __construct($params = array()) {
+  public function __construct($params = array())
+  {
     parent::__construct($params);
   }
 
-  protected function log($message) {
+  protected function log($message)
+  {
     br()->log('[' . strftime('%Y-%m-%d %H:%M:%S', time()) . '] ' . $message);
   }
 
-  protected function getLogPrefix($clientData) {
+  protected function getLogPrefix($clientData)
+  {
     return '[' . $clientData['clientIP'] . '] [' . $clientData['clientUID'] . '] ';
   }
 
-  public function start($params = array()) {
+  public function start($params = array())
+  {
     $wsServer = new \Ratchet\WebSocket\WsServer($this);
 
     $this->log('Listen on port ' . $this->port);
@@ -27,7 +33,8 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
     $httpServer->run();
   }
 
-  public function onOpen(\Ratchet\ConnectionInterface $from) {
+  public function onOpen(\Ratchet\ConnectionInterface $from)
+  {
     $clientHash = spl_object_hash($from);
 
     $headers  = $from->httpRequest->getHeaders();
@@ -57,11 +64,11 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
     $this->log($this->getLogPrefix($clientData) . 'Client connected (' . count($this->clients) . ')');
   }
 
-  public function onMessage(\Ratchet\ConnectionInterface $connection, $message) {
+  public function onMessage(\Ratchet\ConnectionInterface $connection, $message)
+  {
     $clientHash = spl_object_hash($connection);
 
     if ($clientData = $this->clients[$clientHash]) {
-
       $this->log($this->getLogPrefix($clientData) . $message);
 
       $message = json_decode($message, true);
@@ -76,7 +83,7 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
         }
         if (!$this->eventHandlerExists($action)) {
           switch($action) {
-            case 'eventBus.subscribe':
+            case self::EVENT_SUBSCRIBE:
               if ($data = br($message, 'data')) {
                 $events = br(br($data, 'events'))->split();
                 $spaces = br(br($data, 'spaces'))->split();
@@ -125,7 +132,8 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
     }
   }
 
-  public function onClose(\Ratchet\ConnectionInterface $connection) {
+  public function onClose(\Ratchet\ConnectionInterface $connection)
+  {
     $clientHash = spl_object_hash($connection);
 
     $clientData = $this->clients[$clientHash];
@@ -138,16 +146,18 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
     $this->log($this->getLogPrefix($clientData) . 'Disconnected (' . count($this->clients) . ')');
   }
 
-  public function onError(\Ratchet\ConnectionInterface $from, \Exception $e) {
+  public function onError(\Ratchet\ConnectionInterface $from, \Exception $e)
+  {
     $this->log('Error: ' . $e->getMessage());
     $from->close();
   }
 
-  protected function broadcastUsersList($clientData) {
+  protected function broadcastUsersList($clientData)
+  {
     $spaces = br($clientData, 'spaces');
     if ($spaces) {
       $users = [];
-      foreach($this->clients as $tmpClientHash => $tmpClientData) {
+      foreach($this->clients as $tmpClientData) {
         if ($tmpClientData['spaces']) {
           $found = false;
           foreach($tmpClientData['spaces'] as $spaceName) {
@@ -162,7 +172,7 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
         }
       }
       if ($users) {
-        foreach($this->clients as $tmpClientHash => $tmpClientData) {
+        foreach($this->clients as $tmpClientData) {
           if ($tmpClientData['spaces']) {
             foreach($tmpClientData['spaces'] as $spaceName) {
               if (in_array($spaceName, $spaces)) {
@@ -182,5 +192,4 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
       }
     }
   }
-
 }

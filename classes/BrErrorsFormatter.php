@@ -10,9 +10,10 @@
 
 namespace Bright;
 
-class BrErrorsFormatter {
-
-  static private function formatCallParams($params, $level = 0) {
+class BrErrorsFormatter
+{
+  private static function formatCallParams($params, $level = 0): string
+  {
     $result = '';
 
     foreach($params as $idx => $arg) {
@@ -54,7 +55,8 @@ class BrErrorsFormatter {
     return rtrim($result, ', ');
   }
 
-  static private function formatStackTraceCall($trace) {
+  private static function formatStackTraceCall($trace): string
+  {
     $result = '';
 
     if (br($trace, 'class')) {
@@ -73,7 +75,8 @@ class BrErrorsFormatter {
     return $result;
   }
 
-  static private function formatStackTraceSource($trace) {
+  private static function formatStackTraceSource($trace): string
+  {
     $result = '';
 
     if (br($trace, 'file')) {
@@ -88,15 +91,15 @@ class BrErrorsFormatter {
     return $result;
   }
 
-  static public function getStackTraceFromException($e) {
+  public static function getStackTraceFromException($e): string
+  {
     $result = '';
 
-    foreach($e->getTrace() as $index => $statement) {
+    foreach($e->getTrace() as $statement) {
       $result .= "\n" . self::formatStackTraceCall($statement);
       $result .= "\n" . '    in ' . self::formatStackTraceSource($statement);
     }
 
     return ltrim($result, "\n");
   }
-
 }

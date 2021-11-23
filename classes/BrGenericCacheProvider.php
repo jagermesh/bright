@@ -10,81 +10,99 @@
 
 namespace Bright;
 
-class BrGenericCacheProvider extends BrObject {
+class BrGenericCacheProvider extends BrObject
+{
+  const CACHE_LIFE_TIME = 'lifeTime';
 
-  private $defaultNamePrefix = null;
+  private $defaultNamePrefix = '';
   private $cacheLifeTime = 300;
 
-  public function __construct($cfg = array()) {
+  /**
+   * @throws BrException
+   */
+  public function __construct($settings = [])
+  {
+    parent::__construct();
+
     if ($this->isSupported()) {
-      $this->setDefaultNamePrefix(md5(__FILE__) . ':');
+      $this->setDefaultNamePrefix(hash('sha256', __FILE__) . ':');
     } else {
-      throw new BrException(get_class($this).' is not supported.');
+      throw new BrException(get_class($this) . ' is not supported.');
     }
   }
 
-  public static function isSupported() {
+  public static function isSupported(): bool
+  {
     return true;
   }
 
-  public function reset() {
-
-  }
-
-  public function clear() {
+  public function clear()
+  {
     $this->reset();
   }
 
-  public function exists($name) {
+  public function reset()
+  {
+    // must be overridden in descendant class
+  }
 
+  public function exists($name): bool
+  {
     return false;
-
   }
 
-  public function get($name, $default = null, $saveDefault = false) {
-
+  public function get($name, $default = null, $saveDefault = false)
+  {
+    // must be overridden in descendant class
   }
 
-  public function getEx($name) {
-
+  public function getEx($name)
+  {
+    // must be overridden in descendant class
   }
 
-  public function getKeys($pattern) {
-
+  public function getKeys($pattern)
+  {
+    // must be overridden in descendant class
   }
 
-  public function set($name, $value, $expirationSeconds = null) {
-
+  public function set($name, $value, $lifeTime = null)
+  {
+    // must be overridden in descendant class
   }
 
-  public function remove($name) {
-
+  public function remove($name)
+  {
+    // must be overridden in descendant class
   }
 
-  // functions
-
-  public function setCacheLifeTime($seconds) {
+  public function setCacheLifeTime($seconds)
+  {
     $this->cacheLifeTime = $seconds;
   }
 
-  public function getCacheLifeTime() {
+  public function getCacheLifeTime(): int
+  {
     return $this->cacheLifeTime;
   }
 
-  public function getService() {
-
+  public function getService()
+  {
+    // must be overridden in descendant class
   }
 
-  public function safeName($name) {
+  public function getSafeName($name): string
+  {
     return $this->defaultNamePrefix . $name;
   }
 
-  protected function setDefaultNamePrefix($value) {
+  protected function setDefaultNamePrefix($value)
+  {
     $this->defaultNamePrefix = $value;
   }
 
-  protected function getDefaultNamePrefix() {
+  protected function getDefaultNamePrefix(): string
+  {
     return $this->defaultNamePrefix;
   }
-
 }

@@ -10,24 +10,26 @@
 
 namespace Bright;
 
-class BrGenericDataSourceRow {
-
+class BrGenericDataSourceRow
+{
   private $dataSource;
   private $data;
   private $rowid;
 
-  public function __construct(&$dataSource, $data) {
+  public function __construct(&$dataSource, $data)
+  {
     $this->dataSource = $dataSource;
     $this->data = $data;
     $this->rowid = $data['rowid'];
   }
 
-  public function remove() {
+  public function remove()
+  {
     return $this->dataSource->remove($this->rowid);
   }
 
-  public function update($data) {
+  public function update($data)
+  {
     return $this->dataSource->update($this->rowid, $data);
   }
-
 }

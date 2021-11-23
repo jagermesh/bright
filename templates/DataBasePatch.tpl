@@ -1,26 +1,22 @@
 <?php
 
-class Patch[[name]] extends \Bright\BrDataBasePatch {
-
-  function init() {
-
+class Patch[[name]] extends \Bright\BrDataBasePatch
+{
+  public function init()
+  {
     $this->setGuid('[[guid]]');
 
     // add dependencies from other patches here
     // $this->addDependency('OTHER PATCH GUID');
-
   }
 
-  function up() {
-
+  public function up()
+  {
     // put your patch code here using $this->execute($sql, $stepName);
-
   }
 
-  function down($failedUpStep, $errorMessage) {
-
+  public function down($failedUpStep, $errorMessage)
+  {
     // put your error recovering code here
-
   }
-
 }

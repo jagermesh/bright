@@ -10,9 +10,10 @@
 
 namespace Bright;
 
-class BrWebLogAdapter extends BrGenericLogAdapter {
-
-  public function write($messageOrObject, $params) {
+class BrWebLogAdapter extends BrGenericLogAdapter
+{
+  public function write($messageOrObject, $params)
+  {
     if ($this->isDebugEventType($params)) {
       if (!br()->isConsoleMode() && (br()->request()->isLocalHost() || br()->request()->isDevHost())) {
         try {
@@ -24,10 +25,9 @@ class BrWebLogAdapter extends BrGenericLogAdapter {
           ];
           br()->renderer()->display(dirname(__DIR__) . '/templates/DebugMessage.html', $data);
         } catch (\Exception $e) {
-
+          // no luck
         }
       }
     }
   }
-
 }

@@ -10,27 +10,30 @@
 
 namespace Bright;
 
-class BrFileCacheProvider extends BrGenericCacheProvider {
-
+class BrFileCacheProvider extends BrGenericCacheProvider
+{
   private $cachePath;
 
-  public function __construct($config = []) {
-    parent::__construct($config);
+  public function __construct($settings = [])
+  {
+    parent::__construct($settings);
 
-    if (br($config, 'cachePath')) {
-      $this->setCachePath(rtrim($config['cachePath'], '/') . '/');
+    if (br($settings, 'cachePath')) {
+      $this->setCachePath(rtrim($settings['cachePath'], '/') . '/');
     }
 
-    if (br($config, 'lifeTime')) {
-      $this->setCacheLifeTime($config['lifeTime']);
+    if (br($settings, 'lifeTime')) {
+      $this->setCacheLifeTime($settings['lifeTime']);
     }
   }
 
-  private function getCacheFilePath($name) {
-    return $this->getCachePath() . br()->fs()->getCharsPath(md5($name) . '.cache');
+  private function getCacheFilePath($name): string
+  {
+    return $this->getCachePath() . br()->fs()->getCharsPath(hash('sha256', $name) . '.cache');
   }
 
-  private function checkCacheFile($filePath) {
+  private function checkCacheFile($filePath): bool
+  {
     if (file_exists($filePath)) {
       return ((time() - filemtime($filePath)) < $this->getCacheLifeTime());
     } else {
@@ -38,22 +41,29 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
     }
   }
 
-  public static function isSupported() {
+  public static function isSupported(): bool
+  {
     return true;
   }
 
-  public function reset() {
+  /**
+   * @throws BrAppException
+   */
+  public function reset()
+  {
     throw new BrAppException('Reset cache is not implemented for this provider');
   }
 
-  public function exists($name) {
-    $name = $this->safeName($name);
+  public function exists($name): bool
+  {
+    $name = $this->getSafeName($name);
 
     return $this->checkCacheFile($this->getCacheFilePath($name));
   }
 
-  public function get($name, $default = null, $saveDefault = false) {
-    $name = $this->safeName($name);
+  public function get($name, $default = null, $saveDefault = false)
+  {
+    $name = $this->getSafeName($name);
 
     $filePath = $this->getCacheFilePath($name);
 
@@ -69,8 +79,9 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
     return $value;
   }
 
-  public function getEx($name) {
-    $name = $this->safeName($name);
+  public function getEx($name): array
+  {
+    $name = $this->getSafeName($name);
 
     $filePath = $this->getCacheFilePath($name);
 
@@ -85,14 +96,15 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
       ];
     }
 
-    return $value;
+    return $result;
   }
 
-  public function set($name, $value, $cacheLifeTime = null) {
-    $name = $this->safeName($name);
+  public function set($name, $value, $lifeTime = null)
+  {
+    $name = $this->getSafeName($name);
 
-    if (!$cacheLifeTime) {
-      $cacheLifeTime = $this->getCacheLifeTime();
+    if (!$lifeTime) {
+      $lifeTime = $this->getCacheLifeTime();
     }
 
     $filePath = $this->getCacheFilePath($name);
@@ -104,8 +116,9 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
     return $value;
   }
 
-  public function remove($name) {
-    $name = $this->safeName($name);
+  public function remove($name)
+  {
+    $name = $this->getSafeName($name);
 
     $filePath = $this->getCacheFilePath($name);
 
@@ -116,11 +129,13 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
     $this->clearAttr($name);
   }
 
-  public function setCachePath($value) {
+  public function setCachePath($value)
+  {
     $this->cachePath = rtrim($value, '/') . '/';
   }
 
-  public function getCachePath() {
+  public function getCachePath(): string
+  {
     if ($this->cachePath) {
       $result = $this->cachePath;
     } else {
@@ -134,7 +149,7 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
     if (!is_dir($result) || !is_writable($result)) {
       $result = rtrim(sys_get_temp_dir(), '/') . '/';
       if ($this->cachePath) {
-        $result .= md5($this->cachePath) . '/';
+        $result .= hash('sha256', $this->cachePath) . '/';
       }
     }
 
@@ -144,5 +159,4 @@ class BrFileCacheProvider extends BrGenericCacheProvider {
 
     return $result;
   }
-
 }

@@ -9,7 +9,7 @@
 
 /* global google */
 
-;(function ($, window) {
+;(function($, window) {
   window.br = window.br || {};
 
   function BrGoogleMap(selector, options) {
@@ -82,10 +82,10 @@
 
     google.maps.event.addListener(_this.map, 'click', function(event) {
       _this.events.trigger('click', event);
-      (function(zoomLevel, event) {
+      (function(zoomLevel, event0) {
         singleClickTimeout = window.setTimeout(function() {
           if (zoomLevel == _this.map.getZoom()) {
-            _this.events.trigger('singleclick', event);
+            _this.events.trigger('singleclick', event0);
           }
         }, 300);
       })(_this.map.getZoom(), event);
@@ -95,10 +95,10 @@
       let distance = 0;
       let duration = 0;
       let myroute = result.routes[0];
-      for (let i = 0; i < myroute.legs.length; i++) {
-        distance += myroute.legs[i].distance.value;
-        duration += myroute.legs[i].duration.value;
-      }
+      myroute.legs.forEach(function(item) {
+        distance += item.distance.value;
+        duration += item.duration.value;
+      });
       return { distance: distance, duration: duration };
     }
 
@@ -220,10 +220,10 @@
         }
       }
       let bounds = new google.maps.LatLngBounds();
-      _this.markers.map(function(marker) {
+      _this.markers.forEach(function(marker) {
         processPoints(new google.maps.LatLng(marker.position.lat(), marker.position.lng()), bounds.extend, bounds);
       });
-      _this.polygons.map(function(polygon) {
+      _this.polygons.forEach(function(polygon) {
         processPoints(polygon.latLngs, bounds.extend, bounds);
       });
       _this.map.data.forEach(function(feature) {
@@ -258,15 +258,14 @@
     _this.findAddress = function(address, callback) {
       _this.geocoder.geocode({'address': address}, function(results, status) {
         if (status == google.maps.GeocoderStatus.OK) {
-          let points = [];
-          for (let i = 0; i < results.length; i++) {
-            points.push({
-              lat: results[i].geometry.location.lat(),
-              lng: results[i].geometry.location.lng(),
-              name: results[i].formatted_address,
-              raw: results[i]
-            });
-          }
+          let points = results.map(function(item) {
+            return {
+              lat: item.geometry.location.lat(),
+              lng: item.geometry.location.lng(),
+              name: item.formatted_address,
+              raw: item
+            };
+          });
           if (typeof callback == 'function') {
             callback.call(_this, points.length > 0, points);
           }
@@ -282,12 +281,11 @@
       _this.directionsDisplay.setMap(null);
     };
 
-    _this.drawRoute = function(coord, callback) {
+    _this.drawRoute = function(coordinates, callback) {
       let origin = null;
       let destination = null;
       let waypoints = [];
-      for (let i = 0; i < coord.length; i++) {
-        let latLng = coord[i];
+      for (let latLng of coordinates) {
         if (origin === null) {
           origin = latLng;
         } else
@@ -328,21 +326,27 @@
     };
 
     _this.drawRouteByTag = function(tag, callback) {
-      let coord = [];
       let markers = _this.getMarkersByTag(tag);
-      for (let i = 0; i < markers.length; i++) {
-        coord.push(new google.maps.LatLng(markers[i].position.lat(), markers[i].position.lng()));
-      }
+      let coord = markers.map(function(item) {
+        return new google.maps.LatLng(item.position.lat(), item.position.lng());
+      });
       _this.drawRoute(coord, callback);
     };
 
     _this.pointToFeature = function(lng, lat, properties) {
-      let geoJson = {
+      return {
         type: 'Feature',
-        geometry: { type: 'Point', 'coordinates': [ lng, lat ] },
-        properties: Object.assign({ latitude: lat, longitude: lng, "marker-size": "medium", "marker-symbol": "triangle" }, properties)
+        geometry: {
+          type: 'Point',
+          coordinates: [ lng, lat ]
+        },
+        properties: Object.assign({
+          latitude: lat,
+          longitude: lng,
+          "marker-size": "medium",
+          "marker-symbol": "triangle"
+        }, properties)
       };
-      return geoJson;
     };
 
     // layers
@@ -461,7 +465,7 @@
     };
 
     _this.removeMarkers = function(tag) {
-      _this.markers.map(function(marker) {
+      _this.markers.forEach(function(marker) {
         if (!tag || (marker.tag == tag)) {
           marker.setMap(null);
         }
@@ -496,8 +500,8 @@
 
       function arrayFlat(array) {
         let result = [];
-        for (let i = 0; i < array.length; i++) {
-          result = result.concat(array[i]);
+        for (let value of array) {
+          result = result.concat(value);
         }
         return result;
       }
@@ -557,7 +561,7 @@
     };
 
     _this.removePolygons = function(tag) {
-      _this.polygons.map(function(polygon) {
+      _this.polygons.forEach(function(polygon) {
         if (!tag || (polygon.tag == tag)) {
           polygon.setMap(null);
         }

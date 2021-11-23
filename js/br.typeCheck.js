@@ -7,47 +7,47 @@
  *
  */
 
-;(function (window) {
+;(function(window) {
 
   window.br = window.br || Object.create({});
 
   window.br.isNumber = function(value) {
     return (
-             !isNaN(parseFloat(value)) &&
-             isFinite(value)
-           );
+      !isNaN(parseFloat(value)) &&
+      isFinite(value)
+    );
   };
 
   window.br.isNull = function(value) {
     return (
-             (value === undefined) ||
-             (value === null)
-           );
+      (value === undefined) ||
+      (value === null)
+    );
   };
 
   window.br.isEmpty = function(value) {
     return (
-             br.isNull(value) ||
-             (br.isString(value) && (value.trim().length === 0)) ||
-             ((typeof value.length != 'undefined') && (value.length === 0)) // Array, String
-           );
+      br.isNull(value) ||
+      (br.isString(value) && (value.trim().length === 0)) ||
+      ((typeof value.length != 'undefined') && (value.length === 0)) // Array, String
+    );
   };
 
-  window.br.isArray = function (value) {
+  window.br.isArray = function(value) {
     return (
-             !br.isNull(value) &&
-             (Object.prototype.toString.call(value) === '[object Array]')
-           );
+      !br.isNull(value) &&
+      (Object.prototype.toString.call(value) === '[object Array]')
+    );
   };
 
-  window.br.isObject = function (value) {
+  window.br.isObject = function(value) {
     return (!br.isEmpty(value) && (typeof value === 'object'));
   };
 
-  window.br.isEmptyObject = function (value) {
+  window.br.isEmptyObject = function(value) {
     if (br.isObject(value)) {
-      var result = true;
-      for(var i in value) {
+      let result = true;
+      for(let i in value) {
         result = false;
         break;
       }
@@ -55,22 +55,21 @@
     } else {
       return false;
     }
-    return (!br.isEmpty(value) && (typeof value === 'object'));
   };
 
-  window.br.isBoolean = function (value) {
+  window.br.isBoolean = function(value) {
     return (typeof value === 'boolean');
   };
 
-  window.br.isString = function (value) {
+  window.br.isString = function(value) {
     return (typeof value === 'string');
   };
 
-  window.br.isFunction = function (value) {
+  window.br.isFunction = function(value) {
     return (typeof value === 'function');
   };
 
-  window.br.toString = function (value) {
+  window.br.toString = function(value) {
     if (br.isNull(value)) {
       return '';
     } else {
@@ -78,7 +77,7 @@
     }
   };
 
-  window.br.split = function (value, delimiter) {
+  window.br.split = function(value, delimiter) {
     if (br.isEmpty(value)) {
       return [];
     } else

@@ -73,47 +73,47 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function (window) {
+;(function(window) {
 
   window.br = window.br || Object.create({});
 
   window.br.isNumber = function(value) {
     return (
-             !isNaN(parseFloat(value)) &&
-             isFinite(value)
-           );
+      !isNaN(parseFloat(value)) &&
+      isFinite(value)
+    );
   };
 
   window.br.isNull = function(value) {
     return (
-             (value === undefined) ||
-             (value === null)
-           );
+      (value === undefined) ||
+      (value === null)
+    );
   };
 
   window.br.isEmpty = function(value) {
     return (
-             br.isNull(value) ||
-             (br.isString(value) && (value.trim().length === 0)) ||
-             ((typeof value.length != 'undefined') && (value.length === 0)) // Array, String
-           );
+      br.isNull(value) ||
+      (br.isString(value) && (value.trim().length === 0)) ||
+      ((typeof value.length != 'undefined') && (value.length === 0)) // Array, String
+    );
   };
 
-  window.br.isArray = function (value) {
+  window.br.isArray = function(value) {
     return (
-             !br.isNull(value) &&
-             (Object.prototype.toString.call(value) === '[object Array]')
-           );
+      !br.isNull(value) &&
+      (Object.prototype.toString.call(value) === '[object Array]')
+    );
   };
 
-  window.br.isObject = function (value) {
+  window.br.isObject = function(value) {
     return (!br.isEmpty(value) && (typeof value === 'object'));
   };
 
-  window.br.isEmptyObject = function (value) {
+  window.br.isEmptyObject = function(value) {
     if (br.isObject(value)) {
-      var result = true;
-      for(var i in value) {
+      let result = true;
+      for(let i in value) {
         result = false;
         break;
       }
@@ -121,22 +121,21 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     } else {
       return false;
     }
-    return (!br.isEmpty(value) && (typeof value === 'object'));
   };
 
-  window.br.isBoolean = function (value) {
+  window.br.isBoolean = function(value) {
     return (typeof value === 'boolean');
   };
 
-  window.br.isString = function (value) {
+  window.br.isString = function(value) {
     return (typeof value === 'string');
   };
 
-  window.br.isFunction = function (value) {
+  window.br.isFunction = function(value) {
     return (typeof value === 'function');
   };
 
-  window.br.toString = function (value) {
+  window.br.toString = function(value) {
     if (br.isNull(value)) {
       return '';
     } else {
@@ -144,7 +143,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
   };
 
-  window.br.split = function (value, delimiter) {
+  window.br.split = function(value, delimiter) {
     if (br.isEmpty(value)) {
       return [];
     } else
@@ -618,6 +617,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
+/* global URL */
+
 ;(function (window) {
 
   window.br = window.br || Object.create({});
@@ -629,8 +630,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     _this.continueRoute = true;
     _this.csrfToken = '';
 
-    let csrfCookie = '';
-
     if (document) {
       if (document.cookie) {
         var csrfCookieRegexp = document.cookie.match(/Csrf-Token=([\w-]+)/);
@@ -641,10 +640,26 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
 
     _this.get = function(name, defaultValue) {
-      let vars = document.location.search.replace('?', '').split('&');
-      let vals = Object.create({});
-      for (let i = 0; i < vars.length; i++) {
-        let pair = vars[i].split("=");
+      const parsedUrl = new URL(window.location.href);
+      const result = parsedUrl.searchParams.get(name);
+      if (br.isNull(result)) {
+        return defaultValue;
+      }
+      return result;
+    };
+
+    _this.setGet = function(name, value) {
+      const parsedUrl = new URL(window.location.href);
+      parsedUrl.searchParams.set(name, value);
+      const newHref = parsedUrl.href.replace(parsedUrl.origin, '');
+      window.history.replaceState({}, document.title, newHref);
+    };
+
+    _this.hash = function(name, defaultValue) {
+      let vars = document.location.hash.replace('#', '').split('&');
+      let vals = {};
+      for (let oneVar of vars) {
+        let pair = oneVar.split('=');
         if (pair[0].indexOf('[') != -1) {
           let n = pair[0].substr(0, pair[0].indexOf('['));
           vals[n] = vals[n] || [];
@@ -663,27 +678,27 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       }
     };
 
-    _this.hash = function(name, defaultValue) {
-      let vars = document.location.hash.replace('#', '').split('&');
-      let vals = {};
-      for (let i = 0; i < vars.length; i++) {
-        let pair = vars[i].split("=");
-        if (pair[0].indexOf('[') != -1) {
-          let n = pair[0].substr(0, pair[0].indexOf('['));
-          vals[n] = vals[n] || [];
-          vals[n].push(window.unescape(pair[1]));
-        } else {
-          vals[pair[0]] = window.unescape(pair[1]);
+    _this.setHash = function(paramName, paramValue) {
+      let params = document.location.hash.replace('#', '').split('&').filter((item) => !!item);
+      let values = {};
+      params.forEach(function(item) {
+        const pairs = item.split('=');
+        if (pairs.length == 2) {
+          values[pairs[0]] = pairs[1];
         }
-      }
-      if (name) {
-        if (vals.hasOwnProperty(name)) {
-          return vals[name];
+      });
+      if (br.isObject(paramName)) {
+        for(let name in paramName) {
+          values[name] = paramName[name];
         }
-        return defaultValue;
       } else {
-        return vals;
+        values[paramName] = paramValue;
       }
+      let hash = '#';
+      for(let name in values) {
+        hash += `${name}=${values[name]}&`;
+      }
+      document.location.hash = hash;
     };
 
     _this.anchor = function(defaultValue) {
@@ -709,29 +724,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         }
       }
       return _this;
-    };
-
-    _this.setHash = function(paramName, paramValue) {
-      let params = document.location.hash.replace('#', '').split('&').filter((item) => !!item);
-      let values = {};
-      params.map(function(item) {
-        const pairs = item.split('=');
-        if (pairs.length == 2) {
-          values[pairs[0]] = pairs[1];
-        }
-      });
-      if (br.isObject(paramName)) {
-        for(let name in paramName) {
-          values[name] = paramName[name];
-        }
-      } else {
-        values[paramName] = paramValue;
-      }
-      let hash = '#';
-      for(let name in values) {
-        hash += `${name}=${values[name]}&`;
-      }
-      document.location.hash = hash;
     };
 
   }
@@ -814,7 +806,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   function BrProfiler() {
 
     function stopwatch() {
-
       this.start_time = 0;
       this.stop_time = 0;
       this.run_time = 0;
@@ -840,11 +831,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       };
 
       return this;
-
     }
 
     function buffer(size) {
-
       this.arr = new Int32Array(size);
       this.begin = 0;
       this.end = -1;
@@ -872,11 +861,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       };
 
       return this;
-
     }
 
-    var count_frames = 0;
-    var ringbuff = new buffer(20);
+    let count_frames = 0;
+    let ringbuff = new buffer(20);
 
     this.fps = 0.0;
     this.timers = [];
@@ -888,46 +876,44 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     this.new_frame = function() {
       ++count_frames;
-      var i = 0;
-      var n = this.timers.length | 0;
-      for(i = 0; i < n; ++i) {
-          var sw = this.timers[i][1];
+      let n = this.timers.length | 0;
+      for (let i = 0; i < n; ++i) {
+          let sw = this.timers[i][1];
           sw.reset();
       }
 
-      if(count_frames >= 1) {
-          this.frame_timer.stop();
-          ringbuff.push_back(this.frame_timer.get_runtime());
-          var size = ringbuff.size();
-          var sum = 0;
-          for(i = 0; i < size; ++i) {
-              sum += ringbuff.get(i);
-          }
-          this.fps = size / sum * 1000;
-          this.frame_timer.start();
+      if (count_frames >= 1) {
+        this.frame_timer.stop();
+        ringbuff.push_back(this.frame_timer.get_runtime());
+        let size = ringbuff.size();
+        let sum = 0;
+        for (let i = 0; i < size; ++i) {
+          sum += ringbuff.get(i);
+        }
+        this.fps = size / sum * 1000;
+        this.frame_timer.start();
       }
     };
 
     this.find_task = function(subj) {
-      var n = this.timers.length | 0;
-      var i = 0;
-      for(i = 0; i < n; ++i) {
-          var pair = this.timers[i];
-          if(pair[0] === subj) {
-              return pair;
-          }
+      let n = this.timers.length | 0;
+      for (let i = 0; i < n; ++i) {
+        let pair = this.timers[i];
+        if (pair[0] === subj) {
+          return pair;
+        }
       }
       this.add(subj);
       return this.find_task(subj);
     };
 
     this.start = function(subj) {
-      var task = this.find_task(subj);
+      let task = this.find_task(subj);
       task[1].start();
     };
 
     this.stop = function(subj, printToConsole) {
-      var task = this.find_task(subj);
+      let task = this.find_task(subj);
       task[1].stop();
       if (printToConsole) {
         br.log(task[0] + ": " + task[1].get_runtime() + "ms");
@@ -935,14 +921,13 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     };
 
     this.log = function(printToConsole) {
-      var n = this.timers.length | 0;
-      var i = 0;
-      var str = "<strong>FPS: " + this.fps.toFixed(2) + "</strong>";
-      var str2 = "FPS: " + this.fps.toFixed(2);
-      for(i = 0; i < n; ++i) {
-          var pair = this.timers[i];
-          str += "<br/>" + pair[0] + ": " + pair[1].get_runtime() + "ms";
-          str2 += ", " + pair[0] + ": " + pair[1].get_runtime() + "ms";
+      let n = this.timers.length | 0;
+      let str = "<strong>FPS: " + this.fps.toFixed(2) + "</strong>";
+      let str2 = "FPS: " + this.fps.toFixed(2);
+      for(let i = 0; i < n; ++i) {
+        let pair = this.timers[i];
+        str += "<br/>" + pair[0] + ": " + pair[1].get_runtime() + "ms";
+        str2 += ", " + pair[0] + ": " + pair[1].get_runtime() + "ms";
       }
       if (printToConsole) {
         br.log(str2);
@@ -951,7 +936,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     };
 
     return this;
-
   }
 
   let profiler;
@@ -977,9 +961,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function ($, window) {
+;(function($, window) {
 
-  window.br = window.br || Object.create({});
+  window.br = window.br || {};
 
   function BrWebCamera() {
 
@@ -1080,7 +1064,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 /* global FormData */
 /* global safari */
 
-;(function ($, window) {
+;(function($, window) {
 
   window.br = window.br || Object.create({});
 
@@ -1168,7 +1152,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   };
 
   window.br.isIE = function() {
-    return /*@cc_on!@*/false || !!document.documentMode; // At least IE6
+    return !!document.documentMode; // At least IE6
   };
 
   window.br.isOpera = function() {
@@ -1211,9 +1195,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       window.close();
     } else {
       let caller = br.isEmpty(br.request.get('caller')) ? null : br.request.get('caller');
-      let referer = br.isEmpty(document.referrer) ? null : (document.referrer.indexOf('login') != -1 ? null : (document.referrer == document.location.toString() ? null : document.referrer));
+      let referrer = br.isEmpty(document.referrer) ? null : (document.referrer.indexOf('login') != -1 ? null : (document.referrer == document.location.toString() ? null : document.referrer));
       let href = br.isEmpty(defaultHref) ? null : defaultHref;
-      let redirectHref = (caller ? caller : (href ? href : referer));
+      let redirectHref = (caller ? caller : (href ? href : referrer));
       if (redirectHref) {
         br.redirect(redirectHref);
       } else {
@@ -1243,25 +1227,23 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
   window.br.processArray = function(array, processRowCallback, processCompleteCallback, params) {
 
-    function processQueued(processRowCallback, processCompleteCallback, params) {
-
+    function processQueued(processRowCallback0, processCompleteCallback0, params0) {
       if (array.length > 0) {
         let rowid = array.shift();
-        processRowCallback(rowid, function() {
-          if (params.showProgress) {
+        processRowCallback0(rowid, function() {
+          if (params0.showProgress) {
             br.stepProgress();
           }
-          processQueued(processRowCallback, processCompleteCallback, params);
+          processQueued(processRowCallback0, processCompleteCallback0, params0);
         });
       } else {
-        if (params.showProgress) {
+        if (params0.showProgress) {
           br.hideProgress();
         }
-        if (processCompleteCallback) {
-          processCompleteCallback();
+        if (processCompleteCallback0) {
+          processCompleteCallback0();
         }
       }
-
     }
 
     params = params || {};
@@ -1273,7 +1255,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     } else {
       br.growlError('Please select at least one record');
     }
-
   };
 
   function BrTrn() {
@@ -1307,12 +1288,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
   };
 
-  window.br.randomInt = function(min, max) {
-    if (max === undefined) {
-      max = min;
-      min = 0;
-    }
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+  window.br.randomInt = function() {
+    const crypto = window.crypto || window.msCrypto;
+    let array = new Uint32Array(1);
+    crypto.getRandomValues(array);
+    return array[0];
   };
 
   window.br.forHtml = function(text) {
@@ -1323,7 +1303,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   };
 
   window.br.extend = function(Child, Parent) {
-    let F = function() { };
+    let F = function() {
+      // fake
+    };
     F.prototype = Parent.prototype;
     Child.prototype = new F();
     Child.prototype.constructor = Child;
@@ -1465,12 +1447,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       if (deferred) {
         listName = 'BrModified_Callbacks1';
       }
-      let callbacks = $(this).data(listName);
-      if (callbacks) {
-
-      } else {
-        callbacks = [];
-      }
+      let callbacks = $(this).data(listName) || [];
       callbacks.push(callback);
       $(this).data(listName, callbacks);
     });
@@ -1482,7 +1459,15 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         handleModified($(this), false);
         handleModified($(this), true);
       } else
-      if ((e.keyCode == 8) || (e.keyCode == 32)  || (e.keyCode == 91) || (e.keyCode == 93) || ((e.keyCode >= 48) && (e.keyCode <= 90)) || ((e.keyCode >= 96) && (e.keyCode <= 111)) || ((e.keyCode >= 186) && (e.keyCode <= 222))) {
+      if (
+        (e.keyCode == 8) ||
+        (e.keyCode == 32) ||
+        (e.keyCode == 91) ||
+        (e.keyCode == 93) ||
+        ((e.keyCode >= 48) && (e.keyCode <= 90)) ||
+        ((e.keyCode >= 96) && (e.keyCode <= 111)) ||
+        ((e.keyCode >= 186) && (e.keyCode <= 222))
+      ) {
         handleModified1($(this));
       }
     });
@@ -1501,10 +1486,16 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       callback.call(this);
     });
     $(selector).on('keyup', function(e) {
-      if (e.keyCode == 13) {
-        callback.call(this);
-      } else
-      if ((e.keyCode == 8) || (e.keyCode == 32)  || (e.keyCode == 91) || (e.keyCode == 93) || ((e.keyCode >= 48) && (e.keyCode <= 90)) || ((e.keyCode >= 96) && (e.keyCode <= 111)) || ((e.keyCode >= 186) && (e.keyCode <= 222))) {
+      if (
+        (e.keyCode == 13) ||
+        (e.keyCode == 8) ||
+        (e.keyCode == 32) ||
+        (e.keyCode == 91) ||
+        (e.keyCode == 93) ||
+        ((e.keyCode >= 48) && (e.keyCode <= 90)) ||
+        ((e.keyCode >= 96) && (e.keyCode <= 111)) ||
+        ((e.keyCode >= 186) && (e.keyCode <= 222))
+      ) {
         callback.call(this);
       }
     });
@@ -1649,72 +1640,64 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
   let lastAnimationFramtTime = 0;
 
-  window.br.requestAnimationFrame = function(callback, element) {
-
+  window.br.requestAnimationFrame = function(callback) {
     let requestAnimationFrame =
-      window.requestAnimationFrame        ||
-      window.webkitRequestAnimationFrame  ||
-      window.mozRequestAnimationFrame     ||
-      window.oRequestAnimationFrame       ||
-      window.msRequestAnimationFrame      ||
-      function(callback, element) {
+      window.requestAnimationFrame ||
+      window.webkitRequestAnimationFrame ||
+      window.mozRequestAnimationFrame ||
+      window.oRequestAnimationFrame ||
+      window.msRequestAnimationFrame ||
+      function(callback0) {
         let currTime = new Date().getTime();
         let timeToCall = Math.max(0, 16 - (currTime - lastAnimationFramtTime));
         let id = window.setTimeout(function() {
-          callback(currTime + timeToCall);
+          callback0(currTime + timeToCall);
         }, timeToCall);
         lastAnimationFramtTime = currTime + timeToCall;
         return id;
       };
 
-    return requestAnimationFrame.call(window, callback, element);
-
+    return requestAnimationFrame.call(window, callback);
   };
 
-  window.br.cancelAnimationFrame = function(id) {
-
+  window.br.cancelAnimationFrame = function(requestID) {
     let cancelAnimationFrame =
       window.cancelAnimationFrame ||
-      function(id) {
-        window.clearTimeout(id);
+      function(requestID0) {
+        window.clearTimeout(requestID0);
       };
 
-    return cancelAnimationFrame.call(window, id);
-
+    return cancelAnimationFrame.call(window, requestID);
   };
 
-  window.br.getUserMedia = function(options, success, error) {
-
+  window.br.getUserMedia = function(constraints, successCallback, errorCallback) {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia(options).then(success).catch(error);
+      navigator.mediaDevices.getUserMedia(constraints).then(successCallback).catch(errorCallback);
     } else {
       let getUserMedia =
-        navigator.getUserMedia       ||
-        navigator.mozGetUserMedia    ||
+        navigator.getUserMedia ||
+        navigator.mozGetUserMedia ||
         navigator.webkitGetUserMedia ||
-        navigator.msGetUserMedia     ||
-        function(options, success, error) {
-          error();
+        navigator.msGetUserMedia ||
+        function() {
+          errorCallback();
         };
 
-      return getUserMedia.call(window.navigator, options, success, error);
+      return getUserMedia.call(window.navigator, constraints, successCallback, errorCallback);
     }
-
   };
 
   window.br.getAudioContext = function() {
-
-    let AudioContext = window.AudioContext ||
-                       window.webkitAudioContext;
+    let AudioContext =
+      window.AudioContext ||
+      window.webkitAudioContext;
 
     return new AudioContext();
-
   };
 
   let beepAudioContext;
 
   window.br.beep = function(callback) {
-
     try {
       let duration = 0.1;
       if (!beepAudioContext) {
@@ -1740,11 +1723,13 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     } catch (error) {
       br.log(error);
     }
-
   };
 
   if (window.addEventListener) {
     window.addEventListener('error', function(event) {
+      if (event.origin != document.location.origin) {
+        return;
+      }
 
       let data = {
         message: event.message,
@@ -1770,6 +1755,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     });
 
     window.addEventListener('unhandledrejection', function(event) {
+      if (event.origin != document.location.origin) {
+        return;
+      }
 
       let data = {
         message: typeof event.reason == 'string' ? event.reason : null,
@@ -1782,11 +1770,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       };
 
       if (data.message && (data.message != 'Script error.')) {
-        let result = false;
         try {
-          result = window.br.events.trigger('error', data);
+          window.br.events.trigger('error', data);
         } catch (error) {
-
+          // we don't care
         }
       }
 
@@ -1796,13 +1783,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       }
 
       event.preventDefault();
-
     });
 
   }
 
   function printObject(obj, eol, prefix) {
-
     let result = '';
 
     prefix = prefix ? prefix : '';
@@ -1815,16 +1800,14 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
 
     return result;
-
   }
 
   window.br.setErrorsBeacon = function(url, format) {
-
     if (navigator.sendBeacon) {
       format = format || 'json';
       br.on('error', function(error) {
         if (!error.filename || (error.filename.indexOf('chrome-extension') !== 0)) {
-          let message = '', suffix;
+          let message = '';
           switch(format) {
             case 'html':
               message = printObject(error, '<br />');
@@ -1842,7 +1825,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         }
       });
     }
-
   };
 
 })(jQuery, window);
@@ -1930,22 +1912,27 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function ($, window) {
+;(function($, window) {
 
   window.br = window.br || Object.create({});
 
-  function BrDataSource(restServiceUrl, options) {
-
+  function BrDataSource(restServiceUrl, settings) {
     const _this = this;
 
-    _this.options = options || Object.create({});
-    _this.options.restServiceUrl = restServiceUrl;
-    _this.options.restServiceUrlNormalized = restServiceUrl;
-    _this.options.refreshDelay = _this.options.refreshDelay || 1500;
+    _this.options = Object.assign({}, settings);
 
-    if (!restServiceUrl.match(/[.]json$/) && !restServiceUrl.match(/\/$/)) {
-      _this.options.restServiceUrlNormalized = restServiceUrl + '/';
-    }
+    _this.setApiUrl = function(url) {
+      _this.options.restServiceUrl = url;
+      _this.options.restServiceUrlNormalized = url;
+      _this.options.refreshDelay = _this.options.refreshDelay || 1500;
+
+      if (!url.match(/[.]json$/) && !url.match(/\/$/)) {
+        _this.options.restServiceUrlNormalized = `${url}/`;
+      }
+    };
+
+    _this.setApiUrl(restServiceUrl);
+    _this.options.refreshDelay = _this.options.refreshDelay || 1500;
 
     _this.ajaxRequest = null;
     _this.name = '-';
@@ -1953,7 +1940,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     _this.events = br.eventQueue(_this);
     _this.before = function(event, callback) { _this.events.before(event, callback); };
-    _this.on     = function(event, callback) { _this.events.on(event, callback); };
+    _this.on = function(event, callback) { _this.events.on(event, callback); };
     _this.after  = function(event, callback) { _this.events.after(event, callback); };
 
     let selectOperationCounter = 0;
@@ -1965,56 +1952,49 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
 
     _this.getClientUID = function() {
-
       if (!_this.clientUID) {
-        _this.clientUID = Math.round(Math.random() * 100000);
+        _this.clientUID = br.randomInt();
       }
 
       return _this.clientUID;
-
     };
 
     _this.setClientUID = function(clientUID) {
-
       _this.clientUID = clientUID;
-
     };
 
-
     _this.doingSelect = function() {
-
       return selectOperationCounter > 0;
-
     };
 
     _this.requestInProgress = function() {
-
       return (_this.ajaxRequest !== null);
-
     };
 
     _this.abortRequest = function() {
-
       if (_this.ajaxRequest !== null) {
         _this.ajaxRequest.abort();
       }
 
       return this;
+    };
 
+    const handleError = function(request, options, jqXHR, reject) {
+      if (!br.isUnloading()) {
+        let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+        reject({request: request, options: options, errorMessage: errorMessage});
+      }
     };
 
     _this.insert = function(item, callback, options) {
-
       options = options || Object.create({});
 
       let disableEvents = options && options.disableEvents;
 
       return new Promise(function(resolve, reject) {
-
         let request = item;
 
         try {
-
           if (!disableEvents) {
             _this.events.triggerBefore('request', request, options);
             _this.events.triggerBefore('insert', request, options);
@@ -2037,37 +2017,34 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             request.__clientUID = options.clientUID;
           }
 
-          $.ajax({ type: _this.options.crossdomain ? 'GET' : 'PUT'
-                 , data: request
-                 , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
-                 , url: _this.options.restServiceUrl + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-                 , headers: requestHeaders
-                 , success: function(response) {
-                     let result, errorMessage;
-                     if (response) {
-                       result = true;
-                     } else {
-                       result = false;
-                       errorMessage = 'Empty response. Was expecting new created records with ROWID.';
-                     }
-                     if (result) {
-                       resolve({request: request, options: options, response: response});
-                     } else {
-                       reject({request: request, options: options, errorMessage: errorMessage});
-                     }
-                   }
-                 , error: function(jqXHR, textStatus, errorThrown) {
-                     if (!br.isUnloading()) {
-                       let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                       reject({request: request, options: options, errorMessage: errorMessage});
-                     }
-                   }
-                 });
+          $.ajax({
+            type: _this.options.crossdomain ? 'GET' : 'PUT',
+            data: request,
+            dataType: _this.options.crossdomain ? 'jsonp' : 'json',
+            url: _this.options.restServiceUrl + (_this.options.authToken ? '?token=' + _this.options.authToken : ''),
+            headers: requestHeaders,
+            success: function(response) {
+              let result, errorMessage;
+              if (response) {
+                result = true;
+              } else {
+                result = false;
+                errorMessage = 'Empty response. Was expecting new created records with ROWID.';
+              }
+              if (result) {
+                resolve({request: request, options: options, response: response});
+              } else {
+                reject({request: request, options: options, errorMessage: errorMessage});
+              }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              handleError(request, options, jqXHR, reject);
+            }
+          });
 
         } catch (errorMessage) {
           reject({request: request, options: options, errorMessage: errorMessage});
         }
-
       }).then(function(data) {
         try {
           if (!disableEvents) {
@@ -2094,21 +2071,17 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           throw data;
         }
       });
-
     };
 
     _this.update = function(rowid, item, callback, options) {
-
       options = options || Object.create({});
 
       let disableEvents = options && options.disableEvents;
 
       return new Promise(function(resolve, reject) {
-
         let request = item;
 
         try {
-
           if (!disableEvents) {
             _this.events.triggerBefore('request', request, options);
             _this.events.triggerBefore('update', request, options, rowid);
@@ -2131,33 +2104,29 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             request.__clientUID = options.clientUID;
           }
 
-          $.ajax({ type: _this.options.crossdomain ? 'GET' : 'POST'
-                 , data: request
-                 , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
-                 , url: _this.options.restServiceUrlNormalized + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-                 , headers: requestHeaders
-                 , success: function(response) {
-                     let operation = 'update';
-                     if (response) {
-                       let res = _this.events.trigger('removeAfterUpdate', item, response);
-                       if ((res !== null) && res) {
-                         operation = 'remove';
-                       }
-                     }
-                     resolve({operation: operation, request: request, options: options, response: response});
-                   }
-                 , error: function(jqXHR, textStatus, errorThrown) {
-                     if (!br.isUnloading()) {
-                       let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                       reject({request: request, options: options, errorMessage: errorMessage});
-                     }
-                   }
-                 });
-
+          $.ajax({
+            type: _this.options.crossdomain ? 'GET' : 'POST',
+            data: request,
+            dataType: _this.options.crossdomain ? 'jsonp' : 'json',
+            url: _this.options.restServiceUrlNormalized + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : ''),
+            headers: requestHeaders,
+            success: function(response) {
+              let operation = 'update';
+              if (response) {
+                let res = _this.events.trigger('removeAfterUpdate', item, response);
+                if ((res !== null) && res) {
+                  operation = 'remove';
+                }
+              }
+              resolve({operation: operation, request: request, options: options, response: response});
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              handleError(request, options, jqXHR, reject);
+            }
+          });
         } catch (errorMessage) {
           reject({request: request, options: options, errorMessage: errorMessage});
         }
-
       }).then(function(data) {
         try {
           try {
@@ -2194,17 +2163,14 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     };
 
     _this.remove = function(rowid, callback, options) {
-
       options = options || Object.create({});
 
       let disableEvents = options && options.disableEvents;
 
       return new Promise(function(resolve, reject) {
-
         let request = Object.create({});
 
         try {
-
           if (!disableEvents) {
             _this.events.triggerBefore('request', request, options, rowid);
             _this.events.triggerBefore('remove', request, options, rowid);
@@ -2227,26 +2193,25 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             request.__clientUID = options.clientUID;
           }
 
-          $.ajax({ type: _this.options.crossdomain ? 'GET' : 'DELETE'
-                 , data: request
-                 , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
-                 , url: _this.options.restServiceUrlNormalized + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-                 , headers: requestHeaders
-                 , success: function(response) {
-                     resolve({rowid: rowid, request: request, options: options, response: response});
-                   }
-                 , error: function(jqXHR, textStatus, errorThrown) {
-                     if (!br.isUnloading()) {
-                       let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                       reject({rowid: rowid, request: request, options: options, errorMessage: errorMessage});
-                     }
-                   }
-                 });
-
+          $.ajax({
+            type: _this.options.crossdomain ? 'GET' : 'DELETE',
+            data: request,
+            dataType: _this.options.crossdomain ? 'jsonp' : 'json',
+            url: _this.options.restServiceUrlNormalized + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : ''),
+            headers: requestHeaders,
+            success: function(response) {
+              resolve({rowid: rowid, request: request, options: options, response: response});
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              if (!br.isUnloading()) {
+                let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                reject({rowid: rowid, request: request, options: options, errorMessage: errorMessage});
+              }
+            }
+          });
         } catch (errorMessage) {
           reject({rowid: rowid, request: request, options: options, errorMessage: errorMessage});
         }
-
       }).then(function(data) {
         try {
           if (!disableEvents) {
@@ -2277,7 +2242,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     };
 
     _this.selectCount = function(filter, callback, options) {
-
       if (typeof filter == 'function') {
         options = callback;
         callback = filter;
@@ -2290,39 +2254,32 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       }
       newFilter.__result = 'count';
 
-      options = options || {};
-      options.selectCount = true;
+      let requestOptions = Object.assign({ selectCount: true }, options);
 
-      return _this.select(newFilter, callback, options);
-
+      return _this.select(newFilter, callback, requestOptions);
     };
 
     _this.selectOne = function(filter, callback, options) {
-
       if (typeof filter == 'function') {
         options = callback;
         callback = filter;
         filter = Object.create({});
       }
 
-      options = options || Object.create({});
-      options.selectOne = true;
-      options.limit = 1;
+      let requestOptions = Object.assign({ selectOne: true, limit: 1 }, options);
 
       if (!br.isEmpty(filter)) {
         if (br.isNumber(filter)) {
-          return _this.select({ rowid: filter }, callback, options);
+          return _this.select({ rowid: filter }, callback, requestOptions);
         } else {
-          return _this.select(filter, callback, options);
+          return _this.select(filter, callback, requestOptions);
         }
       } else {
-        return _this.select(filter, callback, options);
+        return _this.select(filter, callback, requestOptions);
       }
-
     };
 
     _this.selectDeferred = _this.deferredSelect = function(filter, callback, msec) {
-
       return new Promise(function(resolve, reject) {
         msec = msec || _this.options.refreshDelay;
         let savedFilter = Object.create({});
@@ -2348,11 +2305,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         }
         throw data;
       });
-
     };
 
     _this.load = _this.select = function(filter, callback, options) {
-
       if (typeof filter == 'function') {
         options = callback;
         callback = filter;
@@ -2508,31 +2463,32 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             }
           }
 
-          _this.ajaxRequest = $.ajax({ type: 'GET'
-                                     , data: request
-                                     , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
-                                     , url: url + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-                                     , headers: requestHeaders
-                                     , success: function(response) {
-                                         try {
-                                           _this.ajaxRequest = null;
-                                           handleResponse(response);
-                                         } finally {
-                                           selectOperationCounter--;
-                                         }
-                                       }
-                                     , error: function(jqXHR, textStatus, errorThrown) {
-                                         try {
-                                           _this.ajaxRequest = null;
-                                           if (!br.isUnloading()) {
-                                             var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                                             reject({request: request, options: options, errorMessage: errorMessage});
-                                           }
-                                         } finally {
-                                           selectOperationCounter--;
-                                         }
-                                       }
-                                     });
+          _this.ajaxRequest = $.ajax({
+            type: 'GET',
+            data: request,
+            dataType: _this.options.crossdomain ? 'jsonp' : 'json',
+            url: url + (_this.options.authToken ? '?token=' + _this.options.authToken : ''),
+            headers: requestHeaders,
+            success: function(response) {
+              try {
+                _this.ajaxRequest = null;
+                handleResponse(response);
+              } finally {
+                selectOperationCounter--;
+              }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              try {
+                _this.ajaxRequest = null;
+                if (!br.isUnloading()) {
+                  var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                  reject({request: request, options: options, errorMessage: errorMessage});
+                }
+              } finally {
+                selectOperationCounter--;
+              }
+            }
+          });
         } else {
           if (selectCount) {
             handleResponse(0);
@@ -2540,7 +2496,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             handleResponse([]);
           }
         }
-
       }).then(function(data) {
         try {
           if (!disableEvents) {
@@ -2570,7 +2525,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     };
 
     _this.invoke = function(method, params, callback, options) {
-
       if (typeof params == 'function') {
         options  = callback;
         callback = params;
@@ -2587,7 +2541,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       let disableEvents = options && options.disableEvents;
 
       return new Promise(function(resolve, reject) {
-
         let request = params || Object.create({});
 
         if (!disableEvents) {
@@ -2613,22 +2566,22 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           request.__clientUID = options.clientUID;
         }
 
-        $.ajax({ type: _this.options.crossdomain ? 'GET' : 'POST'
-               , data: request
-               , dataType: _this.options.crossdomain ? 'jsonp' : 'json'
-               , url: _this.options.restServiceUrlNormalized + method + (_this.options.authToken ? '?token=' + _this.options.authToken : '')
-               , headers: requestHeaders
-               , success: function(response) {
-                   resolve({method: method, request: request, options: options, response: response});
-                 }
-               , error: function(jqXHR, textStatus, errorThrown) {
-                   if (!br.isUnloading()) {
-                     let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                     reject({method: method, request: request, options: options, errorMessage: errorMessage});
-                   }
-                 }
-               });
-
+        $.ajax({
+          type: _this.options.crossdomain ? 'GET' : 'POST',
+          data: request,
+          dataType: _this.options.crossdomain ? 'jsonp' : 'json',
+          url: _this.options.restServiceUrlNormalized + method + (_this.options.authToken ? '?token=' + _this.options.authToken : ''),
+          headers: requestHeaders,
+          success: function(response) {
+            resolve({method: method, request: request, options: options, response: response});
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+            if (!br.isUnloading()) {
+              let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+              reject({method: method, request: request, options: options, errorMessage: errorMessage});
+            }
+          }
+        });
       }).then(function(data) {
         try {
           if (!disableEvents) {
@@ -2654,7 +2607,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           throw data;
         }
       });
-
     };
 
   }
@@ -2674,7 +2626,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function ($, window) {
+;(function($, window) {
 
   window.br = window.br || Object.create({});
 
@@ -2689,8 +2641,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     let tbody = $('tbody', table);
 
     let tableCopy;
-    let theadCopy;
-    let tbodyCopy;
     let theadColsCopy;
     let tbodyColsCopy;
 
@@ -2777,6 +2727,12 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     }
 
+    const colsCopy = function(el) {
+      el.style.boxSizing = 'border-box';
+      el.style.minWidth = '';
+      el.style.maxWidth = '';
+    };
+
     function createCopy() {
 
       tableCopy = table.clone();
@@ -2791,15 +2747,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       tbodyCopy.style.overflow = '';
 
       theadColsCopy.each(function(idx) {
-        this.style.boxSizing = 'border-box';
-        this.style.minWidth = '';
-        this.style.maxWidth = '';
+        colsCopy(this);
       });
 
       tbodyColsCopy.each(function(idx) {
-        this.style.boxSizing = 'border-box';
-        this.style.minWidth = '';
-        this.style.maxWidth = '';
+        colsCopy(this);
       });
 
       calcDiv.html('');
@@ -2913,47 +2865,47 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function ($, window) {
+;(function($, window) {
 
   window.br = window.br || Object.create({});
 
-  function BrDataGrid(selector, rowTemplate, dataSource, options) {
+  function BrDataGrid(containerSelector, rowTemplate, dataSource, settings) {
 
     const _this = this;
 
-    _this.selector = selector;
+    _this.selector = containerSelector;
 
-    _this.options = options || Object.create({});
+    _this.options = Object.assign({}, settings);
 
-    _this.options.templates          = _this.options.templates || Object.create({});
+    _this.options.templates = _this.options.templates || Object.create({});
 
-    _this.options.templates.noData   = _this.options.templates.noData || '.data-empty-template';
+    _this.options.templates.noData = _this.options.templates.noData || '.data-empty-template';
 
-    _this.options.templates.row      = $(rowTemplate).html();
+    _this.options.templates.row = $(rowTemplate).html();
     _this.options.templates.groupRow = _this.options.templates.groupRow ? $(_this.options.templates.groupRow).html() : '';
-    _this.options.templates.header   = _this.options.templates.header   ? $(_this.options.templates.header).html() : '';
-    _this.options.templates.footer   = _this.options.templates.footer   ? $(_this.options.templates.footer).html() : '';
-    _this.options.templates.noData   = _this.options.templates.noData   ? $(_this.options.templates.noData).html() : '';
+    _this.options.templates.header = _this.options.templates.header ? $(_this.options.templates.header).html() : '';
+    _this.options.templates.footer = _this.options.templates.footer ? $(_this.options.templates.footer).html() : '';
+    _this.options.templates.noData = _this.options.templates.noData ? $(_this.options.templates.noData).html() : '';
 
-    _this.options.templates.row      = _this.options.templates.row      || '';
+    _this.options.templates.row = _this.options.templates.row || '';
     _this.options.templates.groupRow = _this.options.templates.groupRow || '';
-    _this.options.templates.header   = _this.options.templates.header   || '';
-    _this.options.templates.footer   = _this.options.templates.footer   || '';
-    _this.options.templates.noData   = _this.options.templates.noData   || '';
+    _this.options.templates.header = _this.options.templates.header || '';
+    _this.options.templates.footer = _this.options.templates.footer || '';
+    _this.options.templates.noData = _this.options.templates.noData || '';
 
-    _this.templates = Object.create({});
+    _this.templates = {};
 
-    _this.templates.row      = _this.options.templates.row.length > 0      ? br.compile(_this.options.templates.row)      : function() { return ''; };
+    _this.templates.row = _this.options.templates.row.length > 0 ? br.compile(_this.options.templates.row) : function() { return ''; };
     _this.templates.groupRow = _this.options.templates.groupRow.length > 0 ? br.compile(_this.options.templates.groupRow) : function() { return ''; };
-    _this.templates.header   = _this.options.templates.header.length > 0   ? br.compile(_this.options.templates.header)   : function() { return ''; };
-    _this.templates.footer   = _this.options.templates.footer.length > 0   ? br.compile(_this.options.templates.footer)   : function() { return ''; };
-    _this.templates.noData   = _this.options.templates.noData.length > 0   ? br.compile(_this.options.templates.noData)   : function() { return ''; };
+    _this.templates.header = _this.options.templates.header.length > 0 ? br.compile(_this.options.templates.header) : function() { return ''; };
+    _this.templates.footer = _this.options.templates.footer.length > 0 ? br.compile(_this.options.templates.footer) : function() { return ''; };
+    _this.templates.noData = _this.options.templates.noData.length > 0 ? br.compile(_this.options.templates.noData) : function() { return ''; };
 
-    _this.options.selectors          = _this.options.selectors || Object.create({});
+    _this.options.selectors = _this.options.selectors || Object.create({});
 
-    _this.options.selectors.header   = _this.options.selectors.header || _this.options.headersSelector || _this.selector;
-    _this.options.selectors.footer   = _this.options.selectors.footer || _this.options.footersSelector || _this.selector;
-    _this.options.selectors.remove   = _this.options.selectors.remove || _this.options.deleteSelector  || '.action-delete';
+    _this.options.selectors.header = _this.options.selectors.header || _this.options.headersSelector || _this.selector;
+    _this.options.selectors.footer = _this.options.selectors.footer || _this.options.footersSelector || _this.selector;
+    _this.options.selectors.remove = _this.options.selectors.remove || _this.options.deleteSelector || '.action-delete';
 
     _this.options.dataSource = dataSource;
 
@@ -2966,7 +2918,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     _this.after  = function(event, callback) { _this.events.after(event, callback); };
 
     if (_this.options.fixedHeader) {
-      _this.table = br.table($(_this.selector).closest('table'), options);
+      _this.table = br.table($(_this.selector).closest('table'), settings);
     }
 
     let noMoreData = false;
@@ -3322,9 +3274,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     };
 
     _this.loadMore = function(callback) {
-      if (noMoreData || _this.loadingMoreData) {
-
-      } else {
+      if (!(noMoreData || _this.loadingMoreData)) {
         _this.loadingMoreData = true;
         _this.dataSource.select(Object.create({}), function(result, response) {
           if (typeof callback == 'function') { callback.call(_this, result, response); }
@@ -3606,17 +3556,18 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             for (let i = 0, length = data.length; i < length; i++) {
               if (data[i]) {
                 if (br.isArray(group)) {
-                  for (let k = 0, length = group.length; k < length; k++) {
+                  let length = group.length;
+                  for (let k = 0; k < length; k++) {
                     groupFieldName = group[k].fieldName;
                     if (group[k].group && (groupValues[groupFieldName] != data[i][groupFieldName])) {
-                      for(let j = k, length = group.length; j < length; j++) {
+                      for(let j = k; j < length; j++) {
                         groupFieldName = group[j].fieldName;
                         groupValues[groupFieldName] = undefined;
                       }
                       break;
                     }
                   }
-                  for (let k = 0, length = group.length; k < length; k++) {
+                  for (let k = 0; k < length; k++) {
                     groupFieldName = group[k].fieldName;
                     if (group[k].group && (groupValues[groupFieldName] != data[i][groupFieldName])) {
                       groupValues[groupFieldName] = data[i][groupFieldName];
@@ -3673,11 +3624,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function ($, window) {
+;(function($, window) {
 
   window.br = window.br || Object.create({});
 
-  function BrDataCombo(selector, dataSource, options) {
+  function BrDataCombo(selector) {
 
     const _this = this;
 
@@ -3722,6 +3673,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         }
       });
       return result;
+    };
+
+    _this.getContainer = function() {
+      return _this.selector;
     };
 
     function storageTag(ctrl) {
@@ -3951,7 +3906,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     function renderRow(data) {
       let content = '';
-      const isGroup = !br.isEmpty(_this.options.groupField) && br.toInt(data[_this.options.groupField]) > 0;
       const isDisabled = !br.isEmpty(_this.options.disabledField) && br.toInt(data[_this.options.disabledField]) > 0;
       content += `<option value="${data[_this.options.valueField]}"`;
       if (isDisabled) {
@@ -3995,9 +3949,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           let template = '';
           let cbObj = {};
           cbObj.data = data;
-          if (_this.options.hideEmptyValue || (_this.options.autoSelectSingle && (data.length == 1))) {
-
-          } else {
+          if (!(_this.options.hideEmptyValue || (_this.options.autoSelectSingle && (data.length == 1)))) {
             cbObj.s = template;
             _this.events.triggerBefore('generateEmptyOption', cbObj, _selector);
             template = cbObj.s;
@@ -4242,7 +4194,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   window.br.dataCombo = function (selector, dataSource, options) {
     let instance = $(selector).data('BrDataCombo');
     if (!instance) {
-      instance = new BrDataCombo(selector, dataSource, options);
+      instance = new BrDataCombo(selector);
     }
     return instance.applyOptions(dataSource, options);
   };
@@ -4258,7 +4210,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function ($, window) {
+;(function($, window) {
 
   window.br = window.br || Object.create({});
 
@@ -4349,28 +4301,28 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         return dragHandler.__br_draggable;
       }
 
-      dragHandler.addEventListener('mousedown', function(e) {
-        downHandler(e);
+      dragHandler.addEventListener('mousedown', function(event) {
+        downHandler(event);
       });
 
-      window.addEventListener('mousemove', function(e) {
-        moveHandler(e);
+      window.addEventListener('mousemove', function(event) {
+        moveHandler(event);
       });
 
-      window.addEventListener('mouseup', function(e) {
-        upHandler(e);
+      window.addEventListener('mouseup', function(event) {
+        upHandler(event);
       });
 
-      dragHandler.addEventListener('touchstart', function(e) {
-        downHandler(e);
+      dragHandler.addEventListener('touchstart', function(event) {
+        downHandler(event);
       });
 
-      window.addEventListener('touchmove', function(e) {
-        moveHandler(e);
+      window.addEventListener('touchmove', function(event) {
+        moveHandler(event);
       });
 
-      window.addEventListener('touchend', function(e) {
-        upHandler(e);
+      window.addEventListener('touchend', function(event) {
+        upHandler(event);
       });
 
       dragHandler.__br_draggable = _this;
@@ -4401,7 +4353,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function ($, window) {
+;(function($, window) {
 
   window.br = window.br || Object.create({});
 
@@ -4417,7 +4369,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     _this.editor = null;
     _this.savedWidth = '';
 
-    _this.click = function(element, e) {
+    _this.click = function(element, evt) {
       if (!_this.activated()) {
         let content = ((typeof _this.ctrl.attr('data-editable') != 'undefined') ? _this.ctrl.attr('data-editable') : _this.ctrl.text());
         _this.ctrl.data('brEditable-original-html', _this.ctrl.html());
@@ -4448,46 +4400,46 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           content = _this.options.onGetContent.call(_this.ctrl, _this.editor, content);
         }
         _this.editor.val(content);
-        _this.editor.on('keydown', function(e) {
-          if (e.keyCode == 9) {
-            let content = _this.editor.val();
+        _this.editor.on('keydown', function(evt0) {
+          if (evt0.keyCode == 9) {
+            let value = _this.editor.val();
             if (_this.options.onSave) {
-              _this.options.onSave.call(_this.ctrl, content, 'keyup');
+              _this.options.onSave.call(_this.ctrl, value, 'keyup');
             } else {
-              _this.apply(content);
+              _this.apply(value);
             }
-            e.stopPropagation();
-            e.preventDefault();
+            evt0.stopPropagation();
+            evt0.preventDefault();
           }
         });
-        _this.editor.on('keyup', function(e) {
-          let content = _this.editor.val();
-          switch (e.keyCode) {
+        _this.editor.on('keyup', function(evt0) {
+          let value = _this.editor.val();
+          switch (evt0.keyCode) {
             case 13:
               if (_this.options.onSave) {
-                _this.options.onSave.call(_this.ctrl, content, 'keyup');
+                _this.options.onSave.call(_this.ctrl, value, 'keyup');
               } else {
-                _this.apply(content);
+                _this.apply(value);
               }
-              e.stopPropagation();
+              evt0.stopPropagation();
               break;
             case 27:
               _this.cancel();
-              e.stopPropagation();
+              evt0.stopPropagation();
               break;
           }
         });
-        _this.editor.on('blur', function(e) {
+        _this.editor.on('blur', function(evt0) {
           let ok = true;
           if (_this.options.onBlur) {
-            ok = _this.options.onBlur.call(_this.ctrl, e);
+            ok = _this.options.onBlur.call(_this.ctrl, evt0);
           }
           if (ok) {
-            let content = _this.editor.val();
+            let value = _this.editor.val();
             if (_this.options.onSave) {
-              _this.options.onSave.call(_this.ctrl, content, 'blur');
+              _this.options.onSave.call(_this.ctrl, value, 'blur');
             } else {
-              _this.apply(content);
+              _this.apply(value);
             }
           }
         });
@@ -4558,7 +4510,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         case 'cancel':
         case 'click':
           if (!instance) {
-            $(selector).data('brEditable-editable', (instance = new BrEditable($(selector), callback)));
+            instance = new BrEditable($(selector), callback);
+            $(selector).data('brEditable-editable', instance);
           }
           return instance[callback](value);
       }
@@ -4567,7 +4520,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         let $this = $(this);
         let instance = $this.data('brEditable-editable');
         if (!instance) {
-          $this.data('brEditable-editable', (instance = new BrEditable(this, callback)));
+          instance = new BrEditable(this, callback);
+          $this.data('brEditable-editable', instance);
         }
         if (instance.options.onActivate) {
           instance.options.onActivate.call(instance.ctrl, function() {
@@ -4597,7 +4551,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
 /* jshint scripturl:true */
 
-;(function ($, window) {
+;(function($, window) {
 
   window.br = window.br || Object.create({});
 
@@ -4609,11 +4563,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
   };
 
-  window.br.showMessage = function(message) {
-    if (!br.isEmpty(message)) {
-      alert(message);
-    }
-  };
+  window.br.showMessage = window.br.showError;
 
   window.br.growlError = function(message, image) {
     if (!br.isEmpty(message)) {
@@ -4680,7 +4630,18 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
   window.br.panic = function(s) {
     $('.container').html('<div class="row"><div class="span12"><div class="alert alert-error"><h4>' + br.trn('Error') + '!</h4><p>' + s + '</p></div></div></div>');
-    throw '';
+    throw new Error('Panic');
+  };
+
+  const hiddenBsModal = function(event, modal, remove, oldActiveElement) {
+    if ($(event.target).is(modal)) {
+      if (remove) {
+        modal.remove();
+      }
+      if (oldActiveElement) {
+        oldActiveElement.focus();
+      }
+    }
   };
 
   window.br.confirm = function(title, message, buttons, callback, options) {
@@ -4816,14 +4777,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     });
 
     $(modal).on('hidden.bs.modal', function(event) {
-      if ($(event.target).is(modal)) {
-        if (remove) {
-          modal.remove();
-        }
-        if (oldActiveElement) {
-          oldActiveElement.focus();
-        }
-      }
+      hiddenBsModal(event, modal, remove, oldActiveElement);
     });
 
     $(modal).modal('show');
@@ -4886,12 +4840,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     });
 
     $(modal).on('hidden.bs.modal', function(event) {
-      if ($(event.target).is(modal)) {
-        modal.remove();
-        if (oldActiveElement) {
-          oldActiveElement.focus();
-        }
-      }
+      hiddenBsModal(event, modal, true, oldActiveElement);
     });
 
     $(modal).modal('show');
@@ -4953,19 +4902,14 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     $(modal).on('hide.bs.modal', function(event) {
       if ($(event.target).is(modal)) {
         if (callback) {
-          const dontAsk = $('input[name=showDontAskMeAgain]', $(modal)).is(':checked');
+          const dontAsk = $('input[name="showDontAskMeAgain"]', $(modal)).is(':checked');
           callback.call(this, dontAsk);
         }
       }
     });
 
     $(modal).on('hidden.bs.modal', function(event) {
-      if ($(event.target).is(modal)) {
-        modal.remove();
-        if (oldActiveElement) {
-          oldActiveElement.focus();
-        }
-      }
+      hiddenBsModal(event, modal, true, oldActiveElement);
     });
 
     $(modal).modal('show');
@@ -4980,7 +4924,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     options.cancelTitle = options.cancelTitle || br.trn('Cancel');
     options.okTitle = options.okTitle || br.trn('Ok');
 
-    let inputs = Object.create({});
+    let inputs = {};
 
     if (br.isObject(fields)) {
       inputs = fields;
@@ -5004,7 +4948,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
                         <div class="modal-body" style="overflow-y:auto;">`;
     for(let inputLabel in inputs) {
       if (br.isObject(inputs[inputLabel])) {
-        let inputId    = (br.isEmpty(inputs[inputLabel].id) ? '' : inputs[inputLabel].id);
+        let inputId = (br.isEmpty(inputs[inputLabel].id) ? '' : inputs[inputLabel].id);
         let inputClass = (br.isEmpty(inputs[inputLabel]['class']) ? '' : inputs[inputLabel]['class']) ;
         let inputValue = inputs[inputLabel].value;
         template += `<label>${inputLabel}</label>
@@ -5048,14 +4992,14 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           let results = [];
           let ok = true;
           let notOkField;
-          let inputs = [];
+          let inputs0 = [];
           $(this).closest('div.modal').find('input[type=text]').each(function() {
             if ($(this).hasClass('required') && br.isEmpty($(this).val())) {
               ok = false;
               notOkField = $(this);
             }
             results.push($(this).val().trim());
-            inputs.push($(this));
+            inputs0.push($(this));
           });
           if (ok) {
             if (options.onValidate) {
@@ -5064,8 +5008,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
               } catch (e) {
                 ok = false;
                 br.growlError(e);
-                if (inputs.length == 1) {
-                  inputs[0].focus();
+                if (inputs0.length == 1) {
+                  inputs0[0].focus();
                 }
               }
             }
@@ -5117,14 +5061,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     });
 
     $(modal).on('hidden.bs.modal', function(event) {
-      if ($(event.target).is(modal)) {
-        if (remove) {
-          modal.remove();
-        }
-        if (oldActiveElement) {
-          oldActiveElement.focus();
-        }
-      }
+      hiddenBsModal(event, modal, remove, oldActiveElement);
     });
 
     $(modal).modal('show');
@@ -5133,13 +5070,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
   };
 
-  let noTemplateEngine = false;
-
   window.br.compile = function(template) {
     if (template) {
       if (typeof window.Mustache == 'undefined') {
         if (typeof window.Handlebars == 'undefined') {
-          throw 'Template engine not linked';
+          throw new Error('Template engine not linked');
         } else {
           return Handlebars.compile(template);
         }
@@ -5147,7 +5082,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         return function(data) { return Mustache.render(template, data); };
       }
     } else {
-      throw 'Empty template';
+      throw new Error('Empty template');
     }
   };
 
@@ -5156,7 +5091,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     if (template) {
       if (typeof window.Mustache == 'undefined') {
         if (typeof window.Handlebars == 'undefined') {
-          throw 'Template engine not linked';
+          throw new Error('Template engine not linked');
         } else {
           let t = Handlebars.compile(template);
           return t(data);
@@ -5244,8 +5179,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       $('#br_progressStage').text(progressBar_Progress + ' of ' + progressBar_Total);
     }
   }
-
-  let backDropCounter = 0;
 
   function initBackDrop() {
     if ($('#br_modalBackDrop').length === 0) {
@@ -5538,14 +5471,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           }
         }
         if (!fromBrDataCombo) {
-          // if (!br.isEmpty(element.val())) {
-            if (element.data('select2')) {
-              if ((element.attr('multiple') != 'multiple')) {
-                // br.log(element);
-                element.select2('val', element.val());
-              }
+          if (element.data('select2')) {
+            if ((element.attr('multiple') != 'multiple')) {
+              element.select2('val', element.val());
             }
-          // }
+          }
         }
       }
     });
@@ -5564,7 +5494,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
   function enchanceBootstrap() {
 
-    const tabbableElements = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, *[tabindex], *[contenteditable]';
+    // const tabbableElements = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, *[tabindex], *[contenteditable]';
 
     function disableTabbingOnPage(except) {
       // $.each($(tabbableElements), function (idx, item) {
@@ -5595,9 +5525,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
 
     function configureAutosize(control) {
-      if (control.data('brAutoSizeConfigured')) {
-
-      } else {
+      if (!control.data('brAutoSizeConfigured')) {
         control.data('brAutoSizeConfigured', 1);
         if (br.bootstrapVersion == 2) {
           control.css('top', '20px');
@@ -5750,7 +5678,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
 
     if (br.bootstrapVersion == 2) {
-      $.fn.modal.Constructor.prototype.enforceFocus = function () {};
+      $.fn.modal.Constructor.prototype.enforceFocus = function () {
+        // fakse
+      };
     }
 
     $(document).ajaxStart(function() {
@@ -5835,33 +5765,30 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function ($, window) {
+;(function($, window) {
 
   window.br = window.br || Object.create({});
 
   $(function() {
 
     function notify(event, result) {
-
       br.events.trigger('paste', result, event);
-
     }
 
     function loadFile(result, file, originalEvent, onError) {
-
       const reader = new FileReader();
 
       reader.onload = function(event) {
         const parts = /^data[:](.+?)\/(.+?);/.exec(event.target.result);
-        let result_dataType    = 'other';
+        let result_dataType = 'other';
         let result_dataSubType = 'binary';
         if (parts) {
-          result_dataType    = parts[1];
+          result_dataType = parts[1];
           result_dataSubType = parts[2];
         }
-        result.dataType    = result_dataType;
+        result.dataType = result_dataType;
         result.dataSubType = result_dataSubType;
-        result.dataValue   = event.target.result;
+        result.dataValue = event.target.result;
         result.data[result_dataType] = result.data[result_dataType] || { };
         result.data[result_dataType][result_dataSubType] = event.target.result;
         notify(originalEvent, result);
@@ -5878,7 +5805,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
 
     function loadData(result, clipboardData, mediaType, isImage) {
-
       const data = clipboardData.getData(mediaType);
 
       if (data && (data.length > 0)) {
@@ -5886,15 +5812,15 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           mediaType = 'image/url';
         }
         const parts = /^(.+?)\/(.+?)$/.exec(mediaType);
-        let result_dataType    = 'other';
+        let result_dataType = 'other';
         let result_dataSubType = 'binary';
         if (parts) {
-          result_dataType    = parts[1];
+          result_dataType = parts[1];
           result_dataSubType = parts[2];
         }
-        result.dataType        = result_dataType;
-        result.dataSubType     = result_dataSubType;
-        result.dataValue       = data;
+        result.dataType = result_dataType;
+        result.dataSubType = result_dataSubType;
+        result.dataValue = data;
         if (isImage) {
           result.data[result_dataType] = result.data[result_dataType] || { };
           result.data[result_dataType][result_dataSubType] = data;
@@ -5903,22 +5829,18 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       }
 
       return false;
-
     }
 
     function processItems(items, result, event) {
-
       if (items.length > 0) {
         let item = items.shift();
         loadFile(result, item, event, function() {
           processItems(items, result, event);
         });
       }
-
     }
 
     $('body').on('paste', function(event) {
-
       let result = { data: { }, dataType: '', dataSubType: '', dataValue: '' };
       let items = [];
       let complete = true;
@@ -5932,40 +5854,36 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           let result_dataType    = 'other';
           let result_dataSubType = dataType;
           if (parts) {
-            result_dataType    = parts[1];
+            result_dataType = parts[1];
             result_dataSubType = parts[2];
           }
           result.data[result_dataType] = result.data[result_dataType] || { };
           result.data[result_dataType][result_dataSubType] = event.clipboardData.getData(dataType);
         }
 
-        if (loadData(result, event.clipboardData, 'public.url', true)) {
-
-        } else
-        if (loadData(result, event.clipboardData, 'text/html')) {
-          result.dataValue = result.dataValue.replace(/<(html|body|head|meta|link)[^>]*?>/g, '')
-                                             .replace(/<\/(html|body|head|meta|link)[^>]*?>/g, '');
-        } else
-        if (loadData(result, event.clipboardData, 'text/plain')) {
-
-        } else {
-          if (event.clipboardData.items && (event.clipboardData.items.length > 0)) {
-            for(let i = 0, length = event.clipboardData.items.length; i < length; i++) {
-              if (event.clipboardData.items[i].type.match('image.*')) {
-                items.push(event.clipboardData.items[i].getAsFile());
+        if (!loadData(result, event.clipboardData, 'public.url', true)) {
+          if (loadData(result, event.clipboardData, 'text/html')) {
+            result.dataValue = result.dataValue.replace(/<(html|body|head|meta|link)[^>]*?>/g, '').replace(/<\/(html|body|head|meta|link)[^>]*?>/g, '');
+          } else
+          if (!loadData(result, event.clipboardData, 'text/plain')) {
+            if (event.clipboardData.items && (event.clipboardData.items.length > 0)) {
+              for(let i = 0, length = event.clipboardData.items.length; i < length; i++) {
+                if (event.clipboardData.items[i].type.match('image.*')) {
+                  items.push(event.clipboardData.items[i].getAsFile());
+                }
               }
             }
-          }
-          if (event.clipboardData.files && (event.clipboardData.files.length > 0)) {
-            for(let i = 0, length = event.clipboardData.files.length; i < length; i++) {
-              if (event.clipboardData.files[i].type.match('image.*')) {
-                items.push(event.clipboardData.files[i]);
+            if (event.clipboardData.files && (event.clipboardData.files.length > 0)) {
+              for(let i = 0, length = event.clipboardData.files.length; i < length; i++) {
+                if (event.clipboardData.files[i].type.match('image.*')) {
+                  items.push(event.clipboardData.files[i]);
+                }
               }
             }
-          }
-          if (items.length > 0) {
-            complete = false;
-            processItems(items, result, event);
+            if (items.length > 0) {
+              complete = false;
+              processItems(items, result, event);
+            }
           }
         }
 
@@ -5973,7 +5891,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           notify(event, result);
         }
       }
-
     });
 
   });
@@ -5989,7 +5906,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function ($, window) {
+;(function($, window) {
 
   window.br = window.br || Object.create({});
 
@@ -5999,7 +5916,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     let editorRowid = null;
     let editorRowData = null;
-    let active = false;
     let cancelled = false;
     let closeConfirmationTmp;
     let saving = false;
@@ -6184,18 +6100,19 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         }
       });
 
-      $(_this.inputsContainer).on('change', 'select.data-field,input.data-field,textarea.data-field', function(event) {
-        if ($(this).attr('name') == 'name') {
+      const updateEditorTitle = function(el) {
+        if (el.attr('name') == 'name') {
           _this.updateEditorTitle();
         }
         br.confirmClose();
+      };
+
+      $(_this.inputsContainer).on('change', 'select.data-field,input.data-field,textarea.data-field', function(event) {
+        updateEditorTitle($(this));
       });
 
       $(_this.inputsContainer).on('input', 'select.data-field,input.data-field,textarea.data-field', function(event) {
-        if ($(this).attr('name') == 'name') {
-          _this.updateEditorTitle();
-        }
-        br.confirmClose();
+        updateEditorTitle($(this));
       });
 
       return _this;
@@ -6230,17 +6147,17 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             } else {
               let ckeditorInstance = input.data('ckeditorInstance');
               if (ckeditorInstance) {
-                (function(input, ckeditorInstance, data) {
-                  ckeditorInstance.setData(data
-                    , { noSnapshot: true
-                      , callback: function(aa) {
-                          if (ckeditorInstance.getData() != data) {
-                            // not sure why but setData is not wroking sometimes, so need to run again :(
-                            ckeditorInstance.setData(data, { noSnapshot: true });
-                          }
-                        }
-                      });
-                })(input, ckeditorInstance, data[name]);
+                (function(ckeditorInstance0, data0) {
+                  ckeditorInstance0.setData(data0, {
+                    noSnapshot: true,
+                    callback: function(aa) {
+                      if (ckeditorInstance0.getData() != data0) {
+                        // not sure why but setData is not wroking sometimes, so need to run again :(
+                        ckeditorInstance0.setData(data0, { noSnapshot: true });
+                      }
+                    }
+                  });
+                })(ckeditorInstance, data[name]);
               } else {
                 br.setValue(input, data[name]);
               }
@@ -6258,7 +6175,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     _this.show = function(rowid, params) {
       let editorParams = Object.assign({
         mode: br.isNumber(rowid) ? 'edit' : 'insert',
-        defaults: null
+        defaults: null,
+        params: {}
       }, params);
       workMode = editorParams.mode;
       closeConfirmationTmp = br.isCloseConfirmationRequired();
@@ -6281,6 +6199,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           $(this).attr('wasAvailable', !$(this).prop('disabled'));
           $(this).prop('readonly', true);
           $(this).prop('disabled', true);
+          let ckeditorInstance = $(this).data('ckeditorInstance');
+          if (ckeditorInstance) {
+            ckeditorInstance.setReadOnly(true);
+          }
         });
         $(_this.options.selectors.save, _this.container).hide();
         $('.action-save-related', _this.container).hide();
@@ -6289,6 +6211,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           if ($(this).attr('wasAvailable')) {
             $(this).prop('readonly', false);
             $(this).prop('disabled', false);
+            let ckeditorInstance = $(this).data('ckeditorInstance');
+            if (ckeditorInstance) {
+              ckeditorInstance.setReadOnly(false);
+            }
           }
         });
         $(_this.options.selectors.save, _this.container).show();
@@ -6302,13 +6228,13 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         _this.dataSource.selectOne(dataSourceRequest, function(result, response) {
           if (result) {
             editorRowData = response;
-            _this.events.triggerBefore('editor.show', editorRowData, (workMode == 'copy'), editorParams.defaults);
+            _this.events.triggerBefore('editor.show', editorRowData, (workMode == 'copy'), editorParams.defaults, editorParams.params);
             _this.fillControls(editorRowData);
             if (workMode == 'copy') {
               editorRowid = null;
             }
             _this.updateEditorTitle();
-            _this.events.trigger('editor.show', editorRowData, (workMode == 'copy'), editorParams.defaults);
+            _this.events.trigger('editor.show', editorRowData, (workMode == 'copy'), editorParams.defaults, editorParams.params);
             br.attachDatePickers(_this.inputsContainer);
             if (_this.container.hasClass('modal')) {
               _this.container.modal('show');
@@ -6324,11 +6250,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           }
         }, dataSourceOptions);
       } else {
-        _this.events.triggerBefore('editor.show', editorRowData, (workMode == 'copy'), editorParams.defaults);
+        _this.events.triggerBefore('editor.show', editorRowData, (workMode == 'copy'), editorParams.defaults, editorParams.params);
         _this.fillDefaults();
         _this.fillControls(editorParams.defaults);
         _this.updateEditorTitle();
-        _this.events.trigger('editor.show', editorRowData, (workMode == 'copy'), editorParams.defaults);
+        _this.events.trigger('editor.show', editorRowData, (workMode == 'copy'), editorParams.defaults, editorParams.params);
         br.attachDatePickers(_this.inputsContainer);
         if (_this.container.hasClass('modal')) {
           _this.container.modal('show');
@@ -6392,15 +6318,13 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     };
 
     function saveContinue(andClose, successCallback, errorCallback, silent, data) {
-
       savingAndClosing = andClose;
 
-      let op = editorRowid ? 'update' : 'insert';
-      let ok = true;
+      let operation = editorRowid ? 'update' : 'insert';
 
       try {
-        let options = Object.create({});
-        _this.events.trigger('editor.save', op, data, options);
+        let saveOptions = {};
+        _this.events.trigger('editor.save', operation, data, saveOptions);
         if (editorRowid) {
           _this.events.triggerBefore('editor.update', data, options);
           _this.dataSource.update(editorRowid, data, function(result, response) {
@@ -6432,7 +6356,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
                 }
               } else {
                 _this.events.triggerAfter('editor.update', false, response);
-                _this.events.triggerAfter('editor.save', false, response, op);
+                _this.events.triggerAfter('editor.save', false, response, operation);
                 if (!_this.dataSource.events.has('error')) {
                   _this.showError(response);
                 }
@@ -6443,9 +6367,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             } finally {
               saving = false;
             }
-          }, options);
+          }, saveOptions);
         } else {
-          _this.events.triggerBefore('editor.insert', data, options);
+          _this.events.triggerBefore('editor.insert', data, saveOptions);
           _this.dataSource.insert(data, function(result, response) {
             try {
               if (result) {
@@ -6476,7 +6400,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
                 }
               } else {
                 _this.events.triggerAfter('editor.insert', false, response);
-                _this.events.triggerAfter('editor.save', false, response, op);
+                _this.events.triggerAfter('editor.save', false, response, operation);
                 if (!_this.dataSource.events.has('error')) {
                   _this.showError(response);
                 }
@@ -6487,7 +6411,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             } finally {
               saving = false;
             }
-          }, options);
+          }, saveOptions);
         }
       } catch (error) {
         _this.showError(error.message);
@@ -6509,7 +6433,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         saving = true;
       }
 
-      let data = Object.create({ });
+      let data = {};
       let errors = [];
       try {
         $(_this.options.selectors.errorMessage, _this.container).hide();
@@ -6563,23 +6487,22 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           }
           saving = false;
         } else {
-          let op = editorRowid ? 'update' : 'insert';
-          let ok = true;
+          let operation = editorRowid ? 'update' : 'insert';
           if (_this.events.has('editor.save', 'pause')) {
-            _this.events.triggerPause( 'editor.save'
-                                     , { continue: function(data) {
-                                           saveContinue(andClose, successCallback, errorCallback, silent, data);
-                                         }
-                                       , cancel: function(error) {
-                                           if (errorCallback) {
-                                             errorCallback.call(_this, data, error);
-                                           }
-                                           saving = false;
-                                         }
-                                       }
-                                     , op
-                                     , data
-                                     );
+            _this.events.triggerPause('editor.save', {
+                continue: function(data0) {
+                  saveContinue(andClose, successCallback, errorCallback, silent, data0);
+                },
+                cancel: function(error) {
+                  if (errorCallback) {
+                    errorCallback.call(_this, data, error);
+                  }
+                  saving = false;
+                }
+              },
+              operation,
+              data
+            );
           } else {
             saveContinue(andClose, successCallback, errorCallback, silent, data);
           }
@@ -6612,20 +6535,19 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function ($, window) {
+;(function($, window) {
 
   window.br = window.br || Object.create({});
 
-  function BrDataBrowser(entity, options) {
+  function BrDataBrowser(entity, settings) {
 
     const _this = this;
 
     let pagerSetUp = false;
     let headerContainer = 'body';
     let selectionQueue = [];
-    let pagerInitialized = false;
 
-    _this.options = options || Object.create({});
+    _this.options = Object.assign({}, settings);
     _this.options.autoLoad = _this.options.autoLoad || false;
     _this.options.defaults = _this.options.defaults || {};
     _this.options.entity = entity;
@@ -6904,42 +6826,48 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       }
     };
 
-    _this.init = function() {
 
+    _this.init = function() {
       if (_this.options.nav) {
-        $('.nav-item[rel=' + _this.options.nav + ']').addClass('active');
+        $(`.nav-item[rel="${_this.options.nav}"]`).addClass('active');
       }
 
+      const keywordControl = $(findNode('input.data-filter[name="keyword"]'));
+      const inputControls = $(findNode('input.data-filter,select.data-filter'));
+
       _this.dataSource.before('select', function(request, options) {
-        request = request || Object.create({});
-        const keywordControl = $(findNode('input.data-filter[name=keyword]'));
+        request = request || {};
         if (keywordControl.length > 0) {
-          request.keyword = $(findNode('input.data-filter[name=keyword]')).val();
+          request.keyword = keywordControl.val();
           _this.setFilter('keyword', request.keyword);
         }
-        options       = options || {};
-        options.skip  = _this.skip;
+        options = options || {};
+        options.skip = _this.skip;
         options.limit = _this.limit || _this.defaultLimit;
       });
 
-      _this.dataSource.after('remove', function(request, options) {
-        if (selectionQueue.length === 0) {
+      _this.dataSource.after('remove', function(result, response) {
+        if (result) {
+          if (selectionQueue.length === 0) {
+            _this.resetPager();
+            _this.updatePager();
+          }
+          if (_this.dataGrid.isEmpty()) {
+            _this.refresh();
+          }
+        }
+      });
+
+      _this.dataSource.after('insert', function(result, response) {
+        if (result) {
           _this.resetPager();
           _this.updatePager();
         }
-        if (_this.dataGrid.isEmpty()) {
-          _this.refresh();
-        }
-      });
-
-      _this.dataSource.after('insert', function(request, options) {
-        _this.resetPager();
-        _this.updatePager();
       });
 
       _this.countDataSource.before('select', function(request) {
-        if ($(findNode('input.data-filter[name=keyword]')).length > 0) {
-          request.keyword = $(findNode('input.data-filter[name=keyword]')).val();
+        if (keywordControl.length > 0) {
+          request.keyword = keywordControl.val();
         }
       });
 
@@ -6953,7 +6881,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       });
 
       // search
-      const inputControls = $(findNode('input.data-filter,select.data-filter'));
+
       inputControls.each(function() {
         if ($(this).parent().hasClass('input-append')) {
           $(this).parent().addClass('data-filter');
@@ -6961,7 +6889,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         }
       });
 
-      const keywordControl = $(findNode('input.data-filter[name=keyword]'));
       if (keywordControl.length > 0) {
         br.modified(keywordControl, function() {
           const val = $(this).val();
@@ -6979,8 +6906,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       br.modified(findNode('input.data-filter,select.data-filter'), function() {
         const val = $(this).val();
         let container = $(this).parent();
-        if (container.hasClass('input-append')) {
-        } else {
+        if (!container.hasClass('input-append')) {
           container = $(this);
         }
         if (br.isEmpty(val)) {
@@ -7475,7 +7401,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function ($, window) {
+;(function($, window) {
 
   window.br = window.br || Object.create({});
 
@@ -7484,7 +7410,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   const menuItemTemplate = br.compile('<li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>');
   const dropDownTemplate = '<div class="dropdown br-ajax-dropdown" style="position:absolute;z-index:99999;"><a style="display:none;" href="javascript:;" role="button" data-toggle="dropdown" class="dropdown-toggle br-ex-action-change-menu-menu" style="cursor:pointer;"><span>{{value}}</span> <b class="caret"></b></a><ul class="dropdown-menu" role="menu" style="overflow:auto;"></ul></div>';
 
-  function showDropDownMenu(invoker, response, rowid, menuElement, dataSource, fieldName, options) {
+  function showDropDownMenu(invoker, items, rowid, menuElement, dataSource, fieldName, options) {
     const dropDown = $(dropDownTemplate);
     const dropDownList = dropDown.find('ul');
     const dropDownMenu = dropDown.find('.br-ex-action-change-menu-menu');
@@ -7514,25 +7440,32 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     if (options.onBeforeRenderMenu) {
       options.onBeforeRenderMenu.call(dropDownList, menuItemTemplateStr);
     }
-    for(let i = 0, length = response.length; i < length; i++) {
-      dropDownList.append(menuItemTemplate({ id: response[i][options.keyField], name: response[i][options.nameField] }));
+    for(let i = 0, length = items.length; i < length; i++) {
+      dropDownList.append(menuItemTemplate({
+        id: items[i][options.keyField],
+        name: items[i][options.nameField]
+      }));
     }
-    dropDown.css('left', invoker.offset().left + 'px');
     const invokerItem = invoker.find('.br-ex-action-change-menu-menu');
     const scr = $(window).scrollTop();
+    let leftOffset = invoker.offset().left;
     let t = (invokerItem.offset().top + invokerItem.height());
     dropDown.css('top', t + 'px');
     t = t - scr;
     let h = Math.max($(window).height() - t - 20, 100);
     dropDownList.css('max-height', h + 'px');
     $('body').append(dropDown);
+    if (options.dropDownPosition === 'left') {
+      leftOffset -= dropDownList.width();
+    }
+    dropDown.css('left', `${leftOffset}px`);
     dropDownMenu.dropdown('toggle');
   }
 
   function internalhandleClick(el, invoker, choicesDataSource, dataSource, fieldName, options) {
     const rowid = el.closest('[data-rowid]').attr('data-rowid');
     const menuElement = invoker.find('span.br-ex-current-value');
-    let filter = { __targetRowid: rowid };
+    let filter = { targetRowid: rowid };
     if (options.onSelect) {
       options.onSelect.call(choicesDataSource, filter, rowid, $(el));
     }
@@ -7555,9 +7488,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
   function setupControl(el, doClick, choicesDataSource, dataSource, fieldName, options) {
     const $this = el;
-    if ($this.data('BrExChangeMenu')) {
-
-    } else {
+    if (!$this.data('BrExChangeMenu')) {
       $this.data('BrExChangeMenu', true);
       let value = $this.text().trim();
       if (!options.hideHint) {
@@ -7580,17 +7511,30 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   }
 
   function BrExChangeMenu(selector, choicesDataSource, dataSource, fieldName, options) {
-    options = options || Object.create({});
-    options.keyField = options.keyField || 'id';
-    options.nameField = options.nameField || 'name';
+    let settings = Object.assign({
+      keyField: 'id',
+      nameField: 'name',
+      sticky: true,
+    }, options);
 
-    $(selector).each(function() {
-      setupControl($(this), false, choicesDataSource, dataSource, fieldName, options);
-    });
+    if (settings.container) {
+      $(settings.container).find(selector).each(function() {
+        setupControl($(this), false, choicesDataSource, dataSource, fieldName, settings);
+      });
+      $(settings.container).on('click', selector, function() {
+        setupControl($(this), true, choicesDataSource, dataSource, fieldName, settings);
+      });
+    } else {
+      $(selector).each(function() {
+        setupControl($(this), false, choicesDataSource, dataSource, fieldName, settings);
+      });
 
-    $(document).on('click', selector, function() {
-      setupControl($(this), true, choicesDataSource, dataSource, fieldName, options);
-    });
+      if (settings.sticky) {
+        $(document).on('click', selector, function() {
+          setupControl($(this), true, choicesDataSource, dataSource, fieldName, settings);
+        });
+      }
+    }
   }
 
   window.br.dropDownMenu = function (selector, choicesDataSource, dataSource, fieldName, options) {
@@ -7608,31 +7552,25 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function ($, window) {
+;(function($, window) {
 
   window.br = window.br || Object.create({});
 
   window.br.dataHelpers = window.br.dataHelpers || Object.create({});
 
   window.br.dataHelpers.before = function(event, dataControls, callback) {
-
     for(let i = 0, length = dataControls.length; i < length; i++) {
       dataControls[i].before(event, callback);
     }
-
   };
 
   window.br.dataHelpers.on = function(event, dataControls, callback) {
-
     for(let i = 0, length = dataControls.length; i < length; i++) {
       dataControls[i].on(event, callback);
     }
-
   };
 
-
   function execute(funcToExecute, paramsQueue, extraParams, resolve, reject) {
-
     let functionsQueue = [];
 
     while ((functionsQueue.length <= extraParams.workers) && (paramsQueue.length > 0)) {
@@ -7641,36 +7579,32 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       }));
     }
 
-    Promise.all(functionsQueue)
-           .then(function(data) {
-             if (paramsQueue.length > 0) {
-               execute(funcToExecute, paramsQueue, extraParams, resolve, reject);
-             } else {
-               br.stepProgress();
-               if (!extraParams.doNotHideProgress) {
-                 br.hideProgress();
-               }
-               resolve(data);
-             }
-           })
-           .catch(function(data) {
-             if (!extraParams.doNotHideProgressOnError) {
-               br.hideProgress();
-             }
-             reject(data);
-           });
-
+    Promise.all(functionsQueue).then(function(data) {
+      if (paramsQueue.length > 0) {
+        execute(funcToExecute, paramsQueue, extraParams, resolve, reject);
+      } else {
+        br.stepProgress();
+        if (!extraParams.doNotHideProgress) {
+          br.hideProgress();
+        }
+        resolve(data);
+      }
+    })
+    .catch(function(data) {
+      if (!extraParams.doNotHideProgressOnError) {
+        br.hideProgress();
+      }
+      reject(data);
+    });
   }
 
   window.br.dataHelpers.execute = function(funcToExecute, funcToGetTotal, funcToGetParams, extraParams) {
-
-    extraParams         = extraParams         || {};
-    extraParams.title   = extraParams.title   || '';
-    extraParams.workers = extraParams.workers || 10;
+    extraParams = Object.assign({
+      title: '',
+      workers: 10
+    }, extraParams);
 
     return new Promise(function(resolve, reject) {
-      let params = [];
-      let functionsForExecute = [];
       br.startProgress(funcToGetTotal(), extraParams.title);
       window.setTimeout(function() {
         let paramsQueue = [];
@@ -7685,11 +7619,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         execute(funcToExecute, paramsQueue, extraParams, resolve, reject);
       });
     });
-
   };
 
   window.br.dataHelpers.load = window.br.dataHelpers.select = function(dataControls, callback) {
-
     let promises = [];
 
     for(let i = 0, length = dataControls.length; i < length; i++) {
@@ -7741,7 +7673,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
 /* global google */
 
-;(function ($, window) {
+;(function($, window) {
   window.br = window.br || {};
 
   function BrGoogleMap(selector, options) {
@@ -7814,10 +7746,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     google.maps.event.addListener(_this.map, 'click', function(event) {
       _this.events.trigger('click', event);
-      (function(zoomLevel, event) {
+      (function(zoomLevel, event0) {
         singleClickTimeout = window.setTimeout(function() {
           if (zoomLevel == _this.map.getZoom()) {
-            _this.events.trigger('singleclick', event);
+            _this.events.trigger('singleclick', event0);
           }
         }, 300);
       })(_this.map.getZoom(), event);
@@ -7827,10 +7759,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       let distance = 0;
       let duration = 0;
       let myroute = result.routes[0];
-      for (let i = 0; i < myroute.legs.length; i++) {
-        distance += myroute.legs[i].distance.value;
-        duration += myroute.legs[i].duration.value;
-      }
+      myroute.legs.forEach(function(item) {
+        distance += item.distance.value;
+        duration += item.duration.value;
+      });
       return { distance: distance, duration: duration };
     }
 
@@ -7952,10 +7884,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         }
       }
       let bounds = new google.maps.LatLngBounds();
-      _this.markers.map(function(marker) {
+      _this.markers.forEach(function(marker) {
         processPoints(new google.maps.LatLng(marker.position.lat(), marker.position.lng()), bounds.extend, bounds);
       });
-      _this.polygons.map(function(polygon) {
+      _this.polygons.forEach(function(polygon) {
         processPoints(polygon.latLngs, bounds.extend, bounds);
       });
       _this.map.data.forEach(function(feature) {
@@ -7990,15 +7922,14 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     _this.findAddress = function(address, callback) {
       _this.geocoder.geocode({'address': address}, function(results, status) {
         if (status == google.maps.GeocoderStatus.OK) {
-          let points = [];
-          for (let i = 0; i < results.length; i++) {
-            points.push({
-              lat: results[i].geometry.location.lat(),
-              lng: results[i].geometry.location.lng(),
-              name: results[i].formatted_address,
-              raw: results[i]
-            });
-          }
+          let points = results.map(function(item) {
+            return {
+              lat: item.geometry.location.lat(),
+              lng: item.geometry.location.lng(),
+              name: item.formatted_address,
+              raw: item
+            };
+          });
           if (typeof callback == 'function') {
             callback.call(_this, points.length > 0, points);
           }
@@ -8014,12 +7945,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       _this.directionsDisplay.setMap(null);
     };
 
-    _this.drawRoute = function(coord, callback) {
+    _this.drawRoute = function(coordinates, callback) {
       let origin = null;
       let destination = null;
       let waypoints = [];
-      for (let i = 0; i < coord.length; i++) {
-        let latLng = coord[i];
+      for (let latLng of coordinates) {
         if (origin === null) {
           origin = latLng;
         } else
@@ -8060,21 +7990,27 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     };
 
     _this.drawRouteByTag = function(tag, callback) {
-      let coord = [];
       let markers = _this.getMarkersByTag(tag);
-      for (let i = 0; i < markers.length; i++) {
-        coord.push(new google.maps.LatLng(markers[i].position.lat(), markers[i].position.lng()));
-      }
+      let coord = markers.map(function(item) {
+        return new google.maps.LatLng(item.position.lat(), item.position.lng());
+      });
       _this.drawRoute(coord, callback);
     };
 
     _this.pointToFeature = function(lng, lat, properties) {
-      let geoJson = {
+      return {
         type: 'Feature',
-        geometry: { type: 'Point', 'coordinates': [ lng, lat ] },
-        properties: Object.assign({ latitude: lat, longitude: lng, "marker-size": "medium", "marker-symbol": "triangle" }, properties)
+        geometry: {
+          type: 'Point',
+          coordinates: [ lng, lat ]
+        },
+        properties: Object.assign({
+          latitude: lat,
+          longitude: lng,
+          "marker-size": "medium",
+          "marker-symbol": "triangle"
+        }, properties)
       };
-      return geoJson;
     };
 
     // layers
@@ -8193,7 +8129,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     };
 
     _this.removeMarkers = function(tag) {
-      _this.markers.map(function(marker) {
+      _this.markers.forEach(function(marker) {
         if (!tag || (marker.tag == tag)) {
           marker.setMap(null);
         }
@@ -8228,8 +8164,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
       function arrayFlat(array) {
         let result = [];
-        for (let i = 0; i < array.length; i++) {
-          result = result.concat(array[i]);
+        for (let value of array) {
+          result = result.concat(value);
         }
         return result;
       }
@@ -8289,7 +8225,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     };
 
     _this.removePolygons = function(tag) {
-      _this.polygons.map(function(polygon) {
+      _this.polygons.forEach(function(polygon) {
         if (!tag || (polygon.tag == tag)) {
           polygon.setMap(null);
         }
@@ -8403,6 +8339,13 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       reconnect();
     }
 
+    const connectionClosed = function(event) {
+      if (debugMode) {
+        br.log(event);
+      }
+      handleConnectionError('Connection closed');
+    };
+
     function connect() {
       try {
         webSocket = new WebSocket(endpointUrl);
@@ -8438,16 +8381,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           }
         };
         webSocket.onclose = function(event) {
-          if (debugMode) {
-            br.log(event);
-          }
-          handleConnectionError('Connection closed');
+          connectionClosed(event);
         };
         webSocket.onerror = function(event) {
-          if (debugMode) {
-            br.log(event);
-          }
-          handleConnectionError('Connection closed');
+          connectionClosed(event);
         };
       } catch (exception) {
         if (debugMode) {
@@ -8525,8 +8462,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     return this;
 
   }
-
-  let eventBus;
 
   window.br.eventBus = function(endpointUrl) {
     return new BrEventBus(endpointUrl);

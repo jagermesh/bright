@@ -10,100 +10,94 @@
 
 namespace Bright;
 
-class BrGenericDataSource extends BrObject {
-
-  protected $defaultOrder          = null;
-  protected $canTraverseBack       = null;
-  protected $checkTraversing       = false;
+class BrGenericDataSource extends BrObject
+{
+  protected $db = null;
+  protected $defaultOrder = null;
+  protected $canTraverseBack = null;
+  protected $checkTraversing = false;
   protected $selectAdjancedRecords = false;
-  protected $priorAdjancedRecord   = null;
-  protected $nextAdjancedRecord    = null;
-  protected $rowidFieldName        = null;
-  protected $rerunIterations       = 20;
-  protected $rerunTimeLimit        = 60;
-  protected $db                    = null;
-  protected $lastSelectAmount      = null;
+  protected $priorAdjancedRecord = null;
+  protected $nextAdjancedRecord = null;
+  protected $rowidFieldName = null;
+  protected $rerunIterations = 20;
+  protected $rerunTimeLimit = 60;
+  protected $lastSelectAmount = null;
 
-  private $__transactionalDML      = true;
+  private $transactionalDML = true;
 
-  public function __construct($options = []) {
-
+  public function __construct($options = [])
+  {
     parent::__construct();
 
-    $this->defaultOrder          = br($options, 'defaultOrder');
-    $this->skip                  = br($options, 'skip');
-    $this->limit                 = br($options, 'limit');
-    $this->checkTraversing       = br($options, 'checkTraversing');
-    $this->selectAdjancedRecords = br($options, 'selectAdjancedRecords');
-    $this->rowidFieldName        = br($options, 'rowidFieldName');
-
+    $this->defaultOrder = br($options, BrConst::DATASOURCE_OPTION_DEFAULT_ORDER);
+    $this->skip = br($options, BrConst::DATASOURCE_OPTION_SKIP);
+    $this->limit = br($options, BrConst::DATASOURCE_OPTION_LIMIT);
+    $this->checkTraversing = br($options, BrConst::DATASOURCE_OPTION_CHECK_TRAVERSING);
+    $this->selectAdjancedRecords = br($options, BrConst::DATASOURCE_OPTION_SELCT_ADJANCED);
+    $this->rowidFieldName = br($options, BrConst::DATASOURCE_OPTION_ROWID_FIELD_NAME);
   }
 
-  public function getDb() {
-
+  public function getDb()
+  {
     return $this->db ? $this->db : br()->db();
-
   }
 
-  public function setDb($db) {
-
+  public function setDb($db)
+  {
     $this->db = $db;
 
     return $this->db;
-
   }
 
-  public function transactionalDML($value = null) {
-
-    if ($value !== null) {
-      $this->__transactionalDML = $value;
-    }
-
-    return $this->__transactionalDML;
-
+  public function setTransactionalDML($value)
+  {
+    $this->transactionalDML = $value;
   }
 
-  public function rowidFieldName() {
+  public function isTransactionalDML()
+  {
+    return $this->transactionalDML;
+  }
 
+  public function rowidFieldName()
+  {
     return $this->rowidFieldName;
-
   }
 
-  public function setDefaultOrder($value = []) {
-
+  public function setDefaultOrder($value = [])
+  {
     $this->defaultOrder = $value;
-
   }
 
-  public function existsOne($filter = []) {
-
-    if ($row = $this->selectOne($filter, [], [], [ 'noCalcFields' => true ])) {
+  public function existsOne($filter = [])
+  {
+    if ($this->selectOne($filter, [], [], [BrConst::DATASOURCE_OPTION_NO_CALC_FIELDS => true])) {
       return true;
-    } else {
-      return false;
     }
 
+    return false;
   }
 
-  public function existsOneCached($filter = []) {
-
-    if ($row = $this->selectOneCached($filter, [], [], [ 'noCalcFields' => true ])) {
+  public function existsOneCached($filter = [])
+  {
+    if ($this->selectOneCached($filter, [], [], [BrConst::DATASOURCE_OPTION_NO_CALC_FIELDS => true])) {
       return true;
-    } else {
-      return false;
     }
 
+    return false;
   }
 
-  public function selectOneCached($filter = [], $fields = [], $order = [], $options = []) {
-
+  public function selectOneCached($filter = [], $fields = [], $order = [], $options = [])
+  {
     if (!is_array($filter)) {
-      $filter = [ $this->getDb()->rowidField() => $this->getDb()->rowid($filter) ];
+      $filter = [$this->getDb()->rowidField() => $this->getDb()->rowid($filter)];
     }
 
-    $options['limit'] = 1;
+    $options[BrConst::DATASOURCE_OPTION_LIMIT] = 1;
 
-    $cacheTag = 'DataSource:selectOneCached:' . get_class($this) . md5(serialize($filter) . serialize($fields) . serialize($order) . serialize($options));
+    $cacheTag = 'DataSource:selectOneCached:' . get_class($this) .
+      hash('sha256', serialize($filter) . serialize($fields) . serialize($order) . serialize($options));
 
     if (br()->cache()->exists($cacheTag)) {
       $result = br()->cache()->get($cacheTag);
@@ -115,12 +109,12 @@ class BrGenericDataSource extends BrObject {
     }
 
     return $result;
-
   }
 
-  public function selectCached($filter = [], $fields = [], $order = [], $options = []) {
-
-    $cacheTag = 'DataSource:selectCached:' . get_class($this) . md5(serialize($filter) . serialize($fields) . serialize($order) . serialize($options));
+  public function selectCached($filter = [], $fields = [], $order = [], $options = [])
+  {
+    $cacheTag = 'DataSource:selectCached:' . get_class($this) .
+      hash('sha256', serialize($filter) . serialize($fields) . serialize($order) . serialize($options));
 
     if (br()->cache()->exists($cacheTag)) {
       $result = br()->cache()->get($cacheTag);
@@ -130,14 +124,14 @@ class BrGenericDataSource extends BrObject {
     }
 
     return $result;
-
   }
 
-  public function selectCountCached($filter = [], $fields = [], $order = [], $options = []) {
+  public function selectCountCached($filter = [], $fields = [], $order = [], $options = [])
+  {
+    $options[BrConst::DATASOURCE_OPTION_RESULT] = BrConst::DATASOURCE_RESULT_TYPE_COUNT;
 
-    $options['result'] = 'count';
-
-    $cacheTag = 'DataSource:selectCountCached:' . get_class($this) . md5(serialize($filter) . serialize($fields) . serialize($order) . serialize($options));
+    $cacheTag = 'DataSource:selectCountCached:' . get_class($this) .
+      hash('sha256', serialize($filter) . serialize($fields) . serialize($order) . serialize($options));
 
     if (br()->cache()->exists($cacheTag)) {
       $result = br()->cache()->get($cacheTag);
@@ -147,61 +141,54 @@ class BrGenericDataSource extends BrObject {
     }
 
     return $result;
-
-
   }
 
-  public function selectOne($filter = [], $fields = [], $order = [], $options = []) {
-
+  public function selectOne($filter = [], $fields = [], $order = [], $options = [])
+  {
     if (!is_array($filter)) {
-      $filter = [ $this->getDb()->rowidField() => $this->getDb()->rowid($filter) ];
+      $filter = [$this->getDb()->rowidField() => $this->getDb()->rowid($filter)];
     }
 
-    $options['limit'] = 1;
+    $options[BrConst::DATASOURCE_OPTION_LIMIT] = 1;
 
     if ($result = $this->select($filter, $fields, $order, $options)) {
       $result = $result[0];
     }
 
     return $result;
-
   }
 
-  public function selectCount($filter = [], $fields = [], $order = [], $options = []) {
+  public function selectCount($filter = [], $fields = [], $order = [], $options = [])
+  {
+    $options[BrConst::DATASOURCE_OPTION_RESULT] = BrConst::DATASOURCE_RESULT_TYPE_COUNT;
 
-    $options['result'] = 'count';
-
-    return $this->select($filter, [], [], $options);
-
+    return $this->select($filter, $fields, $order, $options);
   }
 
-  public function select($filter = [], $fields = [], $order = [], $options = []) {
-
+  public function select($filter = [], $fields = [], $order = [], $options = [])
+  {
     return $this->internalSelect($filter, $fields, $order, $options);
-
   }
 
-  public function find($filter = [], $fields = [], $order = [], $options = []) {
-
+  public function find($filter = [], $fields = [], $order = [], $options = [])
+  {
     $data = $this->internalSelect($filter, $fields, $order, $options);
 
     return new BrGenericDataSourceCursor($this, $data);
-
   }
 
-  protected function internalSelect($filter = [], $fields = [], $order = [], $options = []) {
-
-    $countOnly = (br($options, 'result') == 'count');
-
-    $this->limit = br($options, 'limit');
-    $this->skip  = br($options, 'skip', 0);
+  protected function internalSelect($filter = [], $fields = [], $order = [], $options = [])
+  {
+    $this->limit = br($options, BrConst::DATASOURCE_OPTION_LIMIT);
+    $this->skip = br($options, BrConst::DATASOURCE_OPTION_SKIP, 0);
 
     if (!$this->skip || ($this->skip < 0)) {
       $this->skip = 0;
     }
 
-    $options['limit'] = $this->limit;
-    $options['skip']  = $this->skip;
+    $options[BrConst::DATASOURCE_OPTION_LIMIT] = $this->limit;
+    $options[BrConst::DATASOURCE_OPTION_SKIP] = $this->skip;
+    $options[BrConst::DATASOURCE_OPTION_FIELDS] = $fields ? $fields : [];
 
     $transientData = [];
 
@@ -209,60 +196,51 @@ class BrGenericDataSource extends BrObject {
     $this->priorAdjancedRecord = null;
     $this->nextAdjancedRecord = null;
 
-    if (!$order) {
-      if ($this->defaultOrder) {
-        if (is_array($this->defaultOrder)) {
-          $order = $this->defaultOrder;
-        } else {
-          $order[$this->defaultOrder] = 1;
-        }
+    if (!$order && $this->defaultOrder) {
+      if (is_array($this->defaultOrder)) {
+        $order = $this->defaultOrder;
+      } else {
+        $order[$this->defaultOrder] = BrConst::SORT_ASC;
       }
     }
 
     $this->validateSelect($filter);
 
-    $result = $this->callEvent('select', $filter, $transientData, $options);
-
-    return $result;
-
+    return $this->callEvent(BrConst::DATASOURCE_EVENT_SELECT, $filter, $transientData, $options);
   }
 
-  public function update($rowid, $row, &$transientData = []) {
-
-    $row['rowid'] = $rowid;
+  public function update($rowid, $row, &$transientData = [])
+  {
+    $row[BrConst::DATASOURCE_SYSTEM_FIELD_ROWID] = $rowid;
 
     $this->validateUpdate($row);
 
-    return $this->callEvent('update', $row, $transientData);
-
+    return $this->callEvent(BrConst::DATASOURCE_EVENT_UPDATE, $row, $transientData);
   }
 
-  public function insert($row = [], &$transientData = []) {
-
+  public function insert($row = [], &$transientData = [])
+  {
     $this->validateInsert($row);
 
-    return $this->callEvent('insert', $row, $transientData);
-
+    return $this->callEvent(BrConst::DATASOURCE_EVENT_INSERT, $row, $transientData);
   }
 
-  public function remove($rowid, &$transientData = []) {
-
-    $row = [ 'rowid' => $rowid ];
+  public function remove($rowid, &$transientData = [])
+  {
+    $row = [BrConst::DATASOURCE_SYSTEM_FIELD_ROWID => $rowid];
 
     $this->validateRemove($row);
 
-    return $this->callEvent('remove', $row, $transientData);
-
+    return $this->callEvent(BrConst::DATASOURCE_EVENT_DELETE, $row, $transientData);
   }
 
-  public function invokeMethodExists($method) {
-
+  public function invokeMethodExists($method)
+  {
     return isset($this->events[$method]);
-
   }
 
-  public function invoke($method, $params, &$transientData = [], $optionsParam = [], $iteration = 0, $rerunError = null) {
-
+  public function invoke($method, $params, &$transientData = [], $optionsParam = [], $iteration = 0, $rerunError = null)
+  {
     if ($iteration > $this->rerunIterations) {
       throw new BrDBException($rerunError);
     }
@@ -271,51 +249,48 @@ class BrGenericDataSource extends BrObject {
 
     $method = trim($method);
 
-    switch($method) {
-      case 'select':
-      case 'selectOne':
-      case 'insert':
-      case 'update':
-      case 'remove':
-      case 'prepareCalcFields':
-      case 'calcFields':
-        throw new \Exception('Method [' . $method . '] not supported');
+    switch ($method) {
+      case BrConst::DATASOURCE_METHOD_SELECT:
+      case BrConst::DATASOURCE_METHOD_SELECT_ONE:
+      case BrConst::DATASOURCE_METHOD_INSERT:
+      case BrConst::DATASOURCE_METHOD_UPDATE:
+      case BrConst::DATASOURCE_METHOD_DELETE:
+      case BrConst::DATASOURCE_METHOD_PREPARE_CALC_FIELDS:
+      case BrConst::DATASOURCE_METHOD_CALC_FIELDS:
+      case BrConst::DATASOURCE_METHOD_PROTECT_FIELDS:
+        throw new BrGenericDataSourceException(sprintf(BrConst::ERROR_MESSAGE_METHOD_NOT_SUPPORTED, $method));
         break;
       default:
         if (!$this->invokeMethodExists($method)) {
-          throw new \Exception('Method [' . $method . '] not supported');
+          throw new BrGenericDataSourceException(sprintf(BrConst::ERROR_MESSAGE_METHOD_NOT_SUPPORTED, $method));
         }
 
-        $options              = $optionsParam;
-        $options['operation'] = $method;
-        $options['dataSets']  = br(br($options, 'dataSets'))->split();
-        $options['clientUID'] = br($options, 'clientUID');
+        $options = $optionsParam;
+        $options[BrConst::DATASOURCE_OPTION_OPERATION] = $method;
+        $options[BrConst::DATASOURCE_OPTION_DATASETS] = br(br($options, BrConst::DATASOURCE_OPTION_DATASETS))->split();
+        $options[BrConst::DATASOURCE_OPTION_CLIENTUID] = br($options, BrConst::DATASOURCE_OPTION_CLIENTUID);
 
         try {
           try {
-            if ($this->getDb()) {
-              if ($this->transactionalDML()) {
-                $this->getDb()->startTransaction();
-              }
+            if ($this->getDb() && $this->isTransactionalDML()) {
+              $this->getDb()->startTransaction();
             }
-            $this->callEvent('before:' . $method, $params, $transientData, $options);
+            $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_BEFORE, $method), $params, $transientData, $options);
             $data = $this->callEvent($method, $params, $transientData, $options);
             $result = true;
-            $this->callEvent('after:' . $method, $result, $data, $params, $transientData, $options);
-            if ($this->getDb()) {
-              if ($this->transactionalDML()) {
-                $this->getDb()->commitTransaction();
-              }
-              $this->callEvent('after:commit', $params, $transientData, $data, $options);
+            $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, $method), $result, $data, $params, $transientData, $options);
+            if ($this->getDb() && $this->isTransactionalDML()) {
+              $this->getDb()->commitTransaction();
+              $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, BrConst::DATASOURCE_EVENT_COMMIT), $params, $transientData, $data, $options);
             }
             return $data;
           } catch (BrDBRecoverableException $e) {
             br()->log('Repeating invoke of ' . $method . '... (' . $iteration . ') because of ' . $e->getMessage());
             if (time() - $startMarker > $this->rerunTimeLimit) {
-              br()->log('Too much time passed since the beginning of the operation: ' . (time() - $startMarker ) . 's');
+              br()->log('Too much time passed since the beginning of the operation: ' . (time() - $startMarker) . 's');
               throw $e;
             }
-            if ($this->transactionalDML()) {
+            if ($this->isTransactionalDML()) {
               $this->getDb()->rollbackTransaction();
             }
             usleep(250000);
@@ -323,109 +298,93 @@ class BrGenericDataSource extends BrObject {
           }
         } catch (\Exception $e) {
           try {
-            if ($this->getDb()) {
-              if ($this->transactionalDML()) {
-                $this->getDb()->rollbackTransaction();
-              }
+            if ($this->getDb() && $this->isTransactionalDML()) {
+              $this->getDb()->rollbackTransaction();
             }
           } catch (\Exception $e2) {
-
+            // skip rollback error
           }
           $operation = $method;
           $error = $e->getMessage();
-          $result = $this->trigger('error', $error, $operation, $e);
+          $result = $this->trigger(BrConst::DATASOURCE_EVENT_ERROR, $error, $operation, $e);
           if (is_null($result)) {
             $result = false;
             $data = null;
-            $this->callEvent('after:' . $method, $result, $data, $params, $transientData, $options);
+            $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, $method), $result, $data, $params, $transientData, $options);
             throw $e;
           }
           throw $result;
         }
         break;
     }
-
   }
 
-  public function canTraverseBack() {
-
+  public function canTraverseBack()
+  {
     return $this->lastSelectAmount > $this->limit;
-
   }
 
-  public function canTraverseForward() {
-
+  public function canTraverseForward()
+  {
     return $this->skip > 0;
-
   }
 
-  public function priorAdjancedRecord() {
-
+  public function priorAdjancedRecord()
+  {
     return $this->priorAdjancedRecord;
-
   }
 
-  public function nextAdjancedRecord() {
-
+  public function nextAdjancedRecord()
+  {
     return $this->nextAdjancedRecord;
-
   }
 
   // validation
-  public function canInsert($row = []) {
-
+  public function canInsert($row = [])
+  {
     return true;
-
   }
 
-  public function canUpdate($row, $new = []) {
-
+  public function canUpdate($row, $new = [])
+  {
     return true;
-
   }
 
-  public function canRemove($row) {
-
+  public function canRemove($row)
+  {
     return true;
-
   }
 
-  public function canSelect($filter = []) {
-
+  public function canSelect($filter = [])
+  {
     return true;
-
   }
 
-  protected function validateInsert($row = []) {
-
+  protected function validateInsert($row = [])
+  {
     if (!$this->canInsert($row)) {
-      throw new BrAppException('Access denied');
+      throw new BrAppException(BrConst::ERROR_MESSAGE_ACCESS_DENIED);
     }
-
   }
 
-  protected function validateUpdate($row, $new = []) {
-
+  protected function validateUpdate($row, $new = [])
+  {
     if (!$this->canUpdate($row, $new)) {
-      throw new BrAppException('Access denied');
+      throw new BrAppException(BrConst::ERROR_MESSAGE_ACCESS_DENIED);
     }
-
   }
 
-  protected function validateRemove($row) {
-
+  protected function validateRemove($row)
+  {
     if (!$this->canRemove($row)) {
-      throw new BrAppException('Access denied');
+      throw new BrAppException(BrConst::ERROR_MESSAGE_ACCESS_DENIED);
     }
-
   }
 
-  protected function validateSelect($filter) {
-
+  protected function validateSelect($filter)
+  {
     if (!$this->canSelect($filter)) {
-      throw new BrAppException('Access denied');
+      throw new BrAppException(BrConst::ERROR_MESSAGE_ACCESS_DENIED);
     }
-
   }
-
 }

@@ -10,10 +10,9 @@
 
 namespace Bright;
 
-class BrLog extends BrObject {
-
+class BrLog extends BrObject
+{
   private $initTime = null;
-  private $initMicroTimeStr = null;
   private $initMicroTime = null;
   private $savedMicroTime = null;
   private $initMemory = null;
@@ -22,10 +21,11 @@ class BrLog extends BrObject {
   private $logPrefix = '';
   private $adapters = [];
 
-  static public $LOG_MEMORY = true;
-  static public $LOG_TIME = true;
+  public static $LOG_MEMORY = true;
+  public static $LOG_TIME = true;
 
-  public function __construct() {
+  public function __construct()
+  {
     parent::__construct();
 
     $this->initTime = br()->getUnifiedTimestamp();
@@ -40,12 +40,14 @@ class BrLog extends BrObject {
     }
   }
 
-  public function addAdapter($adapter) {
+  public function addAdapter($adapter)
+  {
     $this->adapters[] = $adapter;
   }
 
-  public function getAdapter($className) {
-    foreach($this->adapters as $adapter) {
+  public function getAdapter($className)
+  {
+    foreach ($this->adapters as $adapter) {
       if (get_class($adapter) == $className) {
         return $adapter;
       }
@@ -54,8 +56,9 @@ class BrLog extends BrObject {
     return null;
   }
 
-  public function isAdapterExists($name) {
-    foreach($this->adapters as $adapter) {
+  public function isAdapterExists($name)
+  {
+    foreach ($this->adapters as $adapter) {
       if (get_class($adapter) == $name) {
         return true;
       }
@@ -64,30 +67,36 @@ class BrLog extends BrObject {
     return false;
   }
 
-  public function incLevel() {
+  public function incLevel()
+  {
     $this->logLevel++;
   }
 
-  public function decLevel() {
+  public function decLevel()
+  {
     $this->logLevel--;
     if ($this->logLevel < 0) {
       $this->logLevel = 0;
     }
   }
 
-  public function resetLevel() {
+  public function resetLevel()
+  {
     $this->logLevel = 0;
   }
 
-  public function getLevel() {
+  public function getLevel()
+  {
     return $this->logLevel >= 0 ? $this->logLevel : 0;
   }
 
-  public function setLogPrefix($value) {
+  public function setLogPrefix($value)
+  {
     $this->logPrefix = $value;
   }
 
-  private function writeToAdapters($messageOrObject, $params = []) {
+  private function writeToAdapters($messageOrObject, $params = [])
+  {
     if ($this->isEnabled()) {
       $params['log_level'] = $this->logLevel;
 
@@ -96,8 +105,8 @@ class BrLog extends BrObject {
         $microTime = br()->getMicrotime();
         $params['timestamp'] = $unifiedTimestamp;
         $params['timestamp_init'] = $this->initTime;
-        $params['timestamp_since_start'] = br()->formatDuration($microTime - $this->initMicroTime, [ 'includeSign' => true ]);
-        $params['timestamp_since_prior'] = br()->formatDuration($microTime - $this->savedMicroTime, [ 'includeSign' => true ]);
+        $params['timestamp_since_start'] = br()->formatDuration($microTime - $this->initMicroTime, ['includeSign' => true]);
+        $params['timestamp_since_prior'] = br()->formatDuration($microTime - $this->savedMicroTime, ['includeSign' => true]);
         $this->savedMicroTime = $microTime;
       } else {
         $params['timestamp'] = '';
@@ -110,8 +119,8 @@ class BrLog extends BrObject {
         $memUsage = memory_get_usage(true);
         $params['mem_usage'] = $memUsage;
         $params['mem_usage_init'] = $this->initMemory;
-        $params['mem_usage_since_start'] = br()->formatBytes($memUsage - $this->initMemory, [ 'includeSign' => true, 'compact' => true ]);
-        $params['mem_usage_since_prior'] = br()->formatBytes($memUsage - $this->savedMemory, [ 'includeSign' => true, 'compact' => true ]);
+        $params['mem_usage_since_start'] = br()->formatBytes($memUsage - $this->initMemory, ['includeSign' => true, 'compact' => true]);
+        $params['mem_usage_since_prior'] = br()->formatBytes($memUsage - $this->savedMemory, ['includeSign' => true, 'compact' => true]);
         $this->savedMemory = $memUsage;
       } else {
         $params['mem_usage'] = '';
@@ -128,7 +137,8 @@ class BrLog extends BrObject {
     }
   }
 
-  public function debug($messageOrObject, $details = []) {
+  public function debug($messageOrObject, $details = [])
+  {
     $params = [
       'log_event' => 'debug',
       'log_level' => $this->logLevel,
@@ -138,7 +148,8 @@ class BrLog extends BrObject {
     $this->writeToAdapters($messageOrObject, $params);
   }
 
-  public function error($messageOrObject, $details = []) {
+  public function error($messageOrObject, $details = [])
+  {
     $params = [
       'log_event' => 'error',
       'log_level' => $this->logLevel,
@@ -148,7 +159,8 @@ class BrLog extends BrObject {
     $this->writeToAdapters($messageOrObject, $params);
   }
 
-  public function warning($messageOrObject, $details = []) {
+  public function warning($messageOrObject, $details = [])
+  {
     $params = [
       'log_event' => 'warning',
       'log_level' => $this->logLevel,
@@ -158,7 +170,8 @@ class BrLog extends BrObject {
     $this->writeToAdapters($messageOrObject, $params);
   }
 
-  public function message($messageOrObject, $details = [], $logEvent = 'message') {
+  public function message($messageOrObject, $details = [], $logEvent = 'message')
+  {
     $params = [
       'log_event' => $logEvent ? $logEvent : 'message',
       'log_level' => $this->logLevel,
@@ -167,5 +180,4 @@ class BrLog extends BrObject {
     ];
     $this->writeToAdapters($messageOrObject, $params);
   }
-
 }

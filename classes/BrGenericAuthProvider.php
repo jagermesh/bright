@@ -10,38 +10,48 @@
 
 namespace Bright;
 
-class BrGenericAuthProvider extends BrObject {
-
-  function __construct($config = array()) {
+class BrGenericAuthProvider extends BrObject
+{
+  public function __construct($config = [])
+  {
     $this->setAttributes($config);
   }
 
-  function getAuthTag() {
+  public function getAuthTag()
+  {
     return '_br01';
   }
 
-  function isLoggedIn() {
-    return !!br()->session()->get('login');
+  public function isLoggedIn()
+  {
+    return !empty(br()->session()->get('login'));
   }
 
-  function getSessionLogin() {
+  public function getSessionLogin()
+  {
     return br()->session()->get('login');
   }
 
-  function checkLogin($returnNotAuthorized = true) {
+  public function checkLogin($returnNotAuthorized = true)
+  {
     if ($login = $this->getSessionLogin()) {
       $this->login($login);
+    }
+    if (!$login && $returnNotAuthorized) {
+      return br()->response()->sendNotAuthorized();
     }
     return $login;
   }
 
-  function setLogin($attributeName, $value) {
+  public function setLogin($attributeName, $value)
+  {
     $data = $this->getLogin();
     $data[$attributeName] = $value;
     return br()->session()->set('login', $data);
   }
 
-  function getLogin($attributeName = null, $default = null) {
+  public function getLogin($attributeName = null, $default = null)
+  {
     if ($login = $this->getSessionLogin()) {
       if ($attributeName) {
         return br($login, $attributeName, $default);
@@ -55,7 +65,8 @@ class BrGenericAuthProvider extends BrObject {
     return null;
   }
 
-  function validateLogin($login, $remember = false) {
+  public function validateLogin($login)
+  {
     try {
       $this->trigger('checkLoginPrivilege', $login);
       $this->trigger('setLogin', $login);
@@ -66,7 +77,9 @@ class BrGenericAuthProvider extends BrObject {
       throw $e;
     }
   }
-  function login($login, $remember = false) {
+
+  public function login($login, $remember = false)
+  {
     $login = $this->validateLogin($login);
     if ($remember) {
       $password = $login['password'];
@@ -76,15 +89,17 @@ class BrGenericAuthProvider extends BrObject {
         'token' => $token
       ];
       if (!br()->isConsoleMode()) {
-        setcookie($this->getAuthTag(), base64_encode(json_encode($cookie)), time() + 60*60*24*30, br()->request()->baseUrl(), br()->request()->domain());
+        setcookie($this->getAuthTag(), base64_encode(json_encode($cookie)),
+          time() + 60*60*24*30, br()->request()->baseUrl(), br()->request()->domain(), true, true);
       }
     }
     return $login;
   }
 
-  function logout() {
+  public function logout()
+  {
     if (!br()->isConsoleMode()) {
-      setcookie($this->getAuthTag(), '', time() - 60*60*24*30, br()->request()->baseUrl(), br()->request()->domain());
+      setcookie($this->getAuthTag(), '', time() - 60*60*24*30, br()->request()->baseUrl(), br()->request()->domain(), true, true);
     }
     if ($login = $this->getLogin()) {
       $this->trigger('logout', $login);
@@ -94,7 +109,8 @@ class BrGenericAuthProvider extends BrObject {
     return true;
   }
 
-  function findLogin($options = array()) {
+  public function findLogin($options = [])
+  {
     // Check permissions
     $userId = br($options, 'userId');
     if (!$userId) {
@@ -111,5 +127,4 @@ class BrGenericAuthProvider extends BrObject {
     }
     return $userId;
   }
-
 }

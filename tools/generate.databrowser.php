@@ -6,7 +6,6 @@ $scriptsPath = dirname(dirname(__DIR__)) . '/js/';
 $templatesPath = dirname(dirname(__DIR__)) . '/templates/';
 
 if ($tableName = br($argv, 1)) {
-
   logme('Generating code for ' . $tableName);
 
   $data = array();
@@ -28,10 +27,6 @@ if ($tableName = br($argv, 1)) {
 
   br()->fs()->saveToFile($scriptsPath.$tableName.'.js', br()->renderer()->fetch(__DIR__.'/template.databrowser.js', $data));
   br()->fs()->saveToFile($templatesPath.$tableName.'.html', br()->renderer()->fetch(__DIR__.'/template.databrowser.html', $data));
-
 } else {
-
   logme('Table not specified');
-
 }
-

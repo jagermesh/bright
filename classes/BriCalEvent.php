@@ -10,8 +10,8 @@
 
 namespace Bright;
 
-class BriCalEvent extends BrObject {
-
+class BriCalEvent extends BrObject
+{
   private $title;
   private $dateStart;
   private $dateEnd;
@@ -28,208 +28,174 @@ class BriCalEvent extends BrObject {
   private $attachments = [];
   private $allDayEvent = false;
 
-  public function __construct($title, $dateStart, $dateEnd = null) {
-
-    if (!$dateEnd)   { $dateEnd   = $dateStart; }
-    if (!$dateStart) { $dateStart = $dateEnd;   }
+  public function __construct($title, $dateStart, $dateEnd = null)
+  {
+    if (!$dateEnd) {
+      $dateEnd = $dateStart;
+    }
+    if (!$dateStart) {
+      $dateStart = $dateEnd;
+    }
 
     $dateStart = is_string($dateStart) ? strtotime($dateStart) : $dateStart;
-    $dateEnd   = is_string($dateEnd)   ? strtotime($dateEnd)   : $dateEnd;
+    $dateEnd = is_string($dateEnd) ? strtotime($dateEnd) : $dateEnd;
 
-    $this->title     = $title;
+    $this->title = $title;
     $this->dateStart = $dateStart;
-    $this->dateEnd   = $dateEnd;
-
+    $this->dateEnd = $dateEnd;
   }
 
-  public function setAllDayEvent($value) {
-
+  public function setAllDayEvent($value)
+  {
     $this->allDayEvent = $value;
-
   }
 
-  public function setId($value) {
+  public function setId($value)
+  {
+    $this->setUID($value);
+  }
 
+  public function setUID($value)
+  {
     $this->uid = $value;
-
   }
 
-  public function setUID($value) {
-
-    $this->uid = $value;
-
-  }
-
-  public function setDescription($value) {
-
+  public function setDescription($value)
+  {
     $this->description = $value;
-
   }
 
-  public function setCreatedAt($value) {
-
+  public function setCreatedAt($value)
+  {
     $this->createdAt = $value;
-
   }
 
-  public function setHTMLDescription($value) {
-
+  public function setHTMLDescription($value)
+  {
     $this->HTMLDescription = $value;
-
   }
 
-  public function setUrl($value) {
-
+  public function setUrl($value)
+  {
     $this->url = $value;
-
   }
 
-  public function setColor($value) {
-
+  public function setColor($value)
+  {
     $this->color = $value;
-
   }
 
-  public function setOrganizer($value) {
-
+  public function setOrganizer($value)
+  {
     $this->organizer = $value;
-
   }
 
-  public function setPriority($value) {
-
+  public function setPriority($value)
+  {
     $this->priority = $value;
-
   }
 
-  public function setClass($value) {
-
+  public function setClass($value)
+  {
     $this->class = $value;
-
   }
 
-  public function setAlart($value) {
-
+  public function setAlarm($value)
+  {
     $this->alarm = $value;
-
   }
 
-  public function setAlarm($value) {
-
-    $this->alarm = $value;
-
-  }
-
-  public function addAttachment($name, $url) {
-
+  public function addAttachment($name, $url)
+  {
     $this->attachments[] = [
       'name' => $name,
       'url' => $url
     ];
-
   }
 
-  public function hasAttachments() {
-
+  public function hasAttachments()
+  {
     return (count($this->attachments) > 0);
-
   }
 
-  public function getAttachments() {
-
+  public function getAttachments()
+  {
     return $this->attachments;
-
   }
 
 
-  public function isAllDayEvent() {
-
+  public function isAllDayEvent()
+  {
     return $this->allDayEvent;
-
   }
 
-  public function getDateStart() {
-
+  public function getDateStart()
+  {
     return $this->dateStart;
-
   }
 
-  public function getDateEnd() {
-
+  public function getDateEnd()
+  {
     return $this->dateEnd;
-
   }
 
-  public function getCreatedAt() {
-
+  public function getCreatedAt()
+  {
     return $this->createdAt;
-
   }
 
-  public function getDescription() {
-
+  public function getDescription()
+  {
     return $this->description;
-
   }
 
-  public function getHTMLDescription() {
-
+  public function getHTMLDescription()
+  {
     return $this->HTMLDescription;
-
   }
 
-  public function getTitle() {
-
+  public function getTitle()
+  {
     return $this->title;
-
   }
 
-  public function getId() {
+  public function getId()
+  {
+    return $this->getUID();
+  }
 
+  public function getUID()
+  {
     return $this->uid;
-
   }
 
-  public function getUID() {
-
-    return $this->uid;
-
-  }
-
-  public function getUrl() {
-
+  public function getUrl()
+  {
     return $this->url;
-
   }
 
-  public function getColor() {
-
+  public function getColor()
+  {
     return $this->color;
-
   }
 
-  public function getOrganizer() {
-
+  public function getOrganizer()
+  {
     return $this->organizer;
-
   }
 
-  public function getPriority() {
-
+  public function getPriority()
+  {
     return $this->priority;
-
   }
 
-  public function getClass() {
-
+  public function getClass()
+  {
     return $this->class;
-
   }
 
-  public function hasAlarm() {
-
+  public function hasAlarm()
+  {
     return $this->alarm;
-
   }
-
 }

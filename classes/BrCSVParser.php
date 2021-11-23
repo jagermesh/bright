@@ -10,27 +10,35 @@
 
 namespace Bright;
 
-class BrCSVParser extends BrObject {
-
+class BrCSVParser extends BrObject
+{
   private $delimiter = ',';
-  private $enclosure = '"';
   private $enclosureArr = [ '"', "'" ];
 
-  public function setDelimiter($delimiter) {
+  public function setDelimiter($delimiter)
+  {
     $this->delimiter = $delimiter;
   }
 
-  public function parse($fileName) {
+  /**
+   * @throws BrCSVParserException
+   */
+  public function parse($fileName): array
+  {
     $result = [];
 
-    $this->iterate($fileName, function($values) use (&$result) {
+    $this->iterate($fileName, function ($values) use (&$result) {
       $result[] = $values;
     });
 
     return $result;
   }
 
-  public function iterate($fileName, $callback) {
+  /**
+   * @throws BrCSVParserException
+   */
+  public function iterate($fileName, $callback): int
+  {
     ini_set('auto_detect_line_endings', true);
 
     $linesAmount = 0;
@@ -78,14 +86,12 @@ class BrCSVParser extends BrObject {
           }
         }
 
-        $enclosures = [ "\\" . $this->enclosure, $this->enclosure . $this->enclosure ];
-
         $enclosuresArr = [];
         foreach ($this->enclosureArr as $enclosure) {
           $enclosuresArr[] = [ "\\" . $enclosure, $enclosure . $enclosure ];
         }
 
-        while (($line = fgets($handle)) !== FALSE) {
+        while (($line = fgets($handle)) !== false) {
           if ($encoding) {
             switch ($encoding) {
               case 'UTF-16le':
@@ -100,8 +106,9 @@ class BrCSVParser extends BrObject {
                   $line .= "\x00\x00";
                 }
                 break;
+              default:
+                break;
             }
-            // $line = iconv($encoding, 'UTF-8', $line);
           }
           $line = br($line)->forceUTF8();
           // remove The character is "\xa0" (i.e. 160), which is the standard Unicode translation for &nbsp;
@@ -122,13 +129,11 @@ class BrCSVParser extends BrObject {
           }
 
           $line = str_getcsv($line, $this->delimiter, $this->enclosureArr[$ind]);
-          if (count($line) == 1) {
-            // jagermesh for files like this:
-            // "School Name,""Course ID"",Class ID,Class Name,School Year,Teacher ID"
-            // "NEMO VISTA ELEMENTARY,200110,200110-1-0,""LANG ART K KIRTLAND, REGINA Per 01"",2013,1155"
-            if (strpos($line[0], $this->delimiter) !== false) {
-              $line = str_getcsv($line[0], $this->delimiter, $this->enclosureArr[$ind]);
-            }
+          // jagermesh for files like this:
+          // "School Name,""Course ID"",Class ID,Class Name,School Year,Teacher ID"
+          // "NEMO VISTA ELEMENTARY,200110,200110-1-0,""LANG ART K KIRTLAND, REGINA Per 01"",2013,1155"
+          if ((count($line) == 1) && (strpos($line[0], $this->delimiter) !== false)) {
+            $line = str_getcsv($line[0], $this->delimiter, $this->enclosureArr[$ind]);
           }
           $values = [];
           foreach($line as $col) {
@@ -145,13 +150,11 @@ class BrCSVParser extends BrObject {
         fclose($handle);
 
         return $linesAmount;
-
       } else {
-        throw new \Exception("Could not open file " . $fileName. " for reading.");
+        throw new BrCSVParserException('Could not open file ' . $fileName. ' for reading.');
       }
     } else {
-      throw new \Exception("File " . $fileName . " does not exist.");
+      throw new BrCSVParserException('File ' . $fileName . ' does not exist.');
     }
   }
-
 }

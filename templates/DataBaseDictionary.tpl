@@ -1,7 +1,7 @@
 <?php
 
-class DataBaseDictionary extends \Bright\BrDataBaseDictionary {
-
+class DataBaseDictionary extends \Bright\BrDataBaseDictionary
+{
   protected $schema = [
 [[#schema]]
     '[[table_name]]' => [
@@ -11,5 +11,4 @@ class DataBaseDictionary extends \Bright\BrDataBaseDictionary {
     ],
 [[/schema]]
   ];
-
 }

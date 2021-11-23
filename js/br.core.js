@@ -13,7 +13,7 @@
 /* global FormData */
 /* global safari */
 
-;(function ($, window) {
+;(function($, window) {
 
   window.br = window.br || Object.create({});
 
@@ -101,7 +101,7 @@
   };
 
   window.br.isIE = function() {
-    return /*@cc_on!@*/false || !!document.documentMode; // At least IE6
+    return !!document.documentMode; // At least IE6
   };
 
   window.br.isOpera = function() {
@@ -144,9 +144,9 @@
       window.close();
     } else {
       let caller = br.isEmpty(br.request.get('caller')) ? null : br.request.get('caller');
-      let referer = br.isEmpty(document.referrer) ? null : (document.referrer.indexOf('login') != -1 ? null : (document.referrer == document.location.toString() ? null : document.referrer));
+      let referrer = br.isEmpty(document.referrer) ? null : (document.referrer.indexOf('login') != -1 ? null : (document.referrer == document.location.toString() ? null : document.referrer));
       let href = br.isEmpty(defaultHref) ? null : defaultHref;
-      let redirectHref = (caller ? caller : (href ? href : referer));
+      let redirectHref = (caller ? caller : (href ? href : referrer));
       if (redirectHref) {
         br.redirect(redirectHref);
       } else {
@@ -176,25 +176,23 @@
 
   window.br.processArray = function(array, processRowCallback, processCompleteCallback, params) {
 
-    function processQueued(processRowCallback, processCompleteCallback, params) {
-
+    function processQueued(processRowCallback0, processCompleteCallback0, params0) {
       if (array.length > 0) {
         let rowid = array.shift();
-        processRowCallback(rowid, function() {
-          if (params.showProgress) {
+        processRowCallback0(rowid, function() {
+          if (params0.showProgress) {
             br.stepProgress();
           }
-          processQueued(processRowCallback, processCompleteCallback, params);
+          processQueued(processRowCallback0, processCompleteCallback0, params0);
         });
       } else {
-        if (params.showProgress) {
+        if (params0.showProgress) {
           br.hideProgress();
         }
-        if (processCompleteCallback) {
-          processCompleteCallback();
+        if (processCompleteCallback0) {
+          processCompleteCallback0();
         }
       }
-
     }
 
     params = params || {};
@@ -206,7 +204,6 @@
     } else {
       br.growlError('Please select at least one record');
     }
-
   };
 
   function BrTrn() {
@@ -240,12 +237,11 @@
     }
   };
 
-  window.br.randomInt = function(min, max) {
-    if (max === undefined) {
-      max = min;
-      min = 0;
-    }
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+  window.br.randomInt = function() {
+    const crypto = window.crypto || window.msCrypto;
+    let array = new Uint32Array(1);
+    crypto.getRandomValues(array);
+    return array[0];
   };
 
   window.br.forHtml = function(text) {
@@ -256,7 +252,9 @@
   };
 
   window.br.extend = function(Child, Parent) {
-    let F = function() { };
+    let F = function() {
+      // fake
+    };
     F.prototype = Parent.prototype;
     Child.prototype = new F();
     Child.prototype.constructor = Child;
@@ -398,12 +396,7 @@
       if (deferred) {
         listName = 'BrModified_Callbacks1';
       }
-      let callbacks = $(this).data(listName);
-      if (callbacks) {
-
-      } else {
-        callbacks = [];
-      }
+      let callbacks = $(this).data(listName) || [];
       callbacks.push(callback);
       $(this).data(listName, callbacks);
     });
@@ -415,7 +408,15 @@
         handleModified($(this), false);
         handleModified($(this), true);
       } else
-      if ((e.keyCode == 8) || (e.keyCode == 32)  || (e.keyCode == 91) || (e.keyCode == 93) || ((e.keyCode >= 48) && (e.keyCode <= 90)) || ((e.keyCode >= 96) && (e.keyCode <= 111)) || ((e.keyCode >= 186) && (e.keyCode <= 222))) {
+      if (
+        (e.keyCode == 8) ||
+        (e.keyCode == 32) ||
+        (e.keyCode == 91) ||
+        (e.keyCode == 93) ||
+        ((e.keyCode >= 48) && (e.keyCode <= 90)) ||
+        ((e.keyCode >= 96) && (e.keyCode <= 111)) ||
+        ((e.keyCode >= 186) && (e.keyCode <= 222))
+      ) {
         handleModified1($(this));
       }
     });
@@ -434,10 +435,16 @@
       callback.call(this);
     });
     $(selector).on('keyup', function(e) {
-      if (e.keyCode == 13) {
-        callback.call(this);
-      } else
-      if ((e.keyCode == 8) || (e.keyCode == 32)  || (e.keyCode == 91) || (e.keyCode == 93) || ((e.keyCode >= 48) && (e.keyCode <= 90)) || ((e.keyCode >= 96) && (e.keyCode <= 111)) || ((e.keyCode >= 186) && (e.keyCode <= 222))) {
+      if (
+        (e.keyCode == 13) ||
+        (e.keyCode == 8) ||
+        (e.keyCode == 32) ||
+        (e.keyCode == 91) ||
+        (e.keyCode == 93) ||
+        ((e.keyCode >= 48) && (e.keyCode <= 90)) ||
+        ((e.keyCode >= 96) && (e.keyCode <= 111)) ||
+        ((e.keyCode >= 186) && (e.keyCode <= 222))
+      ) {
         callback.call(this);
       }
     });
@@ -582,72 +589,64 @@
 
   let lastAnimationFramtTime = 0;
 
-  window.br.requestAnimationFrame = function(callback, element) {
-
+  window.br.requestAnimationFrame = function(callback) {
     let requestAnimationFrame =
-      window.requestAnimationFrame        ||
-      window.webkitRequestAnimationFrame  ||
-      window.mozRequestAnimationFrame     ||
-      window.oRequestAnimationFrame       ||
-      window.msRequestAnimationFrame      ||
-      function(callback, element) {
+      window.requestAnimationFrame ||
+      window.webkitRequestAnimationFrame ||
+      window.mozRequestAnimationFrame ||
+      window.oRequestAnimationFrame ||
+      window.msRequestAnimationFrame ||
+      function(callback0) {
         let currTime = new Date().getTime();
         let timeToCall = Math.max(0, 16 - (currTime - lastAnimationFramtTime));
         let id = window.setTimeout(function() {
-          callback(currTime + timeToCall);
+          callback0(currTime + timeToCall);
         }, timeToCall);
         lastAnimationFramtTime = currTime + timeToCall;
         return id;
       };
 
-    return requestAnimationFrame.call(window, callback, element);
-
+    return requestAnimationFrame.call(window, callback);
   };
 
-  window.br.cancelAnimationFrame = function(id) {
-
+  window.br.cancelAnimationFrame = function(requestID) {
     let cancelAnimationFrame =
       window.cancelAnimationFrame ||
-      function(id) {
-        window.clearTimeout(id);
+      function(requestID0) {
+        window.clearTimeout(requestID0);
       };
 
-    return cancelAnimationFrame.call(window, id);
-
+    return cancelAnimationFrame.call(window, requestID);
   };
 
-  window.br.getUserMedia = function(options, success, error) {
-
+  window.br.getUserMedia = function(constraints, successCallback, errorCallback) {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia(options).then(success).catch(error);
+      navigator.mediaDevices.getUserMedia(constraints).then(successCallback).catch(errorCallback);
     } else {
       let getUserMedia =
-        navigator.getUserMedia       ||
-        navigator.mozGetUserMedia    ||
+        navigator.getUserMedia ||
+        navigator.mozGetUserMedia ||
         navigator.webkitGetUserMedia ||
-        navigator.msGetUserMedia     ||
-        function(options, success, error) {
-          error();
+        navigator.msGetUserMedia ||
+        function() {
+          errorCallback();
         };
 
-      return getUserMedia.call(window.navigator, options, success, error);
+      return getUserMedia.call(window.navigator, constraints, successCallback, errorCallback);
     }
-
   };
 
   window.br.getAudioContext = function() {
-
-    let AudioContext = window.AudioContext ||
-                       window.webkitAudioContext;
+    let AudioContext =
+      window.AudioContext ||
+      window.webkitAudioContext;
 
     return new AudioContext();
-
   };
 
   let beepAudioContext;
 
   window.br.beep = function(callback) {
-
     try {
       let duration = 0.1;
       if (!beepAudioContext) {
@@ -673,11 +672,13 @@
     } catch (error) {
       br.log(error);
     }
-
   };
 
   if (window.addEventListener) {
     window.addEventListener('error', function(event) {
+      if (event.origin != document.location.origin) {
+        return;
+      }
 
       let data = {
         message: event.message,
@@ -703,6 +704,9 @@
     });
 
     window.addEventListener('unhandledrejection', function(event) {
+      if (event.origin != document.location.origin) {
+        return;
+      }
 
       let data = {
         message: typeof event.reason == 'string' ? event.reason : null,
@@ -715,11 +719,10 @@
       };
 
       if (data.message && (data.message != 'Script error.')) {
-        let result = false;
         try {
-          result = window.br.events.trigger('error', data);
+          window.br.events.trigger('error', data);
         } catch (error) {
-
+          // we don't care
         }
       }
 
@@ -729,13 +732,11 @@
       }
 
       event.preventDefault();
-
     });
 
   }
 
   function printObject(obj, eol, prefix) {
-
     let result = '';
 
     prefix = prefix ? prefix : '';
@@ -748,16 +749,14 @@
     }
 
     return result;
-
   }
 
   window.br.setErrorsBeacon = function(url, format) {
-
     if (navigator.sendBeacon) {
       format = format || 'json';
       br.on('error', function(error) {
         if (!error.filename || (error.filename.indexOf('chrome-extension') !== 0)) {
-          let message = '', suffix;
+          let message = '';
           switch(format) {
             case 'html':
               message = printObject(error, '<br />');
@@ -775,7 +774,6 @@
         }
       });
     }
-
   };
 
 })(jQuery, window);

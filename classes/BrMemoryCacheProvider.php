@@ -10,28 +10,28 @@
 
 namespace Bright;
 
-class BrMemoryCacheProvider extends BrGenericCacheProvider {
-
-  public function __construct($cfg = []) {
-    parent::__construct($cfg);
-  }
-
-  public static function isSupported() {
+class BrMemoryCacheProvider extends BrGenericCacheProvider
+{
+  public static function isSupported(): bool
+  {
     return true;
   }
 
-  public function reset() {
+  public function reset()
+  {
     $this->clearAttributes();
   }
 
-  public function exists($name) {
-    $name = $this->safeName($name);
+  public function exists($name): bool
+  {
+    $name = $this->getSafeName($name);
 
     return $this->isAttrExists($name);
   }
 
-  public function get($name, $default = null, $saveDefault = false) {
-    $name = $this->safeName($name);
+  public function get($name, $default = null, $saveDefault = false)
+  {
+    $name = $this->getSafeName($name);
 
     if ($this->isAttrExists($name)) {
       $result = $this->getAttr($name);
@@ -45,8 +45,9 @@ class BrMemoryCacheProvider extends BrGenericCacheProvider {
     return $result;
   }
 
-  public function getEx($name, $default = null, $saveDefault = false) {
-    $name = $this->safeName($name);
+  public function getEx($name, $default = null, $saveDefault = false)
+  {
+    $name = $this->getSafeName($name);
 
     if ($this->isAttrExists($name)) {
       $result = [ 'success' => true, 'value' => $this->getAttr($name) ];
@@ -57,16 +58,17 @@ class BrMemoryCacheProvider extends BrGenericCacheProvider {
     return $result;
   }
 
-  public function set($name, $value, $cacheLifeTime = null) {
-    $name = $this->safeName($name);
+  public function set($name, $value, $lifeTime = null)
+  {
+    $name = $this->getSafeName($name);
 
     return $this->setAttr($name, $value);
   }
 
-  public function remove($name) {
-    $name = $this->safeName($name);
+  public function remove($name)
+  {
+    $name = $this->getSafeName($name);
 
     $this->clearAttr($name);
   }
-
 }

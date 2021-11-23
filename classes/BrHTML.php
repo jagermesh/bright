@@ -10,23 +10,25 @@
 
 namespace Bright;
 
-require_once(dirname(__DIR__) . '/3rdparty/phpQuery/latest/phpQuery.php');
-
-class BrHTML extends BrObject {
-
-  public function isHtml($text) {
+class BrHTML extends BrObject
+{
+  public function isHtml($text)
+  {
     return preg_match('~<[/]?[\w][^>]*?>~i', $text) ||
-           preg_match('~&[a-z#0-9]+;~i', $text);
+      preg_match('~&[a-z#0-9]+;~i', $text);
   }
 
-  public function XSSCleanUp($html, $callback = null) {
+  public function XSSCleanUp($html, $callback = null)
+  {
     return br()->XSS()->cleanUp($html, $callback);
   }
 
-  public function tidyUp($inHtml) {
+  public function tidyUp($inHtml)
+  {
     $result = trim($inHtml);
 
     if (br()->HTML()->isHtml($inHtml)) {
+      require_once(dirname(__DIR__) . '/3rdparty/phpQuery/latest/phpQuery.php');
       try {
         $doc = \phpQuery::newDocument($result);
 
@@ -36,7 +38,7 @@ class BrHTML extends BrObject {
           $result = $outHtml;
         }
       } catch (\Exception $e) {
-
+        // no luck
       } finally {
         \phpQuery::unloadDocuments();
       }
@@ -45,55 +47,58 @@ class BrHTML extends BrObject {
     return $result;
   }
 
-  public function cleanUpEndOfText($html) {
-    $s = $html;
+  public function cleanUpEndOfText($html)
+  {
+    $tmp = $html;
     while (true) {
-      $html = preg_replace('|<br[ /]*>$|i', '', $s);
-      if ($html == $s) {
+      $htmlNew = preg_replace('|<br[ /]*>$|i', '', $tmp);
+      if ($htmlNew == $tmp) {
         break;
       }
-      $s = $html;
+      $tmp = $htmlNew;
     }
 
-    return $html;
+    return $htmlNew;
   }
 
-  public function cleanUp($html) {
-    $html = str_replace('{cke_protected}{C}', '', $html);
+  public function cleanUp($html)
+  {
+    $result = str_replace('{cke_protected}{C}', '', $html);
 
-    $html = preg_replace('|<!--.+?-->|ism', '', $html);
-    $html = preg_replace('|<title></title>|i', '', $html);
-    $html = preg_replace('|<script[^>]*?>.*?</script>|ism', '', $html);
-    $html = preg_replace('|<style[^>]*?>.*?</style>|ism', '', $html);
-    $html = preg_replace('|<head[^>]*?>.*?</head>|ism', '', $html);
-    $html = preg_replace('|<html[^>]*?>|ism', '', $html);
-    $html = preg_replace('|</html>|ism', '', $html);
-    $html = preg_replace('|<base[^>]*?>|ism', '', $html);
-    $html = preg_replace('|<body[^>]*?>|ism', '', $html);
-    $html = preg_replace('|</body>|ism', '', $html);
-    $html = preg_replace('|onload="[^"]+"|ism', '', $html);
-    $html = preg_replace('|<p>[\s\r\t\n ]*&nbsp;</p>|i', '', $html);
+    $result = preg_replace('|<!--.+?-->|ism', '', $result);
+    $result = preg_replace('|<title></title>|i', '', $result);
+    $result = preg_replace('|<script[^>]*?>.*?</script>|ism', '', $result);
+    $result = preg_replace('|<style[^>]*?>.*?</style>|ism', '', $result);
+    $result = preg_replace('|<head[^>]*?>.*?</head>|ism', '', $result);
+    $result = preg_replace('|<html[^>]*?>|ism', '', $result);
+    $result = preg_replace('|</html>|ism', '', $result);
+    $result = preg_replace('|<base[^>]*?>|ism', '', $result);
+    $result = preg_replace('|<body[^>]*?>|ism', '', $result);
+    $result = preg_replace('|</body>|ism', '', $result);
+    $result = preg_replace('|onload="[^"]+"|ism', '', $result);
+    $result = preg_replace('|<p>[\s\r\t\n ]*&nbsp;</p>|i', '', $result);
 
-    $html = str_replace('%u2019', '&lsquo;', $html);
+    $result = str_replace('%u2019', '&lsquo;', $result);
 
-    $html = $this->tidyUp($html);
+    $result = $this->tidyUp($result);
 
-    if ($html == '&nbsp;') {
-      $html = '';
+    if ($result == '&nbsp;') {
+      $result = '';
     }
 
-    return $html;
+    return $result;
   }
 
-  public function cleanUpSpaces($html) {
+  public function cleanUpSpaces($html)
+  {
     $result = '';
 
     $lines = preg_split('~[\n\r]+~', $html);
-    for($k = 0; $k < count($lines); $k++) {
+    for ($k = 0; $k < count($lines); $k++) {
       $wordFound = false;
       $line = '';
       $words = preg_split('~&nbsp;~', $lines[$k]);
-      for($i = 0; $i < count($words); $i++) {
+      for ($i = 0; $i < count($words); $i++) {
         if ($wordFound) {
           $glue = ' ';
         } else {
@@ -119,7 +124,8 @@ class BrHTML extends BrObject {
     return $result;
   }
 
-  public function toOutput($html) {
+  public function toOutput($html)
+  {
     $flags = ENT_COMPAT;
     if (defined('ENT_HTML401')) {
       $flags = $flags | ENT_HTML401;
@@ -129,7 +135,8 @@ class BrHTML extends BrObject {
     return $html;
   }
 
-  public function toText($html, $smart = false) {
+  public function toText($html, $smart = false)
+  {
     if ($smart) {
       $html = preg_replace('~<div[^>]*?>~ism', "\n", $html);
     }
@@ -159,7 +166,8 @@ class BrHTML extends BrObject {
     return trim($html);
   }
 
-  public function fromText($html) {
+  public function fromText($html)
+  {
     $flags = ENT_COMPAT;
     if (defined('ENT_HTML401')) {
       $flags = $flags | ENT_HTML401;
@@ -171,17 +179,23 @@ class BrHTML extends BrObject {
     return trim($html);
   }
 
-  public function decodeNumEntities($html) {
-    $html = preg_replace_callback("/(&#[0-9]+;)/", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $html);
-    $html = preg_replace_callback("/(&#x[0-9A-Z]+;)/i", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $html);
+  public function decodeNumEntities($html)
+  {
+    $html = preg_replace_callback("/(&#[0-9]+;)/", function ($m) {
+      return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES");
+    }, $html);
+    $html = preg_replace_callback("/(&#x[0-9A-Z]+;)/i", function ($m) {
+      return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES");
+    }, $html);
 
     return $html;
   }
 
-  public function unicodeToNamedEntities($html) {
+  public function unicodeToNamedEntities($html)
+  {
     if (strlen($html) > 0) {
       $html = json_encode($html);
-      $html = preg_replace('/\\\u([0-9a-z]{4})/', '&#x$1;', $html );
+      $html = preg_replace('/\\\u([0-9a-z]{4})/', '&#x$1;', $html);
       $html = json_decode($html);
       $html = trim($html);
       if (strlen($html) > 0) {
@@ -197,7 +211,7 @@ class BrHTML extends BrObject {
             $html = $doc->saveHTML();
           }
         } catch (\Exception $e) {
-
+          // no luck
         }
         libxml_clear_errors();
         libxml_use_internal_errors($xmlErrors);
@@ -214,7 +228,8 @@ class BrHTML extends BrObject {
     return trim($html);
   }
 
-  function parseStyle($value) {
+  public function parseStyle($value)
+  {
     $result = [];
     preg_match_all("/([\w-]+)\s*:\s*([^;]+)\s*;?/", $value, $matches, PREG_SET_ORDER);
     foreach ($matches as $match) {
@@ -224,13 +239,13 @@ class BrHTML extends BrObject {
     return $result;
   }
 
-  function packStyle($value) {
+  public function packStyle($value)
+  {
     $result = [];
-    foreach($value as $name => $value) {
+    foreach ($value as $name => $value) {
       $result[] = $name . ':' . $value;
     }
 
     return br($result)->join(';');
   }
-
 }

@@ -7,20 +7,19 @@
  *
  */
 
-;(function ($, window) {
+;(function($, window) {
 
   window.br = window.br || Object.create({});
 
-  function BrDataBrowser(entity, options) {
+  function BrDataBrowser(entity, settings) {
 
     const _this = this;
 
     let pagerSetUp = false;
     let headerContainer = 'body';
     let selectionQueue = [];
-    let pagerInitialized = false;
 
-    _this.options = options || Object.create({});
+    _this.options = Object.assign({}, settings);
     _this.options.autoLoad = _this.options.autoLoad || false;
     _this.options.defaults = _this.options.defaults || {};
     _this.options.entity = entity;
@@ -299,42 +298,48 @@
       }
     };
 
-    _this.init = function() {
 
+    _this.init = function() {
       if (_this.options.nav) {
-        $('.nav-item[rel=' + _this.options.nav + ']').addClass('active');
+        $(`.nav-item[rel="${_this.options.nav}"]`).addClass('active');
       }
 
+      const keywordControl = $(findNode('input.data-filter[name="keyword"]'));
+      const inputControls = $(findNode('input.data-filter,select.data-filter'));
+
       _this.dataSource.before('select', function(request, options) {
-        request = request || Object.create({});
-        const keywordControl = $(findNode('input.data-filter[name=keyword]'));
+        request = request || {};
         if (keywordControl.length > 0) {
-          request.keyword = $(findNode('input.data-filter[name=keyword]')).val();
+          request.keyword = keywordControl.val();
           _this.setFilter('keyword', request.keyword);
         }
-        options       = options || {};
-        options.skip  = _this.skip;
+        options = options || {};
+        options.skip = _this.skip;
         options.limit = _this.limit || _this.defaultLimit;
       });
 
-      _this.dataSource.after('remove', function(request, options) {
-        if (selectionQueue.length === 0) {
+      _this.dataSource.after('remove', function(result, response) {
+        if (result) {
+          if (selectionQueue.length === 0) {
+            _this.resetPager();
+            _this.updatePager();
+          }
+          if (_this.dataGrid.isEmpty()) {
+            _this.refresh();
+          }
+        }
+      });
+
+      _this.dataSource.after('insert', function(result, response) {
+        if (result) {
           _this.resetPager();
           _this.updatePager();
         }
-        if (_this.dataGrid.isEmpty()) {
-          _this.refresh();
-        }
-      });
-
-      _this.dataSource.after('insert', function(request, options) {
-        _this.resetPager();
-        _this.updatePager();
       });
 
       _this.countDataSource.before('select', function(request) {
-        if ($(findNode('input.data-filter[name=keyword]')).length > 0) {
-          request.keyword = $(findNode('input.data-filter[name=keyword]')).val();
+        if (keywordControl.length > 0) {
+          request.keyword = keywordControl.val();
         }
       });
 
@@ -348,7 +353,7 @@
       });
 
       // search
-      const inputControls = $(findNode('input.data-filter,select.data-filter'));
+
       inputControls.each(function() {
         if ($(this).parent().hasClass('input-append')) {
           $(this).parent().addClass('data-filter');
@@ -356,7 +361,6 @@
         }
       });
 
-      const keywordControl = $(findNode('input.data-filter[name=keyword]'));
       if (keywordControl.length > 0) {
         br.modified(keywordControl, function() {
           const val = $(this).val();
@@ -374,8 +378,7 @@
       br.modified(findNode('input.data-filter,select.data-filter'), function() {
         const val = $(this).val();
         let container = $(this).parent();
-        if (container.hasClass('input-append')) {
-        } else {
+        if (!container.hasClass('input-append')) {
           container = $(this);
         }
         if (br.isEmpty(val)) {

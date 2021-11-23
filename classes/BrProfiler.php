@@ -10,12 +10,13 @@
 
 namespace Bright;
 
-class BrProfiler extends BrObject {
-
+class BrProfiler extends BrObject
+{
   private $completedMetrics = [];
   private $activeMetrics = [];
 
-  public function start($name) {
+  public function start($name)
+  {
     $result = [
       'time' => br()->getMicrotime(),
       'memory' => memory_get_usage(true),
@@ -26,7 +27,8 @@ class BrProfiler extends BrObject {
     return $result;
   }
 
-  public function finish($name) {
+  public function finish($name)
+  {
     $result = [
       'time' => br()->getMicrotime(),
       'memory' => 0,
@@ -45,7 +47,8 @@ class BrProfiler extends BrObject {
     return $result;
   }
 
-  public function getStatistic($name) {
+  public function getStatistic($name)
+  {
     $result = [
       'count' => 0,
       'totalMemory' => 0,
@@ -58,7 +61,7 @@ class BrProfiler extends BrObject {
       if ($count = count($this->completedMetrics[$name])) {
         $totalMemory = 0;
         $totalDuration = 0;
-        foreach($this->completedMetrics[$name] as $metric) {
+        foreach ($this->completedMetrics[$name] as $metric) {
           $totalMemory += $metric['memory'];
           $totalDuration += $metric['duration'];
         }
@@ -73,7 +76,8 @@ class BrProfiler extends BrObject {
     return $result;
   }
 
-  public function logStart($name) {
+  public function logStart($name)
+  {
     $this->start($name);
     $details = [
       'operation' => $name
@@ -81,37 +85,40 @@ class BrProfiler extends BrObject {
     br()->log()->message('Started: ' . $name, $details, 'profiler');
   }
 
-  public function logStatistic($name, $tag = 'profiler') {
+  public function logStatistic($name, $tag = 'profiler')
+  {
     $metric = $this->getStatistic($name);
     if ($metric['count'] > 1) {
       $details = [
         'operation' => $name,
-        'total_duration' => br()->formatDuration($metric['totalDuration'], [ 'withUnits' => true ]),
+        'total_duration' => br()->formatDuration($metric['totalDuration'], ['withUnits' => true]),
         'total_memory' => br()->formatBytes($metric['totalMemory']),
-        'avg_duration' => br()->formatDuration($metric['avgDuration'], [ 'withUnits' => true ]),
+        'avg_duration' => br()->formatDuration($metric['avgDuration'], ['withUnits' => true]),
         'avg_memory' => br()->formatBytes($metric['avgMemory']),
       ];
       br()->log()->message(
         'Statistic: ' . $name .
-        ' (cnt '            . $metric['count'] .
-        ', total duration ' . br()->formatDuration($metric['totalDuration'], [ 'withUnits' => true ]) .
-        ', total memory '   . br()->formatBytes($metric['totalMemory']) .
-        ', avg duration '   . br()->formatDuration($metric['avgDuration'], [ 'withUnits' => true ]) .
-        ', avg memory '     . br()->formatBytes($metric['avgMemory']) . ')',
+        ' (cnt ' . $metric['count'] .
+        ', total duration ' . br()->formatDuration($metric['totalDuration'], ['withUnits' => true]) .
+        ', total memory ' . br()->formatBytes($metric['totalMemory']) .
+        ', avg duration ' . br()->formatDuration($metric['avgDuration'], ['withUnits' => true]) .
+        ', avg memory ' . br()->formatBytes($metric['avgMemory']) . ')',
         $details,
         $tag
       );
     }
   }
 
-  public function logFinish($name, $comment = null) {
+  public function logFinish($name, $comment = null)
+  {
     $metric = $this->finish($name);
     $details = [
       'operation' => $name,
-      'duration' => br()->formatDuration($metric['duration'], [ 'withUnits' => true ]),
+      'duration' => br()->formatDuration($metric['duration'], ['withUnits' => true]),
       'memory' => br()->formatTraffic($metric['memory']),
     ];
-    br()->log()->message('Finished: ' . $name . ' (' . br()->formatDuration($metric['duration'], [ 'withUnits' => true ]) . ', ' . br()->formatBytes($metric['memory']) . ')', $details, 'profiler');
+    br()->log()->message('Finished: ' . $name . ' (' . br()->formatDuration($metric['duration'], ['withUnits' => true]) . ', ' .
+      br()->formatBytes($metric['memory']) . ')', $details, 'profiler');
     $this->logStatistic($name);
     if ($comment) {
       br()->log()->message('Comment: ' . $name . ': ' . $comment, $details, 'profiler');
@@ -119,5 +126,4 @@ class BrProfiler extends BrObject {
 
     return $this->getStatistic($name);
   }
-
 }

@@ -10,35 +10,40 @@
 
 namespace Bright;
 
-class BrFileSystemObject {
-
+class BrFileSystemObject
+{
   private $name;
   private $path;
 
-  public function __construct($path) {
+  public function __construct($path)
+  {
     $info = pathinfo($path);
     $this->name = $info['basename'];
     $this->path = br()->fs()->normalizePath($info['dirname']);
   }
 
-  public function isFile() {
+  public function isFile(): bool
+  {
     return !$this->isDir();
   }
 
-  public function isDir() {
+  public function isDir(): bool
+  {
     return is_dir($this->nameWithPath());
   }
 
-  public function name() {
+  public function name()
+  {
     return $this->name;
   }
 
-  public function path() {
+  public function path()
+  {
     return $this->path;
   }
 
-  public function nameWithPath() {
+  public function nameWithPath(): string
+  {
     return br()->fs()->normalizePath($this->path) . $this->name;
   }
-
 }

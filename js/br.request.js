@@ -7,6 +7,8 @@
  *
  */
 
+/* global URL */
+
 ;(function (window) {
 
   window.br = window.br || Object.create({});
@@ -18,8 +20,6 @@
     _this.continueRoute = true;
     _this.csrfToken = '';
 
-    let csrfCookie = '';
-
     if (document) {
       if (document.cookie) {
         var csrfCookieRegexp = document.cookie.match(/Csrf-Token=([\w-]+)/);
@@ -30,10 +30,26 @@
     }
 
     _this.get = function(name, defaultValue) {
-      let vars = document.location.search.replace('?', '').split('&');
-      let vals = Object.create({});
-      for (let i = 0; i < vars.length; i++) {
-        let pair = vars[i].split("=");
+      const parsedUrl = new URL(window.location.href);
+      const result = parsedUrl.searchParams.get(name);
+      if (br.isNull(result)) {
+        return defaultValue;
+      }
+      return result;
+    };
+
+    _this.setGet = function(name, value) {
+      const parsedUrl = new URL(window.location.href);
+      parsedUrl.searchParams.set(name, value);
+      const newHref = parsedUrl.href.replace(parsedUrl.origin, '');
+      window.history.replaceState({}, document.title, newHref);
+    };
+
+    _this.hash = function(name, defaultValue) {
+      let vars = document.location.hash.replace('#', '').split('&');
+      let vals = {};
+      for (let oneVar of vars) {
+        let pair = oneVar.split('=');
         if (pair[0].indexOf('[') != -1) {
           let n = pair[0].substr(0, pair[0].indexOf('['));
           vals[n] = vals[n] || [];
@@ -52,27 +68,27 @@
       }
     };
 
-    _this.hash = function(name, defaultValue) {
-      let vars = document.location.hash.replace('#', '').split('&');
-      let vals = {};
-      for (let i = 0; i < vars.length; i++) {
-        let pair = vars[i].split("=");
-        if (pair[0].indexOf('[') != -1) {
-          let n = pair[0].substr(0, pair[0].indexOf('['));
-          vals[n] = vals[n] || [];
-          vals[n].push(window.unescape(pair[1]));
-        } else {
-          vals[pair[0]] = window.unescape(pair[1]);
+    _this.setHash = function(paramName, paramValue) {
+      let params = document.location.hash.replace('#', '').split('&').filter((item) => !!item);
+      let values = {};
+      params.forEach(function(item) {
+        const pairs = item.split('=');
+        if (pairs.length == 2) {
+          values[pairs[0]] = pairs[1];
         }
-      }
-      if (name) {
-        if (vals.hasOwnProperty(name)) {
-          return vals[name];
+      });
+      if (br.isObject(paramName)) {
+        for(let name in paramName) {
+          values[name] = paramName[name];
         }
-        return defaultValue;
       } else {
-        return vals;
+        values[paramName] = paramValue;
       }
+      let hash = '#';
+      for(let name in values) {
+        hash += `${name}=${values[name]}&`;
+      }
+      document.location.hash = hash;
     };
 
     _this.anchor = function(defaultValue) {
@@ -98,29 +114,6 @@
         }
       }
       return _this;
-    };
-
-    _this.setHash = function(paramName, paramValue) {
-      let params = document.location.hash.replace('#', '').split('&').filter((item) => !!item);
-      let values = {};
-      params.map(function(item) {
-        const pairs = item.split('=');
-        if (pairs.length == 2) {
-          values[pairs[0]] = pairs[1];
-        }
-      });
-      if (br.isObject(paramName)) {
-        for(let name in paramName) {
-          values[name] = paramName[name];
-        }
-      } else {
-        values[paramName] = paramValue;
-      }
-      let hash = '#';
-      for(let name in values) {
-        hash += `${name}=${values[name]}&`;
-      }
-      document.location.hash = hash;
     };
 
   }

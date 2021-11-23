@@ -39,7 +39,7 @@
                     if (i > 0) {
                       i--;
                       br.stepProgress();
-                      setTimeout(function() {
+                      window.setTimeout(function() {
                         func(i);
                       }, 100);
                     } else {
@@ -185,7 +185,6 @@ br.confirm('Some title', 'Some message', ['Not sure', 'Maybe'], function(result,
               <li><strong>title</strong> - information popup title</li>
               <li><strong>fields</strong> - fields with default values</li>
               <li><strong>callback</strong> - callback, will be invoked after user close the prompt popup. Array of values will be passed as parameter.</li>
-              <!-- <li><strong>params</strong> - optional callback, will be invoked after user close the information popup</li> -->
               </ul>
               <p>This function will show prompt popup</p>
               <a class="btn btn-default br-prompt-example">Run example</a>

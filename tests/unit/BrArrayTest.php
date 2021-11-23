@@ -12,10 +12,6 @@ class BrArrayTest extends \Codeception\Test\Unit
       require_once(dirname(dirname(__DIR__)) . '/Bright.php');
   }
 
-  protected function _after()
-  {
-  }
-
   // tests
   public function testArray()
   {
@@ -32,34 +28,34 @@ class BrArrayTest extends \Codeception\Test\Unit
     $this->assertEquals(false, br($testArray1)->exists('*'));
     $this->assertEquals(false, br($testArray1)->exists('%'));
     $this->assertEquals(false, br($testArray1)->exists('.*'));
-    $this->assertEquals(true,  br($testArray1)->exists('apple'));
-    $this->assertEquals(true,  br($testArray1)->exists('raspberry'));
+    $this->assertEquals(true, br($testArray1)->exists('apple'));
+    $this->assertEquals(true, br($testArray1)->exists('raspberry'));
     $this->assertEquals(false, br($testArray1)->exists('apples'));
     $this->assertEquals(false, br($testArray1)->exists('raspberries'));
-    $this->assertEquals(true,  br($testArray1)->exists(array('apple', 'cow')));
-    $this->assertEquals(true,  br($testArray1)->exists(array('cow', 'apple')));
-    $this->assertEquals(true,  br($testArray1)->exists(array('apple', 'raspberry')));
+    $this->assertEquals(true, br($testArray1)->exists(array('apple', 'cow')));
+    $this->assertEquals(true, br($testArray1)->exists(array('cow', 'apple')));
+    $this->assertEquals(true, br($testArray1)->exists(array('apple', 'raspberry')));
     $this->assertEquals(false, br($testArray1)->exists(array('apples', 'raspberies')));
-    $this->assertEquals(true,  br($testArray1)->exists('Apple', true));
-    $this->assertEquals(true,  br($testArray1)->exists('ApplE', true));
+    $this->assertEquals(true, br($testArray1)->exists('Apple', true));
+    $this->assertEquals(true, br($testArray1)->exists('ApplE', true));
     $this->assertEquals(false, br($testArray1)->exists('ApplEa', true));
-    $this->assertEquals(true,  br($testArray1)->exists(array(array('apple'))));
+    $this->assertEquals(true, br($testArray1)->exists(array(array('apple'))));
 
     $this->assertEquals(false, br($testArray2)->exists(''));
     $this->assertEquals(false, br($testArray2)->exists(null));
-    $this->assertEquals(true,  br($testArray2)->exists(0));
-    $this->assertEquals(true,  br($testArray2)->exists('0'));
-    $this->assertEquals(true,  br($testArray2)->exists(1));
-    $this->assertEquals(true,  br($testArray2)->exists('1'));
+    $this->assertEquals(true, br($testArray2)->exists(0));
+    $this->assertEquals(true, br($testArray2)->exists('0'));
+    $this->assertEquals(true, br($testArray2)->exists(1));
+    $this->assertEquals(true, br($testArray2)->exists('1'));
     $this->assertEquals(false, br($testArray2)->exists(2));
     $this->assertEquals(false, br($testArray2)->exists('2'));
     $this->assertEquals(false, br($testArray2)->exists(array('')));
     $this->assertEquals(false, br($testArray2)->exists(array()));
     $this->assertEquals(false, br($testArray2)->exists(array(null)));
-    $this->assertEquals(true,  br($testArray2)->exists(array(0)));
-    $this->assertEquals(true,  br($testArray2)->exists(array('0')));
-    $this->assertEquals(true,  br($testArray2)->exists(array(1)));
-    $this->assertEquals(true,  br($testArray2)->exists(array('1')));
+    $this->assertEquals(true, br($testArray2)->exists(array(0)));
+    $this->assertEquals(true, br($testArray2)->exists(array('0')));
+    $this->assertEquals(true, br($testArray2)->exists(array(1)));
+    $this->assertEquals(true, br($testArray2)->exists(array('1')));
     $this->assertEquals(false, br($testArray2)->exists(array(2)));
     $this->assertEquals(false, br($testArray2)->exists(array('2')));
 
@@ -67,10 +63,10 @@ class BrArrayTest extends \Codeception\Test\Unit
     $this->assertEquals(false, br($testArray3)->exists(array()));
     $this->assertEquals(false, br($testArray3)->exists(array(null)));
 
-    $this->assertEquals(true,  br('apple')->exists('apple'));
-    $this->assertEquals(true,  br('apple')->exists(array('apple')));
-    $this->assertEquals(true,  br('apple')->exists(array('apples', 'apple')));
-    $this->assertEquals(true,  br('apple')->exists(array('apple', 'apples')));
+    $this->assertEquals(true, br('apple')->exists('apple'));
+    $this->assertEquals(true, br('apple')->exists(array('apple')));
+    $this->assertEquals(true, br('apple')->exists(array('apples', 'apple')));
+    $this->assertEquals(true, br('apple')->exists(array('apple', 'apples')));
     $this->assertEquals(false, br('apple')->exists('apples'));
     $this->assertEquals(false, br('apple')->exists(array('apples')));
 
@@ -100,7 +96,6 @@ class BrArrayTest extends \Codeception\Test\Unit
     $this->assertEquals([['id' => 1], ['id' => 2]], br([['id' => 1, 'name' => 'a'], ['id' => 2, 'name' => 'b']])->extract(['id']));
     $this->assertEquals([['id' => 1, 'name' => 'a'], ['id' => 2, 'name' => 'b']], br([['id' => 1, 'name' => 'a'], ['id' => 2, 'name' => 'b']])->extract(['id', 'name']));
     $this->assertEquals([['id' => 1, 'name' => 'a'], ['id' => 2, 'name' => 'b']], br([['id' => 1, 'name' => 'a', 'age' => 23], ['id' => 2, 'name' => 'b', 'age' => 40]])->extract(['id', 'name']));
-// debug(br([['id' => 1, 'name' => 'a'], ['id' => 2, 'name' => 'b'], ['name' => 'c']])->extract(['id']));exit();
     $this->assertEquals([['id' => 1], ['id' => 2]], br([['id' => 1, 'name' => 'a'], ['id' => 2, 'name' => 'b'], ['name' => 'c']])->extract(['id']));
     $this->assertEquals([['id' => 1, 'name' => 'a'], ['id' => 2, 'name' => 'b'], ['id' => 3]], br([['id' => 1, 'name' => 'a'], ['id' => 2, 'name' => 'b'], ['id' => 3]])->extract(['id', 'name']));
 
@@ -128,6 +123,5 @@ class BrArrayTest extends \Codeception\Test\Unit
     $this->assertEquals(false, br(['name1' => 'a', 'name2' => ['$ne' => 1]])->isSimpleArray());
     $this->assertEquals(true, br([])->isSimpleArray());
     $this->assertEquals(false, br('a')->isSimpleArray());
-
   }
 }

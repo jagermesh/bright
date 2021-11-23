@@ -10,15 +10,15 @@
 
 namespace Bright;
 
-class BrFakeDatabaseDictionary extends BrObject implements IDataBaseDictionary {
-
-  public function validate($tableName, $row) {
+class BrFakeDatabaseDictionary extends BrObject implements IDataBaseDictionary
+{
+  public function validate($tableName, $row)
+  {
     return $row;
   }
 
-  public function getStructure($tableName) {
+  public function getStructure($tableName)
+  {
     return [];
   }
-
 }
-

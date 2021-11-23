@@ -10,33 +10,33 @@
 
 namespace Bright;
 
-class BrFileUploadHandler extends BrGenericUploadHandler {
-
+class BrFileUploadHandler extends BrGenericUploadHandler
+{
   /**
    * Save the file to the specified path
    * @return boolean TRUE on success
    */
-  public function save($srcFilePath, $path) {
+  public function save($srcFilePath, $path)
+  {
     if (br($this->options, 'basePath')) {
       $dstPath = rtrim($this->options['basePath'], '/') . '/' . ltrim(rtrim($path, '/'), '/') . '/';
     } else {
       $dstPath = rtrim(br()->atBasePath($path), '/') . '/';
     }
     $dstFileName = br()->fs()->normalizeFileName(br()->fs()->fileName($this->getFileName()));
-    $md5 = md5_file($srcFilePath);
-    $dstFilePath = $dstPath . $md5 . '/' . $dstFileName;
-    $dstFileUrl  = br()->request()->baseUrl() . ltrim(rtrim($path, '/'), '/') . '/' . $md5 . '/' . $dstFileName;
+    $hash = hash_file('sha256', $srcFilePath);
+    $dstFilePath = $dstPath . $hash . '/' . $dstFileName;
+    $dstFileUrl  = br()->request()->baseUrl() . ltrim(rtrim($path, '/'), '/') . '/' . $hash . '/' . $dstFileName;
     $dstFileHref  = br()->request()->host() . $dstFileUrl;
     br()->fs()->createDir(br()->fs()->filePath($dstFilePath));
     rename($srcFilePath, $dstFilePath);
     return [
-      'fileName' => $dstFileName,
-      'url'      => $dstFileUrl,
-      'href'     => $dstFileHref,
+      'fileName'=> $dstFileName,
+      'url' => $dstFileUrl,
+      'href' => $dstFileHref,
       'internal' => [
         'filePath' => $dstFilePath
       ]
     ];
   }
-
 }

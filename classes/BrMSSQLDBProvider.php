@@ -10,41 +10,43 @@
 
 namespace Bright;
 
-class BrMSSQLDBProvider extends BrGenericSQLDBProvider {
+class BrMSSQLDBProvider extends BrGenericSQLDBProvider
+{
+  const ERROR_MSSQL_SERVER_HAS_GONE_AWAY = 'MSSQL server has gone away';
 
-  private $__connection;
-  private $errorRedirect;
+  private $connection;
   private $config;
   private $reconnectIterations = 50;
-  private $rerunIterations     = 30;
+  private $rerunIterations = 30;
 
-  public function __construct($config) {
+  public function __construct($config)
+  {
     $this->config = $config;
-    register_shutdown_function([ &$this, 'captureShutdown' ]);
+    register_shutdown_function([&$this, 'captureShutdown']);
   }
 
-  public function connection() {
-    if ($this->__connection) {
-      return $this->__connection;
-    } else {
+  public function establishConnection()
+  {
+    if (!$this->connection) {
       return $this->connect();
     }
   }
 
-  public function connect($iteration = 0, $rerunError = null) {
-    $wasConnected = !!$this->__connection;
+  public function connect($iteration = 0, $rerunError = null)
+  {
+    $wasConnected = !empty($this->connection);
 
-    if ($this->__connection) {
+    if ($this->connection) {
       $this->disconnect();
     }
 
     if ($iteration > $this->reconnectIterations) {
       $e = new BrDBConnectionErrorException($rerunError);
-      $this->triggerSticky('connect.error', $e);
-      br()->triggerSticky('br.db.connect.error', $e);
+      $this->triggerSticky(BrConst::EVENT_CONNECT_ERROR, $e);
+      br()->triggerSticky(BrConst::EVENT_BR_DB_CONNECT_ERROR, $e);
       if ($wasConnected) {
-        $this->triggerSticky('reconnect.error', $e);
-        br()->triggerSticky('br.db.reconnect.error', $e);
+        $this->triggerSticky(BrConst::EVENT_RECONNECT_ERROR, $e);
+        br()->triggerSticky(BrConst::EVENT_BR_DB_RECONNECT_ERROR, $e);
       }
       throw $e;
     }
@@ -62,125 +64,137 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider {
     }
 
     try {
-      foreach($dataBaseNames as $dataBaseName) {
+      foreach ($dataBaseNames as $dataBaseName) {
         $serverName = $hostName;
         if ($port) {
           $serverName .= ', ' . $port;
         }
-        $connectionInfo = [ 'Database' => $dataBaseName, 'UID' => $userName, 'PWD' => $password ];
+        $connectionInfo = ['Database' => $dataBaseName, 'UID' => $userName, 'PWD' => $password];
         if (br($this->config, 'charset')) {
           $connectionInfo['CharacterSet'] = $this->config['charset'];
         }
-        if ($this->__connection = @sqlsrv_connect($serverName, $connectionInfo)) {
+        if ($this->connection = @sqlsrv_connect($serverName, $connectionInfo)) {
           $this->setDataBaseName($dataBaseName);
           break;
         }
       }
-      if ($this->__connection) {
-        $serverInfo = sqlsrv_server_info($this->__connection);
+      if ($this->connection) {
+        $serverInfo = sqlsrv_server_info($this->connection);
         $this->version = $serverInfo['SQLServerVersion'];
 
-        $this->triggerSticky('after:connect');
-        br()->triggerSticky('after:br.db.connect');
+        $this->triggerSticky(sprintf(BrConst::EVENT_AFTER, BrConst::EVENT_CONNECT));
+        br()->triggerSticky(sprintf(BrConst::EVENT_AFTER, BrConst::EVENT_BR_DB_CONNECT));
 
         if ($wasConnected) {
-          $this->triggerSticky('after:reconnect');
-          br()->triggerSticky('after:br.db.reconnect');
+          $this->triggerSticky(sprintf(BrConst::EVENT_AFTER, BrConst::EVENT_RECONNECT));
+          br()->triggerSticky(sprintf(BrConst::EVENT_AFTER, BrConst::EVENT_BR_DB_RECONNECT));
         }
       } else {
         $errors = sqlsrv_errors();
-        throw new \Exception($errors[0]['code'] . ': ' . $errors[0]['message']);
+        throw new BrMSSQLDBProviderException($errors[0]['code'] . ': ' . $errors[0]['message']);
       }
     } catch (\Exception $e) {
-      $this->triggerSticky('connect.error', $e);
-      br()->triggerSticky('br.db.connect.error', $e);
+      $this->triggerSticky(BrConst::EVENT_CONNECT_ERROR, $e);
+      br()->triggerSticky(BrConst::EVENT_BR_DB_CONNECT_ERROR, $e);
       if ($wasConnected) {
-        $this->triggerSticky('reconnect.error', $e);
-        br()->triggerSticky('br.db.reconnect.error', $e);
+        $this->triggerSticky(BrConst::EVENT_RECONNECT_ERROR, $e);
+        br()->triggerSticky(BrConst::EVENT_BR_DB_RECONNECT_ERROR, $e);
       }
       throw new BrDBConnectionErrorException($e->getMessage());
     }
 
-    return $this->__connection;
+    return $this->connection;
   }
 
-  public function startTransaction($force = false) {
-    if ($this->__connection) {
-      sqlsrv_begin_transaction($this->__connection);
+  public function startTransaction($force = false)
+  {
+    if ($this->connection) {
+      sqlsrv_begin_transaction($this->connection);
 
       parent::startTransaction($force);
     } else {
-      throw new BrDBServerGoneAwayException('MSSQL server has gone away');
+      throw new BrDBServerGoneAwayException(self::ERROR_MSSQL_SERVER_HAS_GONE_AWAY);
     }
   }
 
-  public function commitTransaction($force = false) {
-    if ($this->__connection) {
-      sqlsrv_commit($this->__connection);
+  public function commitTransaction($force = false)
+  {
+    if ($this->connection) {
+      sqlsrv_commit($this->connection);
 
       parent::commitTransaction($force);
     } else {
-      throw new BrDBServerGoneAwayException('MSSQL server has gone away');
+      throw new BrDBServerGoneAwayException(self::ERROR_MSSQL_SERVER_HAS_GONE_AWAY);
     }
   }
 
-  public function rollbackTransaction($force = false) {
-    if ($this->__connection) {
-      sqlsrv_rollback($this->__connection);
+  public function rollbackTransaction($force = false)
+  {
+    if ($this->connection) {
+      sqlsrv_rollback($this->connection);
 
       parent::rollbackTransaction($force);
     } else {
-      throw new BrDBServerGoneAwayException('MSSQL server has gone away');
+      throw new BrDBServerGoneAwayException(self::ERROR_MSSQL_SERVER_HAS_GONE_AWAY);
     }
   }
 
-  public function selectNext($query, $options = []) {
+  public function selectNext($query, $options = [])
+  {
     return sqlsrv_fetch_array($query, SQLSRV_FETCH_ASSOC);
   }
 
-  public function isEmptyDate($date) {
-    return (($date == "0000-00-00") or ($date == "0000-00-00 00:00:00") or !$date);
+  public function isEmptyDate($date)
+  {
+    return (($date == "0000-00-00") || ($date == "0000-00-00 00:00:00") || !$date);
   }
 
-  public function toDateTime($date) {
+  public function toDateTime($date)
+  {
     return date('Y-m-d H:i:s', $date);
   }
 
-  public function toDate($date) {
+  public function toDate($date)
+  {
     return date('Y-m-d', $date);
   }
 
-  public function getLastError() {
+  public function getLastError()
+  {
     if ($errors = sqlsrv_errors()) {
-      foreach( $errors as $error ) {
-        return $error['code'] . ': ' . $error[ 'message'];
+      foreach ($errors as $error) {
+        return $error['code'] . ': ' . $error['message'];
       }
     } else {
-      return 'MSSQL server has gone away';
+      return self::ERROR_MSSQL_SERVER_HAS_GONE_AWAY;
     }
   }
 
-  public function getLastId() {
-    if ($this->__connection) {
-      return mysqli_insert_id($this->__connection);
+  public function getLastId()
+  {
+    if ($this->connection) {
+      return mysqli_insert_id($this->connection);
     } else {
-      throw new BrDBServerGoneAwayException('MSSQL server has gone away');
+      throw new BrDBServerGoneAwayException(self::ERROR_MSSQL_SERVER_HAS_GONE_AWAY);
     }
   }
 
-  public function getAffectedRowsAmount($query) {
-    if ($this->__connection && $query) {
+  public function getAffectedRowsAmount($query)
+  {
+    if ($this->connection && $query) {
       return sqlsrv_rows_affected($query);
     } else {
-      throw new BrDBServerGoneAwayException('MSSQL server has gone away');
+      throw new BrDBServerGoneAwayException(self::ERROR_MSSQL_SERVER_HAS_GONE_AWAY);
     }
   }
 
-  public function getTableStructure($tableName) {
-    return $this->getQueryStructure('SELECT * FROM '. $tableName .' LIMIT 1');
+  public function getTableStructure($tableName)
+  {
+    return $this->getQueryStructure('SELECT * FROM ' . $tableName . ' LIMIT 1');
   }
 
-  public function getQueryStructure($query) {
+  public function getQueryStructure($query)
+  {
     $field_defs = [];
     if ($query = $this->runQueryEx($query)) {
       while ($finfo = mysqli_fetch_field($query)) {
@@ -193,17 +207,18 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider {
       mysqli_free_result($query);
     }
     $field_defs = array_change_key_case($field_defs, CASE_LOWER);
-    foreach($field_defs as $field => $defs) {
+    foreach ($field_defs as $field => $defs) {
       $field_defs[$field]['genericType'] = $this->toGenericDataType($field_defs[$field]['type']);
     }
 
     return $field_defs;
   }
 
-  public function runQueryEx($sql, $args = [], $iteration = 0, $rerunError = null) {
+  public function runQueryEx($sql, $args = [], $iteration = 0, $rerunError = null)
+  {
     try {
       // check connection
-      $this->connection();
+      $this->establishConnection();
 
       if (count($args) > 0) {
         $queryText = br()->placeholderEx($sql, $args, $error);
@@ -220,9 +235,9 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider {
         throw new BrDBException($error);
       }
 
-      $query = @sqlsrv_query($this->connection(), $queryText);
+      $query = @sqlsrv_query($this->connection, $queryText);
       if ($query) {
-        if ($this->inTransaction()) {
+        if ($this->isInTransaction()) {
           $this->incTransactionBuffer($queryText);
         }
       } else {
@@ -230,23 +245,24 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider {
         throw new BrDBException($error);
       }
 
-      br()->log()->message('Query complete', [ 'sql' => $queryText ], 'query');
+      br()->log()->message('Query complete', ['sql' => $queryText], 'query');
     } catch (\Exception $e) {
       $error = $e->getMessage();
-      br()->trigger('br.db.query.error', $error);
+      br()->trigger(BrConst::EVENT_BR_DB_QUERY_ERROR, $error);
       throw $e;
     }
 
     return $query;
   }
 
-  public function getRowsAmountEx($sql, $args) {
+  public function getRowsAmountEx($sql, $args)
+  {
     $countSQL = $this->getCountSQL($sql);
     try {
       $query = $this->runQueryEx($countSQL, $args);
       if ($row = $this->selectNext($query)) {
         return array_shift($row);
-      } else  {
+      } else {
         return sqlsrv_num_rows($this->runQueryEx($sql, $args));
       }
     } catch (\Exception $e) {
@@ -254,20 +270,22 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider {
     }
   }
 
-  public function disconnect() {
-    if ($this->__connection) {
-      @sqlsrv_close($this->__connection);
+  public function disconnect()
+  {
+    if ($this->connection) {
+      @sqlsrv_close($this->connection);
     }
 
-    $this->__connection = null;
+    $this->connection = null;
   }
 
-  public function captureShutdown() {
+  public function captureShutdown()
+  {
     $this->disconnect();
   }
 
-  public function internalDataTypeToGenericDataType($type) {
+  public function internalDataTypeToGenericDataType($type)
+  {
     return self::DATA_TYPE_UNKNOWN;
   }
-
 }

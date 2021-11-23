@@ -10,19 +10,22 @@
 
 namespace Bright;
 
-class BrFileSystem extends BrObject {
-
+class BrFileSystem extends BrObject
+{
   private $currentDir;
 
-  public function normalizePath($path) {
+  public function normalizePath($path)
+  {
     return rtrim(str_replace('\\', '/', $path), '/').'/';
   }
 
-  public function normalizeFileName($fileName) {
+  public function normalizeFileName($fileName)
+  {
     return preg_replace('~[^-A-Za-z0-9_.$!()\[\]]~', '_', $fileName);
   }
 
-  public function fileName($fileName, $addIndex = null) {
+  public function fileName($fileName, $addIndex = null)
+  {
     $pathinfo = pathinfo($fileName);
     if ($addIndex) {
       return br($pathinfo, 'filename').'-'.$addIndex.'.'.br($pathinfo, 'extension');
@@ -31,20 +34,24 @@ class BrFileSystem extends BrObject {
     }
   }
 
-  public function fileNameOnly($fileName) {
+  public function fileNameOnly($fileName)
+  {
     $pathinfo = pathinfo($fileName);
     return br($pathinfo, 'filename');
   }
 
-  public function filePath($path) {
+  public function filePath($path)
+  {
     return $this->normalizePath(dirname($path));
   }
 
-  public function dirName($path) {
+  public function dirName($path)
+  {
     return rtrim(str_replace('\\', '/', dirname($path)), '/');
   }
 
-  public function folderName($path) {
+  public function folderName($path)
+  {
     if ($s = preg_split('|/|', $this->dirname($path))) {
       return $s[count($s) - 1];
     } else {
@@ -52,20 +59,24 @@ class BrFileSystem extends BrObject {
     }
   }
 
-  public function fileExt($fileName) {
+  public function fileExt($fileName)
+  {
     $pathinfo = pathinfo($fileName);
     return br($pathinfo, 'extension');
   }
 
-  public function fileExists($filePath) {
+  public function fileExists($filePath)
+  {
     return file_exists($filePath);
   }
 
-  public function loadFromFile($fileName) {
+  public function loadFromFile($fileName)
+  {
     return file_get_contents($fileName);
   }
 
-  public function getCharsPath($fileName, $finalFileName = null) {
+  public function getCharsPath($fileName, $finalFileName = null)
+  {
     $md5mode = false;
     if ($finalFileName) {
       $md5mode = true;
@@ -88,14 +99,16 @@ class BrFileSystem extends BrObject {
     return $s . $finalFileName;
   }
 
-  public function saveToFile($fileName, $content, $access = 0666) {
+  public function saveToFile($fileName, $content, $access = 0666)
+  {
     if ($result = file_put_contents($fileName, $content)) {
       @chmod($fileName, $access);
     }
     return $result;
   }
 
-  public function makeDir($path, $access = 0777) {
+  public function makeDir($path, $access = 0777)
+  {
     if (file_exists($path)) {
       return true;
     }
@@ -107,11 +120,13 @@ class BrFileSystem extends BrObject {
     }
   }
 
-  public function getCurrentDir() {
+  public function getCurrentDir()
+  {
     return $this->currentDir;
   }
 
-  public function changeDir($path, $createIfMissing = false) {
+  public function changeDir($path, $createIfMissing = false)
+  {
     $newDir = br()->fs()->normalizePath($path);
     if ($createIfMissing) {
       $this->makeDir($newDir);
@@ -119,22 +134,22 @@ class BrFileSystem extends BrObject {
     if (is_dir($newDir)) {
       $this->currentDir = $newDir;
     } else {
-      throw new \Exception('Can not change folder to ' . $path);
+      throw new BrFileSystemException('Can not change folder to ' . $path);
     }
   }
 
-  public function isFileExists($fileName) {
-    // TODO: Check for local path
+  public function isFileExists($fileName)
+  {
     return file_exists($this->getCurrentDir() . $fileName);
   }
 
-  public function renameFile($oldFileName, $newFileName) {
-    // TODO: Check for local path
+  public function renameFile($oldFileName, $newFileName)
+  {
     return rename($this->getCurrentDir() . $oldFileName, $this->getCurrentDir() . $newFileName);
   }
 
-  public function uploadFile($sourceFilePath, $targetFileName = null) {
-    // TODO: Check for local path
+  public function uploadFile($sourceFilePath, $targetFileName = null)
+  {
     if (!$targetFileName) {
       $targetFileName = $this->fileName($sourceFilePath);
     }
@@ -153,25 +168,28 @@ class BrFileSystem extends BrObject {
     }
   }
 
-  public function createDir($path, $access = 0777) {
+  public function createDir($path, $access = 0777)
+  {
     if (!$this->makeDir($path, $access)) {
-      throw new \Exception('Can not create directory "' . $path .'"');
+      throw new BrFileSystemException('Can not create directory "' . $path .'"');
     }
 
     return $this;
   }
 
-  public function checkWriteable($path) {
+  public function checkWriteable($path)
+  {
     if (!is_writeable($path)) {
-      throw new \Exception('Can not create directory "' . $path .'"');
+      throw new BrFileSystemException('Can not create directory "' . $path .'"');
     }
   }
 
-  public function copyFolder($src, $dst) {
+  public function copyFolder($src, $dst)
+  {
     $src = $this->normalizePath($src);
     $dst = $this->normalizePath($dst);
 
-    $this->iteratePath($src, '.*', function($file) use ($src, $dst) {
+    $this->iteratePath($src, '.*', function ($file) use ($src, $dst) {
       if (!$file->isDir()) {
         $dstName = $dst . str_replace($src, '', $file->nameWithPath());
         br()->fs()->makeDir(br()->fs()->filePath($dstName));
@@ -180,7 +198,8 @@ class BrFileSystem extends BrObject {
     });
   }
 
-  public function iteratePath($startingDir, $mask, $callback = null) {
+  public function iteratePath($startingDir, $mask, $callback = null)
+  {
     if (gettype($mask) != 'string') {
       $callback = $mask;
       $mask = '';
@@ -208,7 +227,8 @@ class BrFileSystem extends BrObject {
     }
   }
 
-  public function iterateDir($startingDir, $mask, $callback = null) {
+  public function iterateDir($startingDir, $mask, $callback = null)
+  {
     if (gettype($mask) != 'string') {
       $callback = $mask;
       $mask = null;
@@ -229,5 +249,4 @@ class BrFileSystem extends BrObject {
       }
     }
   }
-
 }

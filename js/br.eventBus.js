@@ -87,6 +87,13 @@
       reconnect();
     }
 
+    const connectionClosed = function(event) {
+      if (debugMode) {
+        br.log(event);
+      }
+      handleConnectionError('Connection closed');
+    };
+
     function connect() {
       try {
         webSocket = new WebSocket(endpointUrl);
@@ -122,16 +129,10 @@
           }
         };
         webSocket.onclose = function(event) {
-          if (debugMode) {
-            br.log(event);
-          }
-          handleConnectionError('Connection closed');
+          connectionClosed(event);
         };
         webSocket.onerror = function(event) {
-          if (debugMode) {
-            br.log(event);
-          }
-          handleConnectionError('Connection closed');
+          connectionClosed(event);
         };
       } catch (exception) {
         if (debugMode) {
@@ -209,8 +210,6 @@
     return this;
 
   }
-
-  let eventBus;
 
   window.br.eventBus = function(endpointUrl) {
     return new BrEventBus(endpointUrl);

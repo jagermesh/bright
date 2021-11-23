@@ -10,13 +10,17 @@
 
 namespace Bright;
 
-class BrJobsManager {
+class BrJobsManager
+{
+  private $jobsFolder;
 
-  public function __construct() {
+  public function __construct()
+  {
     $this->jobsFolder = br()->getScriptBasePath() . 'jobs/';
   }
 
-  public function run() {
+  public function run()
+  {
     if (!br()->isConsoleMode()) {
       br()->panic('Console mode only');
     }
@@ -27,7 +31,7 @@ class BrJobsManager {
     br()->log('[...] Starting JobsManager');
     while (true) {
       $jobs = [];
-      br()->fs()->iterateDir($this->jobsFolder, '^Job.*[.]php$', function($jobFile) use (&$jobs) {
+      br()->fs()->iterateDir($this->jobsFolder, '^Job.*[.]php$', function ($jobFile) use (&$jobs) {
         $jobs[] = [
           'classFile' => $jobFile->nameWithPath(),
           'className' => br()->fs()->fileNameOnly($jobFile->name())
@@ -45,5 +49,4 @@ class BrJobsManager {
       sleep(30);
     }
   }
-
 }

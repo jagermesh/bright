@@ -7,7 +7,7 @@
  *
  */
 
-;(function ($, window) {
+;(function($, window) {
 
   window.br = window.br || Object.create({});
 
@@ -23,7 +23,7 @@
     _this.editor = null;
     _this.savedWidth = '';
 
-    _this.click = function(element, e) {
+    _this.click = function(element, evt) {
       if (!_this.activated()) {
         let content = ((typeof _this.ctrl.attr('data-editable') != 'undefined') ? _this.ctrl.attr('data-editable') : _this.ctrl.text());
         _this.ctrl.data('brEditable-original-html', _this.ctrl.html());
@@ -54,46 +54,46 @@
           content = _this.options.onGetContent.call(_this.ctrl, _this.editor, content);
         }
         _this.editor.val(content);
-        _this.editor.on('keydown', function(e) {
-          if (e.keyCode == 9) {
-            let content = _this.editor.val();
+        _this.editor.on('keydown', function(evt0) {
+          if (evt0.keyCode == 9) {
+            let value = _this.editor.val();
             if (_this.options.onSave) {
-              _this.options.onSave.call(_this.ctrl, content, 'keyup');
+              _this.options.onSave.call(_this.ctrl, value, 'keyup');
             } else {
-              _this.apply(content);
+              _this.apply(value);
             }
-            e.stopPropagation();
-            e.preventDefault();
+            evt0.stopPropagation();
+            evt0.preventDefault();
           }
         });
-        _this.editor.on('keyup', function(e) {
-          let content = _this.editor.val();
-          switch (e.keyCode) {
+        _this.editor.on('keyup', function(evt0) {
+          let value = _this.editor.val();
+          switch (evt0.keyCode) {
             case 13:
               if (_this.options.onSave) {
-                _this.options.onSave.call(_this.ctrl, content, 'keyup');
+                _this.options.onSave.call(_this.ctrl, value, 'keyup');
               } else {
-                _this.apply(content);
+                _this.apply(value);
               }
-              e.stopPropagation();
+              evt0.stopPropagation();
               break;
             case 27:
               _this.cancel();
-              e.stopPropagation();
+              evt0.stopPropagation();
               break;
           }
         });
-        _this.editor.on('blur', function(e) {
+        _this.editor.on('blur', function(evt0) {
           let ok = true;
           if (_this.options.onBlur) {
-            ok = _this.options.onBlur.call(_this.ctrl, e);
+            ok = _this.options.onBlur.call(_this.ctrl, evt0);
           }
           if (ok) {
-            let content = _this.editor.val();
+            let value = _this.editor.val();
             if (_this.options.onSave) {
-              _this.options.onSave.call(_this.ctrl, content, 'blur');
+              _this.options.onSave.call(_this.ctrl, value, 'blur');
             } else {
-              _this.apply(content);
+              _this.apply(value);
             }
           }
         });
@@ -164,7 +164,8 @@
         case 'cancel':
         case 'click':
           if (!instance) {
-            $(selector).data('brEditable-editable', (instance = new BrEditable($(selector), callback)));
+            instance = new BrEditable($(selector), callback);
+            $(selector).data('brEditable-editable', instance);
           }
           return instance[callback](value);
       }
@@ -173,7 +174,8 @@
         let $this = $(this);
         let instance = $this.data('brEditable-editable');
         if (!instance) {
-          $this.data('brEditable-editable', (instance = new BrEditable(this, callback)));
+          instance = new BrEditable(this, callback);
+          $this.data('brEditable-editable', instance);
         }
         if (instance.options.onActivate) {
           instance.options.onActivate.call(instance.ctrl, function() {

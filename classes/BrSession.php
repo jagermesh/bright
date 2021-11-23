@@ -10,18 +10,19 @@
 
 namespace Bright;
 
-class BrSession extends BrObject {
-
+class BrSession extends BrObject
+{
   private $tag = '';
 
-  public function __construct() {
-    $this->tag = md5(__FILE__);
+  public function __construct()
+  {
+    $this->tag = hash('sha256', __FILE__);
 
     if (!isset($_SESSION)) {
       self::configure();
 
       try {
-        $this->retry(function() {
+        $this->retry(function () {
           if (!@session_start()) {
             if (br()->isConsoleMode()) {
               global $_SESSION;
@@ -37,26 +38,30 @@ class BrSession extends BrObject {
     parent::__construct();
   }
 
-  static function configure() {
+  public static function configure()
+  {
     if (!isset($_SESSION)) {
-      @ini_set('session.gc_maxlifetime',  br()->config()->get('php/session.gc_maxlifetime', 3600));
-      @ini_set('session.cache_expire',    br()->config()->get('php/session.cache_expire', 180));
+      @ini_set('session.gc_maxlifetime', br()->config()->get('php/session.gc_maxlifetime', 3600));
+      @ini_set('session.cache_expire', br()->config()->get('php/session.cache_expire', 180));
       @ini_set('session.cookie_lifetime', br()->config()->get('php/session.cookie_lifetime', 0));
-      @ini_set('session.cache_limiter',   br()->config()->get('php/session.cache_limiter', 'nocache'));
+      @ini_set('session.cache_limiter', br()->config()->get('php/session.cache_limiter', 'nocache'));
     }
   }
 
-  public function regenerate($deleteOld = false) {
+  public function regenerate($deleteOld = false)
+  {
     if (!br()->isConsoleMode()) {
       session_regenerate_id($deleteOld);
     }
   }
 
-  public function getId() {
+  public function getId()
+  {
     return session_id();
   }
 
-  public function get($name = null, $default = null) {
+  public function get($name = null, $default = null)
+  {
     if (isset($_SESSION)) {
       if ($name) {
         $name = $this->tag.':'.$name;
@@ -76,7 +81,8 @@ class BrSession extends BrObject {
     }
   }
 
-  public function set($name, $value) {
+  public function set($name, $value)
+  {
     if (isset($_SESSION)) {
       $name = $this->tag.':'.$name;
       $_SESSION[$name] = $value;
@@ -85,7 +91,8 @@ class BrSession extends BrObject {
     return $value;
   }
 
-  public function clear($name = null) {
+  public function clear($name = null): bool
+  {
     if (isset($_SESSION)) {
       if ($name) {
         if (is_callable($name)) {
@@ -112,5 +119,4 @@ class BrSession extends BrObject {
 
     return true;
   }
-
 }

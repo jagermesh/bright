@@ -10,8 +10,8 @@
 
 namespace Bright;
 
-class BrXMLParser extends BrObject {
-
+class BrXMLParser extends BrObject
+{
   private $xmlParserError = null;
   private $xmlParser = null;
   private $currentTag = '';
@@ -20,15 +20,16 @@ class BrXMLParser extends BrObject {
 
   public $result;
 
-  public function parse($xml) {
+  public function parse($xml)
+  {
     $this->result = [];
     $this->context = $xml;
     $this->currentTag = '';
     $this->currentState = [];
 
-    $this->xmlParser    = xml_parser_create();
+    $this->xmlParser = xml_parser_create();
 
-    xml_parser_set_option($this->xmlParser, XML_OPTION_TARGET_ENCODING, "UTF-8").
+    xml_parser_set_option($this->xmlParser, XML_OPTION_TARGET_ENCODING, "UTF-8");
     xml_set_object($this->xmlParser, $this);
     xml_set_element_handler($this->xmlParser, 'startElement', 'endElement');
     xml_set_character_data_handler($this->xmlParser, 'content');
@@ -37,7 +38,8 @@ class BrXMLParser extends BrObject {
 
     try {
       if (!xml_parse($this->xmlParser, $xml)) {
-        $this->xmlParserError = 'Line '.xml_get_current_line_number($this->xmlParser).': '.(xml_get_error_code($this->xmlParser)?xml_error_string(xml_get_error_code($this->xmlParser)):'Unknown error');
+        $this->xmlParserError = 'Line ' . xml_get_current_line_number($this->xmlParser) . ': ' .
+          (xml_get_error_code($this->xmlParser) ? xml_error_string(xml_get_error_code($this->xmlParser)) : 'Unknown error');
       }
     } catch (\Exception $e) {
       $this->xmlParserError = $e->getMessage();
@@ -47,8 +49,7 @@ class BrXMLParser extends BrObject {
 
     if ($this->xmlParserError) {
       $this->raiseError($this->xmlParserError);
-    } else
-    if ($this->getCurrentState()) {
+    } elseif ($this->getCurrentState()) {
       $this->raiseError('Wrong ending state: ' . $this->getCurrentState());
     }
 
@@ -57,76 +58,88 @@ class BrXMLParser extends BrObject {
     return $this->result;
   }
 
-  public function printState() {
+  public function printState()
+  {
     br()->log('===========================================================================');
     br()->log('Current XML tag: ' . $this->currentTag);
-    br()->log('Current path: '    . $this->getCurrentPath());
+    br()->log('Current path: ' . $this->getCurrentPath());
     br()->log('=================================== XML ===================================');
   }
 
-  public function raiseError($error) {
+  public function raiseError($error)
+  {
     $this->printState();
 
-    $numargs  = func_num_args();
+    $numargs = func_num_args();
     $arg_list = func_get_args();
     for ($i = 1; $i < $numargs; $i++) {
       br()->log($arg_list[$i]);
     }
 
-    throw new \Exception($error);
+    throw new BrXMLParserException($error);
   }
 
-  public function getArchiveName() {
+  public function getArchiveName()
+  {
     return $this->archiveName;
   }
 
-  public function getCurrentTag() {
+  public function getCurrentTag()
+  {
     return $this->currentTag;
   }
 
-  public function setCurrentTag($value) {
+  public function setCurrentTag($value)
+  {
     return ($this->currentTag = $value);
   }
 
-  public function getCurrentState() {
+  public function getCurrentState()
+  {
     $result = array_pop($this->currentState);
     $this->currentState[] = $result;
 
     return $result;
   }
 
-  public function getCurrentPath() {
+  public function getCurrentPath()
+  {
     return implode('/', $this->currentState);
   }
 
-  public function isAt($path) {
+  public function isAt($path)
+  {
     return (strtolower($this->getCurrentPath()) == strtolower($path));
   }
 
-  public function clearCurrentState() {
+  public function clearCurrentState()
+  {
     return array_pop($this->currentState);
   }
 
-  public function setCurrentState($value) {
+  public function setCurrentState($value)
+  {
     $this->currentState[] = $value;
   }
 
-  public function startElement($parser, $name, $attrs = array()) {
+  public function startElement($parser, $name, $attrs = array())
+  {
     $this->setCurrentTag($name);
     $this->setCurrentState($name);
 
     $this->trigger('startElement', $name, $attrs);
   }
 
-  public function content($parser, $data) {
+  public function content($parser, $data)
+  {
     $this->trigger('content', $data);
   }
 
-  public function endElement($parser, $name) {
+  public function endElement($parser, $name)
+  {
     $this->trigger('endElement', $name);
 
     $this->clearCurrentState();
     $this->setCurrentTag('');
   }
-
 }

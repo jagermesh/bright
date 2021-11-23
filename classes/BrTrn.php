@@ -10,15 +10,17 @@
 
 namespace Bright;
 
-class BrTrn extends BrObject {
-
-  public function set($phrase, $translation) {
+class BrTrn extends BrObject
+{
+  public function set($phrase, $translation): BrTrn
+  {
     $this->setAttr($phrase, $translation);
+
     return $this;
   }
 
-  public function get($phrase) {
+  public function get($phrase)
+  {
     return $this->getAttr($phrase, $phrase);
   }
-
 }

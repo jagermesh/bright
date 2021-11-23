@@ -89,35 +89,29 @@
 
     </div>
 
-    <div class="modal data-edit-form" style="display:none;top:300px;">
+    <div class="modal data-edit-form modal-autosize" style="display:none;">
       <div class="modal-header">
         <a class="close" data-dismiss="modal">×</a>
         <h3 class="operation">Edit</h3>
       </div>
-      <div class="modal-body" style="max-height:700px;">
-        <form onsubmit="return false;">
-          <fieldset>
+      <div class="modal-body">
+        [[#fields]]
+        <div class="control-group">
+          <label class="control-label"><span class="required">*</span>[[fieldName]]</label>
+          <div class="controls">
+            <select name="[[fieldName]]" title="[[fieldName]]" class="justified required virtual-data-field" data-click-on-enter=".action-save"></select>
+          </div>
+        </div>
+        [[/fields]]
 
-            [[#fields]]
-            <div class="control-group">
-              <label class="control-label"><span class="required">*</span>[[fieldName]]</label>
-              <div class="controls">
-                <select name="[[fieldName]]" title="[[fieldName]]" class="justified required virtual-data-field" data-click-on-enter=".action-save"></select>
-              </div>
-            </div>
-            [[/fields]]
-
-            [[#fields]]
-            <div class="control-group">
-              <label class="control-label"><span class="required">*</span>[[fieldName]]</label>
-              <div class="controls">
-                <input name="[[fieldName]]" title="[[fieldName]]" type="text" class="justified required data-field" data-click-on-enter=".action-save">
-              </div>
-            </div>
-            [[/fields]]
-
-          </fieldset>
-        </form>
+        [[#fields]]
+        <div class="control-group">
+          <label class="control-label"><span class="required">*</span>[[fieldName]]</label>
+          <div class="controls">
+            <input name="[[fieldName]]" title="[[fieldName]]" type="text" class="justified required data-field" data-click-on-enter=".action-save">
+          </div>
+        </div>
+        [[/fields]]
       </div>
       <div class="modal-footer">
         <a href="javascript:" class="btn action-save">Save</a>

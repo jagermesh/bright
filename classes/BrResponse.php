@@ -10,15 +10,29 @@
 
 namespace Bright;
 
-class BrResponse extends BrObject {
+class BrResponse extends BrObject
+{
+  const EXPIRES_IMMEDIATELY = 'Mon, 26 Jul 1997 05:00:00 GMT';
+  const CACHE_CONTROL_NO_CACHE = 'no-cache, no-store, must-revalidate';
+
+  const RESPONSE_301_MOVED_PERMANENTLY = 'HTTP/1.1 301 Moved Permanently';
+  const RESPONSE_404_NOT_FOUND = 'HTTP/1.0 404 Not Found';
+  const RESPONSE_400_BAD_REQUEST = 'HTTP/1.0 400 Bad Request';
+  const RESPONSE_401_NOT_AUTHORIZED = 'HTTP/1.0 401 Not Authorized';
+  const RESPONSE_204_NO_CONTENT = 'HTTP/1.0 204 No Content';
+  const RESPONSE_403_FORBIDDEN = 'HTTP/1.0 403 Forbidden';
+  const RESPONSE_405_METHOD_NOT_ALLOWED = 'HTTP/1.0 405 Method Not Allowed';
+  const RESPONSE_201_CREATED = 'HTTP/1.0 201 Created';
+  const RESPONSE_304_NOT_MODIFIED = 'HTTP/1.0 304 Not Modified';
+  const RESPONSE_500_INTERNAL_SERVER_ERROR = 'HTTP/1.0 500 Internal Server Error';
+  const RESPONSE_503_SERVICE_UNAVAILABLE = 'HTTP/1.0 503 Service unavailable';
+  const RESPONSE_409_CONFLICT = 'HTTP/1.0 409 Conflict';
+  const RESPONSE_200_OK = 'HTTP/1.0 200 OK';
 
   private $systemStylesInjected = false;
 
-  public function __construct() {
-    parent::__construct();
-  }
-
-  public function sendJSON($response, $alreadyPacked = false) {
+  public function sendJSON($response, $alreadyPacked = false)
+  {
     if ($alreadyPacked) {
       $responseJSON = $response;
     } else {
@@ -26,17 +40,18 @@ class BrResponse extends BrObject {
     }
 
     if (!headers_sent()) {
-      header('Cache-Control: no-cache, no-store, must-revalidate');
-      header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
-      header('Content-type: application/json');
+      header(sprintf(BrConst::HEADER_CACHE_CONTROL, self::CACHE_CONTROL_NO_CACHE));
+      header(sprintf(BrConst::HEADER_EXPIRES, self::EXPIRES_IMMEDIATELY));
+      header(sprintf(BrConst::HEADER_CONTENT_TYPE, BrConst::CONTENT_TYPE_APPLICATION_JSON));
     }
 
-    echo($responseJSON);
+    echo $responseJSON;
 
     exit();
   }
 
-  public function sendJSONP($response, $callback = null) {
+  public function sendJSONP($response, $callback = null)
+  {
     $callback = $callback ? $callback : br()->request()->get('callback');
 
     $responseJSON = br($response)->toJSON();
@@ -44,251 +59,273 @@ class BrResponse extends BrObject {
     $responseFull = $callback . '(' . $responseJSON . ')';
 
     if (!headers_sent()) {
-      header('Cache-Control: no-cache, no-store, must-revalidate');
-      header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
-      header('Content-type: application/jsonp');
+      header(sprintf(BrConst::HEADER_CACHE_CONTROL, self::CACHE_CONTROL_NO_CACHE));
+      header(sprintf(BrConst::HEADER_EXPIRES, self::EXPIRES_IMMEDIATELY));
+      header(sprintf(BrConst::HEADER_CONTENT_TYPE, BrConst::CONTENT_TYPE_APPLICATION_JSONP));
     }
 
-    echo($responseFull);
+    echo $responseFull;
 
     exit();
   }
 
-  public function sendHTML($response) {
+  public function sendHTML($response)
+  {
     if (!headers_sent()) {
-      header('Cache-Control: no-cache, no-store, must-revalidate');
-      header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
-      header('Content-type: text/html');
+      header(sprintf(BrConst::HEADER_CACHE_CONTROL, self::CACHE_CONTROL_NO_CACHE));
+      header(sprintf(BrConst::HEADER_EXPIRES, self::EXPIRES_IMMEDIATELY));
+      header(sprintf(BrConst::HEADER_CONTENT_TYPE, BrConst::CONTENT_TYPE_TEXT_HTML));
     }
 
-    echo($response);
+    echo $response;
   }
 
-  public function sendXML($data) {
+  public function sendXML($data)
+  {
     if (!headers_sent()) {
-      header('Cache-Control: no-cache, no-store, must-revalidate');
-      header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
-      header('Content-type: text/xml');
+      header(sprintf(BrConst::HEADER_CACHE_CONTROL, self::CACHE_CONTROL_NO_CACHE));
+      header(sprintf(BrConst::HEADER_EXPIRES, self::EXPIRES_IMMEDIATELY));
+      header(sprintf(BrConst::HEADER_CONTENT_TYPE, BrConst::CONTENT_TYPE_TEXT_XML));
     }
 
-    echo($data);
+    echo $data;
 
     exit();
   }
 
-  public function sendAutodetect($response) {
+  public function sendAutodetect($response)
+  {
     if (!headers_sent()) {
-      header('Cache-Control: no-cache, no-store, must-revalidate');
-      header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+      header(sprintf(BrConst::HEADER_CACHE_CONTROL, self::CACHE_CONTROL_NO_CACHE));
+      header(sprintf(BrConst::HEADER_EXPIRES, self::EXPIRES_IMMEDIATELY));
     }
 
-    echo($response);
+    echo $response;
   }
 
-  private function internalRedirect($url, $permanent, $saveCaller = false, $timedOut = false) {
+  private function internalRedirect($url, $permanent, $saveCaller = false, $timedOut = false)
+  {
     if (!preg_match('~^/~', $url) && !preg_match('~^http[s]?://~', $url)) {
-      $url = br()->request()->baseUrl().$url;
+      $url = br()->request()->baseUrl() . $url;
     }
     if ($saveCaller) {
-      $url .= ((strpos('?', $url) === false)?'?':'&').'caller='.urlencode(br()->request()->url());
+      $url .= ((strpos('?', $url) === false) ? '?' : '&') . 'caller=' . urlencode(br()->request()->url());
     }
 
     br()->log()->message('Redirecting to ' . $url);
 
     if (headers_sent()) {
       if ($timedOut) {
-        echo('<script> window.setTimeout(function() { document.location="' . $url . '"; }, 500); </script>');
+        echo '<script> window.setTimeout(function () { document.location="' . $url . '"; }, 500); </script>';
       } else {
-        echo('<script> document.location="' . $url . '"; </script>');
+        echo '<script> document.location="' . $url . '"; </script>';
       }
     } else {
       if ($permanent) {
-        header('HTTP/1.1 301 Moved Permanently');
+        header(self::RESPONSE_301_MOVED_PERMANENTLY);
       }
-      header('Location: ' . $url);
+      header(sprintf(BrConst::HEADER_LOCATION, $url));
     }
 
     exit();
   }
 
-  public function redirect($url, $saveCaller = false, $timedOut = false) {
+  public function redirect($url, $saveCaller = false, $timedOut = false)
+  {
     $this->internalRedirect($url, false, $saveCaller, $timedOut);
   }
 
-  public function redirectPermanent($url) {
+  public function redirectPermanent($url)
+  {
     $this->internalRedirect($url, true);
   }
 
-  public function send404($message = null) {
+  public function send404($message = null)
+  {
     if (!headers_sent()) {
-      header('HTTP/1.0 404 Not Found');
+      header(self::RESPONSE_404_NOT_FOUND);
     }
 
     if ($message) {
-      echo($message);
+      echo $message;
     } else {
-      echo('<h1>404 Not Found</h1>');
-      echo('The page that you have requested could not be found.');
+      echo '<h1>404 Not Found</h1>';
+      echo 'The page that you have requested could not be found.';
     }
 
     exit();
   }
 
-  public function sendBadRequest($message = null) {
+  public function sendBadRequest($message = null)
+  {
     if (!headers_sent()) {
-      header('HTTP/1.0 400 Bad Request');
+      header(self::RESPONSE_400_BAD_REQUEST);
     }
 
     if ($message) {
-      echo($message);
+      echo $message;
     } else {
-      echo('<h1>400 Bad Request</h1>');
+      echo '<h1>400 Bad Request</h1>';
     }
 
     exit();
   }
 
-  public function sendNotAuthorized($error = null) {
+  public function sendNotAuthorized($error = null)
+  {
     if (!headers_sent()) {
-      header('HTTP/1.0 401 Not Authorized');
+      header(self::RESPONSE_401_NOT_AUTHORIZED);
     }
 
     if ($error) {
-      echo($error);
+      echo $error;
     } else {
-      echo('<h1>401 Not Authorized</h1>');
+      echo '<h1>401 Not Authorized</h1>';
     }
 
     exit();
   }
 
-  public function sendNoContent($error = null) {
+  public function sendNoContent($error = null)
+  {
     if (!headers_sent()) {
-      header('HTTP/1.0 204 No Content');
+      header(self::RESPONSE_204_NO_CONTENT);
     }
 
     if ($error) {
-      echo($error);
+      echo $error;
     }
 
     exit();
   }
 
-  public function sendForbidden($error = null) {
+  public function sendForbidden($error = null)
+  {
     if (!headers_sent()) {
-      header('HTTP/1.0 403 Forbidden');
+      header(self::RESPONSE_403_FORBIDDEN);
     }
 
     if ($error) {
-      echo($error);
+      echo $error;
     }
 
     exit();
   }
 
-  public function sendMethodNotAllowed($error = null) {
+  public function sendMethodNotAllowed($error = null)
+  {
     if (!headers_sent()) {
-      header('HTTP/1.0 405 Method Not Allowed');
+      header(self::RESPONSE_405_METHOD_NOT_ALLOWED);
     }
 
     if ($error) {
-      echo($error);
+      echo $error;
     }
 
     exit();
   }
 
-  public function sendCreated() {
+  public function sendCreated()
+  {
     if (!headers_sent()) {
-      header('HTTP/1.0 201 Created');
+      header(self::RESPONSE_201_CREATED);
     }
 
     exit();
   }
 
-  public function sendNotModified() {
+  public function sendNotModified()
+  {
     if (!headers_sent()) {
-      header('HTTP/1.0 304 Not Modified');
+      header(self::RESPONSE_304_NOT_MODIFIED);
     }
 
     exit();
   }
 
-  public function sendInternalServerError() {
+  public function sendInternalServerError()
+  {
     if (!headers_sent()) {
-      header('HTTP/1.0 500 Internal Server Error');
+      header(self::RESPONSE_500_INTERNAL_SERVER_ERROR);
     }
 
     exit();
   }
 
-  public function sendServiceUnavailable() {
+  public function sendServiceUnavailable()
+  {
     if (!headers_sent()) {
-      header('HTTP/1.0 503 Service unavailable');
+      header(self::RESPONSE_503_SERVICE_UNAVAILABLE);
     }
 
     exit();
   }
 
-  public function sendConflict($response = null) {
+  public function sendConflict($response = null)
+  {
     if (!headers_sent()) {
-      header('HTTP/1.0 409 Conflict');
+      header(self::RESPONSE_409_CONFLICT);
     }
 
     if ($response) {
-      echo($response);
+      echo $response;
     }
 
     exit();
   }
 
-  public function send($response = null) {
+  public function send($response = null)
+  {
     $this->sendSuccess($response);
   }
 
-  public function sendSuccess($response = null) {
+  public function sendSuccess($response = null)
+  {
     if (!headers_sent()) {
-      header('Cache-Control: no-cache, no-store, must-revalidate');
-      header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+      header(sprintf(BrConst::HEADER_CACHE_CONTROL, self::CACHE_CONTROL_NO_CACHE));
+      header(sprintf(BrConst::HEADER_EXPIRES, self::EXPIRES_IMMEDIATELY));
 
-      header('HTTP/1.0 200 OK');
+      header(self::RESPONSE_200_OK);
     }
 
     if ($response) {
-      echo($response);
+      echo $response;
     }
 
     exit();
   }
 
-  public function sendCacheHeaders($ageMin = 30) {
-    $etag = md5(@$_SERVER['QUERY_STRING']);
-    $if_none_match = (isset($_SERVER['HTTP_IF_NONE_MATCH']) ? $_SERVER['HTTP_IF_NONE_MATCH'] : false);
+  public function sendCacheHeaders($ageMin = 30)
+  {
+    $etag = hash('sha256', @$_SERVER[BrConst::PHP_SERVER_VAR_QUERY_STRING]);
+    $if_none_match = (isset($_SERVER[BrConst::PHP_SERVER_VAR_HTTP_IF_NONE_MATCH]) ? $_SERVER[BrConst::PHP_SERVER_VAR_HTTP_IF_NONE_MATCH] : false);
 
     if ($if_none_match == $etag) {
-      header("HTTP/1.1 304 Not Modified");
+      header(self::RESPONSE_304_NOT_MODIFIED);
       exit;
     }
 
     $ageSec = $ageMin * 60;
     $expires = gmdate('D, d M Y H:i:s', time() + $ageSec) . ' GMT';
 
-    header('Etag: "' . $etag . '"');
-    header('Expires: ' . $expires);
-    header('Cache-Control: public, max-age=' . $ageSec . ', no-transform');
+    header(sprintf(BrConst::HEADER_ETAG, '"' . $etag . '"'));
+    header(sprintf(BrConst::HEADER_EXPIRES, $expires));
+    header(sprintf(BrConst::HEADER_CACHE_CONTROL, 'public, max-age=' . $ageSec . ', no-transform'));
   }
 
-  public function injectSystemStyles() {
+  public function injectSystemStyles()
+  {
     if (!$this->systemStylesInjected) {
       br()->renderer()->display(dirname(__DIR__) . '/templates/inline.css');
       $this->systemStylesInjected = true;
     }
   }
 
-  public function displayError($messageOrObject, $details = []) {
+  public function displayError($messageOrObject)
+  {
     try {
       if (!headers_sent()) {
-        header('HTTP/1.0 500 Internal Server Error');
+        header(self::RESPONSE_500_INTERNAL_SERVER_ERROR);
       }
 
       $this->injectSystemStyles();
@@ -297,7 +334,7 @@ class BrResponse extends BrObject {
         'error' => [
           'message' => BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, false),
           'timestamp' => br()->getUnifiedTimestamp(),
-          'type' =>  (($messageOrObject instanceof \ErrorException) ? br()->getErrorSeverityName($messageOrObject->getSeverity()) : 'Error'),
+          'type' => (($messageOrObject instanceof \ErrorException) ? br()->getErrorSeverityName($messageOrObject->getSeverity()) : 'Error'),
           'file' => (($messageOrObject instanceof \Throwable) ? $messageOrObject->getFile() . ', line ' . $messageOrObject->getLine() : ''),
           'traceInfo' => (($messageOrObject instanceof \Throwable) ? BrErrorsFormatter::getStackTraceFromException($messageOrObject) : ''),
         ]
@@ -305,8 +342,7 @@ class BrResponse extends BrObject {
 
       br()->renderer()->display(dirname(__DIR__) . '/templates/ErrorMessage.html', $data);
     } catch (\Exception $e) {
-
+      // no luck
     }
   }
-
 }

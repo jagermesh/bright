@@ -9,7 +9,7 @@
 
 /* jshint scripturl:true */
 
-;(function ($, window) {
+;(function($, window) {
 
   window.br = window.br || Object.create({});
 
@@ -21,11 +21,7 @@
     }
   };
 
-  window.br.showMessage = function(message) {
-    if (!br.isEmpty(message)) {
-      alert(message);
-    }
-  };
+  window.br.showMessage = window.br.showError;
 
   window.br.growlError = function(message, image) {
     if (!br.isEmpty(message)) {
@@ -92,7 +88,18 @@
 
   window.br.panic = function(s) {
     $('.container').html('<div class="row"><div class="span12"><div class="alert alert-error"><h4>' + br.trn('Error') + '!</h4><p>' + s + '</p></div></div></div>');
-    throw '';
+    throw new Error('Panic');
+  };
+
+  const hiddenBsModal = function(event, modal, remove, oldActiveElement) {
+    if ($(event.target).is(modal)) {
+      if (remove) {
+        modal.remove();
+      }
+      if (oldActiveElement) {
+        oldActiveElement.focus();
+      }
+    }
   };
 
   window.br.confirm = function(title, message, buttons, callback, options) {
@@ -228,14 +235,7 @@
     });
 
     $(modal).on('hidden.bs.modal', function(event) {
-      if ($(event.target).is(modal)) {
-        if (remove) {
-          modal.remove();
-        }
-        if (oldActiveElement) {
-          oldActiveElement.focus();
-        }
-      }
+      hiddenBsModal(event, modal, remove, oldActiveElement);
     });
 
     $(modal).modal('show');
@@ -298,12 +298,7 @@
     });
 
     $(modal).on('hidden.bs.modal', function(event) {
-      if ($(event.target).is(modal)) {
-        modal.remove();
-        if (oldActiveElement) {
-          oldActiveElement.focus();
-        }
-      }
+      hiddenBsModal(event, modal, true, oldActiveElement);
     });
 
     $(modal).modal('show');
@@ -365,19 +360,14 @@
     $(modal).on('hide.bs.modal', function(event) {
       if ($(event.target).is(modal)) {
         if (callback) {
-          const dontAsk = $('input[name=showDontAskMeAgain]', $(modal)).is(':checked');
+          const dontAsk = $('input[name="showDontAskMeAgain"]', $(modal)).is(':checked');
           callback.call(this, dontAsk);
         }
       }
     });
 
     $(modal).on('hidden.bs.modal', function(event) {
-      if ($(event.target).is(modal)) {
-        modal.remove();
-        if (oldActiveElement) {
-          oldActiveElement.focus();
-        }
-      }
+      hiddenBsModal(event, modal, true, oldActiveElement);
     });
 
     $(modal).modal('show');
@@ -392,7 +382,7 @@
     options.cancelTitle = options.cancelTitle || br.trn('Cancel');
     options.okTitle = options.okTitle || br.trn('Ok');
 
-    let inputs = Object.create({});
+    let inputs = {};
 
     if (br.isObject(fields)) {
       inputs = fields;
@@ -416,7 +406,7 @@
                         <div class="modal-body" style="overflow-y:auto;">`;
     for(let inputLabel in inputs) {
       if (br.isObject(inputs[inputLabel])) {
-        let inputId    = (br.isEmpty(inputs[inputLabel].id) ? '' : inputs[inputLabel].id);
+        let inputId = (br.isEmpty(inputs[inputLabel].id) ? '' : inputs[inputLabel].id);
         let inputClass = (br.isEmpty(inputs[inputLabel]['class']) ? '' : inputs[inputLabel]['class']) ;
         let inputValue = inputs[inputLabel].value;
         template += `<label>${inputLabel}</label>
@@ -460,14 +450,14 @@
           let results = [];
           let ok = true;
           let notOkField;
-          let inputs = [];
+          let inputs0 = [];
           $(this).closest('div.modal').find('input[type=text]').each(function() {
             if ($(this).hasClass('required') && br.isEmpty($(this).val())) {
               ok = false;
               notOkField = $(this);
             }
             results.push($(this).val().trim());
-            inputs.push($(this));
+            inputs0.push($(this));
           });
           if (ok) {
             if (options.onValidate) {
@@ -476,8 +466,8 @@
               } catch (e) {
                 ok = false;
                 br.growlError(e);
-                if (inputs.length == 1) {
-                  inputs[0].focus();
+                if (inputs0.length == 1) {
+                  inputs0[0].focus();
                 }
               }
             }
@@ -529,14 +519,7 @@
     });
 
     $(modal).on('hidden.bs.modal', function(event) {
-      if ($(event.target).is(modal)) {
-        if (remove) {
-          modal.remove();
-        }
-        if (oldActiveElement) {
-          oldActiveElement.focus();
-        }
-      }
+      hiddenBsModal(event, modal, remove, oldActiveElement);
     });
 
     $(modal).modal('show');
@@ -545,13 +528,11 @@
 
   };
 
-  let noTemplateEngine = false;
-
   window.br.compile = function(template) {
     if (template) {
       if (typeof window.Mustache == 'undefined') {
         if (typeof window.Handlebars == 'undefined') {
-          throw 'Template engine not linked';
+          throw new Error('Template engine not linked');
         } else {
           return Handlebars.compile(template);
         }
@@ -559,7 +540,7 @@
         return function(data) { return Mustache.render(template, data); };
       }
     } else {
-      throw 'Empty template';
+      throw new Error('Empty template');
     }
   };
 
@@ -568,7 +549,7 @@
     if (template) {
       if (typeof window.Mustache == 'undefined') {
         if (typeof window.Handlebars == 'undefined') {
-          throw 'Template engine not linked';
+          throw new Error('Template engine not linked');
         } else {
           let t = Handlebars.compile(template);
           return t(data);
@@ -656,8 +637,6 @@
       $('#br_progressStage').text(progressBar_Progress + ' of ' + progressBar_Total);
     }
   }
-
-  let backDropCounter = 0;
 
   function initBackDrop() {
     if ($('#br_modalBackDrop').length === 0) {
@@ -950,14 +929,11 @@
           }
         }
         if (!fromBrDataCombo) {
-          // if (!br.isEmpty(element.val())) {
-            if (element.data('select2')) {
-              if ((element.attr('multiple') != 'multiple')) {
-                // br.log(element);
-                element.select2('val', element.val());
-              }
+          if (element.data('select2')) {
+            if ((element.attr('multiple') != 'multiple')) {
+              element.select2('val', element.val());
             }
-          // }
+          }
         }
       }
     });
@@ -976,7 +952,7 @@
 
   function enchanceBootstrap() {
 
-    const tabbableElements = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, *[tabindex], *[contenteditable]';
+    // const tabbableElements = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, *[tabindex], *[contenteditable]';
 
     function disableTabbingOnPage(except) {
       // $.each($(tabbableElements), function (idx, item) {
@@ -1007,9 +983,7 @@
     }
 
     function configureAutosize(control) {
-      if (control.data('brAutoSizeConfigured')) {
-
-      } else {
+      if (!control.data('brAutoSizeConfigured')) {
         control.data('brAutoSizeConfigured', 1);
         if (br.bootstrapVersion == 2) {
           control.css('top', '20px');
@@ -1162,7 +1136,9 @@
     }
 
     if (br.bootstrapVersion == 2) {
-      $.fn.modal.Constructor.prototype.enforceFocus = function () {};
+      $.fn.modal.Constructor.prototype.enforceFocus = function () {
+        // fakse
+      };
     }
 
     $(document).ajaxStart(function() {

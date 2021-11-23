@@ -7,9 +7,9 @@
  *
  */
 
-;(function ($, window) {
+;(function($, window) {
 
-  window.br = window.br || Object.create({});
+  window.br = window.br || {};
 
   function BrWebCamera() {
 

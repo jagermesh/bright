@@ -10,8 +10,8 @@
 
 namespace Bright;
 
-class BrGenericDBProvider extends BrObject {
-
+class BrGenericDBProvider extends BrObject
+{
   const DATA_TYPE_DATE     =   1;
   const DATA_TYPE_DATETIME =   2;
   const DATA_TYPE_TIME     =   4;
@@ -22,37 +22,45 @@ class BrGenericDBProvider extends BrObject {
 
   private $dataBaseName;
 
-  public function setDataBaseName($name) {
+  public function setDataBaseName($name)
+  {
     $this->dataBaseName = $name;
   }
 
-  public function getDataBaseName() {
-    $this->connection();
+  public function getDataBaseName()
+  {
+    $this->establishConnection();
+
     return $this->dataBaseName;
   }
 
-  public function now() {
+  public function now()
+  {
     return $this->toDateTime(time());
   }
 
-  public function today() {
+  public function today()
+  {
     return $this->toDate(time());
   }
 
-  public function connection() {
-
+  public function establishConnection()
+  {
+    // must be implemented in descendant class
   }
 
-  public function startTransaction() {
-
+  public function startTransaction()
+  {
+    // must be implemented in descendant class
   }
 
-  public function commitTransaction() {
-
+  public function commitTransaction()
+  {
+    // must be implemented in descendant class
   }
 
-  public function rollbackTransaction() {
-
+  public function rollbackTransaction()
+  {
+    // must be implemented in descendant class
   }
-
 }

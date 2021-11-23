@@ -7,31 +7,25 @@
  *
  */
 
-;(function ($, window) {
+;(function($, window) {
 
   window.br = window.br || Object.create({});
 
   window.br.dataHelpers = window.br.dataHelpers || Object.create({});
 
   window.br.dataHelpers.before = function(event, dataControls, callback) {
-
     for(let i = 0, length = dataControls.length; i < length; i++) {
       dataControls[i].before(event, callback);
     }
-
   };
 
   window.br.dataHelpers.on = function(event, dataControls, callback) {
-
     for(let i = 0, length = dataControls.length; i < length; i++) {
       dataControls[i].on(event, callback);
     }
-
   };
 
-
   function execute(funcToExecute, paramsQueue, extraParams, resolve, reject) {
-
     let functionsQueue = [];
 
     while ((functionsQueue.length <= extraParams.workers) && (paramsQueue.length > 0)) {
@@ -40,36 +34,32 @@
       }));
     }
 
-    Promise.all(functionsQueue)
-           .then(function(data) {
-             if (paramsQueue.length > 0) {
-               execute(funcToExecute, paramsQueue, extraParams, resolve, reject);
-             } else {
-               br.stepProgress();
-               if (!extraParams.doNotHideProgress) {
-                 br.hideProgress();
-               }
-               resolve(data);
-             }
-           })
-           .catch(function(data) {
-             if (!extraParams.doNotHideProgressOnError) {
-               br.hideProgress();
-             }
-             reject(data);
-           });
-
+    Promise.all(functionsQueue).then(function(data) {
+      if (paramsQueue.length > 0) {
+        execute(funcToExecute, paramsQueue, extraParams, resolve, reject);
+      } else {
+        br.stepProgress();
+        if (!extraParams.doNotHideProgress) {
+          br.hideProgress();
+        }
+        resolve(data);
+      }
+    })
+    .catch(function(data) {
+      if (!extraParams.doNotHideProgressOnError) {
+        br.hideProgress();
+      }
+      reject(data);
+    });
   }
 
   window.br.dataHelpers.execute = function(funcToExecute, funcToGetTotal, funcToGetParams, extraParams) {
-
-    extraParams         = extraParams         || {};
-    extraParams.title   = extraParams.title   || '';
-    extraParams.workers = extraParams.workers || 10;
+    extraParams = Object.assign({
+      title: '',
+      workers: 10
+    }, extraParams);
 
     return new Promise(function(resolve, reject) {
-      let params = [];
-      let functionsForExecute = [];
       br.startProgress(funcToGetTotal(), extraParams.title);
       window.setTimeout(function() {
         let paramsQueue = [];
@@ -84,11 +74,9 @@
         execute(funcToExecute, paramsQueue, extraParams, resolve, reject);
       });
     });
-
   };
 
   window.br.dataHelpers.load = window.br.dataHelpers.select = function(dataControls, callback) {
-
     let promises = [];
 
     for(let i = 0, length = dataControls.length; i < length; i++) {

@@ -12,10 +12,6 @@ class BrPhpQueryTest extends \Codeception\Test\Unit
       require_once(dirname(dirname(__DIR__)) . '/Bright.php');
   }
 
-  protected function _after()
-  {
-  }
-
   // tests
   public function testPhpQuery()
   {
@@ -62,7 +58,7 @@ class BrPhpQueryTest extends \Codeception\Test\Unit
 
     foreach($doc->find('*') as $el) {
       pq($el)->css('position', '');
-    };
+    }
 
     $maxFontSize = 10;
 
@@ -86,6 +82,5 @@ class BrPhpQueryTest extends \Codeception\Test\Unit
     $html = trim(preg_replace('/[\n ]/', '', $doc->html()));
 
     $this->assertEquals($fixture, $html);
-
   }
 }

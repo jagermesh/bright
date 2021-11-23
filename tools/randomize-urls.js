@@ -29,12 +29,13 @@
       resources.push({ fullUrl: match[2], relativeUrl: match[3] });
       match = regExp.exec(content);
     }
-    resources.map(function(resource) {
-      let filePath = resource.relativeUrl.replace('{/}', basePath)
-                                         .replace('[[/]]', basePath)
-                                         .replace('{request.host}', '')
-                                         .replace('{br}',  brightPath)
-                                         .replace('[[br]]',  brightPath);
+    resources.forEach(function(resource) {
+      let filePath = resource.relativeUrl.
+        replace('{/}', basePath).
+        replace('[[/]]', basePath).
+        replace('{request.host}', '').
+        replace('{br}',  brightPath).
+        replace('[[br]]',  brightPath);
 
       let files = [];
 
@@ -47,21 +48,21 @@
       }
 
       if (files.length > 0) {
-        let fileContent = files.map(function(filePath) {
+        let fileContent = files.map(function(filePath0) {
           try {
-            return fs.readFileSync(filePath).toString();
+            return fs.readFileSync(filePath0).toString();
           } catch (error) {
             console.log(fileName + ': Can not resolve file path ' + resource.relativeUrl);
             process.exit(1);
           }
         }).join('');
 
-        const shaHash = crypto.createHash('sha1').setEncoding('hex').update(fileContent, 'utf8').digest('hex');
+        const shaHash = crypto.createHash('sha256').setEncoding('hex').update(fileContent, 'utf8').digest('hex');
         const size = Buffer.from(fileContent).length;
         const hash = shaHash.substring(0, 6);
 
-        let match = /[?].*$/.exec(resource.fullUrl);
-        let searchParams = new url.URLSearchParams(match ? match[0] : '');
+        let match0 = /[?].*$/.exec(resource.fullUrl);
+        let searchParams = new url.URLSearchParams(match0 ? match0[0] : '');
         searchParams.set('v', `${size}${hash}`);
         const constructedUrl = resource.relativeUrl + '?' + searchParams.toString();
         content = content.replaceAll(resource.fullUrl, constructedUrl);

@@ -10,46 +10,53 @@
 
 namespace Bright;
 
-class BrRedisCacheProvider extends BrGenericCacheProvider {
-
+class BrRedisCacheProvider extends BrGenericCacheProvider
+{
   const DEFAULT_HOST_NAME = 'localhost';
   const DEFAULT_PORT = 6379;
 
   private $redis;
 
-  public function __construct($cfg = []) {
-    parent::__construct($cfg);
+  /**
+   * @throws BrRedisCacheProviderException
+   * @throws BrException
+   */
+  public function __construct($settings = [])
+  {
+    parent::__construct($settings);
 
-    $hostname = br($cfg, 'hostname', self::DEFAULT_HOST_NAME);
-    $port = br($cfg, 'port', self::DEFAULT_PORT);
+    $hostname = br($settings, 'hostname', self::DEFAULT_HOST_NAME);
+    $port = br($settings, 'port', self::DEFAULT_PORT);
 
-    if (br($cfg, 'lifeTime')) {
-      $this->setCacheLifeTime($cfg['lifeTime']);
+    if (br($settings, 'lifeTime')) {
+      $this->setCacheLifeTime($settings['lifeTime']);
     }
 
     $this->redis = new \Redis();
 
     if (!@$this->redis->connect($hostname, $port)) {
-      throw new \Exception('Can not connect to Redis server ' . $hostname . ':' . $port);
+      throw new BrRedisCacheProviderException('Can not connect to Redis server ' . $hostname . ':' . $port);
     }
-    if (br($cfg, 'password')) {
-      if (!@$this->redis->auth($cfg['password'])) {
-        throw new \Exception('Can not authenticate with Redis server ' . $hostname . ':' . $port);
+    if (br($settings, 'password')) {
+      if (!@$this->redis->auth($settings['password'])) {
+        throw new BrRedisCacheProviderException('Can not authenticate with Redis server ' . $hostname . ':' . $port);
       }
     }
-    if (br($cfg, 'namePrefix')) {
-      $this->setDefaultNamePrefix($cfg['namePrefix'] . ':');
+    if (br($settings, 'namePrefix')) {
+      $this->setDefaultNamePrefix($settings['namePrefix'] . ':');
     }
     if (!@$this->redis->setOption(\Redis::OPT_PREFIX, $this->getDefaultNamePrefix())) {
-      throw new \Exception('Can not change Redis prefix');
+      throw new BrRedisCacheProviderException('Can not change Redis prefix');
     }
   }
 
-  public static function isSupported() {
+  public static function isSupported(): bool
+  {
     return class_exists('Redis');
   }
 
-  public function reset() {
+  public function reset()
+  {
     try {
       return @$this->redis->flushAll();
     } catch (\Exception $e) {
@@ -57,7 +64,8 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
     }
   }
 
-  public function exists($name) {
+  public function exists($name): bool
+  {
     try {
       return @$this->redis->exists($name);
     } catch (\Exception $e) {
@@ -65,7 +73,8 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
     }
   }
 
-  public function get($name, $default = null, $saveDefault = false) {
+  public function get($name, $default = null, $saveDefault = false)
+  {
     try {
       $result = @$this->redis->get($name);
       if ($result === false) {
@@ -82,7 +91,8 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
     }
   }
 
-  public function getEx($name, $default = null, $saveDefault = false) {
+  public function getEx($name, $default = null, $saveDefault = false)
+  {
     try {
       $result = @$this->redis->get($name);
       if ($result === false) {
@@ -96,7 +106,8 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
     }
   }
 
-  public function getKeys($pattern) {
+  public function getKeys($pattern)
+  {
     try {
       if ($result = @$this->redis->keys($pattern)) {
         foreach ($result as &$res) {
@@ -111,11 +122,12 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
     }
   }
 
-  public function set($name, $value, $cacheLifeTime = null) {
+  public function set($name, $value, $lifeTime = null)
+  {
     try {
-      $cacheLifeTime = $cacheLifeTime ? $cacheLifeTime : $this->getCacheLifeTime();
+      $lifeTime = $lifeTime ? $lifeTime : $this->getCacheLifeTime();
       $packed = json_encode($value);
-      if (@$this->redis->set($name, $packed, $cacheLifeTime)) {
+      if (@$this->redis->set($name, $packed, $lifeTime)) {
         return $value;
       } else {
         return false;
@@ -125,7 +137,8 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
     }
   }
 
-  public function remove($name) {
+  public function remove($name)
+  {
     try {
       return @$this->redis->del($name);
     } catch (\Exception $e) {
@@ -133,8 +146,8 @@ class BrRedisCacheProvider extends BrGenericCacheProvider {
     }
   }
 
-  public function getService() {
+  public function getService()
+  {
     return $this->redis;
   }
-
 }

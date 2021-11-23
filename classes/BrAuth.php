@@ -10,11 +10,10 @@
 
 namespace Bright;
 
-class BrAuth extends BrObject {
-
-  static $instances = [];
-
-  public static function getInstance($name = null) {
+class BrAuth extends BrObject
+{
+  public static function getInstance($name = null)
+  {
     $name = $name ? $name : 'br/auth';
 
     if (is_array($name)) {
@@ -24,7 +23,7 @@ class BrAuth extends BrObject {
     }
 
     if ($config && br($config, 'type')) {
-      $hash = md5(serialize($config));
+      $hash = hash('sha256', serialize($config));
       if (!array_key_exists($hash, self::$instances)) {
         self::$instances[$hash]['initialized'] = true;
         self::$instances[$hash]['provider'] = null;
@@ -42,5 +41,4 @@ class BrAuth extends BrObject {
       return null;
     }
   }
-
 }

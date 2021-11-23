@@ -7,7 +7,7 @@
  *
  */
 
-;(function ($, window) {
+;(function($, window) {
 
   window.br = window.br || Object.create({});
 
@@ -16,7 +16,7 @@
   const menuItemTemplate = br.compile('<li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>');
   const dropDownTemplate = '<div class="dropdown br-ajax-dropdown" style="position:absolute;z-index:99999;"><a style="display:none;" href="javascript:;" role="button" data-toggle="dropdown" class="dropdown-toggle br-ex-action-change-menu-menu" style="cursor:pointer;"><span>{{value}}</span> <b class="caret"></b></a><ul class="dropdown-menu" role="menu" style="overflow:auto;"></ul></div>';
 
-  function showDropDownMenu(invoker, response, rowid, menuElement, dataSource, fieldName, options) {
+  function showDropDownMenu(invoker, items, rowid, menuElement, dataSource, fieldName, options) {
     const dropDown = $(dropDownTemplate);
     const dropDownList = dropDown.find('ul');
     const dropDownMenu = dropDown.find('.br-ex-action-change-menu-menu');
@@ -46,25 +46,32 @@
     if (options.onBeforeRenderMenu) {
       options.onBeforeRenderMenu.call(dropDownList, menuItemTemplateStr);
     }
-    for(let i = 0, length = response.length; i < length; i++) {
-      dropDownList.append(menuItemTemplate({ id: response[i][options.keyField], name: response[i][options.nameField] }));
+    for(let i = 0, length = items.length; i < length; i++) {
+      dropDownList.append(menuItemTemplate({
+        id: items[i][options.keyField],
+        name: items[i][options.nameField]
+      }));
     }
-    dropDown.css('left', invoker.offset().left + 'px');
     const invokerItem = invoker.find('.br-ex-action-change-menu-menu');
     const scr = $(window).scrollTop();
+    let leftOffset = invoker.offset().left;
     let t = (invokerItem.offset().top + invokerItem.height());
     dropDown.css('top', t + 'px');
     t = t - scr;
     let h = Math.max($(window).height() - t - 20, 100);
     dropDownList.css('max-height', h + 'px');
     $('body').append(dropDown);
+    if (options.dropDownPosition === 'left') {
+      leftOffset -= dropDownList.width();
+    }
+    dropDown.css('left', `${leftOffset}px`);
     dropDownMenu.dropdown('toggle');
   }
 
   function internalhandleClick(el, invoker, choicesDataSource, dataSource, fieldName, options) {
     const rowid = el.closest('[data-rowid]').attr('data-rowid');
     const menuElement = invoker.find('span.br-ex-current-value');
-    let filter = { __targetRowid: rowid };
+    let filter = { targetRowid: rowid };
     if (options.onSelect) {
       options.onSelect.call(choicesDataSource, filter, rowid, $(el));
     }
@@ -87,9 +94,7 @@
 
   function setupControl(el, doClick, choicesDataSource, dataSource, fieldName, options) {
     const $this = el;
-    if ($this.data('BrExChangeMenu')) {
-
-    } else {
+    if (!$this.data('BrExChangeMenu')) {
       $this.data('BrExChangeMenu', true);
       let value = $this.text().trim();
       if (!options.hideHint) {
@@ -112,17 +117,30 @@
   }
 
   function BrExChangeMenu(selector, choicesDataSource, dataSource, fieldName, options) {
-    options = options || Object.create({});
-    options.keyField = options.keyField || 'id';
-    options.nameField = options.nameField || 'name';
+    let settings = Object.assign({
+      keyField: 'id',
+      nameField: 'name',
+      sticky: true,
+    }, options);
 
-    $(selector).each(function() {
-      setupControl($(this), false, choicesDataSource, dataSource, fieldName, options);
-    });
+    if (settings.container) {
+      $(settings.container).find(selector).each(function() {
+        setupControl($(this), false, choicesDataSource, dataSource, fieldName, settings);
+      });
+      $(settings.container).on('click', selector, function() {
+        setupControl($(this), true, choicesDataSource, dataSource, fieldName, settings);
+      });
+    } else {
+      $(selector).each(function() {
+        setupControl($(this), false, choicesDataSource, dataSource, fieldName, settings);
+      });
 
-    $(document).on('click', selector, function() {
-      setupControl($(this), true, choicesDataSource, dataSource, fieldName, options);
-    });
+      if (settings.sticky) {
+        $(document).on('click', selector, function() {
+          setupControl($(this), true, choicesDataSource, dataSource, fieldName, settings);
+        });
+      }
+    }
   }
 
   window.br.dropDownMenu = function (selector, choicesDataSource, dataSource, fieldName, options) {

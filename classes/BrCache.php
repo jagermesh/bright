@@ -10,12 +10,10 @@
 
 namespace Bright;
 
-class BrCache extends BrObject {
-
-  static $instances = [];
-  static $reconsider = true;
-
-  public static function getInstance($name = null) {
+class BrCache extends BrObject
+{
+  public static function getInstance($name = null)
+  {
     $name = $name ? $name : 'default';
     if (!array_key_exists($name, self::$instances)) {
       $cacheConfig = [ 'engine' => $name ];
@@ -34,11 +32,11 @@ class BrCache extends BrObject {
         if (self::isSupported($cacheConfig['engine'])) {
           $instance = self::createInstance($cacheConfig['engine'], $cacheConfig);
         } else {
-          throw new \Exception($cacheConfig['engine'] . ' cache is not supported');
+          throw new BrCacheException($cacheConfig['engine'] . ' cache is not supported');
         }
       } catch (\Exception $e) {
         if (br($cacheConfig, 'required')) {
-          throw new \Exception('Can not initialize ' . $cacheConfig['engine'] . ' caching engine: ' . $e->getMessage());
+          throw new BrCacheException('Can not initialize ' . $cacheConfig['engine'] . ' caching engine: ' . $e->getMessage());
         } else {
           br()->log()->message('Can not initialize ' . $cacheConfig['engine'] . ' caching engine: ' . $e->getMessage() . '. Switching to memory caching.');
           $instance = self::createInstance('memory');
@@ -49,7 +47,8 @@ class BrCache extends BrObject {
     return self::$instances[$name];
   }
 
-  private static function createInstance($engine = null, $cacheConfig = []) {
+  private static function createInstance($engine = null, $cacheConfig = [])
+  {
     $engine = $engine ? $engine : 'memory';
     switch($engine) {
       case 'memcache':
@@ -68,7 +67,8 @@ class BrCache extends BrObject {
     }
   }
 
-  public static function isSupported($engine = null) {
+  public static function isSupported($engine = null)
+  {
     $engine = $engine ? $engine : 'memory';
     switch ($engine) {
       case 'memcache':
@@ -84,5 +84,4 @@ class BrCache extends BrObject {
         break;
     }
   }
-
 }

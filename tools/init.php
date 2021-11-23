@@ -2,8 +2,8 @@
 
 require_once(dirname(__DIR__) . '/Bright.php');
 
-function help() {
-
+function help()
+{
   global $argv;
 
   br()->log('Bright project creation tool');
@@ -13,15 +13,13 @@ function help() {
   br()->log('');
   br()->log(br()->console()->green('Templates:'));
 
-  br()->fs()->iterateDir(__DIR__ . '/project-templates/', function($file) {
-
+  br()->fs()->iterateDir(__DIR__ . '/project-templates/', function ($file) {
     if ($file->isDir()) {
       br()->log('  ' . $file->name());
     }
   });
 
   br()->log('');
-
 }
 
 if ($templateName = @$argv[1]) {
@@ -34,7 +32,7 @@ if ($templateName = @$argv[1]) {
   $projectRoot = dirname(dirname(dirname(dirname(__DIR__))));
   try {
     br()->log()->message('Checking root folder...');
-    br()->fs()->iteratePath($templatePath, function($file) use ($templatePath, $projectRoot) {
+    br()->fs()->iteratePath($templatePath, function ($file) use ($templatePath, $projectRoot) {
       $dst = $projectRoot . str_replace($templatePath, '', $file->nameWithPath());
       if ($file->isFile() && ($file->name() != '.DS_Store') && ($file->name() != '.description') && ($file->name() != 'composer.json')) {
         if (file_exists($dst)) {
@@ -43,7 +41,7 @@ if ($templateName = @$argv[1]) {
       }
     });
     br()->log()->message('Copying project files..');
-    br()->fs()->iteratePath($templatePath, function($file) use ($templatePath, $projectRoot) {
+    br()->fs()->iteratePath($templatePath, function ($file) use ($templatePath, $projectRoot) {
       $dst = $projectRoot . str_replace($templatePath, '', $file->nameWithPath());
       if ($file->isDir()) {
         br()->fs()->makeDir($dst);

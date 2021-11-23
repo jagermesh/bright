@@ -7,7 +7,7 @@
  *
  */
 
-;(function ($, window) {
+;(function($, window) {
 
   window.br = window.br || Object.create({});
 
@@ -22,8 +22,6 @@
     let tbody = $('tbody', table);
 
     let tableCopy;
-    let theadCopy;
-    let tbodyCopy;
     let theadColsCopy;
     let tbodyColsCopy;
 
@@ -110,6 +108,12 @@
 
     }
 
+    const colsCopy = function(el) {
+      el.style.boxSizing = 'border-box';
+      el.style.minWidth = '';
+      el.style.maxWidth = '';
+    };
+
     function createCopy() {
 
       tableCopy = table.clone();
@@ -124,15 +128,11 @@
       tbodyCopy.style.overflow = '';
 
       theadColsCopy.each(function(idx) {
-        this.style.boxSizing = 'border-box';
-        this.style.minWidth = '';
-        this.style.maxWidth = '';
+        colsCopy(this);
       });
 
       tbodyColsCopy.each(function(idx) {
-        this.style.boxSizing = 'border-box';
-        this.style.minWidth = '';
-        this.style.maxWidth = '';
+        colsCopy(this);
       });
 
       calcDiv.html('');

@@ -12,10 +12,6 @@ class BrFormatDateTest extends \Codeception\Test\Unit
       require_once(dirname(dirname(__DIR__)) . '/Bright.php');
   }
 
-  protected function _after()
-  {
-  }
-
   // tests
   public function testArray()
   {
@@ -29,6 +25,5 @@ class BrFormatDateTest extends \Codeception\Test\Unit
     $this->assertEquals('10:00 PM', br()->formatDate('h:i A', '10:00pm'));
     $this->assertEquals('10:00 PM', br()->formatDate('h:i A', ' 10:00pm '));
     $this->assertEquals('22:00:00', br()->formatDate('H:i:s', ' 10:00pm '));
-
   }
 }
