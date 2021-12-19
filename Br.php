@@ -8,7 +8,7 @@
  * @package Bright Core
  */
 
-require_once(__DIR__ . '/BrightAutoload.php');
+require_once(dirname(dirname(__DIR__)) . '/autoload.php');
 
 /**
  *
