@@ -11,3 +11,4 @@
 require_once(__DIR__ . '/BrightInit.php');
 
 $app = new \Bright\BrApplication();
+$app->run();

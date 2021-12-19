@@ -21,7 +21,10 @@ class BrApplication extends BrObject
     br()->log()->message('Application started', [], BrConst::LOG_EVENT_SNAPSHOT);
 
     register_shutdown_function([&$this, 'captureShutdown']);
+  }
 
+  public function run()
+  {
     if (!br()->isConsoleMode()) {
       if (br()->request()->param(BrConst::REST_OPTION_LOGIN_TOKEN)) {
         br()->auth()->logout();
@@ -67,7 +70,6 @@ class BrApplication extends BrObject
       if ($scriptName != self::DEFAULT_SCRIPT_FILE) {
         $targetScripts[] = br()->atAppPath(self::DEFAULT_SCRIPT_FILE);
       }
-
       foreach ($targetScripts as $script) {
         if (br()->fs()->fileExists($script)) {
           br()->log()->message('Controller: ' . $script);

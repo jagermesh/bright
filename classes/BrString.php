@@ -471,7 +471,7 @@ class BrString extends BrGenericDataType
   {
     $result = '';
     $lines = preg_split('/[\n\r]/', $this->value);
-    foreach($lines as $line) {
+    foreach ($lines as $line) {
       if (trim($line)) {
         $result .= trim($line) . ' ';
       }

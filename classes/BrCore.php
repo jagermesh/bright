@@ -1308,7 +1308,7 @@ class BrCore extends BrObject
       $result = substr($s1, strlen($s2));
     } else {
       $result = '';
-      for($i = 0; $i < min(strlen($s1), strlen($s2)); $i++) {
+      for ($i = 0; $i < min(strlen($s1), strlen($s2)); $i++) {
         if ($s1[$i] != $s2[$i]) {
           $result = substr($s1, $i);
           break;
@@ -1495,7 +1495,7 @@ class BrCore extends BrObject
     $log = BrLog::getInstance();
 
     $args = func_get_args();
-    foreach($args as $var) {
+    foreach ($args as $var) {
       $log->message($var);
     }
 
@@ -1562,6 +1562,11 @@ class BrCore extends BrObject
   public function db($name = null)
   {
     return call_user_func_array(array('Bright\BrDataBase', 'getInstance'), func_get_args());
+  }
+
+  public function renderer($name = null)
+  {
+    return call_user_func_array(array('Bright\BrRenderer', 'getInstance'), func_get_args());
   }
 
   /**
@@ -1733,13 +1738,11 @@ class BrCore extends BrObject
             $repl = "'".addslashes($a)."'";
           }
           break;
-        } else
-        if ($type === '') {
+        } elseif ($type === '') {
           if (is_array($a)) {
             $error = $errmsg = "NOT_A_SCALAR_PLACEHOLDER_$key";
             break;
-          } else
-          if (strlen($a) === 0) {
+          } elseif (strlen($a) === 0) {
             $repl = "null";
           } else {
             $tmpVal = str_replace(',', '.', $a);
@@ -1762,8 +1765,7 @@ class BrCore extends BrObject
               $repl .= ($repl === ''? "" : ",") . (br($tmpVal)->isNumeric() ? $tmpVal : "'" . addslashes($v) . "'");
             }
           }
-        } else
-        if ($type === '%') {
+        } elseif ($type === '%') {
           $lerror = array();
           foreach ($a as $k => $v) {
             if (!is_string($k)) {
@@ -1866,7 +1868,7 @@ class BrCore extends BrObject
     $result = array();
 
     if (is_array($argv)) {
-      for($i = 1; $i < count($argv); $i++) {
+      for ($i = 1; $i < count($argv); $i++) {
         $result[] = $argv[$i];
       }
     }
@@ -1948,9 +1950,9 @@ class BrCore extends BrObject
     $message = new \Swift_Message();
 
     if ($emails = br($emails)->split()) {
-      foreach($emails as $email) {
+      foreach ($emails as $email) {
         $emailsArray = br(trim($email))->split();
-        foreach($emailsArray as $oneEMail) {
+        foreach ($emailsArray as $oneEMail) {
           $message->addTo($oneEMail);
         }
       }
@@ -1965,14 +1967,14 @@ class BrCore extends BrObject
 
     if (br($params, 'cc')) {
       $cc = br($params['cc'])->split();
-      foreach($cc as $email) {
+      foreach ($cc as $email) {
         $message->addCc($email);
       }
     }
 
     if (br($params, 'bcc')) {
       $bcc = br($params['bcc'])->split();
-      foreach($bcc as $email) {
+      foreach ($bcc as $email) {
         $message->addBCC($email);
       }
     }
@@ -1980,13 +1982,13 @@ class BrCore extends BrObject
     $headers = $message->getHeaders();
 
     if (br($params, 'customHeaders')) {
-      foreach($params['customHeaders'] as $customHeader) {
+      foreach ($params['customHeaders'] as $customHeader) {
         $headers->addTextHeader($customHeader);
       }
     }
 
     if (br($params, 'attachments')) {
-      foreach($params['attachments'] as $attachment) {
+      foreach ($params['attachments'] as $attachment) {
         $message->attach(\Swift_Attachment::fromPath($attachment['path'])->setFilename($attachment['name']));
       }
     }
@@ -2005,7 +2007,7 @@ class BrCore extends BrObject
       $callback($message);
     }
 
-    switch(br($params, 'mailer', br()->config()->get('br/mail/mailer'))) {
+    switch (br($params, 'mailer', br()->config()->get('br/mail/mailer'))) {
       case 'smtp':
         $transport = new \Swift_SmtpTransport();
         if ($hostname = br($params, 'hostname', br()->config()->get('br/mail/SMTP/hostname'))) {
@@ -2056,7 +2058,7 @@ class BrCore extends BrObject
   public function stripSlashes(&$element)
   {
     if (is_array($element)) {
-      foreach($element as $key => $value) {
+      foreach ($element as $key => $value) {
         $this->stripSlashes($element[$key]);
       }
     } else {
@@ -2088,8 +2090,7 @@ class BrCore extends BrObject
     $secs = $mins = $hrs = 0;
     if ($duration < 60) {
       $secs = $duration;
-    } else
-    if ($duration < 60*60) {
+    } elseif ($duration < 60*60) {
       $mins = floor($duration/60);
       $secs = $duration - $mins*60;
     } else {
@@ -2207,7 +2208,7 @@ class BrCore extends BrObject
 
   public function captureShutdown()
   {
-    foreach($this->tempFiles as $fileName) {
+    foreach ($this->tempFiles as $fileName) {
       @unlink($fileName);
     }
   }
@@ -2241,7 +2242,7 @@ class BrCore extends BrObject
     $str = 'function (';
     $r = new \ReflectionFunction($c);
     $params = array();
-    foreach($r->getParameters() as $p) {
+    foreach ($r->getParameters() as $p) {
       $s = '';
       if ($p->isArray()) {
         $s .= 'array ';
@@ -2260,7 +2261,7 @@ class BrCore extends BrObject
     $str .= implode(', ', $params);
     $str .= '){' . PHP_EOL;
     $lines = file($r->getFileName());
-    for($l = $r->getStartLine(); $l < $r->getEndLine(); $l++) {
+    for ($l = $r->getStartLine(); $l < $r->getEndLine(); $l++) {
       $str .= $lines[$l];
     }
     return $str;
@@ -2299,8 +2300,7 @@ class BrCore extends BrObject
     if ($retval) {
       if ($err) {
         $error = $err;
-      } else
-      if ($log) {
+      } elseif ($log) {
         $error = $log;
       } else {
         $error = 'Can not run shell command ' . $cmd;

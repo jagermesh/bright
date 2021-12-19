@@ -27,7 +27,7 @@ class BrAuth extends BrObject
       if (!array_key_exists($hash, self::$instances)) {
         self::$instances[$hash]['initialized'] = true;
         self::$instances[$hash]['provider'] = null;
-        switch($config['type']) {
+        switch ($config['type']) {
           case 'DBUsers':
             self::$instances[$hash]['provider'] = new BrDBUsersAuthProvider($config);
             break;

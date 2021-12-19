@@ -56,9 +56,9 @@ class BrOS extends BrObject
       $masks = [ $masks ];
     }
     $output = $this->execute('ps ax 2>&1');
-    foreach($masks as $mask) {
+    foreach ($masks as $mask) {
       $mask = trim($mask);
-      foreach($output as $line) {
+      foreach ($output as $line) {
         $line = trim($line);
         if ($regexp) {
           $found = (preg_match($mask, $line) > 0);

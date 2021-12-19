@@ -18,7 +18,7 @@ if ($tableName = br($argv, 1)) {
     require_once($configFile);
     if (br()->db()) {
       $fields = br()->db()->getTableStructure($tableName);
-      foreach($fields as $name => $desc) {
+      foreach ($fields as $name => $desc) {
         $desc['fieldName'] = $name;
         $data['fields'][] = $desc;
       }

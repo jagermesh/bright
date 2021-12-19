@@ -20,7 +20,7 @@ class BrXSS extends BrObject
   public function cleanUp($html, $callback = null)
   {
     if (is_array($html)) {
-      foreach($html as $key => $value) {
+      foreach ($html as $key => $value) {
         $proceed = true;
         if (is_callable($callback)) {
           $callback($key, $proceed);
@@ -41,7 +41,7 @@ class BrXSS extends BrObject
 
             pq($doc->find('base,meta,script,object,embed'))->remove();
 
-            foreach($doc->find('*') as $el) {
+            foreach ($doc->find('*') as $el) {
               pq($el)->css('position', '');
               if ($attrs = pq($el)->attr('*')) {
                 foreach ($attrs as $name => $value) {
@@ -51,7 +51,7 @@ class BrXSS extends BrObject
                 }
               }
             }
-            foreach($doc->find('iframe') as $el) {
+            foreach ($doc->find('iframe') as $el) {
               if (pq($el)->attr('src')) {
                 $domains = $this->allowedDomains;
                 if ($additionalDomains = br()->config()->get('br/xss/domains')) {

@@ -206,7 +206,11 @@ class BrGenericDataSource extends BrObject
 
     $this->validateSelect($filter);
 
-    return $this->callEvent(BrConst::DATASOURCE_EVENT_SELECT, $filter, $transientData, $options);
+    $result = $this->onSelect($filter, $transientData, $options);
+    if (is_null($result)) {
+      $result = $this->callEvent(BrConst::DATASOURCE_EVENT_SELECT, $filter, $transientData, $options);
+    }
+    return $result;
   }
 
   public function update($rowid, $row, &$transientData = [])
@@ -215,14 +219,24 @@ class BrGenericDataSource extends BrObject
 
     $this->validateUpdate($row);
 
-    return $this->callEvent(BrConst::DATASOURCE_EVENT_UPDATE, $row, $transientData);
+    $result = $this->onUpdate($row, $transientData);
+    if (is_null($result)) {
+      $result = $this->callEvent(BrConst::DATASOURCE_EVENT_UPDATE, $row, $transientData);
+    }
+
+    return $result;
   }
 
   public function insert($row = [], &$transientData = [])
   {
     $this->validateInsert($row);
 
-    return $this->callEvent(BrConst::DATASOURCE_EVENT_INSERT, $row, $transientData);
+    $result = $this->onInsert($row, $transientData);
+    if (is_null($result)) {
+      $result = $this->callEvent(BrConst::DATASOURCE_EVENT_INSERT, $row, $transientData);
+    }
+
+    return $result;
   }
 
   public function remove($rowid, &$transientData = [])
@@ -231,7 +245,12 @@ class BrGenericDataSource extends BrObject
 
     $this->validateRemove($row);
 
-    return $this->callEvent(BrConst::DATASOURCE_EVENT_DELETE, $row, $transientData);
+    $result = $this->onDelete($row, $transientData);
+    if (is_null($result)) {
+      $result = $this->callEvent(BrConst::DATASOURCE_EVENT_DELETE, $row, $transientData);
+    }
+
+    return $result;
   }
 
   public function invokeMethodExists($method)
@@ -261,7 +280,8 @@ class BrGenericDataSource extends BrObject
         throw new BrGenericDataSourceException(sprintf(BrConst::ERROR_MESSAGE_METHOD_NOT_SUPPORTED, $method));
         break;
       default:
-        if (!$this->invokeMethodExists($method)) {
+        $methodName = 'onInvoke' . ucfirst($method);
+        if (!method_exists($this, $methodName) && !$this->invokeMethodExists($method)) {
           throw new BrGenericDataSourceException(sprintf(BrConst::ERROR_MESSAGE_METHOD_NOT_SUPPORTED, $method));
         }
 
@@ -275,12 +295,30 @@ class BrGenericDataSource extends BrObject
             if ($this->getDb() && $this->isTransactionalDML()) {
               $this->getDb()->startTransaction();
             }
+
+            $methodName = 'onBeforeInvoke' . ucfirst($method);
+            if (method_exists($this, $methodName)) {
+              $this->$methodName($params, $transientData, $options);
+            }
             $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_BEFORE, $method), $params, $transientData, $options);
-            $data = $this->callEvent($method, $params, $transientData, $options);
+
+            $methodName = 'onInvoke' . ucfirst($method);
+            if (method_exists($this, $methodName)) {
+              $data = $this->$methodName($params, $transientData, $options);
+            } else {
+              $data = $this->callEvent($method, $params, $transientData, $options);
+            }
             $result = true;
+
+            $methodName = 'onAfterInvoke' . ucfirst($method);
+            if (method_exists($this, $methodName)) {
+              $this->$methodName($result, $data, $params, $transientData, $options);
+            }
             $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, $method), $result, $data, $params, $transientData, $options);
+
             if ($this->getDb() && $this->isTransactionalDML()) {
               $this->getDb()->commitTransaction();
+              $this->onAfterCommit($params, $transientData, $data, $options);
               $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, BrConst::DATASOURCE_EVENT_COMMIT), $params, $transientData, $data, $options);
             }
             return $data;
@@ -306,10 +344,17 @@ class BrGenericDataSource extends BrObject
           }
           $operation = $method;
           $error = $e->getMessage();
-          $result = $this->trigger(BrConst::DATASOURCE_EVENT_ERROR, $error, $operation, $e);
+          $result = $this->onError($error, $operation, $e, null);
+          if (is_null($result)) {
+            $result = $this->callEvent(BrConst::DATASOURCE_EVENT_ERROR, $error, $operation, $e);
+          }
           if (is_null($result)) {
             $result = false;
             $data = null;
+            $methodName = 'onAfterInvoke' . ucfirst($method);
+            if (method_exists($this, $methodName)) {
+              $this->$methodName($result, $data, $params, $transientData, $options);
+            }
             $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, $method), $result, $data, $params, $transientData, $options);
             throw $e;
           }
@@ -386,5 +431,89 @@ class BrGenericDataSource extends BrObject
     if (!$this->canSelect($filter)) {
       throw new BrAppException(BrConst::ERROR_MESSAGE_ACCESS_DENIED);
     }
+  }
+
+  protected function onBeforeSelect(&$filter, &$transientData, &$options)
+  {
+    //
+  }
+
+  protected function onSelect(&$filter, &$transientData, &$options)
+  {
+    return null;
+  }
+
+  protected function onPrepareCalcFields(&$result, &$transientData, &$options)
+  {
+    //
+  }
+
+  protected function onCalcFields(&$row, &$transientData, &$options)
+  {
+    //
+  }
+
+  protected function onProtectFields(&$row, &$transientData, &$options)
+  {
+    //
+  }
+
+  protected function onAfterSelect(&$result, &$transientData, &$options)
+  {
+    //
+  }
+
+  protected function onBeforeInsert(&$row, &$transientData, &$options)
+  {
+    //
+  }
+
+  protected function onInsert(&$row, &$transientData, &$options)
+  {
+    return null;
+  }
+
+  protected function onAfterInsert(&$result, &$transientData, &$options)
+  {
+    //
+  }
+
+  protected function onAfterCommit(&$result, &$transientData, $old, &$options)
+  {
+    //
+  }
+
+  protected function onBeforeUpdate(&$new, &$transientData, $old, &$options)
+  {
+    //
+  }
+
+  protected function onUpdate(&$row, &$transientData, $old, &$options)
+  {
+    return null;
+  }
+
+  protected function onAfterUpdate(&$result, &$transientData, $old, &$options)
+  {
+    //
+  }
+  protected function onBeforeDelete(&$new, &$transientData, &$options)
+  {
+    //
+  }
+
+  protected function onDelete(&$row, &$transientData, &$options)
+  {
+    return null;
+  }
+
+  protected function onAfterDelete(&$result, &$transientData, &$options)
+  {
+    //
+  }
+
+  protected function onError($error, $operation, $exception, $data)
+  {
+    return null;
   }
 }

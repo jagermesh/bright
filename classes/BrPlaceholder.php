@@ -72,8 +72,7 @@ class BrPlaceholder extends BrObject
   {
     if ($value === null) {
       $value = 'NULL';
-    } else
-    if (is_numeric($value)) {
+    } elseif (is_numeric($value)) {
       if (is_float($value)) {
         $value = number_format($value, 0, '.', ''); // may lose precision on big numbers
       }
@@ -92,8 +91,7 @@ class BrPlaceholder extends BrObject
   {
     if ($value === null) {
       $value = 'NULL';
-    } else
-    if (is_numeric($value)) {
+    } elseif (is_numeric($value)) {
       $value = str_replace(',', '.', $value);
     } else {
       throw new BrAppException('Integer placeholder expect numeric value, ' . gettype($value) . ' given');
@@ -118,8 +116,7 @@ class BrPlaceholder extends BrObject
   {
     if (!$value) {
       return 'NULL';
-    } else
-    if (is_array($value)) {
+    } elseif (is_array($value)) {
       $result = $comma = '';
       foreach ($value as $oneValue) {
         $result .= $comma . self::formatString($oneValue);

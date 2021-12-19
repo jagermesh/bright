@@ -58,8 +58,7 @@ class BrGenericAuthProvider extends BrObject
       } else {
         return $login;
       }
-    } else
-    if ($attributeName) {
+    } elseif ($attributeName) {
       return $default;
     }
     return null;

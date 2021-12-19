@@ -450,6 +450,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
 
   protected function incTransactionBuffer($sql)
   {
+    $sql = trim($sql);
     if (!preg_match('/^SET( |$)/', $sql)) {
       if (!preg_match('/^SELECT( |$)/', $sql)) {
         if (!preg_match('/^CALL( |$)/', $sql)) {

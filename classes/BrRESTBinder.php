@@ -140,7 +140,7 @@ class BrRESTBinder extends BrObject
       br()->request()->setIsRest(true);
       br()->request()->continueRoute(false);
 
-      if (is_string($dataSource)) {
+      if (!is_object($dataSource)) {
         $dataSource = new $dataSource();
       }
 
@@ -420,7 +420,7 @@ class BrRESTBinder extends BrObject
       br()->request()->setIsRest(true);
       br()->request()->continueRoute(false);
 
-      if (is_string($dataSource)) {
+      if (!is_object($dataSource)) {
         $dataSource = new $dataSource();
       }
 
@@ -535,7 +535,7 @@ class BrRESTBinder extends BrObject
       br()->request()->setIsRest(true);
       br()->request()->continueRoute(false);
 
-      if (is_string($dataSource)) {
+      if (!is_object($dataSource)) {
         $dataSource = new $dataSource();
       }
 
@@ -600,7 +600,7 @@ class BrRESTBinder extends BrObject
       br()->request()->setIsRest(true);
       br()->request()->continueRoute(false);
 
-      if (is_string($dataSource)) {
+      if (!is_object($dataSource)) {
         $dataSource = new $dataSource();
       }
 

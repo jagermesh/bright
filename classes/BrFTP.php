@@ -95,7 +95,7 @@ class BrFTP extends BrRemoteConnection
     }
     if ($ftpRAWList = ftp_rawlist($this->connectionId, $this->currentDirectory)) {
       if (is_array($ftpRAWList)) {
-        foreach($ftpRAWList as $line) {
+        foreach ($ftpRAWList as $line) {
           $ftpFileObject = new BrFTPFileObject($line);
           $proceed = true;
           if ($mask) {

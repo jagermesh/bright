@@ -56,13 +56,13 @@ class BrPhpQueryTest extends \Codeception\Test\Unit
 
     pq($doc->find('script,meta'))->remove();
 
-    foreach($doc->find('*') as $el) {
+    foreach ($doc->find('*') as $el) {
       pq($el)->css('position', '');
     }
 
     $maxFontSize = 10;
 
-    foreach($doc->find('span,div,td,li') as $el) {
+    foreach ($doc->find('span,div,td,li') as $el) {
       if (preg_match('/([0-9.]+)(pt|px|em)/i', pq($el)->css('font-size'), $matches)) {
         switch ($matches[2]) {
           case 'px':

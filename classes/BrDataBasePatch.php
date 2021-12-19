@@ -49,7 +49,7 @@ class BrDataBasePatch
 
   public function checkDependencies()
   {
-    foreach($this->dependencies as $dependency) {
+    foreach ($this->dependencies as $dependency) {
       if (!br()->db()->getValue('
         SELECT id
           FROM br_db_patch
@@ -97,21 +97,18 @@ class BrDataBasePatch
           default:
             if ($patch['patch_hash'] != $this->patchHash) {
               throw new BrSamePatchException('Error. Same patch already registered but has different hash: ' . $patch['patch_hash']);
-            } else
-            if ($patch['patch_file'] != basename($this->patchFile)) {
+            } elseif ($patch['patch_file'] != basename($this->patchFile)) {
               throw new BrSamePatchException('Error. Same patch already registered but has different name: ' . $patch['patch_file']);
             } else {
               throw new BrAppException('Hmm... Not sure how and why we got here!!!');
             }
         }
-      } else
-      if ($regularRun) {
+      } elseif ($regularRun) {
         return false;
       } else {
         throw new BrAppException('Error. Already applied');
       }
-    } else
-    if ($command == 'register') {
+    } elseif ($command == 'register') {
       br()->db()->runQuery('
         INSERT IGNORE INTO br_db_patch (guid, patch_file, patch_hash, body, installed_at, re_installed_at)
         VALUES (?, ?, ?, ?, NOW(), NOW())
@@ -182,7 +179,7 @@ class BrDataBasePatch
     $stepName = $stepName ? $stepName : $this->stepNo;
     $result = 0;
     if ($statements = $this->dbManager->parseScript($script)) {
-      foreach($statements as $statement) {
+      foreach ($statements as $statement) {
         $result += $this->internalExecute($statement, $stepName, false);
       }
     }

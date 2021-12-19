@@ -79,7 +79,7 @@ class BrGenericSQLProviderTable extends BrObject
       $sql .= self::SQL_CMD_DISTINCT;
     }
     if ($fields) {
-      foreach($fields as $name => $rule) {
+      foreach ($fields as $name => $rule) {
         if (is_numeric($name)) {
           $sql .= $targetTableName . '.' . $rule . ',';
         } else {
@@ -112,7 +112,7 @@ class BrGenericSQLProviderTable extends BrObject
   public function selectOne($filter = [])
   {
     if ($rows = $this->select($filter)) {
-      foreach($rows as $row) {
+      foreach ($rows as $row) {
         return $row;
       }
     }
@@ -126,7 +126,7 @@ class BrGenericSQLProviderTable extends BrObject
     $fields_str = '';
     $values_str = '';
 
-    foreach($values as $field => $value) {
+    foreach ($values as $field => $value) {
       $fields_str .= ($fields_str ? ',' : '') . $field;
       $values_str .= ($values_str ? ',' : '') . '?';
       if (br($dataTypes, $field) == BrGenericDBProvider::DATA_TYPE_STRING) {
@@ -146,7 +146,7 @@ class BrGenericSQLProviderTable extends BrObject
     }
 
     $args = [];
-    foreach($values as $field => $value) {
+    foreach ($values as $field => $value) {
       $args[] = $value;
     }
 
@@ -176,7 +176,7 @@ class BrGenericSQLProviderTable extends BrObject
     $fields_str = '';
     $values_str = '';
 
-    foreach($values as $field => $value) {
+    foreach ($values as $field => $value) {
       $fields_str .= ($fields_str?',':'') . $field;
       $values_str .= ($values_str?',':'') . '?';
       if (br($dataTypes, $field) == BrGenericDBProvider::DATA_TYPE_STRING) {
@@ -186,7 +186,7 @@ class BrGenericSQLProviderTable extends BrObject
     $sql = 'REPLACE INTO ' . $this->tableName . ' (' . $fields_str . ') VALUES (' . $values_str . ')';
 
     $args = [];
-    foreach($values as $field => $value) {
+    foreach ($values as $field => $value) {
       $args[] = $value;
     }
 
@@ -207,7 +207,7 @@ class BrGenericSQLProviderTable extends BrObject
     $dataTypes = $this->getDataTypes();
 
     $sql = 'UPDATE ' . $this->tableName . ' SET ';
-    foreach($values as $field => $value) {
+    foreach ($values as $field => $value) {
       if ($field != $this->provider->rowidField()) {
         $sql .= $field . ' = ?';
         if (br($dataTypes, $field) == BrGenericDBProvider::DATA_TYPE_STRING) {
@@ -223,7 +223,7 @@ class BrGenericSQLProviderTable extends BrObject
 
     if ($filter) {
       if (is_array($filter)) {
-        foreach($filter as $field => $value) {
+        foreach ($filter as $field => $value) {
           if ($where) {
             $where .= self::SQL_CMD_AND;
           }
@@ -244,18 +244,17 @@ class BrGenericSQLProviderTable extends BrObject
 
     $args = [];
 
-    foreach($values as $field => $value) {
+    foreach ($values as $field => $value) {
       if ($field != $this->provider->rowidField()) {
         $args[] = $value;
       }
     }
 
     if (is_array($filter)) {
-      foreach($filter as $field => $value) {
+      foreach ($filter as $field => $value) {
         $args[] = $value;
       }
-    } else
-    if ($filter) {
+    } elseif ($filter) {
       $args[] = $filter;
     }
 
@@ -300,7 +299,7 @@ class BrGenericSQLProviderTable extends BrObject
   {
     $first = true;
     $initialJoinTableName = '';
-    foreach($filter as $joinTableName => $joinField) {
+    foreach ($filter as $joinTableName => $joinField) {
       if ($first) {
         $initialJoinTableName = $joinTableName;
         if (!in_array($joinTableName, $joinsTables)) {
@@ -329,7 +328,7 @@ class BrGenericSQLProviderTable extends BrObject
         $first = false;
       } else {
         if (is_numeric($joinTableName)) {
-          foreach($joinField as $a => $b) {
+          foreach ($joinField as $a => $b) {
             $joinTableName = $a;
             $joinField = $b;
           }
@@ -343,9 +342,9 @@ class BrGenericSQLProviderTable extends BrObject
           if (br($joinField)->isRegularArray()) {
             $joins .= br()->placeholder(self::SQL_CMD_AND . $joinLeftPart . self::SQL_CMD_IN_SET, $joinField);
           } else {
-            foreach($joinField as $operation => $joinFieldNameOrValue) {
+            foreach ($joinField as $operation => $joinFieldNameOrValue) {
               $operation = (string)$operation;
-              switch($operation) {
+              switch ($operation) {
                 case BrConst::FILTER_RULE_LT:
                 case '<':
                   $joins .= self::SQL_CMD_AND . $joinLeftPart . ' < ' . $joinFieldNameOrValue;
@@ -370,8 +369,7 @@ class BrGenericSQLProviderTable extends BrObject
                     } else {
                       $joins .= self::SQL_CMD_AND . $joinLeftPart . self::SQL_CMD_IN_NULL;
                     }
-                  } else
-                  if (strlen($joinFieldNameOrValue) > 0) {
+                  } elseif (strlen($joinFieldNameOrValue) > 0) {
                     $joins .= self::SQL_CMD_AND . $joinLeftPart . sprintf(self::SQL_CMD_IN_SMTH, $joinFieldNameOrValue);
                   } else {
                     $joins .= self::SQL_CMD_AND . $joinLeftPart . self::SQL_CMD_IN_NULL;
@@ -385,8 +383,7 @@ class BrGenericSQLProviderTable extends BrObject
                     } else {
                       $joins .= self::SQL_CMD_AND . $joinLeftPart . self::SQL_CMD_NOT_IN_NULL;
                     }
-                  } else
-                  if (strlen($joinFieldNameOrValue) > 0) {
+                  } elseif (strlen($joinFieldNameOrValue) > 0) {
                     $joins .= self::SQL_CMD_AND . $joinLeftPart . sprintf(self::SQL_CMD_NOT_IN_SMTH, $joinFieldNameOrValue);
                   } else {
                     $joins .= self::SQL_CMD_AND . $joinLeftPart . self::SQL_CMD_NOT_IN_NULL;
@@ -401,8 +398,7 @@ class BrGenericSQLProviderTable extends BrObject
                     } else {
                       $joins .= self::SQL_CMD_AND . $joinLeftPart . self::SQL_CMD_IN_NULL;
                     }
-                  } else
-                  if (strlen($joinFieldNameOrValue) > 0) {
+                  } elseif (strlen($joinFieldNameOrValue) > 0) {
                     $joins .= self::SQL_CMD_AND . $joinLeftPart . ' = ' . $joinFieldNameOrValue;
                   } else {
                     $joins .= self::SQL_CMD_AND . $joinLeftPart . self::SQL_CMD_IS_NULL;
@@ -417,8 +413,7 @@ class BrGenericSQLProviderTable extends BrObject
                     } else {
                       $joins .= self::SQL_CMD_AND . $joinLeftPart . self::SQL_CMD_NOT_IN_NULL;
                     }
-                  } else
-                  if (strlen($joinFieldNameOrValue) > 0) {
+                  } elseif (strlen($joinFieldNameOrValue) > 0) {
                     $joins .= self::SQL_CMD_AND . $joinLeftPart . ' != ' . $joinFieldNameOrValue;
                   } else {
                     $joins .= self::SQL_CMD_AND . $joinLeftPart . self::SQL_CMD_IS_NOT_NULL;
@@ -462,7 +457,7 @@ class BrGenericSQLProviderTable extends BrObject
 
   private function compileFilter($filter, $tableName, $fieldName, $link, &$joins, &$joinsTables, &$where, &$args)
   {
-    foreach($filter as $currentFieldName => $filterValue) {
+    foreach ($filter as $currentFieldName => $filterValue) {
       $currentFieldName = (string)$currentFieldName;
       if (strpos($currentFieldName, '.') === false) {
         $fname = $tableName.'.'.$currentFieldName;
@@ -471,13 +466,12 @@ class BrGenericSQLProviderTable extends BrObject
       }
       if (preg_match('~^[@]~', $fieldName)) {
         $fname2 = ltrim($fieldName, '@');
-      } else
-      if (strpos($fieldName, '.') === false) {
+      } elseif (strpos($fieldName, '.') === false) {
         $fname2 = $tableName.'.'.$fieldName;
       } else {
         $fname2 = $fieldName;
       }
-      switch($currentFieldName) {
+      switch ($currentFieldName) {
         // FUCKING BUG! 0 = '$and' //
         case BrConst::FILTER_RULE_AND:
           $where .= $link . ' ( ' . self::SQL_CMD_FAKE_TRUE;
@@ -518,8 +512,7 @@ class BrGenericSQLProviderTable extends BrObject
             } else {
               $where .= $link . $fname2 . self::SQL_CMD_IN_NULL;
             }
-          } else
-          if (strlen($filterValue) > 0) {
+          } elseif (strlen($filterValue) > 0) {
             // we assuming it's SQL statement
             $where .= $link . $fname2 . sprintf(self::SQL_CMD_IN_SMTH, $filterValue);
           } else {
@@ -535,8 +528,7 @@ class BrGenericSQLProviderTable extends BrObject
             } else {
               $where .= $link . $fname2 . self::SQL_CMD_NOT_IN_NULL;
             }
-          } else
-          if (strlen($filterValue) > 0) {
+          } elseif (strlen($filterValue) > 0) {
             // we assuming it's SQL statement
             $where .= $link . $fname2 . sprintf(self::SQL_CMD_NOT_IN_SMTH, $filterValue);
           } else {
@@ -553,8 +545,7 @@ class BrGenericSQLProviderTable extends BrObject
             } else {
               $where .= $link . $fname2 . self::SQL_CMD_IN_NULL;
             }
-          } else
-          if (strlen($filterValue)) {
+          } elseif (strlen($filterValue)) {
             $where .= $link . $fname2 . ' = ?';
             $args[] = $filterValue;
           } else {
@@ -571,8 +562,7 @@ class BrGenericSQLProviderTable extends BrObject
             } else {
               $where .= $link . $fname2 . self::SQL_CMD_NOT_IN_NULL;
             }
-          } else
-          if (strlen($filterValue)) {
+          } elseif (strlen($filterValue)) {
             $where .= $link . $fname2 . ' != ?';
             $args[] = $filterValue;
           } else {
@@ -609,7 +599,7 @@ class BrGenericSQLProviderTable extends BrObject
         case BrConst::FILTER_RULE_CONTAINS:
           if (is_array($filterValue)) {
             $where .= $link . '(' . self::SQL_CMD_FAKE_FALSE;
-            foreach($filterValue as $name => $value) {
+            foreach ($filterValue as $name => $value) {
               if (strpos($name, '.') === false) {
                 $tmpFName2 = $tableName.'.'.$name;
               } else {
@@ -628,7 +618,7 @@ class BrGenericSQLProviderTable extends BrObject
           if (is_array($filterValue)) {
             $tmpFName = '';
             $tmpValue = '';
-            foreach($filterValue as $name => $value) {
+            foreach ($filterValue as $name => $value) {
               if (strpos($name, '.') === false) {
                 $tmpFName2 = $tableName.'.'.$name;
               } else {
@@ -726,7 +716,7 @@ class BrGenericSQLProviderTable extends BrObject
   {
     $result = [];
     if ($structure = $this->getDatabaseDictionary()->getStructure($this->tableName)) {
-      foreach($structure as $fieldName => $desc) {
+      foreach ($structure as $fieldName => $desc) {
         $result[$fieldName] = $this->provider->internalDataTypeToGenericDataType($desc['data_type']);
       }
     }

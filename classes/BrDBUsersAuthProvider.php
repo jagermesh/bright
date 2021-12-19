@@ -187,7 +187,7 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider
             if (br()->db() && br($cookie, self::COOKIE_ATTR_LOGIN) && br($cookie, self::COOKIE_ATTR_TOKEN)) {
               if (br($cookie, self::COOKIE_ATTR_LOGIN) != '%') {
                 if ($users = $this->findUserByLogin($cookie[self::COOKIE_ATTR_LOGIN])) {
-                  foreach($users as $user) {
+                  foreach ($users as $user) {
                     if (($password = br($user, $passwordField)) && ($rowid = br()->db()->rowidValue($user))) {
                       $token = sha1(md5(sha1($password) . sha1($rowid)));
                       if ($token == $cookie[self::COOKIE_ATTR_TOKEN]) {

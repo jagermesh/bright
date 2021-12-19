@@ -22,8 +22,7 @@ class BrCache extends BrObject
           if (br($config[$name], 'engine')) {
             $cacheConfig = $config[$name];
           }
-        } else
-        if ((!$name || ($name == 'default')) && br($config, 'engine')) {
+        } elseif ((!$name || ($name == 'default')) && br($config, 'engine')) {
           $cacheConfig = $config;
         }
       }
@@ -50,7 +49,7 @@ class BrCache extends BrObject
   private static function createInstance($engine = null, $cacheConfig = [])
   {
     $engine = $engine ? $engine : 'memory';
-    switch($engine) {
+    switch ($engine) {
       case 'memcache':
         return new BrMemCacheCacheProvider($cacheConfig);
       case 'file':

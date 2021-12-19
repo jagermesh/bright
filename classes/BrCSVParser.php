@@ -48,8 +48,7 @@ class BrCSVParser extends BrObject
         $line = fgets($handle);
         if (substr_count($line, "\t") > 1) {
           $this->delimiter = "\t";
-        } else
-        if (substr_count($line, '|') > 1) {
+        } elseif (substr_count($line, '|') > 1) {
           $this->delimiter = '|';
         }
 
@@ -136,7 +135,7 @@ class BrCSVParser extends BrObject
             $line = str_getcsv($line[0], $this->delimiter, $this->enclosureArr[$ind]);
           }
           $values = [];
-          foreach($line as $col) {
+          foreach ($line as $col) {
             if (strlen($col)) {
               $col = str_replace($enclosuresArr[$ind], $this->enclosureArr[$ind], $col);
               $col = trim($col, '"\' ');

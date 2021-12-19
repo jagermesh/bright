@@ -81,11 +81,9 @@ class BrAWS extends BrObject
 
       if ($contentType = br()->getContentTypeByExtension($destination)) {
         $params['ContentType'] = $contentType;
-      } else
-      if ($contentType = br()->getContentTypeByExtension($source)) {
+      } elseif ($contentType = br()->getContentTypeByExtension($source)) {
         $params['ContentType'] = $contentType;
-      } else
-      if ($contentType = br()->getContentTypeByContent($source)) {
+      } elseif ($contentType = br()->getContentTypeByContent($source)) {
         $params['ContentType'] = $contentType;
       } else {
         $params['ContentType'] = 'application/octet-stream';
@@ -148,8 +146,7 @@ class BrAWS extends BrObject
 
       if ($contentType = br()->getContentTypeByExtension($destination)) {
         $params['ContentType'] = $contentType;
-      } else
-      if ($contentType = br()->getContentTypeByExtension($source)) {
+      } elseif ($contentType = br()->getContentTypeByExtension($source)) {
         $params['ContentType'] = $contentType;
       } else {
         $params['ContentType'] = 'application/octet-stream';
@@ -167,11 +164,9 @@ class BrAWS extends BrObject
     } catch (\Aws\S3\Exception\S3Exception $e) {
       if ($e->getAwsErrorCode() == self::AWS_ERROR_INVALID_ACCESS_KEY) {
         throw new BrAppException(self::ERROR_MESSAGE_INVALID_ACCESS_KEY);
-      } else
-      if ($e->getAwsErrorCode() == self::AWS_ERROR_ACCESS_DENIED) {
+      } elseif ($e->getAwsErrorCode() == self::AWS_ERROR_ACCESS_DENIED) {
         throw new BrAppException(sprintf(self::ERROR_MESSAGE_INCORRECT_BUCKET, $srcStruct['bucketName']));
-      } else
-      if ($e->getAwsErrorCode() == 'NoSuchKey') {
+      } elseif ($e->getAwsErrorCode() == 'NoSuchKey') {
         throw new BrAppException('Source file not found: ' . $source);
       } else {
         usleep(500000);
@@ -208,8 +203,7 @@ class BrAWS extends BrObject
     } catch (\Aws\S3\Exception\S3Exception $e) {
       if ($e->getAwsErrorCode() == self::AWS_ERROR_INVALID_ACCESS_KEY) {
         throw new BrAppException(self::ERROR_MESSAGE_INVALID_ACCESS_KEY);
-      } else
-      if ($e->getAwsErrorCode() == 'NoSuchKey') {
+      } elseif ($e->getAwsErrorCode() == 'NoSuchKey') {
         throw new BrAppException('Source file not found: ' . $source);
       } else {
         usleep(500000);
@@ -332,7 +326,7 @@ class BrAWS extends BrObject
     $result = [];
 
     if (($string = trim($string)) && ($encoding = mb_detect_encoding($string))) {
-      while(mb_strlen($string, $encoding) > 0) {
+      while (mb_strlen($string, $encoding) > 0) {
         if (mb_strlen($string, $encoding) <= self::AMAZON_POLLY_MAX_CHARACTERS) {
           $result[] = $string;
           break;
@@ -444,7 +438,7 @@ class BrAWS extends BrObject
             $currentTime = 0;
             $filesList = [];
             try {
-              for($i = 0; $i < count($audioStreams); $i++) {
+              for ($i = 0; $i < count($audioStreams); $i++) {
                 $tempFileName = 'PollyAudio' . $i . '.mp3';
                 $tempFilePath = $filesFolder . '/' . $tempFileName;
                 br()->fs()->saveToFile($tempFilePath, $audioStreams[$i]->getContents());

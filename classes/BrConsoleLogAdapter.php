@@ -28,8 +28,7 @@ class BrConsoleLogAdapter extends BrGenericLogAdapter
       $formattedMessage = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, true);
       if ($this->isErrorEventType($params)) {
         $message .= br()->console()->red($formattedMessage);
-      } else
-      if ($this->isWarningEventType($params)) {
+      } elseif ($this->isWarningEventType($params)) {
         $message .= br()->console()->purple($formattedMessage);
       } else {
         $message .= $formattedMessage;

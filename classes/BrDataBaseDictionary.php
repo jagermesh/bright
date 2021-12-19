@@ -20,7 +20,7 @@ class BrDataBaseDictionary extends BrObject implements IDataBaseDictionary
   public function validate($tableName, $row)
   {
     if ($row && ($tableDesc = br($this->schema, $tableName))) {
-      foreach($row as $fieldName => $value) {
+      foreach ($row as $fieldName => $value) {
         if (is_scalar($value)) {
           $value = trim($value);
           $length = mb_strlen($value);
@@ -28,13 +28,11 @@ class BrDataBaseDictionary extends BrObject implements IDataBaseDictionary
             $columnTitle = br($columnDesc, 'column_comment', ucwords(str_replace('_', ' ', $fieldName)));
             if (($length === 0) && $columnDesc['required']) {
               throw new BrAppException($columnTitle . ' is required field.');
-            } else
-            if ($length > 0) {
+            } elseif ($length > 0) {
               if ($length < $columnDesc['min_length']) {
                 throw new BrAppException($columnTitle . ' is too short. Minimum length is ' . $columnDesc['min_length'] . ' character' .
                   ($columnDesc['max_length'] > 1 ? 's' : ''));
-              } else
-              if ($length > $columnDesc['max_length']) {
+              } elseif ($length > $columnDesc['max_length']) {
                 throw new BrAppException($columnTitle . ' is too long. Maximum length is ' . $columnDesc['max_length'] . ' character' .
                   ($columnDesc['max_length'] > 1 ? 's' : ''));
               } else {
@@ -44,18 +42,15 @@ class BrDataBaseDictionary extends BrObject implements IDataBaseDictionary
                 ) {
                   if (!is_numeric($value)) {
                     throw new BrAppException($columnTitle . ' must be numeric value');
-                  } else
-                  if (($columnDesc['data_type_id'] == BrGenericDBProvider::DATA_TYPE_INTEGER) && !preg_match('/^[-]?[0-9]+$/', $value)) {
+                  } elseif (($columnDesc['data_type_id'] == BrGenericDBProvider::DATA_TYPE_INTEGER) && !preg_match('/^[-]?[0-9]+$/', $value)) {
                     throw new BrAppException($columnTitle . ' must be integer value');
-                  } else
-                  if ($value < $columnDesc['min_value']) {
+                  } elseif ($value < $columnDesc['min_value']) {
                     throw new BrAppException($columnTitle . ' must be greater or equal to ' . $columnDesc['min_value']);
-                  } else
-                  if ($value > $columnDesc['max_value']) {
+                  } elseif ($value > $columnDesc['max_value']) {
                     throw new BrAppException($columnTitle . ' must be less or equal to ' . $columnDesc['max_value']);
                   }
                 } else {
-                  switch($columnDesc['data_type_id']) {
+                  switch ($columnDesc['data_type_id']) {
                     case BrGenericDBProvider::DATA_TYPE_DATETIME:
                       if (!strtotime($value)) {
                         throw new BrAppException($columnTitle . ' must be date and time value in format: YYYY-MM-DD HH:MM:SS');

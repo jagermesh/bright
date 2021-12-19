@@ -41,7 +41,7 @@ class BrDataBaseManager
     $result = [];
 
     $delimiter = ';';
-    while(strlen($script) && preg_match('/((DELIMITER)[ ]+([^\n\r])|[' . $delimiter . ']|$)/is', $script, $matches, PREG_OFFSET_CAPTURE)) {
+    while (strlen($script) && preg_match('/((DELIMITER)[ ]+([^\n\r])|[' . $delimiter . ']|$)/is', $script, $matches, PREG_OFFSET_CAPTURE)) {
       if (count($matches) > 2) {
         $delimiter = $matches[3][0];
         $script = substr($script, $matches[3][1] + 1);
@@ -61,7 +61,7 @@ class BrDataBaseManager
     $result = 0;
 
     if ($statements = $this->parseScript($script)) {
-      foreach($statements as $statement) {
+      foreach ($statements as $statement) {
         $result += $this->internalExecute($statement);
       }
     }
@@ -447,7 +447,7 @@ class BrDataBaseManager
     $desc = $this->getTableStructure($tableName);
 
     $fields = [];
-    foreach($desc as $field) {
+    foreach ($desc as $field) {
       if (!in_array($field['field'], $excludeFields)) {
         $fields[] = $field['field'];
       }
@@ -580,7 +580,7 @@ class BrDataBaseManager
       'CASCADE',
       $tableName
     )) {
-      foreach($constraints as $constraint) {
+      foreach ($constraints as $constraint) {
         if ($definitions = br()->db()->getRows('
           SELECT usg.table_name, usg.column_name, usg.referenced_column_name
             FROM br_constraint_keys usg
@@ -592,7 +592,7 @@ class BrDataBaseManager
           $constraint['constraint_name'],
           $constraint['constraint_catalog']
         )) {
-          foreach($definitions as $definition) {
+          foreach ($definitions as $definition) {
             if ($definition['table_name'] != $tableName) {
               $sql2 .= '    IF (@BR_CSC_' . $definition['table_name'] . ' IS NULL) THEN' . "\n";
               $sql2 .= '      DELETE FROM ' . $definition['table_name'] . ' WHERE ' . $definition['column_name'] . ' = OLD.' . $definition['referenced_column_name'] . ";\n";
@@ -614,7 +614,7 @@ class BrDataBaseManager
       'SET NULL',
       $tableName
     )) {
-      foreach($constraints as $constraint) {
+      foreach ($constraints as $constraint) {
         if ($definitions = br()->db()->getRows('
           SELECT usg.table_name, usg.column_name, usg.referenced_column_name
             FROM br_constraint_keys usg
@@ -626,7 +626,7 @@ class BrDataBaseManager
           $constraint['constraint_name'],
           $constraint['constraint_catalog']
         )) {
-          foreach($definitions as $definition) {
+          foreach ($definitions as $definition) {
             if ($definition['table_name'] != $tableName) {
               $sql2 .= '    IF (@BR_CSC_' . $definition['table_name'] . ' IS NULL) THEN' . "\n";
               $sql2 .= '      UPDATE ' . $definition['table_name'] . ' SET ' . $definition['column_name'] . ' = NULL WHERE ' . $definition['column_name'] . ' = OLD.' . $definition['referenced_column_name'] . ";\n";
@@ -851,7 +851,7 @@ class BrDataBaseManager
 
     $showHelp = false;
 
-    switch($command) {
+    switch ($command) {
       case 'setup':
       case 'delete':
       case 'print':
@@ -891,7 +891,7 @@ class BrDataBaseManager
 
     br()->log()->message('Running: ' . basename($scriptFile) . ' ' . $command . ' ' . $tableName);
 
-    foreach($tables as $table) {
+    foreach ($tables as $table) {
       switch ($command) {
         case  'delete':
           $this->deleteAuditTriggers($table['name']);
@@ -925,7 +925,7 @@ class BrDataBaseManager
 
     $showHelp = false;
 
-    switch($command) {
+    switch ($command) {
       case 'run':
       case 'check':
         break;
@@ -973,7 +973,7 @@ class BrDataBaseManager
 
     br()->log()->message('Running: ' . basename($scriptFile) . ' ' . $command . ' ' . $patchName);
 
-    foreach($patches as $patchDesc) {
+    foreach ($patches as $patchDesc) {
       $classFile = $patchDesc['classFile'];
       $className = $patchDesc['className'];
       require_once($classFile);
@@ -1005,7 +1005,7 @@ class BrDataBaseManager
 
     if ($command == 'check') {
       if ($patchObjects) {
-        foreach($patchObjects as $patch) {
+        foreach ($patchObjects as $patch) {
           br()->log()->message('[' . get_class($patch) . '] Pending');
         }
         br()->log()->message(count($patchObjects) . ' patch' . (count($patchObjects) > 1 ? 'es' : '') . ' needs to be run');
@@ -1016,7 +1016,7 @@ class BrDataBaseManager
       if ($patchObjects) {
         $patchObjectsDeferred = [];
         $patchObjectsExecuted = [];
-        foreach($patchObjects as $patch) {
+        foreach ($patchObjects as $patch) {
           br()->log()->setLogPrefix('[' . get_class($patch) . ']');
           try {
             $patch->checkDependencies();
@@ -1042,7 +1042,7 @@ class BrDataBaseManager
           if (!empty($patchObjectsExecuted)) {
             return $this->runMigrationCommand($scriptFile, $results);
           } else {
-            foreach($patchObjectsDeferred as $patch) {
+            foreach ($patchObjectsDeferred as $patch) {
               br()->log()->setLogPrefix('[' . get_class($patch) . ']');
               try {
                 $patch->checkDependencies();
@@ -1066,12 +1066,11 @@ class BrDataBaseManager
         }
       }
 
-      foreach($results as $result) {
+      foreach ($results as $result) {
         if ($result['is_error']) {
           $returnCode = 1;
           br()->log()->message(br()->console()->red($result['message']));
-        } else
-        if ($result['is_warning']) {
+        } elseif ($result['is_warning']) {
           if (!$returnCode) {
             $returnCode = 2;
           }

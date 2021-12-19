@@ -27,7 +27,7 @@ class BrDataBase extends BrObject
       if (!array_key_exists($hash, self::$instances)) {
         self::$instances[$hash]['initialized'] = true;
         self::$instances[$hash]['provider'] = null;
-        switch($config['engine']) {
+        switch ($config['engine']) {
           case 'mysql':
           case 'mysqli':
             self::$instances[$hash]['provider'] = new BrMySQLDBProvider($config);

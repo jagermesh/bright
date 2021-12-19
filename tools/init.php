@@ -50,7 +50,7 @@ if ($templateName = @$argv[1]) {
         copy($file->nameWithPath(), $dst);
       }
     });
-  } catch(Exception $e) {
+  } catch (Exception $e) {
     help();
     br()->log(br()->console()->red($e->getMessage()));
     die();

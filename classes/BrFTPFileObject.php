@@ -24,8 +24,7 @@ class BrFTPFileObject
       $this->size = $matches[2];
       $this->name = $matches[8];
       $this->date = trim($matches[3] . $matches[4] . ', ' . $matches[5]);
-    } else
-    if (preg_match('#[0-9]{2}[-][0-9]{2}[-][0-9]{2}  [0-9]{2}:[0-9]{2}[AP]M[ ]+([0-9]+) (.+)#', $line, $matches)) {
+    } elseif (preg_match('#[0-9]{2}[-][0-9]{2}[-][0-9]{2}  [0-9]{2}:[0-9]{2}[AP]M[ ]+([0-9]+) (.+)#', $line, $matches)) {
       $this->isDirectory = false;
       $this->size = $matches[1];
       $this->name = $matches[2];

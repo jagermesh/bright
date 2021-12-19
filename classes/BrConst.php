@@ -228,6 +228,7 @@ class BrConst
   public const HEADER_EXPIRES = 'Expires: %s';
   public const HEADER_CACHE_CONTROL = 'Cache-Control: %s';
   public const HEADER_LOCATION = 'Location: %s';
+  public const HEADER_AUTHORIZATION = 'Authorization: %s';
 
   public const TYPICAL_USER_AGENT = 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-GB; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3';
 

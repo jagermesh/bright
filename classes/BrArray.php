@@ -140,13 +140,11 @@ class BrArray extends BrGenericDataType
         if (is_array($value) || (is_scalar($value) && (strlen($value) > 0))) {
           $result[$name] = $value;
         }
-      } else
-      if (br($value)->isNumeric() && br($array2[$name])->isNumeric()) {
+      } elseif (br($value)->isNumeric() && br($array2[$name])->isNumeric()) {
         if (abs($value-$array2[$name]) > 0.00001) {
           $result[$name] = $value;
         }
-      } else
-      if ($value != $array2[$name]) {
+      } elseif ($value != $array2[$name]) {
         $result[$name] = $value;
       }
     }, ARRAY_FILTER_USE_BOTH);
@@ -195,7 +193,7 @@ class BrArray extends BrGenericDataType
 
     array_map(function ($item) use ($fields, &$result) {
       $row = [];
-      foreach($fields as $name) {
+      foreach ($fields as $name) {
         if (isset($item[$name])) {
           $row[$name] = $item[$name];
         }
@@ -247,7 +245,7 @@ class BrArray extends BrGenericDataType
       if (!in_array($i, $moved) && $this->canMoveElement($result[$i], $blockShufflingCheck)) {
         $newIdx = random_int(0, count($result) - 1);
         $iteration = 0;
-        while(($iteration++ < count($result)*2) && (($newIdx == $i) || !$this->canMoveElement($result[$newIdx], $blockShufflingCheck))) {
+        while (($iteration++ < count($result)*2) && (($newIdx == $i) || !$this->canMoveElement($result[$newIdx], $blockShufflingCheck))) {
           $newIdx = random_int(0, count($result) - 1);
         }
         if ($this->canMoveElement($result[$newIdx], $blockShufflingCheck)) {

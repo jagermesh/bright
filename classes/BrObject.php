@@ -64,7 +64,7 @@ class BrObject
     } else {
       $result = $this->getAttributes();
       $names = preg_split('~[.]~', $name);
-      foreach($names as $name) {
+      foreach ($names as $name) {
         if (is_array($result)) {
           if (array_key_exists($name, $result)) {
             $result = $result[$name];
@@ -138,7 +138,7 @@ class BrObject
   public function before($event, $func)
   {
     $eventNames = preg_split('~[,]~', $event);
-    foreach($eventNames as $event) {
+    foreach ($eventNames as $event) {
       $event = 'before:'.$event;
       $this->events[$event][] = $func;
       if (in_array($event, $this->stickyEvents)) {
@@ -150,7 +150,7 @@ class BrObject
   public function on($event, $func)
   {
     $eventNames = preg_split('~[,]~', $event);
-    foreach($eventNames as $event) {
+    foreach ($eventNames as $event) {
       $this->events[$event][] = $func;
       if (in_array($event, $this->stickyEvents)) {
         $func($this);
@@ -161,7 +161,7 @@ class BrObject
   public function after($event, $func)
   {
     $eventNames = preg_split('~[,]~', $event);
-    foreach($eventNames as $event) {
+    foreach ($eventNames as $event) {
       $event = 'after:'.$event;
       $this->events[$event][] = $func;
       if (in_array($event, $this->stickyEvents)) {
@@ -192,7 +192,7 @@ class BrObject
     $result = null;
 
     if ($events = br($this->events, $event)) {
-      foreach($events as $func) {
+      foreach ($events as $func) {
         $result = $func($this, $context1, $context2, $context3, $context4, $context5, $context6);
       }
     }

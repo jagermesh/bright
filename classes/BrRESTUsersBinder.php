@@ -17,7 +17,7 @@ class BrRESTUsersBinder extends BrRESTBinder
 
   public function __construct($usersDataSource, $params = [])
   {
-    $this->usersDataSource = $usersDataSource;
+    $this->usersDataSource = is_object($usersDataSource) ? $usersDataSource : new $usersDataSource();
     $this->params = $params;
 
     parent::__construct();

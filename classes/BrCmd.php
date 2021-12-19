@@ -25,7 +25,7 @@ class BrCmd extends BrObject
 
     $result = [];
 
-    foreach($argv as $value) {
+    foreach ($argv as $value) {
       if (preg_match('/--([A-Z]+)=(.+)/ism', $value, $matches)) {
         $result[$matches[1]] = $matches[2];
       }

@@ -20,7 +20,7 @@ class BrRenderer extends BrObject
     $instance = null;
 
     if (!isset(self::$instances[$name])) {
-      switch($name) {
+      switch ($name) {
         case 'mustache':
           $instance = new BrMustacheRenderer();
           break;

@@ -188,8 +188,7 @@ class BrUsersDataSource extends BrDataSource
           if (strpos($security, BrConst::REST_SECURITY_ANYONE) === false) {
             $filter[br()->db()->rowidField()] = br()->db()->rowid($login);
           }
-        } else
-        if (strpos($security, BrConst::REST_SECURITY_ANYONE) === false) {
+        } elseif (strpos($security, BrConst::REST_SECURITY_ANYONE) === false) {
           throw new BrUsersDataSourceException(self::ERROR_YOU_ARE_NOT_ALLOWED_TO_SEE_USERS);
         }
       }
@@ -226,8 +225,7 @@ class BrUsersDataSource extends BrDataSource
         if (strpos($security, BrConst::REST_SECURITY_ANYONE) === false) {
           throw new BrAppException(self::ERROR_ACCESS_DENIED);
         }
-      } else
-      if (strpos($security, BrConst::REST_SECURITY_ANYONE) === false) {
+      } elseif (strpos($security, BrConst::REST_SECURITY_ANYONE) === false) {
         throw new BrAppException(self::ERROR_ACCESS_DENIED);
       }
 

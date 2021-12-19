@@ -42,7 +42,7 @@ class BrApplicationFileLogAdapter extends BrGenericFileLogAdapter
         $this->writeToLogFile($message, $prefix);
       }
       if ($params && ($details = br($params, 'details', []))) {
-        foreach($details as $value) {
+        foreach ($details as $value) {
           $message = BrGenericLogAdapter::convertMessageOrObjectToText($value, true);
           $this->writeToLogFile($message, $prefix);
         }

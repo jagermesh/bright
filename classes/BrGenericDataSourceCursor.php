@@ -20,7 +20,7 @@ class BrGenericDataSourceCursor implements Iterator
   {
     $this->dataSource = $dataSource;
     $this->data = [];
-    foreach($data as $row) {
+    foreach ($data as $row) {
       $this->data[] = new BrGenericDataSourceRow($this->dataSource, $row);
     }
     $this->position = 0;

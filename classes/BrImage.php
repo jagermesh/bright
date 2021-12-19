@@ -24,7 +24,7 @@ class BrImage extends BrObject
     error_reporting(0);
 
     if ($this->imageLibSupported()) {
-      switch(br()->fs()->fileExt($path)) {
+      switch (br()->fs()->fileExt($path)) {
         case 'png':
           if ($this->image = @ImageCreateFromPNG($path)) {
             $this->format = 'png';
@@ -119,8 +119,7 @@ class BrImage extends BrObject
         $new_height = $h;
         $new_width = round($new_width * ($new_height * 100 / $new_height_before) / 100);
       }
-    } else
-    if ($ch > $h) {
+    } elseif ($ch > $h) {
       $new_height = $h;
       $new_width = round($cw * ($new_height * 100 / $ch) / 100);
 

@@ -39,7 +39,7 @@ class BrBrowser extends BrObject
   {
     $client = new \GuzzleHttp\Client();
     $requestParams = $this->getDefaultRequestsParams();
-    foreach($params as $name => $value) {
+    foreach ($params as $name => $value) {
       $requestParams[$name] = $value;
     }
     br()->log()->message('Getting headers for ' . $url . ' (' . json_encode($requestParams) . ')');
@@ -51,7 +51,7 @@ class BrBrowser extends BrObject
   {
     $client = new \GuzzleHttp\Client();
     $requestParams = $this->getDefaultRequestsParams();
-    foreach($params as $name => $value) {
+    foreach ($params as $name => $value) {
       $requestParams[$name] = $value;
     }
     br()->log()->message('Downloading ' . $url . ' (' . json_encode($requestParams) . ')');
@@ -73,7 +73,7 @@ class BrBrowser extends BrObject
     $client = new \GuzzleHttp\Client();
     $requestParams = $this->getDefaultRequestsParams();
     $requestParams['sink'] = $filePath;
-    foreach($params as $name => $value) {
+    foreach ($params as $name => $value) {
       $requestParams[$name] = $value;
     }
     br()->log()->message('Downloading ' . $url . ' (' . json_encode($requestParams) . ') into ' . $filePath);
@@ -101,7 +101,7 @@ class BrBrowser extends BrObject
         $result['title'] = trim($matches[1]);
       }
       if (preg_match_all('/<[\s]*meta[\s]*name="?([^>"]*)"?[\s]*content="?([^>"]*)"?[\s]*[\/]?[\s]*>/si', $body, $matches, PREG_SET_ORDER)) {
-        foreach($matches as $match) {
+        foreach ($matches as $match) {
           $result[$match[1]] = trim($match[2]);
         }
       }

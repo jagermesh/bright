@@ -25,7 +25,7 @@ $params = br()->cmd()->getSwitches();
 
 $message = 'Running: ' . basename(__FILE__) . ' ' . $tableName;
 
-foreach($params as $name => $value) {
+foreach ($params as $name => $value) {
   $message .= ' ' . $name;
   if (strlen($value)) {
     $message .= '=' . $value;

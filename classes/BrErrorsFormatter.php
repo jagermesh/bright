@@ -16,7 +16,7 @@ class BrErrorsFormatter
   {
     $result = '';
 
-    foreach($params as $idx => $arg) {
+    foreach ($params as $idx => $arg) {
       if ($level > 0) {
         $result .= '\'' . $idx . '\' => ';
       }
@@ -30,17 +30,13 @@ class BrErrorsFormatter
           }
         }
         $result .= ')';
-      } else
-      if (is_numeric($arg)) {
+      } elseif (is_numeric($arg)) {
         $result .= $arg;
-      } else
-      if (is_object($arg)) {
+      } elseif (is_object($arg)) {
         $result .= '[' . get_class($arg) . ']';
-      } else
-      if (is_resource($arg)) {
+      } elseif (is_resource($arg)) {
         $result .= '[' . get_resource_type($arg) . ']';
-      } else
-      if (!$arg) {
+      } elseif (!$arg) {
         $result .= 'null';
       } else {
         $s = (string)$arg;
@@ -95,7 +91,7 @@ class BrErrorsFormatter
   {
     $result = '';
 
-    foreach($e->getTrace() as $statement) {
+    foreach ($e->getTrace() as $statement) {
       $result .= "\n" . self::formatStackTraceCall($statement);
       $result .= "\n" . '    in ' . self::formatStackTraceSource($statement);
     }

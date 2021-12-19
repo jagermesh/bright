@@ -89,7 +89,7 @@ class BrFileSystem extends BrObject
     $s = '';
     $fileNameOnly = $this->fileNameOnly($fileName);
 
-    for($i = 0; $i < min(6, strlen($fileNameOnly)); $i++) {
+    for ($i = 0; $i < min(6, strlen($fileNameOnly)); $i++) {
       $s .= $fileName[$i] . '/';
     }
     if ($md5mode) {
@@ -236,7 +236,7 @@ class BrFileSystem extends BrObject
 
     $startingDir = $this->normalizePath($startingDir);
     $files = scandir($startingDir);
-    foreach($files as $file) {
+    foreach ($files as $file) {
       $fullFileName = $startingDir . $file;
       if (($file != '..') && ($file != '.') && ($file != '.DS_Store')) {
         $proceed = true;

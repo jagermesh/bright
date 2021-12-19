@@ -99,7 +99,7 @@ class BrJobCustomJob extends BrObject
       if (!is_array($list)) {
         $list = [ null ];
       }
-      foreach($list as $arguments) {
+      foreach ($list as $arguments) {
         $this->spawn(false, $arguments);
       }
     }

@@ -82,7 +82,7 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
           }
         }
         if (!$this->eventHandlerExists($action)) {
-          switch($action) {
+          switch ($action) {
             case self::EVENT_SUBSCRIBE:
               if ($data = br($message, 'data')) {
                 $events = br(br($data, 'events'))->split();
@@ -107,11 +107,11 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
                 unset($message['secret']);
                 $clientUID = br($message, 'clientUID');
                 $message = json_encode($message);
-                foreach($this->clients as $tmpClientHash => $tmpClientData) {
+                foreach ($this->clients as $tmpClientHash => $tmpClientData) {
                   if ($tmpClientHash !== $clientHash) {
                     if ($tmpClientData['events']) {
                       if ($clientUID != $tmpClientData['clientUID']) {
-                        foreach($tmpClientData['events'] as $event) {
+                        foreach ($tmpClientData['events'] as $event) {
                           if ((strtolower(trim($event)) == strtolower(trim($action))) || @preg_match('#^' . $event . '$#ism', $action)) {
                             $tmpClientData['connection']->send($message);
                           }
@@ -157,10 +157,10 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
     $spaces = br($clientData, 'spaces');
     if ($spaces) {
       $users = [];
-      foreach($this->clients as $tmpClientData) {
+      foreach ($this->clients as $tmpClientData) {
         if ($tmpClientData['spaces']) {
           $found = false;
-          foreach($tmpClientData['spaces'] as $spaceName) {
+          foreach ($tmpClientData['spaces'] as $spaceName) {
             if (in_array($spaceName, $spaces)) {
               $found = true;
               break;
@@ -172,9 +172,9 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
         }
       }
       if ($users) {
-        foreach($this->clients as $tmpClientData) {
+        foreach ($this->clients as $tmpClientData) {
           if ($tmpClientData['spaces']) {
-            foreach($tmpClientData['spaces'] as $spaceName) {
+            foreach ($tmpClientData['spaces'] as $spaceName) {
               if (in_array($spaceName, $spaces)) {
                 $message = json_encode([
                   'action'    => 'eventBus.usersList',

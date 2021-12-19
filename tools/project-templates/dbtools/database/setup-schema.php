@@ -12,7 +12,7 @@ $dataBaseManager->setDefiner($definer);
 
 $paths = [__DIR__ . '/../sql/procedures', __DIR__ . '/../sql/triggers', __DIR__ . '/../sql/views'];
 
-foreach($paths as $path) {
+foreach ($paths as $path) {
   br()->fs()->iteratePath($path, '.*sql$', function ($file) use ($dataBaseManager) {
     if (!$file->isDir()) {
       $dataBaseManager->executeScriptFile($file->nameWithPath());

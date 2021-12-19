@@ -60,8 +60,7 @@ class BrSlackLogAdapter extends BrGenericLogAdapter
 
             if ($this->isErrorEventType($params)) {
               $subject = 'Error report: ' . $excerpt;
-            } else
-            if ($this->isDebugEventType($params)) {
+            } elseif ($this->isDebugEventType($params)) {
               $subject = 'Debug message: ' . $excerpt;
             }
 

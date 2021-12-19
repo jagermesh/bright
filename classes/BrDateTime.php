@@ -29,8 +29,7 @@ class BrDateTime extends BrObject
   {
     if (!$date) {
       $date = time();
-    } else
-    if (!is_numeric($date)) {
+    } elseif (!is_numeric($date)) {
       $date = strtotime($date);
     }
 
@@ -380,28 +379,21 @@ class BrDateTime extends BrObject
   {
     if ($this->isToday()) {
       $result = br()->trn('Today');
-    } else
-    if ($this->isYesterday()) {
+    } elseif ($this->isYesterday()) {
       $result = br()->trn('Yesterday');
-    } else
-    if ($this->isTomorrow()) {
+    } elseif ($this->isTomorrow()) {
       $result = br()->trn('Tomorrow');
-    } else
-    if ($this->isThisWeek()) {
+    } elseif ($this->isThisWeek()) {
       $result = br()->trn('On this week');
-    } else
-    if ($this->isPastWeek()) {
+    } elseif ($this->isPastWeek()) {
       $result = br()->trn('On past week');
-    } else
-    if ($this->isNextWeek()) {
+    } elseif ($this->isNextWeek()) {
       $result = br()->trn('On next week');
-    } else
-    if ($this->weeksBetween() < 5) {
+    } elseif ($this->weeksBetween() < 5) {
       if ($this->weeksBetween(null, true) < 0) {
         if ($this->weeksBetween(null, true) == -1) {
           $result = br()->trn('In past week');
-        } else
-        if ($this->weeksBetween() == 2) {
+        } elseif ($this->weeksBetween() == 2) {
           $result = br()->trn('One week ago');
         } else {
           $result = sprintf(br()->trn('%d weeks ago'), $this->weeksBetween()-1);
@@ -409,13 +401,11 @@ class BrDateTime extends BrObject
       } else {
         $result = sprintf(br()->trn('In next %d weeks'), $this->weeksBetween());
       }
-    } else
-    if ($this->monthsBetween() < 13) {
+    } elseif ($this->monthsBetween() < 13) {
       if ($this->monthsBetween(null, true) < 0) {
         if ($this->monthsBetween(null, true) == -1) {
           $result = br()->trn('On past month');
-        } else
-        if ($this->monthsBetween() == 2) {
+        } elseif ($this->monthsBetween() == 2) {
           $result = br()->trn('1 month ago');
         } else {
           $result = sprintf(br()->trn('%d months ago'), $this->monthsBetween() - 1);

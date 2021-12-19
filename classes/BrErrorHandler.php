@@ -27,8 +27,7 @@ class BrErrorHandler extends BrObject
       if (!br()->log()->isAdapterExists('Bright\\BrConsoleLogAdapter')) {
         br()->log()->addAdapter(new BrConsoleLogAdapter());
       }
-    } else
-    if (!br()->log()->isAdapterExists('Bright\\BrWebLogAdapter')) {
+    } elseif (!br()->log()->isAdapterExists('Bright\\BrWebLogAdapter')) {
       br()->log()->addAdapter(new BrWebLogAdapter());
     }
   }
