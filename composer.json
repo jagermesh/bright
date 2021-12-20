@@ -14,7 +14,6 @@
     "cboden/ratchet": "^0.4",
     "ratchet/pawl": "^0.3",
     "phpseclib/phpseclib": "^2.0",
-    "swiftmailer/swiftmailer": "^6.3",
     "textalk/websocket": "^1.2",
     "mustache/mustache": "^2.13",
     "michelf/php-markdown": "^1",
