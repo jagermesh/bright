@@ -10,6 +10,11 @@
 
 namespace Bright;
 
+use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\Address;
+use Symfony\Component\Mailer\Transport;
+use Symfony\Component\Mailer\Mailer;
+
 class BrCore extends BrObject
 {
   const HRS = 'hrs';
@@ -1938,6 +1943,16 @@ class BrCore extends BrObject
     return null;
   }
 
+  /**
+   * Send email
+   * @param string $emails
+   * @param string $subject
+   * @param string $body
+   * @param array|callable $params
+   * @param callable|null $callback
+   * @return boolean
+   * @throws BrAppException
+   */
   public function sendMail($emails, $subject, $body, $params = [], $callback = null)
   {
     if (is_callable($params)) {
@@ -1947,95 +1962,101 @@ class BrCore extends BrObject
 
     br()->log()->message('Sending mail to ' . br($emails)->join());
 
-    $message = new \Swift_Message();
+    $email = new Email();
 
     if ($emails = br($emails)->split()) {
-      foreach ($emails as $email) {
-        $emailsArray = br(trim($email))->split();
+      foreach ($emails as $emailAdr) {
+        $emailsArray = br(trim($emailAdr))->split();
         foreach ($emailsArray as $oneEMail) {
-          $message->addTo($oneEMail);
+          $email->addTo(new Address($oneEMail, br($params, 'toName', '')));
         }
       }
 
       $fromName = br($params, 'senderName', br()->config()->get('br/mail/fromName'));
 
       if ($from = br($params, 'sender', br()->config()->get('br/mail/from', $emails[0]))) {
-        $message->addFrom($from, $fromName);
-        $message->addReplyTo($from, $fromName);
+        $email->addFrom(new Address($from, $fromName));
+        $email->addReplyTo(new Address($from, $fromName));
       }
     }
 
     if (br($params, 'cc')) {
       $cc = br($params['cc'])->split();
-      foreach ($cc as $email) {
-        $message->addCc($email);
+      foreach ($cc as $emailAdr) {
+        $email->addCc(new Address($emailAdr));
       }
     }
 
     if (br($params, 'bcc')) {
       $bcc = br($params['bcc'])->split();
-      foreach ($bcc as $email) {
-        $message->addBCC($email);
+      foreach ($bcc as $emailAdr) {
+        $email->addBCC(new Address($emailAdr));
       }
     }
 
-    $headers = $message->getHeaders();
+    $headers = $email->getHeaders();
 
     if (br($params, 'customHeaders')) {
-      foreach ($params['customHeaders'] as $customHeader) {
-        $headers->addTextHeader($customHeader);
+      foreach ($params['customHeaders'] as $headerName => $headerValue) {
+        $headers->addTextHeader($headerName, $headerValue);
       }
     }
 
     if (br($params, 'attachments')) {
       foreach ($params['attachments'] as $attachment) {
-        $message->attach(\Swift_Attachment::fromPath($attachment['path'])->setFilename($attachment['name']));
+        $email->attachFromPath($attachment['path'], $attachment['name']);
       }
     }
 
-    $message->setSubject($subject);
-    $message->setBody($body);
+    $email->subject($subject);
 
-    if (preg_match('/<a|<html|<span|<a|<br|<p/ism', $message->getBody())) {
-      $message->setContentType('text/html');
-      $message->addPart(br($message->getBody())->htmlToText(), 'text/plain');
+    if (preg_match('/<a|<html|<span|<b|<i|<div|<p/ism', $body)) {
+      $email->html($body);
+      $email->text(br($body)->htmlToText());
     } else {
-      $message->setContentType('text/plain');
+      $email->text($body);
     }
 
     if (is_callable($callback)) {
-      $callback($message);
+      $callback($email);
     }
 
     switch (br($params, 'mailer', br()->config()->get('br/mail/mailer'))) {
       case 'smtp':
-        $transport = new \Swift_SmtpTransport();
-        if ($hostname = br($params, 'hostname', br()->config()->get('br/mail/SMTP/hostname'))) {
-          $transport->setHost($hostname);
+        $dsn = br($params, 'secure', br()->config()->get('br/mail/SMTP/secure')) ? 'smtps://' : 'smtp://';
+
+        if (
+          ($username = br($params, 'username', br()->config()->get('br/mail/SMTP/username'))) &&
+          ($password = br($params, 'password', br()->config()->get('br/mail/SMTP/password')))
+        ) {
+          $dsn .= $username . ':' . $password . '@';
         }
-        if ($port = br($params, 'port', br()->config()->get('br/mail/SMTP/port'))) {
-          $transport->setPort($port);
+        $dsn .= br($params, 'hostname', br()->config()->get('br/mail/SMTP/hostname'));
+
+        if (($port = br($params, 'port', br()->config()->get('br/mail/SMTP/port')))) {
+          $dsn .= ':' . $port;
         }
-        if (($username = br($params, 'username', br()->config()->get('br/mail/SMTP/username'))) &&
-            ($password = br($params, 'password', br()->config()->get('br/mail/SMTP/password')))) {
-          $transport->setUsername($username);
-          $transport->setPassword($password);
-        }
-        if (br($params, 'secure', br()->config()->get('br/mail/SMTP/secure'))) {
-          $transport->setEncryption('ssl');
-        }
-        if ($encryption = br($params, 'secure', br()->config()->get('br/mail/SMTP/encryption'))) {
-          $transport->setEncryption($encryption);
-        }
+
+//        if ($encryption = br($params, 'secure', br()->config()->get('br/mail/SMTP/encryption')) {
+//        }
         break;
       default:
-        $transport = new \Swift_SendmailTransport('/usr/sbin/sendmail -bs');
+        $dsn = 'sendmail://default?command=/usr/sbin/sendmail%20-bs';
         break;
     }
 
-    $mailer = new \Swift_Mailer($transport);
+    $transport = Transport::fromDsn($dsn);
 
-    $status = $mailer->send($message);
+    $mailer = new Mailer($transport);
+
+    try {
+      $status = $mailer->send($email);
+    } catch (\Exception $e) {
+      if (preg_match('/Address in mailbox given .*? does not comply with RFC/', $e->getMessage())) {
+        throw new BrAppException($e->getMessage());
+      }
+      throw $e;
+    }
 
     if ($status === 0) {
       throw new BrAppException('No Recipients specified');
