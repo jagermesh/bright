@@ -22,10 +22,10 @@ class BrFTP extends BrRemoteConnection
 
   public function connect($hostName, $userName, $password, $port = 21, $passiveMode = true)
   {
-    $this->currentHostName    = $hostName;
-    $this->currentUserName    = $userName;
-    $this->currentPassword    = $password;
-    $this->currentPort        = $port;
+    $this->currentHostName = $hostName;
+    $this->currentUserName = $userName;
+    $this->currentPassword = $password;
+    $this->currentPort = $port;
     $this->currentPassiveMode = $passiveMode;
 
     $_this = $this;

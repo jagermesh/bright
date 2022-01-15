@@ -308,7 +308,7 @@ class BrDataBaseManager
 
     br()->db()->runQuery('
       INSERT
-        INTO ' .self::TABLE_DB_TRIGGERS . ' (event_object_schema, event_object_table, action_timing, event_manipulation)
+        INTO ' . self::TABLE_DB_TRIGGERS . ' (event_object_schema, event_object_table, action_timing, event_manipulation)
       SELECT event_object_schema, event_object_table, action_timing, event_manipulation
         FROM information_schema.triggers
        WHERE event_object_schema = ?
@@ -462,16 +462,16 @@ class BrDataBaseManager
 
     $fields = $this->getAuditFields($tableName);
 
-    $sql  = 'CREATE ';
+    $sql = 'CREATE ';
     if ($this->getDefiner()) {
       $sql .= ' DEFINER=' . $this->getDefiner() . ' ';
     }
     $sql .= 'TRIGGER aud_tai_' . $tableName . "\n";
-    $sql .= 'AFTER INSERT  ON ' . $tableName .' FOR EACH ROW' . "\n";
+    $sql .= 'AFTER INSERT  ON ' . $tableName . ' FOR EACH ROW' . "\n";
     $sql .= 'BEGIN' . "\n";
     $sql .= '  DECLARE auditID BIGINT UNSIGNED;' . "\n";
     $sql .= '  IF @auditDisabled IS NULL THEN' . "\n";
-    $sql .= '    INSERT INTO ' . $this->auditChangeTable . ' (action_date, table_name, action_name, object_id, author_id, ip_address, context) VALUES (NOW(), "'. $tableName . '", "i", NEW.id, @sessionUserID, IFNULL(@sessionUserIP, user()), @sessionAuditContext);' . "\n";
+    $sql .= '    INSERT INTO ' . $this->auditChangeTable . ' (action_date, table_name, action_name, object_id, author_id, ip_address, context) VALUES (NOW(), "' . $tableName . '", "i", NEW.id, @sessionUserID, IFNULL(@sessionUserIP, user()), @sessionAuditContext);' . "\n";
     $sql .= '    SET auditID = LAST_INSERT_ID();' . "\n";
 
     for ($i = 0; $i < count($fields); $i++) {
@@ -490,12 +490,12 @@ class BrDataBaseManager
 
     $fields = $this->getAuditFields($tableName);
 
-    $sql  = 'CREATE ';
+    $sql = 'CREATE ';
     if ($this->getDefiner()) {
       $sql .= ' DEFINER=' . $this->getDefiner() . ' ';
     }
     $sql .= 'TRIGGER aud_tau_' . $tableName . "\n";
-    $sql .= 'AFTER UPDATE ON ' . $tableName .' FOR EACH ROW' . "\n";
+    $sql .= 'AFTER UPDATE ON ' . $tableName . ' FOR EACH ROW' . "\n";
     $sql .= 'BEGIN' . "\n";
     $sql .= '  DECLARE auditID BIGINT UNSIGNED;' . "\n";
     $sql .= '  IF @auditDisabled IS NULL THEN' . "\n";
@@ -512,7 +512,7 @@ class BrDataBaseManager
 
     $sql .= '       ) THEN' . "\n";
 
-    $sql .= '      INSERT INTO ' . $this->auditChangeTable . ' (action_date, table_name, action_name, object_id, author_id, ip_address, context) VALUES (NOW(), "'. $tableName . '", "u", NEW.id, @sessionUserID, IFNULL(@sessionUserIP, user()), @sessionAuditContext);' . "\n";
+    $sql .= '      INSERT INTO ' . $this->auditChangeTable . ' (action_date, table_name, action_name, object_id, author_id, ip_address, context) VALUES (NOW(), "' . $tableName . '", "u", NEW.id, @sessionUserID, IFNULL(@sessionUserIP, user()), @sessionAuditContext);' . "\n";
     $sql .= '      SET auditID = LAST_INSERT_ID();' . "\n";
 
     for ($i = 0; $i < count($fields); $i++) {
@@ -532,16 +532,16 @@ class BrDataBaseManager
 
     $fields = $this->getAuditFields($tableName);
 
-    $sql  = 'CREATE ';
+    $sql = 'CREATE ';
     if ($this->getDefiner()) {
       $sql .= ' DEFINER=' . $this->getDefiner() . ' ';
     }
     $sql .= 'TRIGGER aud_tad_' . $tableName . "\n";
-    $sql .= 'AFTER DELETE  ON ' . $tableName .' FOR EACH ROW' . "\n";
+    $sql .= 'AFTER DELETE  ON ' . $tableName . ' FOR EACH ROW' . "\n";
     $sql .= 'BEGIN' . "\n";
     $sql .= '  DECLARE auditID BIGINT UNSIGNED;' . "\n";
     $sql .= '  IF @auditDisabled IS NULL THEN' . "\n";
-    $sql .= '    INSERT INTO ' . $this->auditChangeTable . ' (action_date, table_name, action_name, object_id, author_id, ip_address, context) VALUES (NOW(), "'. $tableName . '", "d", OLD.id, @sessionUserID, IFNULL(@sessionUserIP, user()), @sessionAuditContext);' . "\n";
+    $sql .= '    INSERT INTO ' . $this->auditChangeTable . ' (action_date, table_name, action_name, object_id, author_id, ip_address, context) VALUES (NOW(), "' . $tableName . '", "d", OLD.id, @sessionUserID, IFNULL(@sessionUserIP, user()), @sessionAuditContext);' . "\n";
     $sql .= '    SET auditID = LAST_INSERT_ID();' . "\n";
 
     for ($i = 0; $i < count($fields); $i++) {
@@ -558,12 +558,12 @@ class BrDataBaseManager
   {
     $this->initAuditSubsystem();
 
-    $sql  = 'CREATE ';
+    $sql = 'CREATE ';
     if ($this->getDefiner()) {
       $sql .= ' DEFINER=' . $this->getDefiner() . ' ';
     }
     $sql .= 'TRIGGER csc_tbd_' . $tableName . "\n";
-    $sql .= 'BEFORE DELETE ON ' . $tableName .' FOR EACH ROW' . "\n";
+    $sql .= 'BEFORE DELETE ON ' . $tableName . ' FOR EACH ROW' . "\n";
     $sql .= 'BEGIN' . "\n";
     $sql .= '  SET @BR_CSC_' . $tableName . ' = 1;' . "\n";
 
@@ -839,7 +839,7 @@ class BrDataBaseManager
   {
     $this->initAuditSubsystem();
 
-    $command   = br()->cmd()->getParam(1, 'setup');
+    $command = br()->cmd()->getParam(1, 'setup');
     $tableName = br()->cmd()->getParam(2, '*');
 
     if ($tableName == '*') {
@@ -912,7 +912,7 @@ class BrDataBaseManager
   {
     $this->initMigrationsSubsystem();
 
-    $command   = br()->cmd()->getParam(1, 'run');
+    $command = br()->cmd()->getParam(1, 'run');
     $patchName = br()->cmd()->getParam(2, '*');
 
     if ($patchName == '*') {
@@ -947,7 +947,7 @@ class BrDataBaseManager
         break;
     }
 
-    $patches      = [];
+    $patches = [];
     $patchObjects = [];
 
     br()->fs()->iterateDir(br()->getScriptBasePath() . 'patches/', '^' . $patchName . '$', function ($patchFile) use (&$patches) {

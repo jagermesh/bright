@@ -13,16 +13,15 @@
 /* global FormData */
 /* global safari */
 
-;(function($, window) {
-
-  window.br = window.br || Object.create({});
+(function($, window) {
+  window.br = window.br || {};
 
   let baseUrl = '';
   let brightUrl = '';
-
   let scripts = $('script');
+  let logStarted = false;
 
-  for(let i = 0, length = scripts.length; i < length; i++) {
+  for (let i = 0, length = scripts.length; i < length; i++) {
     let src = $(scripts[i]).attr('src');
     if (!br.isEmpty(src)) {
       if (/bright\/.+?[.]js/i.test(src)) {
@@ -43,8 +42,6 @@
   window.br.baseUrl = baseUrl;
   window.br.brightUrl = brightUrl;
   window.br.popupBlocker = 'unknown';
-
-  let logStarted = false;
 
   window.br.log = function(msg) {
     if (typeof(console) != 'undefined') {
@@ -113,7 +110,9 @@
   };
 
   window.br.isSafari = function() {
-    return /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window.safari || (typeof window.safari !== 'undefined' && window.safari.pushNotification));
+    return /constructor/i.test(window.HTMLElement) || (function(p) {
+      return p.toString() === "[object SafariRemoteNotification]";
+    })(!window.safari || (typeof window.safari !== 'undefined' && window.safari.pushNotification));
   };
 
   window.br.isChrome = function() {
@@ -175,7 +174,6 @@
   };
 
   window.br.processArray = function(array, processRowCallback, processCompleteCallback, params) {
-
     function processQueued(processRowCallback0, processCompleteCallback0, params0) {
       if (array.length > 0) {
         let rowid = array.shift();
@@ -208,8 +206,17 @@
 
   function BrTrn() {
     let trn = [];
-    this.get = function (phrase) { if (trn[phrase]) { return trn[phrase]; } else { return phrase; } };
-    this.set = function (phrase, translation) { trn[phrase] = translation; return this; };
+    this.get = function(phrase) {
+      if (trn[phrase]) {
+        return trn[phrase];
+      } else {
+        return phrase;
+      }
+    };
+    this.set = function(phrase, translation) {
+      trn[phrase] = translation;
+      return this;
+    };
     return this;
   }
 
@@ -232,16 +239,39 @@
       s.visibility = 'hidden';
       document.body.appendChild(div);
       div.innerHTML = '<img src="' + images.join('" /><img src="') + '" />';
-    } catch(e) {
-        // Error. Do nothing.
+    } catch (e) {
+      // Error. Do nothing.
     }
   };
 
-  window.br.randomInt = function() {
+  window.br.randomInt = function(minValue, maxValue) {
     const crypto = window.crypto || window.msCrypto;
-    let array = new Uint32Array(1);
-    crypto.getRandomValues(array);
-    return array[0];
+    const min = minValue || 0;
+    const max = maxValue || 0xFFFFFFF;
+    const range = max - min;
+    const bitsNeeded = Math.ceil(Math.log2(range));
+    const bytesNeeded = Math.ceil(bitsNeeded / 8);
+    const mask = Math.pow(2, bitsNeeded) - 1;
+
+    let rval = 0;
+
+    let byteArray = new Uint8Array(bytesNeeded);
+    crypto.getRandomValues(byteArray);
+
+    let p = (bytesNeeded - 1) * 8;
+
+    for (let i = 0; i < bytesNeeded; i++) {
+      rval += byteArray[i] * Math.pow(2, p);
+      p -= 8;
+    }
+
+    rval = rval & mask;
+
+    if (rval >= range) {
+      return br.randomInt(min, max);
+    }
+
+    return min + rval;
   };
 
   window.br.forHtml = function(text) {
@@ -262,20 +292,26 @@
   };
 
   function openUrl(href, options) {
-    options = options || { };
+    options = options || {};
 
     let message;
     const target = (options.target ? options.target : '_blank');
 
     if (options.urlTitle) {
-      message = `<p>Click below to open link manually</p>
-                 <p><a target="${target}" class="action-open-link" href="${href}" style="word-wrap: break-word">${options.urlTitle}</a></p>`;
+      message = `
+        <p>Click below to open link manually</p>
+        <p><a target="${target}" class="action-open-link" href="${href}" style="word-wrap: break-word">${options.urlTitle}</a></p>
+      `;
     } else {
-      message = `<p>Click a <a target="${target}" class="action-open-link" href="${href}" style="word-wrap: break-word">here</a> to open link manually</p>`;
+      message = `
+        <p>Click a <a target="${target}" class="action-open-link" href="${href}" style="word-wrap: break-word">here</a> to open link manually</p>
+      `;
     }
 
-    message = `${message}
-              <p>To eliminate this extra step, we recommend you modify your settings to disable the popup blocker.</p>`;
+    message = `
+      ${message}
+      <p>To eliminate this extra step, we recommend you modify your settings to disable the popup blocker.</p>
+    `;
 
     const dialog = br.inform('You browser is currently blocking popups', message);
     $('.action-open-link', dialog).on('click', function() {
@@ -285,7 +321,7 @@
   }
 
   window.br.openPage = function(href, options) {
-    options = options || { };
+    options = options || {};
 
     if (br.isSafari()) {
       br.openPopup(href, options);
@@ -305,9 +341,11 @@
 
   window.br.openPopup = function(href, options) {
     if (br.isString(options)) {
-      options = { target: options };
+      options = {
+        target: options
+      };
     } else {
-      options = options || { };
+      options = options || {};
     }
 
     options.target = options.target || '_blank';
@@ -344,7 +382,7 @@
           }
         }
       }
-      let left = (screen.width) ? (screen.width-width)/2 : 0;
+      let left = (screen.width) ? (screen.width - width) / 2 : 0;
       let settings = `height=${height},width=${width},top=20,left=${left},menubar=0,scrollbars=1,resizable=1`;
       let win = window.open(href, options.target, settings);
       if (win) {
@@ -370,7 +408,7 @@
       element.data(listName2, element.val());
       let callbacks = element.data(listName1);
       if (callbacks) {
-        for(let i = 0, length = callbacks.length; i < length; i++) {
+        for (let i = 0, length = callbacks.length; i < length; i++) {
           callbacks[i].call(element);
         }
       }
@@ -463,7 +501,7 @@
     }
   }
 
-  $(window).on('beforeunload', function(){
+  $(window).on('beforeunload', function() {
     return brightConfirmClose();
   });
 
@@ -480,9 +518,15 @@
   };
 
   window.br.events = br.eventQueue();
-  window.br.before = function(event, callback) { window.br.events.before(event, callback); };
-  window.br.on     = function(event, callback) { window.br.events.on(event,     callback); };
-  window.br.after  = function(event, callback) { window.br.events.after(event,  callback); };
+  window.br.before = function(event, callback) {
+    window.br.events.before(event, callback);
+  };
+  window.br.on = function(event, callback) {
+    window.br.events.on(event, callback);
+  };
+  window.br.after = function(event, callback) {
+    window.br.events.after(event, callback);
+  };
 
   window.br.confirmClose = function(message) {
     if (message) {
@@ -498,7 +542,6 @@
   };
 
   window.br.backToCaller = function(href, refresh) {
-
     let inPopup = (window.opener !== null);
 
     // check opener
@@ -525,11 +568,9 @@
     } else {
       document.location = href;
     }
-
   };
 
   window.br.disableBounce = function(container) {
-
     let $container = container;
 
     $('body').css('overflow', 'hidden');
@@ -545,18 +586,16 @@
     $(window).on('resize', function() {
       resize();
     });
-
   };
 
   window.br.getSelection = function() {
-
     let html = '';
 
     if (typeof window.getSelection != 'undefined') {
       let sel = window.getSelection();
       if (sel.rangeCount) {
         let container = document.createElement('div');
-        for(let i = 0, length = sel.rangeCount; i < length; ++i) {
+        for (let i = 0, length = sel.rangeCount; i < length; ++i) {
           container.appendChild(sel.getRangeAt(i).cloneContents());
         }
         html = container.innerHTML;
@@ -569,7 +608,6 @@
     }
 
     return html;
-
   };
 
   window.br.do = function(f) {
@@ -577,10 +615,100 @@
   };
 
   /* jshint ignore:start */
-  window.br.load = window.br.resourceLoader = function(j){function p(c,a){var g=j.createElement(c),b;for(b in a)a.hasOwnProperty(b)&&g.setAttribute(b,a[b]);return g}function m(c){var a=k[c],b,e;if(a)b=a.callback,e=a.urls,e.shift(),h=0,e.length||(b&&b.call(a.context,a.obj),k[c]=null,n[c].length&&i(c))}function u(){if(!b){var c=navigator.userAgent;b={async:j.createElement("script").async===!0};(b.webkit=/AppleWebKit\//.test(c))||(b.ie=/MSIE/.test(c))||(b.opera=/Opera/.test(c))||(b.gecko=/Gecko\//.test(c))||(b.unknown=!0)}}function i(c,
-    a,g,e,h){var i=function(){m(c)},o=c==="css",f,l,d,q;u();if(a)if(a=typeof a==="string"?[a]:a.concat(),o||b.async||b.gecko||b.opera)n[c].push({urls:a,callback:g,obj:e,context:h});else{f=0;for(l=a.length;f<l;++f)n[c].push({urls:[a[f]],callback:f===l-1?g:null,obj:e,context:h})}if(!k[c]&&(q=k[c]=n[c].shift())){r||(r=j.head||j.getElementsByTagName("head")[0]);a=q.urls;f=0;for(l=a.length;f<l;++f)g=a[f],o?d=b.gecko?p("style"):p("link",{href:g,rel:"stylesheet"}):(d=p("script",{src:g}),d.async=!1),d.className=
-    "lazyload",d.setAttribute("charset","utf-8"),b.ie&&!o?d.onreadystatechange=function(){if(/loaded|complete/.test(d.readyState))d.onreadystatechange=null,i()}:o&&(b.gecko||b.webkit)?b.webkit?(q.urls[f]=d.href,s()):(d.innerHTML='@import "'+g+'";',m("css")):d.onload=d.onerror=i,r.appendChild(d)}}function s(){var c=k.css,a;if(c){for(a=t.length;--a>=0;)if(t[a].href===c.urls[0]){m("css");break}h+=1;c&&(h<200?setTimeout(s,50):m("css"))}}var b,r,k={},h=0,n={css:[],js:[]},t=j.styleSheets;return{css:function(c,
-    a,b,e){i("css",c,a,b,e)},js:function(c,a,b,e){i("js",c,a,b,e)}}}(document);
+  window.br.load = window.br.resourceLoader = function(j) {
+    function p(c, a) {
+      var g = j.createElement(c),
+        b;
+      for (b in a) a.hasOwnProperty(b) && g.setAttribute(b, a[b]);
+      return g
+    }
+
+    function m(c) {
+      var a = k[c],
+        b, e;
+      if (a) b = a.callback, e = a.urls, e.shift(), h = 0, e.length || (b && b.call(a.context, a.obj), k[c] = null, n[c].length && i(c))
+    }
+
+    function u() {
+      if (!b) {
+        var c = navigator.userAgent;
+        b = {
+          async: j.createElement("script").async === !0
+        };
+        (b.webkit = /AppleWebKit\//.test(c)) || (b.ie = /MSIE/.test(c)) || (b.opera = /Opera/.test(c)) || (b.gecko = /Gecko\//.test(c)) || (b.unknown = !0)
+      }
+    }
+
+    function i(c,
+      a, g, e, h) {
+      var i = function() {
+          m(c)
+        },
+        o = c === "css",
+        f, l, d, q;
+      u();
+      if (a)
+        if (a = typeof a === "string" ? [a] : a.concat(), o || b.async || b.gecko || b.opera) n[c].push({
+          urls: a,
+          callback: g,
+          obj: e,
+          context: h
+        });
+        else {
+          f = 0;
+          for (l = a.length; f < l; ++f) n[c].push({
+            urls: [a[f]],
+            callback: f === l - 1 ? g : null,
+            obj: e,
+            context: h
+          })
+        }
+      if (!k[c] && (q = k[c] = n[c].shift())) {
+        r || (r = j.head || j.getElementsByTagName("head")[0]);
+        a = q.urls;
+        f = 0;
+        for (l = a.length; f < l; ++f) g = a[f], o ? d = b.gecko ? p("style") : p("link", {
+            href: g,
+            rel: "stylesheet"
+          }) : (d = p("script", {
+            src: g
+          }), d.async = !1), d.className =
+          "lazyload", d.setAttribute("charset", "utf-8"), b.ie && !o ? d.onreadystatechange = function() {
+            if (/loaded|complete/.test(d.readyState)) d.onreadystatechange = null, i()
+          } : o && (b.gecko || b.webkit) ? b.webkit ? (q.urls[f] = d.href, s()) : (d.innerHTML = '@import "' + g + '";', m("css")) : d.onload = d.onerror = i, r.appendChild(d)
+      }
+    }
+
+    function s() {
+      var c = k.css,
+        a;
+      if (c) {
+        for (a = t.length; --a >= 0;)
+          if (t[a].href === c.urls[0]) {
+            m("css");
+            break
+          }
+        h += 1;
+        c && (h < 200 ? setTimeout(s, 50) : m("css"))
+      }
+    }
+    var b, r, k = {},
+      h = 0,
+      n = {
+        css: [],
+        js: []
+      },
+      t = j.styleSheets;
+    return {
+      css: function(c,
+        a, b, e) {
+        i("css", c, a, b, e)
+      },
+      js: function(c, a, b, e) {
+        i("js", c, a, b, e)
+      }
+    }
+  }(document);
   /* jshint ignore:end */
 
   window.br.URL = window.URL || window.webkitURL;
@@ -656,7 +784,7 @@
       osc.type = 0;
       osc.connect(beepAudioContext.destination);
       let now = beepAudioContext.currentTime;
-      if(osc.start) {
+      if (osc.start) {
         osc.start(now);
         osc.stop(now + duration);
       } else {
@@ -665,7 +793,7 @@
       }
 
       osc.onended = function() {
-        if(callback){
+        if (callback) {
           callback();
         }
       };
@@ -700,7 +828,6 @@
 
         }
       }
-
     });
 
     window.addEventListener('unhandledrejection', function(event) {
@@ -733,14 +860,13 @@
 
       event.preventDefault();
     });
-
   }
 
   function printObject(obj, eol, prefix) {
     let result = '';
 
     prefix = prefix ? prefix : '';
-    for(let name in obj) {
+    for (let name in obj) {
       if (br.isObject(obj[name])) {
         result += printObject(obj[name], eol, `${prefix}${name}.`);
       } else {
@@ -757,7 +883,7 @@
       br.on('error', function(error) {
         if (!error.filename || (error.filename.indexOf('chrome-extension') !== 0)) {
           let message = '';
-          switch(format) {
+          switch (format) {
             case 'html':
               message = printObject(error, '<br />');
               break;
@@ -775,5 +901,4 @@
       });
     }
   };
-
 })(jQuery, window);

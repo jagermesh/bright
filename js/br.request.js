@@ -9,12 +9,10 @@
 
 /* global URL */
 
-;(function (window) {
-
-  window.br = window.br || Object.create({});
+(function(window) {
+  window.br = window.br || {};
 
   function BrRequest() {
-
     const _this = this;
 
     _this.continueRoute = true;
@@ -78,14 +76,14 @@
         }
       });
       if (br.isObject(paramName)) {
-        for(let name in paramName) {
+        for (let name in paramName) {
           values[name] = paramName[name];
         }
       } else {
         values[paramName] = paramValue;
       }
       let hash = '#';
-      for(let name in values) {
+      for (let name in values) {
         hash += `${name}=${values[name]}&`;
       }
       document.location.hash = hash;
@@ -115,9 +113,7 @@
       }
       return _this;
     };
-
   }
 
   window.br.request = new BrRequest();
-
 })(window);

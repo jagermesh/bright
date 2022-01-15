@@ -74,14 +74,14 @@ if (!br()->log()->isAdapterExists('Bright\\BrMailLogAdapter')) {
 }
 
 if (br()->config()->get(\Bright\BrConst::CONFIG_OPTION_LOGGER_FILE_ACTIVE)) {
-  br()->log()->addAdapter(new \Bright\BrApplicationFileLogAdapter([ 'organized' => true ]));
+  br()->log()->addAdapter(new \Bright\BrApplicationFileLogAdapter(['organized' => true]));
   if (br()->request()->isDevHost()) {
     br()->log()->addAdapter(new \Bright\BrDebugFileLogAdapter());
     br()->log()->addAdapter(new \Bright\BrErrorFileLogAdapter());
   }
 }
 if (br()->config()->get(\Bright\BrConst::CONFIG_OPTION_LOGGER_KIBANA_ACTIVE)) {
-  br()->log()->addAdapter(new \Bright\BrApplicationFileLogAdapter([ 'format' => 'json' ]));
+  br()->log()->addAdapter(new \Bright\BrApplicationFileLogAdapter(['format' => 'json']));
 }
 
 if (br()->isConsoleMode()) {

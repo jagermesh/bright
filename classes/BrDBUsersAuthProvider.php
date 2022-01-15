@@ -251,7 +251,7 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider
               self::COOKIE_ATTR_TOKEN => sha1(md5(sha1($password) . sha1($rowid)))
             ];
             setcookie($this->getAuthTag(), base64_encode(json_encode($cookie)),
-              time() + 60*60*24*30, br()->request()->baseUrl(), br()->request()->domain(), true, true);
+              time() + 60 * 60 * 24 * 30, br()->request()->baseUrl(), br()->request()->domain(), true, true);
           }
           return $login;
         }

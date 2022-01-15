@@ -7,18 +7,19 @@
  *
  */
 
-;(function($, window) {
-
-  window.br = window.br || Object.create({});
+(function($, window) {
+  window.br = window.br || {};
 
   function BrEditable(ctrl, options) {
     const _this = this;
 
     if (br.isFunction(options)) {
-      options = { onSave: options };
+      options = {
+        onSave: options
+      };
     }
 
-    _this.options = options || Object.create({});
+    _this.options = options || {};
     _this.ctrl = $(ctrl);
     _this.editor = null;
     _this.savedWidth = '';
@@ -191,5 +192,4 @@
       });
     }
   };
-
 })(jQuery, window);

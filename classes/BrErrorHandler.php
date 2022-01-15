@@ -16,9 +16,9 @@ class BrErrorHandler extends BrObject
   {
     error_reporting(E_ALL);
 
-    set_error_handler([ &$this, 'errorHandler' ]);
-    set_exception_handler([ &$this, 'exceptionHandler' ]);
-    register_shutdown_function([ &$this, 'captureShutdown' ]);
+    set_error_handler([&$this, 'errorHandler']);
+    set_exception_handler([&$this, 'exceptionHandler']);
+    register_shutdown_function([&$this, 'captureShutdown']);
   }
 
   private function checkLoggers()
@@ -68,8 +68,8 @@ class BrErrorHandler extends BrObject
   {
     if ($error = error_get_last()) {
       if ($this->isEnabled()) {
-        $errmsg  = $error['message'];
-        $errno   = $error['type'];
+        $errmsg = $error['message'];
+        $errno = $error['type'];
         $errfile = $error['file'];
         $errline = $error['line'];
         if ($errmsg != 'Unknown: Cannot destroy the zip context') {

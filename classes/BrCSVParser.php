@@ -13,7 +13,7 @@ namespace Bright;
 class BrCSVParser extends BrObject
 {
   private $delimiter = ',';
-  private $enclosureArr = [ '"', "'" ];
+  private $enclosureArr = ['"', "'"];
 
   public function setDelimiter($delimiter)
   {
@@ -87,7 +87,7 @@ class BrCSVParser extends BrObject
 
         $enclosuresArr = [];
         foreach ($this->enclosureArr as $enclosure) {
-          $enclosuresArr[] = [ "\\" . $enclosure, $enclosure . $enclosure ];
+          $enclosuresArr[] = ["\\" . $enclosure, $enclosure . $enclosure];
         }
 
         while (($line = fgets($handle)) !== false) {
@@ -150,7 +150,7 @@ class BrCSVParser extends BrObject
 
         return $linesAmount;
       } else {
-        throw new BrCSVParserException('Could not open file ' . $fileName. ' for reading.');
+        throw new BrCSVParserException('Could not open file ' . $fileName . ' for reading.');
       }
     } else {
       throw new BrCSVParserException('File ' . $fileName . ' does not exist.');

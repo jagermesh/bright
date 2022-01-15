@@ -24,7 +24,7 @@ class BrErrorFileLogAdapter extends BrGenericFileLogAdapter
   public function write($messageOrObject, $params)
   {
     if ($this->isErrorEventType($params)) {
-      $info = $this->getLogInfo($messageOrObject, $params, [ 'snapshot' ]);
+      $info = $this->getLogInfo($messageOrObject, $params, ['snapshot']);
       $message = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, true);
       $prefix = $this->getLogPrefix($info);
       $logMessage = json_encode($info, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n\n" . $message;

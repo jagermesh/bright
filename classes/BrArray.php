@@ -22,8 +22,8 @@ class BrArray extends BrGenericDataType
   }
 
   /**
-   * @param  alpha-numeric|array
-   * @param  boolean
+   * @param alpha-numeric|array
+   * @param boolean
    * @return boolean
    */
   public function contain($value, $ignoreCase = false)
@@ -32,8 +32,8 @@ class BrArray extends BrGenericDataType
   }
 
   /**
-   * @param  alpha-numeric|array
-   * @param  boolean
+   * @param alpha-numeric|array
+   * @param boolean
    * @return boolean
    */
   public function has($value, $ignoreCase = false)
@@ -42,8 +42,8 @@ class BrArray extends BrGenericDataType
   }
 
   /**
-   * @param  alpha-numeric|array
-   * @param  boolean
+   * @param alpha-numeric|array
+   * @param boolean
    * @return boolean
    */
   public function exists($needle, $ignoreCase = false)
@@ -73,7 +73,7 @@ class BrArray extends BrGenericDataType
   }
 
   /**
-   * @param  alpha-numeric
+   * @param alpha-numeric
    * @return integer
    */
   public function indexOf($value)
@@ -98,7 +98,7 @@ class BrArray extends BrGenericDataType
   }
 
   /**
-   * @param  string
+   * @param string
    * @return string
    */
   public function join($glue = ', '): string
@@ -107,7 +107,7 @@ class BrArray extends BrGenericDataType
   }
 
   /**
-   * @param  boolean
+   * @param boolean
    * @return array
    */
   public function removeEmptyValues($assoc = true)
@@ -128,7 +128,7 @@ class BrArray extends BrGenericDataType
   }
 
   /**
-   * @param  array
+   * @param array
    * @return array
    */
   public function compare($array2)
@@ -141,7 +141,7 @@ class BrArray extends BrGenericDataType
           $result[$name] = $value;
         }
       } elseif (br($value)->isNumeric() && br($array2[$name])->isNumeric()) {
-        if (abs($value-$array2[$name]) > 0.00001) {
+        if (abs($value - $array2[$name]) > 0.00001) {
           $result[$name] = $value;
         }
       } elseif ($value != $array2[$name]) {
@@ -153,7 +153,7 @@ class BrArray extends BrGenericDataType
   }
 
   /**
-   * @param  array
+   * @param array
    * @return boolean
    */
   public function hasOnlyNames($names)
@@ -168,7 +168,7 @@ class BrArray extends BrGenericDataType
   }
 
   /**
-   * @param  alpha-numeric
+   * @param alpha-numeric
    * @return array
    */
   public function valuesOf($name)
@@ -184,7 +184,7 @@ class BrArray extends BrGenericDataType
   }
 
   /**
-   * @param  string|array
+   * @param string|array
    * @return array
    */
   public function extract($fields)
@@ -207,7 +207,7 @@ class BrArray extends BrGenericDataType
   }
 
   /**
-   * @param  array
+   * @param array
    * @return boolean
    */
   public function in($array2)
@@ -232,7 +232,7 @@ class BrArray extends BrGenericDataType
   }
 
   /**
-   * @param  function
+   * @param function
    * @return array
    */
   public function shuffle($blockShufflingCheck = null)
@@ -245,7 +245,7 @@ class BrArray extends BrGenericDataType
       if (!in_array($i, $moved) && $this->canMoveElement($result[$i], $blockShufflingCheck)) {
         $newIdx = random_int(0, count($result) - 1);
         $iteration = 0;
-        while (($iteration++ < count($result)*2) && (($newIdx == $i) || !$this->canMoveElement($result[$newIdx], $blockShufflingCheck))) {
+        while (($iteration++ < count($result) * 2) && (($newIdx == $i) || !$this->canMoveElement($result[$newIdx], $blockShufflingCheck))) {
           $newIdx = random_int(0, count($result) - 1);
         }
         if ($this->canMoveElement($result[$newIdx], $blockShufflingCheck)) {
@@ -265,9 +265,11 @@ class BrArray extends BrGenericDataType
    */
   public function isRegularArray()
   {
-    return (count(array_filter($this->value, function ($value, $key) {
-      return is_array($value) || is_object($value) || !is_numeric($key);
-    }, ARRAY_FILTER_USE_BOTH)) === 0);
+    return (
+      count(array_filter($this->value, function ($value, $key) {
+        return is_array($value) || is_object($value) || !is_numeric($key);
+      }, ARRAY_FILTER_USE_BOTH)) === 0
+    );
   }
 
   /**
@@ -275,9 +277,11 @@ class BrArray extends BrGenericDataType
    */
   public function isMultiArray()
   {
-    return (count(array_filter($this->value, function ($value) {
-      return is_array($value);
-    }, ARRAY_FILTER_USE_BOTH)) > 0);
+    return (
+      count(array_filter($this->value, function ($value) {
+        return is_array($value);
+      }, ARRAY_FILTER_USE_BOTH)) > 0
+    );
   }
 
   /**
@@ -290,9 +294,17 @@ class BrArray extends BrGenericDataType
     }
 
     $result = array_filter($this->value, function ($value, $key) {
-      return preg_match('/^[$]/', $key) || !is_string($key) || (!is_scalar($value) && is_array($value) && count(array_filter($value, function ($value, $key) {
-        return !is_numeric($key) || !is_scalar($value);
-      }, ARRAY_FILTER_USE_BOTH)) > 0);
+      return (
+        preg_match('/^[$]/', $key) ||
+        !is_string($key) ||
+        (
+          !is_scalar($value) &&
+          is_array($value) &&
+          count(array_filter($value, function ($value, $key) {
+            return !is_numeric($key) || !is_scalar($value);
+          }, ARRAY_FILTER_USE_BOTH)) > 0
+        )
+      );
     }, ARRAY_FILTER_USE_BOTH);
 
     return count($result) === 0;

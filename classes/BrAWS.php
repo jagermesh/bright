@@ -311,7 +311,7 @@ class BrAWS extends BrObject
       $this->pollyClient = new \Aws\Polly\PollyClient([
         'credentials' => [
           'key' => br()->config()->get('AWS/Polly/AccessKey', br()->config()->get('AWS/S3AccessKey')),
-          'secret'  => br()->config()->get('AWS/Polly/AccessSecret', br()->config()->get('AWS/S3AccessSecret'))
+          'secret' => br()->config()->get('AWS/Polly/AccessSecret', br()->config()->get('AWS/S3AccessSecret'))
         ],
         'region' => br()->config()->get('AWS/Polly/Region', br()->config()->get('AWS/S3Region')),
         'version' => 'latest'
@@ -372,7 +372,7 @@ class BrAWS extends BrObject
       $h = $matches[1];
       $m = $matches[2];
       $s = $matches[3];
-      return round($s*1000 + $m*60*1000 + $h*60*60*1000);
+      return round($s * 1000 + $m * 60 * 1000 + $h * 60 * 60 * 1000);
     } else {
       return 0;
     }
@@ -389,7 +389,7 @@ class BrAWS extends BrObject
       $promises = [];
       foreach ($chunks as $chunk) {
         $promises[] = $polly->synthesizeSpeechAsync([
-          'OutputFormat'  => 'mp3',
+          'OutputFormat' => 'mp3',
           'TextType' => 'text',
           'Text' => $chunk,
           'VoiceId' => br($additionalParams, 'voice', 'Salli')
@@ -399,7 +399,7 @@ class BrAWS extends BrObject
           'TextType' => 'text',
           'Text' => $chunk,
           'VoiceId' => br($additionalParams, 'voice', 'Salli'),
-          'SpeechMarkTypes' => [ 'word' ]
+          'SpeechMarkTypes' => ['word']
         ]);
       }
 
@@ -434,7 +434,7 @@ class BrAWS extends BrObject
           $filesFolder = br()->getTempPath() . br()->guid();
           br()->fs()->createDir($filesFolder);
           try {
-            $marksData   = [];
+            $marksData = [];
             $currentTime = 0;
             $filesList = [];
             try {
@@ -445,7 +445,7 @@ class BrAWS extends BrObject
                 $marksDataRaw = $marksStreams[$i]->getContents();
                 $filesList[] = $tempFileName;
                 if ($i > 0) {
-                  $currentTime += $this->getAudioFileDuration($filesFolder . '/' . $filesList[$i-1]);
+                  $currentTime += $this->getAudioFileDuration($filesFolder . '/' . $filesList[$i - 1]);
                 }
                 $marksDataNormalized = $this->normalizeMarks($marksDataRaw, $currentTime);
                 $marksData = array_merge($marksData, $marksDataNormalized);

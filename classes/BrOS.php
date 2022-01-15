@@ -53,7 +53,7 @@ class BrOS extends BrObject
     $result = [];
 
     if (!is_array($masks)) {
-      $masks = [ $masks ];
+      $masks = [$masks];
     }
     $output = $this->execute('ps ax 2>&1');
     foreach ($masks as $mask) {
@@ -93,7 +93,7 @@ class BrOS extends BrObject
 
   public function nohup($command): int
   {
-    $output = $this->execute('nohup '.$command.' >/dev/null 2>&1 & echo $!');
+    $output = $this->execute('nohup ' . $command . ' >/dev/null 2>&1 & echo $!');
 
     return (int)$output[0];
   }

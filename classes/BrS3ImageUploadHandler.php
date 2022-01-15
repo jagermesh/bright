@@ -14,7 +14,7 @@ class BrS3ImageUploadHandler extends BrGenericUploadHandler
 {
   public function __construct($params = [])
   {
-    $params['allowedExtensions'] = [ 'jpeg', 'jpg', 'gif', 'png', 'svg' ];
+    $params['allowedExtensions'] = ['jpeg', 'jpg', 'gif', 'png', 'svg'];
     parent::__construct($params);
   }
 
@@ -40,7 +40,7 @@ class BrS3ImageUploadHandler extends BrGenericUploadHandler
         $dstFilePath = '/' . rtrim(ltrim($path, '/'), '/') . '/' . hash_file('sha256', $srcFilePath) . '/' .
           br()->request()->get('tw') . 'x' . br()->request()->get('th') . '/' . $dstFileName;
         $url = br()->AWS()->uploadFile($thumbnail, $this->options['bucketName'] . $dstFilePath);
-        $result['thumbnailUrl']  = $dstFilePath;
+        $result['thumbnailUrl'] = $dstFilePath;
         $result['thumbnailHref'] = $url;
       }
     }

@@ -43,7 +43,7 @@ class BrConst
   public const REST_SECURITY_LOGIN = 'login';
 
   public const ERROR_MESSAGE_ACCESS_DENIED = 'Access denied';
-  public const ERROR_MESSAGE_METHOD_NOT_SUPPORTED =  'Method [%s] not supported';
+  public const ERROR_MESSAGE_METHOD_NOT_SUPPORTED = 'Method [%s] not supported';
 
   public const CONFIG_OPTION_DB = 'br/db';
   public const CONFIG_OPTION_DB_NAME = 'br/db.name';

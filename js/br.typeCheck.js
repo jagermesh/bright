@@ -7,13 +7,11 @@
  *
  */
 
-;(function(window) {
-
-  window.br = window.br || Object.create({});
+(function(window) {
+  window.br = window.br || {};
 
   window.br.isNumber = function(value) {
-    return (
-      !isNaN(parseFloat(value)) &&
+    return (!isNaN(parseFloat(value)) &&
       isFinite(value)
     );
   };
@@ -34,8 +32,7 @@
   };
 
   window.br.isArray = function(value) {
-    return (
-      !br.isNull(value) &&
+    return (!br.isNull(value) &&
       (Object.prototype.toString.call(value) === '[object Array]')
     );
   };
@@ -47,7 +44,7 @@
   window.br.isEmptyObject = function(value) {
     if (br.isObject(value)) {
       let result = true;
-      for(let i in value) {
+      for (let i in value) {
         result = false;
         break;
       }
@@ -111,5 +108,4 @@
       return 0;
     }
   };
-
 })(window);

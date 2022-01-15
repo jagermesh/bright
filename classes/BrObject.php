@@ -139,7 +139,7 @@ class BrObject
   {
     $eventNames = preg_split('~[,]~', $event);
     foreach ($eventNames as $event) {
-      $event = 'before:'.$event;
+      $event = 'before:' . $event;
       $this->events[$event][] = $func;
       if (in_array($event, $this->stickyEvents)) {
         $func($this);
@@ -162,7 +162,7 @@ class BrObject
   {
     $eventNames = preg_split('~[,]~', $event);
     foreach ($eventNames as $event) {
-      $event = 'after:'.$event;
+      $event = 'after:' . $event;
       $this->events[$event][] = $func;
       if (in_array($event, $this->stickyEvents)) {
         $func($this);

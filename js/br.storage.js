@@ -7,25 +7,23 @@
  *
  */
 
-;(function (window) {
-
-  window.br = window.br || Object.create({});
+(function(window) {
+  window.br = window.br || {};
 
   const _helper = {
     pack: function(data) {
       return JSON.stringify(data);
-    }
-  , unpack: function(data) {
+    },
+    unpack: function(data) {
       try {
         return JSON.parse(data);
-      } catch(ex) {
+      } catch (ex) {
         return null;
       }
     }
   };
 
   function BrStorage(storage) {
-
     const _this = this;
 
     let _storage = storage;
@@ -33,8 +31,8 @@
     _this.get = function(key, defaultValue) {
       let result;
       if (br.isArray(key)) {
-        result = Object.create({});
-        for(let i in key) {
+        result = {};
+        for (let i in key) {
           result[key[i]] = _this.get(key[i]);
         }
       } else {
@@ -45,7 +43,7 @@
 
     _this.set = function(key, value) {
       if (br.isObject(key)) {
-        for(let name in key) {
+        for (let name in key) {
           _this.set(name, key[name]);
         }
       } else {
@@ -93,12 +91,12 @@
           value = [];
         }
         if (br.isArray(newValue)) {
-          for(let i in newValue) {
+          for (let i in newValue) {
             _this.append(key, newValue[i], limit);
           }
         } else {
           if (br.isNumber(limit)) {
-            while(value.length >= limit) {
+            while (value.length >= limit) {
               value.shift();
             }
           }
@@ -124,12 +122,12 @@
           value = [];
         }
         if (br.isArray(newValue)) {
-          for(let i in newValue) {
+          for (let i in newValue) {
             _this.prepend(key, newValue[i], limit);
           }
         } else {
           if (br.isNumber(limit)) {
-            while(value.length >= limit) {
+            while (value.length >= limit) {
               value.pop();
             }
           }
@@ -153,7 +151,7 @@
       if (!br.isArray(value)) {
         value = [];
       }
-      for(let i = 0, length = value.length; i < length; i++) {
+      for (let i = 0, length = value.length; i < length; i++) {
         fn.call(_this, value[i]);
       }
       return _this;
@@ -171,7 +169,7 @@
         }
       }
       return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
-   }
+    }
 
     _this.getLast = function(key, defaultValue) {
       return _getLast(key, defaultValue, false);
@@ -207,10 +205,10 @@
       if (!br.isEmpty(newValue)) {
         let value = _this.get(key);
         if (!br.isObject(value)) {
-          value = Object.create({});
+          value = {};
         }
         if (br.isObject(newValue)) {
-          for(let i in newValue) {
+          for (let i in newValue) {
             value[i] = newValue[i];
           }
           _this.set(key, value);
@@ -234,8 +232,8 @@
     };
 
     _this.all = function() {
-      let result = Object.create({});
-      for(let name in _storage) {
+      let result = {};
+      for (let name in _storage) {
         result[name] = _this.get(name);
       }
       return result;
@@ -266,10 +264,8 @@
     _this.has = function(key, arrayValue) {
       return (_this.indexOf(key, arrayValue) != -1);
     };
-
   }
 
   window.br.storage = new BrStorage(window.localStorage);
   window.br.session = new BrStorage(window.sessionStorage);
-
 })(window);

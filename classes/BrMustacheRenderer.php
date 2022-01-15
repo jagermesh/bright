@@ -29,6 +29,6 @@ class BrMustacheRenderer extends BrGenericRenderer
   public function resetEngine()
   {
     $this->mustache = null;
-    $this->mustache = new \Mustache_Engine([ 'delimiters' => br($this->params, 'delimiters', '[[ ]]') ]);
+    $this->mustache = new \Mustache_Engine(['delimiters' => br($this->params, 'delimiters', '[[ ]]')]);
   }
 }

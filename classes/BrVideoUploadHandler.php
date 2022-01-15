@@ -14,7 +14,7 @@ class BrVideoUploadHandler extends BrFileUploadHandler
 {
   public function __construct($options = [])
   {
-    $options['allowedExtensions'] = [ 'avi', 'mp4', 'mov', 'webm' ];
+    $options['allowedExtensions'] = ['avi', 'mp4', 'mov', 'webm'];
 
     parent::__construct($options);
   }

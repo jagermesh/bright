@@ -34,18 +34,18 @@ THE SOFTWARE.
 /* global Element */
 
 if (!Element.prototype.scrollIntoViewIfNeeded) {
-  Element.prototype.scrollIntoViewIfNeeded = function (centerIfNeeded) {
+  Element.prototype.scrollIntoViewIfNeeded = function(centerIfNeeded) {
     centerIfNeeded = arguments.length === 0 ? true : !!centerIfNeeded;
 
     var parent = this.parentNode,
-        parentComputedStyle = window.getComputedStyle(parent, null),
-        parentBorderTopWidth = parseInt(parentComputedStyle.getPropertyValue('border-top-width')),
-        parentBorderLeftWidth = parseInt(parentComputedStyle.getPropertyValue('border-left-width')),
-        overTop = this.offsetTop - parent.offsetTop < parent.scrollTop,
-        overBottom = (this.offsetTop - parent.offsetTop + this.clientHeight - parentBorderTopWidth) > (parent.scrollTop + parent.clientHeight),
-        overLeft = this.offsetLeft - parent.offsetLeft < parent.scrollLeft,
-        overRight = (this.offsetLeft - parent.offsetLeft + this.clientWidth - parentBorderLeftWidth) > (parent.scrollLeft + parent.clientWidth),
-        alignWithTop = overTop && !overBottom;
+      parentComputedStyle = window.getComputedStyle(parent, null),
+      parentBorderTopWidth = parseInt(parentComputedStyle.getPropertyValue('border-top-width')),
+      parentBorderLeftWidth = parseInt(parentComputedStyle.getPropertyValue('border-left-width')),
+      overTop = this.offsetTop - parent.offsetTop < parent.scrollTop,
+      overBottom = (this.offsetTop - parent.offsetTop + this.clientHeight - parentBorderTopWidth) > (parent.scrollTop + parent.clientHeight),
+      overLeft = this.offsetLeft - parent.offsetLeft < parent.scrollLeft,
+      overRight = (this.offsetLeft - parent.offsetLeft + this.clientWidth - parentBorderLeftWidth) > (parent.scrollLeft + parent.clientWidth),
+      alignWithTop = overTop && !overBottom;
 
     if ((overTop || overBottom) && centerIfNeeded) {
       parent.scrollTop = this.offsetTop - parent.offsetTop - parent.clientHeight / 2 - parentBorderTopWidth + this.clientHeight / 2;
@@ -60,7 +60,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
   };
 }
-
 /*!
  * Bright 2.0
  *
@@ -70,13 +69,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function(window) {
-
-  window.br = window.br || Object.create({});
+(function(window) {
+  window.br = window.br || {};
 
   window.br.isNumber = function(value) {
-    return (
-      !isNaN(parseFloat(value)) &&
+    return (!isNaN(parseFloat(value)) &&
       isFinite(value)
     );
   };
@@ -97,8 +94,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   };
 
   window.br.isArray = function(value) {
-    return (
-      !br.isNull(value) &&
+    return (!br.isNull(value) &&
       (Object.prototype.toString.call(value) === '[object Array]')
     );
   };
@@ -110,7 +106,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   window.br.isEmptyObject = function(value) {
     if (br.isObject(value)) {
       let result = true;
-      for(let i in value) {
+      for (let i in value) {
         result = false;
         break;
       }
@@ -174,9 +170,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       return 0;
     }
   };
-
 })(window);
-
 /*!
  * Bright 2.0
  *
@@ -186,25 +180,23 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function (window) {
-
-  window.br = window.br || Object.create({});
+(function(window) {
+  window.br = window.br || {};
 
   const _helper = {
     pack: function(data) {
       return JSON.stringify(data);
-    }
-  , unpack: function(data) {
+    },
+    unpack: function(data) {
       try {
         return JSON.parse(data);
-      } catch(ex) {
+      } catch (ex) {
         return null;
       }
     }
   };
 
   function BrStorage(storage) {
-
     const _this = this;
 
     let _storage = storage;
@@ -212,8 +204,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     _this.get = function(key, defaultValue) {
       let result;
       if (br.isArray(key)) {
-        result = Object.create({});
-        for(let i in key) {
+        result = {};
+        for (let i in key) {
           result[key[i]] = _this.get(key[i]);
         }
       } else {
@@ -224,7 +216,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     _this.set = function(key, value) {
       if (br.isObject(key)) {
-        for(let name in key) {
+        for (let name in key) {
           _this.set(name, key[name]);
         }
       } else {
@@ -272,12 +264,12 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           value = [];
         }
         if (br.isArray(newValue)) {
-          for(let i in newValue) {
+          for (let i in newValue) {
             _this.append(key, newValue[i], limit);
           }
         } else {
           if (br.isNumber(limit)) {
-            while(value.length >= limit) {
+            while (value.length >= limit) {
               value.shift();
             }
           }
@@ -303,12 +295,12 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           value = [];
         }
         if (br.isArray(newValue)) {
-          for(let i in newValue) {
+          for (let i in newValue) {
             _this.prepend(key, newValue[i], limit);
           }
         } else {
           if (br.isNumber(limit)) {
-            while(value.length >= limit) {
+            while (value.length >= limit) {
               value.pop();
             }
           }
@@ -332,7 +324,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       if (!br.isArray(value)) {
         value = [];
       }
-      for(let i = 0, length = value.length; i < length; i++) {
+      for (let i = 0, length = value.length; i < length; i++) {
         fn.call(_this, value[i]);
       }
       return _this;
@@ -350,7 +342,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         }
       }
       return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
-   }
+    }
 
     _this.getLast = function(key, defaultValue) {
       return _getLast(key, defaultValue, false);
@@ -386,10 +378,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       if (!br.isEmpty(newValue)) {
         let value = _this.get(key);
         if (!br.isObject(value)) {
-          value = Object.create({});
+          value = {};
         }
         if (br.isObject(newValue)) {
-          for(let i in newValue) {
+          for (let i in newValue) {
             value[i] = newValue[i];
           }
           _this.set(key, value);
@@ -413,8 +405,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     };
 
     _this.all = function() {
-      let result = Object.create({});
-      for(let name in _storage) {
+      let result = {};
+      for (let name in _storage) {
         result[name] = _this.get(name);
       }
       return result;
@@ -445,14 +437,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     _this.has = function(key, arrayValue) {
       return (_this.indexOf(key, arrayValue) != -1);
     };
-
   }
 
   window.br.storage = new BrStorage(window.localStorage);
   window.br.session = new BrStorage(window.sessionStorage);
-
 })(window);
-
 /*!
  * Bright 2.0
  *
@@ -462,15 +451,14 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function (window) {
 
-  window.br = window.br || Object.create({});
+(function(window) {
+  window.br = window.br || {};
 
   function BrEventQueue(obj) {
-
     const _this = this;
 
-    _this.subscribers = Object.create({});
+    _this.subscribers = {};
     _this.connections = [];
     _this.obj = obj || _this;
     _this.enabled = true;
@@ -485,10 +473,15 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     function subscribe(events, action, func) {
       let eventsArray = events.split(',');
-      for(let i = 0, length = eventsArray.length; i < length; i++) {
+      for (let i = 0, length = eventsArray.length; i < length; i++) {
         let event = eventsArray[i];
         if (!_this.subscribers[event]) {
-          _this.subscribers[event] = Object.create({ on: [], pause: [], before: [], after: [] });
+          _this.subscribers[event] = Object.create({
+            on: [],
+            pause: [],
+            before: [],
+            after: []
+          });
         }
         _this.subscribers[event][action].push(func);
       }
@@ -512,7 +505,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     _this.off = function(events) {
       let eventsArray = events.split(',');
-      for(let i = 0, length = eventsArray.length; i < length; i++) {
+      for (let i = 0, length = eventsArray.length; i < length; i++) {
         let event = eventsArray[i];
         delete _this.subscribers[event];
       }
@@ -528,7 +521,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     _this.getEvents = function() {
       let result = [];
-      for(let name in _this.subscribers) {
+      for (let name in _this.subscribers) {
         result.push(name);
       }
       return result;
@@ -596,15 +589,12 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     };
 
     return _this;
-
   }
 
   window.br.eventQueue = function(obj) {
     return new BrEventQueue(obj);
   };
-
 })(window);
-
 /*!
  * Bright 2.0
  *
@@ -616,12 +606,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
 /* global URL */
 
-;(function (window) {
-
-  window.br = window.br || Object.create({});
+(function(window) {
+  window.br = window.br || {};
 
   function BrRequest() {
-
     const _this = this;
 
     _this.continueRoute = true;
@@ -685,14 +673,14 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         }
       });
       if (br.isObject(paramName)) {
-        for(let name in paramName) {
+        for (let name in paramName) {
           values[name] = paramName[name];
         }
       } else {
         values[paramName] = paramValue;
       }
       let hash = '#';
-      for(let name in values) {
+      for (let name in values) {
         hash += `${name}=${values[name]}&`;
       }
       document.location.hash = hash;
@@ -722,13 +710,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       }
       return _this;
     };
-
   }
 
   window.br.request = new BrRequest();
-
 })(window);
-
 /*!
  * Bright 2.0
  *
@@ -738,12 +723,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function (window) {
-
-  window.br = window.br || Object.create({});
+(function(window) {
+  window.br = window.br || {};
 
   function BrThread(lazy) {
-
     const _this = this;
 
     _this.queue = [];
@@ -751,7 +734,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     _this.lazy = lazy;
 
     _this.push = function(func) {
-      _this.queue.unshift({ func: func });
+      _this.queue.unshift({
+        func: func
+      });
       if (!_this.lazy) {
         _this.wakeup();
       }
@@ -776,15 +761,12 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         });
       }
     };
-
   }
 
   window.br.thread = function(lazy) {
     return new BrThread(lazy);
   };
-
 })(window);
-
 /*!
  * Bright 2.0
  *
@@ -796,12 +778,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
 /* global Int32Array */
 
-;(function (window) {
-
-  window.br = window.br || Object.create({});
+(function(window) {
+  window.br = window.br || {};
 
   function BrProfiler() {
-
     function stopwatch() {
       this.start_time = 0;
       this.stop_time = 0;
@@ -838,19 +818,19 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       this.arr_size = size;
 
       this.push_back = function(elem) {
-        if (this.num_el<this.arr_size) {
+        if (this.num_el < this.arr_size) {
           this.end++;
           this.arr[this.end] = elem;
           this.num_el++;
         } else {
-          this.end = (this.end+1)%this.arr_size;
-          this.begin = (this.begin+1)%this.arr_size;
+          this.end = (this.end + 1) % this.arr_size;
+          this.begin = (this.begin + 1) % this.arr_size;
           this.arr[this.end] = elem;
         }
       };
 
       this.get = function(i) {
-        return this.arr[(this.begin+i)%this.arr_size];
+        return this.arr[(this.begin + i) % this.arr_size];
       };
 
       this.size = function() {
@@ -875,8 +855,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       ++count_frames;
       let n = this.timers.length | 0;
       for (let i = 0; i < n; ++i) {
-          let sw = this.timers[i][1];
-          sw.reset();
+        let sw = this.timers[i][1];
+        sw.reset();
       }
 
       if (count_frames >= 1) {
@@ -921,7 +901,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       let n = this.timers.length | 0;
       let str = "<strong>FPS: " + this.fps.toFixed(2) + "</strong>";
       let str2 = "FPS: " + this.fps.toFixed(2);
-      for(let i = 0; i < n; ++i) {
+      for (let i = 0; i < n; ++i) {
         let pair = this.timers[i];
         str += "<br/>" + pair[0] + ": " + pair[1].get_runtime() + "ms";
         str2 += ", " + pair[0] + ": " + pair[1].get_runtime() + "ms";
@@ -946,9 +926,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
     return profiler;
   };
-
 })(window);
-
 /*!
  * Bright 2.0
  *
@@ -1061,16 +1039,15 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 /* global FormData */
 /* global safari */
 
-;(function($, window) {
-
-  window.br = window.br || Object.create({});
+(function($, window) {
+  window.br = window.br || {};
 
   let baseUrl = '';
   let brightUrl = '';
-
   let scripts = $('script');
+  let logStarted = false;
 
-  for(let i = 0, length = scripts.length; i < length; i++) {
+  for (let i = 0, length = scripts.length; i < length; i++) {
     let src = $(scripts[i]).attr('src');
     if (!br.isEmpty(src)) {
       if (/bright\/.+?[.]js/i.test(src)) {
@@ -1091,8 +1068,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   window.br.baseUrl = baseUrl;
   window.br.brightUrl = brightUrl;
   window.br.popupBlocker = 'unknown';
-
-  let logStarted = false;
 
   window.br.log = function(msg) {
     if (typeof(console) != 'undefined') {
@@ -1161,7 +1136,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   };
 
   window.br.isSafari = function() {
-    return /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window.safari || (typeof window.safari !== 'undefined' && window.safari.pushNotification));
+    return /constructor/i.test(window.HTMLElement) || (function(p) {
+      return p.toString() === "[object SafariRemoteNotification]";
+    })(!window.safari || (typeof window.safari !== 'undefined' && window.safari.pushNotification));
   };
 
   window.br.isChrome = function() {
@@ -1223,7 +1200,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   };
 
   window.br.processArray = function(array, processRowCallback, processCompleteCallback, params) {
-
     function processQueued(processRowCallback0, processCompleteCallback0, params0) {
       if (array.length > 0) {
         let rowid = array.shift();
@@ -1256,8 +1232,17 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
   function BrTrn() {
     let trn = [];
-    this.get = function (phrase) { if (trn[phrase]) { return trn[phrase]; } else { return phrase; } };
-    this.set = function (phrase, translation) { trn[phrase] = translation; return this; };
+    this.get = function(phrase) {
+      if (trn[phrase]) {
+        return trn[phrase];
+      } else {
+        return phrase;
+      }
+    };
+    this.set = function(phrase, translation) {
+      trn[phrase] = translation;
+      return this;
+    };
     return this;
   }
 
@@ -1280,16 +1265,39 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       s.visibility = 'hidden';
       document.body.appendChild(div);
       div.innerHTML = '<img src="' + images.join('" /><img src="') + '" />';
-    } catch(e) {
-        // Error. Do nothing.
+    } catch (e) {
+      // Error. Do nothing.
     }
   };
 
-  window.br.randomInt = function() {
+  window.br.randomInt = function(minValue, maxValue) {
     const crypto = window.crypto || window.msCrypto;
-    let array = new Uint32Array(1);
-    crypto.getRandomValues(array);
-    return array[0];
+    const min = minValue || 0;
+    const max = maxValue || 0xFFFFFFF;
+    const range = max - min;
+    const bitsNeeded = Math.ceil(Math.log2(range));
+    const bytesNeeded = Math.ceil(bitsNeeded / 8);
+    const mask = Math.pow(2, bitsNeeded) - 1;
+
+    let rval = 0;
+
+    let byteArray = new Uint8Array(bytesNeeded);
+    crypto.getRandomValues(byteArray);
+
+    let p = (bytesNeeded - 1) * 8;
+
+    for (let i = 0; i < bytesNeeded; i++) {
+      rval += byteArray[i] * Math.pow(2, p);
+      p -= 8;
+    }
+
+    rval = rval & mask;
+
+    if (rval >= range) {
+      return br.randomInt(min, max);
+    }
+
+    return min + rval;
   };
 
   window.br.forHtml = function(text) {
@@ -1310,20 +1318,26 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   };
 
   function openUrl(href, options) {
-    options = options || { };
+    options = options || {};
 
     let message;
     const target = (options.target ? options.target : '_blank');
 
     if (options.urlTitle) {
-      message = `<p>Click below to open link manually</p>
-                 <p><a target="${target}" class="action-open-link" href="${href}" style="word-wrap: break-word">${options.urlTitle}</a></p>`;
+      message = `
+        <p>Click below to open link manually</p>
+        <p><a target="${target}" class="action-open-link" href="${href}" style="word-wrap: break-word">${options.urlTitle}</a></p>
+      `;
     } else {
-      message = `<p>Click a <a target="${target}" class="action-open-link" href="${href}" style="word-wrap: break-word">here</a> to open link manually</p>`;
+      message = `
+        <p>Click a <a target="${target}" class="action-open-link" href="${href}" style="word-wrap: break-word">here</a> to open link manually</p>
+      `;
     }
 
-    message = `${message}
-              <p>To eliminate this extra step, we recommend you modify your settings to disable the popup blocker.</p>`;
+    message = `
+      ${message}
+      <p>To eliminate this extra step, we recommend you modify your settings to disable the popup blocker.</p>
+    `;
 
     const dialog = br.inform('You browser is currently blocking popups', message);
     $('.action-open-link', dialog).on('click', function() {
@@ -1333,7 +1347,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   }
 
   window.br.openPage = function(href, options) {
-    options = options || { };
+    options = options || {};
 
     if (br.isSafari()) {
       br.openPopup(href, options);
@@ -1353,9 +1367,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
   window.br.openPopup = function(href, options) {
     if (br.isString(options)) {
-      options = { target: options };
+      options = {
+        target: options
+      };
     } else {
-      options = options || { };
+      options = options || {};
     }
 
     options.target = options.target || '_blank';
@@ -1392,7 +1408,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           }
         }
       }
-      let left = (screen.width) ? (screen.width-width)/2 : 0;
+      let left = (screen.width) ? (screen.width - width) / 2 : 0;
       let settings = `height=${height},width=${width},top=20,left=${left},menubar=0,scrollbars=1,resizable=1`;
       let win = window.open(href, options.target, settings);
       if (win) {
@@ -1418,7 +1434,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       element.data(listName2, element.val());
       let callbacks = element.data(listName1);
       if (callbacks) {
-        for(let i = 0, length = callbacks.length; i < length; i++) {
+        for (let i = 0, length = callbacks.length; i < length; i++) {
           callbacks[i].call(element);
         }
       }
@@ -1511,7 +1527,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
   }
 
-  $(window).on('beforeunload', function(){
+  $(window).on('beforeunload', function() {
     return brightConfirmClose();
   });
 
@@ -1528,9 +1544,15 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   };
 
   window.br.events = br.eventQueue();
-  window.br.before = function(event, callback) { window.br.events.before(event, callback); };
-  window.br.on     = function(event, callback) { window.br.events.on(event,     callback); };
-  window.br.after  = function(event, callback) { window.br.events.after(event,  callback); };
+  window.br.before = function(event, callback) {
+    window.br.events.before(event, callback);
+  };
+  window.br.on = function(event, callback) {
+    window.br.events.on(event, callback);
+  };
+  window.br.after = function(event, callback) {
+    window.br.events.after(event, callback);
+  };
 
   window.br.confirmClose = function(message) {
     if (message) {
@@ -1546,7 +1568,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   };
 
   window.br.backToCaller = function(href, refresh) {
-
     let inPopup = (window.opener !== null);
 
     // check opener
@@ -1573,11 +1594,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     } else {
       document.location = href;
     }
-
   };
 
   window.br.disableBounce = function(container) {
-
     let $container = container;
 
     $('body').css('overflow', 'hidden');
@@ -1593,18 +1612,16 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     $(window).on('resize', function() {
       resize();
     });
-
   };
 
   window.br.getSelection = function() {
-
     let html = '';
 
     if (typeof window.getSelection != 'undefined') {
       let sel = window.getSelection();
       if (sel.rangeCount) {
         let container = document.createElement('div');
-        for(let i = 0, length = sel.rangeCount; i < length; ++i) {
+        for (let i = 0, length = sel.rangeCount; i < length; ++i) {
           container.appendChild(sel.getRangeAt(i).cloneContents());
         }
         html = container.innerHTML;
@@ -1617,7 +1634,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
 
     return html;
-
   };
 
   window.br.do = function(f) {
@@ -1625,10 +1641,100 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   };
 
   /* jshint ignore:start */
-  window.br.load = window.br.resourceLoader = function(j){function p(c,a){var g=j.createElement(c),b;for(b in a)a.hasOwnProperty(b)&&g.setAttribute(b,a[b]);return g}function m(c){var a=k[c],b,e;if(a)b=a.callback,e=a.urls,e.shift(),h=0,e.length||(b&&b.call(a.context,a.obj),k[c]=null,n[c].length&&i(c))}function u(){if(!b){var c=navigator.userAgent;b={async:j.createElement("script").async===!0};(b.webkit=/AppleWebKit\//.test(c))||(b.ie=/MSIE/.test(c))||(b.opera=/Opera/.test(c))||(b.gecko=/Gecko\//.test(c))||(b.unknown=!0)}}function i(c,
-    a,g,e,h){var i=function(){m(c)},o=c==="css",f,l,d,q;u();if(a)if(a=typeof a==="string"?[a]:a.concat(),o||b.async||b.gecko||b.opera)n[c].push({urls:a,callback:g,obj:e,context:h});else{f=0;for(l=a.length;f<l;++f)n[c].push({urls:[a[f]],callback:f===l-1?g:null,obj:e,context:h})}if(!k[c]&&(q=k[c]=n[c].shift())){r||(r=j.head||j.getElementsByTagName("head")[0]);a=q.urls;f=0;for(l=a.length;f<l;++f)g=a[f],o?d=b.gecko?p("style"):p("link",{href:g,rel:"stylesheet"}):(d=p("script",{src:g}),d.async=!1),d.className=
-    "lazyload",d.setAttribute("charset","utf-8"),b.ie&&!o?d.onreadystatechange=function(){if(/loaded|complete/.test(d.readyState))d.onreadystatechange=null,i()}:o&&(b.gecko||b.webkit)?b.webkit?(q.urls[f]=d.href,s()):(d.innerHTML='@import "'+g+'";',m("css")):d.onload=d.onerror=i,r.appendChild(d)}}function s(){var c=k.css,a;if(c){for(a=t.length;--a>=0;)if(t[a].href===c.urls[0]){m("css");break}h+=1;c&&(h<200?setTimeout(s,50):m("css"))}}var b,r,k={},h=0,n={css:[],js:[]},t=j.styleSheets;return{css:function(c,
-    a,b,e){i("css",c,a,b,e)},js:function(c,a,b,e){i("js",c,a,b,e)}}}(document);
+  window.br.load = window.br.resourceLoader = function(j) {
+    function p(c, a) {
+      var g = j.createElement(c),
+        b;
+      for (b in a) a.hasOwnProperty(b) && g.setAttribute(b, a[b]);
+      return g
+    }
+
+    function m(c) {
+      var a = k[c],
+        b, e;
+      if (a) b = a.callback, e = a.urls, e.shift(), h = 0, e.length || (b && b.call(a.context, a.obj), k[c] = null, n[c].length && i(c))
+    }
+
+    function u() {
+      if (!b) {
+        var c = navigator.userAgent;
+        b = {
+          async: j.createElement("script").async === !0
+        };
+        (b.webkit = /AppleWebKit\//.test(c)) || (b.ie = /MSIE/.test(c)) || (b.opera = /Opera/.test(c)) || (b.gecko = /Gecko\//.test(c)) || (b.unknown = !0)
+      }
+    }
+
+    function i(c,
+      a, g, e, h) {
+      var i = function() {
+          m(c)
+        },
+        o = c === "css",
+        f, l, d, q;
+      u();
+      if (a)
+        if (a = typeof a === "string" ? [a] : a.concat(), o || b.async || b.gecko || b.opera) n[c].push({
+          urls: a,
+          callback: g,
+          obj: e,
+          context: h
+        });
+        else {
+          f = 0;
+          for (l = a.length; f < l; ++f) n[c].push({
+            urls: [a[f]],
+            callback: f === l - 1 ? g : null,
+            obj: e,
+            context: h
+          })
+        }
+      if (!k[c] && (q = k[c] = n[c].shift())) {
+        r || (r = j.head || j.getElementsByTagName("head")[0]);
+        a = q.urls;
+        f = 0;
+        for (l = a.length; f < l; ++f) g = a[f], o ? d = b.gecko ? p("style") : p("link", {
+            href: g,
+            rel: "stylesheet"
+          }) : (d = p("script", {
+            src: g
+          }), d.async = !1), d.className =
+          "lazyload", d.setAttribute("charset", "utf-8"), b.ie && !o ? d.onreadystatechange = function() {
+            if (/loaded|complete/.test(d.readyState)) d.onreadystatechange = null, i()
+          } : o && (b.gecko || b.webkit) ? b.webkit ? (q.urls[f] = d.href, s()) : (d.innerHTML = '@import "' + g + '";', m("css")) : d.onload = d.onerror = i, r.appendChild(d)
+      }
+    }
+
+    function s() {
+      var c = k.css,
+        a;
+      if (c) {
+        for (a = t.length; --a >= 0;)
+          if (t[a].href === c.urls[0]) {
+            m("css");
+            break
+          }
+        h += 1;
+        c && (h < 200 ? setTimeout(s, 50) : m("css"))
+      }
+    }
+    var b, r, k = {},
+      h = 0,
+      n = {
+        css: [],
+        js: []
+      },
+      t = j.styleSheets;
+    return {
+      css: function(c,
+        a, b, e) {
+        i("css", c, a, b, e)
+      },
+      js: function(c, a, b, e) {
+        i("js", c, a, b, e)
+      }
+    }
+  }(document);
   /* jshint ignore:end */
 
   window.br.URL = window.URL || window.webkitURL;
@@ -1704,7 +1810,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       osc.type = 0;
       osc.connect(beepAudioContext.destination);
       let now = beepAudioContext.currentTime;
-      if(osc.start) {
+      if (osc.start) {
         osc.start(now);
         osc.stop(now + duration);
       } else {
@@ -1713,7 +1819,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       }
 
       osc.onended = function() {
-        if(callback){
+        if (callback) {
           callback();
         }
       };
@@ -1748,7 +1854,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
         }
       }
-
     });
 
     window.addEventListener('unhandledrejection', function(event) {
@@ -1781,14 +1886,13 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
       event.preventDefault();
     });
-
   }
 
   function printObject(obj, eol, prefix) {
     let result = '';
 
     prefix = prefix ? prefix : '';
-    for(let name in obj) {
+    for (let name in obj) {
       if (br.isObject(obj[name])) {
         result += printObject(obj[name], eol, `${prefix}${name}.`);
       } else {
@@ -1805,7 +1909,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       br.on('error', function(error) {
         if (!error.filename || (error.filename.indexOf('chrome-extension') !== 0)) {
           let message = '';
-          switch(format) {
+          switch (format) {
             case 'html':
               message = printObject(error, '<br />');
               break;
@@ -1823,9 +1927,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       });
     }
   };
-
 })(jQuery, window);
-
 /*!
  * Bright 2.0
  *
@@ -1835,12 +1937,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function (window) {
 
-  window.br = window.br || Object.create({});
+(function(window) {
+  window.br = window.br || {};
 
   function BrFlagsHolder(permanent, name) {
-
     let flags = [];
 
     this.append = function(id) {
@@ -1891,15 +1992,12 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         return flags;
       }
     };
-
   }
 
-  window.br.flagsHolder = function (permanent, name) {
+  window.br.flagsHolder = function(permanent, name) {
     return new BrFlagsHolder(permanent, name);
   };
-
 })(window);
-
 /*!
  * Bright 2.0
  *
@@ -1909,9 +2007,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function($, window) {
-
-  window.br = window.br || Object.create({});
+(function($, window) {
+  window.br = window.br || {};
 
   function BrDataSource(restServiceUrl, settings) {
     const _this = this;
@@ -1936,13 +2033,19 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     _this.clientUID = null;
 
     _this.events = br.eventQueue(_this);
-    _this.before = function(event, callback) { _this.events.before(event, callback); };
-    _this.on = function(event, callback) { _this.events.on(event, callback); };
-    _this.after  = function(event, callback) { _this.events.after(event, callback); };
+    _this.before = function(event, callback) {
+      _this.events.before(event, callback);
+    };
+    _this.on = function(event, callback) {
+      _this.events.on(event, callback);
+    };
+    _this.after = function(event, callback) {
+      _this.events.after(event, callback);
+    };
 
     let selectOperationCounter = 0;
     let refreshTimeout;
-    let requestHeaders = { };
+    let requestHeaders = {};
 
     if (br.request.csrfToken) {
       requestHeaders['X-Csrf-Token'] = br.request.csrfToken;
@@ -1979,12 +2082,16 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     const handleError = function(request, options, jqXHR, reject) {
       if (!br.isUnloading()) {
         let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-        reject({request: request, options: options, errorMessage: errorMessage});
+        reject({
+          request: request,
+          options: options,
+          errorMessage: errorMessage
+        });
       }
     };
 
     _this.insert = function(item, callback, options) {
-      options = options || Object.create({});
+      options = options || {};
 
       let disableEvents = options && options.disableEvents;
 
@@ -2029,9 +2136,17 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
                 errorMessage = 'Empty response. Was expecting new created records with ROWID.';
               }
               if (result) {
-                resolve({request: request, options: options, response: response});
+                resolve({
+                  request: request,
+                  options: options,
+                  response: response
+                });
               } else {
-                reject({request: request, options: options, errorMessage: errorMessage});
+                reject({
+                  request: request,
+                  options: options,
+                  errorMessage: errorMessage
+                });
               }
             },
             error: function(jqXHR, textStatus, errorThrown) {
@@ -2040,7 +2155,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           });
 
         } catch (errorMessage) {
-          reject({request: request, options: options, errorMessage: errorMessage});
+          reject({
+            request: request,
+            options: options,
+            errorMessage: errorMessage
+          });
         }
       }).then(function(data) {
         try {
@@ -2071,7 +2190,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     };
 
     _this.update = function(rowid, item, callback, options) {
-      options = options || Object.create({});
+      options = options || {};
 
       let disableEvents = options && options.disableEvents;
 
@@ -2115,14 +2234,23 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
                   operation = 'remove';
                 }
               }
-              resolve({operation: operation, request: request, options: options, response: response});
+              resolve({
+                operation: operation,
+                request: request,
+                options: options,
+                response: response
+              });
             },
             error: function(jqXHR, textStatus, errorThrown) {
               handleError(request, options, jqXHR, reject);
             }
           });
         } catch (errorMessage) {
-          reject({request: request, options: options, errorMessage: errorMessage});
+          reject({
+            request: request,
+            options: options,
+            errorMessage: errorMessage
+          });
         }
       }).then(function(data) {
         try {
@@ -2160,12 +2288,12 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     };
 
     _this.remove = function(rowid, callback, options) {
-      options = options || Object.create({});
+      options = options || {};
 
       let disableEvents = options && options.disableEvents;
 
       return new Promise(function(resolve, reject) {
-        let request = Object.create({});
+        let request = {};
 
         try {
           if (!disableEvents) {
@@ -2197,17 +2325,32 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             url: _this.options.restServiceUrlNormalized + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : ''),
             headers: requestHeaders,
             success: function(response) {
-              resolve({rowid: rowid, request: request, options: options, response: response});
+              resolve({
+                rowid: rowid,
+                request: request,
+                options: options,
+                response: response
+              });
             },
             error: function(jqXHR, textStatus, errorThrown) {
               if (!br.isUnloading()) {
                 let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                reject({rowid: rowid, request: request, options: options, errorMessage: errorMessage});
+                reject({
+                  rowid: rowid,
+                  request: request,
+                  options: options,
+                  errorMessage: errorMessage
+                });
               }
             }
           });
         } catch (errorMessage) {
-          reject({rowid: rowid, request: request, options: options, errorMessage: errorMessage});
+          reject({
+            rowid: rowid,
+            request: request,
+            options: options,
+            errorMessage: errorMessage
+          });
         }
       }).then(function(data) {
         try {
@@ -2242,16 +2385,18 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       if (typeof filter == 'function') {
         options = callback;
         callback = filter;
-        filter = Object.create({});
+        filter = {};
       }
 
-      let newFilter = Object.create({});
-      for(let name in filter) {
+      let newFilter = {};
+      for (let name in filter) {
         newFilter[name] = filter[name];
       }
       newFilter.__result = 'count';
 
-      let requestOptions = Object.assign({ selectCount: true }, options);
+      let requestOptions = Object.assign({
+        selectCount: true
+      }, options);
 
       return _this.select(newFilter, callback, requestOptions);
     };
@@ -2260,14 +2405,19 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       if (typeof filter == 'function') {
         options = callback;
         callback = filter;
-        filter = Object.create({});
+        filter = {};
       }
 
-      let requestOptions = Object.assign({ selectOne: true, limit: 1 }, options);
+      let requestOptions = Object.assign({
+        selectOne: true,
+        limit: 1
+      }, options);
 
       if (!br.isEmpty(filter)) {
         if (br.isNumber(filter)) {
-          return _this.select({ rowid: filter }, callback, requestOptions);
+          return _this.select({
+            rowid: filter
+          }, callback, requestOptions);
         } else {
           return _this.select(filter, callback, requestOptions);
         }
@@ -2279,8 +2429,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     _this.selectDeferred = _this.deferredSelect = function(filter, callback, msec) {
       return new Promise(function(resolve, reject) {
         msec = msec || _this.options.refreshDelay;
-        let savedFilter = Object.create({});
-        for(let i in filter) {
+        let savedFilter = {};
+        for (let i in filter) {
           savedFilter[i] = filter[i];
         }
         window.clearTimeout(refreshTimeout);
@@ -2308,20 +2458,20 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       if (typeof filter == 'function') {
         options = callback;
         callback = filter;
-        filter = Object.create({});
+        filter = {};
       } else
       if ((callback != undefined) && (callback != null) && (typeof callback != 'function')) {
         options = callback;
         callback = null;
       }
 
-      options = options || { };
+      options = options || {};
 
       let disableEvents = options && options.disableEvents;
 
       return new Promise(function(resolve, reject) {
 
-        let request = Object.create({});
+        let request = {};
         let requestRowid;
 
         let selectOne = options && options.selectOne;
@@ -2334,13 +2484,19 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
         if (!br.isEmpty(filter)) {
           if (!br.isNumber(filter) && !br.isObject(filter)) {
-            reject({request: request, options: options, errorMessage: 'Unacceptable filter parameters'});
+            reject({
+              request: request,
+              options: options,
+              errorMessage: 'Unacceptable filter parameters'
+            });
             return _this;
           } else {
             if (br.isNumber(filter)) {
-              filter = { rowid: filter };
+              filter = {
+                rowid: filter
+              };
             }
-            for(let name in filter) {
+            for (let name in filter) {
               if ((name == 'rowid') && selectOne) {
                 requestRowid = filter[name];
               } else {
@@ -2363,13 +2519,13 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         if (!disableEvents) {
           try {
             _this.events.triggerBefore('request', request, options);
-          } catch(e) {
+          } catch (e) {
             br.log(e);
             proceed = false;
           }
           try {
             _this.events.triggerBefore('select', request, options);
-          } catch(e) {
+          } catch (e) {
             br.log(e);
             proceed = false;
           }
@@ -2378,7 +2534,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
         function handleResponse(response) {
           if (br.isArray(response)) {
-            for(let i = 0, length = response.length; i < length; i++) {
+            for (let i = 0, length = response.length; i < length; i++) {
               _this.events.trigger('calcFields', response[i]);
             }
           }
@@ -2386,7 +2542,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             if (response.length > 0) {
               response = response[0];
             } else {
-              reject({request: request, options: options, errorMessage: 'Record not found'});
+              reject({
+                request: request,
+                options: options,
+                errorMessage: 'Record not found'
+              });
               return;
             }
           } else
@@ -2396,7 +2556,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           if (selectCount) {
             response = parseInt(response);
           }
-          resolve({request: request, options: options, response: response});
+          resolve({
+            request: request,
+            options: options,
+            response: response
+          });
         }
 
         if (proceed) {
@@ -2454,7 +2618,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
           selectOperationCounter++;
 
-          for(let paramName in request) {
+          for (let paramName in request) {
             if (request[paramName] === null) {
               request[paramName] = 'null';
             }
@@ -2479,7 +2643,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
                 _this.ajaxRequest = null;
                 if (!br.isUnloading()) {
                   var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                  reject({request: request, options: options, errorMessage: errorMessage});
+                  reject({
+                    request: request,
+                    options: options,
+                    errorMessage: errorMessage
+                  });
                 }
               } finally {
                 selectOperationCounter--;
@@ -2518,27 +2686,26 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           throw data;
         }
       });
-
     };
 
     _this.invoke = function(method, params, callback, options) {
       if (typeof params == 'function') {
-        options  = callback;
+        options = callback;
         callback = params;
-        params   = Object.create({});
+        params = {};
       }
 
       if (callback && (typeof callback != 'function')) {
-        options  = callback;
+        options = callback;
         callback = undefined;
       }
 
-      options = options || Object.create({});
+      options = options || {};
 
       let disableEvents = options && options.disableEvents;
 
       return new Promise(function(resolve, reject) {
-        let request = params || Object.create({});
+        let request = params || {};
 
         if (!disableEvents) {
           _this.events.triggerBefore('request', request, options);
@@ -2570,12 +2737,22 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           url: _this.options.restServiceUrlNormalized + method + (_this.options.authToken ? '?token=' + _this.options.authToken : ''),
           headers: requestHeaders,
           success: function(response) {
-            resolve({method: method, request: request, options: options, response: response});
+            resolve({
+              method: method,
+              request: request,
+              options: options,
+              response: response
+            });
           },
           error: function(jqXHR, textStatus, errorThrown) {
             if (!br.isUnloading()) {
               let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-              reject({method: method, request: request, options: options, errorMessage: errorMessage});
+              reject({
+                method: method,
+                request: request,
+                options: options,
+                errorMessage: errorMessage
+              });
             }
           }
         });
@@ -2605,15 +2782,12 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         }
       });
     };
-
   }
 
-  window.br.dataSource = function (restServiceUrl, options) {
+  window.br.dataSource = function(restServiceUrl, options) {
     return new BrDataSource(restServiceUrl, options);
   };
-
 })(jQuery, window);
-
 /*!
  * Bright 2.0
  *
@@ -2623,12 +2797,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function($, window) {
-
-  window.br = window.br || Object.create({});
+(function($, window) {
+  window.br = window.br || {};
 
   function BrTable(selector, options) {
-
     const _this = this;
 
     let initialized = false;
@@ -2644,7 +2816,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     let calcDiv;
     let imagesCounter = 0;
 
-    _this.options = options || Object.create({ });
+    _this.options = options || {};
 
     if (_this.options.debug) {
       calcDiv = $('<div />');
@@ -2668,12 +2840,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
 
     function autosize() {
-
       if (_this.options.autoHeight) {
         let windowHeight = $(window).height();
-        let scrollTop    = $(window).scrollTop() > 0 ? $(window).scrollTop() + 20 : 0;
-        let tableTop     = table.offset().top - scrollTop;
-        let tbodyHeight  = windowHeight - tableTop - thead.height();
+        let scrollTop = $(window).scrollTop() > 0 ? $(window).scrollTop() + 20 : 0;
+        let tableTop = table.offset().top - scrollTop;
+        let tbodyHeight = windowHeight - tableTop - thead.height();
         if (_this.options.debug) {
           tbodyHeight -= 200;
         } else {
@@ -2686,11 +2857,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         thead.width(table.width());
         tbody.width(table.width());
       }
-
     }
 
     function debugValue(container, value) {
-
       if (_this.options.debug) {
         let c = $(container);
         let v = Math.round(value);
@@ -2701,17 +2870,18 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           e.text(v);
         }
       }
-
     }
 
     function getWidths() {
-
-      let widths = Object.create({});
+      let widths = {};
 
       theadColsCopy.each(function(idx) {
         let w = this.getBoundingClientRect().width;
         debugValue(this, w);
-        widths[idx] = { h: w, b: 0 };
+        widths[idx] = {
+          h: w,
+          b: 0
+        };
       });
 
       tbodyColsCopy.each(function(idx) {
@@ -2721,7 +2891,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       });
 
       return widths;
-
     }
 
     const colsCopy = function(el) {
@@ -2731,7 +2900,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     };
 
     function createCopy() {
-
       tableCopy = table.clone();
       let theadCopy = tableCopy[0].getElementsByTagName('thead')[0];
       let tbodyCopy = tableCopy[0].getElementsByTagName('tbody')[0];
@@ -2767,15 +2935,25 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           _this.update(true);
         };
       });
-
     }
 
     function update(skipCalcDivReloading) {
-
       if (!initialized) {
-        thead.css({ 'display': 'block', 'box-sizing': 'border-box', 'overflow': 'hidden' });
-        tbody.css({ 'display': 'block', 'box-sizing': 'border-box', 'overflow': 'auto' });
-        table.css({ 'border-bottom': '0px', 'border-left': '0px', 'border-right': '0px' });
+        thead.css({
+          'display': 'block',
+          'box-sizing': 'border-box',
+          'overflow': 'hidden'
+        });
+        tbody.css({
+          'display': 'block',
+          'box-sizing': 'border-box',
+          'overflow': 'auto'
+        });
+        table.css({
+          'border-bottom': '0px',
+          'border-left': '0px',
+          'border-right': '0px'
+        });
         initialized = true;
       }
 
@@ -2784,7 +2962,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       }
 
       window.setTimeout(function() {
-
         let widths = getWidths();
 
         let headerCols = table.find('thead tr:first>th');
@@ -2797,7 +2974,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           this.style.maxWidth = w + 'px';
         });
 
-        let bodyCols   = table.find('tbody tr:first>td');
+        let bodyCols = table.find('tbody tr:first>td');
 
         bodyCols.each(function(idx) {
           let w = widths[idx].b;
@@ -2816,9 +2993,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             tableCopy = null;
           }
         }
-
       });
-
     }
 
     let updateTimer, autosizeTimer;
@@ -2844,15 +3019,12 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     _this.update();
 
     return this;
-
   }
 
   window.br.table = function(selector, options) {
     return new BrTable($(selector), options);
   };
-
 })(jQuery, window);
-
 /*!
  * Bright 2.0
  *
@@ -2862,19 +3034,17 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function($, window) {
-
-  window.br = window.br || Object.create({});
+(function($, window) {
+  window.br = window.br || {};
 
   function BrDataGrid(containerSelector, rowTemplate, dataSource, settings) {
-
     const _this = this;
 
     _this.selector = containerSelector;
 
     _this.options = Object.assign({}, settings);
 
-    _this.options.templates = _this.options.templates || Object.create({});
+    _this.options.templates = _this.options.templates || {};
 
     _this.options.templates.noData = _this.options.templates.noData || '.data-empty-template';
 
@@ -2892,13 +3062,23 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     _this.templates = {};
 
-    _this.templates.row = _this.options.templates.row.length > 0 ? br.compile(_this.options.templates.row) : function() { return ''; };
-    _this.templates.groupRow = _this.options.templates.groupRow.length > 0 ? br.compile(_this.options.templates.groupRow) : function() { return ''; };
-    _this.templates.header = _this.options.templates.header.length > 0 ? br.compile(_this.options.templates.header) : function() { return ''; };
-    _this.templates.footer = _this.options.templates.footer.length > 0 ? br.compile(_this.options.templates.footer) : function() { return ''; };
-    _this.templates.noData = _this.options.templates.noData.length > 0 ? br.compile(_this.options.templates.noData) : function() { return ''; };
+    _this.templates.row = _this.options.templates.row.length > 0 ? br.compile(_this.options.templates.row) : function() {
+      return '';
+    };
+    _this.templates.groupRow = _this.options.templates.groupRow.length > 0 ? br.compile(_this.options.templates.groupRow) : function() {
+      return '';
+    };
+    _this.templates.header = _this.options.templates.header.length > 0 ? br.compile(_this.options.templates.header) : function() {
+      return '';
+    };
+    _this.templates.footer = _this.options.templates.footer.length > 0 ? br.compile(_this.options.templates.footer) : function() {
+      return '';
+    };
+    _this.templates.noData = _this.options.templates.noData.length > 0 ? br.compile(_this.options.templates.noData) : function() {
+      return '';
+    };
 
-    _this.options.selectors = _this.options.selectors || Object.create({});
+    _this.options.selectors = _this.options.selectors || {};
 
     _this.options.selectors.header = _this.options.selectors.header || _this.options.headersSelector || _this.selector;
     _this.options.selectors.footer = _this.options.selectors.footer || _this.options.footersSelector || _this.selector;
@@ -2910,9 +3090,15 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     _this.storageTag = _this.options.storageTag ? _this.options.storageTag : document.location.pathname + ':' + _this.dataSource.options.restServiceUrl;
 
     _this.events = br.eventQueue(_this);
-    _this.before = function(event, callback) { _this.events.before(event, callback); };
-    _this.on     = function(event, callback) { _this.events.on(event, callback); };
-    _this.after  = function(event, callback) { _this.events.after(event, callback); };
+    _this.before = function(event, callback) {
+      _this.events.before(event, callback);
+    };
+    _this.on = function(event, callback) {
+      _this.events.on(event, callback);
+    };
+    _this.after = function(event, callback) {
+      _this.events.after(event, callback);
+    };
 
     if (_this.options.fixedHeader) {
       _this.table = br.table($(_this.selector).closest('table'), settings);
@@ -2952,7 +3138,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     _this.setStored = function(name, value) {
       let stored = br.storage.get(`${_this.storageTag}Stored`);
-      stored = stored || Object.create({});
+      stored = stored || {};
       stored[name] = value;
       br.storage.set(`${_this.storageTag}Stored`, stored);
     };
@@ -2973,7 +3159,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     _this.setFilter = function(name, value) {
       let filter = br.storage.get(`${_this.storageTag}Filter`);
-      filter = filter || Object.create({});
+      filter = filter || {};
       filter[name] = value;
       br.storage.set(`${_this.storageTag}Filter`, filter);
     };
@@ -3023,7 +3209,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     _this.renderFooter = function(data, asString) {
       data = _this.events.trigger('renderFooter', data) || data;
-      let template =  _this.templates.footer(data);
+      let template = _this.templates.footer(data);
       if (asString) {
         return template;
       } else
@@ -3042,16 +3228,25 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       let dataRow = _this.events.trigger('renderRow', srcDataRow) || srcDataRow;
       let template = _this.templates.row(dataRow).trim();
       if (asString) {
-        return { rendered: template, dataRow: dataRow };
+        return {
+          rendered: template,
+          dataRow: dataRow
+        };
       } else
       if (template.length > 0) {
         let result = $(template);
         if (_this.options.storeDataRow) {
           result.data('data-row', dataRow);
         }
-        return { renderedRow: result, dataRow: dataRow };
+        return {
+          renderedRow: result,
+          dataRow: dataRow
+        };
       } else {
-        return { renderedRow: null, dataRow: dataRow };
+        return {
+          renderedRow: null,
+          dataRow: dataRow
+        };
       }
     };
 
@@ -3112,7 +3307,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     _this.refreshRow = function(dataRow, options, isUpdate) {
       let filter = `[data-rowid="${dataRow.rowid}"]`;
-      options = options || Object.create({});
+      options = options || {};
       options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
       if (options.refreshSelector) {
         filter = options.refreshSelector + filter;
@@ -3139,7 +3334,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
               resultingRows.push(row);
             });
           }
-          let resultingRowsJq = $(resultingRows).map(function() { return this.toArray(); });
+          let resultingRowsJq = $(resultingRows).map(function() {
+            return this.toArray();
+          });
           _this.events.triggerAfter('renderRow', renderedRow.dataRow, resultingRowsJq, existingRows);
           _this.events.triggerAfter('update', renderedRow.dataRow, existingRows, resultingRowsJq, isUpdate);
           existingRows.remove();
@@ -3154,7 +3351,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     _this.hasRow = function(rowid, options) {
       let filter = `[data-rowid="${rowid}"]`;
-      options = options || Object.create({});
+      options = options || {};
       options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
       if (options.refreshSelector) {
         filter = options.refreshSelector + filter;
@@ -3170,17 +3367,21 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           callback = null;
         }
       }
-      options = options || { };
+      options = options || {};
       options.disableEvents = true;
       options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
       let filter;
       if (br.isArray(rowid)) {
-        filter = { rowid: rowid };
+        filter = {
+          rowid: rowid
+        };
       } else
       if (br.isObject(rowid)) {
         filter = rowid;
       } else {
-        filter = { rowid: rowid };
+        filter = {
+          rowid: rowid
+        };
       }
       _this.events.triggerBefore('reloadRow', filter, options);
       _this.dataSource.select(filter, function(result, response) {
@@ -3235,7 +3436,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     _this.removeRow = function(rowid, options) {
       let filter = `[data-rowid="${rowid}"]`;
-      options = options || Object.create({});
+      options = options || {};
       options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
       if (options.refreshSelector) {
         filter = options.refreshSelector + filter;
@@ -3273,10 +3474,14 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     _this.loadMore = function(callback) {
       if (!(noMoreData || _this.loadingMoreData)) {
         _this.loadingMoreData = true;
-        _this.dataSource.select(Object.create({}), function(result, response) {
-          if (typeof callback == 'function') { callback.call(_this, result, response); }
+        _this.dataSource.select({}, function(result, response) {
+          if (typeof callback == 'function') {
+            callback.call(_this, result, response);
+          }
           _this.loadingMoreData = false;
-        }, { loadingMore: true });
+        }, {
+          loadingMore: true
+        });
       }
     };
 
@@ -3306,7 +3511,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
 
     function showOrder(orderAndGroup) {
-      for(let i = 0, length = orderAndGroup.length; i < length; i++) {
+      for (let i = 0, length = orderAndGroup.length; i < length; i++) {
         let ctrl = $('.sortable[data-field="' + orderAndGroup[i].fieldName + '"].' + (orderAndGroup[i].asc ? 'order-asc' : 'order-desc'), $(_this.options.selectors.header));
         ctrl.addClass('icon-white').addClass('icon-border').addClass('fa-border');
         let idx = ctrl.parent().find('div.br-sort-index');
@@ -3322,9 +3527,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     _this.getOrder = function() {
       let order = _this.getOrderAndGroup();
-      let result = Object.create({});
+      let result = {};
       if (br.isArray(order)) {
-        for(let i = 0, length = order.length; i < length; i++) {
+        for (let i = 0, length = order.length; i < length; i++) {
           if (order[i].asc) {
             result[order[i].fieldName] = 1;
           } else {
@@ -3337,8 +3542,13 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     _this.setOrder = function(order, callback) {
       let orderAndGroup = [];
-      for(let name in order) {
-        orderAndGroup.push({ fieldName: name, asc: order[name] > 0, group: false, index: orderAndGroup.length });
+      for (let name in order) {
+        orderAndGroup.push({
+          fieldName: name,
+          asc: order[name] > 0,
+          group: false,
+          index: orderAndGroup.length
+        });
       }
       _this.setOrderAndGroup(orderAndGroup, callback);
     };
@@ -3387,11 +3597,15 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         }
         let orderAndGroup;
         let fieldName = $(this).attr('data-field');
-        let newOrder = { fieldName: fieldName, asc: $(this).hasClass('order-asc'), group: $(this).hasClass('group-by') };
+        let newOrder = {
+          fieldName: fieldName,
+          asc: $(this).hasClass('order-asc'),
+          group: $(this).hasClass('group-by')
+        };
         if (event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) {
           orderAndGroup = _this.getOrderAndGroup();
           let newOrderAndGroup = [];
-          for(let i = 0, length = orderAndGroup.length; i < length; i++) {
+          for (let i = 0, length = orderAndGroup.length; i < length; i++) {
             if (orderAndGroup[i].fieldName != fieldName) {
               newOrderAndGroup.push(orderAndGroup[i]);
             }
@@ -3449,12 +3663,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             if (row.length > 0) {
               let rowid = $(row).attr('data-rowid');
               if (!br.isEmpty(rowid)) {
-                br.confirm( 'Delete confirmation'
-                          , 'Are you sure you want to delete this record?'
-                          , function() {
-                              _this.dataSource.remove(rowid);
-                            }
-                          );
+                br.confirm('Delete confirmation', 'Are you sure you want to delete this record?', function() {
+                  _this.dataSource.remove(rowid);
+                });
               }
             }
           });
@@ -3466,16 +3677,13 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             let rowid = $this.closest('[data-rowid]').attr('data-rowid');
             let dataField = $this.attr('data-field');
             if (!br.isEmpty(rowid) && !br.isEmpty(dataField)) {
-              let data = Object.create({});
+              let data = {};
               data[dataField] = content;
-              _this.dataSource.update( rowid
-                                     , data
-                                     , function(result, response) {
-                                         if (result) {
-                                           _this.events.trigger('editable.update', $this, content);
-                                         }
-                                       }
-                                     );
+              _this.dataSource.update(rowid, data, function(result, response) {
+                if (result) {
+                  _this.events.trigger('editable.update', $this, content);
+                }
+              });
             }
           });
         }
@@ -3548,7 +3756,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         } else {
           if (data && (data.length > 0)) {
             let group = _this.getOrderAndGroup();
-            let groupValues = Object.create({});
+            let groupValues = {};
             let groupFieldName = '';
             for (let i = 0, length = data.length; i < length; i++) {
               if (data[i]) {
@@ -3557,7 +3765,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
                   for (let k = 0; k < length; k++) {
                     groupFieldName = group[k].fieldName;
                     if (group[k].group && (groupValues[groupFieldName] != data[i][groupFieldName])) {
-                      for(let j = k; j < length; j++) {
+                      for (let j = k; j < length; j++) {
                         groupFieldName = group[j].fieldName;
                         groupValues[groupFieldName] = undefined;
                       }
@@ -3569,7 +3777,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
                     if (group[k].group && (groupValues[groupFieldName] != data[i][groupFieldName])) {
                       groupValues[groupFieldName] = data[i][groupFieldName];
                       let tmp = data[i];
-                      tmp.__groupBy = Object.create({});
+                      tmp.__groupBy = {};
                       tmp.__groupBy.__field = groupFieldName;
                       tmp.__groupBy.__value = data[i][groupFieldName];
                       tmp.__groupBy[groupFieldName] = true;
@@ -3603,15 +3811,12 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     };
 
     return this.init();
-
   }
 
-  window.br.dataGrid = function (selector, rowTemplate, dataSource, options) {
+  window.br.dataGrid = function(selector, rowTemplate, dataSource, options) {
     return new BrDataGrid(selector, rowTemplate, dataSource, options);
   };
-
 })(jQuery, window);
-
 /*!
  * Bright 2.0
  *
@@ -3621,12 +3826,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function($, window) {
-
-  window.br = window.br || Object.create({});
+(function($, window) {
+  window.br = window.br || {};
 
   function BrDataCombo(selector) {
-
     const _this = this;
 
     const selectLimit = 50;
@@ -3639,9 +3842,15 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     _this.selector = $(selector);
 
     _this.events = br.eventQueue(_this);
-    _this.before = function(event, callback) { _this.events.before(event, callback); };
-    _this.on     = function(event, callback) { _this.events.on(event, callback); };
-    _this.after  = function(event, callback) { _this.events.after(event, callback); };
+    _this.before = function(event, callback) {
+      _this.events.before(event, callback);
+    };
+    _this.on = function(event, callback) {
+      _this.events.on(event, callback);
+    };
+    _this.after = function(event, callback) {
+      _this.events.after(event, callback);
+    };
 
     _this.isValid = function() {
       return _this.selector.length > 0;
@@ -3695,9 +3904,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       if (br.isFunction(_this.options.onGetName)) {
         return _this.options.onGetName.call(_this, data);
       } else {
-        let item = { value: data[_this.options.valueField]
-                   , name: data[_this.options.nameField]
-                   };
+        let item = {
+          value: data[_this.options.valueField],
+          name: data[_this.options.nameField]
+        };
         _this.events.trigger('formatItem', item, data);
         return item.name;
       }
@@ -3717,7 +3927,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
               params.dropdownCssClass = 'skiptranslate';
             }
             if (_this.options.allowClear) {
-              params.allowClear  = _this.options.allowClear;
+              params.allowClear = _this.options.allowClear;
               params.placeholder = _this.options.emptyName;
             }
             if (_this.options.formatOption) {
@@ -3727,34 +3937,39 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
               params.formatSelection = _this.options.formatSelection;
             }
             params.dropdownAutoWidth = true;
-            params.dropdownCss = { 'max-width': '400px' };
+            params.dropdownCss = {
+              'max-width': '400px'
+            };
             if (_this.options.lookupMode) {
               params.minimumInputLength = _this.options.lookup_minimumInputLength;
-              params.allowClear  = true;
+              params.allowClear = true;
               params.placeholder = _this.options.emptyName;
-              params.query = function (query) {
+              params.query = function(query) {
                 window.clearTimeout(requestTimer);
-                let request = Object.create({});
+                let request = {};
                 request.keyword = query.term;
                 requestTimer = window.setTimeout(function() {
                   if (query.term || _this.options.lookup_minimumInputLength === 0) {
                     _this.dataSource.select(request, function(result, response) {
                       if (result) {
-                        let data = { results: [] };
-                        for(let i = 0, length = response.length; i < length; i++) {
-                          data.results.push({ id:   response[i][_this.options.valueField]
-                                            , text: getName(response[i])
-                                            });
+                        let data = {
+                          results: []
+                        };
+                        for (let i = 0, length = response.length; i < length; i++) {
+                          data.results.push({
+                            id: response[i][_this.options.valueField],
+                            text: getName(response[i])
+                          });
                         }
                         if (response.length == selectLimit) {
                           data.more = true;
                         }
                         query.callback(data);
                       }
-                    }, { limit: selectLimit
-                       , skip: (query.page - 1) * selectLimit
-                       }
-                    );
+                    }, {
+                      limit: selectLimit,
+                      skip: (query.page - 1) * selectLimit
+                    });
                   }
                 }, 300);
               };
@@ -3770,7 +3985,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           }
         } else
         if (window.Selectize && !beautified) {
-          _this.selector.selectize({ openOnFocus: false });
+          _this.selector.selectize({
+            openOnFocus: false
+          });
           beautified = true;
           beautifier = 'selectize';
         }
@@ -3782,7 +3999,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         if (currentData.length > 0) {
           const val = _this.val();
           if (!br.isEmpty(val)) {
-            for(let i = 0, length = currentData.length; i < length; i++) {
+            for (let i = 0, length = currentData.length; i < length; i++) {
               if (br.toInt(currentData[i][_this.options.valueField]) == br.toInt(val)) {
                 if (br.isEmpty(fieldName)) {
                   return currentData[i];
@@ -3807,7 +4024,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         }
         if (_this.isValid()) {
           br.setValue(_this.selector, value, true);
-          switch(beautifier) {
+          switch (beautifier) {
             case 'select2':
               break;
             case 'selectize':
@@ -3817,18 +4034,27 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           beautify();
           if (_this.options.lookupMode) {
             if (value) {
-              let data = { id: value, text: value };
-              let request = { rowid: value };
+              let data = {
+                id: value,
+                text: value
+              };
+              let request = {
+                rowid: value
+              };
               _this.selector.select2('data', data);
-              let options = { disableEvents: true, dataSets: 'none' };
+              let options = {
+                disableEvents: true,
+                dataSets: 'none'
+              };
               _this.dataSource.events.triggerBefore('selectByRowid', request, options);
               _this.dataSource.select(request, function(result, response) {
                 if (result) {
                   if (response.length > 0) {
                     response = response[0];
-                    data = { id: response[_this.options.valueField]
-                           , text: getName(response)
-                           };
+                    data = {
+                      id: response[_this.options.valueField],
+                      text: getName(response)
+                    };
                     _this.selector.select2('data', data);
                   }
                 }
@@ -3911,7 +4137,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       content += '>';
       if (!br.isEmpty(_this.options.levelField)) {
         const margin = (br.toInt(data[_this.options.levelField]) - 1) * 4;
-        for(let k = 0; k < margin; k++) {
+        for (let k = 0; k < margin; k++) {
           content += '&nbsp;';
         }
       }
@@ -3920,11 +4146,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
 
     function render(data) {
-
       currentData = data;
 
       if (!_this.options.lookupMode) {
-
         if (_this.options.saveSelection) {
           if (_this.options.saveToSessionStorage) {
             _this.options.selectedValue = br.session.get(storageTag(_this.selector));
@@ -3934,7 +4158,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         }
 
         _this.selector.each(function() {
-
           const _selector = $(this);
           let val = _selector.val();
           if (br.isEmpty(val)) {
@@ -3961,7 +4184,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           _this.events.triggerBefore('generateOptions', cbObj, _selector);
           template = cbObj.s;
 
-          for(let i = 0, length = data.length; i < length; i++) {
+          for (let i = 0, length = data.length; i < length; i++) {
             template += renderRow(data[i]);
             if (br.isEmpty(_this.options.selectedValue) && !br.isEmpty(_this.options.selectedValueField)) {
               let selectedValue = data[i][_this.options.selectedValueField];
@@ -3978,7 +4201,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           } else
           if (!br.isEmpty(val)) {
             if (br.isArray(val)) {
-              for(let k = 0, length = val.length; k < length; k++) {
+              for (let k = 0, length = val.length; k < length; k++) {
                 _selector.find(`option[value="${val[k]}"]`).prop('selected', true).attr('selected', 'selected');
               }
             } else {
@@ -3991,24 +4214,27 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           }
 
         });
-
       }
-
     }
 
     _this.load = _this.reload = function(filter, callback) {
-
       if (typeof filter == 'function') {
         callback = filter;
         filter = {};
       }
 
       return new Promise(function(resolve, reject) {
-        let options = { fields: _this.options.fields };
+        let options = {
+          fields: _this.options.fields
+        };
         if (_this.dataSource) {
           if (_this.isValid()) {
             if (_this.options.lookupMode) {
-              resolve({ request: {}, options: options, response: []});
+              resolve({
+                request: {},
+                options: options,
+                response: []
+              });
               beautify();
               _this.loaded = true;
               _this.events.trigger('load', []);
@@ -4022,7 +4248,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
               });
             }
           } else {
-            resolve({ request: {}, options: options, response: []});
+            resolve({
+              request: {},
+              options: options,
+              response: []
+            });
             _this.loaded = true;
             _this.events.trigger('load', []);
           }
@@ -4042,7 +4272,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         }
         throw data;
       });
-
     };
 
     let prevValue = _this.val();
@@ -4078,20 +4307,19 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     });
 
     _this.applyOptions = function(dataSource, options) {
-
       let thereWasDataSource = (typeof _this.dataSource != 'undefined');
 
       _this.dataSource = _this.dataSource || dataSource;
 
-      options = options || Object.create({});
+      options = options || {};
 
-      _this.options = _this.options || Object.create({});
+      _this.options = _this.options || {};
 
-      for(let optionName in options) {
+      for (let optionName in options) {
         _this.options[optionName] = options[optionName];
       }
 
-      _this.options.fields = _this.options.fields || Object.create({});
+      _this.options.fields = _this.options.fields || {};
 
       _this.options.valueField = _this.options.valueField || 'rowid';
       _this.options.nameField = _this.options.nameField || 'name';
@@ -4113,7 +4341,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       }
 
       _this.loaded = _this.options.lookupMode;
-
 
       if (_this.dataSource) {
         _this.storageTag = _this.storageTag + ':' + _this.dataSource.options.restServiceUrl;
@@ -4145,7 +4372,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           if (result && _this.isValid()) {
             if (!_this.options.lookupMode) {
               if (data[_this.options.valueField]) {
-                _this.selector.find('option[value=' + data[_this.options.valueField] +']').text(getName(data));
+                _this.selector.find('option[value=' + data[_this.options.valueField] + ']').text(getName(data));
               }
             }
             beautify();
@@ -4157,7 +4384,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           if (result && _this.isValid()) {
             if (!_this.options.lookupMode) {
               if (data[_this.options.valueField]) {
-                _this.selector.find('option[value=' + data[_this.options.valueField] +']').remove();
+                _this.selector.find('option[value=' + data[_this.options.valueField] + ']').remove();
               }
             }
             beautify();
@@ -4181,23 +4408,19 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       beautify();
 
       return _this;
-
     };
 
     _this.selector.data('BrDataCombo', _this);
-
   }
 
-  window.br.dataCombo = function (selector, dataSource, options) {
+  window.br.dataCombo = function(selector, dataSource, options) {
     let instance = $(selector).data('BrDataCombo');
     if (!instance) {
       instance = new BrDataCombo(selector);
     }
     return instance.applyOptions(dataSource, options);
   };
-
 })(jQuery, window);
-
 /*!
  * Bright 2.0
  *
@@ -4207,9 +4430,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function($, window) {
-
-  window.br = window.br || Object.create({});
+(function($, window) {
+  window.br = window.br || {};
 
   function BrDraggable(ctrl, options) {
     const _this = this;
@@ -4219,7 +4441,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     let pos_y, pos_x, ofs_x, ofs_y;
 
     _this.options = Object.assign({
-      exclude: [ 'INPUT', 'TEXTAREA', 'SELECT', 'A', 'BUTTON' ]
+      exclude: ['INPUT', 'TEXTAREA', 'SELECT', 'A', 'BUTTON']
     }, options);
 
     function setPosition(element, left, top) {
@@ -4237,17 +4459,17 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         let parent = target.parentNode;
 
         if (target && (_this.options.exclude.indexOf(target.tagName.toUpperCase()) == -1)) {
-          if (!parent || (_this.options.exclude.indexOf(parent.tagName.toUpperCase()) == -1)) {  // img in a
+          if (!parent || (_this.options.exclude.indexOf(parent.tagName.toUpperCase()) == -1)) { // img in a
             dragObject = ctrl;
 
             let pageX = e.pageX || e.touches[0].pageX;
             let pageY = e.pageY || e.touches[0].pageY;
 
             ofs_x = dragObject.getBoundingClientRect().left - dragObject.offsetLeft;
-            ofs_y = dragObject.getBoundingClientRect().top  - dragObject.offsetTop;
+            ofs_y = dragObject.getBoundingClientRect().top - dragObject.offsetTop;
 
             pos_x = pageX - (dragObject.getBoundingClientRect().left + document.body.scrollLeft);
-            pos_y = pageY - (dragObject.getBoundingClientRect().top  + document.body.scrollTop);
+            pos_y = pageY - (dragObject.getBoundingClientRect().top + document.body.scrollTop);
 
             e.preventDefault();
           }
@@ -4260,7 +4482,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         let pageX = e.pageX || e.touches[0].pageX;
         let pageY = e.pageY || e.touches[0].pageY;
         let left = pageX - pos_x - ofs_x - document.body.scrollLeft;
-        let top  = pageY - pos_y - ofs_y - document.body.scrollTop;
+        let top = pageY - pos_y - ofs_y - document.body.scrollTop;
         if (top < 0) {
           top = 0;
         }
@@ -4328,7 +4550,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     return _this;
   }
 
-  window.br.draggable = function (selector, options) {
+  window.br.draggable = function(selector, options) {
     let result = [];
     $(selector).each(function() {
       result.push(new BrDraggable(this, options));
@@ -4338,9 +4560,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
     return result;
   };
-
 })(jQuery, window);
-
 /*!
  * Bright 2.0
  *
@@ -4350,18 +4570,19 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function($, window) {
-
-  window.br = window.br || Object.create({});
+(function($, window) {
+  window.br = window.br || {};
 
   function BrEditable(ctrl, options) {
     const _this = this;
 
     if (br.isFunction(options)) {
-      options = { onSave: options };
+      options = {
+        onSave: options
+      };
     }
 
-    _this.options = options || Object.create({});
+    _this.options = options || {};
     _this.ctrl = $(ctrl);
     _this.editor = null;
     _this.savedWidth = '';
@@ -4534,9 +4755,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       });
     }
   };
-
 })(jQuery, window);
-
 /*!
  * Bright 2.0
  *
@@ -4548,9 +4767,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
 /* jshint scripturl:true */
 
-;(function($, window) {
-
-  window.br = window.br || Object.create({});
+(function($, window) {
+  window.br = window.br || {};
 
   window.br.bootstrapVersion = 0;
 
@@ -4625,8 +4843,17 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
   };
 
-  window.br.panic = function(s) {
-    $('.container').html('<div class="row"><div class="span12"><div class="alert alert-error"><h4>' + br.trn('Error') + '!</h4><p>' + s + '</p></div></div></div>');
+  window.br.panic = function(message) {
+    $('.container').html(`
+      <div class="row">
+        <div class="span12">
+          <div class="alert alert-error">
+            <h4>${br.trn('Error')}!</h4>
+            <p>${message}</p>
+          </div>
+        </div>
+      </div>
+    `);
     throw new Error('Panic');
   };
 
@@ -4642,11 +4869,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   };
 
   window.br.confirm = function(title, message, buttons, callback, options) {
-
     if (typeof buttons == 'function') {
-      options   = callback;
+      options = callback;
       callback = buttons;
-      buttons  = null;
+      buttons = null;
     }
     options = options || {};
     options.cancelTitle = options.cancelTitle || br.trn('Cancel');
@@ -4654,7 +4880,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     options.cssClass = options.cssClass || '';
     options.defaultButton = options.defaultButton || 'confirm';
 
-    let template = `<div class="br-modal-confirm modal ${options.cssClass}" data-backdrop="static" role="dialog">`;
+    let template = `
+      <div class="br-modal-confirm modal ${options.cssClass}" data-backdrop="static" role="dialog">
+    `;
 
     let checkBoxes = '';
     if (options.checkBoxes) {
@@ -4664,43 +4892,61 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         if (check.default) {
           checked = 'checked';
         }
-        checkBoxes += `<div class="checkbox">
-                         <label class="checkbox">
-                           <input type="checkbox" class="confirm-checkbox" name="${check.name}" value="1" ${checked}> ${check.title}
-                         </label>
-                       </div>`;
+        checkBoxes += `
+          <div class="checkbox">
+            <label class="checkbox">
+              <input type="checkbox" class="confirm-checkbox" name="${check.name}" value="1" ${checked}> ${check.title}
+            </label>
+          </div>
+        `;
       }
     }
 
-    template += `<div class="modal-dialog" role="document">
-                   <div class="modal-content">
-                   <div class="modal-header">
-                     <h3 class="modal-title pull-left">${title}</h3>
-                     <a class="close pull-right float-right" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
-                     <div class="clearfix"></div>
-                   </div>
-                   <div class="modal-body" style="overflow-y:auto;">${message} ${checkBoxes}</div>
-                   <div class="modal-footer">`;
+    template += `
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 class="modal-title pull-left">${title}</h3>
+            <a class="close pull-right float-right" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
+            <div class="clearfix"></div>
+          </div>
+          <div class="modal-body" style="overflow-y:auto;">
+            ${message}
+            ${checkBoxes}
+          </div>
+          <div class="modal-footer">
+    `;
     if (options.showDontAskMeAgain) {
       const dontAskMeAgainTitle = (options.dontAskMeAgainTitle) ? options.dontAskMeAgainTitle : br.trn("Don't ask me again");
-      template += `<label style="text-align:left;float:left;padding-top:5px;" class="checkbox">
-                     <input name="showDontAskMeAgain" type="checkbox" value="1"> ${dontAskMeAgainTitle}
-                   </label>`;
+      template += `
+        <label style="text-align:left;float:left;padding-top:5px;" class="checkbox">
+          <input name="showDontAskMeAgain" type="checkbox" value="1"> ${dontAskMeAgainTitle}
+        </label>
+      `;
     }
     if (br.isEmpty(buttons)) {
       const yesTitle = options.yesTitle || br.trn('Yes');
-      const yesLink  = options.yesLink || 'javascript:;';
-      const target   = (options.yesLink && !options.targetSamePage ? '_blank' : '');
-      template += `<a href="${yesLink}" target="${target}" class="btn btn-sm btn-primary action-confirm-close" rel="confirm">&nbsp;${yesTitle}&nbsp;</a>`;
+      const yesLink = options.yesLink || 'javascript:;';
+      const target = (options.yesLink && !options.targetSamePage ? '_blank' : '');
+      template += `
+        <a href="${yesLink}" target="${target}" class="btn btn-sm btn-primary action-confirm-close" rel="confirm">&nbsp;${yesTitle}&nbsp;</a>
+      `;
     } else {
       let idx = 0;
-      for(let inputName in buttons) {
-        template += `<a href="javascript:;" class="btn btn-sm ${idx === 0 ? 'btn-primary' : 'btn-default'} action-confirm-close" rel="${inputName}">&nbsp;${buttons[inputName]}&nbsp;</a>`;
+      for (let inputName in buttons) {
+        template += `
+          <a href="javascript:;" class="btn btn-sm ${idx === 0 ? 'btn-primary' : 'btn-default'} action-confirm-close" rel="${inputName}">&nbsp;${buttons[inputName]}&nbsp;</a>
+        `;
         idx++;
       }
     }
-    template += `<a href="javascript:;" class="btn btn-sm btn-default action-confirm-cancel" rel="cancel">&nbsp;${options.cancelTitle}&nbsp;</a>
-                 </div></div></div></div>`;
+    template += `
+              <a href="javascript:;" class="btn btn-sm btn-default action-confirm-cancel" rel="cancel">&nbsp;${options.cancelTitle}&nbsp;</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
 
     const modal = $(template);
 
@@ -4719,8 +4965,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         $(this).find('.action-confirm-close').on('click', function() {
           const button = $(this).attr('rel');
           const dontAsk = $('input[name=showDontAskMeAgain]', $(modal)).is(':checked');
-          let checks = Object.create({});
-          $('input.confirm-checkbox').each(function(){
+          let checks = {};
+          $('input.confirm-checkbox').each(function() {
             checks[$(this).attr('name')] = $(this).is(':checked');
           });
           remove = false;
@@ -4780,14 +5026,12 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     $(modal).modal('show');
 
     return modal;
-
   };
 
   window.br.error = function(title, message, callback, options) {
-
     if (callback) {
       if (typeof callback != 'function') {
-        options  = callback;
+        options = callback;
         callback = null;
       }
     }
@@ -4806,20 +5050,29 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       $('#br_modalError').remove();
     }
 
-    let template = `<div class="br-modal-error modal" id="br_modalError" data-backdrop="static" role="dialog">
-                      <div class="modal-dialog" role="document">
-                        <div class="modal-content">`;
+    let template = `
+      <div class="br-modal-error modal" id="br_modalError" data-backdrop="static" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+    `;
     if (title !== '') {
-      template += `<div class="modal-header">
-                     <h3 class="modal-title pull-left">${title}</h3>
-                     <a class="close pull-right float-right" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
-                     <div class="clearfix"></div>
-                   </div>`;
+      template += `
+        <div class="modal-header">
+          <h3 class="modal-title pull-left">${title}</h3>
+          <a class="close pull-right float-right" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
+          <div class="clearfix"></div>
+        </div>
+      `;
     }
-    template += `<div class="modal-body" style="overflow-y:auto;">${message}</div>
-                 <div class="modal-footer" style="background-color:red;">
-                   <a href="javascript:;" class="btn btn-sm btn-default btn-outline-secondary" data-dismiss="modal">&nbsp;${br.trn(buttonTitle)}&nbsp;</a>
-                 </div></div></div></div>`;
+    template += `
+            <div class="modal-body" style="overflow-y:auto;">${message}</div>
+            <div class="modal-footer" style="background-color:red;">
+               <a href="javascript:;" class="btn btn-sm btn-default btn-outline-secondary" data-dismiss="modal">&nbsp;${br.trn(buttonTitle)}&nbsp;</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
 
     const modal = $(template);
 
@@ -4843,14 +5096,12 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     $(modal).modal('show');
 
     return modal;
-
   };
 
   window.br.inform = function(title, message, callback, options) {
-
     if (callback) {
       if (typeof callback != 'function') {
-        options  = callback;
+        options = callback;
         callback = null;
       }
     }
@@ -4869,25 +5120,39 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       $('#br_modalInform').remove();
     }
 
-    let template = `<div class="br-modal-inform modal" id="br_modalInform" data-backdrop="static" role="dialog">
-                      <div class="modal-dialog" role="document">
-                        <div class="modal-content">`;
+    let template = `
+      <div class="br-modal-inform modal" id="br_modalInform" data-backdrop="static" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+    `;
     if (title !== '') {
-      template += `<div class="modal-header">
-                     <h3 class="modal-title pull-left">${title}</h3>
-                     <a class="close pull-right float-right" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
-                     <div class="clearfix"></div>
-                   </div>`;
+      template += `
+        <div class="modal-header">
+          <h3 class="modal-title pull-left">${title}</h3>
+          <a class="close pull-right float-right" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
+          <div class="clearfix"></div>
+        </div>
+      `;
     }
-    template += `<div class="modal-body" style="overflow-y:auto;">${message}</div>
-                 <div class="modal-footer">`;
+    template += `
+      <div class="modal-body" style="overflow-y:auto;">${message}</div>
+      <div class="modal-footer">
+    `;
     if (options.showDontAskMeAgain) {
       let dontAskMeAgainTitle = (options.dontAskMeAgainTitle) ? options.dontAskMeAgainTitle : br.trn("Don't ask me again");
-      template += `<label style="text-align:left;float:left;padding-top:5px;" class="checkbox">
-                     <input name="showDontAskMeAgain" type="checkbox" value="1"> ${dontAskMeAgainTitle}
-                   </label>`;
+      template += `
+        <label style="text-align:left;float:left;padding-top:5px;" class="checkbox">
+          <input name="showDontAskMeAgain" type="checkbox" value="1"> ${dontAskMeAgainTitle}
+        </label>
+      `;
     }
-    template += `<a href="javascript:;" class="btn btn-sm btn-default btn-outline-secondary" data-dismiss="modal">&nbsp;${br.trn(buttonTitle)}&nbsp;</a></div></div></div></div>`;
+    template += `
+              <a href="javascript:;" class="btn btn-sm btn-default btn-outline-secondary" data-dismiss="modal">&nbsp;${br.trn(buttonTitle)}&nbsp;</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
 
     const modal = $(template);
 
@@ -4912,11 +5177,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     $(modal).modal('show');
 
     return modal;
-
   };
 
   window.br.prompt = function(title, fields, callback, options) {
-
     options = options || {};
     options.cancelTitle = options.cancelTitle || br.trn('Cancel');
     options.okTitle = options.okTitle || br.trn('Ok');
@@ -4934,39 +5197,47 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       options.onHide = options.onhide;
     }
 
-    let template = `<div class="br-modal-prompt modal" data-backdrop="static" role="dialog">
-                      <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                        <div class="modal-header">
-                          <h3 class="modal-title pull-left">${title}</h3>
-                          <a class="close pull-right float-right" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
-                          <div class="clearfix"></div>
-                        </div>
-                        <div class="modal-body" style="overflow-y:auto;">`;
-    for(let inputLabel in inputs) {
+    let template = `
+      <div class="br-modal-prompt modal" data-backdrop="static" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3 class="modal-title pull-left">${title}</h3>
+              <a class="close pull-right float-right" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
+              <div class="clearfix"></div>
+            </div>
+            <div class="modal-body" style="overflow-y:auto;">
+    `;
+    for (let inputLabel in inputs) {
       if (br.isObject(inputs[inputLabel])) {
         let inputId = (br.isEmpty(inputs[inputLabel].id) ? '' : inputs[inputLabel].id);
-        let inputClass = (br.isEmpty(inputs[inputLabel]['class']) ? '' : inputs[inputLabel]['class']) ;
+        let inputClass = (br.isEmpty(inputs[inputLabel]['class']) ? '' : inputs[inputLabel]['class']);
         let inputValue = inputs[inputLabel].value;
-        template += `<label>${inputLabel}</label>
-                     <input type="text" id="${inputId}" class="span4 ${inputClass}" value="${inputValue}" />`;
+        template += `
+          <label>${inputLabel}</label>
+          <input type="text" id="${inputId}" class="span4 ${inputClass}" value="${inputValue}" />
+        `;
       } else {
         let inputClass1 = (options.valueType == 'int' ? ' input-small' : ' justified');
         let inputClass2 = (options.valueRequired ? ' required' : '');
-        let inputValue  = inputs[inputLabel];
-        template += `<label>${inputLabel}</label>
-                     <input type="text" class="form-control ${inputClass1} ${inputClass2}" value="${inputValue}" />`;
+        let inputValue = inputs[inputLabel];
+        template += `
+          <label>${inputLabel}</label>
+          <input type="text" class="form-control ${inputClass1} ${inputClass2}" value="${inputValue}" />
+        `;
       }
     }
 
-    template += `</div>
-                 <div class="modal-footer">
-                   <a href="javascript:;" class="btn btn-sm btn-primary action-confirm-close" rel="confirm">${options.okTitle}</a>
-                   <a href="javascript:;" class="btn btn-sm btn-default action-confirm-cancel btn-outline-secondary">&nbsp;${options.cancelTitle}&nbsp;</a>
-                 </div>
-               </div>
-             </div>
-           </div>`;
+    template += `
+            </div>
+            <div class="modal-footer">
+              <a href="javascript:;" class="btn btn-sm btn-primary action-confirm-close" rel="confirm">${options.okTitle}</a>
+              <a href="javascript:;" class="btn btn-sm btn-default action-confirm-cancel btn-outline-secondary">&nbsp;${options.cancelTitle}&nbsp;</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
 
     const modal = $(template);
 
@@ -5064,7 +5335,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     $(modal).modal('show');
 
     return modal;
-
   };
 
   window.br.compile = function(template) {
@@ -5076,7 +5346,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           return Handlebars.compile(template);
         }
       } else {
-        return function(data) { return Mustache.render(template, data); };
+        return function(data) {
+          return Mustache.render(template, data);
+        };
       }
     } else {
       throw new Error('Empty template');
@@ -5084,7 +5356,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   };
 
   window.br.fetch = function(template, data, tags) {
-    data = data || Object.create({});
+    data = data || {};
     if (template) {
       if (typeof window.Mustache == 'undefined') {
         if (typeof window.Handlebars == 'undefined') {
@@ -5126,7 +5398,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   window.br.jsonDecode = function(data) {
     try {
       return JSON.parse(data);
-    } catch(ex) {
+    } catch (ex) {
       return null;
     }
   };
@@ -5135,33 +5407,34 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   let progressBar_Progress = 0;
   let progressBar_Message = '';
 
-  const progressBarTemplate = `<div id="br_progressBar" class="br-modal-progress modal" style="display:none;z-index:10000;top:30px;margin-top:0px;position:fixed;" data-backdrop="static" role="dialog">
-                                 <div class="modal-dialog" role="document">
-                                   <div class="modal-content">
-                                     <div class="modal-body">
-                                       <table style="width:100%;font-size:18px;font-weight:300;margin-bottom:10px;">
-                                         <tr>
-                                           <td><div id="br_progressMessage" style="max-width:440px;max-height:40px;overflow:hidden;text-overflow:ellipsis;"></div></td>
-                                           <td align="right" id="br_progressStage" style="font-size:14px;font-weight:300;"></td>
-                                         </tr>
-                                       </table>
-                                       <div id="br_progressBar_Section" style="display:none;clear:both;">
-                                         <div style="margin-bottom:0px;padding:0px;height:20px;overflow: hidden;background-color: #f5f5f5;border-radius: 4px;box-shadow: inset 0 1px 2px rgba(0,0,0,.1);">
-                                           <div id="br_progressBar_Bar" style="background-color:#008cba;border:none;padding:0px;height:20px;"></div>
-                                         </div>
-                                       </div>
-                                       <div id="br_progressBarAnimation" style="padding-top:10px;">
-                                         <center><img src="${br.brightUrl}images/progress-h.gif" /></center>
-                                       </div>
-                                     </div>
-                                   </div>
-                                 </div>
-                               </div>`;
-
+  const progressBarTemplate = `
+    <div id="br_progressBar" class="br-modal-progress modal" style="display:none;z-index:10000;top:30px;margin-top:0px;position:fixed;" data-backdrop="static" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-body">
+            <table style="width:100%;font-size:18px;font-weight:300;margin-bottom:10px;">
+              <tr>
+                <td><div id="br_progressMessage" style="max-width:440px;max-height:40px;overflow:hidden;text-overflow:ellipsis;"></div></td>
+                <td align="right" id="br_progressStage" style="font-size:14px;font-weight:300;"></td>
+              </tr>
+            </table>
+            <div id="br_progressBar_Section" style="display:none;clear:both;">
+              <div style="margin-bottom:0px;padding:0px;height:20px;overflow: hidden;background-color: #f5f5f5;border-radius: 4px;box-shadow: inset 0 1px 2px rgba(0,0,0,.1);">
+                <div id="br_progressBar_Bar" style="background-color:#008cba;border:none;padding:0px;height:20px;"></div>
+              </div>
+            </div>
+            <div id="br_progressBarAnimation" style="padding-top:10px;text-align:center;">
+              <img src="${br.brightUrl}images/progress-h.gif" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
 
   function fileSize(size) {
     const i = Math.floor(Math.log(size) / Math.log(1024));
-    return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' '+['B', 'kB', 'MB', 'GB', 'TB'][i];
+    return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
   }
 
   let currentProgressType;
@@ -5179,7 +5452,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
   function initBackDrop() {
     if ($('#br_modalBackDrop').length === 0) {
-      $('body').append('<div id="br_modalBackDrop" class="modal-backdrop" style="z-index:9999;"></div>');
+      $('body').append(`
+        <div id="br_modalBackDrop" class="modal-backdrop" style="z-index:9999;"></div>
+      `);
     }
   }
 
@@ -5259,7 +5534,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   };
 
   window.br.initScrollableAreas = function(deferred) {
-
     $('.br-scrollable').each(function() {
       const $container = $(this).parent('.br-container');
       let $navBar = $('nav.navbar');
@@ -5307,7 +5581,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
       resize();
     });
-
   };
 
   window.br.resizeModalPopup = function(modal) {
@@ -5366,7 +5639,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
   }
 
-  window.br.attachDatePickers = function (container) {
+  window.br.attachDatePickers = function(container) {
     if (container) {
       attachBootstrapDatePickers($('input.bootstrap-datepicker', container));
       attachBootstrapDateTimePickers($('input.bootstrap-datetimepicker', container));
@@ -5405,7 +5678,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         floatValues++;
       }
       if (floatValues == 2) {
-        return (val1F == val2F ? 0: (val1F > val2F ? direction : direction * -1));
+        return (val1F == val2F ? 0 : (val1F > val2F ? direction : direction * -1));
       } else {
         return val1.localeCompare(val2) * direction;
       }
@@ -5434,7 +5707,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   };
 
   window.br.setValue = function(selector, value, fromBrDataCombo) {
-
     $(selector).each(function() {
       const element = $(this);
       const dataComboInstance = element.data('BrDataCombo');
@@ -5476,7 +5748,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         }
       }
     });
-
   };
 
   if (typeof window.Handlebars == 'object') {
@@ -5490,7 +5761,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   }
 
   function enchanceBootstrap() {
-
     // const tabbableElements = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, *[tabindex], *[contenteditable]';
 
     function disableTabbingOnPage(except) {
@@ -5529,7 +5799,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           control.css('margin-top', '0px');
           control.css('position', 'fixed');
         }
-        $(window).on('resize', function(){
+        $(window).on('resize', function() {
           br.resizeModalPopup(control);
         });
       }
@@ -5555,11 +5825,16 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         $('.modal-backdrop').css('z-index', zindex);
         if ($('.modal-backdrop').length) {
           const opacity = defaultOpacity / $('.modal-backdrop').length;
-          $('.modal-backdrop').css({ 'opacity': opacity/100, 'filter': 'alpha(opacity=' + opacity + ')' });
+          $('.modal-backdrop').css({
+            'opacity': opacity / 100,
+            'filter': 'alpha(opacity=' + opacity + ')'
+          });
         }
         disableTabbingOnPage(target);
       }
-      br.draggable(target, { handler: '.modal-header' });
+      br.draggable(target, {
+        handler: '.modal-header'
+      });
       if (target.hasClass('modal')) {
         configureAutosize(target);
         br.resizeModalPopup(target);
@@ -5572,7 +5847,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         let modals = [];
         $('div.modal').each(function() {
           if ($(this).is(':visible')) {
-            modals.push({ zindex: br.toInt($(this).css('z-index')), modal: $(this) });
+            modals.push({
+              zindex: br.toInt($(this).css('z-index')),
+              modal: $(this)
+            });
           }
         });
         if (modals.length) {
@@ -5585,11 +5863,14 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             }
             return 0;
           });
-          const zindex = modals[0].zindex-1;
+          const zindex = modals[0].zindex - 1;
           $('.modal-backdrop').css('z-index', zindex);
           if ($('.modal-backdrop').length) {
             const opacity = defaultOpacity / $('.modal-backdrop').length;
-            $('.modal-backdrop').css({ 'opacity': opacity/100, 'filter': 'alpha(opacity=' + opacity + ')' });
+            $('.modal-backdrop').css({
+              'opacity': opacity / 100,
+              'filter': 'alpha(opacity=' + opacity + ')'
+            });
           }
         }
         reEnableTabbingOnPage(target);
@@ -5653,7 +5934,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         menu.css('overflow-y', `auto`);
       }
     });
-
   }
 
   let isAuthorized = true;
@@ -5663,7 +5943,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   };
 
   $(function() {
-
     if ($.fn['modal']) {
       if ($.fn['modal'].toString().indexOf('bs.modal') == -1) {
         br.bootstrapVersion = 2;
@@ -5675,7 +5954,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
 
     if (br.bootstrapVersion == 2) {
-      $.fn.modal.Constructor.prototype.enforceFocus = function () {
+      $.fn.modal.Constructor.prototype.enforceFocus = function() {
         // fakse
       };
     }
@@ -5726,6 +6005,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       try {
         $('.focused')[0].focus();
       } catch (error) {
+        //
       }
     }
 
@@ -5748,11 +6028,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         });
       });
     }
-
   });
-
 })(jQuery, window);
-
 /*!
  * Bright 2.0
  *
@@ -5762,12 +6039,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function($, window) {
-
-  window.br = window.br || Object.create({});
+(function($, window) {
+  window.br = window.br || {};
 
   $(function() {
-
     function notify(event, result) {
       br.events.trigger('paste', result, event);
     }
@@ -5786,7 +6061,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         result.dataType = result_dataType;
         result.dataSubType = result_dataSubType;
         result.dataValue = event.target.result;
-        result.data[result_dataType] = result.data[result_dataType] || { };
+        result.data[result_dataType] = result.data[result_dataType] || {};
         result.data[result_dataType][result_dataSubType] = event.target.result;
         notify(originalEvent, result);
       };
@@ -5798,7 +6073,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       };
 
       reader.readAsDataURL(file);
-
     }
 
     function loadData(result, clipboardData, mediaType, isImage) {
@@ -5819,7 +6093,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         result.dataSubType = result_dataSubType;
         result.dataValue = data;
         if (isImage) {
-          result.data[result_dataType] = result.data[result_dataType] || { };
+          result.data[result_dataType] = result.data[result_dataType] || {};
           result.data[result_dataType][result_dataSubType] = data;
         }
         return true;
@@ -5838,23 +6112,28 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
 
     $('body').on('paste', function(event) {
-      let result = { data: { }, dataType: '', dataSubType: '', dataValue: '' };
+      let result = {
+        data: {},
+        dataType: '',
+        dataSubType: '',
+        dataValue: ''
+      };
       let items = [];
       let complete = true;
 
       event = event.originalEvent;
 
       if (event.clipboardData) {
-        for(let i = 0, length = event.clipboardData.types.length; i < length; i++) {
+        for (let i = 0, length = event.clipboardData.types.length; i < length; i++) {
           const dataType = event.clipboardData.types[i];
           const parts = /^(.+?)\/(.+?)$/.exec(dataType);
-          let result_dataType    = 'other';
+          let result_dataType = 'other';
           let result_dataSubType = dataType;
           if (parts) {
             result_dataType = parts[1];
             result_dataSubType = parts[2];
           }
-          result.data[result_dataType] = result.data[result_dataType] || { };
+          result.data[result_dataType] = result.data[result_dataType] || {};
           result.data[result_dataType][result_dataSubType] = event.clipboardData.getData(dataType);
         }
 
@@ -5864,14 +6143,14 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           } else
           if (!loadData(result, event.clipboardData, 'text/plain')) {
             if (event.clipboardData.items && (event.clipboardData.items.length > 0)) {
-              for(let i = 0, length = event.clipboardData.items.length; i < length; i++) {
+              for (let i = 0, length = event.clipboardData.items.length; i < length; i++) {
                 if (event.clipboardData.items[i].type.match('image.*')) {
                   items.push(event.clipboardData.items[i].getAsFile());
                 }
               }
             }
             if (event.clipboardData.files && (event.clipboardData.files.length > 0)) {
-              for(let i = 0, length = event.clipboardData.files.length; i < length; i++) {
+              for (let i = 0, length = event.clipboardData.files.length; i < length; i++) {
                 if (event.clipboardData.files[i].type.match('image.*')) {
                   items.push(event.clipboardData.files[i]);
                 }
@@ -5889,11 +6168,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         }
       }
     });
-
   });
-
 })(jQuery, window);
-
 /*!
  * Bright 2.0
  *
@@ -5903,12 +6179,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function($, window) {
-
-  window.br = window.br || Object.create({});
+(function($, window) {
+  window.br = window.br || {};
 
   function BrDataEditor(selector, dataSource, options) {
-
     const _this = this;
 
     let editorRowid = null;
@@ -5935,10 +6209,18 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     _this.dataSource = dataSource;
 
     _this.events = br.eventQueue(_this);
-    _this.before = function(event, callback) { _this.events.before(event, callback); };
-    _this.on     = function(event, callback) { _this.events.on(event, callback); };
-    _this.pause  = function(event, callback) { _this.events.pause(event, callback); };
-    _this.after  = function(event, callback) { _this.events.after(event, callback); };
+    _this.before = function(event, callback) {
+      _this.events.before(event, callback);
+    };
+    _this.on = function(event, callback) {
+      _this.events.on(event, callback);
+    };
+    _this.pause = function(event, callback) {
+      _this.events.pause(event, callback);
+    };
+    _this.after = function(event, callback) {
+      _this.events.after(event, callback);
+    };
 
     _this.getContainer = function() {
       return $(selector);
@@ -5992,7 +6274,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         title = _this.options.title;
       } else
       if (editorRowid) {
-        switch(workMode) {
+        switch (workMode) {
           case 'copy':
             title = `Copy ${_this.options.noun}`;
             break;
@@ -6022,16 +6304,20 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     function editorShown() {
       let focusedInput = $('input.focus[type!=hidden]:visible,select.focus:visible,textarea.focus:visible', _this.container);
       if (focusedInput.length > 0) {
-        try { focusedInput[0].focus(); } catch (e) { }
+        try {
+          focusedInput[0].focus();
+        } catch (e) {}
       } else {
         focusedInput = $('input[type!=hidden]:visible,select:visible,textarea:visible', _this.container);
         if (focusedInput.length > 0) {
-          try { focusedInput[0].focus(); } catch (e) { }
+          try {
+            focusedInput[0].focus();
+          } catch (e) {}
         }
       }
       if ($.fn.bootstrapDatepicker) {
         try {
-          $('input.bootstrap-datepicker', _this.container).each(function(){
+          $('input.bootstrap-datepicker', _this.container).each(function() {
             $(this).bootstrapDatepicker('update');
           });
         } catch (error) {
@@ -6090,10 +6376,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         if (!btn.hasClass('disabled') && !saving) {
           let andClose = btn.hasClass('action-close') || _this.container.hasClass('modal');
           btn.addClass('disabled');
-          internalSave( andClose
-                      , function() { btn.removeClass('disabled'); }
-                      , function() { btn.removeClass('disabled'); }
-                      );
+          internalSave(andClose, function() {
+            btn.removeClass('disabled');
+          }, function() {
+            btn.removeClass('disabled');
+          });
         }
       });
 
@@ -6129,7 +6416,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     _this.fillControls = function(data) {
       if (data) {
-        for(let name in data) {
+        for (let name in data) {
           _this.inputsContainer.find(`div.data-field[data-toggle="buttons-radio"][name="${name}"],input.data-field[name="${name}"],select.data-field[name="${name}"],textarea.data-field[name="${name}"]`).each(function() {
             let input = $(this);
             if (input.attr('data-toggle') == 'buttons-radio') {
@@ -6150,7 +6437,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
                     callback: function(aa) {
                       if (ckeditorInstance0.getData() != data0) {
                         // not sure why but setData is not wroking sometimes, so need to run again :(
-                        ckeditorInstance0.setData(data0, { noSnapshot: true });
+                        ckeditorInstance0.setData(data0, {
+                          noSnapshot: true
+                        });
                       }
                     }
                   });
@@ -6219,8 +6508,12 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       }
 
       if (editorRowid) {
-        let dataSourceRequest = { rowid: editorRowid };
-        let dataSourceOptions = { disableEvents: true };
+        let dataSourceRequest = {
+          rowid: editorRowid
+        };
+        let dataSourceOptions = {
+          disableEvents: true
+        };
         _this.events.triggerBefore('editor.loadData', dataSourceRequest, dataSourceOptions);
         _this.dataSource.selectOne(dataSourceRequest, function(result, response) {
           if (result) {
@@ -6297,7 +6590,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         successCallback = andClose;
         andClose = false;
         // if function invoked with callabacks I'll consider that it msut save silently
-        silent  = true;
+        silent = true;
       }
       if (workMode == 'view') {
         if (br.isFunction(successCallback)) {
@@ -6338,7 +6631,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
                     editorRowid = null;
                     editorRowData = null;
                   } else {
-                    let callResponse = { refresh: true };
+                    let callResponse = {
+                      refresh: true
+                    };
                     _this.events.trigger('editor.hide', true, response, callResponse);
                     editorHidden(true, response);
                     br.backToCaller(_this.options.returnUrl, callResponse.refresh);
@@ -6382,7 +6677,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
                     editorRowid = null;
                     editorRowData = null;
                   } else {
-                    let callResponse = { refresh: true };
+                    let callResponse = {
+                      refresh: true
+                    };
                     _this.events.trigger('editor.hide', true, response, callResponse);
                     editorHidden(true, response);
                     br.backToCaller(_this.options.returnUrl, callResponse.refresh);
@@ -6456,7 +6753,16 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
               val = input.val();
             }
             if (!skip) {
-              if (input.hasClass('required') && br.isEmpty(val) && (!input.hasClass('required-edit-only') || _this.isEditMode()) && (!input.hasClass('required-insert-only') || _this.isInsertMode())) {
+              if (
+                input.hasClass('required') &&
+                br.isEmpty(val) &&
+                (!input.hasClass('required-edit-only') ||
+                  _this.isEditMode()
+                ) &&
+                (!input.hasClass('required-insert-only') ||
+                  _this.isInsertMode()
+                )
+              ) {
                 let title = input.attr('title');
                 if (br.isEmpty(title)) {
                   title = input.prev('label').text();
@@ -6476,8 +6782,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         });
 
         if (errors.length > 0) {
-          let tmpl = (errors.length == 1) ? '{{#errors}}{{.}}{{/errors}}': br.trn('Please check the following:') + '<br /><ul>{{#errors}}<li>{{.}}</li>{{/errors}}</ul>';
-          let error = br.fetch(tmpl, { errors: errors });
+          let tmpl = (errors.length == 1) ? '{{#errors}}{{.}}{{/errors}}' : br.trn('Please check the following:') + '<br /><ul>{{#errors}}<li>{{.}}</li>{{/errors}}</ul>';
+          let error = br.fetch(tmpl, {
+            errors: errors
+          });
           _this.showError(error);
           if (errorCallback) {
             errorCallback.call(_this, data, error);
@@ -6514,15 +6822,12 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
 
     return _this.init();
-
   }
 
-  window.br.dataEditor = function (selector, dataSource, options) {
+  window.br.dataEditor = function(selector, dataSource, options) {
     return new BrDataEditor(selector, dataSource, options);
   };
-
 })(jQuery, window);
-
 /*!
  * Bright 2.0
  *
@@ -6532,12 +6837,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function($, window) {
-
-  window.br = window.br || Object.create({});
+(function($, window) {
+  window.br = window.br || {};
 
   function BrDataBrowser(entity, settings) {
-
     const _this = this;
 
     let pagerSetUp = false;
@@ -6548,7 +6851,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     _this.options.autoLoad = _this.options.autoLoad || false;
     _this.options.defaults = _this.options.defaults || {};
     _this.options.entity = entity;
-    _this.options.features = _this.options.features || { editor: true };
+    _this.options.features = _this.options.features || {
+      editor: true
+    };
     _this.options.noun = _this.options.noun || '';
     _this.options.selectors = _this.options.selectors || {};
     _this.options.selectors.container = _this.options.selectors.container || '';
@@ -6577,7 +6882,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       if (_this.options.selectors.container !== '') {
         if (_this.options.selectors.scrollContainer !== '') {
           if (_this.options.selectors.scrollContainer.indexOf('#') === 0) {
-             return $(_this.options.selectors.scrollContainer);
+            return $(_this.options.selectors.scrollContainer);
           } else {
             return $(_this.options.selectors.container + ' ' + _this.options.selectors.scrollContainer);
           }
@@ -6636,20 +6941,24 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       headerContainer = _this.options.selectors.container;
     }
 
-    _this.dataGrid = br.dataGrid( _this.options.selectors.dataTable
-                                , _this.options.templates.row
-                                , _this.dataSource
-                                , { templates: { noData: _this.options.templates.noData, groupRow: _this.options.templates.groupRow }
-                                  , selectors: { header: headerContainer, remove: '.action-delete', refreshRow: _this.options.selectors.refreshRow }
-                                  , appendInInsert: _this.options.appendInInsert
-                                  , defaultOrderAndGroup: _this.options.defaultOrderAndGroup
-                                  , fixedHeader: _this.options.fixedHeader
-                                  , autoHeight: _this.options.autoHeight
-                                  , autoWidth: _this.options.autoWidth
-                                  , storageTag: _this.options.storageTag
-                                  , storeDataRow: _this.options.storeDataRow
-                                  }
-                                );
+    _this.dataGrid = br.dataGrid(_this.options.selectors.dataTable, _this.options.templates.row, _this.dataSource, {
+      templates: {
+        noData: _this.options.templates.noData,
+        groupRow: _this.options.templates.groupRow
+      },
+      selectors: {
+        header: headerContainer,
+        remove: '.action-delete',
+        refreshRow: _this.options.selectors.refreshRow
+      },
+      appendInInsert: _this.options.appendInInsert,
+      defaultOrderAndGroup: _this.options.defaultOrderAndGroup,
+      fixedHeader: _this.options.fixedHeader,
+      autoHeight: _this.options.autoHeight,
+      autoWidth: _this.options.autoWidth,
+      storageTag: _this.options.storageTag,
+      storeDataRow: _this.options.storeDataRow
+    });
 
     _this.setStored = function(name, value) {
       _this.dataGrid.setStored(name, value);
@@ -6672,9 +6981,15 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     _this.recordsAmount = 0;
 
     _this.events = br.eventQueue(_this);
-    _this.before = function(event, callback) { _this.events.before(event, callback); };
-    _this.on     = function(event, callback) { _this.events.on(event, callback); };
-    _this.after  = function(event, callback) { _this.events.after(event, callback); };
+    _this.before = function(event, callback) {
+      _this.events.before(event, callback);
+    };
+    _this.on = function(event, callback) {
+      _this.events.on(event, callback);
+    };
+    _this.after = function(event, callback) {
+      _this.events.after(event, callback);
+    };
 
     _this.before = function(operation, callback) {
       _this.dataSource.before(operation, callback);
@@ -6751,13 +7066,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     _this.deleteSelection = function() {
       selectionQueue = _this.selection.get().slice(0);
       if (selectionQueue.length > 0) {
-        br.confirm( 'Delete confirmation'
-                  , 'Are you sure you want do delete ' + selectionQueue.length + ' record(s)?'
-                  , function() {
-                      br.startProgress(selectionQueue.length, 'Deleting...');
-                      deleteQueued();
-                    }
-                  );
+        br.confirm('Delete confirmation', `Are you sure you want do delete ${selectionQueue.length} record(s)?`, function() {
+          br.startProgress(selectionQueue.length, 'Deleting...');
+          deleteQueued();
+        });
       } else {
         br.growlError('Please select at least one record');
       }
@@ -6766,7 +7078,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     function updateQueued(func) {
       if (selectionQueue.length > 0) {
         const rowid = selectionQueue.shift();
-        let data = Object.create({});
+        let data = {};
         func(data);
         _this.dataSource.update(rowid, data, function(result, response) {
           if (result) {
@@ -6810,7 +7122,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
 
     _this.processSelection = function(processRowCallback, processCompleteCallback, params) {
-      params = params || Object.create({});
+      params = params || {};
       params.showProgress = params.showProgress || false;
       selectionQueue = _this.selection.get();
       if (selectionQueue.length > 0) {
@@ -6882,7 +7194,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       inputControls.each(function() {
         if ($(this).parent().hasClass('input-append')) {
           $(this).parent().addClass('data-filter');
-          $(this).parent().css({ display: 'inline-block', position: 'relative' });
+          $(this).parent().css({
+            display: 'inline-block',
+            position: 'relative'
+          });
         }
       });
 
@@ -6919,7 +7234,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       if (_this.options.features.editor) {
         let container = $(_this.options.selectors.editForm);
         if (container.length > 0) {
-          let editorOptions = _this.options.editor || { noun: _this.options.noun };
+          let editorOptions = _this.options.editor || {
+            noun: _this.options.noun
+          };
           _this.editor = _this.dataEditor = br.dataEditor(_this.options.selectors.editForm, _this.dataSource, editorOptions);
           _this.editor.events.connectTo(_this.events);
 
@@ -6928,7 +7245,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           $(document).on('click', selActionCRUD, function() {
             const rowid = $(this).closest('[data-rowid]').attr('data-rowid');
             const mode = ($(this).hasClass('action-copy') ? 'copy' : ($(this).hasClass('action-view') ? 'view' : (rowid ? 'edit' : 'insert')));
-            _this.editor.show(rowid, { mode: mode });
+            _this.editor.show(rowid, {
+              mode: mode
+            });
           });
         }
       }
@@ -6981,12 +7300,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
       $(findNode('input.data-filter[name=keyword]')).val(_this.getFilter('keyword'));
 
-      $(findNode('.action-reset-filters')).on('click', function () {
+      $(findNode('.action-reset-filters')).on('click', function() {
         _this.resetFilters();
       });
 
       function checkAutoLoad() {
-
         const docsHeight = $(_this.options.selectors.dataTable).height();
         const docsContainerHeight = _this.getScrollContainer().height();
         const scrollTop = _this.getScrollContainer().scrollTop();
@@ -6994,7 +7312,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         if (scrollTop + docsContainerHeight > docsHeight) {
           _this.dataGrid.loadMore();
         }
-
       }
 
       if (_this.options.autoLoad) {
@@ -7080,13 +7397,13 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         let f2 = false;
         let r = 3;
         let el = false;
-        for(let i = 1; i <= totalPages; i++) {
+        for (let i = 1; i <= totalPages; i++) {
           if ((i <= r) || ((i > currentPage - r) && (i < currentPage + r)) || (i > (totalPages - r))) {
             if (i == currentPage) {
-              s = s + '<strong class="pager-nav-element">' + i+ '</strong>';
+              s = s + '<strong class="pager-nav-element">' + i + '</strong>';
             } else {
               el = true;
-              s = s + '<a href="javascript:;" class="pager-action-navigate pager-nav-element" data-page="'+ i + '">' + i+ '</a>';
+              s = s + '<a href="javascript:;" class="pager-action-navigate pager-nav-element" data-page="' + i + '">' + i + '</a>';
             }
           } else
           if (!f1 && i < currentPage) {
@@ -7109,7 +7426,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         $pc.html('');
         s = '';
         const sizes = _this.options.pageSizes;
-        for(let i = 0, length = sizes.length; i < length; i++) {
+        for (let i = 0, length = sizes.length; i < length; i++) {
           let size = sizes[i];
           let dsize = size;
           if (size >= _this.recordsAmount) {
@@ -7164,7 +7481,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           _this.dataGrid.table.update();
         }
       }
-
     }
 
     _this.reset = function() {
@@ -7176,7 +7492,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       if (!selection) {
         selection = _this.selection.get();
       }
-      for(let i = 0, length = selection.length; i < length; i++) {
+      for (let i = 0, length = selection.length; i < length; i++) {
         _this.selectRow(selection[i], true);
       }
       _this.events.trigger('selectionChanged', _this.selection.get().length);
@@ -7198,7 +7514,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     _this.setSelection = function(selection, disableEvents) {
       if (selection) {
-        for(let i = 0, length = selection.length; i < length; i++) {
+        for (let i = 0, length = selection.length; i < length; i++) {
           _this.selectRow(selection[i], true);
           _this.selection.append(selection[i]);
         }
@@ -7322,9 +7638,17 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       return new Promise(function(resolve, reject) {
         internalRefresh(true, filter, function(result, response, request, options) {
           if (result) {
-            resolve({ request: request, options: options, response: response });
+            resolve({
+              request: request,
+              options: options,
+              response: response
+            });
           } else {
-            reject({ request: request, options: options, errorMessage: response });
+            reject({
+              request: request,
+              options: options,
+              errorMessage: response
+            });
           }
         });
       }).then(function(data) {
@@ -7358,9 +7682,17 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       return new Promise(function(resolve, reject) {
         internalRefresh(false, filter, function(result, response, request, options) {
           if (result) {
-            resolve({ request: request, options: options, response: response });
+            resolve({
+              request: request,
+              options: options,
+              response: response
+            });
           } else {
-            reject({ request: request, options: options, errorMessage: response });
+            reject({
+              request: request,
+              options: options,
+              errorMessage: response
+            });
           }
         });
       }).then(function(data) {
@@ -7383,12 +7715,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     return _this.init();
   }
 
-  window.br.dataBrowser = function (entity, options) {
+  window.br.dataBrowser = function(entity, options) {
     return new BrDataBrowser(entity, options);
   };
-
 })(jQuery, window);
-
 /*!
  * Bright 2.0
  *
@@ -7398,14 +7728,26 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function($, window) {
+(function($, window) {
+  window.br = window.br || {};
 
-  window.br = window.br || Object.create({});
-
-  const invokerTemplate = br.compile('<div class="dropdown br-ajax-dropdown"><a href="javascript:;" class="br-ex-action-change-menu-menu" style="cursor:pointer;"><span class="br-ex-current-value">{{&value}}</span> <b class="caret"></b></a></div>');
-  const menuItemTemplateStr = '<li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>';
-  const menuItemTemplate = br.compile('<li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>');
-  const dropDownTemplate = '<div class="dropdown br-ajax-dropdown" style="position:absolute;z-index:99999;"><a style="display:none;" href="javascript:;" role="button" data-toggle="dropdown" class="dropdown-toggle br-ex-action-change-menu-menu" style="cursor:pointer;"><span>{{value}}</span> <b class="caret"></b></a><ul class="dropdown-menu" role="menu" style="overflow:auto;"></ul></div>';
+  const invokerTemplate = br.compile(`
+    <div class="dropdown br-ajax-dropdown">
+      <a href="javascript:;" class="br-ex-action-change-menu-menu" style="cursor:pointer;"><span class="br-ex-current-value">{{&value}}</span> <b class="caret"></b></a>
+    </div>
+  `);
+  const menuItemTemplateStr = `
+    <li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>
+  `;
+  const menuItemTemplate = br.compile(`
+    <li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>
+  `);
+  const dropDownTemplate = `
+    <div class="dropdown br-ajax-dropdown" style="position:absolute;z-index:99999;">
+      <a style="display:none;" href="javascript:;" role="button" data-toggle="dropdown" class="dropdown-toggle br-ex-action-change-menu-menu" style="cursor:pointer;"><span>{{value}}</span> <b class="caret"></b></a>
+      <ul class="dropdown-menu" role="menu" style="overflow:auto;"></ul>
+    </div>
+  `;
 
   function showDropDownMenu(invoker, items, rowid, menuElement, dataSource, fieldName, options) {
     const dropDown = $(dropDownTemplate);
@@ -7413,7 +7755,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     const dropDownMenu = dropDown.find('.br-ex-action-change-menu-menu');
     dropDown.on('click', '.br-ex-action-change-menu', function() {
       const value = $(this).attr('data-value');
-      let data = Object.create({});
+      let data = {};
       data[fieldName] = value;
       if (options.onClick) {
         options.onClick.call(invoker, dataSource, rowid, data, menuElement);
@@ -7432,12 +7774,15 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     });
     dropDownList.html('');
     if (options.allowClear) {
-      dropDownList.append(menuItemTemplate({ id: '', name: (options.clearLabel ? options.clearLabel : '-- сlear --') }));
+      dropDownList.append(menuItemTemplate({
+        id: '',
+        name: (options.clearLabel ? options.clearLabel : '-- сlear --')
+      }));
     }
     if (options.onBeforeRenderMenu) {
       options.onBeforeRenderMenu.call(dropDownList, menuItemTemplateStr);
     }
-    for(let i = 0, length = items.length; i < length; i++) {
+    for (let i = 0, length = items.length; i < length; i++) {
       dropDownList.append(menuItemTemplate({
         id: items[i][options.keyField],
         name: items[i][options.nameField]
@@ -7462,7 +7807,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   function internalhandleClick(el, invoker, choicesDataSource, dataSource, fieldName, options) {
     const rowid = el.closest('[data-rowid]').attr('data-rowid');
     const menuElement = invoker.find('span.br-ex-current-value');
-    let filter = { targetRowid: rowid };
+    let filter = {
+      targetRowid: rowid
+    };
     if (options.onSelect) {
       options.onSelect.call(choicesDataSource, filter, rowid, $(el));
     }
@@ -7493,7 +7840,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           value = '<span style="color:#AAA;">(click to change)</span>';
         }
       }
-      const invoker = $(invokerTemplate({ value: value }));
+      const invoker = $(invokerTemplate({
+        value: value
+      }));
       if (options.onSetupInvoker) {
         options.onSetupInvoker.call(invoker);
       }
@@ -7534,12 +7883,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
   }
 
-  window.br.dropDownMenu = function (selector, choicesDataSource, dataSource, fieldName, options) {
+  window.br.dropDownMenu = function(selector, choicesDataSource, dataSource, fieldName, options) {
     return new BrExChangeMenu(selector, choicesDataSource, dataSource, fieldName, options);
   };
-
 })(jQuery, window);
-
 /*!
  * Bright 2.0
  *
@@ -7549,20 +7896,19 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
  *
  */
 
-;(function($, window) {
+(function($, window) {
+  window.br = window.br || {};
 
-  window.br = window.br || Object.create({});
-
-  window.br.dataHelpers = window.br.dataHelpers || Object.create({});
+  window.br.dataHelpers = window.br.dataHelpers || {};
 
   window.br.dataHelpers.before = function(event, dataControls, callback) {
-    for(let i = 0, length = dataControls.length; i < length; i++) {
+    for (let i = 0, length = dataControls.length; i < length; i++) {
       dataControls[i].before(event, callback);
     }
   };
 
   window.br.dataHelpers.on = function(event, dataControls, callback) {
-    for(let i = 0, length = dataControls.length; i < length; i++) {
+    for (let i = 0, length = dataControls.length; i < length; i++) {
       dataControls[i].on(event, callback);
     }
   };
@@ -7577,22 +7923,22 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
 
     Promise.all(functionsQueue).then(function(data) {
-      if (paramsQueue.length > 0) {
-        execute(funcToExecute, paramsQueue, extraParams, resolve, reject);
-      } else {
-        br.stepProgress();
-        if (!extraParams.doNotHideProgress) {
+        if (paramsQueue.length > 0) {
+          execute(funcToExecute, paramsQueue, extraParams, resolve, reject);
+        } else {
+          br.stepProgress();
+          if (!extraParams.doNotHideProgress) {
+            br.hideProgress();
+          }
+          resolve(data);
+        }
+      })
+      .catch(function(data) {
+        if (!extraParams.doNotHideProgressOnError) {
           br.hideProgress();
         }
-        resolve(data);
-      }
-    })
-    .catch(function(data) {
-      if (!extraParams.doNotHideProgressOnError) {
-        br.hideProgress();
-      }
-      reject(data);
-    });
+        reject(data);
+      });
   }
 
   window.br.dataHelpers.execute = function(funcToExecute, funcToGetTotal, funcToGetParams, extraParams) {
@@ -7621,14 +7967,20 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   window.br.dataHelpers.load = window.br.dataHelpers.select = function(dataControls, callback) {
     let promises = [];
 
-    for(let i = 0, length = dataControls.length; i < length; i++) {
+    for (let i = 0, length = dataControls.length; i < length; i++) {
       (function(dataObject) {
         promises.push(
           new Promise(function(resolve, reject) {
             dataObject.load().then(function(data) {
-              resolve({ dataObject: dataObject, data: data });
+              resolve({
+                dataObject: dataObject,
+                data: data
+              });
             }).catch(function(data) {
-              reject({ dataObject: dataObject, data: data });
+              reject({
+                dataObject: dataObject,
+                data: data
+              });
             });
           })
         );
@@ -7654,11 +8006,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       }
       throw data;
     });
-
   };
-
 })(jQuery, window);
-
 /*!
  * Bright 2.0
  *
@@ -7670,16 +8019,23 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
 /* global google */
 
-;(function($, window) {
+
+(function($, window) {
   window.br = window.br || {};
 
   function BrGoogleMap(selector, options) {
     const _this = this;
 
     _this.events = br.eventQueue(this);
-    _this.before = function(event, callback) { this.events.before(event, callback); };
-    _this.on = function(event, callback) { this.events.on(event, callback); };
-    _this.after = function(event, callback) { this.events.after(event, callback); };
+    _this.before = function(event, callback) {
+      this.events.before(event, callback);
+    };
+    _this.on = function(event, callback) {
+      this.events.on(event, callback);
+    };
+    _this.after = function(event, callback) {
+      this.events.after(event, callback);
+    };
 
     if (!google.maps.Polygon.prototype.getBounds) {
       google.maps.Polygon.prototype.getBounds = function(latLng) {
@@ -7687,7 +8043,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         let bounds = new google.maps.LatLngBounds();
         paths.forEach(function(path) {
           let points = path.getArray();
-          for(let i = 0, length = points.length; i < length; i++) {
+          for (let i = 0, length = points.length; i < length; i++) {
             bounds.extend(points[i]);
           }
         });
@@ -7698,18 +8054,32 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     let worldCenter = new google.maps.LatLng(42, 18);
     let singleClickTimeout;
 
-    options = options || Object.create({ });
+    options = options || {};
     options.zoom = options.zoom || 3;
     options.mapCenter = options.mapCenter || worldCenter;
     options.mapType = options.mapType || google.maps.MapTypeId.ROADMAP;
 
-    if (typeof options.streetViewControl == 'undefined') { options.streetViewControl = true; }
-    if (typeof options.panControl == 'undefined') { options.panControl = true; }
-    if (typeof options.mapTypeControl == 'undefined') { options.mapTypeControl = true; }
-    if (typeof options.zoomControl == 'undefined') { options.zoomControl = true; }
-    if (typeof options.scaleControl == 'undefined') { options.scaleControl = true; }
-    if (typeof options.rotateControl == 'undefined') { options.rotateControl = true; }
-    if (typeof options.mapType == 'undefined') { options.mapType = google.maps.MapTypeId.ROADMAP; }
+    if (typeof options.streetViewControl == 'undefined') {
+      options.streetViewControl = true;
+    }
+    if (typeof options.panControl == 'undefined') {
+      options.panControl = true;
+    }
+    if (typeof options.mapTypeControl == 'undefined') {
+      options.mapTypeControl = true;
+    }
+    if (typeof options.zoomControl == 'undefined') {
+      options.zoomControl = true;
+    }
+    if (typeof options.scaleControl == 'undefined') {
+      options.scaleControl = true;
+    }
+    if (typeof options.rotateControl == 'undefined') {
+      options.rotateControl = true;
+    }
+    if (typeof options.mapType == 'undefined') {
+      options.mapType = google.maps.MapTypeId.ROADMAP;
+    }
 
     _this.mapOptions = {
       zoom: options.zoom,
@@ -7760,7 +8130,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         distance += item.distance.value;
         duration += item.duration.value;
       });
-      return { distance: distance, duration: duration };
+      return {
+        distance: distance,
+        duration: duration
+      };
     }
 
     google.maps.event.addListener(_this.directionsDisplay, 'directions_changed', function() {
@@ -7828,7 +8201,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     };
 
     _this.setMapType = function(value) {
-      switch(value) {
+      switch (value) {
         case 'r':
           _this.map.setMapTypeId(google.maps.MapTypeId.ROADMAP);
           break;
@@ -7845,7 +8218,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     };
 
     _this.setTravelMode = function(value) {
-      switch(value) {
+      switch (value) {
         case 'd':
           _this.travelMode = google.maps.DirectionsTravelMode.DRIVING;
           break;
@@ -7917,7 +8290,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     };
 
     _this.findAddress = function(address, callback) {
-      _this.geocoder.geocode({'address': address}, function(results, status) {
+      _this.geocoder.geocode({
+        'address': address
+      }, function(results, status) {
         if (status == google.maps.GeocoderStatus.OK) {
           let points = results.map(function(item) {
             return {
@@ -7953,7 +8328,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         if (destination === null) {
           destination = latLng;
         } else {
-          waypoints.push({ location: destination, stopover: true });
+          waypoints.push({
+            location: destination,
+            stopover: true
+          });
           destination = latLng;
         }
       }
@@ -7999,7 +8377,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         type: 'Feature',
         geometry: {
           type: 'Point',
-          coordinates: [ lng, lat ]
+          coordinates: [lng, lat]
         },
         properties: Object.assign({
           latitude: lat,
@@ -8013,7 +8391,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     // layers
 
     _this.addLayer = function(geoString, params) {
-      params = params || Object.create({});
+      params = params || {};
 
       let geoJson;
       if (typeof geoString == 'string') {
@@ -8030,9 +8408,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
       let getJsonCustom = {};
 
-      getJsonCustom.id   = params.id;
+      getJsonCustom.id = params.id;
       getJsonCustom.data = params.data;
-      getJsonCustom.tag  = params.tag;
+      getJsonCustom.tag = params.tag;
 
       let geoJsonLayer = new google.maps.Data();
       geoJsonLayer.addGeoJson(geoJson);
@@ -8048,7 +8426,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     };
 
     _this.getLayer = function(id) {
-      let result =  _this.layers.filter(function(item) {
+      let result = _this.layers.filter(function(item) {
         return (item.custom && (item.custom.id == id));
       });
       if (result.length > 0) {
@@ -8057,7 +8435,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     };
 
     _this.layerExists = function(id) {
-      let result =  _this.layers.filter(function(item) {
+      let result = _this.layers.filter(function(item) {
         return (item.custom && (item.custom.id == id));
       });
       return result.length > 0;
@@ -8097,8 +8475,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         icon: markerParams.icon,
         draggable: markerParams.draggable
       });
-      marker.custom = custom || { };
-      marker.tag    = tag;
+      marker.custom = custom || {};
+      marker.tag = tag;
       _this.markers.push(marker);
       google.maps.event.addListener(marker, 'click', function(event) {
         _this.events.trigger('marker.click', marker, event);
@@ -8199,7 +8577,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       polygonParams.map = _this.map;
       let polygon = new google.maps.Polygon(polygonParams);
       polygon.custom = custom;
-      polygon.tag    = tag;
+      polygon.tag = tag;
       _this.polygons.push(polygon);
       google.maps.event.addListener(polygon, 'click', function(event) {
         _this.events.trigger('polygon.click', polygon, event);
@@ -8241,12 +8619,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     return _this;
   }
 
-  window.br.googleMap = function (selector, options) {
+  window.br.googleMap = function(selector, options) {
     return new BrGoogleMap(selector, options);
   };
-
 })(jQuery, window);
-
 /*!
  * Bright 2.0
  *
@@ -8258,17 +8634,15 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
 /* global WebSocket */
 
-;(function (window) {
-
-  window.br = window.br || Object.create({});
+(function(window) {
+  window.br = window.br || {};
 
   function BrEventBus(endpointUrl) {
-
     const _this = this;
 
-    _this.events        = br.eventQueue(_this);
+    _this.events = br.eventQueue(_this);
     _this.subscriptions = br.eventQueue(_this);
-    _this.spaces        = br.eventQueue(_this);
+    _this.spaces = br.eventQueue(_this);
 
     const debugMode = false;
     const reconnectTimeout = 1000;
@@ -8283,7 +8657,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     function reconnect() {
       window.clearTimeout(reconnectTimer);
-      let timeout = reconnectsCounter*reconnectTimeout;
+      let timeout = reconnectsCounter * reconnectTimeout;
       if (debugMode && (timeout > 0)) {
         br.log((successfulConnections > 0 ? 're' : '') + 'connecting in ' + timeout + 'ms');
       }
@@ -8297,12 +8671,14 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     function subscribe() {
       if (webSocket && (webSocket.readyState == 1) && (_this.subscriptions.getEvents().length > 0)) {
-        let message = { action: 'eventBus.subscribe'
-                      , data: { events: _this.subscriptions.getEvents()
-                              , spaces: _this.spaces.getEvents()
-                              , userInfo: __userInfo
-                              }
-                      };
+        let message = {
+          action: 'eventBus.subscribe',
+          data: {
+            events: _this.subscriptions.getEvents(),
+            spaces: _this.spaces.getEvents(),
+            userInfo: __userInfo
+          }
+        };
         try {
           webSocket.send(JSON.stringify(message));
         } catch (error) {
@@ -8314,10 +8690,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     function handleConnectionError(error) {
       if (webSocket) {
         try {
-          webSocket.onopen    = null;
+          webSocket.onopen = null;
           webSocket.onmessage = null;
-          webSocket.onclose   = null;
-          webSocket.onerror   = null;
+          webSocket.onclose = null;
+          webSocket.onerror = null;
           if (webSocket.readyState == 1) {
             webSocket.close();
           }
@@ -8355,13 +8731,13 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           successfulConnections++;
           subscribe();
         };
-        webSocket.onmessage = function (event) {
+        webSocket.onmessage = function(event) {
           if (debugMode) {
             br.log(event);
           }
           try {
             let message = $.parseJSON(event.data);
-            switch(message.action) {
+            switch (message.action) {
               case 'eventBus.registered':
                 _this.setClientUID(message.clientUID);
                 break;
@@ -8369,9 +8745,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
                 _this.spaces.trigger(message.spaceName, message.data);
                 break;
               default:
-              if (!message.clientUID || (_this.getClientUID() != message.clientUID)) {
-                _this.subscriptions.trigger(message.action, message.data);
-              }
+                if (!message.clientUID || (_this.getClientUID() != message.clientUID)) {
+                  _this.subscriptions.trigger(message.action, message.data);
+                }
             }
           } catch (exception) {
             br.log(exception);
@@ -8457,11 +8833,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }, 100);
 
     return this;
-
   }
 
   window.br.eventBus = function(endpointUrl) {
     return new BrEventBus(endpointUrl);
   };
-
 })(window);

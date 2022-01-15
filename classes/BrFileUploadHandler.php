@@ -26,12 +26,12 @@ class BrFileUploadHandler extends BrGenericUploadHandler
     $dstFileName = br()->fs()->normalizeFileName(br()->fs()->fileName($this->getFileName()));
     $hash = hash_file('sha256', $srcFilePath);
     $dstFilePath = $dstPath . $hash . '/' . $dstFileName;
-    $dstFileUrl  = br()->request()->baseUrl() . ltrim(rtrim($path, '/'), '/') . '/' . $hash . '/' . $dstFileName;
-    $dstFileHref  = br()->request()->host() . $dstFileUrl;
+    $dstFileUrl = br()->request()->baseUrl() . ltrim(rtrim($path, '/'), '/') . '/' . $hash . '/' . $dstFileName;
+    $dstFileHref = br()->request()->host() . $dstFileUrl;
     br()->fs()->createDir(br()->fs()->filePath($dstFilePath));
     rename($srcFilePath, $dstFilePath);
     return [
-      'fileName'=> $dstFileName,
+      'fileName' => $dstFileName,
       'url' => $dstFileUrl,
       'href' => $dstFileHref,
       'internal' => [

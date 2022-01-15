@@ -16,7 +16,7 @@ class BrFileSystem extends BrObject
 
   public function normalizePath($path)
   {
-    return rtrim(str_replace('\\', '/', $path), '/').'/';
+    return rtrim(str_replace('\\', '/', $path), '/') . '/';
   }
 
   public function normalizeFileName($fileName)
@@ -28,7 +28,7 @@ class BrFileSystem extends BrObject
   {
     $pathinfo = pathinfo($fileName);
     if ($addIndex) {
-      return br($pathinfo, 'filename').'-'.$addIndex.'.'.br($pathinfo, 'extension');
+      return br($pathinfo, 'filename') . '-' . $addIndex . '.' . br($pathinfo, 'extension');
     } else {
       return br($pathinfo, 'basename');
     }
@@ -171,7 +171,7 @@ class BrFileSystem extends BrObject
   public function createDir($path, $access = 0777)
   {
     if (!$this->makeDir($path, $access)) {
-      throw new BrFileSystemException('Can not create directory "' . $path .'"');
+      throw new BrFileSystemException('Can not create directory "' . $path . '"');
     }
 
     return $this;
@@ -180,7 +180,7 @@ class BrFileSystem extends BrObject
   public function checkWriteable($path)
   {
     if (!is_writeable($path)) {
-      throw new BrFileSystemException('Can not create directory "' . $path .'"');
+      throw new BrFileSystemException('Can not create directory "' . $path . '"');
     }
   }
 
@@ -208,7 +208,7 @@ class BrFileSystem extends BrObject
     $startingDir = $this->normalizePath($startingDir);
     if ($dir = opendir($startingDir)) {
       while (($file = readdir($dir)) !== false) {
-        $fullFileName = $startingDir.$file;
+        $fullFileName = $startingDir . $file;
         if (($file != '..') && ($file != '.') && ($file != '.DS_Store')) {
           $proceed = true;
           if ($mask) {

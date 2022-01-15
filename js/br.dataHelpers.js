@@ -7,20 +7,19 @@
  *
  */
 
-;(function($, window) {
+(function($, window) {
+  window.br = window.br || {};
 
-  window.br = window.br || Object.create({});
-
-  window.br.dataHelpers = window.br.dataHelpers || Object.create({});
+  window.br.dataHelpers = window.br.dataHelpers || {};
 
   window.br.dataHelpers.before = function(event, dataControls, callback) {
-    for(let i = 0, length = dataControls.length; i < length; i++) {
+    for (let i = 0, length = dataControls.length; i < length; i++) {
       dataControls[i].before(event, callback);
     }
   };
 
   window.br.dataHelpers.on = function(event, dataControls, callback) {
-    for(let i = 0, length = dataControls.length; i < length; i++) {
+    for (let i = 0, length = dataControls.length; i < length; i++) {
       dataControls[i].on(event, callback);
     }
   };
@@ -35,22 +34,22 @@
     }
 
     Promise.all(functionsQueue).then(function(data) {
-      if (paramsQueue.length > 0) {
-        execute(funcToExecute, paramsQueue, extraParams, resolve, reject);
-      } else {
-        br.stepProgress();
-        if (!extraParams.doNotHideProgress) {
+        if (paramsQueue.length > 0) {
+          execute(funcToExecute, paramsQueue, extraParams, resolve, reject);
+        } else {
+          br.stepProgress();
+          if (!extraParams.doNotHideProgress) {
+            br.hideProgress();
+          }
+          resolve(data);
+        }
+      })
+      .catch(function(data) {
+        if (!extraParams.doNotHideProgressOnError) {
           br.hideProgress();
         }
-        resolve(data);
-      }
-    })
-    .catch(function(data) {
-      if (!extraParams.doNotHideProgressOnError) {
-        br.hideProgress();
-      }
-      reject(data);
-    });
+        reject(data);
+      });
   }
 
   window.br.dataHelpers.execute = function(funcToExecute, funcToGetTotal, funcToGetParams, extraParams) {
@@ -79,14 +78,20 @@
   window.br.dataHelpers.load = window.br.dataHelpers.select = function(dataControls, callback) {
     let promises = [];
 
-    for(let i = 0, length = dataControls.length; i < length; i++) {
+    for (let i = 0, length = dataControls.length; i < length; i++) {
       (function(dataObject) {
         promises.push(
           new Promise(function(resolve, reject) {
             dataObject.load().then(function(data) {
-              resolve({ dataObject: dataObject, data: data });
+              resolve({
+                dataObject: dataObject,
+                data: data
+              });
             }).catch(function(data) {
-              reject({ dataObject: dataObject, data: data });
+              reject({
+                dataObject: dataObject,
+                data: data
+              });
             });
           })
         );
@@ -112,7 +117,5 @@
       }
       throw data;
     });
-
   };
-
 })(jQuery, window);

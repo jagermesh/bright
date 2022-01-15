@@ -7,12 +7,10 @@
  *
  */
 
-;(function($, window) {
-
-  window.br = window.br || Object.create({});
+(function($, window) {
+  window.br = window.br || {};
 
   $(function() {
-
     function notify(event, result) {
       br.events.trigger('paste', result, event);
     }
@@ -31,7 +29,7 @@
         result.dataType = result_dataType;
         result.dataSubType = result_dataSubType;
         result.dataValue = event.target.result;
-        result.data[result_dataType] = result.data[result_dataType] || { };
+        result.data[result_dataType] = result.data[result_dataType] || {};
         result.data[result_dataType][result_dataSubType] = event.target.result;
         notify(originalEvent, result);
       };
@@ -43,7 +41,6 @@
       };
 
       reader.readAsDataURL(file);
-
     }
 
     function loadData(result, clipboardData, mediaType, isImage) {
@@ -64,7 +61,7 @@
         result.dataSubType = result_dataSubType;
         result.dataValue = data;
         if (isImage) {
-          result.data[result_dataType] = result.data[result_dataType] || { };
+          result.data[result_dataType] = result.data[result_dataType] || {};
           result.data[result_dataType][result_dataSubType] = data;
         }
         return true;
@@ -83,23 +80,28 @@
     }
 
     $('body').on('paste', function(event) {
-      let result = { data: { }, dataType: '', dataSubType: '', dataValue: '' };
+      let result = {
+        data: {},
+        dataType: '',
+        dataSubType: '',
+        dataValue: ''
+      };
       let items = [];
       let complete = true;
 
       event = event.originalEvent;
 
       if (event.clipboardData) {
-        for(let i = 0, length = event.clipboardData.types.length; i < length; i++) {
+        for (let i = 0, length = event.clipboardData.types.length; i < length; i++) {
           const dataType = event.clipboardData.types[i];
           const parts = /^(.+?)\/(.+?)$/.exec(dataType);
-          let result_dataType    = 'other';
+          let result_dataType = 'other';
           let result_dataSubType = dataType;
           if (parts) {
             result_dataType = parts[1];
             result_dataSubType = parts[2];
           }
-          result.data[result_dataType] = result.data[result_dataType] || { };
+          result.data[result_dataType] = result.data[result_dataType] || {};
           result.data[result_dataType][result_dataSubType] = event.clipboardData.getData(dataType);
         }
 
@@ -109,14 +111,14 @@
           } else
           if (!loadData(result, event.clipboardData, 'text/plain')) {
             if (event.clipboardData.items && (event.clipboardData.items.length > 0)) {
-              for(let i = 0, length = event.clipboardData.items.length; i < length; i++) {
+              for (let i = 0, length = event.clipboardData.items.length; i < length; i++) {
                 if (event.clipboardData.items[i].type.match('image.*')) {
                   items.push(event.clipboardData.items[i].getAsFile());
                 }
               }
             }
             if (event.clipboardData.files && (event.clipboardData.files.length > 0)) {
-              for(let i = 0, length = event.clipboardData.files.length; i < length; i++) {
+              for (let i = 0, length = event.clipboardData.files.length; i < length; i++) {
                 if (event.clipboardData.files[i].type.match('image.*')) {
                   items.push(event.clipboardData.files[i]);
                 }
@@ -134,7 +136,5 @@
         }
       }
     });
-
   });
-
 })(jQuery, window);

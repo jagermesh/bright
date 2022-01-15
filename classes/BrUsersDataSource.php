@@ -19,7 +19,7 @@ class BrUsersDataSource extends BrDataSource
       $loginField = br()->auth()->getAttr(BrDBUsersAuthProvider::USERS_TABLE_LOGIN_FIELD);
     }
 
-    parent::__construct($usersTable, [ BrConst::DATASOURCE_OPTION_DEFAULT_ORDER => $loginField ]);
+    parent::__construct($usersTable, [BrConst::DATASOURCE_OPTION_DEFAULT_ORDER => $loginField]);
 
     $this->on('signup', function ($dataSource, $params) {
       $passwordField = br()->auth()->getAttr(BrDBUsersAuthProvider::USERS_TABLE_PASSWORD_FIELD);
@@ -76,7 +76,7 @@ class BrUsersDataSource extends BrDataSource
             $params[$passwordField] = md5($params[$passwordField]);
           }
           $filter = [
-            $loginField    => $params[$loginField],
+            $loginField => $params[$loginField],
             $passwordField => $params[$passwordField]
           ];
           $order = [];
@@ -129,11 +129,11 @@ class BrUsersDataSource extends BrDataSource
         $emailField = br()->auth()->getAttr(BrDBUsersAuthProvider::USERS_TABLE_EMAIL_FIELD);
 
         if ($login = br($params, $loginField)) {
-          if ($user = $dataSource->selectOne([ $loginField => $login ])) {
+          if ($user = $dataSource->selectOne([$loginField => $login])) {
             if ($email = br($user, $emailField)) {
               if ($mailTemplate = br()->auth()->getAttr(BrDBUsersAuthProvider::PASSWORD_REMINDER_VERIFICATION_MAIL_TEMPLATE)) {
                 $user[$passwordResetField] = br()->guid();
-                $user['passwordResetUrl']  = br()->request()->host() . br()->request()->baseUrl() . 'api/users/resetPassword/' . $user[$passwordResetField];
+                $user['passwordResetUrl'] = br()->request()->host() . br()->request()->baseUrl() . 'api/users/resetPassword/' . $user[$passwordResetField];
 
                 if ($message = br()->renderer()->fetch($mailTemplate, $user)) {
                   if (br()->sendMail($email, br()->auth()->getAttr(BrDBUsersAuthProvider::PASSWORD_REMINDER_VERIFICATION_MAIL_SUBJECT), $message, [
@@ -244,7 +244,7 @@ class BrUsersDataSource extends BrDataSource
       // we are here so let's work
       if ($login = trim(br()->html2text(br($row, $loginField)))) {
         $row[$loginField] = $login;
-        if ($dataSource->selectOne([ $loginField => $login ])) {
+        if ($dataSource->selectOne([$loginField => $login])) {
           throw new BrAppException(self::ERROR_SUCH_USER_ALREADY_EXISTS);
         } else {
           if ($password) {
@@ -277,7 +277,7 @@ class BrUsersDataSource extends BrDataSource
       if (array_key_exists($loginField, $row)) {
         if ($login = trim(br()->html2text($row[$loginField]))) {
           $row[$loginField] = $login;
-          if ($dataSource->selectOne([ $loginField => $login, br()->db()->rowidField() => [ BrConst::FILTER_RULE_NOT_EQ => br()->db()->rowid($row) ] ])) {
+          if ($dataSource->selectOne([$loginField => $login, br()->db()->rowidField() => [BrConst::FILTER_RULE_NOT_EQ => br()->db()->rowid($row)]])) {
             throw new BrAppException(self::ERROR_SUCH_USER_ALREADY_EXISTS);
           }
         } else {

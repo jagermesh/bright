@@ -77,9 +77,9 @@ class BrMemCacheCacheProvider extends BrGenericCacheProvider
     $result = $this->memCache->get($name);
 
     if ($result === false) {
-      $result = [ 'success' => false ];
+      $result = ['success' => false];
     } else {
-      $result = [ 'success' => true, 'value' => unserialize($result) ];
+      $result = ['success' => true, 'value' => unserialize($result)];
     }
 
     return $result;

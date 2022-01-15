@@ -9,12 +9,10 @@
 
 /* global Int32Array */
 
-;(function (window) {
-
-  window.br = window.br || Object.create({});
+(function(window) {
+  window.br = window.br || {};
 
   function BrProfiler() {
-
     function stopwatch() {
       this.start_time = 0;
       this.stop_time = 0;
@@ -51,19 +49,19 @@
       this.arr_size = size;
 
       this.push_back = function(elem) {
-        if (this.num_el<this.arr_size) {
+        if (this.num_el < this.arr_size) {
           this.end++;
           this.arr[this.end] = elem;
           this.num_el++;
         } else {
-          this.end = (this.end+1)%this.arr_size;
-          this.begin = (this.begin+1)%this.arr_size;
+          this.end = (this.end + 1) % this.arr_size;
+          this.begin = (this.begin + 1) % this.arr_size;
           this.arr[this.end] = elem;
         }
       };
 
       this.get = function(i) {
-        return this.arr[(this.begin+i)%this.arr_size];
+        return this.arr[(this.begin + i) % this.arr_size];
       };
 
       this.size = function() {
@@ -88,8 +86,8 @@
       ++count_frames;
       let n = this.timers.length | 0;
       for (let i = 0; i < n; ++i) {
-          let sw = this.timers[i][1];
-          sw.reset();
+        let sw = this.timers[i][1];
+        sw.reset();
       }
 
       if (count_frames >= 1) {
@@ -134,7 +132,7 @@
       let n = this.timers.length | 0;
       let str = "<strong>FPS: " + this.fps.toFixed(2) + "</strong>";
       let str2 = "FPS: " + this.fps.toFixed(2);
-      for(let i = 0; i < n; ++i) {
+      for (let i = 0; i < n; ++i) {
         let pair = this.timers[i];
         str += "<br/>" + pair[0] + ": " + pair[1].get_runtime() + "ms";
         str2 += ", " + pair[0] + ": " + pair[1].get_runtime() + "ms";
@@ -159,5 +157,4 @@
     }
     return profiler;
   };
-
 })(window);

@@ -64,16 +64,13 @@ class BrSlackLogAdapter extends BrGenericLogAdapter
               $subject = 'Debug message: ' . $excerpt;
             }
 
-            $info = $this->getLogInfo($messageOrObject, $params, [ 'snapshot' ]);
+            $info = $this->getLogInfo($messageOrObject, $params, ['snapshot']);
             $message = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, true);
             $payload = [
-              'text' => '*' . $subject . '*' . "\n" .
-               json_encode($info, JSON_PRETTY_PRINT),
-              'attachments' => [
-                [
-                  'text' => $message
-                ]
-              ]
+              'text' => '*' . $subject . '*' . "\n" . json_encode($info, JSON_PRETTY_PRINT),
+              'attachments' => [[
+                'text' => $message
+              ]]
             ];
             $requestParams = [
               'connect_timeout' => 5,

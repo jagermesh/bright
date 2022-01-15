@@ -7,12 +7,10 @@
  *
  */
 
-;(function($, window) {
-
-  window.br = window.br || Object.create({});
+(function($, window) {
+  window.br = window.br || {};
 
   function BrDataEditor(selector, dataSource, options) {
-
     const _this = this;
 
     let editorRowid = null;
@@ -39,10 +37,18 @@
     _this.dataSource = dataSource;
 
     _this.events = br.eventQueue(_this);
-    _this.before = function(event, callback) { _this.events.before(event, callback); };
-    _this.on     = function(event, callback) { _this.events.on(event, callback); };
-    _this.pause  = function(event, callback) { _this.events.pause(event, callback); };
-    _this.after  = function(event, callback) { _this.events.after(event, callback); };
+    _this.before = function(event, callback) {
+      _this.events.before(event, callback);
+    };
+    _this.on = function(event, callback) {
+      _this.events.on(event, callback);
+    };
+    _this.pause = function(event, callback) {
+      _this.events.pause(event, callback);
+    };
+    _this.after = function(event, callback) {
+      _this.events.after(event, callback);
+    };
 
     _this.getContainer = function() {
       return $(selector);
@@ -96,7 +102,7 @@
         title = _this.options.title;
       } else
       if (editorRowid) {
-        switch(workMode) {
+        switch (workMode) {
           case 'copy':
             title = `Copy ${_this.options.noun}`;
             break;
@@ -126,16 +132,20 @@
     function editorShown() {
       let focusedInput = $('input.focus[type!=hidden]:visible,select.focus:visible,textarea.focus:visible', _this.container);
       if (focusedInput.length > 0) {
-        try { focusedInput[0].focus(); } catch (e) { }
+        try {
+          focusedInput[0].focus();
+        } catch (e) {}
       } else {
         focusedInput = $('input[type!=hidden]:visible,select:visible,textarea:visible', _this.container);
         if (focusedInput.length > 0) {
-          try { focusedInput[0].focus(); } catch (e) { }
+          try {
+            focusedInput[0].focus();
+          } catch (e) {}
         }
       }
       if ($.fn.bootstrapDatepicker) {
         try {
-          $('input.bootstrap-datepicker', _this.container).each(function(){
+          $('input.bootstrap-datepicker', _this.container).each(function() {
             $(this).bootstrapDatepicker('update');
           });
         } catch (error) {
@@ -194,10 +204,11 @@
         if (!btn.hasClass('disabled') && !saving) {
           let andClose = btn.hasClass('action-close') || _this.container.hasClass('modal');
           btn.addClass('disabled');
-          internalSave( andClose
-                      , function() { btn.removeClass('disabled'); }
-                      , function() { btn.removeClass('disabled'); }
-                      );
+          internalSave(andClose, function() {
+            btn.removeClass('disabled');
+          }, function() {
+            btn.removeClass('disabled');
+          });
         }
       });
 
@@ -233,7 +244,7 @@
 
     _this.fillControls = function(data) {
       if (data) {
-        for(let name in data) {
+        for (let name in data) {
           _this.inputsContainer.find(`div.data-field[data-toggle="buttons-radio"][name="${name}"],input.data-field[name="${name}"],select.data-field[name="${name}"],textarea.data-field[name="${name}"]`).each(function() {
             let input = $(this);
             if (input.attr('data-toggle') == 'buttons-radio') {
@@ -254,7 +265,9 @@
                     callback: function(aa) {
                       if (ckeditorInstance0.getData() != data0) {
                         // not sure why but setData is not wroking sometimes, so need to run again :(
-                        ckeditorInstance0.setData(data0, { noSnapshot: true });
+                        ckeditorInstance0.setData(data0, {
+                          noSnapshot: true
+                        });
                       }
                     }
                   });
@@ -323,8 +336,12 @@
       }
 
       if (editorRowid) {
-        let dataSourceRequest = { rowid: editorRowid };
-        let dataSourceOptions = { disableEvents: true };
+        let dataSourceRequest = {
+          rowid: editorRowid
+        };
+        let dataSourceOptions = {
+          disableEvents: true
+        };
         _this.events.triggerBefore('editor.loadData', dataSourceRequest, dataSourceOptions);
         _this.dataSource.selectOne(dataSourceRequest, function(result, response) {
           if (result) {
@@ -401,7 +418,7 @@
         successCallback = andClose;
         andClose = false;
         // if function invoked with callabacks I'll consider that it msut save silently
-        silent  = true;
+        silent = true;
       }
       if (workMode == 'view') {
         if (br.isFunction(successCallback)) {
@@ -442,7 +459,9 @@
                     editorRowid = null;
                     editorRowData = null;
                   } else {
-                    let callResponse = { refresh: true };
+                    let callResponse = {
+                      refresh: true
+                    };
                     _this.events.trigger('editor.hide', true, response, callResponse);
                     editorHidden(true, response);
                     br.backToCaller(_this.options.returnUrl, callResponse.refresh);
@@ -486,7 +505,9 @@
                     editorRowid = null;
                     editorRowData = null;
                   } else {
-                    let callResponse = { refresh: true };
+                    let callResponse = {
+                      refresh: true
+                    };
                     _this.events.trigger('editor.hide', true, response, callResponse);
                     editorHidden(true, response);
                     br.backToCaller(_this.options.returnUrl, callResponse.refresh);
@@ -560,7 +581,16 @@
               val = input.val();
             }
             if (!skip) {
-              if (input.hasClass('required') && br.isEmpty(val) && (!input.hasClass('required-edit-only') || _this.isEditMode()) && (!input.hasClass('required-insert-only') || _this.isInsertMode())) {
+              if (
+                input.hasClass('required') &&
+                br.isEmpty(val) &&
+                (!input.hasClass('required-edit-only') ||
+                  _this.isEditMode()
+                ) &&
+                (!input.hasClass('required-insert-only') ||
+                  _this.isInsertMode()
+                )
+              ) {
                 let title = input.attr('title');
                 if (br.isEmpty(title)) {
                   title = input.prev('label').text();
@@ -580,8 +610,10 @@
         });
 
         if (errors.length > 0) {
-          let tmpl = (errors.length == 1) ? '{{#errors}}{{.}}{{/errors}}': br.trn('Please check the following:') + '<br /><ul>{{#errors}}<li>{{.}}</li>{{/errors}}</ul>';
-          let error = br.fetch(tmpl, { errors: errors });
+          let tmpl = (errors.length == 1) ? '{{#errors}}{{.}}{{/errors}}' : br.trn('Please check the following:') + '<br /><ul>{{#errors}}<li>{{.}}</li>{{/errors}}</ul>';
+          let error = br.fetch(tmpl, {
+            errors: errors
+          });
           _this.showError(error);
           if (errorCallback) {
             errorCallback.call(_this, data, error);
@@ -618,11 +650,9 @@
     }
 
     return _this.init();
-
   }
 
-  window.br.dataEditor = function (selector, dataSource, options) {
+  window.br.dataEditor = function(selector, dataSource, options) {
     return new BrDataEditor(selector, dataSource, options);
   };
-
 })(jQuery, window);

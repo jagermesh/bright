@@ -105,7 +105,7 @@ class BrPlaceholder extends BrObject
     if ($value === null) {
       return 'NULL';
     } else {
-      return  "'" . addslashes($value) . "'";
+      return "'" . addslashes($value) . "'";
     }
   }
 

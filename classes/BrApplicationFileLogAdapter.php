@@ -23,7 +23,7 @@ class BrApplicationFileLogAdapter extends BrGenericFileLogAdapter
 
   public function write($messageOrObject, $params)
   {
-    $contentType = [ 'message' ];
+    $contentType = ['message'];
     if ($this->isSnapshotEventType($params)) {
       $contentType[] = BrConst::LOG_EVENT_SNAPSHOT;
     }

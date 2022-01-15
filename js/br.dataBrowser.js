@@ -7,12 +7,10 @@
  *
  */
 
-;(function($, window) {
-
-  window.br = window.br || Object.create({});
+(function($, window) {
+  window.br = window.br || {};
 
   function BrDataBrowser(entity, settings) {
-
     const _this = this;
 
     let pagerSetUp = false;
@@ -23,7 +21,9 @@
     _this.options.autoLoad = _this.options.autoLoad || false;
     _this.options.defaults = _this.options.defaults || {};
     _this.options.entity = entity;
-    _this.options.features = _this.options.features || { editor: true };
+    _this.options.features = _this.options.features || {
+      editor: true
+    };
     _this.options.noun = _this.options.noun || '';
     _this.options.selectors = _this.options.selectors || {};
     _this.options.selectors.container = _this.options.selectors.container || '';
@@ -52,7 +52,7 @@
       if (_this.options.selectors.container !== '') {
         if (_this.options.selectors.scrollContainer !== '') {
           if (_this.options.selectors.scrollContainer.indexOf('#') === 0) {
-             return $(_this.options.selectors.scrollContainer);
+            return $(_this.options.selectors.scrollContainer);
           } else {
             return $(_this.options.selectors.container + ' ' + _this.options.selectors.scrollContainer);
           }
@@ -111,20 +111,24 @@
       headerContainer = _this.options.selectors.container;
     }
 
-    _this.dataGrid = br.dataGrid( _this.options.selectors.dataTable
-                                , _this.options.templates.row
-                                , _this.dataSource
-                                , { templates: { noData: _this.options.templates.noData, groupRow: _this.options.templates.groupRow }
-                                  , selectors: { header: headerContainer, remove: '.action-delete', refreshRow: _this.options.selectors.refreshRow }
-                                  , appendInInsert: _this.options.appendInInsert
-                                  , defaultOrderAndGroup: _this.options.defaultOrderAndGroup
-                                  , fixedHeader: _this.options.fixedHeader
-                                  , autoHeight: _this.options.autoHeight
-                                  , autoWidth: _this.options.autoWidth
-                                  , storageTag: _this.options.storageTag
-                                  , storeDataRow: _this.options.storeDataRow
-                                  }
-                                );
+    _this.dataGrid = br.dataGrid(_this.options.selectors.dataTable, _this.options.templates.row, _this.dataSource, {
+      templates: {
+        noData: _this.options.templates.noData,
+        groupRow: _this.options.templates.groupRow
+      },
+      selectors: {
+        header: headerContainer,
+        remove: '.action-delete',
+        refreshRow: _this.options.selectors.refreshRow
+      },
+      appendInInsert: _this.options.appendInInsert,
+      defaultOrderAndGroup: _this.options.defaultOrderAndGroup,
+      fixedHeader: _this.options.fixedHeader,
+      autoHeight: _this.options.autoHeight,
+      autoWidth: _this.options.autoWidth,
+      storageTag: _this.options.storageTag,
+      storeDataRow: _this.options.storeDataRow
+    });
 
     _this.setStored = function(name, value) {
       _this.dataGrid.setStored(name, value);
@@ -147,9 +151,15 @@
     _this.recordsAmount = 0;
 
     _this.events = br.eventQueue(_this);
-    _this.before = function(event, callback) { _this.events.before(event, callback); };
-    _this.on     = function(event, callback) { _this.events.on(event, callback); };
-    _this.after  = function(event, callback) { _this.events.after(event, callback); };
+    _this.before = function(event, callback) {
+      _this.events.before(event, callback);
+    };
+    _this.on = function(event, callback) {
+      _this.events.on(event, callback);
+    };
+    _this.after = function(event, callback) {
+      _this.events.after(event, callback);
+    };
 
     _this.before = function(operation, callback) {
       _this.dataSource.before(operation, callback);
@@ -226,13 +236,10 @@
     _this.deleteSelection = function() {
       selectionQueue = _this.selection.get().slice(0);
       if (selectionQueue.length > 0) {
-        br.confirm( 'Delete confirmation'
-                  , 'Are you sure you want do delete ' + selectionQueue.length + ' record(s)?'
-                  , function() {
-                      br.startProgress(selectionQueue.length, 'Deleting...');
-                      deleteQueued();
-                    }
-                  );
+        br.confirm('Delete confirmation', `Are you sure you want do delete ${selectionQueue.length} record(s)?`, function() {
+          br.startProgress(selectionQueue.length, 'Deleting...');
+          deleteQueued();
+        });
       } else {
         br.growlError('Please select at least one record');
       }
@@ -241,7 +248,7 @@
     function updateQueued(func) {
       if (selectionQueue.length > 0) {
         const rowid = selectionQueue.shift();
-        let data = Object.create({});
+        let data = {};
         func(data);
         _this.dataSource.update(rowid, data, function(result, response) {
           if (result) {
@@ -285,7 +292,7 @@
     }
 
     _this.processSelection = function(processRowCallback, processCompleteCallback, params) {
-      params = params || Object.create({});
+      params = params || {};
       params.showProgress = params.showProgress || false;
       selectionQueue = _this.selection.get();
       if (selectionQueue.length > 0) {
@@ -357,7 +364,10 @@
       inputControls.each(function() {
         if ($(this).parent().hasClass('input-append')) {
           $(this).parent().addClass('data-filter');
-          $(this).parent().css({ display: 'inline-block', position: 'relative' });
+          $(this).parent().css({
+            display: 'inline-block',
+            position: 'relative'
+          });
         }
       });
 
@@ -394,7 +404,9 @@
       if (_this.options.features.editor) {
         let container = $(_this.options.selectors.editForm);
         if (container.length > 0) {
-          let editorOptions = _this.options.editor || { noun: _this.options.noun };
+          let editorOptions = _this.options.editor || {
+            noun: _this.options.noun
+          };
           _this.editor = _this.dataEditor = br.dataEditor(_this.options.selectors.editForm, _this.dataSource, editorOptions);
           _this.editor.events.connectTo(_this.events);
 
@@ -403,7 +415,9 @@
           $(document).on('click', selActionCRUD, function() {
             const rowid = $(this).closest('[data-rowid]').attr('data-rowid');
             const mode = ($(this).hasClass('action-copy') ? 'copy' : ($(this).hasClass('action-view') ? 'view' : (rowid ? 'edit' : 'insert')));
-            _this.editor.show(rowid, { mode: mode });
+            _this.editor.show(rowid, {
+              mode: mode
+            });
           });
         }
       }
@@ -456,12 +470,11 @@
 
       $(findNode('input.data-filter[name=keyword]')).val(_this.getFilter('keyword'));
 
-      $(findNode('.action-reset-filters')).on('click', function () {
+      $(findNode('.action-reset-filters')).on('click', function() {
         _this.resetFilters();
       });
 
       function checkAutoLoad() {
-
         const docsHeight = $(_this.options.selectors.dataTable).height();
         const docsContainerHeight = _this.getScrollContainer().height();
         const scrollTop = _this.getScrollContainer().scrollTop();
@@ -469,7 +482,6 @@
         if (scrollTop + docsContainerHeight > docsHeight) {
           _this.dataGrid.loadMore();
         }
-
       }
 
       if (_this.options.autoLoad) {
@@ -555,13 +567,13 @@
         let f2 = false;
         let r = 3;
         let el = false;
-        for(let i = 1; i <= totalPages; i++) {
+        for (let i = 1; i <= totalPages; i++) {
           if ((i <= r) || ((i > currentPage - r) && (i < currentPage + r)) || (i > (totalPages - r))) {
             if (i == currentPage) {
-              s = s + '<strong class="pager-nav-element">' + i+ '</strong>';
+              s = s + '<strong class="pager-nav-element">' + i + '</strong>';
             } else {
               el = true;
-              s = s + '<a href="javascript:;" class="pager-action-navigate pager-nav-element" data-page="'+ i + '">' + i+ '</a>';
+              s = s + '<a href="javascript:;" class="pager-action-navigate pager-nav-element" data-page="' + i + '">' + i + '</a>';
             }
           } else
           if (!f1 && i < currentPage) {
@@ -584,7 +596,7 @@
         $pc.html('');
         s = '';
         const sizes = _this.options.pageSizes;
-        for(let i = 0, length = sizes.length; i < length; i++) {
+        for (let i = 0, length = sizes.length; i < length; i++) {
           let size = sizes[i];
           let dsize = size;
           if (size >= _this.recordsAmount) {
@@ -639,7 +651,6 @@
           _this.dataGrid.table.update();
         }
       }
-
     }
 
     _this.reset = function() {
@@ -651,7 +662,7 @@
       if (!selection) {
         selection = _this.selection.get();
       }
-      for(let i = 0, length = selection.length; i < length; i++) {
+      for (let i = 0, length = selection.length; i < length; i++) {
         _this.selectRow(selection[i], true);
       }
       _this.events.trigger('selectionChanged', _this.selection.get().length);
@@ -673,7 +684,7 @@
 
     _this.setSelection = function(selection, disableEvents) {
       if (selection) {
-        for(let i = 0, length = selection.length; i < length; i++) {
+        for (let i = 0, length = selection.length; i < length; i++) {
           _this.selectRow(selection[i], true);
           _this.selection.append(selection[i]);
         }
@@ -797,9 +808,17 @@
       return new Promise(function(resolve, reject) {
         internalRefresh(true, filter, function(result, response, request, options) {
           if (result) {
-            resolve({ request: request, options: options, response: response });
+            resolve({
+              request: request,
+              options: options,
+              response: response
+            });
           } else {
-            reject({ request: request, options: options, errorMessage: response });
+            reject({
+              request: request,
+              options: options,
+              errorMessage: response
+            });
           }
         });
       }).then(function(data) {
@@ -833,9 +852,17 @@
       return new Promise(function(resolve, reject) {
         internalRefresh(false, filter, function(result, response, request, options) {
           if (result) {
-            resolve({ request: request, options: options, response: response });
+            resolve({
+              request: request,
+              options: options,
+              response: response
+            });
           } else {
-            reject({ request: request, options: options, errorMessage: response });
+            reject({
+              request: request,
+              options: options,
+              errorMessage: response
+            });
           }
         });
       }).then(function(data) {
@@ -858,8 +885,7 @@
     return _this.init();
   }
 
-  window.br.dataBrowser = function (entity, options) {
+  window.br.dataBrowser = function(entity, options) {
     return new BrDataBrowser(entity, options);
   };
-
 })(jQuery, window);

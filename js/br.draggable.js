@@ -7,9 +7,8 @@
  *
  */
 
-;(function($, window) {
-
-  window.br = window.br || Object.create({});
+(function($, window) {
+  window.br = window.br || {};
 
   function BrDraggable(ctrl, options) {
     const _this = this;
@@ -19,7 +18,7 @@
     let pos_y, pos_x, ofs_x, ofs_y;
 
     _this.options = Object.assign({
-      exclude: [ 'INPUT', 'TEXTAREA', 'SELECT', 'A', 'BUTTON' ]
+      exclude: ['INPUT', 'TEXTAREA', 'SELECT', 'A', 'BUTTON']
     }, options);
 
     function setPosition(element, left, top) {
@@ -37,17 +36,17 @@
         let parent = target.parentNode;
 
         if (target && (_this.options.exclude.indexOf(target.tagName.toUpperCase()) == -1)) {
-          if (!parent || (_this.options.exclude.indexOf(parent.tagName.toUpperCase()) == -1)) {  // img in a
+          if (!parent || (_this.options.exclude.indexOf(parent.tagName.toUpperCase()) == -1)) { // img in a
             dragObject = ctrl;
 
             let pageX = e.pageX || e.touches[0].pageX;
             let pageY = e.pageY || e.touches[0].pageY;
 
             ofs_x = dragObject.getBoundingClientRect().left - dragObject.offsetLeft;
-            ofs_y = dragObject.getBoundingClientRect().top  - dragObject.offsetTop;
+            ofs_y = dragObject.getBoundingClientRect().top - dragObject.offsetTop;
 
             pos_x = pageX - (dragObject.getBoundingClientRect().left + document.body.scrollLeft);
-            pos_y = pageY - (dragObject.getBoundingClientRect().top  + document.body.scrollTop);
+            pos_y = pageY - (dragObject.getBoundingClientRect().top + document.body.scrollTop);
 
             e.preventDefault();
           }
@@ -60,7 +59,7 @@
         let pageX = e.pageX || e.touches[0].pageX;
         let pageY = e.pageY || e.touches[0].pageY;
         let left = pageX - pos_x - ofs_x - document.body.scrollLeft;
-        let top  = pageY - pos_y - ofs_y - document.body.scrollTop;
+        let top = pageY - pos_y - ofs_y - document.body.scrollTop;
         if (top < 0) {
           top = 0;
         }
@@ -128,7 +127,7 @@
     return _this;
   }
 
-  window.br.draggable = function (selector, options) {
+  window.br.draggable = function(selector, options) {
     let result = [];
     $(selector).each(function() {
       result.push(new BrDraggable(this, options));
@@ -138,5 +137,4 @@
     }
     return result;
   };
-
 })(jQuery, window);

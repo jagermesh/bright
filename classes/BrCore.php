@@ -10,10 +10,10 @@
 
 namespace Bright;
 
-use Symfony\Component\Mime\Email;
-use Symfony\Component\Mime\Address;
-use Symfony\Component\Mailer\Transport;
 use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mailer\Transport;
+use Symfony\Component\Mime\Address;
+use Symfony\Component\Mime\Email;
 
 class BrCore extends BrObject
 {
@@ -21,22 +21,22 @@ class BrCore extends BrObject
   const MINS = 'mins';
   const SECS = 'secs';
 
-  private $processId      = null;
-  private $basePath       = null;
-  private $basePathEx     = null;
+  private $processId = null;
+  private $basePath = null;
+  private $basePathEx = null;
   private $scriptBasePath = null;
-  private $brightPath     = null;
-  private $scriptName     = null;
-  private $threadMode     = false;
-  private $tempFiles      = array();
+  private $brightPath = null;
+  private $scriptName = null;
+  private $threadMode = false;
+  private $tempFiles = [];
 
   // reconfigured paths
 
-  private $templatesPath   = null;
-  private $tempPath        = null;
-  private $appPath         = null;
-  private $apiPath         = null;
-  private $logsPath        = null;
+  private $templatesPath = null;
+  private $tempPath = null;
+  private $appPath = null;
+  private $apiPath = null;
+  private $logsPath = null;
   private $dataSourcesPath = null;
 
   private $mimeTypes = [
@@ -1244,7 +1244,7 @@ class BrCore extends BrObject
     E_DEPRECATED => "Deprecated",
   ];
 
-  private $trafficUnits = [ 'b', 'Kb', 'Mb', 'Gb', 'Tb', 'Pb' ];
+  private $trafficUnits = ['b', 'Kb', 'Mb', 'Gb', 'Tb', 'Pb'];
 
   public function __construct()
   {
@@ -1488,7 +1488,7 @@ class BrCore extends BrObject
 
   public function __call($name, $arguments)
   {
-    return call_user_func_array([ 'Bright\Br' . ucwords($name), 'getInstance' ], $arguments);
+    return call_user_func_array(['Bright\Br' . ucwords($name), 'getInstance'], $arguments);
   }
 
   /**
@@ -1593,7 +1593,7 @@ class BrCore extends BrObject
     return call_user_func_array(array('Bright\BrHTML', 'getInstance'), func_get_args());
   }
 
-  public function isConsoleMode()
+  public function isConsoleMode(): bool
   {
     return !isset($_SERVER) || (!array_key_exists('REQUEST_METHOD', $_SERVER));
   }
@@ -1619,7 +1619,7 @@ class BrCore extends BrObject
 
   public function getMicrotime()
   {
-    return hrtime(true)/1e+9;
+    return hrtime(true) / 1e+9;
   }
 
   public function placeholder()
@@ -1642,15 +1642,15 @@ class BrCore extends BrObject
   public function assert($value, $error = null)
   {
     if (!$value) {
-      throw new BrAppException($error ? $error : 'Assertion error');
+      throw new BrAssertException($error ? $error : 'Assertion error');
     }
   }
 
   private function placeholderCompile($tmpl)
   {
-    $compiled  = array();
-    $p         = 0;
-    $i         = 0;
+    $compiled = array();
+    $p = 0;
+    $i = 0;
     $has_named = false;
 
     while (false !== ($start = $p = strpos($tmpl, "?", $p))) {
@@ -1660,7 +1660,7 @@ class BrCore extends BrObject
         case '@':
         case '#':
           $type = $c;
-          if (substr($tmpl, $p+1, 1) == '&') {
+          if (substr($tmpl, $p + 1, 1) == '&') {
             $type = $type . '&';
             ++$p;
           }
@@ -1684,10 +1684,10 @@ class BrCore extends BrObject
         }
       }
 
-      $compiled[] = [ $key, $type, $start, $p - $start ];
+      $compiled[] = [$key, $type, $start, $p - $start];
     }
 
-    return [ $compiled, $tmpl, $has_named ];
+    return [$compiled, $tmpl, $has_named];
   }
 
   public function placeholderEx($tmpl, $args, &$errormsg)
@@ -1704,7 +1704,7 @@ class BrCore extends BrObject
       $args = @$args[0];
     }
 
-    $p   = 0;
+    $p = 0;
     $out = '';
     $error = false;
 
@@ -1740,7 +1740,7 @@ class BrCore extends BrObject
           if (strlen($a) === 0) {
             $repl = "null";
           } else {
-            $repl = "'".addslashes($a)."'";
+            $repl = "'" . addslashes($a) . "'";
           }
           break;
         } elseif ($type === '') {
@@ -1764,10 +1764,10 @@ class BrCore extends BrObject
         if (($type === '@') || ($type === '@&')) {
           foreach ($a as $v) {
             if ($type === '@&') {
-              $repl .= ($repl === ''? "" : ",") . ("'" . addslashes($v) . "'");
+              $repl .= ($repl === '' ? "" : ",") . ("'" . addslashes($v) . "'");
             } else {
               $tmpVal = str_replace(',', '.', $v);
-              $repl .= ($repl === ''? "" : ",") . (br($tmpVal)->isNumeric() ? $tmpVal : "'" . addslashes($v) . "'");
+              $repl .= ($repl === '' ? "" : ",") . (br($tmpVal)->isNumeric() ? $tmpVal : "'" . addslashes($v) . "'");
             }
           }
         } elseif ($type === '%') {
@@ -1778,16 +1778,16 @@ class BrCore extends BrObject
             } else {
               $k = preg_replace('/[^a-zA-Z0-9_]/', '_', $k);
             }
-            $repl .= ($repl===''? "" : ", ").$k."='".@addslashes($v)."'";
+            $repl .= ($repl === '' ? "" : ", ") . $k . "='" . @addslashes($v) . "'";
           }
           if (count($lerror)) {
             $repl = '';
             foreach ($a as $k => $v) {
               if (isset($lerror[$k])) {
-                $repl .= ($repl===''? "" : ", ").$lerror[$k];
+                $repl .= ($repl === '' ? "" : ", ") . $lerror[$k];
               } else {
                 $k = preg_replace('/[^a-zA-Z0-9_-]/', '_', $k);
-                $repl .= ($repl===''? "" : ", ").$k."=?";
+                $repl .= ($repl === '' ? "" : ", ") . $k . "=?";
               }
             }
             $error = $errmsg = $repl;
@@ -1806,7 +1806,7 @@ class BrCore extends BrObject
 
     if ($error) {
       $out = '';
-      $p   = 0;
+      $p = 0;
       foreach ($compiled as $num => $e) {
         list ($key, $type, $start, $length) = $e;
         $out .= substr($tmpl, $p, $start - $p);
@@ -1906,17 +1906,17 @@ class BrCore extends BrObject
     $rand2 = random_int(100, 999);
     $key1 = ($num + $rand1) * $rand2;
     $key2 = ($num + $rand2) * $rand1;
-    $result = $rand1.$rand2.$key1.$key2;
+    $result = $rand1 . $rand2 . $key1 . $key2;
     $rand1_len = chr(ord('A') + strlen($rand1));
     $rand2_len = chr(ord('D') + strlen($rand2));
-    $key1_len  = chr(ord('G') + strlen($key1));
-    $rand1_pos = random_int(0, floor(strlen($result)/3));
+    $key1_len = chr(ord('G') + strlen($key1));
+    $rand1_pos = random_int(0, floor(strlen($result) / 3));
     $result1 = substr_replace($result, $rand1_len, $rand1_pos, 0);
-    $rand2_pos = random_int($rand1_pos + 1, floor(2*strlen($result1)/3));
+    $rand2_pos = random_int($rand1_pos + 1, floor(2 * strlen($result1) / 3));
     $result2 = substr_replace($result1, $rand2_len, $rand2_pos, 0);
-    $key1_pos  = random_int($rand2_pos + 1, strlen($result2)-1);
+    $key1_pos = random_int($rand2_pos + 1, strlen($result2) - 1);
 
-    return  substr_replace($result2, $key1_len, $key1_pos, 0);
+    return substr_replace($result2, $key1_len, $key1_pos, 0);
   }
 
   public function decryptInt($num)
@@ -1924,7 +1924,7 @@ class BrCore extends BrObject
     if (preg_match('/([A-Z]).*([A-Z]).*([A-Z])/', $num, $matches)) {
       $rand1_len = ord($matches[1]) - ord('A');
       $rand2_len = ord($matches[2]) - ord('D');
-      $key1_len  = ord($matches[3]) - ord('G');
+      $key1_len = ord($matches[3]) - ord('G');
       $num = str_replace($matches[1], '', $num);
       $num = str_replace($matches[2], '', $num);
       $num = str_replace($matches[3], '', $num);
@@ -2111,13 +2111,13 @@ class BrCore extends BrObject
     $secs = $mins = $hrs = 0;
     if ($duration < 60) {
       $secs = $duration;
-    } elseif ($duration < 60*60) {
-      $mins = floor($duration/60);
-      $secs = $duration - $mins*60;
+    } elseif ($duration < 60 * 60) {
+      $mins = floor($duration / 60);
+      $secs = $duration - $mins * 60;
     } else {
-      $hrs = floor($duration/60/60);
-      $mins = floor(($duration - $hrs*60*60)/60);
-      $secs = $duration - $hrs*60*60 - $mins*60;
+      $hrs = floor($duration / 60 / 60);
+      $mins = floor(($duration - $hrs * 60 * 60) / 60);
+      $secs = $duration - $hrs * 60 * 60 - $mins * 60;
     }
     if ($hrs) {
       return
@@ -2146,14 +2146,14 @@ class BrCore extends BrObject
     if ($abs > 0) {
       $unit =
         ($abs < 1024 ? 0 :
-          ($abs < 1024*1024 ? 1 :
-            ($abs < 1024*1024*1024 ? 2 :
-              ($abs < 1024*1024*1024*1024 ? 3 :
-                ($abs < 1024*1024*1024*1024*1024 ? 4 :
+          ($abs < 1024 * 1024 ? 1 :
+            ($abs < 1024 * 1024 * 1024 ? 2 :
+              ($abs < 1024 * 1024 * 1024 * 1024 ? 3 :
+                ($abs < 1024 * 1024 * 1024 * 1024 * 1024 ? 4 :
                   floor(log($abs, 1024)))))));
       return
         ($includeSign ? ($size > 0 ? '+' : '') : '') .
-        ($size < 0 ? '-': '') . @round($abs / pow(1024, $unit), 2) .
+        ($size < 0 ? '-' : '') . @round($abs / pow(1024, $unit), 2) .
         ($compact ? '' : ' ') .
         $this->trafficUnits[$unit];
     } else {
@@ -2277,7 +2277,7 @@ class BrCore extends BrObject
       if ($p->isOptional()) {
         $s .= ' = ' . var_export($p->getDefaultValue(), true);
       }
-      $params []= $s;
+      $params [] = $s;
     }
     $str .= implode(', ', $params);
     $str .= '){' . PHP_EOL;
@@ -2293,7 +2293,7 @@ class BrCore extends BrObject
     $tempFile1 = br()->createTempFile('cmd1', '.log');
     $tempFile2 = br()->createTempFile('cmd2', '.log');
 
-    $runCmd = $cmd . ' </dev/null >' . $tempFile1. ' 2>' . $tempFile2;
+    $runCmd = $cmd . ' </dev/null >' . $tempFile1 . ' 2>' . $tempFile2;
 
     br()->log('[EXEC]' . ' ' . $runCmd);
 

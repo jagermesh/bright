@@ -64,7 +64,7 @@ class BrGenericSQLProviderTable extends BrObject
     $joinsTables = [];
     $args = [];
 
-    $filter = [ BrConst::FILTER_RULE_AND => $filter ];
+    $filter = [BrConst::FILTER_RULE_AND => $filter];
 
     if ($this->tableAlias) {
       $targetTableName = $this->tableAlias;
@@ -91,7 +91,7 @@ class BrGenericSQLProviderTable extends BrObject
       $sql .= $targetTableName . '.* ';
     }
 
-    $sql .= "\n" . self::SQL_CMD_FROM .$this->tableName;
+    $sql .= "\n" . self::SQL_CMD_FROM . $this->tableName;
     if ($this->tableAlias) {
       $sql .= ' ' . $this->tableAlias;
     }
@@ -152,7 +152,7 @@ class BrGenericSQLProviderTable extends BrObject
 
     $this->provider->runQueryEx($sql, $args);
     $newId = $this->provider->getLastId();
-    if ($newValues = $this->selectOne([ $this->provider->rowidField() => $newId ])) {
+    if ($newValues = $this->selectOne([$this->provider->rowidField() => $newId])) {
       $values = $newValues;
     }
     return $newId;
@@ -177,8 +177,8 @@ class BrGenericSQLProviderTable extends BrObject
     $values_str = '';
 
     foreach ($values as $field => $value) {
-      $fields_str .= ($fields_str?',':'') . $field;
-      $values_str .= ($values_str?',':'') . '?';
+      $fields_str .= ($fields_str ? ',' : '') . $field;
+      $values_str .= ($values_str ? ',' : '') . '?';
       if (br($dataTypes, $field) == BrGenericDBProvider::DATA_TYPE_STRING) {
         $values_str .= '&';
       }
@@ -192,7 +192,7 @@ class BrGenericSQLProviderTable extends BrObject
 
     $this->provider->runQueryEx($sql, $args);
     if ($newId = $this->provider->getLastId()) {
-      if ($newValues = $this->selectOne([ $this->provider->rowidField() => $newId ])) {
+      if ($newValues = $this->selectOne([$this->provider->rowidField() => $newId])) {
         $values = $newValues;
         return $newId;
       } else {
@@ -272,7 +272,7 @@ class BrGenericSQLProviderTable extends BrObject
     if ($filter) {
       if (is_array($filter)) {
         $joinsTables = [];
-        $filter = [ BrConst::FILTER_RULE_AND => $filter ];
+        $filter = [BrConst::FILTER_RULE_AND => $filter];
         $this->compileFilter($filter, $this->tableName, '', self::SQL_CMD_AND, $joins, $joinsTables, $where, $args);
       } else {
         $where .= self::SQL_CMD_AND . $this->provider->rowidField() . ' = ?';
@@ -425,7 +425,7 @@ class BrGenericSQLProviderTable extends BrObject
             }
           }
         } else {
-          $joins .= self::SQL_CMD_AND.$joinLeftPart.' = '.$joinField;
+          $joins .= self::SQL_CMD_AND . $joinLeftPart . ' = ' . $joinField;
         }
       }
     }
@@ -445,7 +445,7 @@ class BrGenericSQLProviderTable extends BrObject
 
   private function compileNotExists($filter, $tableName, $link, &$where)
   {
-    $where .= $link. self::SQL_CMD_NOT_EXISTS . '(';
+    $where .= $link . self::SQL_CMD_NOT_EXISTS . '(';
     if (is_array($filter)) {
       if ($existsSql = br($filter, BrConst::FILTER_RULE_SQL)) {
         $where .= str_replace('$', $tableName, $existsSql) . ')';
@@ -460,14 +460,14 @@ class BrGenericSQLProviderTable extends BrObject
     foreach ($filter as $currentFieldName => $filterValue) {
       $currentFieldName = (string)$currentFieldName;
       if (strpos($currentFieldName, '.') === false) {
-        $fname = $tableName.'.'.$currentFieldName;
+        $fname = $tableName . '.' . $currentFieldName;
       } else {
         $fname = $currentFieldName;
       }
       if (preg_match('~^[@]~', $fieldName)) {
         $fname2 = ltrim($fieldName, '@');
       } elseif (strpos($fieldName, '.') === false) {
-        $fname2 = $tableName.'.'.$fieldName;
+        $fname2 = $tableName . '.' . $fieldName;
       } else {
         $fname2 = $fieldName;
       }
@@ -601,17 +601,17 @@ class BrGenericSQLProviderTable extends BrObject
             $where .= $link . '(' . self::SQL_CMD_FAKE_FALSE;
             foreach ($filterValue as $name => $value) {
               if (strpos($name, '.') === false) {
-                $tmpFName2 = $tableName.'.'.$name;
+                $tmpFName2 = $tableName . '.' . $name;
               } else {
                 $tmpFName2 = $name;
               }
               $where .= self::SQL_CMD_OR . $tmpFName2 . self::SQL_CMD_LIKE;
-              $args[] = '%'.$value.'%';
+              $args[] = '%' . $value . '%';
             }
             $where .= ')';
           } else {
             $where .= $link . $fname2 . self::SQL_CMD_LIKE;
-            $args[] = '%'.$filterValue.'%';
+            $args[] = '%' . $filterValue . '%';
           }
           break;
         case BrConst::FILTER_RULE_FULLTEXT:
@@ -620,7 +620,7 @@ class BrGenericSQLProviderTable extends BrObject
             $tmpValue = '';
             foreach ($filterValue as $name => $value) {
               if (strpos($name, '.') === false) {
-                $tmpFName2 = $tableName.'.'.$name;
+                $tmpFName2 = $tableName . '.' . $name;
               } else {
                 $tmpFName2 = $name;
               }
@@ -637,11 +637,11 @@ class BrGenericSQLProviderTable extends BrObject
           break;
         case BrConst::FILTER_RULE_STARTS:
           $where .= $link . $fname2 . self::SQL_CMD_LIKE;
-          $args[] = $filterValue.'%';
+          $args[] = $filterValue . '%';
           break;
         case BrConst::FILTER_RULE_ENDS:
           $where .= $link . $fname2 . self::SQL_CMD_LIKE;
-          $args[] = '%'.$filterValue;
+          $args[] = '%' . $filterValue;
           break;
         case BrConst::FILTER_RULE_REGEXP:
           $where .= $link . $fname2 . self::SQL_CMD_REGEXP;
@@ -663,21 +663,21 @@ class BrGenericSQLProviderTable extends BrObject
             }
           } else {
             if (is_object($filterValue) && ($filterValue instanceof BrGenericSQLRegExp)) {
-              $where .= $link.$fname. self::SQL_CMD_REGEXP;
+              $where .= $link . $fname . self::SQL_CMD_REGEXP;
               $args[] = preg_replace('~([?*+\(\)])~', '[$1]', str_replace('\\', '\\\\', rtrim(ltrim($filterValue->getValue(), '/'), '/i')));
             } else {
               if (strlen($filterValue) > 0) {
                 if (is_numeric($currentFieldName)) {
-                  $where .= $link.$fname2 . ' = ?';
+                  $where .= $link . $fname2 . ' = ?';
                 } else {
-                  $where .= $link.$fname . ' = ?';
+                  $where .= $link . $fname . ' = ?';
                 }
                 $args[] = $filterValue;
               } else {
                 if (is_numeric($currentFieldName)) {
-                  $where .= $link.$fname2 . self::SQL_CMD_IS_NULL;
+                  $where .= $link . $fname2 . self::SQL_CMD_IS_NULL;
                 } else {
-                  $where .= $link.$fname . self::SQL_CMD_IS_NULL;
+                  $where .= $link . $fname . self::SQL_CMD_IS_NULL;
                 }
               }
             }

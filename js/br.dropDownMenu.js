@@ -7,14 +7,26 @@
  *
  */
 
-;(function($, window) {
+(function($, window) {
+  window.br = window.br || {};
 
-  window.br = window.br || Object.create({});
-
-  const invokerTemplate = br.compile('<div class="dropdown br-ajax-dropdown"><a href="javascript:;" class="br-ex-action-change-menu-menu" style="cursor:pointer;"><span class="br-ex-current-value">{{&value}}</span> <b class="caret"></b></a></div>');
-  const menuItemTemplateStr = '<li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>';
-  const menuItemTemplate = br.compile('<li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>');
-  const dropDownTemplate = '<div class="dropdown br-ajax-dropdown" style="position:absolute;z-index:99999;"><a style="display:none;" href="javascript:;" role="button" data-toggle="dropdown" class="dropdown-toggle br-ex-action-change-menu-menu" style="cursor:pointer;"><span>{{value}}</span> <b class="caret"></b></a><ul class="dropdown-menu" role="menu" style="overflow:auto;"></ul></div>';
+  const invokerTemplate = br.compile(`
+    <div class="dropdown br-ajax-dropdown">
+      <a href="javascript:;" class="br-ex-action-change-menu-menu" style="cursor:pointer;"><span class="br-ex-current-value">{{&value}}</span> <b class="caret"></b></a>
+    </div>
+  `);
+  const menuItemTemplateStr = `
+    <li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>
+  `;
+  const menuItemTemplate = br.compile(`
+    <li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>
+  `);
+  const dropDownTemplate = `
+    <div class="dropdown br-ajax-dropdown" style="position:absolute;z-index:99999;">
+      <a style="display:none;" href="javascript:;" role="button" data-toggle="dropdown" class="dropdown-toggle br-ex-action-change-menu-menu" style="cursor:pointer;"><span>{{value}}</span> <b class="caret"></b></a>
+      <ul class="dropdown-menu" role="menu" style="overflow:auto;"></ul>
+    </div>
+  `;
 
   function showDropDownMenu(invoker, items, rowid, menuElement, dataSource, fieldName, options) {
     const dropDown = $(dropDownTemplate);
@@ -22,7 +34,7 @@
     const dropDownMenu = dropDown.find('.br-ex-action-change-menu-menu');
     dropDown.on('click', '.br-ex-action-change-menu', function() {
       const value = $(this).attr('data-value');
-      let data = Object.create({});
+      let data = {};
       data[fieldName] = value;
       if (options.onClick) {
         options.onClick.call(invoker, dataSource, rowid, data, menuElement);
@@ -41,12 +53,15 @@
     });
     dropDownList.html('');
     if (options.allowClear) {
-      dropDownList.append(menuItemTemplate({ id: '', name: (options.clearLabel ? options.clearLabel : '-- сlear --') }));
+      dropDownList.append(menuItemTemplate({
+        id: '',
+        name: (options.clearLabel ? options.clearLabel : '-- сlear --')
+      }));
     }
     if (options.onBeforeRenderMenu) {
       options.onBeforeRenderMenu.call(dropDownList, menuItemTemplateStr);
     }
-    for(let i = 0, length = items.length; i < length; i++) {
+    for (let i = 0, length = items.length; i < length; i++) {
       dropDownList.append(menuItemTemplate({
         id: items[i][options.keyField],
         name: items[i][options.nameField]
@@ -71,7 +86,9 @@
   function internalhandleClick(el, invoker, choicesDataSource, dataSource, fieldName, options) {
     const rowid = el.closest('[data-rowid]').attr('data-rowid');
     const menuElement = invoker.find('span.br-ex-current-value');
-    let filter = { targetRowid: rowid };
+    let filter = {
+      targetRowid: rowid
+    };
     if (options.onSelect) {
       options.onSelect.call(choicesDataSource, filter, rowid, $(el));
     }
@@ -102,7 +119,9 @@
           value = '<span style="color:#AAA;">(click to change)</span>';
         }
       }
-      const invoker = $(invokerTemplate({ value: value }));
+      const invoker = $(invokerTemplate({
+        value: value
+      }));
       if (options.onSetupInvoker) {
         options.onSetupInvoker.call(invoker);
       }
@@ -143,8 +162,7 @@
     }
   }
 
-  window.br.dropDownMenu = function (selector, choicesDataSource, dataSource, fieldName, options) {
+  window.br.dropDownMenu = function(selector, choicesDataSource, dataSource, fieldName, options) {
     return new BrExChangeMenu(selector, choicesDataSource, dataSource, fieldName, options);
   };
-
 })(jQuery, window);

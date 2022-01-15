@@ -50,9 +50,9 @@ class BrMemoryCacheProvider extends BrGenericCacheProvider
     $name = $this->getSafeName($name);
 
     if ($this->isAttrExists($name)) {
-      $result = [ 'success' => true, 'value' => $this->getAttr($name) ];
+      $result = ['success' => true, 'value' => $this->getAttr($name)];
     } else {
-      $result = [ 'success' => false ];
+      $result = ['success' => false];
     }
 
     return $result;

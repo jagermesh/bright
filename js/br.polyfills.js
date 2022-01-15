@@ -1,18 +1,18 @@
 /* global Element */
 
 if (!Element.prototype.scrollIntoViewIfNeeded) {
-  Element.prototype.scrollIntoViewIfNeeded = function (centerIfNeeded) {
+  Element.prototype.scrollIntoViewIfNeeded = function(centerIfNeeded) {
     centerIfNeeded = arguments.length === 0 ? true : !!centerIfNeeded;
 
     var parent = this.parentNode,
-        parentComputedStyle = window.getComputedStyle(parent, null),
-        parentBorderTopWidth = parseInt(parentComputedStyle.getPropertyValue('border-top-width')),
-        parentBorderLeftWidth = parseInt(parentComputedStyle.getPropertyValue('border-left-width')),
-        overTop = this.offsetTop - parent.offsetTop < parent.scrollTop,
-        overBottom = (this.offsetTop - parent.offsetTop + this.clientHeight - parentBorderTopWidth) > (parent.scrollTop + parent.clientHeight),
-        overLeft = this.offsetLeft - parent.offsetLeft < parent.scrollLeft,
-        overRight = (this.offsetLeft - parent.offsetLeft + this.clientWidth - parentBorderLeftWidth) > (parent.scrollLeft + parent.clientWidth),
-        alignWithTop = overTop && !overBottom;
+      parentComputedStyle = window.getComputedStyle(parent, null),
+      parentBorderTopWidth = parseInt(parentComputedStyle.getPropertyValue('border-top-width')),
+      parentBorderLeftWidth = parseInt(parentComputedStyle.getPropertyValue('border-left-width')),
+      overTop = this.offsetTop - parent.offsetTop < parent.scrollTop,
+      overBottom = (this.offsetTop - parent.offsetTop + this.clientHeight - parentBorderTopWidth) > (parent.scrollTop + parent.clientHeight),
+      overLeft = this.offsetLeft - parent.offsetLeft < parent.scrollLeft,
+      overRight = (this.offsetLeft - parent.offsetLeft + this.clientWidth - parentBorderLeftWidth) > (parent.scrollLeft + parent.clientWidth),
+      alignWithTop = overTop && !overBottom;
 
     if ((overTop || overBottom) && centerIfNeeded) {
       parent.scrollTop = this.offsetTop - parent.offsetTop - parent.clientHeight / 2 - parentBorderTopWidth + this.clientHeight / 2;

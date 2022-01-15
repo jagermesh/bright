@@ -7,15 +7,14 @@
  *
  */
 
-;(function (window) {
 
-  window.br = window.br || Object.create({});
+(function(window) {
+  window.br = window.br || {};
 
   function BrEventQueue(obj) {
-
     const _this = this;
 
-    _this.subscribers = Object.create({});
+    _this.subscribers = {};
     _this.connections = [];
     _this.obj = obj || _this;
     _this.enabled = true;
@@ -30,10 +29,15 @@
 
     function subscribe(events, action, func) {
       let eventsArray = events.split(',');
-      for(let i = 0, length = eventsArray.length; i < length; i++) {
+      for (let i = 0, length = eventsArray.length; i < length; i++) {
         let event = eventsArray[i];
         if (!_this.subscribers[event]) {
-          _this.subscribers[event] = Object.create({ on: [], pause: [], before: [], after: [] });
+          _this.subscribers[event] = Object.create({
+            on: [],
+            pause: [],
+            before: [],
+            after: []
+          });
         }
         _this.subscribers[event][action].push(func);
       }
@@ -57,7 +61,7 @@
 
     _this.off = function(events) {
       let eventsArray = events.split(',');
-      for(let i = 0, length = eventsArray.length; i < length; i++) {
+      for (let i = 0, length = eventsArray.length; i < length; i++) {
         let event = eventsArray[i];
         delete _this.subscribers[event];
       }
@@ -73,7 +77,7 @@
 
     _this.getEvents = function() {
       let result = [];
-      for(let name in _this.subscribers) {
+      for (let name in _this.subscribers) {
         result.push(name);
       }
       return result;
@@ -141,11 +145,9 @@
     };
 
     return _this;
-
   }
 
   window.br.eventQueue = function(obj) {
     return new BrEventQueue(obj);
   };
-
 })(window);

@@ -37,25 +37,25 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
   {
     $clientHash = spl_object_hash($from);
 
-    $headers  = $from->httpRequest->getHeaders();
-    $header   = br($headers, 'X-Real-IP', br($headers, 'X-Forwarded-For'));
+    $headers = $from->httpRequest->getHeaders();
+    $header = br($headers, 'X-Real-IP', br($headers, 'X-Forwarded-For'));
     $clientIP = br($header, 0, $from->remoteAddress);
 
     $clientData = [
       'connection' => $from,
-      'hash'       => $clientHash,
-      'clientUID'  => br()->guid(),
-      'clientIP'   => $clientIP,
-      'events'     => [],
-      'spaces'     => [],
-      'userInfo'   => []
+      'hash' => $clientHash,
+      'clientUID' => br()->guid(),
+      'clientIP' => $clientIP,
+      'events' => [],
+      'spaces' => [],
+      'userInfo' => []
     ];
 
     $this->clients[$clientHash] = $clientData;
 
     $message = json_encode([
-      'action'       => 'eventBus.registered',
-      'clientUID'    => $clientData['clientUID'],
+      'action' => 'eventBus.registered',
+      'clientUID' => $clientData['clientUID'],
       'clientsCount' => count($this->clients)
     ]);
 
@@ -87,8 +87,8 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
               if ($data = br($message, 'data')) {
                 $events = br(br($data, 'events'))->split();
                 $spaces = br(br($data, 'spaces'))->split();
-                $clientData['events']   = $events;
-                $clientData['spaces']   = $spaces;
+                $clientData['events'] = $events;
+                $clientData['spaces'] = $spaces;
                 $clientData['userInfo'] = br($data, 'userInfo', []);
                 $this->clients[$clientHash] = $clientData;
                 $message = json_encode([
@@ -177,7 +177,7 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
             foreach ($tmpClientData['spaces'] as $spaceName) {
               if (in_array($spaceName, $spaces)) {
                 $message = json_encode([
-                  'action'    => 'eventBus.usersList',
+                  'action' => 'eventBus.usersList',
                   'spaceName' => $spaceName,
                   'data' => [
                     'users' => $users,

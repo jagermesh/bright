@@ -154,7 +154,7 @@ class BrDateTime extends BrObject
       $date = time();
     }
     $date = new BrDateTime($date);
-    $diff = ($this->asDate() - $date->asDate())/60/60/24;
+    $diff = ($this->asDate() - $date->asDate()) / 60 / 60 / 24;
     if (!$with_sign) {
       $diff = abs($diff);
     }
@@ -168,7 +168,7 @@ class BrDateTime extends BrObject
     }
     $date = new BrDateTime($date);
 
-    return abs($this->asDateTime() - $date->asDateTime())/60;
+    return abs($this->asDateTime() - $date->asDateTime()) / 60;
   }
 
   public function secondsBetween($date = null)
@@ -194,29 +194,29 @@ class BrDateTime extends BrObject
   public function secondsToString($diff = null, $stopOn = '')
   {
     $result = '';
-    if ($diff >= 60*60*24) {
-      $days = round($diff/60/60/24);
+    if ($diff >= 60 * 60 * 24) {
+      $days = round($diff / 60 / 60 / 24);
       if ($days == 1) {
-        $result = $days.' day';
+        $result = $days . ' day';
       } else {
-        $result = $days.' days';
+        $result = $days . ' days';
       }
     }
 
     if ($stopOn != 'days') {
       if ($hours = ltrim(date("H", mktime(0, 0, $diff)), '0')) {
-        if (($hours == 1) ||  ($hours == 21)) {
-          $result .= ' '.$hours.' hour';
+        if (($hours == 1) || ($hours == 21)) {
+          $result .= ' ' . $hours . ' hour';
         } else {
-          $result .= ' '.$hours.' hours';
+          $result .= ' ' . $hours . ' hours';
         }
       }
 
       if ($minutes = ltrim(date("i", mktime(0, 0, $diff)), '0')) {
-        if (($minutes == 1) ||  ($minutes == 21) || ($minutes == 31) || ($minutes == 41) || ($minutes == 51)) {
-          $result .= ' '.$minutes.' minute';
+        if (($minutes == 1) || ($minutes == 21) || ($minutes == 31) || ($minutes == 41) || ($minutes == 51)) {
+          $result .= ' ' . $minutes . ' minute';
         } else {
-          $result .= ' '.$minutes.' minutes';
+          $result .= ' ' . $minutes . ' minutes';
         }
       }
     }
@@ -231,7 +231,7 @@ class BrDateTime extends BrObject
     }
     $date = new BrDateTime($date);
 
-    return abs($this->asDateTime() - $date->asDateTime())/60/60;
+    return abs($this->asDateTime() - $date->asDateTime()) / 60 / 60;
   }
 
   public function daysTill($date = null)
@@ -240,7 +240,7 @@ class BrDateTime extends BrObject
       $date = time();
     }
     $date = new BrDateTime($date);
-    return ($this->asDate() - $date->asDate())/60/60/24;
+    return ($this->asDate() - $date->asDate()) / 60 / 60 / 24;
   }
 
   public function weeksBetween($date = null, $with_sign = false)
@@ -396,7 +396,7 @@ class BrDateTime extends BrObject
         } elseif ($this->weeksBetween() == 2) {
           $result = br()->trn('One week ago');
         } else {
-          $result = sprintf(br()->trn('%d weeks ago'), $this->weeksBetween()-1);
+          $result = sprintf(br()->trn('%d weeks ago'), $this->weeksBetween() - 1);
         }
       } else {
         $result = sprintf(br()->trn('In next %d weeks'), $this->weeksBetween());

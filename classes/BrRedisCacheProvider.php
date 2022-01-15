@@ -96,13 +96,13 @@ class BrRedisCacheProvider extends BrGenericCacheProvider
     try {
       $result = @$this->redis->get($name);
       if ($result === false) {
-        $result = [ 'success' => false ];
+        $result = ['success' => false];
       } else {
-        $result = [ 'success' => true, 'value' => json_decode($result, true) ];
+        $result = ['success' => true, 'value' => json_decode($result, true)];
       }
       return $result;
     } catch (\Exception $e) {
-      $result = [ 'success' => false ];
+      $result = ['success' => false];
     }
   }
 

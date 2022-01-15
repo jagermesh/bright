@@ -7,12 +7,10 @@
  *
  */
 
-;(function (window) {
-
-  window.br = window.br || Object.create({});
+(function(window) {
+  window.br = window.br || {};
 
   function BrThread(lazy) {
-
     const _this = this;
 
     _this.queue = [];
@@ -20,7 +18,9 @@
     _this.lazy = lazy;
 
     _this.push = function(func) {
-      _this.queue.unshift({ func: func });
+      _this.queue.unshift({
+        func: func
+      });
       if (!_this.lazy) {
         _this.wakeup();
       }
@@ -45,11 +45,9 @@
         });
       }
     };
-
   }
 
   window.br.thread = function(lazy) {
     return new BrThread(lazy);
   };
-
 })(window);

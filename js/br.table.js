@@ -7,12 +7,10 @@
  *
  */
 
-;(function($, window) {
-
-  window.br = window.br || Object.create({});
+(function($, window) {
+  window.br = window.br || {};
 
   function BrTable(selector, options) {
-
     const _this = this;
 
     let initialized = false;
@@ -28,7 +26,7 @@
     let calcDiv;
     let imagesCounter = 0;
 
-    _this.options = options || Object.create({ });
+    _this.options = options || {};
 
     if (_this.options.debug) {
       calcDiv = $('<div />');
@@ -52,12 +50,11 @@
     }
 
     function autosize() {
-
       if (_this.options.autoHeight) {
         let windowHeight = $(window).height();
-        let scrollTop    = $(window).scrollTop() > 0 ? $(window).scrollTop() + 20 : 0;
-        let tableTop     = table.offset().top - scrollTop;
-        let tbodyHeight  = windowHeight - tableTop - thead.height();
+        let scrollTop = $(window).scrollTop() > 0 ? $(window).scrollTop() + 20 : 0;
+        let tableTop = table.offset().top - scrollTop;
+        let tbodyHeight = windowHeight - tableTop - thead.height();
         if (_this.options.debug) {
           tbodyHeight -= 200;
         } else {
@@ -70,11 +67,9 @@
         thead.width(table.width());
         tbody.width(table.width());
       }
-
     }
 
     function debugValue(container, value) {
-
       if (_this.options.debug) {
         let c = $(container);
         let v = Math.round(value);
@@ -85,17 +80,18 @@
           e.text(v);
         }
       }
-
     }
 
     function getWidths() {
-
-      let widths = Object.create({});
+      let widths = {};
 
       theadColsCopy.each(function(idx) {
         let w = this.getBoundingClientRect().width;
         debugValue(this, w);
-        widths[idx] = { h: w, b: 0 };
+        widths[idx] = {
+          h: w,
+          b: 0
+        };
       });
 
       tbodyColsCopy.each(function(idx) {
@@ -105,7 +101,6 @@
       });
 
       return widths;
-
     }
 
     const colsCopy = function(el) {
@@ -115,7 +110,6 @@
     };
 
     function createCopy() {
-
       tableCopy = table.clone();
       let theadCopy = tableCopy[0].getElementsByTagName('thead')[0];
       let tbodyCopy = tableCopy[0].getElementsByTagName('tbody')[0];
@@ -151,15 +145,25 @@
           _this.update(true);
         };
       });
-
     }
 
     function update(skipCalcDivReloading) {
-
       if (!initialized) {
-        thead.css({ 'display': 'block', 'box-sizing': 'border-box', 'overflow': 'hidden' });
-        tbody.css({ 'display': 'block', 'box-sizing': 'border-box', 'overflow': 'auto' });
-        table.css({ 'border-bottom': '0px', 'border-left': '0px', 'border-right': '0px' });
+        thead.css({
+          'display': 'block',
+          'box-sizing': 'border-box',
+          'overflow': 'hidden'
+        });
+        tbody.css({
+          'display': 'block',
+          'box-sizing': 'border-box',
+          'overflow': 'auto'
+        });
+        table.css({
+          'border-bottom': '0px',
+          'border-left': '0px',
+          'border-right': '0px'
+        });
         initialized = true;
       }
 
@@ -168,7 +172,6 @@
       }
 
       window.setTimeout(function() {
-
         let widths = getWidths();
 
         let headerCols = table.find('thead tr:first>th');
@@ -181,7 +184,7 @@
           this.style.maxWidth = w + 'px';
         });
 
-        let bodyCols   = table.find('tbody tr:first>td');
+        let bodyCols = table.find('tbody tr:first>td');
 
         bodyCols.each(function(idx) {
           let w = widths[idx].b;
@@ -200,9 +203,7 @@
             tableCopy = null;
           }
         }
-
       });
-
     }
 
     let updateTimer, autosizeTimer;
@@ -228,11 +229,9 @@
     _this.update();
 
     return this;
-
   }
 
   window.br.table = function(selector, options) {
     return new BrTable($(selector), options);
   };
-
 })(jQuery, window);

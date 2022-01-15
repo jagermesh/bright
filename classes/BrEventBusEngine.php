@@ -17,10 +17,10 @@ class BrEventBusEngine extends BrObject
 
   protected function packMessage($action, $data = [], $additionalRequesParams = [])
   {
-    $message           = $additionalRequesParams;
+    $message = $additionalRequesParams;
     $message['secret'] = $this->secret;
     $message['action'] = $action;
-    $message['data']   = $data;
+    $message['data'] = $data;
 
     return json_encode($message);
   }

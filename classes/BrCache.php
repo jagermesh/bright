@@ -16,7 +16,7 @@ class BrCache extends BrObject
   {
     $name = $name ? $name : 'default';
     if (!array_key_exists($name, self::$instances)) {
-      $cacheConfig = [ 'engine' => $name ];
+      $cacheConfig = ['engine' => $name];
       if ($config = br()->config()->get('cache')) {
         if (br($config, $name)) {
           if (br($config[$name], 'engine')) {

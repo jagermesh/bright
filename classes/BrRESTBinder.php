@@ -175,8 +175,9 @@ class BrRESTBinder extends BrObject
 
       if ($filterMappings = br($options, BrConst::REST_SETTING_FILTER_MAPPING)) {
         foreach ($filterMappings as $mapping) {
-          $get = is_array($mapping[BrConst::REST_SETTING_FILTER_MAPPING_GET]) ? $mapping[BrConst::REST_SETTING_FILTER_MAPPING_GET]
-                                                                              : [$mapping[BrConst::REST_SETTING_FILTER_MAPPING_GET]];
+          $get = is_array($mapping[BrConst::REST_SETTING_FILTER_MAPPING_GET]) ?
+            $mapping[BrConst::REST_SETTING_FILTER_MAPPING_GET] :
+            [$mapping[BrConst::REST_SETTING_FILTER_MAPPING_GET]];
           foreach ($get as $getParam) {
             $value = br()->request()->get($getParam);
             if (is_string($value) && strlen($value)) {

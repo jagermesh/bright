@@ -7,12 +7,11 @@
  *
  */
 
-;(function (window) {
 
-  window.br = window.br || Object.create({});
+(function(window) {
+  window.br = window.br || {};
 
   function BrFlagsHolder(permanent, name) {
-
     let flags = [];
 
     this.append = function(id) {
@@ -63,11 +62,9 @@
         return flags;
       }
     };
-
   }
 
-  window.br.flagsHolder = function (permanent, name) {
+  window.br.flagsHolder = function(permanent, name) {
     return new BrFlagsHolder(permanent, name);
   };
-
 })(window);

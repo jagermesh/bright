@@ -64,13 +64,13 @@ class BrSession extends BrObject
   {
     if (isset($_SESSION)) {
       if ($name) {
-        $name = $this->tag.':'.$name;
+        $name = $this->tag . ':' . $name;
         return br($_SESSION, $name, $default);
       } else {
         $result = [];
         foreach ($_SESSION as $varName => $value) {
-          if (strpos($varName, $this->tag.':') === 0) {
-            $localName = substr($varName, strlen($this->tag.':'));
+          if (strpos($varName, $this->tag . ':') === 0) {
+            $localName = substr($varName, strlen($this->tag . ':'));
             $result[$localName] = $value;
           }
         }
@@ -84,7 +84,7 @@ class BrSession extends BrObject
   public function set($name, $value)
   {
     if (isset($_SESSION)) {
-      $name = $this->tag.':'.$name;
+      $name = $this->tag . ':' . $name;
       $_SESSION[$name] = $value;
     }
 
@@ -97,20 +97,20 @@ class BrSession extends BrObject
       if ($name) {
         if (is_callable($name)) {
           foreach ($_SESSION as $varName => $value) {
-            if (strpos($varName, $this->tag.':') === 0) {
-              $localName = substr($varName, strlen($this->tag.':'));
+            if (strpos($varName, $this->tag . ':') === 0) {
+              $localName = substr($varName, strlen($this->tag . ':'));
               if ($name($localName)) {
                 unset($_SESSION[$varName]);
               }
             }
           }
         } else {
-          $name = $this->tag.':'.$name;
+          $name = $this->tag . ':' . $name;
           unset($_SESSION[$name]);
         }
       } else {
         foreach ($_SESSION as $varName => $value) {
-          if (strpos($varName, $this->tag.':') === 0) {
+          if (strpos($varName, $this->tag . ':') === 0) {
             unset($_SESSION[$varName]);
           }
         }

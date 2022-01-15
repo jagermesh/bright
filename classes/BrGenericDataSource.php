@@ -206,9 +206,9 @@ class BrGenericDataSource extends BrObject
 
     $this->validateSelect($filter);
 
-    $result = $this->onSelect($filter, $transientData, $options);
+    $result = $this->callEvent(BrConst::DATASOURCE_EVENT_SELECT, $filter, $transientData, $options);
     if (is_null($result)) {
-      $result = $this->callEvent(BrConst::DATASOURCE_EVENT_SELECT, $filter, $transientData, $options);
+      $result = $this->onSelect($filter, $transientData, $options);
     }
     return $result;
   }
@@ -219,9 +219,9 @@ class BrGenericDataSource extends BrObject
 
     $this->validateUpdate($row);
 
-    $result = $this->onUpdate($row, $transientData);
+    $result = $this->callEvent(BrConst::DATASOURCE_EVENT_UPDATE, $row, $transientData);
     if (is_null($result)) {
-      $result = $this->callEvent(BrConst::DATASOURCE_EVENT_UPDATE, $row, $transientData);
+      $result = $this->onUpdate($row, $transientData);
     }
 
     return $result;
@@ -231,9 +231,9 @@ class BrGenericDataSource extends BrObject
   {
     $this->validateInsert($row);
 
-    $result = $this->onInsert($row, $transientData);
+    $result = $this->callEvent(BrConst::DATASOURCE_EVENT_INSERT, $row, $transientData);
     if (is_null($result)) {
-      $result = $this->callEvent(BrConst::DATASOURCE_EVENT_INSERT, $row, $transientData);
+      $result = $this->onInsert($row, $transientData);
     }
 
     return $result;
@@ -245,9 +245,9 @@ class BrGenericDataSource extends BrObject
 
     $this->validateRemove($row);
 
-    $result = $this->onDelete($row, $transientData);
+    $result = $this->callEvent(BrConst::DATASOURCE_EVENT_DELETE, $row, $transientData);
     if (is_null($result)) {
-      $result = $this->callEvent(BrConst::DATASOURCE_EVENT_DELETE, $row, $transientData);
+      $result = $this->onDelete($row, $transientData);
     }
 
     return $result;
@@ -318,8 +318,8 @@ class BrGenericDataSource extends BrObject
 
             if ($this->getDb() && $this->isTransactionalDML()) {
               $this->getDb()->commitTransaction();
-              $this->onAfterCommit($params, $transientData, $data, $options);
               $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, BrConst::DATASOURCE_EVENT_COMMIT), $params, $transientData, $data, $options);
+              $this->onAfterCommit($params, $transientData, $data, $options);
             }
             return $data;
           } catch (BrDBRecoverableException $e) {
@@ -344,9 +344,9 @@ class BrGenericDataSource extends BrObject
           }
           $operation = $method;
           $error = $e->getMessage();
-          $result = $this->onError($error, $operation, $e, null);
+          $result = $this->callEvent(BrConst::DATASOURCE_EVENT_ERROR, $error, $operation, $e);
           if (is_null($result)) {
-            $result = $this->callEvent(BrConst::DATASOURCE_EVENT_ERROR, $error, $operation, $e);
+            $result = $this->onError($error, $operation, $e, null);
           }
           if (is_null($result)) {
             $result = false;
@@ -443,7 +443,7 @@ class BrGenericDataSource extends BrObject
     return null;
   }
 
-  protected function onPrepareCalcFields(&$result, &$transientData, &$options)
+  protected function onPrepareCalcFields(&$row, &$transientData, &$options)
   {
     //
   }
@@ -473,7 +473,7 @@ class BrGenericDataSource extends BrObject
     return null;
   }
 
-  protected function onAfterInsert(&$result, &$transientData, &$options)
+  protected function onAfterInsert(&$row, &$transientData, &$options)
   {
     //
   }
@@ -483,7 +483,7 @@ class BrGenericDataSource extends BrObject
     //
   }
 
-  protected function onBeforeUpdate(&$new, &$transientData, $old, &$options)
+  protected function onBeforeUpdate(&$row, &$transientData, $old, &$options)
   {
     //
   }
@@ -493,11 +493,12 @@ class BrGenericDataSource extends BrObject
     return null;
   }
 
-  protected function onAfterUpdate(&$result, &$transientData, $old, &$options)
+  protected function onAfterUpdate(&$row, &$transientData, $old, &$options)
   {
     //
   }
-  protected function onBeforeDelete(&$new, &$transientData, &$options)
+
+  protected function onBeforeDelete(&$row, &$transientData, &$options)
   {
     //
   }
@@ -507,7 +508,7 @@ class BrGenericDataSource extends BrObject
     return null;
   }
 
-  protected function onAfterDelete(&$result, &$transientData, &$options)
+  protected function onAfterDelete(&$row, &$transientData, &$options)
   {
     //
   }

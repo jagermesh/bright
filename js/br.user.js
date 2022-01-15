@@ -7,15 +7,12 @@
  *
  */
 
-;(function($, window) {
-
+(function($, window) {
   $(function() {
-
     let usersDataSourcee = br.dataSource(br.baseUrl + 'api/users/');
 
     $('.action-signup').click(function() {
-
-      let data = Object.create({});
+      let data = {};
 
       let form = $(this).closest('form');
       if (form.length === 0) {
@@ -41,12 +38,10 @@
           }
         }
       });
-
     });
 
     $('.action-login').click(function() {
-
-      let data = Object.create({});
+      let data = {};
 
       let form = $(this).closest('form');
       if (form.length === 0) {
@@ -84,12 +79,10 @@
           }
         }
       });
-
     });
 
     $('.action-reset-password').click(function() {
-
-      let data = Object.create({});
+      let data = {};
 
       let form = $(this).closest('form');
       if (form.length === 0) {
@@ -115,21 +108,17 @@
           }
         }
       });
-
     });
 
     $('.action-logout').click(function() {
-
-      let data = Object.create({});
+      let data = {};
 
       usersDataSourcee.invoke('logout', data, function(result) {
         if (result) {
           document.location = br.baseUrl;
         }
       });
-
     });
-
   });
 
 })(jQuery, window);

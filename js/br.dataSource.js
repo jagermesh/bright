@@ -7,9 +7,8 @@
  *
  */
 
-;(function($, window) {
-
-  window.br = window.br || Object.create({});
+(function($, window) {
+  window.br = window.br || {};
 
   function BrDataSource(restServiceUrl, settings) {
     const _this = this;
@@ -34,13 +33,19 @@
     _this.clientUID = null;
 
     _this.events = br.eventQueue(_this);
-    _this.before = function(event, callback) { _this.events.before(event, callback); };
-    _this.on = function(event, callback) { _this.events.on(event, callback); };
-    _this.after  = function(event, callback) { _this.events.after(event, callback); };
+    _this.before = function(event, callback) {
+      _this.events.before(event, callback);
+    };
+    _this.on = function(event, callback) {
+      _this.events.on(event, callback);
+    };
+    _this.after = function(event, callback) {
+      _this.events.after(event, callback);
+    };
 
     let selectOperationCounter = 0;
     let refreshTimeout;
-    let requestHeaders = { };
+    let requestHeaders = {};
 
     if (br.request.csrfToken) {
       requestHeaders['X-Csrf-Token'] = br.request.csrfToken;
@@ -77,12 +82,16 @@
     const handleError = function(request, options, jqXHR, reject) {
       if (!br.isUnloading()) {
         let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-        reject({request: request, options: options, errorMessage: errorMessage});
+        reject({
+          request: request,
+          options: options,
+          errorMessage: errorMessage
+        });
       }
     };
 
     _this.insert = function(item, callback, options) {
-      options = options || Object.create({});
+      options = options || {};
 
       let disableEvents = options && options.disableEvents;
 
@@ -127,9 +136,17 @@
                 errorMessage = 'Empty response. Was expecting new created records with ROWID.';
               }
               if (result) {
-                resolve({request: request, options: options, response: response});
+                resolve({
+                  request: request,
+                  options: options,
+                  response: response
+                });
               } else {
-                reject({request: request, options: options, errorMessage: errorMessage});
+                reject({
+                  request: request,
+                  options: options,
+                  errorMessage: errorMessage
+                });
               }
             },
             error: function(jqXHR, textStatus, errorThrown) {
@@ -138,7 +155,11 @@
           });
 
         } catch (errorMessage) {
-          reject({request: request, options: options, errorMessage: errorMessage});
+          reject({
+            request: request,
+            options: options,
+            errorMessage: errorMessage
+          });
         }
       }).then(function(data) {
         try {
@@ -169,7 +190,7 @@
     };
 
     _this.update = function(rowid, item, callback, options) {
-      options = options || Object.create({});
+      options = options || {};
 
       let disableEvents = options && options.disableEvents;
 
@@ -213,14 +234,23 @@
                   operation = 'remove';
                 }
               }
-              resolve({operation: operation, request: request, options: options, response: response});
+              resolve({
+                operation: operation,
+                request: request,
+                options: options,
+                response: response
+              });
             },
             error: function(jqXHR, textStatus, errorThrown) {
               handleError(request, options, jqXHR, reject);
             }
           });
         } catch (errorMessage) {
-          reject({request: request, options: options, errorMessage: errorMessage});
+          reject({
+            request: request,
+            options: options,
+            errorMessage: errorMessage
+          });
         }
       }).then(function(data) {
         try {
@@ -258,12 +288,12 @@
     };
 
     _this.remove = function(rowid, callback, options) {
-      options = options || Object.create({});
+      options = options || {};
 
       let disableEvents = options && options.disableEvents;
 
       return new Promise(function(resolve, reject) {
-        let request = Object.create({});
+        let request = {};
 
         try {
           if (!disableEvents) {
@@ -295,17 +325,32 @@
             url: _this.options.restServiceUrlNormalized + rowid + (_this.options.authToken ? '?token=' + _this.options.authToken : ''),
             headers: requestHeaders,
             success: function(response) {
-              resolve({rowid: rowid, request: request, options: options, response: response});
+              resolve({
+                rowid: rowid,
+                request: request,
+                options: options,
+                response: response
+              });
             },
             error: function(jqXHR, textStatus, errorThrown) {
               if (!br.isUnloading()) {
                 let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                reject({rowid: rowid, request: request, options: options, errorMessage: errorMessage});
+                reject({
+                  rowid: rowid,
+                  request: request,
+                  options: options,
+                  errorMessage: errorMessage
+                });
               }
             }
           });
         } catch (errorMessage) {
-          reject({rowid: rowid, request: request, options: options, errorMessage: errorMessage});
+          reject({
+            rowid: rowid,
+            request: request,
+            options: options,
+            errorMessage: errorMessage
+          });
         }
       }).then(function(data) {
         try {
@@ -340,16 +385,18 @@
       if (typeof filter == 'function') {
         options = callback;
         callback = filter;
-        filter = Object.create({});
+        filter = {};
       }
 
-      let newFilter = Object.create({});
-      for(let name in filter) {
+      let newFilter = {};
+      for (let name in filter) {
         newFilter[name] = filter[name];
       }
       newFilter.__result = 'count';
 
-      let requestOptions = Object.assign({ selectCount: true }, options);
+      let requestOptions = Object.assign({
+        selectCount: true
+      }, options);
 
       return _this.select(newFilter, callback, requestOptions);
     };
@@ -358,14 +405,19 @@
       if (typeof filter == 'function') {
         options = callback;
         callback = filter;
-        filter = Object.create({});
+        filter = {};
       }
 
-      let requestOptions = Object.assign({ selectOne: true, limit: 1 }, options);
+      let requestOptions = Object.assign({
+        selectOne: true,
+        limit: 1
+      }, options);
 
       if (!br.isEmpty(filter)) {
         if (br.isNumber(filter)) {
-          return _this.select({ rowid: filter }, callback, requestOptions);
+          return _this.select({
+            rowid: filter
+          }, callback, requestOptions);
         } else {
           return _this.select(filter, callback, requestOptions);
         }
@@ -377,8 +429,8 @@
     _this.selectDeferred = _this.deferredSelect = function(filter, callback, msec) {
       return new Promise(function(resolve, reject) {
         msec = msec || _this.options.refreshDelay;
-        let savedFilter = Object.create({});
-        for(let i in filter) {
+        let savedFilter = {};
+        for (let i in filter) {
           savedFilter[i] = filter[i];
         }
         window.clearTimeout(refreshTimeout);
@@ -406,20 +458,20 @@
       if (typeof filter == 'function') {
         options = callback;
         callback = filter;
-        filter = Object.create({});
+        filter = {};
       } else
       if ((callback != undefined) && (callback != null) && (typeof callback != 'function')) {
         options = callback;
         callback = null;
       }
 
-      options = options || { };
+      options = options || {};
 
       let disableEvents = options && options.disableEvents;
 
       return new Promise(function(resolve, reject) {
 
-        let request = Object.create({});
+        let request = {};
         let requestRowid;
 
         let selectOne = options && options.selectOne;
@@ -432,13 +484,19 @@
 
         if (!br.isEmpty(filter)) {
           if (!br.isNumber(filter) && !br.isObject(filter)) {
-            reject({request: request, options: options, errorMessage: 'Unacceptable filter parameters'});
+            reject({
+              request: request,
+              options: options,
+              errorMessage: 'Unacceptable filter parameters'
+            });
             return _this;
           } else {
             if (br.isNumber(filter)) {
-              filter = { rowid: filter };
+              filter = {
+                rowid: filter
+              };
             }
-            for(let name in filter) {
+            for (let name in filter) {
               if ((name == 'rowid') && selectOne) {
                 requestRowid = filter[name];
               } else {
@@ -461,13 +519,13 @@
         if (!disableEvents) {
           try {
             _this.events.triggerBefore('request', request, options);
-          } catch(e) {
+          } catch (e) {
             br.log(e);
             proceed = false;
           }
           try {
             _this.events.triggerBefore('select', request, options);
-          } catch(e) {
+          } catch (e) {
             br.log(e);
             proceed = false;
           }
@@ -476,7 +534,7 @@
 
         function handleResponse(response) {
           if (br.isArray(response)) {
-            for(let i = 0, length = response.length; i < length; i++) {
+            for (let i = 0, length = response.length; i < length; i++) {
               _this.events.trigger('calcFields', response[i]);
             }
           }
@@ -484,7 +542,11 @@
             if (response.length > 0) {
               response = response[0];
             } else {
-              reject({request: request, options: options, errorMessage: 'Record not found'});
+              reject({
+                request: request,
+                options: options,
+                errorMessage: 'Record not found'
+              });
               return;
             }
           } else
@@ -494,7 +556,11 @@
           if (selectCount) {
             response = parseInt(response);
           }
-          resolve({request: request, options: options, response: response});
+          resolve({
+            request: request,
+            options: options,
+            response: response
+          });
         }
 
         if (proceed) {
@@ -552,7 +618,7 @@
 
           selectOperationCounter++;
 
-          for(let paramName in request) {
+          for (let paramName in request) {
             if (request[paramName] === null) {
               request[paramName] = 'null';
             }
@@ -577,7 +643,11 @@
                 _this.ajaxRequest = null;
                 if (!br.isUnloading()) {
                   var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-                  reject({request: request, options: options, errorMessage: errorMessage});
+                  reject({
+                    request: request,
+                    options: options,
+                    errorMessage: errorMessage
+                  });
                 }
               } finally {
                 selectOperationCounter--;
@@ -616,27 +686,26 @@
           throw data;
         }
       });
-
     };
 
     _this.invoke = function(method, params, callback, options) {
       if (typeof params == 'function') {
-        options  = callback;
+        options = callback;
         callback = params;
-        params   = Object.create({});
+        params = {};
       }
 
       if (callback && (typeof callback != 'function')) {
-        options  = callback;
+        options = callback;
         callback = undefined;
       }
 
-      options = options || Object.create({});
+      options = options || {};
 
       let disableEvents = options && options.disableEvents;
 
       return new Promise(function(resolve, reject) {
-        let request = params || Object.create({});
+        let request = params || {};
 
         if (!disableEvents) {
           _this.events.triggerBefore('request', request, options);
@@ -668,12 +737,22 @@
           url: _this.options.restServiceUrlNormalized + method + (_this.options.authToken ? '?token=' + _this.options.authToken : ''),
           headers: requestHeaders,
           success: function(response) {
-            resolve({method: method, request: request, options: options, response: response});
+            resolve({
+              method: method,
+              request: request,
+              options: options,
+              response: response
+            });
           },
           error: function(jqXHR, textStatus, errorThrown) {
             if (!br.isUnloading()) {
               let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
-              reject({method: method, request: request, options: options, errorMessage: errorMessage});
+              reject({
+                method: method,
+                request: request,
+                options: options,
+                errorMessage: errorMessage
+              });
             }
           }
         });
@@ -703,11 +782,9 @@
         }
       });
     };
-
   }
 
-  window.br.dataSource = function (restServiceUrl, options) {
+  window.br.dataSource = function(restServiceUrl, options) {
     return new BrDataSource(restServiceUrl, options);
   };
-
 })(jQuery, window);

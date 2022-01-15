@@ -82,14 +82,14 @@ class BrGenericAuthProvider extends BrObject
     $login = $this->validateLogin($login);
     if ($remember) {
       $password = $login['password'];
-      $token    = sha1(md5(sha1($password)));
-      $cookie   = [
+      $token = sha1(md5(sha1($password)));
+      $cookie = [
         'login' => $login['login'],
         'token' => $token
       ];
       if (!br()->isConsoleMode()) {
         setcookie($this->getAuthTag(), base64_encode(json_encode($cookie)),
-          time() + 60*60*24*30, br()->request()->baseUrl(), br()->request()->domain(), true, true);
+          time() + 60 * 60 * 24 * 30, br()->request()->baseUrl(), br()->request()->domain(), true, true);
       }
     }
     return $login;
@@ -98,7 +98,7 @@ class BrGenericAuthProvider extends BrObject
   public function logout()
   {
     if (!br()->isConsoleMode()) {
-      setcookie($this->getAuthTag(), '', time() - 60*60*24*30, br()->request()->baseUrl(), br()->request()->domain(), true, true);
+      setcookie($this->getAuthTag(), '', time() - 60 * 60 * 24 * 30, br()->request()->baseUrl(), br()->request()->domain(), true, true);
     }
     if ($login = $this->getLogin()) {
       $this->trigger('logout', $login);

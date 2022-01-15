@@ -9,16 +9,23 @@
 
 /* global google */
 
-;(function($, window) {
+
+(function($, window) {
   window.br = window.br || {};
 
   function BrGoogleMap(selector, options) {
     const _this = this;
 
     _this.events = br.eventQueue(this);
-    _this.before = function(event, callback) { this.events.before(event, callback); };
-    _this.on = function(event, callback) { this.events.on(event, callback); };
-    _this.after = function(event, callback) { this.events.after(event, callback); };
+    _this.before = function(event, callback) {
+      this.events.before(event, callback);
+    };
+    _this.on = function(event, callback) {
+      this.events.on(event, callback);
+    };
+    _this.after = function(event, callback) {
+      this.events.after(event, callback);
+    };
 
     if (!google.maps.Polygon.prototype.getBounds) {
       google.maps.Polygon.prototype.getBounds = function(latLng) {
@@ -26,7 +33,7 @@
         let bounds = new google.maps.LatLngBounds();
         paths.forEach(function(path) {
           let points = path.getArray();
-          for(let i = 0, length = points.length; i < length; i++) {
+          for (let i = 0, length = points.length; i < length; i++) {
             bounds.extend(points[i]);
           }
         });
@@ -37,18 +44,32 @@
     let worldCenter = new google.maps.LatLng(42, 18);
     let singleClickTimeout;
 
-    options = options || Object.create({ });
+    options = options || {};
     options.zoom = options.zoom || 3;
     options.mapCenter = options.mapCenter || worldCenter;
     options.mapType = options.mapType || google.maps.MapTypeId.ROADMAP;
 
-    if (typeof options.streetViewControl == 'undefined') { options.streetViewControl = true; }
-    if (typeof options.panControl == 'undefined') { options.panControl = true; }
-    if (typeof options.mapTypeControl == 'undefined') { options.mapTypeControl = true; }
-    if (typeof options.zoomControl == 'undefined') { options.zoomControl = true; }
-    if (typeof options.scaleControl == 'undefined') { options.scaleControl = true; }
-    if (typeof options.rotateControl == 'undefined') { options.rotateControl = true; }
-    if (typeof options.mapType == 'undefined') { options.mapType = google.maps.MapTypeId.ROADMAP; }
+    if (typeof options.streetViewControl == 'undefined') {
+      options.streetViewControl = true;
+    }
+    if (typeof options.panControl == 'undefined') {
+      options.panControl = true;
+    }
+    if (typeof options.mapTypeControl == 'undefined') {
+      options.mapTypeControl = true;
+    }
+    if (typeof options.zoomControl == 'undefined') {
+      options.zoomControl = true;
+    }
+    if (typeof options.scaleControl == 'undefined') {
+      options.scaleControl = true;
+    }
+    if (typeof options.rotateControl == 'undefined') {
+      options.rotateControl = true;
+    }
+    if (typeof options.mapType == 'undefined') {
+      options.mapType = google.maps.MapTypeId.ROADMAP;
+    }
 
     _this.mapOptions = {
       zoom: options.zoom,
@@ -99,7 +120,10 @@
         distance += item.distance.value;
         duration += item.duration.value;
       });
-      return { distance: distance, duration: duration };
+      return {
+        distance: distance,
+        duration: duration
+      };
     }
 
     google.maps.event.addListener(_this.directionsDisplay, 'directions_changed', function() {
@@ -167,7 +191,7 @@
     };
 
     _this.setMapType = function(value) {
-      switch(value) {
+      switch (value) {
         case 'r':
           _this.map.setMapTypeId(google.maps.MapTypeId.ROADMAP);
           break;
@@ -184,7 +208,7 @@
     };
 
     _this.setTravelMode = function(value) {
-      switch(value) {
+      switch (value) {
         case 'd':
           _this.travelMode = google.maps.DirectionsTravelMode.DRIVING;
           break;
@@ -256,7 +280,9 @@
     };
 
     _this.findAddress = function(address, callback) {
-      _this.geocoder.geocode({'address': address}, function(results, status) {
+      _this.geocoder.geocode({
+        'address': address
+      }, function(results, status) {
         if (status == google.maps.GeocoderStatus.OK) {
           let points = results.map(function(item) {
             return {
@@ -292,7 +318,10 @@
         if (destination === null) {
           destination = latLng;
         } else {
-          waypoints.push({ location: destination, stopover: true });
+          waypoints.push({
+            location: destination,
+            stopover: true
+          });
           destination = latLng;
         }
       }
@@ -338,7 +367,7 @@
         type: 'Feature',
         geometry: {
           type: 'Point',
-          coordinates: [ lng, lat ]
+          coordinates: [lng, lat]
         },
         properties: Object.assign({
           latitude: lat,
@@ -352,7 +381,7 @@
     // layers
 
     _this.addLayer = function(geoString, params) {
-      params = params || Object.create({});
+      params = params || {};
 
       let geoJson;
       if (typeof geoString == 'string') {
@@ -369,9 +398,9 @@
 
       let getJsonCustom = {};
 
-      getJsonCustom.id   = params.id;
+      getJsonCustom.id = params.id;
       getJsonCustom.data = params.data;
-      getJsonCustom.tag  = params.tag;
+      getJsonCustom.tag = params.tag;
 
       let geoJsonLayer = new google.maps.Data();
       geoJsonLayer.addGeoJson(geoJson);
@@ -387,7 +416,7 @@
     };
 
     _this.getLayer = function(id) {
-      let result =  _this.layers.filter(function(item) {
+      let result = _this.layers.filter(function(item) {
         return (item.custom && (item.custom.id == id));
       });
       if (result.length > 0) {
@@ -396,7 +425,7 @@
     };
 
     _this.layerExists = function(id) {
-      let result =  _this.layers.filter(function(item) {
+      let result = _this.layers.filter(function(item) {
         return (item.custom && (item.custom.id == id));
       });
       return result.length > 0;
@@ -436,8 +465,8 @@
         icon: markerParams.icon,
         draggable: markerParams.draggable
       });
-      marker.custom = custom || { };
-      marker.tag    = tag;
+      marker.custom = custom || {};
+      marker.tag = tag;
       _this.markers.push(marker);
       google.maps.event.addListener(marker, 'click', function(event) {
         _this.events.trigger('marker.click', marker, event);
@@ -538,7 +567,7 @@
       polygonParams.map = _this.map;
       let polygon = new google.maps.Polygon(polygonParams);
       polygon.custom = custom;
-      polygon.tag    = tag;
+      polygon.tag = tag;
       _this.polygons.push(polygon);
       google.maps.event.addListener(polygon, 'click', function(event) {
         _this.events.trigger('polygon.click', polygon, event);
@@ -580,8 +609,7 @@
     return _this;
   }
 
-  window.br.googleMap = function (selector, options) {
+  window.br.googleMap = function(selector, options) {
     return new BrGoogleMap(selector, options);
   };
-
 })(jQuery, window);

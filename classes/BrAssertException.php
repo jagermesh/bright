@@ -2,7 +2,7 @@
 
 namespace Bright;
 
-class BrAssertException extends BrException
+class BrAssertException extends BrAppException
 {
   public function __construct($message)
   {

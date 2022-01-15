@@ -9,17 +9,15 @@
 
 /* global WebSocket */
 
-;(function (window) {
-
-  window.br = window.br || Object.create({});
+(function(window) {
+  window.br = window.br || {};
 
   function BrEventBus(endpointUrl) {
-
     const _this = this;
 
-    _this.events        = br.eventQueue(_this);
+    _this.events = br.eventQueue(_this);
     _this.subscriptions = br.eventQueue(_this);
-    _this.spaces        = br.eventQueue(_this);
+    _this.spaces = br.eventQueue(_this);
 
     const debugMode = false;
     const reconnectTimeout = 1000;
@@ -34,7 +32,7 @@
 
     function reconnect() {
       window.clearTimeout(reconnectTimer);
-      let timeout = reconnectsCounter*reconnectTimeout;
+      let timeout = reconnectsCounter * reconnectTimeout;
       if (debugMode && (timeout > 0)) {
         br.log((successfulConnections > 0 ? 're' : '') + 'connecting in ' + timeout + 'ms');
       }
@@ -48,12 +46,14 @@
 
     function subscribe() {
       if (webSocket && (webSocket.readyState == 1) && (_this.subscriptions.getEvents().length > 0)) {
-        let message = { action: 'eventBus.subscribe'
-                      , data: { events: _this.subscriptions.getEvents()
-                              , spaces: _this.spaces.getEvents()
-                              , userInfo: __userInfo
-                              }
-                      };
+        let message = {
+          action: 'eventBus.subscribe',
+          data: {
+            events: _this.subscriptions.getEvents(),
+            spaces: _this.spaces.getEvents(),
+            userInfo: __userInfo
+          }
+        };
         try {
           webSocket.send(JSON.stringify(message));
         } catch (error) {
@@ -65,10 +65,10 @@
     function handleConnectionError(error) {
       if (webSocket) {
         try {
-          webSocket.onopen    = null;
+          webSocket.onopen = null;
           webSocket.onmessage = null;
-          webSocket.onclose   = null;
-          webSocket.onerror   = null;
+          webSocket.onclose = null;
+          webSocket.onerror = null;
           if (webSocket.readyState == 1) {
             webSocket.close();
           }
@@ -106,13 +106,13 @@
           successfulConnections++;
           subscribe();
         };
-        webSocket.onmessage = function (event) {
+        webSocket.onmessage = function(event) {
           if (debugMode) {
             br.log(event);
           }
           try {
             let message = $.parseJSON(event.data);
-            switch(message.action) {
+            switch (message.action) {
               case 'eventBus.registered':
                 _this.setClientUID(message.clientUID);
                 break;
@@ -120,9 +120,9 @@
                 _this.spaces.trigger(message.spaceName, message.data);
                 break;
               default:
-              if (!message.clientUID || (_this.getClientUID() != message.clientUID)) {
-                _this.subscriptions.trigger(message.action, message.data);
-              }
+                if (!message.clientUID || (_this.getClientUID() != message.clientUID)) {
+                  _this.subscriptions.trigger(message.action, message.data);
+                }
             }
           } catch (exception) {
             br.log(exception);
@@ -208,11 +208,9 @@
     }, 100);
 
     return this;
-
   }
 
   window.br.eventBus = function(endpointUrl) {
     return new BrEventBus(endpointUrl);
   };
-
 })(window);

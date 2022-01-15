@@ -7,12 +7,10 @@
  *
  */
 
-;(function($, window) {
-
-  window.br = window.br || Object.create({});
+(function($, window) {
+  window.br = window.br || {};
 
   function BrDataCombo(selector) {
-
     const _this = this;
 
     const selectLimit = 50;
@@ -25,9 +23,15 @@
     _this.selector = $(selector);
 
     _this.events = br.eventQueue(_this);
-    _this.before = function(event, callback) { _this.events.before(event, callback); };
-    _this.on     = function(event, callback) { _this.events.on(event, callback); };
-    _this.after  = function(event, callback) { _this.events.after(event, callback); };
+    _this.before = function(event, callback) {
+      _this.events.before(event, callback);
+    };
+    _this.on = function(event, callback) {
+      _this.events.on(event, callback);
+    };
+    _this.after = function(event, callback) {
+      _this.events.after(event, callback);
+    };
 
     _this.isValid = function() {
       return _this.selector.length > 0;
@@ -81,9 +85,10 @@
       if (br.isFunction(_this.options.onGetName)) {
         return _this.options.onGetName.call(_this, data);
       } else {
-        let item = { value: data[_this.options.valueField]
-                   , name: data[_this.options.nameField]
-                   };
+        let item = {
+          value: data[_this.options.valueField],
+          name: data[_this.options.nameField]
+        };
         _this.events.trigger('formatItem', item, data);
         return item.name;
       }
@@ -103,7 +108,7 @@
               params.dropdownCssClass = 'skiptranslate';
             }
             if (_this.options.allowClear) {
-              params.allowClear  = _this.options.allowClear;
+              params.allowClear = _this.options.allowClear;
               params.placeholder = _this.options.emptyName;
             }
             if (_this.options.formatOption) {
@@ -113,34 +118,39 @@
               params.formatSelection = _this.options.formatSelection;
             }
             params.dropdownAutoWidth = true;
-            params.dropdownCss = { 'max-width': '400px' };
+            params.dropdownCss = {
+              'max-width': '400px'
+            };
             if (_this.options.lookupMode) {
               params.minimumInputLength = _this.options.lookup_minimumInputLength;
-              params.allowClear  = true;
+              params.allowClear = true;
               params.placeholder = _this.options.emptyName;
-              params.query = function (query) {
+              params.query = function(query) {
                 window.clearTimeout(requestTimer);
-                let request = Object.create({});
+                let request = {};
                 request.keyword = query.term;
                 requestTimer = window.setTimeout(function() {
                   if (query.term || _this.options.lookup_minimumInputLength === 0) {
                     _this.dataSource.select(request, function(result, response) {
                       if (result) {
-                        let data = { results: [] };
-                        for(let i = 0, length = response.length; i < length; i++) {
-                          data.results.push({ id:   response[i][_this.options.valueField]
-                                            , text: getName(response[i])
-                                            });
+                        let data = {
+                          results: []
+                        };
+                        for (let i = 0, length = response.length; i < length; i++) {
+                          data.results.push({
+                            id: response[i][_this.options.valueField],
+                            text: getName(response[i])
+                          });
                         }
                         if (response.length == selectLimit) {
                           data.more = true;
                         }
                         query.callback(data);
                       }
-                    }, { limit: selectLimit
-                       , skip: (query.page - 1) * selectLimit
-                       }
-                    );
+                    }, {
+                      limit: selectLimit,
+                      skip: (query.page - 1) * selectLimit
+                    });
                   }
                 }, 300);
               };
@@ -156,7 +166,9 @@
           }
         } else
         if (window.Selectize && !beautified) {
-          _this.selector.selectize({ openOnFocus: false });
+          _this.selector.selectize({
+            openOnFocus: false
+          });
           beautified = true;
           beautifier = 'selectize';
         }
@@ -168,7 +180,7 @@
         if (currentData.length > 0) {
           const val = _this.val();
           if (!br.isEmpty(val)) {
-            for(let i = 0, length = currentData.length; i < length; i++) {
+            for (let i = 0, length = currentData.length; i < length; i++) {
               if (br.toInt(currentData[i][_this.options.valueField]) == br.toInt(val)) {
                 if (br.isEmpty(fieldName)) {
                   return currentData[i];
@@ -193,7 +205,7 @@
         }
         if (_this.isValid()) {
           br.setValue(_this.selector, value, true);
-          switch(beautifier) {
+          switch (beautifier) {
             case 'select2':
               break;
             case 'selectize':
@@ -203,18 +215,27 @@
           beautify();
           if (_this.options.lookupMode) {
             if (value) {
-              let data = { id: value, text: value };
-              let request = { rowid: value };
+              let data = {
+                id: value,
+                text: value
+              };
+              let request = {
+                rowid: value
+              };
               _this.selector.select2('data', data);
-              let options = { disableEvents: true, dataSets: 'none' };
+              let options = {
+                disableEvents: true,
+                dataSets: 'none'
+              };
               _this.dataSource.events.triggerBefore('selectByRowid', request, options);
               _this.dataSource.select(request, function(result, response) {
                 if (result) {
                   if (response.length > 0) {
                     response = response[0];
-                    data = { id: response[_this.options.valueField]
-                           , text: getName(response)
-                           };
+                    data = {
+                      id: response[_this.options.valueField],
+                      text: getName(response)
+                    };
                     _this.selector.select2('data', data);
                   }
                 }
@@ -297,7 +318,7 @@
       content += '>';
       if (!br.isEmpty(_this.options.levelField)) {
         const margin = (br.toInt(data[_this.options.levelField]) - 1) * 4;
-        for(let k = 0; k < margin; k++) {
+        for (let k = 0; k < margin; k++) {
           content += '&nbsp;';
         }
       }
@@ -306,11 +327,9 @@
     }
 
     function render(data) {
-
       currentData = data;
 
       if (!_this.options.lookupMode) {
-
         if (_this.options.saveSelection) {
           if (_this.options.saveToSessionStorage) {
             _this.options.selectedValue = br.session.get(storageTag(_this.selector));
@@ -320,7 +339,6 @@
         }
 
         _this.selector.each(function() {
-
           const _selector = $(this);
           let val = _selector.val();
           if (br.isEmpty(val)) {
@@ -347,7 +365,7 @@
           _this.events.triggerBefore('generateOptions', cbObj, _selector);
           template = cbObj.s;
 
-          for(let i = 0, length = data.length; i < length; i++) {
+          for (let i = 0, length = data.length; i < length; i++) {
             template += renderRow(data[i]);
             if (br.isEmpty(_this.options.selectedValue) && !br.isEmpty(_this.options.selectedValueField)) {
               let selectedValue = data[i][_this.options.selectedValueField];
@@ -364,7 +382,7 @@
           } else
           if (!br.isEmpty(val)) {
             if (br.isArray(val)) {
-              for(let k = 0, length = val.length; k < length; k++) {
+              for (let k = 0, length = val.length; k < length; k++) {
                 _selector.find(`option[value="${val[k]}"]`).prop('selected', true).attr('selected', 'selected');
               }
             } else {
@@ -377,24 +395,27 @@
           }
 
         });
-
       }
-
     }
 
     _this.load = _this.reload = function(filter, callback) {
-
       if (typeof filter == 'function') {
         callback = filter;
         filter = {};
       }
 
       return new Promise(function(resolve, reject) {
-        let options = { fields: _this.options.fields };
+        let options = {
+          fields: _this.options.fields
+        };
         if (_this.dataSource) {
           if (_this.isValid()) {
             if (_this.options.lookupMode) {
-              resolve({ request: {}, options: options, response: []});
+              resolve({
+                request: {},
+                options: options,
+                response: []
+              });
               beautify();
               _this.loaded = true;
               _this.events.trigger('load', []);
@@ -408,7 +429,11 @@
               });
             }
           } else {
-            resolve({ request: {}, options: options, response: []});
+            resolve({
+              request: {},
+              options: options,
+              response: []
+            });
             _this.loaded = true;
             _this.events.trigger('load', []);
           }
@@ -428,7 +453,6 @@
         }
         throw data;
       });
-
     };
 
     let prevValue = _this.val();
@@ -464,20 +488,19 @@
     });
 
     _this.applyOptions = function(dataSource, options) {
-
       let thereWasDataSource = (typeof _this.dataSource != 'undefined');
 
       _this.dataSource = _this.dataSource || dataSource;
 
-      options = options || Object.create({});
+      options = options || {};
 
-      _this.options = _this.options || Object.create({});
+      _this.options = _this.options || {};
 
-      for(let optionName in options) {
+      for (let optionName in options) {
         _this.options[optionName] = options[optionName];
       }
 
-      _this.options.fields = _this.options.fields || Object.create({});
+      _this.options.fields = _this.options.fields || {};
 
       _this.options.valueField = _this.options.valueField || 'rowid';
       _this.options.nameField = _this.options.nameField || 'name';
@@ -499,7 +522,6 @@
       }
 
       _this.loaded = _this.options.lookupMode;
-
 
       if (_this.dataSource) {
         _this.storageTag = _this.storageTag + ':' + _this.dataSource.options.restServiceUrl;
@@ -531,7 +553,7 @@
           if (result && _this.isValid()) {
             if (!_this.options.lookupMode) {
               if (data[_this.options.valueField]) {
-                _this.selector.find('option[value=' + data[_this.options.valueField] +']').text(getName(data));
+                _this.selector.find('option[value=' + data[_this.options.valueField] + ']').text(getName(data));
               }
             }
             beautify();
@@ -543,7 +565,7 @@
           if (result && _this.isValid()) {
             if (!_this.options.lookupMode) {
               if (data[_this.options.valueField]) {
-                _this.selector.find('option[value=' + data[_this.options.valueField] +']').remove();
+                _this.selector.find('option[value=' + data[_this.options.valueField] + ']').remove();
               }
             }
             beautify();
@@ -567,19 +589,16 @@
       beautify();
 
       return _this;
-
     };
 
     _this.selector.data('BrDataCombo', _this);
-
   }
 
-  window.br.dataCombo = function (selector, dataSource, options) {
+  window.br.dataCombo = function(selector, dataSource, options) {
     let instance = $(selector).data('BrDataCombo');
     if (!instance) {
       instance = new BrDataCombo(selector);
     }
     return instance.applyOptions(dataSource, options);
   };
-
 })(jQuery, window);

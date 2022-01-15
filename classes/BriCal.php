@@ -78,7 +78,7 @@ class BriCal extends BrObject
     $timeZone = date_default_timezone_get();
 
     $result =
-      "BEGIN:VCALENDAR\r\n"  .
+      "BEGIN:VCALENDAR\r\n" .
       "VERSION:2.0\r\n" .
       "CALSCALE:GREGORIAN\r\n" .
       "METHOD:PUBLISH\r\n" .

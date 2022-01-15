@@ -20,9 +20,9 @@ class BrDataBasePatch
 
   protected $dbManager;
 
-  const DO_ABORT    = 0;
+  const DO_ABORT = 0;
   const DO_CONTINUE = 1;
-  const DO_RETRY    = 2;
+  const DO_RETRY = 2;
 
   public function __construct($patchFile, $dbManager)
   {
@@ -229,7 +229,7 @@ class BrDataBasePatch
         $retry = $this->down($stepName, $e->getMessage());
       } catch (\Exception $e2) {
         $error = $error . "\n" .
-                 'DOWN error step "' . $stepName . '":' . "\n\n" . $e2->getMessage();
+          'DOWN error step "' . $stepName . '":' . "\n\n" . $e2->getMessage();
         throw new BrAppException($error);
       }
       switch ($retry) {
