@@ -8,7 +8,6 @@ const configs = {
     src: [
       'js/**/*.js',
       '!vendor/**/*.js',
-      '!node_modules/**/*.js',
       '!3rdparty/**/*.js']
   },
   phplint: {
