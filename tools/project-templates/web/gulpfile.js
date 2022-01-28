@@ -1,25 +1,15 @@
-/* global require */
-/* global exports */
-/* global process */
-
 const gulp = require('gulp');
-const concat = require('gulp-concat');
-const sass = require('gulp-sass-universal');
-const jshint = require('gulp-jshint');
-const terser = require('gulp-terser');
+const eslint = require('gulp-eslint');
 const phplint = require('gulp-phplint');
-const rename = require('gulp-rename');
 const shell = require('gulp-shell');
-const merge = require('merge-stream');
-const child_process = require('child_process');
 
 const configs = {
-  jshint: {
+  eslint: {
     src: [
-    'js/**/*.js',
-    '!vendor/**/*.js',
-    '!node_modules/**/*.js',
-    '!3rdparty/**/*.js']
+      'js/**/*.js',
+      '!vendor/**/*.js',
+      '!node_modules/**/*.js',
+      '!3rdparty/**/*.js']
   },
   phplint: {
     src: [
@@ -34,11 +24,11 @@ const configs = {
   }
 };
 
-gulp.task('jshint', function() {
-  return gulp.src(configs.jshint.src)
-    .pipe(jshint())
-    .pipe(jshint.reporter('default'))
-    .pipe(jshint.reporter('fail'));
+gulp.task('eslint', function() {
+  return gulp.src(configs.eslint.src)
+    .pipe(eslint({quiet: true}))
+    .pipe(eslint.format())
+    .pipe(eslint.failAfterError());
 });
 
 gulp.task('phplint', function() {
@@ -56,7 +46,7 @@ gulp.task('shell:touch', function() {
 gulp.task('build',
   gulp.series(
     gulp.parallel(
-      'jshint',
+      'eslint',
       'phplint'
     ),
     'shell:touch'
