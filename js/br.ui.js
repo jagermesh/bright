@@ -7,7 +7,8 @@
  *
  */
 
-/* jshint scripturl:true */
+/* global humane */
+/* global Mustache */
 
 (function($, window) {
   window.br = window.br || {};
@@ -597,7 +598,7 @@
     }
   };
 
-  window.br.fetch = function(template, data, tags) {
+  window.br.fetch = function(template, data) {
     data = data || {};
     if (template) {
       if (typeof window.Mustache == 'undefined') {
@@ -700,12 +701,12 @@
     }
   }
 
-  function showBackDrop(className) {
+  function showBackDrop() {
     initBackDrop();
     $('#br_modalBackDrop').show();
   }
 
-  function hideBackDrop(className) {
+  function hideBackDrop() {
     $('#br_modalBackDrop').hide();
   }
 
@@ -738,14 +739,14 @@
   };
 
   window.br.showProgress = function() {
-    showBackDrop('progress');
+    showBackDrop();
     $('#br_progressBar').modal('show');
     renderProgress();
   };
 
   window.br.hideProgress = function() {
     $('#br_progressBar').modal('hide');
-    hideBackDrop('progress');
+    hideBackDrop();
   };
 
   window.br.incProgress = function(value) {
@@ -906,8 +907,8 @@
     function getValuesComparison(a, b, columnIndex, direction) {
       const td1 = $($('td', $(a))[columnIndex]);
       const td2 = $($('td', $(b))[columnIndex]);
-      const val1 = td1.attr('data-sort-value') ? td1.attr('data-sort-value') : td1.text().trim().replace(/\%$/, '').replace(/\,/, '');
-      const val2 = td2.attr('data-sort-value') ? td2.attr('data-sort-value') : td2.text().trim().replace(/\%$/, '').replace(/\,/, '');
+      const val1 = td1.attr('data-sort-value') ? td1.attr('data-sort-value') : td1.text().trim().replace(/%$/, '').replace(/,/, '');
+      const val2 = td2.attr('data-sort-value') ? td2.attr('data-sort-value') : td2.text().trim().replace(/%$/, '').replace(/,/, '');
       let val1F = 0;
       let val2F = 0;
       let floatValues = 0;
@@ -926,7 +927,7 @@
       }
     }
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function(resolve) {
       $('tbody', table).each(function() {
         const tbody = $(this);
         $('tr', tbody).sort(function(a, b) {
@@ -1005,33 +1006,33 @@
   function enchanceBootstrap() {
     // const tabbableElements = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, *[tabindex], *[contenteditable]';
 
-    function disableTabbingOnPage(except) {
-      // $.each($(tabbableElements), function (idx, item) {
-      //   const el = $(item);
-      //   if (!el.closest(except).length) {
-      //     const tabindex = el.attr('tabindex');
-      //     if (tabindex) {
-      //       el.attr('data-prev-tabindex', tabindex);
-      //     }
-      //     el.attr('tabindex', '-1');
-      //   }
-      // });
-    }
+    // function disableTabbingOnPage(except) {
+    //   $.each($(tabbableElements), function (idx, item) {
+    //     const el = $(item);
+    //     if (!el.closest(except).length) {
+    //       const tabindex = el.attr('tabindex');
+    //       if (tabindex) {
+    //         el.attr('data-prev-tabindex', tabindex);
+    //       }
+    //       el.attr('tabindex', '-1');
+    //     }
+    //   });
+    // }
 
-    function reEnableTabbingOnPage(except) {
-      // $.each($(tabbableElements), function (idx, item) {
-      //   const el = $(item);
-      //   if (!el.closest(except).length) {
-      //     const prevTabindex = el.attr('data-prev-tabindex');
-      //     if (prevTabindex) {
-      //       el.attr('tabindex', prevTabindex);
-      //     } else {
-      //       el.removeAttr('tabindex');
-      //     }
-      //     el.removeAttr('data-prev-tabindex');
-      //   }
-      // });
-    }
+    // function reEnableTabbingOnPage(except) {
+    //   $.each($(tabbableElements), function (idx, item) {
+    //     const el = $(item);
+    //     if (!el.closest(except).length) {
+    //       const prevTabindex = el.attr('data-prev-tabindex');
+    //       if (prevTabindex) {
+    //         el.attr('tabindex', prevTabindex);
+    //       } else {
+    //         el.removeAttr('tabindex');
+    //       }
+    //       el.removeAttr('data-prev-tabindex');
+    //     }
+    //   });
+    // }
 
     function configureAutosize(control) {
       if (!control.data('brAutoSizeConfigured')) {
@@ -1072,7 +1073,7 @@
             'filter': 'alpha(opacity=' + opacity + ')'
           });
         }
-        disableTabbingOnPage(target);
+        // disableTabbingOnPage(target);
       }
       br.draggable(target, {
         handler: '.modal-header'
@@ -1115,11 +1116,11 @@
             });
           }
         }
-        reEnableTabbingOnPage(target);
+        // reEnableTabbingOnPage(target);
       }
     });
 
-    $(document).on('click', function(event) {
+    $(document).on('click', function() {
       $('.br-dropdown-detached:visible').hide();
     });
 
@@ -1209,7 +1210,7 @@
       br.hideAJAXProgress();
     });
 
-    $(document).ajaxError(function(event, jqXHR, ajaxSettings, thrownError) {
+    $(document).ajaxError(function(event, jqXHR) {
       if (jqXHR.status == 401) {
         if (isAuthorized) {
           br.setAutorizationState(false);
@@ -1228,7 +1229,7 @@
       }
     });
 
-    $(document).on('click', '.action-clear-selector-value', function(event) {
+    $(document).on('click', '.action-clear-selector-value', function() {
       const target = $($(this).attr('data-selector'));
       if (target.length > 0) {
         br.setValue(target, '');

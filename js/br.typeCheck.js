@@ -43,12 +43,7 @@
 
   window.br.isEmptyObject = function(value) {
     if (br.isObject(value)) {
-      let result = true;
-      for (let i in value) {
-        result = false;
-        break;
-      }
-      return result;
+      return (Object.keys(value).length === 0);
     } else {
       return false;
     }

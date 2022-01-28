@@ -88,9 +88,9 @@
 
     if (typeof entity == 'string') {
       if (_this.options.entity.indexOf('/') == -1) {
-        _this.dataSource = br.dataSource(br.baseUrl + 'api/' + _this.options.entity + '/');
+        _this.dataSource = br.dataSource(`${br.baseUrl}api/${_this.options.entity}/`);
       } else {
-        _this.dataSource = br.dataSource(br.baseUrl + _this.options.entity);
+        _this.dataSource = br.dataSource(`${br.baseUrl}${_this.options.entity}`);
       }
       _this.dataSource.on('error', function(operation, error) {
         if (error && (error.length > 0)) {
@@ -221,7 +221,7 @@
     function deleteQueued() {
       if (selectionQueue.length > 0) {
         const rowid = selectionQueue.shift();
-        _this.dataSource.remove(rowid, function(result, response) {
+        _this.dataSource.remove(rowid, function(result) {
           if (result) {
             _this.unSelectRow(rowid);
           }
@@ -250,7 +250,7 @@
         const rowid = selectionQueue.shift();
         let data = {};
         func(data);
-        _this.dataSource.update(rowid, data, function(result, response) {
+        _this.dataSource.update(rowid, data, function(result) {
           if (result) {
             _this.unSelectRow(rowid);
           }
@@ -325,7 +325,7 @@
         options.limit = _this.limit || _this.defaultLimit;
       });
 
-      _this.dataSource.after('remove', function(result, response) {
+      _this.dataSource.after('remove', function(result) {
         if (result) {
           if (selectionQueue.length === 0) {
             _this.resetPager();
@@ -337,7 +337,7 @@
         }
       });
 
-      _this.dataSource.after('insert', function(result, response) {
+      _this.dataSource.after('insert', function(result) {
         if (result) {
           _this.resetPager();
           _this.updatePager();

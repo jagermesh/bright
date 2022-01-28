@@ -34,22 +34,21 @@
     }
 
     Promise.all(functionsQueue).then(function(data) {
-        if (paramsQueue.length > 0) {
-          execute(funcToExecute, paramsQueue, extraParams, resolve, reject);
-        } else {
-          br.stepProgress();
-          if (!extraParams.doNotHideProgress) {
-            br.hideProgress();
-          }
-          resolve(data);
-        }
-      })
-      .catch(function(data) {
-        if (!extraParams.doNotHideProgressOnError) {
+      if (paramsQueue.length > 0) {
+        execute(funcToExecute, paramsQueue, extraParams, resolve, reject);
+      } else {
+        br.stepProgress();
+        if (!extraParams.doNotHideProgress) {
           br.hideProgress();
         }
-        reject(data);
-      });
+        resolve(data);
+      }
+    }).catch(function(data) {
+      if (!extraParams.doNotHideProgressOnError) {
+        br.hideProgress();
+      }
+      reject(data);
+    });
   }
 
   window.br.dataHelpers.execute = function(funcToExecute, funcToGetTotal, funcToGetParams, extraParams) {
@@ -62,13 +61,10 @@
       br.startProgress(funcToGetTotal(), extraParams.title);
       window.setTimeout(function() {
         let paramsQueue = [];
-        while (true) {
-          let params = funcToGetParams();
-          if (params) {
-            paramsQueue.push(params);
-          } else {
-            break;
-          }
+        let params = funcToGetParams();
+        while (params) {
+          paramsQueue.push(params);
+          params = funcToGetParams();
         }
         execute(funcToExecute, paramsQueue, extraParams, resolve, reject);
       });

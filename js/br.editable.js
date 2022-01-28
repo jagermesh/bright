@@ -24,7 +24,7 @@
     _this.editor = null;
     _this.savedWidth = '';
 
-    _this.click = function(element, evt) {
+    _this.click = function() {
       if (!_this.activated()) {
         let content = ((typeof _this.ctrl.attr('data-editable') != 'undefined') ? _this.ctrl.attr('data-editable') : _this.ctrl.text());
         _this.ctrl.data('brEditable-original-html', _this.ctrl.html());
@@ -70,18 +70,18 @@
         _this.editor.on('keyup', function(evt0) {
           let value = _this.editor.val();
           switch (evt0.keyCode) {
-            case 13:
-              if (_this.options.onSave) {
-                _this.options.onSave.call(_this.ctrl, value, 'keyup');
-              } else {
-                _this.apply(value);
-              }
-              evt0.stopPropagation();
-              break;
-            case 27:
-              _this.cancel();
-              evt0.stopPropagation();
-              break;
+          case 13:
+            if (_this.options.onSave) {
+              _this.options.onSave.call(_this.ctrl, value, 'keyup');
+            } else {
+              _this.apply(value);
+            }
+            evt0.stopPropagation();
+            break;
+          case 27:
+            _this.cancel();
+            evt0.stopPropagation();
+            break;
           }
         });
         _this.editor.on('blur', function(evt0) {
@@ -157,18 +157,18 @@
       }
       let instance = $(selector).data('brEditable-editable');
       switch (callback) {
-        case 'exists':
-          return !!instance;
-        case 'get':
-        case 'apply':
-        case 'save':
-        case 'cancel':
-        case 'click':
-          if (!instance) {
-            instance = new BrEditable($(selector), callback);
-            $(selector).data('brEditable-editable', instance);
-          }
-          return instance[callback](value);
+      case 'exists':
+        return !!instance;
+      case 'get':
+      case 'apply':
+      case 'save':
+      case 'cancel':
+      case 'click':
+        if (!instance) {
+          instance = new BrEditable($(selector), callback);
+          $(selector).data('brEditable-editable', instance);
+        }
+        return instance[callback](value);
       }
     } else {
       $(document).on('click', selector, function(event) {

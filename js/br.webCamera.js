@@ -7,18 +7,22 @@
  *
  */
 
-;(function($, window) {
-
+(function($, window) {
   window.br = window.br || {};
 
   function BrWebCamera() {
-
     const _this = this;
 
     _this.events = br.eventQueue(this);
-    _this.before = function(event, callback) { _this.events.before(event, callback); };
-    _this.on     = function(event, callback) { _this.events.on(event, callback); };
-    _this.after  = function(event, callback) { _this.events.after(event, callback); };
+    _this.before = function(event, callback) {
+      _this.events.before(event, callback);
+    };
+    _this.on = function(event, callback) {
+      _this.events.on(event, callback);
+    };
+    _this.after = function(event, callback) {
+      _this.events.after(event, callback);
+    };
 
     const elem = document.createElement('canvas');
     const canvasSupported = !!(elem.getContext && elem.getContext('2d'));
@@ -47,19 +51,21 @@
             }
           };
 
-          br.getUserMedia( { video: true }
-                         , function(stream) {
-                             webCam.srcObject = stream;
-                             webCam.onloadedmetadata = function(event) {
-                               _this.events.trigger('connected', { width: webCam.videoWidth, height: webCam.videoHeight });
-                               webCam.play();
-                               br.requestAnimationFrame(requestFrame);
-                             };
-                           }
-                         , function (error) {
-                             _this.events.trigger('error', error);
-                           }
-                         );
+          br.getUserMedia({
+            video: true
+          }, function(stream) {
+            webCam.srcObject = stream;
+            webCam.onloadedmetadata = function() {
+              _this.events.trigger('connected', {
+                width: webCam.videoWidth,
+                height: webCam.videoHeight
+              });
+              webCam.play();
+              br.requestAnimationFrame(requestFrame);
+            };
+          }, function (error) {
+            _this.events.trigger('error', error);
+          });
         } catch (error) {
           _this.events.trigger('error', error);
         }
@@ -76,12 +82,11 @@
             tracks[0].stop();
           }
         } catch (error) {
-
+          //
         }
       }
       webCam.srcObject = null;
     };
-
   }
 
   let webCamera;
@@ -92,5 +97,4 @@
     }
     return webCamera;
   };
-
 })(jQuery, window);

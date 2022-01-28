@@ -76,7 +76,7 @@ class GitPreCommitHook
 
   private function JSLint()
   {
-    $this->lint('.js', 'jshint', 'JSHint', 'https://jshint.com/install/');
+    $this->lint('.js', 'eslint --quiet', 'ESLint', 'https://eslint.org/docs/user-guide/getting-started');
   }
 
   private function PHPLint()
@@ -86,12 +86,16 @@ class GitPreCommitHook
 
   private function PHPCS()
   {
-    $this->lint('.php', dirname(dirname(__DIR__)) . '/vendor/bin/phpcs', 'PHPCS', 'https://github.com/squizlabs/PHP_CodeSniffer');
+    $toolName = $this->isWindows ? 'squizlabs/php_codesniffer/bin/phpcs.bat' : 'bin/phpcs';
+    $cmdPath = file_exists(dirname(dirname(__DIR__)) . '/vendor/' . $toolName) ? dirname(dirname(__DIR__)) . '/vendor/' . $toolName :  dirname(dirname(__DIR__)) . '/v2/vendor/' . $toolName;
+    $this->lint('.php', $cmdPath, 'PHPCBF', 'https://github.com/squizlabs/PHP_CodeSniffer');
   }
 
   private function PHPCBF()
   {
-    $this->lint('.php', dirname(dirname(__DIR__)) . '/vendor/bin/phpcbf', 'PHPCBF', 'https://github.com/squizlabs/PHP_CodeSniffer');
+    $toolName = $this->isWindows ? 'squizlabs/php_codesniffer/bin/phpcbf.bat' : 'bin/phpcbf';
+    $cmdPath = file_exists(dirname(dirname(__DIR__)) . '/vendor/' . $toolName) ? dirname(dirname(__DIR__)) . '/vendor/' . $toolName :  dirname(dirname(__DIR__)) . '/v2/vendor/' . $toolName;
+    $this->lint('.php', $cmdPath, 'PHPCBF', 'https://github.com/squizlabs/PHP_CodeSniffer');
   }
 
   public function run()

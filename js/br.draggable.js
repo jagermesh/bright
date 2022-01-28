@@ -77,7 +77,7 @@
       }
     }
 
-    function upHandler(e) {
+    function upHandler() {
       if (dragObject !== null) {
         dragObject = null;
       }
@@ -105,8 +105,8 @@
         moveHandler(event);
       });
 
-      window.addEventListener('mouseup', function(event) {
-        upHandler(event);
+      window.addEventListener('mouseup', function() {
+        upHandler();
       });
 
       dragHandler.addEventListener('touchstart', function(event) {
@@ -117,8 +117,8 @@
         moveHandler(event);
       });
 
-      window.addEventListener('touchend', function(event) {
-        upHandler(event);
+      window.addEventListener('touchend', function() {
+        upHandler();
       });
 
       dragHandler.__br_draggable = _this;

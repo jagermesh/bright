@@ -21,7 +21,7 @@ class BrSFTP extends BrRemoteConnection
 
   public function connectWithKey($hostName, $userName, $keyFileName, $port = 22, $keyFilePassword = '')
   {
-    $key = new \phpseclib3\Crypt\RSA();
+    $key = new \phpseclib\Crypt\RSA();
     if ($keyFilePassword) {
       $key->setPassword($keyFilePassword);
     }
@@ -42,7 +42,7 @@ class BrSFTP extends BrRemoteConnection
     try {
       $this->retry(function ($iteration) use ($_this, $hostName, $userName, $password, $port) {
         br()->log('Connecting to ' . $userName . '@' . $hostName . ($iteration > 1 ? ' (' . $iteration . ')' : ''));
-        $_this->connection = new \phpseclib3\Net\SFTP($hostName, $port);
+        $_this->connection = new \phpseclib\Net\SFTP($hostName, $port);
         if ($_this->connection->login($userName, $password)) {
           $_this->currentDirectory = $_this->getServerDir();
         } else {
@@ -160,7 +160,7 @@ class BrSFTP extends BrRemoteConnection
 
     $targetFileNamePartial = $targetFileName . '.partial';
 
-    if ($this->connection->put($this->currentDirectory . $targetFileNamePartial, $sourceFilePath, \phpseclib3\Net\SFTP::SOURCE_LOCAL_FILE)) {
+    if ($this->connection->put($this->currentDirectory . $targetFileNamePartial, $sourceFilePath, \phpseclib\Net\SFTP::SOURCE_LOCAL_FILE)) {
       if ($this->renameFile($this->currentDirectory . $targetFileNamePartial, $this->currentDirectory . $targetFileName)) {
         return true;
       } elseif ($this->deleteFile($this->currentDirectory . $targetFileName)) {

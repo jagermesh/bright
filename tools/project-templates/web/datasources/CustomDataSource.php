@@ -10,8 +10,8 @@ class CustomDataSource extends \Bright\BrDataSource
 
     $this->on('calcFields', function ($dataSource, &$row) {
       $row['__permissions'] = [
-        'canUpdate' => $dataSource->canUpdate($row),
-        'canRemove' => $dataSource->canRemove($row)
+        'canUpdate' => $this->canUpdate($row),
+        'canRemove' => $this->canRemove($row)
       ];
     });
   }

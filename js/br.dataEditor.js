@@ -103,21 +103,21 @@
       } else
       if (editorRowid) {
         switch (workMode) {
-          case 'copy':
-            title = `Copy ${_this.options.noun}`;
-            break;
-          case 'view':
-            title = `View ${_this.options.noun}`;
-            if (!_this.options.hideRowid) {
-              title += ` (#${editorRowid})`;
-            }
-            break;
-          default:
-            title = `Edit ${_this.options.noun}`;
-            if (!_this.options.hideRowid) {
-              title += ` (#${editorRowid})`;
-            }
-            break;
+        case 'copy':
+          title = `Copy ${_this.options.noun}`;
+          break;
+        case 'view':
+          title = `View ${_this.options.noun}`;
+          if (!_this.options.hideRowid) {
+            title += ` (#${editorRowid})`;
+          }
+          break;
+        default:
+          title = `Edit ${_this.options.noun}`;
+          if (!_this.options.hideRowid) {
+            title += ` (#${editorRowid})`;
+          }
+          break;
         }
       } else {
         title = `Create ${_this.options.noun}`;
@@ -134,13 +134,17 @@
       if (focusedInput.length > 0) {
         try {
           focusedInput[0].focus();
-        } catch (e) {}
+        } catch (e) {
+          //
+        }
       } else {
         focusedInput = $('input[type!=hidden]:visible,select:visible,textarea:visible', _this.container);
         if (focusedInput.length > 0) {
           try {
             focusedInput[0].focus();
-          } catch (e) {}
+          } catch (e) {
+            //
+          }
         }
       }
       if ($.fn.bootstrapDatepicker) {
@@ -219,11 +223,11 @@
         br.confirmClose();
       };
 
-      $(_this.inputsContainer).on('change', 'select.data-field,input.data-field,textarea.data-field', function(event) {
+      $(_this.inputsContainer).on('change', 'select.data-field,input.data-field,textarea.data-field', function() {
         updateEditorTitle($(this));
       });
 
-      $(_this.inputsContainer).on('input', 'select.data-field,input.data-field,textarea.data-field', function(event) {
+      $(_this.inputsContainer).on('input', 'select.data-field,input.data-field,textarea.data-field', function() {
         updateEditorTitle($(this));
       });
 
@@ -262,7 +266,7 @@
                 (function(ckeditorInstance0, data0) {
                   ckeditorInstance0.setData(data0, {
                     noSnapshot: true,
-                    callback: function(aa) {
+                    callback: function() {
                       if (ckeditorInstance0.getData() != data0) {
                         // not sure why but setData is not wroking sometimes, so need to run again :(
                         ckeditorInstance0.setData(data0, {
@@ -623,18 +627,18 @@
           let operation = editorRowid ? 'update' : 'insert';
           if (_this.events.has('editor.save', 'pause')) {
             _this.events.triggerPause('editor.save', {
-                continue: function(data0) {
-                  saveContinue(andClose, successCallback, errorCallback, silent, data0);
-                },
-                cancel: function(error) {
-                  if (errorCallback) {
-                    errorCallback.call(_this, data, error);
-                  }
-                  saving = false;
-                }
+              continue: function(data0) {
+                saveContinue(andClose, successCallback, errorCallback, silent, data0);
               },
-              operation,
-              data
+              cancel: function(error) {
+                if (errorCallback) {
+                  errorCallback.call(_this, data, error);
+                }
+                saving = false;
+              }
+            },
+            operation,
+            data
             );
           } else {
             saveContinue(andClose, successCallback, errorCallback, silent, data);

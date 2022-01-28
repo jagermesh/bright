@@ -7,9 +7,9 @@
  *
  */
 
-(function($, window) {
+(function($) {
   $(function() {
-    let usersDataSourcee = br.dataSource(br.baseUrl + 'api/users/');
+    let usersDataSourcee = br.dataSource(`${br.baseUrl}api/users/`);
 
     $('.action-signup').click(function() {
       let data = {};
@@ -120,5 +120,4 @@
       });
     });
   });
-
-})(jQuery, window);
+})(jQuery);

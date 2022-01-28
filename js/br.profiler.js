@@ -7,8 +7,6 @@
  *
  */
 
-/* global Int32Array */
-
 (function(window) {
   window.br = window.br || {};
 

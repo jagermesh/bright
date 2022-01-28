@@ -206,11 +206,11 @@
         if (_this.isValid()) {
           br.setValue(_this.selector, value, true);
           switch (beautifier) {
-            case 'select2':
-              break;
-            case 'selectize':
-              _this.selector[0].selectize.setValue(value);
-              break;
+          case 'select2':
+            break;
+          case 'selectize':
+            _this.selector[0].selectize.setValue(value);
+            break;
           }
           beautify();
           if (_this.options.lookupMode) {
@@ -281,7 +281,7 @@
       _this.selector.find('option[value=' + value + ']').attr('disabled', 'disabled');
     };
 
-    _this.disableAllOptions = function(value) {
+    _this.disableAllOptions = function() {
       _this.selector.find('option').attr('disabled', 'disabled');
     };
 
@@ -289,7 +289,7 @@
       _this.selector.find('option[value=' + value + ']').removeAttr('disabled');
     };
 
-    _this.enableAllOptions = function(value) {
+    _this.enableAllOptions = function() {
       _this.selector.find('option').removeAttr('disabled');
     };
 

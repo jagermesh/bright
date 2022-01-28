@@ -1,4 +1,0 @@
-/dist/**/*.js
-/3rdparty/**/*.js
-
-/**/*.min.js

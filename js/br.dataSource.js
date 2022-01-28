@@ -149,7 +149,7 @@
                 });
               }
             },
-            error: function(jqXHR, textStatus, errorThrown) {
+            error: function(jqXHR) {
               handleError(request, options, jqXHR, reject);
             }
           });
@@ -241,7 +241,7 @@
                 response: response
               });
             },
-            error: function(jqXHR, textStatus, errorThrown) {
+            error: function(jqXHR) {
               handleError(request, options, jqXHR, reject);
             }
           });
@@ -332,7 +332,7 @@
                 response: response
               });
             },
-            error: function(jqXHR, textStatus, errorThrown) {
+            error: function(jqXHR) {
               if (!br.isUnloading()) {
                 let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
                 reject({
@@ -638,7 +638,7 @@
                 selectOperationCounter--;
               }
             },
-            error: function(jqXHR, textStatus, errorThrown) {
+            error: function(jqXHR) {
               try {
                 _this.ajaxRequest = null;
                 if (!br.isUnloading()) {
@@ -744,7 +744,7 @@
               response: response
             });
           },
-          error: function(jqXHR, textStatus, errorThrown) {
+          error: function(jqXHR) {
             if (!br.isUnloading()) {
               let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
               reject({

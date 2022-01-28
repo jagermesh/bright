@@ -121,11 +121,11 @@
       tbodyCopy.style.display = '';
       tbodyCopy.style.overflow = '';
 
-      theadColsCopy.each(function(idx) {
+      theadColsCopy.each(function() {
         colsCopy(this);
       });
 
-      tbodyColsCopy.each(function(idx) {
+      tbodyColsCopy.each(function() {
         colsCopy(this);
       });
 

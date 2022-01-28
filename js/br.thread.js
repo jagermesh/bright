@@ -26,12 +26,12 @@
       }
     };
 
-    _this.done = function(func) {
+    _this.done = function() {
       _this.workingQueue.pop();
       _this.wakeup();
     };
 
-    this.clear = function(func) {
+    this.clear = function() {
       _this.queue = [];
       _this.workingQueue = [];
     };

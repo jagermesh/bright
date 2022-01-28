@@ -1,20 +1,15 @@
-/* global require */
-/* global exports */
-/* global console */
-
 const gulp = require('gulp');
 const concat = require('gulp-concat');
 const terser = require('gulp-terser');
 const sass = require('gulp-sass-universal');
-const jshint = require('gulp-jshint');
+const eslint = require('gulp-eslint');
 const phplint = require('gulp-phplint');
 const rename = require('gulp-rename');
 const shell = require('gulp-shell');
 const merge = require('merge-stream');
-const child_process = require('child_process');
 
 const configs = {
-  jshint: {
+  eslint: {
     src: ['js/**/*.js']
   },
   phplint: {
@@ -113,11 +108,11 @@ const configs = {
   }
 };
 
-gulp.task('jshint', function() {
-  return gulp.src(configs.jshint.src)
-    .pipe(jshint())
-    .pipe(jshint.reporter('default'))
-    .pipe(jshint.reporter('fail'));
+gulp.task('eslint', function() {
+  return gulp.src(configs.eslint.src)
+    .pipe(eslint())
+    .pipe(eslint.format())
+    .pipe(eslint.failAfterError());
 });
 
 gulp.task('phplint', function() {
@@ -190,21 +185,19 @@ gulp.task('concat:dist', function() {
 
 gulp.task('shell:chmod', function() {
   return gulp.src('gulpfile.js', {
-      read: false
-    })
-    .pipe(shell(configs.shell.chmod));
+    read: false
+  }).pipe(shell(configs.shell.chmod));
 });
 
 gulp.task('shell:test', function() {
   return gulp.src('gulpfile.js', {
-      read: false
-    })
-    .pipe(shell(configs.shell.test));
+    read: false
+  }).pipe(shell(configs.shell.test));
 });
 
 gulp.task('build',
   gulp.series(
-    gulp.parallel('jshint', 'phplint', 'uglify:libs'),
+    gulp.parallel('eslint', 'phplint', 'uglify:libs'),
     'sass',
     'concat:core',
     gulp.parallel('concat:dist', 'concat:css'),

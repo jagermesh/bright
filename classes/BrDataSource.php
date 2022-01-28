@@ -344,9 +344,10 @@ class BrDataSource extends BrGenericDataSource
             if (!$result) {
               $result = $row;
             }
-            $result[BrConst::DATASOURCE_SYSTEM_FIELD_ROWID] = $this->getDb()->rowidValue($result);
+            unset($result[BrConst::DATASOURCE_SYSTEM_FIELD_ROWID]);
             $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, BrConst::DATASOURCE_EVENT_INSERT), $result, $transientData, $old, $options);
             $this->onAfterInsert($result, $transientData, $options);
+            $result[BrConst::DATASOURCE_SYSTEM_FIELD_ROWID] = $this->getDb()->rowidValue($result);
             if ($result && !br($options, BrConst::DATASOURCE_OPTION_NO_CALC_FIELDS)) {
               $resultsArr = [$result];
               $this->callEvent(BrConst::DATASOURCE_EVENT_PREPARE_CALC_FIELDS, $resultsArr, $transientData, $options);
@@ -459,9 +460,10 @@ class BrDataSource extends BrGenericDataSource
             if (!$result) {
               $result = $new;
             }
-            $result[BrConst::DATASOURCE_SYSTEM_FIELD_ROWID] = $this->getDb()->rowidValue($result);
+            unset($result[BrConst::DATASOURCE_SYSTEM_FIELD_ROWID]);
             $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, BrConst::DATASOURCE_EVENT_UPDATE), $result, $transientData, $old, $options);
             $this->onAfterUpdate($result, $transientData, $old, $options);
+            $result[BrConst::DATASOURCE_SYSTEM_FIELD_ROWID] = $this->getDb()->rowidValue($result);
             if ($result && !br($options, BrConst::DATASOURCE_OPTION_NO_CALC_FIELDS)) {
               $resultsArr = [$result];
               $this->callEvent(BrConst::DATASOURCE_EVENT_PREPARE_CALC_FIELDS, $resultsArr, $transientData, $options);
@@ -559,6 +561,7 @@ class BrDataSource extends BrGenericDataSource
           if (is_null($result)) {
             $table->remove($filter);
             $result = $crow;
+            unset($result[BrConst::DATASOURCE_SYSTEM_FIELD_ROWID]);
             $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, BrConst::DATASOURCE_EVENT_DELETE), $result, $transientData, $options);
             $this->onAfterDelete($result, $transientData, $options);
             $result[BrConst::DATASOURCE_SYSTEM_FIELD_ROWID] = $this->getDb()->rowidValue($result);

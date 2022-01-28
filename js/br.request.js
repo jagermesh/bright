@@ -7,8 +7,6 @@
  *
  */
 
-/* global URL */
-
 (function(window) {
   window.br = window.br || {};
 
@@ -57,7 +55,7 @@
         }
       }
       if (name) {
-        if (vals.hasOwnProperty(name)) {
+        if (Object.prototype.hasOwnProperty.call(vals, name)) {
           return vals[name];
         }
         return defaultValue;

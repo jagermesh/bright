@@ -16,7 +16,7 @@ class UsersDataSource extends \Bright\BrUsersDataSource
 
     $this->on('getCurrentUser', function ($dataSource) {
       if ($userId = br()->auth()->getLogin('id')) {
-        if ($result = $dataSource->selectOne($userId)) {
+        if ($result = $this->selectOne($userId)) {
           return $result;
         }
       }

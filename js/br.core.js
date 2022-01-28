@@ -7,12 +7,6 @@
  *
  */
 
-/* global console */
-/* global ArrayBuffer */
-/* global Uint32Array */
-/* global FormData */
-/* global safari */
-
 (function($, window) {
   window.br = window.br || {};
 
@@ -43,7 +37,7 @@
   window.br.brightUrl = brightUrl;
   window.br.popupBlocker = 'unknown';
 
-  window.br.log = function(msg) {
+  window.br.log = function() {
     if (typeof(console) != 'undefined') {
       if (!logStarted) {
         console.log('*********************** LOG STARTED ***********************');
@@ -53,7 +47,7 @@
     }
   };
 
-  window.br.logError = function(msg) {
+  window.br.logError = function() {
     if (typeof(console) != 'undefined') {
       if (!logStarted) {
         console.log('*********************** LOG STARTED ***********************');
@@ -63,7 +57,7 @@
     }
   };
 
-  window.br.logWarning = function(msg) {
+  window.br.logWarning = function() {
     if (typeof(console) != 'undefined') {
       if (!logStarted) {
         console.log('*********************** LOG STARTED ***********************');
@@ -136,7 +130,7 @@
               }
             }
           } catch (e) {
-
+            //
           }
         }
       }
@@ -536,7 +530,7 @@
     window.br.events.trigger('closeConfirmationRequested');
   };
 
-  window.br.resetCloseConfirmation = function(message) {
+  window.br.resetCloseConfirmation = function() {
     closeConfirmationRequired = false;
     window.br.events.trigger('closeConfirmationReset');
   };
@@ -557,7 +551,7 @@
               }
             }
           } catch (e) {
-
+            //
           }
         }
       }
@@ -614,7 +608,7 @@
     f.call();
   };
 
-  /* jshint ignore:start */
+  /* eslint-disable */
   window.br.load = window.br.resourceLoader = function(j) {
     function p(c, a) {
       var g = j.createElement(c),
@@ -668,14 +662,14 @@
         a = q.urls;
         f = 0;
         for (l = a.length; f < l; ++f) g = a[f], o ? d = b.gecko ? p("style") : p("link", {
-            href: g,
-            rel: "stylesheet"
-          }) : (d = p("script", {
-            src: g
-          }), d.async = !1), d.className =
-          "lazyload", d.setAttribute("charset", "utf-8"), b.ie && !o ? d.onreadystatechange = function() {
-            if (/loaded|complete/.test(d.readyState)) d.onreadystatechange = null, i()
-          } : o && (b.gecko || b.webkit) ? b.webkit ? (q.urls[f] = d.href, s()) : (d.innerHTML = '@import "' + g + '";', m("css")) : d.onload = d.onerror = i, r.appendChild(d)
+          href: g,
+          rel: "stylesheet"
+        }) : (d = p("script", {
+          src: g
+        }), d.async = !1), d.className =
+        "lazyload", d.setAttribute("charset", "utf-8"), b.ie && !o ? d.onreadystatechange = function() {
+          if (/loaded|complete/.test(d.readyState)) d.onreadystatechange = null, i()
+        } : o && (b.gecko || b.webkit) ? b.webkit ? (q.urls[f] = d.href, s()) : (d.innerHTML = '@import "' + g + '";', m("css")) : d.onload = d.onerror = i, r.appendChild(d)
       }
     }
 
@@ -709,7 +703,7 @@
       }
     }
   }(document);
-  /* jshint ignore:end */
+  /* eslint-enable */
 
   window.br.URL = window.URL || window.webkitURL;
 
@@ -825,7 +819,7 @@
             event.preventDefault();
           }
         } catch (error) {
-
+          //
         }
       }
     });
@@ -884,15 +878,15 @@
         if (!error.filename || (error.filename.indexOf('chrome-extension') !== 0)) {
           let message = '';
           switch (format) {
-            case 'html':
-              message = printObject(error, '<br />');
-              break;
-            case 'text':
-              message = printObject(error, '\n');
-              break;
-            default:
-              message = JSON.stringify(error);
-              break;
+          case 'html':
+            message = printObject(error, '<br />');
+            break;
+          case 'text':
+            message = printObject(error, '\n');
+            break;
+          default:
+            message = JSON.stringify(error);
+            break;
           }
           let data = new FormData();
           data.append('error', message);

@@ -7,8 +7,6 @@
  *
  */
 
-/* global WebSocket */
-
 (function(window) {
   window.br = window.br || {};
 
@@ -73,7 +71,7 @@
             webSocket.close();
           }
         } catch (exception) {
-
+          //
         }
         webSocket = null;
       }
@@ -113,16 +111,16 @@
           try {
             let message = $.parseJSON(event.data);
             switch (message.action) {
-              case 'eventBus.registered':
-                _this.setClientUID(message.clientUID);
-                break;
-              case 'eventBus.usersList':
-                _this.spaces.trigger(message.spaceName, message.data);
-                break;
-              default:
-                if (!message.clientUID || (_this.getClientUID() != message.clientUID)) {
-                  _this.subscriptions.trigger(message.action, message.data);
-                }
+            case 'eventBus.registered':
+              _this.setClientUID(message.clientUID);
+              break;
+            case 'eventBus.usersList':
+              _this.spaces.trigger(message.spaceName, message.data);
+              break;
+            default:
+              if (!message.clientUID || (_this.getClientUID() != message.clientUID)) {
+                _this.subscriptions.trigger(message.action, message.data);
+              }
             }
           } catch (exception) {
             br.log(exception);
@@ -176,7 +174,7 @@
       _this.events.off(event);
     };
 
-    _this.offAll = function(event) {
+    _this.offAll = function() {
       _this.events = br.eventQueue(_this);
     };
 
@@ -189,7 +187,7 @@
       _this.subscriptions.off(event);
     };
 
-    _this.unsubscribeAll = function(event) {
+    _this.unsubscribeAll = function() {
       _this.subscriptions.subscribers = {};
     };
 

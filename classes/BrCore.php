@@ -1976,7 +1976,10 @@ class BrCore extends BrObject
 
       if ($from = br($params, 'sender', br()->config()->get('br/mail/from', $emails[0]))) {
         $email->addFrom(new Address($from, $fromName));
-        $email->addReplyTo(new Address($from, $fromName));
+      }
+
+      if ($replyTo = br($params, 'replyTo')) {
+        $email->addReplyTo(new Address($replyTo, $fromName));
       }
     }
 

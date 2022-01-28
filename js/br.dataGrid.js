@@ -599,7 +599,7 @@
           options.order = _this.getOrder();
         });
 
-        _this.dataSource.after('select', function(result, response, request) {
+        _this.dataSource.after('select', function(result, response) {
           $(_this.selector).removeClass('progress-big');
           if (result) {
             noMoreData = (response.length === 0);
@@ -652,7 +652,7 @@
             if (!br.isEmpty(rowid) && !br.isEmpty(dataField)) {
               let data = {};
               data[dataField] = content;
-              _this.dataSource.update(rowid, data, function(result, response) {
+              _this.dataSource.update(rowid, data, function(result) {
                 if (result) {
                   _this.events.trigger('editable.update', $this, content);
                 }
@@ -660,9 +660,7 @@
             }
           });
         }
-
       }
-
     };
 
     this.render = function(data, loadingMoreData) {
