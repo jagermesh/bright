@@ -76,7 +76,7 @@ class GitPreCommitHook
 
   private function JSLint()
   {
-    $this->lint('.js', 'eslint --quiet', 'ESLint', 'https://eslint.org/docs/user-guide/getting-started');
+    $this->lint('.js', 'eslint --fix --quiet', 'ESLint', 'https://eslint.org/docs/user-guide/getting-started');
   }
 
   private function PHPLint()
