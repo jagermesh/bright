@@ -193,6 +193,7 @@ class BrConst
   public const FILTER_RULE_LTE = '$lte';
   public const FILTER_RULE_LIKE = '$like';
   public const FILTER_RULE_CONTAINS = '$contains';
+  public const FILTER_RULE_CONTAINS_ALL = '$containsAll';
   public const FILTER_RULE_FULLTEXT = '$fulltext';
   public const FILTER_RULE_STARTS = '$starts';
   public const FILTER_RULE_ENDS = '$ends';

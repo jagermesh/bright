@@ -171,7 +171,7 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider
     $usersTable = $this->getAttr(self::USERS_TABLE_NAME);
     $loginField = $this->getAttr(self::USERS_TABLE_LOGIN_FIELD);
 
-    return br()->db()->getCachedRow(sprintf(self::SQL_FIND_USERR_BY_LOGIN, $usersTable, $loginField), $login);
+    return br()->db()->getCachedRows(sprintf(self::SQL_FIND_USERR_BY_LOGIN, $usersTable, $loginField), $login);
   }
 
   public function checkLogin($returnNotAuthorized = true)

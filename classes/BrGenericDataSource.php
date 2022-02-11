@@ -443,7 +443,7 @@ class BrGenericDataSource extends BrObject
     return null;
   }
 
-  protected function onPrepareCalcFields(&$row, &$transientData, &$options)
+  protected function onPrepareCalcFields(&$result, &$transientData, &$options)
   {
     //
   }

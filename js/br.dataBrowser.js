@@ -124,7 +124,7 @@
       appendInInsert: _this.options.appendInInsert,
       defaultOrderAndGroup: _this.options.defaultOrderAndGroup,
       fixedHeader: _this.options.fixedHeader,
-      autoHeight: _this.options.autoHeight,
+      autoHeight: !br.isMobileDevice() ? _this.options.autoHeight : false,
       autoWidth: _this.options.autoWidth,
       storageTag: _this.options.storageTag,
       storeDataRow: _this.options.storeDataRow

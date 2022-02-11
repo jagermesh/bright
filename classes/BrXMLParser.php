@@ -96,10 +96,10 @@ class BrXMLParser extends BrObject
 
   public function getCurrentState()
   {
-    $result = array_pop($this->currentState);
-    $this->currentState[] = $result;
+    $state = array_pop($this->currentState);
+    $this->currentState[] = $state;
 
-    return $result;
+    return $state;
   }
 
   public function getCurrentPath()

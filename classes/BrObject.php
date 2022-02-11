@@ -191,8 +191,8 @@ class BrObject
   {
     $result = null;
 
-    if ($events = br($this->events, $event)) {
-      foreach ($events as $func) {
+    if ($callableEvents = br($this->events, $event)) {
+      foreach ($callableEvents as $func) {
         $result = $func($this, $context1, $context2, $context3, $context4, $context5, $context6);
       }
     }

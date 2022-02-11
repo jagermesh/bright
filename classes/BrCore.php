@@ -2036,12 +2036,9 @@ class BrCore extends BrObject
         }
         $dsn .= br($params, 'hostname', br()->config()->get('br/mail/SMTP/hostname'));
 
-        if (($port = br($params, 'port', br()->config()->get('br/mail/SMTP/port')))) {
+        if ($port = br($params, 'port', br()->config()->get('br/mail/SMTP/port'))) {
           $dsn .= ':' . $port;
         }
-
-//        if ($encryption = br($params, 'secure', br()->config()->get('br/mail/SMTP/encryption')) {
-//        }
         break;
       default:
         $dsn = 'sendmail://default?command=/usr/sbin/sendmail%20-bs';
@@ -2329,7 +2326,7 @@ class BrCore extends BrObject
       } else {
         $error = 'Can not run shell command ' . $cmd;
       }
-      throw new \Exception($error);
+      throw new BrException($error);
     }
 
     return $log;

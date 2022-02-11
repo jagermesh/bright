@@ -599,14 +599,46 @@ class BrGenericSQLProviderTable extends BrObject
         case BrConst::FILTER_RULE_CONTAINS:
           if (is_array($filterValue)) {
             $where .= $link . '(' . self::SQL_CMD_FAKE_FALSE;
-            foreach ($filterValue as $name => $value) {
-              if (strpos($name, '.') === false) {
-                $tmpFName2 = $tableName . '.' . $name;
-              } else {
-                $tmpFName2 = $name;
+            if (br($filterValue)->isRegularArray()) {
+              foreach ($filterValue as $value) {
+                $where .= self::SQL_CMD_OR . $fname2 . self::SQL_CMD_LIKE;
+                $args[] = '%' . $value . '%';
               }
-              $where .= self::SQL_CMD_OR . $tmpFName2 . self::SQL_CMD_LIKE;
-              $args[] = '%' . $value . '%';
+            } else {
+              foreach ($filterValue as $name => $value) {
+                if (strpos($name, '.') === false) {
+                  $tmpFName2 = $tableName . '.' . $name;
+                } else {
+                  $tmpFName2 = $name;
+                }
+                $where .= self::SQL_CMD_OR . $tmpFName2 . self::SQL_CMD_LIKE;
+                $args[] = '%' . $value . '%';
+              }
+            }
+            $where .= ')';
+          } else {
+            $where .= $link . $fname2 . self::SQL_CMD_LIKE;
+            $args[] = '%' . $filterValue . '%';
+          }
+          break;
+        case BrConst::FILTER_RULE_CONTAINS_ALL:
+          if (is_array($filterValue)) {
+            $where .= $link . '(' . self::SQL_CMD_FAKE_TRUE;
+            if (br($filterValue)->isRegularArray()) {
+              foreach ($filterValue as $value) {
+                $where .= self::SQL_CMD_AND . $fname2 . self::SQL_CMD_LIKE;
+                $args[] = '%' . $value . '%';
+              }
+            } else {
+              foreach ($filterValue as $name => $value) {
+                if (strpos($name, '.') === false) {
+                  $tmpFName2 = $tableName . '.' . $name;
+                } else {
+                  $tmpFName2 = $name;
+                }
+                $where .= self::SQL_CMD_AND . $tmpFName2 . self::SQL_CMD_LIKE;
+                $args[] = '%' . $value . '%';
+              }
             }
             $where .= ')';
           } else {

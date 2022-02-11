@@ -91,13 +91,6 @@ class BrGenericSQLProviderCursor implements \Iterator
   public function sort($order = [])
   {
     $this->orderBy = $order;
-    // if ($order) {
-    //   $fields = [];
-    //   foreach($order as $field => $direction) {
-    //     $fields[] = $field . ' ' . ($direction == 1 ? self::SQL_CMD_ORDER_ASC : self::SQL_CMD_ORDER_DESC);
-    //   }
-    //   $this->sql .= "\n" . self::SQL_CMD_ORDER_BY . br($fields)->join(', ');
-    // }
 
     return $this;
   }
@@ -105,9 +98,6 @@ class BrGenericSQLProviderCursor implements \Iterator
   public function group($fields = [])
   {
     $this->groupBy = $fields;
-    // if ($fields) {
-    //   $this->sql .= "\n" . self::SQL_CMD_GROUP_BY . br($fields)->join(', ');
-    // }
 
     return $this;
   }
@@ -115,9 +105,6 @@ class BrGenericSQLProviderCursor implements \Iterator
   public function having($conditions = [])
   {
     $this->having = $conditions;
-    // if ($conditions) {
-    //   $this->sql .= "\n" . self::SQL_CMD_HAVING . br($conditions)->join(self::SQL_CMD_AND);
-    // }
 
     return $this;
   }
@@ -129,27 +116,27 @@ class BrGenericSQLProviderCursor implements \Iterator
 
   public function getStatement()
   {
-    $sql = $this->buildSql();
+    $finalSql = $this->buildSql();
     if (strlen($this->limit)) {
-      $sql = $this->provider->getLimitSQL($sql, $this->skip, $this->limit);
+      $finalSql = $this->provider->getLimitSQL($finalSql, $this->skip, $this->limit);
     }
 
     return [
-      'sql' => $sql,
+      'sql' => $finalSql,
       'args' => $this->args
     ];
   }
 
   public function getSQL()
   {
-    $sql = $this->buildSql();
+    $finalSql = $this->buildSql();
     if (strlen($this->limit)) {
-      $sql = $this->provider->getLimitSQL($sql, $this->skip, $this->limit);
+      $finalSql = $this->provider->getLimitSQL($finalSql, $this->skip, $this->limit);
     }
     if ($this->args) {
-      return br()->placeholderEx($sql, $this->args, $error);
+      return br()->placeholderEx($finalSql, $this->args, $error);
     } else {
-      return $sql;
+      return $finalSql;
     }
   }
 
@@ -157,14 +144,14 @@ class BrGenericSQLProviderCursor implements \Iterator
 
   private function buildSql()
   {
-    $sql = $this->sql;
+    $finalSql = $this->sql;
 
     if ($this->groupBy) {
-      $sql .= "\n" . self::SQL_CMD_GROUP_BY . br($this->groupBy)->join(', ');
+      $finalSql .= "\n" . self::SQL_CMD_GROUP_BY . br($this->groupBy)->join(', ');
     }
 
     if ($this->having) {
-      $sql .= "\n" . self::SQL_CMD_HAVING . br($this->having)->join(self::SQL_CMD_AND);
+      $finalSql .= "\n" . self::SQL_CMD_HAVING . br($this->having)->join(self::SQL_CMD_AND);
     }
 
     if ($this->orderBy) {
@@ -172,21 +159,21 @@ class BrGenericSQLProviderCursor implements \Iterator
       foreach ($this->orderBy as $field => $direction) {
         $fields[] = $field . ' ' . ($direction == 1 ? self::SQL_CMD_ORDER_ASC : self::SQL_CMD_ORDER_DESC);
       }
-      $sql .= "\n" . self::SQL_CMD_ORDER_BY . br($fields)->join(', ');
+      $finalSql .= "\n" . self::SQL_CMD_ORDER_BY . br($fields)->join(', ');
     }
 
-    return $sql;
+    return $finalSql;
   }
 
   private function getData()
   {
     if ($this->position == -1) {
-      $sql = $this->buildSql();
+      $finalSql = $this->buildSql();
       if (strlen($this->limit)) {
-        $sql = $this->provider->getLimitSQL($sql, $this->skip, $this->limit);
+        $finalSql = $this->provider->getLimitSQL($finalSql, $this->skip, $this->limit);
       }
       try {
-        $this->query = $this->provider->runQueryEx($sql, $this->args);
+        $this->query = $this->provider->runQueryEx($finalSql, $this->args);
       } catch (\Exception $e) {
         if (preg_match('/Unknown column.*?in.*?order clause/', $e->getMessage())) {
           $this->sort();
