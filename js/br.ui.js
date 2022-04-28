@@ -49,9 +49,9 @@
 
   window.br.growlMessage = function(message, title, settings) {
     if (title) {
-      flyovers.showMessage(message, settings);
+      flyovers.showInfo(title, message, settings);
     } else {
-      flyovers.showMessage(title, message, settings);
+      flyovers.showInfo(message, settings);
     }
   };
 
