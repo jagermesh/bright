@@ -315,24 +315,26 @@ class BrDataSource extends BrGenericDataSource
     $options[BrConst::DATASOURCE_OPTION_RENDER_MODE] = br($options, BrConst::DATASOURCE_OPTION_RENDER_MODE);
     $options[BrConst::DATASOURCE_OPTION_FILTER] = [];
 
-    $old = [];
-
-    $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_BEFORE, BrConst::DATASOURCE_EVENT_INSERT), $row, $transientData, $old, $options);
-    $this->onBeforeInsert($row, $transientData, $options);
-
-    $this->validateInsert($row);
-
-    $result = $this->callEvent(BrConst::DATASOURCE_EVENT_INSERT, $row, $transientData, $old, $options);
-    if (is_null($result)) {
-      $result = $this->onInsert($row, $transientData, $options);
-    }
-
-    if (is_null($result)) {
+    try {
       try {
-        try {
-          if ($this->isTransactionalDML()) {
-            $this->getDb()->startTransaction();
-          }
+        $old = [];
+
+        $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_BEFORE, BrConst::DATASOURCE_EVENT_INSERT), $row, $transientData, $old, $options);
+        $this->onBeforeInsert($row, $transientData, $options);
+
+        $this->validateInsert($row);
+
+        if ($this->isTransactionalDML()) {
+          $this->getDb()->startTransaction();
+        }
+
+        $result = $this->callEvent(BrConst::DATASOURCE_EVENT_INSERT, $row, $transientData, $old, $options);
+
+        if (is_null($result)) {
+          $result = $this->onInsert($row, $transientData, $options);
+        }
+
+        if (is_null($result)) {
           if ($row) {
             $table = $this->getDb()->table($this->dbEntity());
             $rowid = $table->insert($row);
@@ -355,42 +357,44 @@ class BrDataSource extends BrGenericDataSource
             }
             $this->callEvent(BrConst::DATASOURCE_METHOD_PROTECT_FIELDS, $result, $transientData, $options);
             $this->onProtectFields($result, $transientData, $options);
-            if ($this->isTransactionalDML()) {
-              $this->getDb()->commitTransaction();
-            }
-            $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, BrConst::DATASOURCE_EVENT_COMMIT), $result, $transientData, $old, $options);
-            $this->onAfterCommit($result, $transientData, $old, $options);
           } else {
             throw new BrDBException('Empty insert request');
           }
-        } catch (BrDBRecoverableException $e) {
-          br()->log('Repeating insert... (' . $iteration . ') because of ' . $e->getMessage());
-          if (time() - $startMarker > $this->rerunTimeLimit) {
-            br()->log('Too much time passed since the beginning of the operation: ' . (time() - $startMarker) . 's');
-            throw $e;
-          }
-          if ($this->isTransactionalDML()) {
-            $this->getDb()->rollbackTransaction();
-          }
-          usleep(250000);
-          return $this->insert($rowParam, $transientData, $optionsParam, $iteration + 1, $e->getMessage());
         }
-      } catch (\Exception $e) {
+
+        if ($this->isTransactionalDML()) {
+          $this->getDb()->commitTransaction();
+        }
+
+        $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, BrConst::DATASOURCE_EVENT_COMMIT), $result, $transientData, $old, $options);
+        $this->onAfterCommit($result, $transientData, $old, $options);
+      } catch (BrDBRecoverableException $e) {
+        br()->log('Repeating insert... (' . $iteration . ') because of ' . $e->getMessage());
+        if (time() - $startMarker > $this->rerunTimeLimit) {
+          br()->log('Too much time passed since the beginning of the operation: ' . (time() - $startMarker) . 's');
+          throw $e;
+        }
         if ($this->isTransactionalDML()) {
           $this->getDb()->rollbackTransaction();
         }
-        $operation = BrConst::DATASOURCE_OPERATION_INSERT;
-        $error = $e->getMessage();
-        $result = $this->callEvent(BrConst::DATASOURCE_EVENT_ERROR, $error, $operation, $e, $row);
-        if (is_null($result)) {
-          $result = $this->onError($error, $operation, $e, $row);
+        usleep(250000);
+        return $this->insert($rowParam, $transientData, $optionsParam, $iteration + 1, $e->getMessage());
+      }
+    } catch (\Exception $e) {
+      if ($this->isTransactionalDML()) {
+        $this->getDb()->rollbackTransaction();
+      }
+      $operation = BrConst::DATASOURCE_OPERATION_INSERT;
+      $error = $e->getMessage();
+      $result = $this->callEvent(BrConst::DATASOURCE_EVENT_ERROR, $error, $operation, $e, $row);
+      if (is_null($result)) {
+        $result = $this->onError($error, $operation, $e, $row);
+      }
+      if (is_null($result)) {
+        if ($e instanceof BrDBUniqueException) {
+          throw new BrDBUniqueException();
         }
-        if (is_null($result)) {
-          if ($e instanceof BrDBUniqueException) {
-            throw new BrDBUniqueException();
-          }
-          throw $e;
-        }
+        throw $e;
       }
     }
 
@@ -422,10 +426,6 @@ class BrDataSource extends BrGenericDataSource
     if ($currentRow = $table->selectOne($filter)) {
       try {
         try {
-          if ($this->isTransactionalDML()) {
-            $this->getDb()->startTransaction();
-          }
-
           $old = $currentRow;
           $new = $currentRow;
           foreach ($row as $name => $value) {
@@ -437,7 +437,12 @@ class BrDataSource extends BrGenericDataSource
 
           $this->validateUpdate($old, $new);
 
+          if ($this->isTransactionalDML()) {
+            $this->getDb()->startTransaction();
+          }
+
           $result = $this->callEvent(BrConst::DATASOURCE_EVENT_UPDATE, $new, $transientData, $old, $options);
+
           if (is_null($result)) {
             $result = $this->onUpdate($new, $transientData, $old, $options);
           }
@@ -472,9 +477,11 @@ class BrDataSource extends BrGenericDataSource
             $this->callEvent(BrConst::DATASOURCE_METHOD_PROTECT_FIELDS, $result, $transientData, $options);
             $this->onProtectFields($result, $transientData, $options);
           }
+
           if ($this->isTransactionalDML()) {
             $this->getDb()->commitTransaction();
           }
+
           $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, BrConst::DATASOURCE_EVENT_COMMIT), $result, $transientData, $old, $options);
           $this->onAfterCommit($result, $transientData, $old, $options);
         } catch (BrDBRecoverableException $e) {
@@ -542,16 +549,17 @@ class BrDataSource extends BrGenericDataSource
     if ($crow = $table->selectOne($filter)) {
       try {
         try {
-          if ($this->isTransactionalDML()) {
-            $this->getDb()->startTransaction();
-          }
-
           $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_BEFORE, BrConst::DATASOURCE_EVENT_DELETE), $crow, $transientData, $options);
           $this->onBeforeDelete($crow, $transientData, $options);
 
           $this->validateRemove($crow);
 
+          if ($this->isTransactionalDML()) {
+            $this->getDb()->startTransaction();
+          }
+
           $result = $this->callEvent(BrConst::DATASOURCE_EVENT_DELETE, $crow, $transientData, $options);
+
           if (is_null($result)) {
             $result = $this->onDelete($crow, $transientData, $options);
           }
@@ -573,9 +581,11 @@ class BrDataSource extends BrGenericDataSource
             $this->callEvent(BrConst::DATASOURCE_METHOD_PROTECT_FIELDS, $result, $transientData, $options);
             $this->onProtectFields($result, $transientData, $options);
           }
+
           if ($this->isTransactionalDML()) {
             $this->getDb()->commitTransaction();
           }
+
           $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, BrConst::DATASOURCE_EVENT_COMMIT), $result, $transientData, $crow, $options);
           $this->onAfterCommit($result, $transientData, $crow, $options);
         } catch (BrDBRecoverableException $e) {

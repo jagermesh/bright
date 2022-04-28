@@ -18,13 +18,6 @@ class BrBrowser extends BrObject
     'timeout' => 30,
   ];
 
-  public function check($url)
-  {
-    $headers = @get_headers($url);
-
-    return !preg_match('~HTTP/[0-9]+[.][0-9]+ 4.*?$~', @$headers[0]);
-  }
-
   private function getDefaultRequestsParams(): array
   {
     return self::$defaultRequestParams;
@@ -45,6 +38,36 @@ class BrBrowser extends BrObject
     br()->log()->message('Getting headers for ' . $url . ' (' . json_encode($requestParams) . ')');
     $response = $client->request('HEAD', $url, $requestParams);
     return $response->getHeaders();
+  }
+
+  public function getStream($url, $bytes = 0, $params = [])
+  {
+    $client = new \GuzzleHttp\Client();
+    $requestParams = $this->getDefaultRequestsParams();
+    foreach ($params as $name => $value) {
+      $requestParams[$name] = $value;
+    }
+    $requestParams['stream'] = true;
+    br()->log()->message('Getting stream for ' . $url . ' (' . json_encode($requestParams) . ')');
+    $response = $client->request('GET', $url, $requestParams);
+    $buffer = '';
+    if ($bytes > 0) {
+      $body = $response->getBody();
+      while (!$body->eof() && (strlen($buffer) < $bytes)) {
+        $buffer .= $body->read(1024);
+      }
+      $body->close();
+    }
+    return $buffer;
+  }
+
+  public function check($url, $params = [])
+  {
+    try {
+      $this->head($url);
+    } catch (\Exception $e) {
+      $this->getStream($url);
+    }
   }
 
   public function get($url, $params = [])

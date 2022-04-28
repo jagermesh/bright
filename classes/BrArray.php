@@ -314,4 +314,21 @@ class BrArray extends BrGenericDataType
   {
     return false;
   }
+
+  protected function sortArrayKeysRecursively(&$item)
+  {
+    if (is_array($item)) {
+      ksort($item);
+      array_walk($item, [$this, 'sortArrayKeysRecursively']);
+    }
+  }
+
+  public function sortKeysRecursively()
+  {
+    $array = $this->value;
+    ksort($array);
+    array_walk($array, [$this, 'sortArrayKeysRecursively']);
+
+    return $array;
+  }
 }

@@ -7,13 +7,27 @@
  *
  */
 
-/* global humane */
+/* global Flyovers */
+/* global SmartHint */
+/* global LinkPreviewer */
 /* global Mustache */
 
 (function($, window) {
   window.br = window.br || {};
 
   window.br.bootstrapVersion = 0;
+
+  const hint = new SmartHint();
+
+  window.br.attachHint = function(selector, settings) {
+    hint.attach(selector, settings);
+  }
+
+  const linkPreviewer = new LinkPreviewer();
+
+  window.br.attachLinkPreviewer = function(selector, settings) {
+    linkPreviewer.attach(selector, settings);
+  }
 
   window.br.showError = function(message) {
     if (!br.isEmpty(message)) {
@@ -23,66 +37,21 @@
 
   window.br.showMessage = window.br.showError;
 
-  window.br.growlError = function(message, image) {
-    if (!br.isEmpty(message)) {
-      if (typeof $.gritter != 'undefined') {
-        $.gritter.add({
-          title: br.trn('Error'),
-          text: message,
-          class_name: 'gritter-red',
-          image: image
-        });
-      } else
-      if (typeof window.humane != 'undefined') {
-        humane.log(message, {
-          addnCls: 'humane-jackedup-error humane-original-error',
-          timeout: 5000
-        });
-      } else {
-        alert(message);
-      }
-    }
+  const flyovers = new Flyovers();
+
+  window.br.growlError = function(message, settings) {
+    flyovers.showError(br.trn('Error'), message, settings);
   };
 
-  window.br.growlWarning = function(message, image) {
-    if (!br.isEmpty(message)) {
-      if (typeof $.gritter != 'undefined') {
-        $.gritter.add({
-          title: br.trn('Warning'),
-          text: message,
-          class_name: 'gritter-orange',
-          image: image
-        });
-      } else
-      if (typeof window.humane != 'undefined') {
-        humane.log(message, {
-          addnCls: 'humane-jackedup-error humane-original-error',
-          timeout: 5000
-        });
-      } else {
-        alert(message);
-      }
-    }
+  window.br.growlWarning = function(message, settings) {
+    flyovers.showWarning(br.trn('Warning'), message, settings);
   };
 
-  window.br.growlMessage = function(message, title, image) {
-    if (!br.isEmpty(message)) {
-      if (typeof $.gritter != 'undefined') {
-        if (br.isEmpty(title)) {
-          title = ' ';
-        }
-        $.gritter.add({
-          title: title,
-          text: message,
-          class_name: 'gritter-light',
-          image: image
-        });
-      } else
-      if (typeof window.humane != 'undefined') {
-        humane.log(message);
-      } else {
-        alert(message);
-      }
+  window.br.growlMessage = function(message, title, settings) {
+    if (title) {
+      flyovers.showMessage(message, settings);
+    } else {
+      flyovers.showMessage(title, message, settings);
     }
   };
 
@@ -422,18 +391,26 @@
     return modal;
   };
 
-  window.br.prompt = function(title, fields, callback, options) {
-    options = options || {};
-    options.cancelTitle = options.cancelTitle || br.trn('Cancel');
-    options.okTitle = options.okTitle || br.trn('Ok');
+  window.br.prompt = function(title, fields, callback, settings) {
+    let options = Object.assign({
+      okTitle: br.trn('Ok'),
+      cancelTitle: br.trn('Cancel'),
+    }, settings)
 
-    let inputs = {};
+    let inputs = {
+
+    };
 
     if (br.isObject(fields)) {
       inputs = fields;
     } else {
       options.valueRequired = true;
-      inputs[fields] = '';
+      inputs[fields] = {
+        id: '',
+        class: '',
+        value: '',
+        title: fields,
+      };
     }
 
     if (options.onhide) {
@@ -450,28 +427,6 @@
               <div class="clearfix"></div>
             </div>
             <div class="modal-body" style="overflow-y:auto;">
-    `;
-    for (let inputLabel in inputs) {
-      if (br.isObject(inputs[inputLabel])) {
-        let inputId = (br.isEmpty(inputs[inputLabel].id) ? '' : inputs[inputLabel].id);
-        let inputClass = (br.isEmpty(inputs[inputLabel]['class']) ? '' : inputs[inputLabel]['class']);
-        let inputValue = inputs[inputLabel].value;
-        template += `
-          <label>${inputLabel}</label>
-          <input type="text" id="${inputId}" class="span4 ${inputClass}" value="${inputValue}" />
-        `;
-      } else {
-        let inputClass1 = (options.valueType == 'int' ? ' input-small' : ' justified');
-        let inputClass2 = (options.valueRequired ? ' required' : '');
-        let inputValue = inputs[inputLabel];
-        template += `
-          <label>${inputLabel}</label>
-          <input type="text" class="form-control ${inputClass1} ${inputClass2}" value="${inputValue}" />
-        `;
-      }
-    }
-
-    template += `
             </div>
             <div class="modal-footer">
               <a href="javascript:;" class="btn btn-sm btn-primary action-confirm-close" rel="confirm">${options.okTitle}</a>
@@ -483,6 +438,47 @@
     `;
 
     const modal = $(template);
+
+    for (let inputLabel in inputs) {
+      if (br.isObject(inputs[inputLabel])) {
+        inputs[inputLabel] = Object.assign({
+          id: '',
+          class: '',
+          value: '',
+          title: '',
+        }, inputs[inputLabel]);
+      } else {
+        inputs[inputLabel] = {
+          id: '',
+          class: '',
+          value: inputs[inputLabel],
+          title: '',
+        }
+      }
+    }
+
+    for (let inputLabel in inputs) {
+      let tag = (options.valueType == 'text' ? 'textarea' : 'input');
+      let control = $(`
+        <div class="row-fluid">
+          <div class="span12">
+            <label></label>
+            <${tag} type="text" id="${inputs[inputLabel].id}" class="value-control form-control" rows="8"></${tag}>
+          </div>
+        </div>
+      `);
+      control.find('label').text(inputs[inputLabel].title);
+      control.find('.value-control').val(inputs[inputLabel].value);
+      if (options.valueType == 'int') {
+        control.find('.value-control').addClass('input-small');
+      } else {
+        control.find('.value-control').addClass('justified');
+      }
+      if (!br.isEmpty(inputs[inputLabel].class)) {
+        control.find('.value-control').addClass(inputs[inputLabel].class);
+      }
+      modal.find('.modal-body').append(control);
+    }
 
     const oldActiveElement = document.activeElement;
     if (oldActiveElement) {
@@ -504,7 +500,7 @@
           let ok = true;
           let notOkField;
           let inputs0 = [];
-          $(this).closest('div.modal').find('input[type=text]').each(function() {
+          $(this).closest('div.modal').find('.value-control').each(function() {
             if ($(this).hasClass('required') && br.isEmpty($(this).val())) {
               ok = false;
               notOkField = $(this);
@@ -556,7 +552,7 @@
 
     $(modal).on('shown.bs.modal', function(event) {
       if ($(event.target).is(modal)) {
-        $(this).find('input[type=text]')[0].focus();
+        $(this).find('.value-control')[0].focus();
       }
     });
 

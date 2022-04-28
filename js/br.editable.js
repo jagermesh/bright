@@ -25,12 +25,34 @@
     _this.savedWidth = '';
 
     _this.click = function() {
+      const isExternalEditor = (_this.ctrl.attr('data-editable-type') == 'textarea');
+      let content = ((typeof _this.ctrl.attr('data-editable') != 'undefined') ? _this.ctrl.attr('data-editable') : _this.ctrl.text());
+      if (isExternalEditor) {
+        if (_this.options.onGetContent) {
+          content = _this.options.onGetContent.call(_this.ctrl, _this.editor, content);
+        }
+        let fields = {
+          value: {
+            title: _this.ctrl.attr('title'),
+            value: content
+          }
+        };
+        br.prompt('Please enter value', fields, function(values) {
+          if (_this.options.onSave) {
+            _this.options.onSave.call(_this.ctrl, values[0], 'keyup');
+          } else {
+            _this.apply(values[0]);
+          }
+        }, {
+          valueType: 'text',
+          okTitle: 'Save',
+        });
+      } else
       if (!_this.activated()) {
-        let content = ((typeof _this.ctrl.attr('data-editable') != 'undefined') ? _this.ctrl.attr('data-editable') : _this.ctrl.text());
         _this.ctrl.data('brEditable-original-html', _this.ctrl.html());
         _this.ctrl.data('brEditable-original-width', _this.ctrl.css('width'));
         _this.ctrl.text('');
-        _this.editor = ((_this.ctrl.attr('data-editable-type') == 'textarea') ? $('<textarea rows="3"></textarea>') : $('<input type="text" />'));
+        _this.editor = $('<input type="text" />');
         _this.editor.addClass('form-control');
         _this.editor.addClass('br-editable-control');
         _this.editor.css({

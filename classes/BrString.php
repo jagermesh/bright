@@ -12,7 +12,7 @@ namespace Bright;
 
 class BrString extends BrGenericDataType
 {
-  const TRIM_CHARS_LIST = " \t\n\r\0\x0B";
+  const TRIM_CHARS_LIST = " \t\n\r\0\x0B\xA0";
 
   public function length()
   {
@@ -38,7 +38,7 @@ class BrString extends BrGenericDataType
 
   public function trim($charlist = self::TRIM_CHARS_LIST)
   {
-    return trim($this->s, $charlist);
+    return trim($this->value, $charlist);
   }
 
   public function trimLeft($charlist = self::TRIM_CHARS_LIST)

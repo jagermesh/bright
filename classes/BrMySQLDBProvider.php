@@ -233,9 +233,6 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
   public function runQueryEx($sql, $args = [], $iteration = 0, $rerunError = null, $resultMode = MYSQLI_STORE_RESULT)
   {
     try {
-      // check connection
-      $this->establishConnection();
-
       if (count($args) > 0) {
         $queryText = br()->placeholderEx($sql, $args, $error);
         if (!$queryText) {
@@ -250,6 +247,9 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
         $error = $rerunError . '.' . "\n" . $queryText;
         throw new BrDBException($error);
       }
+
+      // check connection
+      $this->establishConnection();
 
       try {
         // moved to check problem line
@@ -336,10 +336,15 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
           throw new BrDBException($error);
         }
       }
-      br()->log()->message('Query complete', ['sql' => $queryText], 'query');
+      br()->log()->message('Query complete', [
+        'sql' => $queryText,
+      ], 'query');
     } catch (\Exception $e) {
-      br()->log()->message('Query error', ['sql' => ($queryText ?? '')], 'query');
       $error = $e->getMessage();
+      br()->log()->message('Query error', [
+        'error' => $error,
+        'sql' => $queryText,
+      ], 'query');
       br()->trigger(BrConst::EVENT_BR_DB_QUERY_ERROR, $error);
       throw $e;
     }
@@ -358,6 +363,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
         return mysqli_num_rows($this->runQueryEx($sql, $args));
       }
     } catch (\Exception $e) {
+      br()->log()->error($e);
       return mysqli_num_rows($this->runQueryEx($sql, $args));
     }
   }

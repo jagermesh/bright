@@ -67,37 +67,84 @@ const configs = {
     }],
     core: [{
       src: [
-        '3rdparty/handlebars/latest/js/handlebars.min.js', '3rdparty/gritter/latest/js/jquery.gritter.min.js', '3rdparty/promisejs/latest/js/promise.min.js',
-        'js/br.polyfills.js', 'js/br.typeCheck.js', 'js/br.storage.js', 'js/br.eventQueue.js', 'js/br.request.js', 'js/br.thread.js', 'js/br.profiler.js', 'js/br.webCamera.js',
-        'js/br.core.js', 'js/br.flagsHolder.js', 'js/br.dataSource.js', 'js/br.table.js', 'js/br.dataGrid.js', 'js/br.dataCombo.js', 'js/br.draggable.js',
-        'js/br.editable.js', 'js/br.ui.js', 'js/br.clipboard.js', 'js/br.dataEditor.js', 'js/br.dataBrowser.js', 'js/br.dropDownMenu.js', 'js/br.dataHelpers.js',
-        'js/br.googleMap.js', 'js/br.eventBus.js'
+        'node_modules/js-smart-hint/smart-hint.js',
+        'node_modules/js-link-previewer/link-previewer.js',
+        'node_modules/js-flyovers/flyovers.js',
+        '3rdparty/handlebars/latest/js/handlebars.min.js',
+        '3rdparty/gritter/latest/js/jquery.gritter.min.js',
+        '3rdparty/promisejs/latest/js/promise.min.js',
+        'js/br.polyfills.js',
+        'js/br.typeCheck.js',
+        'js/br.storage.js',
+        'js/br.eventQueue.js',
+        'js/br.request.js',
+        'js/br.thread.js',
+        'js/br.profiler.js',
+        'js/br.webCamera.js',
+        'js/br.core.js',
+        'js/br.flagsHolder.js',
+        'js/br.dataSource.js',
+        'js/br.table.js',
+        'js/br.dataGrid.js',
+        'js/br.dataCombo.js',
+        'js/br.editable.js',
+        'js/br.ui.js',
+        'js/br.clipboard.js',
+        'js/br.dataEditor.js',
+        'js/br.dataBrowser.js',
+        'js/br.dropDownMenu.js',
+        'js/br.dataHelpers.js',
+        'js/br.draggable.js',
+        'js/br.googleMap.js',
+        'js/br.eventBus.js'
       ],
       name: 'bright.core.js',
       dest: 'dist/js/'
     }],
     dist: [{
-      src: ['3rdparty/bootstrap/latest/js/bootstrap.min.js', 'dist/js/bright.core.js'],
+      src: [
+        '3rdparty/bootstrap/latest/js/bootstrap.min.js',
+        'dist/js/bright.core.js'
+      ],
       name: 'bright.nojq.js',
       dest: 'dist/js/'
     }, {
-      src: ['3rdparty/jquery/latest/js/jquery.min.js', 'dist/js/bright.core.js'],
+      src: [
+        '3rdparty/jquery/latest/js/jquery.min.js',
+        'dist/js/bright.core.js'
+      ],
       name: 'bright.nobs.js',
       dest: 'dist/js/'
     }, {
-      src: ['3rdparty/jquery/latest/js/jquery.min.js', '3rdparty/bootstrap/2.3.2/js/bootstrap.min.js', 'dist/js/bright.core.js'],
+      src: [
+        '3rdparty/jquery/latest/js/jquery.min.js',
+        '3rdparty/bootstrap/2.3.2/js/bootstrap.min.js',
+        'dist/js/bright.core.js'
+      ],
       name: 'bright.bs2.js',
       dest: 'dist/js/'
     }, {
-      src: ['3rdparty/jquery/latest/js/jquery.min.js', '3rdparty/bootstrap/3.4.1/js/bootstrap.min.js', 'dist/js/bright.core.js'],
+      src: [
+        '3rdparty/jquery/latest/js/jquery.min.js',
+        '3rdparty/bootstrap/3.4.1/js/bootstrap.min.js',
+        'dist/js/bright.core.js'
+      ],
       name: 'bright.bs3.js',
       dest: 'dist/js/'
     }, {
-      src: ['3rdparty/jquery/latest/js/jquery.min.js', '3rdparty/bootstrap/4.6.0/js/bootstrap.bundle.min.js', 'dist/js/bright.core.js'],
+      src: [
+        '3rdparty/jquery/latest/js/jquery.min.js',
+        '3rdparty/bootstrap/4.6.0/js/bootstrap.bundle.min.js',
+        'dist/js/bright.core.js'
+      ],
       name: 'bright.bs4.js',
       dest: 'dist/js/'
     }, {
-      src: ['3rdparty/jquery/latest/js/jquery.min.js', '3rdparty/bootstrap/4.6.0/js/bootstrap.bundle.min.js', 'dist/js/bright.core.js'],
+      src: [
+        '3rdparty/jquery/latest/js/jquery.min.js',
+        '3rdparty/bootstrap/4.6.0/js/bootstrap.bundle.min.js',
+        'dist/js/bright.core.js'
+      ],
       name: 'bright.latest.js',
       dest: 'dist/js/'
     }]

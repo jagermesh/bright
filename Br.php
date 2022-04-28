@@ -27,32 +27,51 @@ function br($array = null, $name = null, $default = null)
 {
   if (func_num_args() === 0) {
     return \Bright\BrCore::getInstance();
-  } elseif (func_num_args() === 1) {
+  }
+
+  if (func_num_args() === 1) {
     if (is_array($array)) {
       return new \Bright\BrArray($array);
     } else {
       return new \Bright\BrString($array);
     }
-  } elseif (is_array($array) && is_array($name)) {
-    foreach ($name as $oneName) {
-      $result = br($array, $oneName);
-      if ($result || is_bool($result) || (is_scalar($result) && strlen($result))) {
-        return $result;
+  }
+
+  if (is_array($array)) {
+    if (is_array($name)) {
+      foreach ($name as $oneName) {
+        $result = br($array, $oneName);
+        if (
+          $result ||
+          is_bool($result) ||
+          (
+            is_scalar($result) &&
+            strlen($result)
+          )
+        ) {
+          return $result;
+        }
+      }
+    } elseif (is_scalar($name)) {
+      $name = (string)$name;
+      if (
+        strlen($name) &&
+        array_key_exists($name, $array) &&
+        (
+          $array[$name] ||
+          is_bool($array[$name]) ||
+          (
+            is_scalar($array[$name]) &&
+            strlen($array[$name])
+          )
+        )
+      ) {
+        return $array[$name];
       }
     }
-    return $default;
-  } elseif (is_array($array) && is_scalar($name)) {
-    $name = (string)$name;
-    return (
-      strlen($name) &&
-      array_key_exists($name, $array) &&
-      ($array[$name] || is_bool($array[$name]) || (is_scalar($array[$name]) && strlen($array[$name])))
-    )
-      ? $array[$name]
-      : $default;
-  } else {
-    return $default;
   }
+
+  return $default;
 }
 
 if (!function_exists('debug')) {

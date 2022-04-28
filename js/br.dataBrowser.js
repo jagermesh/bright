@@ -194,7 +194,7 @@
       return _this.dataGrid.getFilter(name, defaultValue);
     };
 
-    _this.resetFilters = function(stopPropagation) {
+    _this.resetFilters = function(stopPropagation, inPopup) {
       br.setValue(findNode('input.data-filter'), '');
       br.setValue(findNode('select.data-filter'), '');
       $(findNode('input.data-filter')).trigger('reset');
@@ -202,7 +202,11 @@
       _this.dataGrid.resetFilters(stopPropagation);
       if (!stopPropagation) {
         _this.events.trigger('resetFilters');
-        br.refresh();
+        if (br.toInt(inPopup) == 1) {
+          _this.refresh();
+        } else {
+          br.refresh();
+        }
       }
     };
 
@@ -304,7 +308,6 @@
         br.growlError('Please select at least one record');
       }
     };
-
 
     _this.init = function() {
       if (_this.options.nav) {
@@ -414,7 +417,18 @@
 
           $(document).on('click', selActionCRUD, function() {
             const rowid = $(this).closest('[data-rowid]').attr('data-rowid');
-            const mode = ($(this).hasClass('action-copy') ? 'copy' : ($(this).hasClass('action-view') ? 'view' : (rowid ? 'edit' : 'insert')));
+            let mode;
+            if ($(this).hasClass('action-copy')) {
+              mode = 'copy';
+            } else
+            if ($(this).hasClass('action-view')) {
+              mode = 'view';
+            } else
+            if (rowid) {
+              mode = 'edit';
+            } else {
+              mode = 'insert';
+            }
             _this.editor.show(rowid, {
               mode: mode
             });
@@ -463,15 +477,16 @@
       });
 
       $(findNode('.action-clear-one-filter')).on('click', function() {
-        $(findNode('.data-filter[name=' + $(this).attr('rel') + ']')).val('');
-        $(findNode('.data-filter[name=' + $(this).attr('rel') + ']')).trigger('change');
+        let rel = $(this).attr('rel');
+        $(findNode(`.data-filter[name="${rel}"]`)).val('');
+        $(findNode(`.data-filter[name="${rel}"]`)).trigger('change');
         _this.refresh();
       });
 
       $(findNode('input.data-filter[name=keyword]')).val(_this.getFilter('keyword'));
 
       $(findNode('.action-reset-filters')).on('click', function() {
-        _this.resetFilters();
+        _this.resetFilters(false, $(this).attr('data-in-popup'));
       });
 
       function checkAutoLoad() {
@@ -532,12 +547,12 @@
       _this.events.on('selectionChanged', function(count) {
         if (count > 0) {
           $(findNode('.selection-count')).text(count);
-          $(findNode('.selection-stat')).text(count + ' record(s) selected');
+          $(findNode('.selection-stat')).text(`${count} record(s) selected`);
           $(findNode('.selection-stat')).show();
           $(findNode('.action-clear-selection')).show();
           const selection = _this.selection.get();
           let deletable = selection.filter(function(rowid) {
-            return $(findNode('tr[data-rowid=' + rowid + '] td .action-delete')).length > 0;
+            return $(findNode(`tr[data-rowid="${rowid}"] td .action-delete`)).length > 0;
           });
           if (deletable.length > 0) {
             $(findNode('.action-delete-selected')).show();
@@ -730,24 +745,9 @@
       }
     };
 
-    function internalRefresh(deferred, filter, callback) {
-      if (deferred) {
-        _this.dataSource.selectDeferred(filter, callback);
-      } else {
-        if (_this.dataSource.doingSelect() || _this.countDataSource.doingSelect()) {
-          window.clearTimeout(refreshTimer);
-          refreshTimer = window.setTimeout(function() {
-            internalRefresh(false, filter, callback);
-          }, 300);
-        } else {
-          _this.dataSource.select(filter, callback);
-        }
-      }
-    }
-
     _this.unSelectRow = function(rowid, multiple) {
-      const chk = $(_this.options.selectors.dataTable).find('input.action-select-row[value=' + rowid + ']');
-      const row = (chk.length > 0) ? $(chk).closest('[data-rowid]') : $(_this.options.selectors.dataTable).find('tr[data-rowid=' + rowid + ']');
+      const chk = $(_this.options.selectors.dataTable).find(`input.action-select-row[value="${rowid}"]`);
+      const row = (chk.length > 0) ? $(chk).closest('[data-rowid]') : $(_this.options.selectors.dataTable).find(`tr[data-rowid="${rowid}"]`);
       if (row.length > 0) {
         row.find('.action-select-row').prop('checked', false);
         row.removeClass('row-selected');
@@ -760,7 +760,7 @@
 
     _this.selectRow = function(rowid, multiple) {
       const chk = $(_this.options.selectors.dataTable).find('input.action-select-row[value=' + rowid + ']');
-      const row = (chk.length > 0) ? $(chk).closest('[data-rowid]') : $(_this.options.selectors.dataTable).find('tr[data-rowid=' + rowid + ']');
+      const row = (chk.length > 0) ? $(chk).closest('[data-rowid]') : $(_this.options.selectors.dataTable).find(`tr[data-rowid="${rowid}"]`);
       if (row.length > 0) {
         row.find('.action-select-row').prop('checked', true);
         row.addClass('row-selected');
@@ -794,7 +794,22 @@
       _this.skip = 0;
     };
 
-    _this.refreshDeferred = function(filter, callback, doNotResetPager) {
+    function internalRefresh(deferred, filter, callback) {
+      if (deferred) {
+        _this.dataSource.selectDeferred(filter, callback);
+      } else {
+        if (_this.dataSource.doingSelect() || _this.countDataSource.doingSelect()) {
+          window.clearTimeout(refreshTimer);
+          refreshTimer = window.setTimeout(function() {
+            internalRefresh(false, filter, callback);
+          }, 300);
+        } else {
+          _this.dataSource.select(filter, callback);
+        }
+      }
+    }
+
+    function refresh(deferred, filter, callback, doNotResetPager) {
       if (typeof filter == 'function') {
         doNotResetPager = callback;
         callback = filter;
@@ -806,7 +821,7 @@
       }
 
       return new Promise(function(resolve, reject) {
-        internalRefresh(true, filter, function(result, response, request, options) {
+        internalRefresh(deferred, filter, function(result, response, request, options) {
           if (result) {
             resolve({
               request: request,
@@ -836,50 +851,14 @@
         }
         throw data;
       });
+    }
+
+    _this.refreshDeferred = function(filter, callback, doNotResetPager) {
+      return refresh(true, filter, callback, doNotResetPager);
     };
 
     _this.load = _this.refresh = function(filter, callback, doNotResetPager) {
-      if (typeof filter == 'function') {
-        doNotResetPager = callback;
-        callback = filter;
-        filter = {};
-      }
-
-      if (!doNotResetPager) {
-        _this.resetPager();
-      }
-
-      return new Promise(function(resolve, reject) {
-        internalRefresh(false, filter, function(result, response, request, options) {
-          if (result) {
-            resolve({
-              request: request,
-              options: options,
-              response: response
-            });
-          } else {
-            reject({
-              request: request,
-              options: options,
-              errorMessage: response
-            });
-          }
-        });
-      }).then(function(data) {
-        try {
-          if (typeof callback == 'function') {
-            callback.call(_this, true, data.response, data.request, data.options);
-          }
-        } catch (error) {
-          br.logError('Error: ' + error);
-        }
-        return data;
-      }).catch(function(data) {
-        if (typeof callback == 'function') {
-          callback.call(_this, false, data.errorMessage, data.request, data.options);
-        }
-        throw data;
-      });
+      return refresh(false, filter, callback, doNotResetPager);
     };
 
     return _this.init();

@@ -1396,8 +1396,13 @@ class BrCore extends BrObject
   public function getTempPath()
   {
     if (!$this->tempPath) {
+      if ($dbs = br()->config()->get(BrConst::CONFIG_OPTION_DB_NAME)) {
+        $dbs = br(br($dbs)->split())->join('-');
+      }
+
       $this->tempPath = $this->getBasePath() . '_tmp/' . ($this->isConsoleMode() ? 'console/' : 'web/') .
-        (br()->config()->get(BrConst::CONFIG_OPTION_DB_NAME) ? strtolower(br()->config()->get(BrConst::CONFIG_OPTION_DB_NAME)) . '/' : '');
+        ($dbs ? strtolower($dbs) . '/' : '');
+        // (br()->config()->get(BrConst::CONFIG_OPTION_DB_NAME) ? strtolower(br()->config()->get(BrConst::CONFIG_OPTION_DB_NAME)) . '/' : '');
     }
 
     $result = $this->tempPath;
@@ -1423,8 +1428,13 @@ class BrCore extends BrObject
   public function getLogsPath()
   {
     if (!$this->logsPath) {
+      if ($dbs = br()->config()->get(BrConst::CONFIG_OPTION_DB_NAME)) {
+        $dbs = br(br($dbs)->split())->join('-');
+      }
+
       $this->logsPath = $this->getBasePath() . '_logs/' . ($this->isConsoleMode() ? 'console/' : 'web/') .
-        (br()->config()->get(BrConst::CONFIG_OPTION_DB_NAME) ? strtolower(br()->config()->get(BrConst::CONFIG_OPTION_DB_NAME)) . '/' : '');
+        ($dbs ? strtolower($dbs) . '/' : '');
+        // (br()->config()->get(BrConst::CONFIG_OPTION_DB_NAME) ? strtolower(br()->config()->get(BrConst::CONFIG_OPTION_DB_NAME)) . '/' : '');
     }
 
     $result = $this->logsPath;

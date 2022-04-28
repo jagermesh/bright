@@ -16,7 +16,7 @@ class BrGenericDataType
 
   public function __construct($value)
   {
-    $this->value = $value;
+    $this->value = $value ?? '';
   }
 
   private function utf8ize($mixed)

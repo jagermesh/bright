@@ -223,11 +223,11 @@
         br.confirmClose();
       };
 
-      $(_this.inputsContainer).on('change', 'select.data-field,input.data-field,textarea.data-field', function() {
+      _this.inputsContainer.on('change', 'select.data-field,input.data-field,textarea.data-field', function() {
         updateEditorTitle($(this));
       });
 
-      $(_this.inputsContainer).on('input', 'select.data-field,input.data-field,textarea.data-field', function() {
+      _this.inputsContainer.on('input', 'select.data-field,input.data-field,textarea.data-field', function() {
         updateEditorTitle($(this));
       });
 
@@ -306,6 +306,19 @@
       _this.inputsContainer.find('input.data-field[type!=radio],textarea.data-field').val('');
       _this.inputsContainer.find('input.data-field[type=checkbox]').val('1').prop('checked', false);
       _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio]').find('button').removeClass('active');
+
+      _this.inputsContainer.find('textarea.data-field').each(function() {
+        let ckeditorInstance = $(this).data('ckeditorInstance');
+        let onChangeHandled = $(this).data('onChangeHandled');
+        if (ckeditorInstance && !onChangeHandled) {
+          $(this).data('onChangeHandled', true);
+          ckeditorInstance.on('change', function(e) {
+            if (e.editor.checkDirty()) {
+              br.confirmClose();
+            }
+          });
+        }
+      });
 
       let ctrl = $(_this.options.selectors.errorMessage, _this.container);
       if (ctrl.length > 0) {

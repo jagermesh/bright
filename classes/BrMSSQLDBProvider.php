@@ -217,9 +217,6 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider
   public function runQueryEx($sql, $args = [], $iteration = 0, $rerunError = null)
   {
     try {
-      // check connection
-      $this->establishConnection();
-
       if (count($args) > 0) {
         $queryText = br()->placeholderEx($sql, $args, $error);
         if (!$queryText) {
@@ -235,6 +232,9 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider
         throw new BrDBException($error);
       }
 
+      // check connection
+      $this->establishConnection();
+
       $query = @sqlsrv_query($this->connection, $queryText);
       if ($query) {
         if ($this->isInTransaction()) {
@@ -245,9 +245,15 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider
         throw new BrDBException($error);
       }
 
-      br()->log()->message('Query complete', ['sql' => $queryText], 'query');
+      br()->log()->message('Query complete', [
+        'sql' => $queryText,
+      ], 'query');
     } catch (\Exception $e) {
       $error = $e->getMessage();
+      br()->log()->message('Query error', [
+        'error' => $error,
+        'sql' => $queryText,
+      ], 'query');
       br()->trigger(BrConst::EVENT_BR_DB_QUERY_ERROR, $error);
       throw $e;
     }

@@ -10,6 +10,45 @@
 (function($, window) {
   window.br = window.br || {};
 
+  window.br.clipboard = {
+    copy: function(textToCopy) {
+      function fallbackCopyTextToClipboard(text) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+
+        // Avoid scrolling to bottom
+        textArea.style.top = '0';
+        textArea.style.left = '0';
+        textArea.style.position = 'fixed';
+
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+          const result = document.execCommand('copy');
+          if (result) {
+            br.growlMessage('Text copied to clipboard...');
+          } else {
+            br.growlError('Copy to clipboard denied by browser security settings...');
+          }
+        } catch (err) {
+          br.growlError('Copy to clipboard denied by browser security settings...');
+        }
+        document.body.removeChild(textArea);
+      }
+      if (!navigator.clipboard) {
+        fallbackCopyTextToClipboard(textToCopy);
+        return;
+      }
+      navigator.clipboard.writeText(textToCopy).then(function() {
+        br.growlMessage('Text copied to clipboard...');
+      }).catch(function() {
+        fallbackCopyTextToClipboard(textToCopy);
+      });
+    }
+  }
+
   $(function() {
     function notify(event, result) {
       br.events.trigger('paste', result, event);

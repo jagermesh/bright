@@ -110,8 +110,10 @@ class BrDataBasePatch
       }
     } elseif ($command == 'register') {
       br()->db()->runQuery('
-        INSERT IGNORE INTO br_db_patch (guid, patch_file, patch_hash, body, installed_at, re_installed_at)
+        INSERT INTO br_db_patch (guid, patch_file, patch_hash, body, installed_at, re_installed_at)
         VALUES (?, ?, ?, ?, NOW(), NOW())
+            ON DUPLICATE KEY
+        UPDATE id = LAST_INSERT_ID (id)
       ',
         $this->guid,
         basename($this->patchFile),

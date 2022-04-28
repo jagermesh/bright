@@ -796,8 +796,10 @@ class BrDataBaseManager
     $this->initAuditSubsystem();
 
     br()->db()->runQuery('
-      INSERT IGNORE INTO ' . $this->auditTablesTable . ' (name, is_insert_audited, is_update_audited, is_delete_audited, is_cascade_audited, exclude_fields)
+      INSERT INTO ' . $this->auditTablesTable . ' (name, is_insert_audited, is_update_audited, is_delete_audited, is_cascade_audited, exclude_fields)
       VALUES (?, ?, ?, ?, ?, ?)
+          ON DUPLICATE KEY
+      UPDATE id = LAST_INSERT_ID (id)
     ',
       $tableName,
       $isInsertAudited,

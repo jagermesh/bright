@@ -55,7 +55,7 @@
     if (options.allowClear) {
       dropDownList.append(menuItemTemplate({
         id: '',
-        name: (options.clearLabel ? options.clearLabel : '-- сlear --')
+        name: (options.clearLabel ? options.clearLabel : '--clear--')
       }));
     }
     if (options.onBeforeRenderMenu) {
