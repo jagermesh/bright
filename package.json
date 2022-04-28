@@ -18,9 +18,9 @@
     "terser": "^5.13.0"
   },
   "dependencies": {
-    "js-flyovers": "^1.0.5",
-    "js-link-previewer": "^1.0.3",
-    "js-smart-hint": "^1.0.3"
+    "js-flyovers": "^1.0.6",
+    "js-link-previewer": "^1.0.4",
+    "js-smart-hint": "^1.0.4"
   },
   "repository": {
     "type": "git",

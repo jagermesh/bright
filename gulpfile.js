@@ -64,9 +64,9 @@ const configs = {
     }],
     core: [{
       src: [
-        'node_modules/js-smart-hint/smart-hint.js',
-        'node_modules/js-link-previewer/link-previewer.js',
-        'node_modules/js-flyovers/flyovers.js',
+        'node_modules/js-smart-hint/src/smart-hint.js',
+        'node_modules/js-link-previewer/src/link-previewer.js',
+        'node_modules/js-flyovers/src/flyovers.js',
         '3rdparty/handlebars/latest/js/handlebars.min.js',
         '3rdparty/promisejs/latest/js/promise.min.js',
         'js/br.polyfills.js',
