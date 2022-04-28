@@ -23,9 +23,6 @@ const configs = {
       dest: '3rdparty/bootstrap/2.3.2/js/',
       src: ['3rdparty/bootstrap/2.3.2/js/bootstrap.js']
     }, {
-      dest: '3rdparty/gritter/latest/js/',
-      src: ['3rdparty/gritter/latest/js/jquery.gritter.js']
-    }, {
       dest: '3rdparty/handlebars/4.7.7/js/',
       src: ['3rdparty/handlebars/4.7.7/js/handlebars.js']
     }, {
@@ -49,19 +46,19 @@ const configs = {
   },
   concat: {
     css: [{
-      src: ['3rdparty/gritter/latest/css/jquery.gritter.css', 'css/bright.bs2.css'],
+      src: ['css/bright.bs2.css'],
       name: 'bright.bs2.css',
       dest: 'dist/css/'
     }, {
-      src: ['3rdparty/gritter/latest/css/jquery.gritter.css', 'css/bright.bs3.css'],
+      src: ['css/bright.bs3.css'],
       name: 'bright.bs3.css',
       dest: 'dist/css/'
     }, {
-      src: ['3rdparty/gritter/latest/css/jquery.gritter.css', 'css/bright.bs4.css'],
+      src: ['css/bright.bs4.css'],
       name: 'bright.bs4.css',
       dest: 'dist/css/'
     }, {
-      src: ['3rdparty/gritter/latest/css/jquery.gritter.css', 'css/bright.bs4.css'],
+      src: ['css/bright.bs4.css'],
       name: 'bright.latest.css',
       dest: 'dist/css/'
     }],
@@ -71,7 +68,6 @@ const configs = {
         'node_modules/js-link-previewer/link-previewer.js',
         'node_modules/js-flyovers/flyovers.js',
         '3rdparty/handlebars/latest/js/handlebars.min.js',
-        '3rdparty/gritter/latest/js/jquery.gritter.min.js',
         '3rdparty/promisejs/latest/js/promise.min.js',
         'js/br.polyfills.js',
         'js/br.typeCheck.js',
