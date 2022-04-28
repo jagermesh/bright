@@ -792,7 +792,7 @@
       if (title) {
         text += `<div class="${componentClass}-title">${title}</div>`;
       }
-      text += content;
+      text += `<div class="${componentClass}-content">${content}</div>`;
 
       flyoverOverlay.innerHTML = text;
 
