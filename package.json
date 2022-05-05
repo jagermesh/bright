@@ -15,10 +15,10 @@
     "merge-stream": "^2.0.0",
     "phplint": "^2.0.5",
     "sass": "^1.51.0",
-    "terser": "^5.13.0"
+    "terser": "^5.13.1"
   },
   "dependencies": {
-    "js-flyovers": "^1.0.6",
+    "js-flyovers": "^1.0.7",
     "js-link-previewer": "^1.0.4",
     "js-smart-hint": "^1.0.4"
   },
