@@ -82,10 +82,10 @@ class BrProfiler extends BrObject
     $details = [
       'operation' => $name
     ];
-    br()->log()->message('Started: ' . $name, $details, 'profiler');
+    br()->log()->message('Started: ' . $name, $details, BrConst::LOG_EVENT_PROFILER);
   }
 
-  public function logStatistic($name, $tag = 'profiler')
+  public function logStatistic($name, $tag = BrConst::LOG_EVENT_PROFILER)
   {
     $metric = $this->getStatistic($name);
     if ($metric['count'] > 1) {
@@ -118,10 +118,10 @@ class BrProfiler extends BrObject
       'memory' => br()->formatTraffic($metric['memory']),
     ];
     br()->log()->message('Finished: ' . $name . ' (' . br()->formatDuration($metric['duration'], ['withUnits' => true]) . ', ' .
-      br()->formatBytes($metric['memory']) . ')', $details, 'profiler');
+      br()->formatBytes($metric['memory']) . ')', $details, BrConst::LOG_EVENT_PROFILER);
     $this->logStatistic($name);
     if ($comment) {
-      br()->log()->message('Comment: ' . $name . ': ' . $comment, $details, 'profiler');
+      br()->log()->message('Comment: ' . $name . ': ' . $comment, $details, BrConst::LOG_EVENT_PROFILER);
     }
 
     return $this->getStatistic($name);

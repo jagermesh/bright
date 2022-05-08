@@ -245,15 +245,10 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider
         throw new BrDBException($error);
       }
 
-      br()->log()->message('Query complete', [
-        'sql' => $queryText,
-      ], 'query');
+      br()->log()->message($queryText, [], BrConst::LOG_EVENT_SQL_OK);
     } catch (\Exception $e) {
       $error = $e->getMessage();
-      br()->log()->message('Query error', [
-        'error' => $error,
-        'sql' => $queryText,
-      ], 'query');
+      br()->log()->message($error . "\n". $queryText, [], BrConst::LOG_EVENT_SQL_ERROR);
       br()->trigger(BrConst::EVENT_BR_DB_QUERY_ERROR, $error);
       throw $e;
     }

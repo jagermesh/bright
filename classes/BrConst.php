@@ -244,6 +244,14 @@ class BrConst
   public const EVENT_CHECK_URL_RESTRICTIONS = 'checkUrlRestrictions';
 
   public const LOG_EVENT_SNAPSHOT = 'snapshot';
+  public const LOG_EVENT_PROFILER = 'profiler';
+  public const LOG_EVENT_DEBUG = 'debug';
+  public const LOG_EVENT_ERROR = 'error';
+  public const LOG_EVENT_WARNING = 'warning';
+  public const LOG_EVENT_MESSAGE = 'message';
+  public const LOG_EVENT_SQL_OK = 'sql_ok';
+  public const LOG_EVENT_SQL_ERROR = 'sql_err';
+  public const LOG_EVENT_SQL_RETRY = 'sql_retr';
 
   public const COLORS_MAP = [
     'aliceblue' => 'F0F8FF', 'antiquewhite' => 'FAEBD7', 'aqua' => '00FFFF', 'aquamarine' => '7FFFD4', 'azure' => 'F0FFFF', 'beige' => 'F5F5DC',

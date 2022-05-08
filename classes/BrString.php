@@ -12,7 +12,7 @@ namespace Bright;
 
 class BrString extends BrGenericDataType
 {
-  const TRIM_CHARS_LIST = " \t\n\r\0\x0B\xA0";
+  const TRIM_CHARS_LIST = " \t\n\r\0\x0B\xA0\x09";
 
   public function length()
   {

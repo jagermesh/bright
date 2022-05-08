@@ -140,7 +140,7 @@ class BrLog extends BrObject
   public function debug($messageOrObject, $details = [])
   {
     $params = [
-      'log_event' => 'debug',
+      'log_event' => BrConst::LOG_EVENT_DEBUG,
       'log_level' => $this->logLevel,
       'log_prefix' => $this->logPrefix,
       'details' => $details
@@ -151,7 +151,7 @@ class BrLog extends BrObject
   public function error($messageOrObject, $details = [])
   {
     $params = [
-      'log_event' => 'error',
+      'log_event' => BrConst::LOG_EVENT_ERROR,
       'log_level' => $this->logLevel,
       'log_prefix' => $this->logPrefix,
       'details' => $details
@@ -162,7 +162,7 @@ class BrLog extends BrObject
   public function warning($messageOrObject, $details = [])
   {
     $params = [
-      'log_event' => 'warning',
+      'log_event' => BrConst::LOG_EVENT_WARNING,
       'log_level' => $this->logLevel,
       'log_prefix' => $this->logPrefix,
       'details' => $details
@@ -170,10 +170,10 @@ class BrLog extends BrObject
     $this->writeToAdapters($messageOrObject, $params);
   }
 
-  public function message($messageOrObject, $details = [], $logEvent = 'message')
+  public function message($messageOrObject, $details = [], $logEvent = BrConst::LOG_EVENT_MESSAGE)
   {
     $params = [
-      'log_event' => $logEvent ? $logEvent : 'message',
+      'log_event' => $logEvent,
       'log_level' => $this->logLevel,
       'log_prefix' => $this->logPrefix,
       'details' => $details

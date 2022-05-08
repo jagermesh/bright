@@ -211,7 +211,7 @@ class BrGenericLogAdapter extends BrObject
     ];
 
     if ($withMessage) {
-      $result[self::EVENT_TYPE_MESSAGE] = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, true);
+      $result[self::EVENT_TYPE_MESSAGE] = self::convertMessageOrObjectToText($messageOrObject, true);
     }
 
     if (br($params, self::DETAILS)) {
@@ -232,19 +232,19 @@ class BrGenericLogAdapter extends BrObject
     $result = '';
 
     if (is_scalar($messageOrObject)) {
-      $result .= trim($messageOrObject);
+      $result = $messageOrObject;
     } elseif (is_array($messageOrObject)) {
-      $result .= @print_r($messageOrObject, true);
+      $result = @print_r($messageOrObject, true);
     } elseif ($messageOrObject instanceof \Throwable) {
       $exceptionMessage = BrErrorsFormatter::getStackTraceFromException($messageOrObject);
-      $result .= $messageOrObject->getMessage();
+      $result = $messageOrObject->getMessage();
       if ($includeStackTrace) {
         $result .= "\n\n" . $exceptionMessage;
       }
     } elseif (is_object($messageOrObject)) {
-      $result .= @print_r($messageOrObject, true);
+      $result = @print_r($messageOrObject, true);
     }
 
-    return trim($result);
+    return $result;
   }
 }

@@ -294,14 +294,14 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
         ) {
           if ($this->isInTransaction()) {
             if ($this->isTransactionBufferEmpty()) {
-              br()->log()->message('Trying restart transaction and repeat query', ['sql' => $queryText], 'query');
+              br()->log()->message($error, [], BrConst::LOG_EVENT_SQL_RETRY);
               usleep(250000);
               $this->rollbackTransaction();
               $this->startTransaction();
               $query = $this->runQueryEx($sql, $args, $iteration + 1, $e->getMessage(), $resultMode);
             } else {
-              br()->log()->message('Automatic retrying was not possible - ' . $this->transactionBufferLength() .
-                ' statement(s) in transaction buffer: ' . "\n" . json_encode($this->getTransactionBuffer()));
+              br()->log()->message($error . "\n" . 'Automatic retrying was not possible - ' . $this->transactionBufferLength() .
+                ' statement(s) in transaction buffer', $this->getTransactionBuffer(), BrConst::LOG_EVENT_SQL_ERROR);
               if (preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_DEADLOCK_FOUND_WHEN_TRYING_TO_GET_LOCK), $error) ||
                 preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_DEADLOCK_WSREP_ABORTED_TRANSACTION), $error)) {
                 throw new BrDBDeadLockException($error);
@@ -322,7 +322,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
               }
             }
           } else {
-            br()->log()->message('Trying to repeat query', ['sql' => $queryText], 'query');
+            br()->log()->message($error, [], BrConst::LOG_EVENT_SQL_RETRY);
             sleep(1);
             $query = $this->runQueryEx($sql, $args, $iteration + 1, $e->getMessage(), $resultMode);
           }
@@ -336,15 +336,10 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
           throw new BrDBException($error);
         }
       }
-      br()->log()->message('Query complete', [
-        'sql' => $queryText,
-      ], 'query');
+      br()->log()->message($queryText, [], BrConst::LOG_EVENT_SQL_OK);
     } catch (\Exception $e) {
       $error = $e->getMessage();
-      br()->log()->message('Query error', [
-        'error' => $error,
-        'sql' => $queryText,
-      ], 'query');
+      br()->log()->message($error . "\n". $queryText, [], BrConst::LOG_EVENT_SQL_ERROR);
       br()->trigger(BrConst::EVENT_BR_DB_QUERY_ERROR, $error);
       throw $e;
     }

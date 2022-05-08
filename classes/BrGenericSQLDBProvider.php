@@ -408,6 +408,12 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
 
   protected function getCountSQL($sql)
   {
+    if (!preg_match('/GROUP[ \n\r]+BY/ism', $sql) && preg_match('/^[ \n\r]*SELECT[ \n\r]+(.+?)[ \n\r]+FROM[ \n\r]+(.+)$/ism', $sql, $matches)) {
+      if (!preg_match('/SELECT/ism', $matches[1])) {
+        return 'SELECT COUNT(1) FROM ' . $matches[2];
+      }
+    }
+
     return 'SELECT COUNT(1) FROM (' . $sql . ') a';
   }
 

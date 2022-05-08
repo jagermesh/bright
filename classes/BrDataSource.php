@@ -102,8 +102,6 @@ class BrDataSource extends BrGenericDataSource
     $resultsLimit = $options[BrConst::DATASOURCE_OPTION_LIMIT];
     $rowsSkip = $options[BrConst::DATASOURCE_OPTION_SKIP];
 
-    $fields = $options[BrConst::DATASOURCE_OPTION_FIELDS];
-
     $distinct = br($options, BrConst::DATASOURCE_OPTION_DISTINCT);
 
     $this->lastSelectAmount = null;
@@ -127,6 +125,13 @@ class BrDataSource extends BrGenericDataSource
     if (($having = br($options, BrConst::DATASOURCE_OPTION_HAVING, [])) && !is_array($having)) {
       $having = [$having];
     }
+
+    if ($countOnly && !$groupBy && !$having) {
+      $fields = [];
+    } else {
+      $fields = $options[BrConst::DATASOURCE_OPTION_FIELDS];
+    }
+
 
     $this->validateSelect($filter);
 

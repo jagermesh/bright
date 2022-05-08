@@ -126,21 +126,31 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter
       $this->checkFile();
       if ($this->filePointer) {
         if ($messages = explode("\n", $message)) {
-          $outputPrefix = '';
-          if ($prefix) {
-            $outputPrefix = $prefix . ' ';
-          }
-          @fwrite($this->filePointer, $outputPrefix . $messages[0] . "\n");
-          $prefixLength = mb_strlen($outputPrefix);
-          $fakePrefix = '';
-          if ($prefixLength > 0) {
-            $fakePrefix = str_pad(' ', $prefixLength, ' ');
-          }
-          for ($i = 1; $i < count($messages); $i++) {
-            if (strlen($messages[$i])) {
-              @fwrite($this->filePointer, $fakePrefix . $messages[$i] . "\n");
-            } else {
-              @fwrite($this->filePointer, "\n");
+          if ($messages = array_values(array_filter($messages, function ($message) {
+            return strlen(trim($message)) > 0;
+          }))) {
+            $minSpaces = array_reduce($messages, function ($carry, $message) {
+              return min($carry, strspn($message, ' '));
+            }, 999999);
+            $messages = array_map(function ($message) use ($minSpaces) {
+              return rtrim(substr($message, $minSpaces));
+            }, $messages);
+            $outputPrefix = '';
+            if ($prefix) {
+              $outputPrefix = $prefix . ' ';
+            }
+            @fwrite($this->filePointer, $outputPrefix . $messages[0] . "\n");
+            $prefixLength = mb_strlen($outputPrefix);
+            $fakePrefix = '';
+            if ($prefixLength > 0) {
+              $fakePrefix = str_pad(' ', $prefixLength, ' ');
+            }
+            for ($i = 1; $i < count($messages); $i++) {
+              if (strlen($messages[$i])) {
+                @fwrite($this->filePointer, $fakePrefix . $messages[$i] . "\n");
+              } else {
+                @fwrite($this->filePointer, "\n");
+              }
             }
           }
         }
