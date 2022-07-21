@@ -15,7 +15,7 @@
     "merge-stream": "^2.0.0",
     "phplint": "^2.0.5",
     "sass": "^1.51.0",
-    "terser": "^5.13.1"
+    "terser": "^5.14.2"
   },
   "dependencies": {
     "js-flyovers": "^1.0.7",
