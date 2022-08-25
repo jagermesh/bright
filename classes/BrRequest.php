@@ -15,29 +15,32 @@ class BrRequest extends BrObject
   const IP_LOCALHOST = '127.0.0.1';
   const HOST_LOCALHOST = 'localhost';
 
-  private $host = null;
+  private $host;
   private $url = null;
   private $path = null;
   private $relativeUrl = null;
-  private $baseUrl = null;
+  private $baseUrl;
   private $brightUrl = null;
-  private $clientIP = null;
+  private $clientIP;
   private $scriptName = null;
   private $continueRoute = true;
-  private $domain = null;
+  private $domain;
   private $putVars = [];
   private $contentType = null;
-  private $urlRestrictions = [];
-  private $restrictionsLoaded = false;
+  private $urlRestrictions;
+  private $restrictionsLoaded;
   private $isRest = false;
   private $headers = [];
+  private $protocol;
 
   public function __construct()
   {
+    parent::__construct();
+
     if (br()->isConsoleMode()) {
       $this->clientIP = br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_SERVER_ADDR, self::IP_LOCALHOST);
       $this->domain = br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_BASE_DOMAIN, self::HOST_LOCALHOST);
-      $this->protocol = br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_WEB_PROTOCOL, 'http://');
+      $this->protocol = br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_WEB_PROTOCOL, 'https://');
       $this->host = br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_BASE_HOST, $this->protocol . $this->domain);
       $this->baseUrl = br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_BASE_URL, '/');
 
@@ -114,15 +117,15 @@ class BrRequest extends BrObject
       }
 
       if (!br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_XSS_CLEANUP_DISABLED)) {
-        $_GET = br()->XSS()->cleanUp($_GET, function ($name, &$proceed) {
+        $_GET = br()->xss()->cleanUp($_GET, function ($name, &$proceed) {
           $method = BrConst::REQUEST_TYPE_GET;
           br()->trigger(BrConst::EVENT_REQUEST_XSS_CLEANUP, $method, $name, $proceed);
         });
-        $_POST = br()->XSS()->cleanUp($_POST, function ($name, &$proceed) {
+        $_POST = br()->xss()->cleanUp($_POST, function ($name, &$proceed) {
           $method = BrConst::REQUEST_TYPE_POST;
           br()->trigger(BrConst::EVENT_REQUEST_XSS_CLEANUP, $method, $name, $proceed);
         });
-        $this->putVars = br()->XSS()->cleanUp($this->putVars, function ($name, &$proceed) {
+        $this->putVars = br()->xss()->cleanUp($this->putVars, function ($name, &$proceed) {
           $method = BrConst::REQUEST_TYPE_PUT;
           br()->trigger(BrConst::EVENT_REQUEST_XSS_CLEANUP, $method, $name, $proceed);
         });
@@ -167,28 +170,29 @@ class BrRequest extends BrObject
 
   /**
    * Get referer
-   * @return String
+   * @param null $default
+   * @return string
    */
-  public function referer($default = null)
+  public function referer($default = null): string
   {
-    return br($_SERVER, BrConst::PHP_SERVER_VAR_HTTP_REFERER, $default);
+    return (string)br($_SERVER, BrConst::PHP_SERVER_VAR_HTTP_REFERER, $default);
   }
 
   /**
    * Check if request referer is this site
-   * @return boolean
+   * @return bool
    */
-  public function isSelfReferer()
+  public function isSelfReferer(): bool
   {
     return strpos($this->referer(), $this->host() . $this->baseUrl()) !== false;
   }
 
   /**
    * Check if requested specified url
-   * @param String $url Urls to check
-   * @return boolean
+   * @param string $url Urls to check
+   * @return array|null
    */
-  public function isAt($url)
+  public function isAt(string $url): ?array
   {
     if (@preg_match('~' . $url . '~', $this->url, $matches)) {
       return $matches;
@@ -197,7 +201,7 @@ class BrRequest extends BrObject
     }
   }
 
-  public function isRefererAt($url)
+  public function isRefererAt(string $url): ?array
   {
     if (@preg_match('~' . $url . '~', $this->referer(), $matches)) {
       return $matches;
@@ -206,7 +210,7 @@ class BrRequest extends BrObject
     }
   }
 
-  public function isAtBaseUrl()
+  public function isAtBaseUrl(): ?array
   {
     return $this->isAt($this->baseUrl() . '$');
   }
@@ -218,7 +222,7 @@ class BrRequest extends BrObject
 
   /**
    * Get client IP
-   * @return String
+   * @return string
    */
   public function clientIP()
   {
@@ -244,7 +248,7 @@ class BrRequest extends BrObject
     $this->baseUrl = $value;
   }
 
-  public function baseUrl($dec = 0)
+  public function baseUrl(int $dec = 0)
   {
     if (br()->isConsoleMode()) {
       $result = br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_BASE_URL, '/');
@@ -260,6 +264,16 @@ class BrRequest extends BrObject
     }
 
     return $result;
+  }
+
+  public function buildUrl(string $url, array $params = []): string
+  {
+    return rtrim($url, '?&') . (strpos(rtrim($url, '?&'), '?') === false ? '?' : '&') . http_build_query($params);
+  }
+
+  public function reBuildCurrentUrl(array $params = []): string
+  {
+    return $this->buildUrl($this->baseUrl() . $this->relativeUrl() . $this->getScriptName(), $params);
   }
 
   public function build($url = [], $params = [])
@@ -311,17 +325,12 @@ class BrRequest extends BrObject
     }
   }
 
-  public function brightUrl()
-  {
-    return $this->getBrightUrl();
-  }
-
   public function setBrightUrl($value)
   {
     return $this->brightUrl = $value;
   }
 
-  public function domain()
+  public function getDomain()
   {
     if (br()->isConsoleMode()) {
       return br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_BASE_DOMAIN, self::HOST_LOCALHOST);
@@ -334,16 +343,16 @@ class BrRequest extends BrObject
   {
     $whitelist = [self::HOST_LOCALHOST, self::IP_LOCALHOST];
 
-    if (in_array($this->domain(), $whitelist)) {
+    if (in_array($this->getDomain(), $whitelist)) {
       return true;
     }
 
-    if (preg_match('/^local[.]/ism', $this->domain())) {
+    if (preg_match('/^local[.]/ism', $this->getDomain())) {
       return true;
     }
 
     $result = false;
-    $tmpDomain = $this->domain();
+    $tmpDomain = $this->getDomain();
 
     $this->trigger(BrConst::EVENT_CHECK_LOCAL_HOST, $tmpDomain, $result);
 
@@ -357,7 +366,7 @@ class BrRequest extends BrObject
     }
 
     $result = false;
-    $tmpDomain = $this->domain();
+    $tmpDomain = $this->getDomain();
 
     $this->trigger(BrConst::EVENT_CHECK_DEV_HOST, $tmpDomain, $result);
 
@@ -372,7 +381,7 @@ class BrRequest extends BrObject
   public function protocol()
   {
     if (br()->isConsoleMode()) {
-      return br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_WEB_PROTOCOL, 'http://');
+      return br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_WEB_PROTOCOL, 'https://');
     } else {
       return $this->protocol;
     }
@@ -381,7 +390,7 @@ class BrRequest extends BrObject
   public function host()
   {
     if (br()->isConsoleMode()) {
-      return br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_BASE_HOST, $this->protocol() . $this->domain());
+      return br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_BASE_HOST, $this->protocol() . $this->getDomain());
     } else {
       return $this->host;
     }
@@ -461,9 +470,9 @@ class BrRequest extends BrObject
     return $this->isRest;
   }
 
-  public function setIsRest()
+  public function setIsRest(bool $value)
   {
-    $this->isRest = true;
+    $this->isRest = $value;
   }
 
   public function userAgent()

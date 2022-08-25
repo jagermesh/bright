@@ -10,16 +10,25 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrFileCacheProvider extends BrGenericCacheProvider
 {
-  private $cachePath;
+  private string $cachePath;
 
-  public function __construct($settings = [])
+  /**
+   * @throws BrException
+   * @throws \Exception
+   */
+  public function __construct(?array $settings = [])
   {
     parent::__construct($settings);
 
     if (br($settings, 'cachePath')) {
       $this->setCachePath(rtrim($settings['cachePath'], '/') . '/');
+    } else {
+      $this->setCachePath(br()->getTempPath());
     }
 
     if (br($settings, 'lifeTime')) {
@@ -27,113 +36,14 @@ class BrFileCacheProvider extends BrGenericCacheProvider
     }
   }
 
-  private function getCacheFilePath($name): string
-  {
-    return $this->getCachePath() . br()->fs()->getCharsPath(hash('sha256', $name) . '.cache');
-  }
-
-  private function checkCacheFile($filePath): bool
-  {
-    if (file_exists($filePath)) {
-      return ((time() - filemtime($filePath)) < $this->getCacheLifeTime());
-    } else {
-      return false;
-    }
-  }
-
-  public static function isSupported(): bool
-  {
-    return true;
-  }
-
-  /**
-   * @throws BrAppException
-   */
-  public function reset()
-  {
-    throw new BrAppException('Reset cache is not implemented for this provider');
-  }
-
-  public function exists($name): bool
-  {
-    $name = $this->getSafeName($name);
-
-    return $this->checkCacheFile($this->getCacheFilePath($name));
-  }
-
-  public function get($name, $default = null, $saveDefault = false)
-  {
-    $name = $this->getSafeName($name);
-
-    $filePath = $this->getCacheFilePath($name);
-
-    if ($this->checkCacheFile($filePath)) {
-      $value = unserialize(br()->fs()->loadFromFile($filePath));
-    } else {
-      $value = $default;
-      if ($saveDefault) {
-        $this->set($name, $value);
-      }
-    }
-
-    return $value;
-  }
-
-  public function getEx($name): array
-  {
-    $name = $this->getSafeName($name);
-
-    $filePath = $this->getCacheFilePath($name);
-
-    if ($this->checkCacheFile($filePath)) {
-      $result = [
-        'success' => true,
-        'value' => unserialize(br()->fs()->loadFromFile($filePath))
-      ];
-    } else {
-      $result = [
-        'success' => false
-      ];
-    }
-
-    return $result;
-  }
-
-  public function set($name, $value, $lifeTime = null)
-  {
-    $name = $this->getSafeName($name);
-
-    if (!$lifeTime) {
-      $lifeTime = $this->getCacheLifeTime();
-    }
-
-    $filePath = $this->getCacheFilePath($name);
-
-    if (br()->fs()->makeDir(br()->fs()->filePath($filePath))) {
-      br()->fs()->saveToFile($filePath, serialize($value));
-    }
-
-    return $value;
-  }
-
-  public function remove($name)
-  {
-    $name = $this->getSafeName($name);
-
-    $filePath = $this->getCacheFilePath($name);
-
-    if (file_exists($filePath)) {
-      unlink($filePath);
-    }
-
-    $this->clearAttr($name);
-  }
-
-  public function setCachePath($value)
+  public function setCachePath(string $value)
   {
     $this->cachePath = rtrim($value, '/') . '/';
   }
 
+  /**
+   * @throws \Exception
+   */
   public function getCachePath(): string
   {
     if ($this->cachePath) {
@@ -143,7 +53,7 @@ class BrFileCacheProvider extends BrGenericCacheProvider
     }
 
     if (!is_dir($result)) {
-      br()->fs()->makeDir($result, 0777);
+      br()->fs()->makeDir($result);
     }
 
     if (!is_dir($result) || !is_writable($result)) {
@@ -158,5 +68,106 @@ class BrFileCacheProvider extends BrGenericCacheProvider
     }
 
     return $result;
+  }
+
+  public static function isSupported(): bool
+  {
+    return true;
+  }
+
+  /**
+   * @throws BrAppException
+   */
+  public function reset(): bool
+  {
+    throw new BrAppException('Reset cache is not implemented for this provider');
+  }
+
+  /**
+   * @throws \Exception
+   */
+  public function exists(string $name): bool
+  {
+    return $this->checkCacheFile($this->getCacheFilePath($this->getSafeName($name)));
+  }
+
+  /**
+   * @param string $name
+   * @param $default
+   * @param bool $saveDefault
+   * @return mixed
+   * @throws \Exception
+   */
+  public function getEx(string $name, $default = null, bool $saveDefault = false): array
+  {
+    $name = $this->getSafeName($name);
+
+    $filePath = $this->getCacheFilePath($name);
+
+    if (!$this->checkCacheFile($filePath)) {
+      if ($saveDefault && $default) {
+        $this->set($name, $default);
+      }
+      return [
+        'success' => $saveDefault,
+        'value' => $default
+      ];
+    } else {
+      return [
+        'success' => true,
+        'value' => json_decode(br()->fs()->loadFromFile($filePath), true),
+      ];
+    }
+  }
+
+  /**
+   * @param string $name
+   * @param $value
+   * @param int|null $lifeTime
+   * @return bool
+   * @throws \Exception
+   */
+  public function set(string $name, $value, ?int $lifeTime = null): bool
+  {
+    $filePath = $this->getCacheFilePath($this->getSafeName($name));
+
+    if (br()->fs()->makeDir(br()->fs()->filePath($filePath))) {
+      br()->fs()->saveToFile($filePath, json_encode($value));
+    }
+
+    return true;
+  }
+
+  /**
+   * @throws \Exception
+   */
+  public function remove(string $name): bool
+  {
+    $filePath = $this->getCacheFilePath($this->getSafeName($name));
+
+    if (file_exists($filePath)) {
+      unlink($filePath);
+    }
+
+    $this->clearAttr($name);
+
+    return true;
+  }
+
+  /**
+   * @throws \Exception
+   */
+  private function getCacheFilePath(string $name): string
+  {
+    return $this->getCachePath() . br()->fs()->getCharsPath(hash('sha256', $name) . '.cache');
+  }
+
+  private function checkCacheFile(string $filePath): bool
+  {
+    if (file_exists($filePath)) {
+      return ((time() - filemtime($filePath)) < $this->getCacheLifeTime());
+    } else {
+      return false;
+    }
   }
 }

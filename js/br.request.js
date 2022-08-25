@@ -18,7 +18,7 @@
 
     if (document) {
       if (document.cookie) {
-        var csrfCookieRegexp = document.cookie.match(/Csrf-Token=([\w-]+)/);
+        let csrfCookieRegexp = document.cookie.match(/Csrf-Token=([\w-]+)/);
         if (csrfCookieRegexp) {
           _this.csrfToken = csrfCookieRegexp[1];
         }

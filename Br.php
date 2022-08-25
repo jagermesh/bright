@@ -21,7 +21,7 @@ if (file_exists(dirname(dirname(__DIR__)) . '/autoload.php')) {
  * @param mixed $array
  * @param mixed $name
  * @param mixed $default
- * @return \Bright\BrCore|\Bright\BrArray|\Bright\BrString|NULL
+ * @return \Bright\BrCore|\Bright\BrArray|\Bright\BrString|string|array|int|float|bool|NULL
  */
 function br($array = null, $name = null, $default = null)
 {
@@ -32,8 +32,10 @@ function br($array = null, $name = null, $default = null)
   if (func_num_args() === 1) {
     if (is_array($array)) {
       return new \Bright\BrArray($array);
-    } else {
+    } elseif (is_null($array) || is_scalar($array)) {
       return new \Bright\BrString($array);
+    } else {
+      return $array;
     }
   }
 

@@ -206,6 +206,8 @@ class BrIMAPMailMessage extends BrObject
         return 'high';
       }
     }
+
+    return '';
   }
 
   public function getMailbox()

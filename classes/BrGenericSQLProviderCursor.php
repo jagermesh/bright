@@ -22,7 +22,7 @@ class BrGenericSQLProviderCursor implements \Iterator
   private $sql;
   private $args;
   private $provider;
-  private $position = -1;
+  private int $position;
   private $query;
   private $row;
   private $limit;
@@ -147,7 +147,7 @@ class BrGenericSQLProviderCursor implements \Iterator
     $finalSql = $this->sql;
 
     if ($this->groupBy) {
-      $finalSql .= "\n" . self::SQL_CMD_GROUP_BY . br($this->groupBy)->join(', ');
+      $finalSql .= "\n" . self::SQL_CMD_GROUP_BY . br($this->groupBy)->join();
     }
 
     if ($this->having) {
@@ -159,7 +159,7 @@ class BrGenericSQLProviderCursor implements \Iterator
       foreach ($this->orderBy as $field => $direction) {
         $fields[] = $field . ' ' . ($direction == 1 ? self::SQL_CMD_ORDER_ASC : self::SQL_CMD_ORDER_DESC);
       }
-      $finalSql .= "\n" . self::SQL_CMD_ORDER_BY . br($fields)->join(', ');
+      $finalSql .= "\n" . self::SQL_CMD_ORDER_BY . br($fields)->join();
     }
 
     return $finalSql;

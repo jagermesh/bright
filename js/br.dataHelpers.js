@@ -27,7 +27,7 @@
   function execute(funcToExecute, paramsQueue, extraParams, resolve, reject) {
     let functionsQueue = [];
 
-    while ((functionsQueue.length <= extraParams.workers) && (paramsQueue.length > 0)) {
+    while ((functionsQueue.length < extraParams.workers) && (paramsQueue.length > 0)) {
       functionsQueue.push(funcToExecute(paramsQueue.pop()).then(function() {
         br.stepProgress();
       }));

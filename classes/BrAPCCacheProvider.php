@@ -10,12 +10,15 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrAPCCacheProvider extends BrGenericCacheProvider
 {
   /**
    * @throws BrException
    */
-  public function __construct($settings = [])
+  public function __construct(?array $settings = [])
   {
     parent::__construct($settings);
 
@@ -29,68 +32,63 @@ class BrAPCCacheProvider extends BrGenericCacheProvider
     return extension_loaded('apc');
   }
 
-  public function reset()
+  public function reset(): bool
   {
     return apc_clear_cache('user');
   }
 
-  public function exists($name): bool
+  public function exists(string $name): bool
   {
-    return apc_exists($name);
+    return (bool)apc_exists($name);
   }
 
-  public function get($name, $default = null, $saveDefault = false)
+  /**
+   * @param string $name
+   * @param $default
+   * @param bool $saveDefault
+   * @return mixed|null
+   */
+  public function getEx(string $name, $default = null, bool $saveDefault = false): array
   {
     $name = $this->getSafeName($name);
 
-    $result = apc_fetch($name);
+    $cachedValue = apc_fetch($name);
 
-    if ($result === false) {
-      $result = $default;
-      if ($saveDefault) {
-        $this->set($name, $result);
+    if ($cachedValue === false) {
+      if ($saveDefault && $default) {
+        $this->set($name, $default);
       }
+      return [
+        'success' => $saveDefault,
+        'value' => $default
+      ];
     } else {
-      $result = unserialize($result);
-    }
-
-    return $result;
-  }
-
-  public function getEx($name)
-  {
-    $name = $this->getSafeName($name);
-
-    $result = apc_fetch($name);
-
-    if ($result === false) {
-      $result = ['success' => false];
-    } else {
-      $result = ['success' => true, 'value' => unserialize($result)];
-    }
-
-    return $result;
-  }
-
-  public function set($name, $value, $lifeTime = null)
-  {
-    if (!$lifeTime) {
-      $lifeTime = $this->getCacheLifeTime();
-    }
-
-    $name = $this->getSafeName($name);
-
-    if (apc_store($name, serialize($value), $lifeTime)) {
-      return $value;
-    } else {
-      return false;
+      return [
+        'success' => true,
+        'value' => json_decode($cachedValue, true),
+      ];
     }
   }
 
-  public function remove($name)
+  /**
+   * @param string $name
+   * @param $value
+   * @param int|null $lifeTime
+   * @return bool
+   */
+  public function set(string $name, $value, ?int $lifeTime = null): bool
+  {
+    $lifeTime = $lifeTime ? $lifeTime : $this->getCacheLifeTime();
+
+    $name = $this->getSafeName($name);
+
+    return (bool)apc_store($name, json_encode($value), $lifeTime);
+  }
+
+  public function remove(string $name): bool
   {
     $name = $this->getSafeName($name);
 
-    return apc_delete($name);
+    return (bool)apc_delete($name);
   }
 }

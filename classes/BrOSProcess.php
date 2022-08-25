@@ -10,12 +10,15 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrOSProcess extends BrObject
 {
-  private $pid;
-  private $command;
+  private string $pid;
+  private string $command;
 
-  public function __construct($pid, $command)
+  public function __construct(string $pid, string $command)
   {
     parent::__construct();
 
@@ -30,7 +33,7 @@ class BrOSProcess extends BrObject
     return !$this->isValid();
   }
 
-  public function isValid()
+  public function isValid(): bool
   {
     return br()->OS()->isValidProcessId($this->pid);
   }

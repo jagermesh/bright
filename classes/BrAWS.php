@@ -2,6 +2,9 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrAWS extends BrObject
 {
   const AMAZON_POLLY_MAX_CHARACTERS = 1500;
@@ -54,7 +57,7 @@ class BrAWS extends BrObject
     }
   }
 
-  private function assembleUrl($struct): string
+  private function assembleUrl(array $struct): string
   {
     return $this->getS3Endpoint() . $struct['bucketName'] . '/' . $struct['objectPath'];
   }
@@ -297,6 +300,9 @@ class BrAWS extends BrObject
     }
   }
 
+  /**
+   * @throws BrAppException
+   */
   public function moveFile($source, $destination, $additionalParams = []): string
   {
     $result = $this->copyFile($source, $destination, $additionalParams);
@@ -380,6 +386,7 @@ class BrAWS extends BrObject
 
   /**
    * @throws BrAppException
+   * @throws \Throwable
    */
   public function synthesizeSpeech($text, $additionalParams = [])
   {
@@ -424,9 +431,9 @@ class BrAWS extends BrObject
 
           return [
             'text' => $text,
-            'audioUrl' => br()->AWS()->uploadData($auidoData, $additionalParams['audioUrl'], $additionalParams),
+            'audioUrl' => br()->aws()->uploadData($auidoData, $additionalParams['audioUrl'], $additionalParams),
             'audioSize' => $audioSize,
-            'marksUrl' => br()->AWS()->uploadData(json_encode($marksData), $additionalParams['marksUrl'], $additionalParams),
+            'marksUrl' => br()->aws()->uploadData(json_encode($marksData), $additionalParams['marksUrl'], $additionalParams),
             'marks' => $marksData,
             'marksSize' => strlen(json_encode($marksData))
           ];
@@ -461,9 +468,9 @@ class BrAWS extends BrObject
                 exec($command);
                 return [
                   'text' => $text,
-                  'audioUrl' => br()->AWS()->uploadFile($finalAudioFilePath, $additionalParams['audioUrl'], $additionalParams),
+                  'audioUrl' => br()->aws()->uploadFile($finalAudioFilePath, $additionalParams['audioUrl'], $additionalParams),
                   'audioSize' => filesize($finalAudioFilePath),
-                  'marksUrl' => br()->AWS()->uploadData(json_encode($marksData), $additionalParams['marksUrl'], $additionalParams),
+                  'marksUrl' => br()->aws()->uploadData(json_encode($marksData), $additionalParams['marksUrl'], $additionalParams),
                   'marks' => $marksData,
                   'marksSize' => strlen(json_encode($marksData))
                 ];

@@ -10,19 +10,22 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrLog extends BrObject
 {
-  private $initTime = null;
-  private $initMicroTime = null;
-  private $savedMicroTime = null;
-  private $initMemory = null;
-  private $savedMemory = null;
-  private $logLevel = 0;
-  private $logPrefix = '';
-  private $adapters = [];
+  private string $initTime;
+  private float $initMicroTime;
+  private float $savedMicroTime;
+  private int $initMemory;
+  private int $savedMemory;
+  private int $logLevel = 0;
+  private string $logPrefix = '';
+  private array $adapters = [];
 
-  public static $LOG_MEMORY = true;
-  public static $LOG_TIME = true;
+  public static bool $LOG_MEMORY = true;
+  public static bool $LOG_TIME = true;
 
   public function __construct()
   {
@@ -40,12 +43,12 @@ class BrLog extends BrObject
     }
   }
 
-  public function addAdapter($adapter)
+  public function addAdapter(BrGenericLogAdapter $adapter)
   {
     $this->adapters[] = $adapter;
   }
 
-  public function getAdapter($className)
+  public function getAdapter(string $className): ?BrGenericLogAdapter
   {
     foreach ($this->adapters as $adapter) {
       if (get_class($adapter) == $className) {
@@ -56,7 +59,7 @@ class BrLog extends BrObject
     return null;
   }
 
-  public function isAdapterExists($name)
+  public function isAdapterExists(string $name): bool
   {
     foreach ($this->adapters as $adapter) {
       if (get_class($adapter) == $name) {
@@ -85,17 +88,22 @@ class BrLog extends BrObject
     $this->logLevel = 0;
   }
 
-  public function getLevel()
+  public function getLevel(): int
   {
-    return $this->logLevel >= 0 ? $this->logLevel : 0;
+    return max($this->logLevel, 0);
   }
 
-  public function setLogPrefix($value)
+  public function setLogPrefix(string $value)
   {
     $this->logPrefix = $value;
   }
 
-  private function writeToAdapters($messageOrObject, $params = [])
+  /**
+   * @param $messageOrObject
+   * @param array|null $params
+   * @return void
+   */
+  private function writeToAdapters($messageOrObject, ?array $params = [])
   {
     if ($this->isEnabled()) {
       $params['log_level'] = $this->logLevel;
@@ -137,7 +145,12 @@ class BrLog extends BrObject
     }
   }
 
-  public function debug($messageOrObject, $details = [])
+  /**
+   * @param $messageOrObject
+   * @param array|null $details
+   * @return void
+   */
+  public function debug($messageOrObject, ?array $details = [])
   {
     $params = [
       'log_event' => BrConst::LOG_EVENT_DEBUG,
@@ -148,7 +161,12 @@ class BrLog extends BrObject
     $this->writeToAdapters($messageOrObject, $params);
   }
 
-  public function error($messageOrObject, $details = [])
+  /**
+   * @param $messageOrObject
+   * @param array|null $details
+   * @return void
+   */
+  public function error($messageOrObject, ?array $details = [])
   {
     $params = [
       'log_event' => BrConst::LOG_EVENT_ERROR,
@@ -159,7 +177,12 @@ class BrLog extends BrObject
     $this->writeToAdapters($messageOrObject, $params);
   }
 
-  public function warning($messageOrObject, $details = [])
+  /**
+   * @param $messageOrObject
+   * @param array|null $details
+   * @return void
+   */
+  public function warning($messageOrObject, ?array $details = [])
   {
     $params = [
       'log_event' => BrConst::LOG_EVENT_WARNING,
@@ -170,7 +193,13 @@ class BrLog extends BrObject
     $this->writeToAdapters($messageOrObject, $params);
   }
 
-  public function message($messageOrObject, $details = [], $logEvent = BrConst::LOG_EVENT_MESSAGE)
+  /**
+   * @param $messageOrObject
+   * @param array|null $details
+   * @param string $logEvent
+   * @return void
+   */
+  public function message($messageOrObject, ?array $details = [], string $logEvent = BrConst::LOG_EVENT_MESSAGE)
   {
     $params = [
       'log_event' => $logEvent,

@@ -10,77 +10,109 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrCache extends BrObject
 {
-  public static function getInstance($name = null)
+  /**
+   * Get provider Instance
+   * @param string|null $name
+   * @return BrMemCacheCacheProvider|BrFileCacheProvider|BrAPCCacheProvider|BrXCacheCacheProvider|BrRedisCacheProvider|BrMemoryCacheProvider
+   * @throws BrCacheException
+   * @throws BrException
+   * @throws BrRedisCacheProviderException
+   */
+  public static function getProviderInstance(?string $name = null): BrGenericCacheProvider
   {
-    $name = $name ? $name : 'default';
+    $name = $name ? $name : 'memory';
+
     if (!array_key_exists($name, self::$instances)) {
-      $cacheConfig = ['engine' => $name];
+      $settings = [
+        'engine' => $name
+      ];
+
       if ($config = br()->config()->get('cache')) {
         if (br($config, $name)) {
           if (br($config[$name], 'engine')) {
-            $cacheConfig = $config[$name];
+            $settings = $config[$name];
           }
-        } elseif ((!$name || ($name == 'default')) && br($config, 'engine')) {
-          $cacheConfig = $config;
+        } elseif (
+          (
+            !$name ||
+            ($name == 'default')
+          ) &&
+          br($config, 'engine')
+        ) {
+          $settings = $config;
         }
       }
-      $instance = null;
+
       try {
-        if (self::isSupported($cacheConfig['engine'])) {
-          $instance = self::createInstance($cacheConfig['engine'], $cacheConfig);
+        if (self::isSupported($settings['engine'])) {
+          $instance = self::createProviderInstance($settings['engine'], $settings);
         } else {
-          throw new BrCacheException($cacheConfig['engine'] . ' cache is not supported');
+          throw new BrCacheException($settings['engine'] . ' cache is not supported');
         }
       } catch (\Exception $e) {
-        if (br($cacheConfig, 'required')) {
-          throw new BrCacheException('Can not initialize ' . $cacheConfig['engine'] . ' caching engine: ' . $e->getMessage());
+        if (br($settings, 'required')) {
+          throw new BrCacheException(sprintf('Can not initialize %s caching engine: %s', $settings['engine'], $e->getMessage()));
         } else {
-          br()->log()->message('Can not initialize ' . $cacheConfig['engine'] . ' caching engine: ' . $e->getMessage() . '. Switching to memory caching.');
-          $instance = self::createInstance('memory');
+          br()->log()->message(sprintf('Can not initialize %s caching engine: %s. Switching to memory caching.', $settings['engine'], $e->getMessage()));
+          $instance = self::createProviderInstance('memory');
         }
       }
       self::$instances[$name] = $instance;
     }
+
     return self::$instances[$name];
   }
 
-  private static function createInstance($engine = null, $cacheConfig = [])
+  /**
+   * Create provider Instance
+   * @return BrMemCacheCacheProvider|BrFileCacheProvider|BrAPCCacheProvider|BrXCacheCacheProvider|BrRedisCacheProvider|BrMemoryCacheProvider
+   * @throws BrException
+   * @throws BrRedisCacheProviderException
+   */
+  private static function createProviderInstance($engine = null, ?array $settings = []): BrGenericCacheProvider
   {
     $engine = $engine ? $engine : 'memory';
+
     switch ($engine) {
       case 'memcache':
-        return new BrMemCacheCacheProvider($cacheConfig);
+        return new BrMemCacheCacheProvider($settings);
       case 'file':
-        return new BrFileCacheProvider($cacheConfig);
+        return new BrFileCacheProvider($settings);
       case 'apc':
-        return new BrAPCCacheProvider($cacheConfig);
+        return new BrAPCCacheProvider($settings);
       case 'xcache':
-        return new BrXCacheCacheProvider($cacheConfig);
+        return new BrXCacheCacheProvider( $settings);
       case 'redis':
-        return new BrRedisCacheProvider($cacheConfig);
+        return new BrRedisCacheProvider($settings);
       case 'memory':
       default:
-        return new BrMemoryCacheProvider($cacheConfig);
+        return new BrMemoryCacheProvider($settings);
     }
   }
 
-  public static function isSupported($engine = null)
+  public static function isSupported(string $engine = null): bool
   {
     $engine = $engine ? $engine : 'memory';
+
     switch ($engine) {
       case 'memcache':
         return BrMemCacheCacheProvider::isSupported();
+      case 'file':
+        return BrFileCacheProvider::isSupported();
       case 'apc':
         return BrAPCCacheProvider::isSupported();
       case 'xcache':
         return BrXCacheCacheProvider::isSupported();
       case 'redis':
         return BrRedisCacheProvider::isSupported();
+      case 'memory':
       default:
         return true;
-        break;
     }
   }
 }

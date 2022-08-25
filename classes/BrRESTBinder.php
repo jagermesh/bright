@@ -10,6 +10,9 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrRESTBinder extends BrObject
 {
   const PARAM_CROSSDOMAIN = 'crossdomain';
@@ -22,10 +25,17 @@ class BrRESTBinder extends BrObject
 
   public function doRouting()
   {
-    // must be overriden in descendand class
+    // must be override in descendant class
   }
 
-  public function route($path, $dataSource = null, $options = [])
+  /**
+   * @param $path
+   * @param null $dataSource
+   * @param array|null $options
+   * @return $this
+   * @throws \Exception
+   */
+  public function route($path, $dataSource = null, ?array $options = []): BrRESTBinder
   {
     if (!br()->request()->routeComplete()) {
       if (is_object($path)) {
@@ -35,16 +45,12 @@ class BrRESTBinder extends BrObject
         switch ($method) {
           case BrConst::REQUEST_TYPE_PUT:
             return $this->routeAsPUT($path, $dataSource, $options);
-            break;
           case BrConst::REQUEST_TYPE_POST:
             return $this->routeAsPOST($path, $dataSource, $options);
-            break;
           case BrConst::REQUEST_TYPE_DELETE:
             return $this->routeAsDELETE($path, $dataSource, $options);
-            break;
           default:
             return $this->routeAsGET($path, $dataSource, $options);
-            break;
         }
       }
     }
@@ -52,9 +58,17 @@ class BrRESTBinder extends BrObject
     return $this;
   }
 
-  public function routeGET($path, $dataSource, $options = [])
+  /**
+   * @param string $path
+   * @param $dataSource
+   * @param array|null $options
+   * @return $this
+   * @throws \Exception
+   */
+  public function routeGET(string $path, $dataSource, ?array $options = []): BrRESTBinder
   {
     $method = strtoupper(br()->request()->get(self::PARAM_CROSSDOMAIN, br()->request()->method()));
+
     if (!$method || ($method == BrConst::REQUEST_TYPE_GET)) {
       $this->routeAsGET($path, $dataSource, $options);
     }
@@ -62,9 +76,16 @@ class BrRESTBinder extends BrObject
     return $this;
   }
 
-  public function routePOST($path, $dataSource, $options = [])
+  /**
+   * @param string $path
+   * @param $dataSource
+   * @param array|null $options
+   * @return $this
+   */
+  public function routePOST(string $path, $dataSource, ?array $options = []): BrRESTBinder
   {
     $method = strtoupper(br()->request()->get(self::PARAM_CROSSDOMAIN, br()->request()->method()));
+
     if ($method == BrConst::REQUEST_TYPE_POST) {
       $this->routeAsPOST($path, $dataSource, $options);
     }
@@ -72,9 +93,16 @@ class BrRESTBinder extends BrObject
     return $this;
   }
 
-  public function routePUT($path, $dataSource, $options = [])
+  /**
+   * @param string $path
+   * @param $dataSource
+   * @param array|null $options
+   * @return $this
+   */
+  public function routePUT(string $path, $dataSource, ?array $options = []): BrRESTBinder
   {
     $method = strtoupper(br()->request()->get(self::PARAM_CROSSDOMAIN, br()->request()->method()));
+
     if ($method == BrConst::REQUEST_TYPE_PUT) {
       $this->routeAsPUT($path, $dataSource, $options);
     }
@@ -82,9 +110,16 @@ class BrRESTBinder extends BrObject
     return $this;
   }
 
-  public function routeDELETE($path, $dataSource, $options = [])
+  /**
+   * @param string $path
+   * @param $dataSource
+   * @param array|null $options
+   * @return $this
+   */
+  public function routeDELETE(string $path, $dataSource, ?array $options = []): BrRESTBinder
   {
     $method = strtoupper(br()->request()->get(self::PARAM_CROSSDOMAIN, br()->request()->method()));
+
     if ($method == BrConst::REQUEST_TYPE_DELETE) {
       $this->routeAsDELETE($path, $dataSource, $options);
     }
@@ -92,49 +127,61 @@ class BrRESTBinder extends BrObject
     return $this;
   }
 
-  private function checkPermissions($options, $methods)
+  private function checkPermissions(array $options, array $methods)
   {
-    $securityRules = br($options, BrConst::REST_SETTING_SECURITY);
-    $result = 'login';
+    if (!array_key_exists(BrConst::REST_SETTING_SECURITY, $options)) {
+      $mustBeLoggedIn = true;
+    } else {
+      $securityRules = $options[BrConst::REST_SETTING_SECURITY];
 
-    if (is_array($securityRules)) {
-      $found = false;
-      foreach ($methods as $method) {
-        if (array_key_exists($method, $securityRules)) {
-          $result = $securityRules[$method];
-          $found = true;
-        }
-        if ($found) {
-          break;
-        }
-      }
-      if (!$found) {
-        foreach ($securityRules as $RegExp => $value) {
-          if ($RegExp == '*') {
-            $RegExp = '.*';
-          }
-          foreach ($methods as $method) {
-            if (@preg_match('~' . $RegExp . '~', $method)) {
-              $result = $value;
-              $found = true;
-              break;
-            }
+      if (is_scalar($securityRules)) {
+        $mustBeLoggedIn = (bool)$securityRules;
+      } elseif (is_array($securityRules)) {
+        $found = false;
+        foreach ($methods as $method) {
+          if (array_key_exists($method, $securityRules)) {
+            $mustBeLoggedIn = $securityRules[$method];
+            $found = true;
           }
           if ($found) {
             break;
           }
         }
+        if (!$found) {
+          foreach ($securityRules as $RegExp => $value) {
+            if ($RegExp == '*') {
+              $RegExp = '.*';
+            }
+            foreach ($methods as $method) {
+              if (@preg_match('~' . $RegExp . '~', $method)) {
+                $mustBeLoggedIn = $value;
+                $found = true;
+                break;
+              }
+            }
+            if ($found) {
+              break;
+            }
+          }
+        }
+      } else {
+        throw new \Exception('Wrong security rule in route');
       }
-    } else {
-      $result = $securityRules;
     }
 
-    if ($result && !br()->auth()->isLoggedIn()) {
+    if ($mustBeLoggedIn && (!br()->auth() || !br()->auth()->isLoggedIn())) {
       br()->response()->sendNotAuthorized();
     }
   }
 
-  public function routeAsGET($path, $dataSource, $options = [])
+  /**
+   * @param string $path
+   * @param $dataSource
+   * @param array|null $options
+   * @return $this
+   * @throws \Exception
+   */
+  public function routeAsGET(string $path, $dataSource, ?array $options = []): BrRESTBinder
   {
     if (br()->request()->isAt($path)) {
       br()->request()->setIsRest(true);
@@ -145,7 +192,7 @@ class BrRESTBinder extends BrObject
       }
 
       $event = BrConst::DATASOURCE_METHOD_SELECT;
-      if ($matches = br()->request()->isAt(rtrim($path, '/') . '/(' . self::ID_REGEXP_PATTERN . ')')) {
+      if (br()->request()->isAt(rtrim($path, '/') . '/(' . self::ID_REGEXP_PATTERN . ')')) {
         $event = BrConst::DATASOURCE_METHOD_SELECT_ONE;
       }
 
@@ -292,17 +339,6 @@ class BrRESTBinder extends BrObject
                     $filter[$fields] = [BrConst::FILTER_RULE_FULLTEXT => $value];
                   }
                   break;
-                case 'filter':
-                  $filters = br($mapping, 'filters', br($mapping, 'filter'));
-                  if (!is_array($filters)) {
-                    $filters = [$filters];
-                  }
-                  foreach ($filters as $filter) {
-                    foreach ($filter as $filterField => $filterValue) {
-                      $filter[$filterField] = $filterValue;
-                    }
-                  }
-                  break;
                 default:
                   break;
               }
@@ -378,17 +414,14 @@ class BrRESTBinder extends BrObject
       }
 
       try {
+        $allowEmptyFilter = br($options, BrConst::REST_SETTING_ALLOW_EMPTY_FILTER);
         if (br()->request()->get(BrConst::REST_OPTION_RESULT) == BrConst::DATASOURCE_RESULT_TYPE_COUNT) {
-          $allowEmptyFilter = br($options, BrConst::REST_SETTING_ALLOW_EMPTY_FILTER);
-
           if (!$filter && !$allowEmptyFilter) {
             $result = 0;
           } else {
             $result = $dataSource->selectCount($filter, [], [], [BrConst::DATASOURCE_OPTION_SOURCE => BrConst::REQUEST_SOURCE_REST_BINDER]);
           }
         } else {
-          $allowEmptyFilter = br($options, BrConst::REST_SETTING_ALLOW_EMPTY_FILTER);
-
           if (!$filter && !$allowEmptyFilter) {
             $dataSourceOptions[BrConst::DATASOURCE_OPTION_LIMIT] = 0;
           }
@@ -415,7 +448,13 @@ class BrRESTBinder extends BrObject
     return $this;
   }
 
-  public function routeAsPOST($path, $dataSource, $options = [])
+  /**
+   * @param string $path
+   * @param $dataSource
+   * @param array|null $options
+   * @return $this
+   */
+  public function routeAsPOST(string $path, $dataSource, ?array $options = []): BrRESTBinder
   {
     if (br()->request()->isAt(rtrim($path, '/'))) {
       br()->request()->setIsRest(true);
@@ -429,7 +468,7 @@ class BrRESTBinder extends BrObject
         BrConst::DATASOURCE_OPTION_SOURCE => BrConst::REQUEST_SOURCE_REST_BINDER
       ];
 
-      $method = $method = br()->request()->get(BrConst::REST_OPTION_METHOD);
+      $method = br()->request()->get(BrConst::REST_OPTION_METHOD);
       if (!$method) {
         if ($matches = br()->request()->isAt(rtrim($path, '/') . '/(' . self::METHOD_REGEXP_PATTERN . ')(/|[?]|$)')) {
           $method = $matches[1];
@@ -530,7 +569,13 @@ class BrRESTBinder extends BrObject
     return $this;
   }
 
-  public function routeAsPUT($path, $dataSource, $options = [])
+  /**
+   * @param string $path
+   * @param $dataSource
+   * @param array|null $options
+   * @return $this
+   */
+  public function routeAsPUT(string $path, $dataSource, ?array $options = []): BrRESTBinder
   {
     if (br()->request()->isAt($path)) {
       br()->request()->setIsRest(true);
@@ -595,9 +640,15 @@ class BrRESTBinder extends BrObject
     return $this;
   }
 
-  public function routeAsDELETE($path, $dataSource, $options = [])
+  /**
+   * @param string $path
+   * @param $dataSource
+   * @param array|null $options
+   * @return $this
+   */
+  public function routeAsDELETE(string $path, $dataSource, ?array $options = []): BrRESTBinder
   {
-    if ($matches = br()->request()->isAt($path)) {
+    if (br()->request()->isAt($path)) {
       br()->request()->setIsRest(true);
       br()->request()->continueRoute(false);
 
@@ -631,13 +682,7 @@ class BrRESTBinder extends BrObject
             case BrConst::REST_OPTION_CLIENTUID:
               $dataSourceOptions[BrConst::DATASOURCE_OPTION_CLIENTUID] = $value;
               break;
-            case BrConst::REST_OPTION_LOGIN_TOKEN:
-              break;
             default:
-              if (!is_array($value)) {
-                $value = trim($value);
-              }
-              $row[$name] = $value;
               break;
           }
         }
@@ -664,10 +709,10 @@ class BrRESTBinder extends BrObject
     return $this;
   }
 
-  public function returnException($e)
+  public function returnException(\Throwable $e)
   {
     $msg = $e->getMessage();
-    $outputSent = false;
+
     if (!($e instanceof BrAppException)) {
       br()->log()->error($e);
     }
@@ -678,13 +723,11 @@ class BrRESTBinder extends BrObject
     } else {
       $message = $msg;
     }
-    if ($outputSent) {
-      $message = '';
-    }
+
     br()->response()->sendBadRequest($message);
   }
 
-  public function route404($path)
+  public function route404(string $path): BrRESTBinder
   {
     if (!br()->request()->routeComplete()) {
       if (br()->request()->isAt($path)) {

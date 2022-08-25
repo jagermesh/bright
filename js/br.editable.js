@@ -31,12 +31,11 @@
         if (_this.options.onGetContent) {
           content = _this.options.onGetContent.call(_this.ctrl, _this.editor, content);
         }
-        let fields = {
-          value: {
-            title: _this.ctrl.attr('title'),
-            value: content
-          }
-        };
+        let fields = [{
+          title: _this.ctrl.attr('title'),
+          value: content,
+          valueType: 'text',
+        }];
         br.prompt('Please enter value', fields, function(values) {
           if (_this.options.onSave) {
             _this.options.onSave.call(_this.ctrl, values[0], 'keyup');
@@ -44,7 +43,6 @@
             _this.apply(values[0]);
           }
         }, {
-          valueType: 'text',
           okTitle: 'Save',
         });
       } else

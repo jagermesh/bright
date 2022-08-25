@@ -10,16 +10,87 @@
 
 namespace Bright;
 
-class BrGenericDataType
+/**
+ *
+ */
+abstract class BrGenericDataType extends BrObject
 {
-  protected $value;
+  abstract public function length(): int;
 
-  public function __construct($value)
+  /**
+   * @param $needle
+   * @param bool $ignoreCase
+   * @return bool
+   */
+  abstract public function contain($needle, bool $ignoreCase = false): bool;
+
+  /**
+   * @param $needle
+   * @param bool $ignoreCase
+   * @return bool
+   */
+  abstract public function has($needle, bool $ignoreCase = false): bool;
+
+  /**
+   * @param $needle
+   * @param bool $ignoreCase
+   * @return bool
+   */
+  abstract public function exists($needle, bool $ignoreCase = false): bool;
+
+  /**
+   * @param $needle
+   * @return int
+   */
+  abstract public function indexOf($needle): int;
+  abstract public function in(array $array): bool;
+  abstract public function inArray(array $array): bool;
+  abstract public function join(string $glue = ', '): string;
+  abstract public function match(string $pattern, array &$matches = [], int $flags = 0, int $offset = 0): bool;
+  abstract public function matchAll(string $pattern, array &$matches = [], int $flags = PREG_PATTERN_ORDER, int $offset = 0): bool;
+
+  /**
+   * @param $candidate
+   * @param bool $ignoreCase
+   * @return bool
+   */
+  abstract public function equal($candidate, bool $ignoreCase = false): bool;
+
+  public function isEmpty(): bool
   {
-    $this->value = $value ?? '';
+    return ($this->length() == 0);
   }
 
-  private function utf8ize($mixed)
+  public function isRegularArray(): bool
+  {
+    return false;
+  }
+
+  public function isMultiArray(): bool
+  {
+    return false;
+  }
+
+  public function isSimpleArray(): bool
+  {
+    return false;
+  }
+
+  public function isHtml(): bool
+  {
+    return false;
+  }
+
+  public function isNumeric(): bool
+  {
+    return false;
+  }
+
+  /**
+   * @param $mixed
+   * @return false|string
+   */
+  protected function utf8ize($mixed)
   {
     if (is_array($mixed)) {
       foreach ($mixed as $key => $value) {
@@ -29,30 +100,5 @@ class BrGenericDataType
       return utf8_encode($mixed);
     }
     return $mixed;
-  }
-
-  /**
-   * @throws BrGenericDataTypeException
-   */
-  public function toJSON()
-  {
-    $result = @json_encode($this->value);
-    if ($result === false) {
-      switch (json_last_error()) {
-        case JSON_ERROR_DEPTH:
-          throw new BrGenericDataTypeException('Maximum stack depth exceeded');
-        case JSON_ERROR_STATE_MISMATCH:
-          throw new BrGenericDataTypeException('Underflow or the modes mismatch');
-        case JSON_ERROR_CTRL_CHAR:
-          throw new BrGenericDataTypeException('Unexpected control character found');
-        case JSON_ERROR_SYNTAX:
-          throw new BrGenericDataTypeException('Syntax error, malformed JSON');
-        case JSON_ERROR_UTF8:
-          return br($this->utf8ize($this->value))->toJSON();
-        default:
-          throw new BrGenericDataTypeException('Unknown error');
-      }
-    }
-    return $result;
   }
 }

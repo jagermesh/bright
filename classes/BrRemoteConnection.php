@@ -10,6 +10,9 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrRemoteConnection extends BrObject
 {
 

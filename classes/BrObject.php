@@ -10,20 +10,23 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrObject
 {
-  private $attributes = [];
-  private $enabled = 0;
+  private array $attributes = [];
+  private int $enabled = 0;
 
-  protected $events = [];
-  protected $stickyEvents = [];
-  protected static $instances = [];
+  protected array $events = [];
+  protected array $stickyEvents = [];
+  protected static array $instances = [];
 
   /**
    * Get Instance
-   * @return \Bright\BrObject
+   * @return $this
    */
-  public static function getInstance()
+  public static function getInstance(): self
   {
     $className = get_called_class();
     if (!isset(self::$instances[$className])) {
@@ -38,7 +41,15 @@ class BrObject
     // constructor
   }
 
-  public function retry($func, $iterationsLimit = 25, $sleepTimeout = 250000)
+  /**
+   * @param callable $func
+   * @param int $iterationsLimit
+   * @param int $sleepTimeout
+   * @return mixed
+   * @throws BrNonRecoverableException
+   * @throws \Exception
+   */
+  public function retry(callable $func, int $iterationsLimit = 25, int $sleepTimeout = 250000)
   {
     $iteration = 1;
     while (true) {
@@ -57,7 +68,12 @@ class BrObject
     }
   }
 
-  public function getAttr($name, $default = null)
+  /**
+   * @param string $name
+   * @param $default
+   * @return array|mixed|null
+   */
+  public function getAttr(string $name, $default = null)
   {
     if ($this->isAttrExists($name)) {
       return $this->attributes[$name];
@@ -81,24 +97,29 @@ class BrObject
     }
   }
 
-  public function setAttr($name, $value)
+  /**
+   * @param string $name
+   * @param $value
+   * @return mixed
+   */
+  public function setAttr(string $name, $value)
   {
     return $this->attributes[$name] = $value;
   }
 
-  public function clearAttr($name)
+  public function clearAttr(string $name)
   {
     unset($this->attributes[$name]);
   }
 
-  public function hasAttr($name): bool
+  public function hasAttr(string $name): bool
   {
     return array_key_exists($name, $this->attributes);
   }
 
-  public function isAttrExists($name): bool
+  public function isAttrExists(string $name): bool
   {
-    return $this->hasAttr($name, $this->attributes);
+    return $this->hasAttr($name);
   }
 
   public function getAttributes(): array
@@ -106,7 +127,7 @@ class BrObject
     return $this->attributes;
   }
 
-  public function setAttributes($attributes)
+  public function setAttributes(?array $attributes = [])
   {
     $this->attributes = $attributes;
   }
@@ -116,7 +137,7 @@ class BrObject
     $this->attributes = [];
   }
 
-  public function enable($force = false)
+  public function enable(bool $force = false)
   {
     if ($force) {
       $this->enabled = 0;
@@ -135,7 +156,7 @@ class BrObject
     return ($this->enabled == 0);
   }
 
-  public function before($event, $func)
+  public function before(string $event, callable $func)
   {
     $eventNames = preg_split('~[,]~', $event);
     foreach ($eventNames as $event) {
@@ -147,7 +168,7 @@ class BrObject
     }
   }
 
-  public function on($event, $func)
+  public function on(string $event, callable $func)
   {
     $eventNames = preg_split('~[,]~', $event);
     foreach ($eventNames as $event) {
@@ -158,7 +179,7 @@ class BrObject
     }
   }
 
-  public function after($event, $func)
+  public function after(string $event, callable $func)
   {
     $eventNames = preg_split('~[,]~', $event);
     foreach ($eventNames as $event) {
@@ -170,24 +191,54 @@ class BrObject
     }
   }
 
-  public function eventHandlerExists($event): bool
+  public function eventHandlerExists(string $event): bool
   {
     return array_key_exists($event, $this->events);
   }
 
-  public function trigger($event, &$context1 = null, &$context2 = null, &$context3 = null, &$context4 = null, &$context5 = null, &$context6 = null)
+  /**
+   * @param string $event
+   * @param $context1
+   * @param $context2
+   * @param $context3
+   * @param $context4
+   * @param $context5
+   * @param $context6
+   * @return null
+   */
+  public function trigger(string $event, &$context1 = null, &$context2 = null, &$context3 = null, &$context4 = null, &$context5 = null, &$context6 = null)
   {
     return $this->callEvent($event, $context1, $context2, $context3, $context4, $context5, $context6);
   }
 
-  public function triggerSticky($event, &$context1 = null, &$context2 = null, &$context3 = null, &$context4 = null, &$context5 = null, &$context6 = null)
+  /**
+   * @param string $event
+   * @param $context1
+   * @param $context2
+   * @param $context3
+   * @param $context4
+   * @param $context5
+   * @param $context6
+   * @return null
+   */
+  public function triggerSticky(string $event, &$context1 = null, &$context2 = null, &$context3 = null, &$context4 = null, &$context5 = null, &$context6 = null)
   {
     $this->stickyEvents[] = $event;
 
     return $this->callEvent($event, $context1, $context2, $context3, $context4, $context5, $context6);
   }
 
-  public function callEvent($event, &$context1 = null, &$context2 = null, &$context3 = null, &$context4 = null, &$context5 = null, &$context6 = null)
+  /**
+   * @param string $event
+   * @param $context1
+   * @param $context2
+   * @param $context3
+   * @param $context4
+   * @param $context5
+   * @param $context6
+   * @return mixed
+   */
+  public function callEvent(string $event, &$context1 = null, &$context2 = null, &$context3 = null, &$context4 = null, &$context5 = null, &$context6 = null)
   {
     $result = null;
 

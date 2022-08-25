@@ -10,14 +10,23 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrImage extends BrObject
 {
-  private $filePath;
   private $image;
-  private $format;
+  private string $format = '';
+  private int $width = 0;
+  private int $height = 0;
 
-  public function __construct($path)
+  /**
+   * @throws BrImageException
+   */
+  public function __construct(string $path)
   {
+    parent::__construct();
+
     $this->image = null;
 
     $oldErrorReporting = error_reporting();
@@ -71,12 +80,10 @@ class BrImage extends BrObject
       throw new BrImageException($path . ' is not valid image file.');
     }
 
-    $this->filePath = $path;
-
     error_reporting($oldErrorReporting);
   }
 
-  public function imageLibSupported()
+  public function imageLibSupported(): bool
   {
     return (
       function_exists('ImageCreateFromGIF') &&
@@ -90,21 +97,24 @@ class BrImage extends BrObject
     return $this->image;
   }
 
-  public function format()
+  public function format(): string
   {
     return $this->format;
   }
 
-  public function width()
+  public function width(): int
   {
     return $this->width;
   }
 
-  public function height()
+  public function height(): int
   {
     return $this->height;
   }
 
+  /**
+   * @throws BrImageException
+   */
   public function generateThumbnail($w, $h, $dstPath)
   {
     $cw = $this->width();
@@ -119,7 +129,7 @@ class BrImage extends BrObject
         $new_height = $h;
         $new_width = round($new_width * ($new_height * 100 / $new_height_before) / 100);
       }
-    } elseif ($ch > $h) {
+    } else {
       $new_height = $h;
       $new_width = round($cw * ($new_height * 100 / $ch) / 100);
 

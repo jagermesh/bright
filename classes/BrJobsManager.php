@@ -10,9 +10,12 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrJobsManager
 {
-  private $jobsFolder;
+  private string $jobsFolder;
 
   public function __construct()
   {

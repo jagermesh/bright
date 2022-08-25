@@ -16,7 +16,7 @@ class BrGenericDataSourceRow
   private $data;
   private $rowid;
 
-  public function __construct(&$dataSource, $data)
+  public function __construct($dataSource, $data)
   {
     $this->dataSource = $dataSource;
     $this->data = $data;

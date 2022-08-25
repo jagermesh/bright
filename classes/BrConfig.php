@@ -10,16 +10,29 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrConfig extends BrObject
 {
-  public function set($name, $value): BrConfig
+  /**
+   * @param string $name
+   * @param $value
+   * @return $this
+   */
+  public function set(string $name, $value): BrConfig
   {
     $this->setAttr($name, $value);
 
     return $this;
   }
 
-  public function get($name = null, $default = null)
+  /**
+   * @param string|null $name
+   * @param $default
+   * @return array|mixed|null
+   */
+  public function get(?string $name = null, $default = null)
   {
     if ($name) {
       return $this->getAttr($name, $default);
@@ -28,7 +41,7 @@ class BrConfig extends BrObject
     }
   }
 
-  public function has($name): bool
+  public function has(string $name): bool
   {
     return $this->hasAttr($name);
   }

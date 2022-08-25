@@ -39,12 +39,20 @@
 
   const flyovers = new Flyovers();
 
-  window.br.growlError = function(message, settings) {
-    flyovers.showError(br.trn('Error'), message, settings);
+  window.br.growlError = function(message, title, settings) {
+    if (title) {
+      flyovers.showError(title, message, settings);
+    } else {
+      flyovers.showError(br.trn('Error'), message, settings);
+    }
   };
 
-  window.br.growlWarning = function(message, settings) {
-    flyovers.showWarning(br.trn('Warning'), message, settings);
+  window.br.growlWarning = function(message, title, settings) {
+    if (title) {
+      flyovers.showWarning(title, message, settings);
+    } else {
+      flyovers.showWarning(br.trn('Warning'), message, settings);
+    }
   };
 
   window.br.growlMessage = function(message, title, settings) {
@@ -397,21 +405,13 @@
       cancelTitle: br.trn('Cancel'),
     }, settings)
 
-    let inputs = {
-
-    };
-
-    if (br.isObject(fields)) {
-      inputs = fields;
-    } else {
-      options.valueRequired = true;
-      inputs[fields] = {
-        id: '',
-        class: '',
-        value: '',
-        title: fields,
-      };
-    }
+    let inputs = br.isObject(fields) ? fields : [{
+      id: '',
+      class: '',
+      required: true,
+      value: '',
+      title: fields,
+    }];
 
     if (options.onhide) {
       options.onHide = options.onhide;
@@ -439,46 +439,41 @@
 
     const modal = $(template);
 
-    for (let inputLabel in inputs) {
-      if (br.isObject(inputs[inputLabel])) {
-        inputs[inputLabel] = Object.assign({
-          id: '',
-          class: '',
-          value: '',
-          title: '',
-        }, inputs[inputLabel]);
-      } else {
-        inputs[inputLabel] = {
-          id: '',
-          class: '',
-          value: inputs[inputLabel],
-          title: '',
-        }
-      }
-    }
+    br.log(inputs);
 
-    for (let inputLabel in inputs) {
-      let tag = (options.valueType == 'text' ? 'textarea' : 'input');
+    inputs.forEach(function(input) {
+      let tag = (input.valueType == 'text' ? 'textarea' : 'input');
       let control = $(`
         <div class="row-fluid">
           <div class="span12">
             <label></label>
-            <${tag} type="text" id="${inputs[inputLabel].id}" class="value-control form-control" rows="8"></${tag}>
+            <${tag} type="text" id="${input.id}" class="value-control form-control" rows="8"></${tag}>
           </div>
         </div>
       `);
-      control.find('label').text(inputs[inputLabel].title);
-      control.find('.value-control').val(inputs[inputLabel].value);
-      if (options.valueType == 'int') {
-        control.find('.value-control').addClass('input-small');
+      const inputControl = control.find('.value-control');
+      const inputLabel = control.find('label');
+      if (input.required) {
+        inputLabel.html(`<span class="required">*</span>${input.title}`);
       } else {
-        control.find('.value-control').addClass('justified');
+        inputLabel.text(input.title);
       }
-      if (!br.isEmpty(inputs[inputLabel].class)) {
-        control.find('.value-control').addClass(inputs[inputLabel].class);
+      if (input.value) {
+        inputControl.val(input.value);
+      }
+      if (options.valueType == 'int') {
+        inputControl.addClass('input-small');
+      } else {
+        inputControl.addClass('justified');
+      }
+      if (input.required) {
+        inputControl.addClass('required');
+      }
+      if (!br.isEmpty(input.class)) {
+        inputControl.addClass(input.class);
       }
       modal.find('.modal-body').append(control);
-    }
+    });
 
     const oldActiveElement = document.activeElement;
     if (oldActiveElement) {
@@ -868,8 +863,6 @@
             showMeridian: true,
             useCurrent: false,
             todayHighlight: false
-          }).on('show', function() {
-            // $(this).datetimepicker('update', $(this).val());
           });
         });
       } catch (error) {
@@ -917,7 +910,14 @@
         floatValues++;
       }
       if (floatValues == 2) {
-        return (val1F == val2F ? 0 : (val1F > val2F ? direction : direction * -1));
+        if (val1F == val2F) {
+          return 0;
+        } else
+        if (val1F > val2F) {
+          return direction;
+        } else {
+          return direction * -1;
+        }
       } else {
         return val1.localeCompare(val2) * direction;
       }
@@ -989,6 +989,19 @@
     });
   };
 
+  window.br.markInputAsModified = function(input) {
+    const val = $(input).val();
+    let container = $(input).parent();
+    if (!container.hasClass('input-append')) {
+      container = $(input);
+    }
+    if (br.isEmpty(val)) {
+      container.removeClass('br-input-has-value');
+    } else {
+      container.addClass('br-input-has-value');
+    }
+  };
+
   if (typeof window.Handlebars == 'object') {
     Handlebars.registerHelper('if_eq', function(a, b, opts) {
       if (a === b) {
@@ -999,51 +1012,21 @@
     });
   }
 
-  function enchanceBootstrap() {
-    // const tabbableElements = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, *[tabindex], *[contenteditable]';
-
-    // function disableTabbingOnPage(except) {
-    //   $.each($(tabbableElements), function (idx, item) {
-    //     const el = $(item);
-    //     if (!el.closest(except).length) {
-    //       const tabindex = el.attr('tabindex');
-    //       if (tabindex) {
-    //         el.attr('data-prev-tabindex', tabindex);
-    //       }
-    //       el.attr('tabindex', '-1');
-    //     }
-    //   });
-    // }
-
-    // function reEnableTabbingOnPage(except) {
-    //   $.each($(tabbableElements), function (idx, item) {
-    //     const el = $(item);
-    //     if (!el.closest(except).length) {
-    //       const prevTabindex = el.attr('data-prev-tabindex');
-    //       if (prevTabindex) {
-    //         el.attr('tabindex', prevTabindex);
-    //       } else {
-    //         el.removeAttr('tabindex');
-    //       }
-    //       el.removeAttr('data-prev-tabindex');
-    //     }
-    //   });
-    // }
-
-    function configureAutosize(control) {
-      if (!control.data('brAutoSizeConfigured')) {
-        control.data('brAutoSizeConfigured', 1);
-        if (br.bootstrapVersion == 2) {
-          control.css('top', '20px');
-          control.css('margin-top', '0px');
-          control.css('position', 'fixed');
-        }
-        $(window).on('resize', function() {
-          br.resizeModalPopup(control);
-        });
+  function configureAutosize(control) {
+    if (!control.data('brAutoSizeConfigured')) {
+      control.data('brAutoSizeConfigured', 1);
+      if (br.bootstrapVersion == 2) {
+        control.css('top', '20px');
+        control.css('margin-top', '0px');
+        control.css('position', 'fixed');
       }
+      $(window).on('resize', function() {
+        br.resizeModalPopup(control);
+      });
     }
+  }
 
+  function enchanceBootstrap() {
     const defaultOpacity = 50;
 
     $(document).on('shown.bs.modal', function(event) {
@@ -1069,7 +1052,6 @@
             'filter': 'alpha(opacity=' + opacity + ')'
           });
         }
-        // disableTabbingOnPage(target);
       }
       br.draggable(target, {
         handler: '.modal-header'
@@ -1112,7 +1094,6 @@
             });
           }
         }
-        // reEnableTabbingOnPage(target);
       }
     });
 
@@ -1228,7 +1209,8 @@
     $(document).on('click', '.action-clear-selector-value', function() {
       const target = $($(this).attr('data-selector'));
       if (target.length > 0) {
-        br.setValue(target, '');
+        const val = $(this).attr('data-default') ? $(this).attr('data-default') : '';
+        br.setValue(target, val);
         target.trigger('change');
         if (target.attr('data-click-on-enter')) {
           $(target.attr('data-click-on-enter')).trigger('click');

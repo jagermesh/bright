@@ -10,9 +10,17 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrDataBase extends BrObject
 {
-  public static function getInstance($name = null)
+  /**
+   * Get provider instance
+   * @return BrMySQLDBProvider|BrMongoDBProvider|BrMSSQLDBProvider
+   * @throws BrDataBaseException
+   */
+  public static function getProviderInstance(?string $name = ''): ?BrGenericSQLDBProvider
   {
     $name = $name ? $name : BrConst::CONFIG_OPTION_DB;
 

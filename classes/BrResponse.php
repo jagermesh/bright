@@ -10,6 +10,9 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrResponse extends BrObject
 {
   const EXPIRES_IMMEDIATELY = 'Mon, 26 Jul 1997 05:00:00 GMT';
@@ -29,9 +32,15 @@ class BrResponse extends BrObject
   const RESPONSE_409_CONFLICT = 'HTTP/1.0 409 Conflict';
   const RESPONSE_200_OK = 'HTTP/1.0 200 OK';
 
-  private $systemStylesInjected = false;
+  private bool $systemStylesInjected = false;
 
-  public function sendJSON($response, $alreadyPacked = false)
+  /**
+   * @param $response
+   * @param bool $alreadyPacked
+   * @return void
+   * @throws BrGenericDataTypeException
+   */
+  public function sendJSON($response, bool $alreadyPacked = false)
   {
     if ($alreadyPacked) {
       $responseJSON = $response;
@@ -50,6 +59,12 @@ class BrResponse extends BrObject
     exit();
   }
 
+  /**
+   * @param $response
+   * @param $callback
+   * @return void
+   * @throws BrGenericDataTypeException
+   */
   public function sendJSONP($response, $callback = null)
   {
     $callback = $callback ? $callback : br()->request()->get('callback');
@@ -69,7 +84,11 @@ class BrResponse extends BrObject
     exit();
   }
 
-  public function sendHTML($response)
+  /**
+   * @param string $response
+   * @return void
+   */
+  public function sendHTML(string $response)
   {
     if (!headers_sent()) {
       header(sprintf(BrConst::HEADER_CACHE_CONTROL, self::CACHE_CONTROL_NO_CACHE));
@@ -80,7 +99,11 @@ class BrResponse extends BrObject
     echo $response;
   }
 
-  public function sendXML($data)
+  /**
+   * @param string $response
+   * @return void
+   */
+  public function sendXML(string $response)
   {
     if (!headers_sent()) {
       header(sprintf(BrConst::HEADER_CACHE_CONTROL, self::CACHE_CONTROL_NO_CACHE));
@@ -88,12 +111,16 @@ class BrResponse extends BrObject
       header(sprintf(BrConst::HEADER_CONTENT_TYPE, BrConst::CONTENT_TYPE_TEXT_XML));
     }
 
-    echo $data;
+    echo $response;
 
     exit();
   }
 
-  public function sendAutodetect($response)
+  /**
+   * @param string $response
+   * @return void
+   */
+  public function sendAutodetect(string $response)
   {
     if (!headers_sent()) {
       header(sprintf(BrConst::HEADER_CACHE_CONTROL, self::CACHE_CONTROL_NO_CACHE));
@@ -103,7 +130,14 @@ class BrResponse extends BrObject
     echo $response;
   }
 
-  private function internalRedirect($url, $permanent, $saveCaller = false, $timedOut = false)
+  /**
+   * @param string|null $url
+   * @param bool $permanent
+   * @param bool $saveCaller
+   * @param bool $timedOut
+   * @return void
+   */
+  private function internalRedirect(?string $url = '', bool $permanent = false, bool $saveCaller = false, bool $timedOut = false)
   {
     if (!preg_match('~^/~', $url) && !preg_match('~^http[s]?://~', $url)) {
       $url = br()->request()->baseUrl() . $url;
@@ -130,24 +164,34 @@ class BrResponse extends BrObject
     exit();
   }
 
-  public function redirect($url, $saveCaller = false, $timedOut = false)
+  /**
+   * @param string|null $url
+   * @param bool $saveCaller
+   * @param bool $timedOut
+   * @return void
+   */
+  public function redirect(?string $url = '', bool $saveCaller = false, bool $timedOut = false)
   {
     $this->internalRedirect($url, false, $saveCaller, $timedOut);
   }
 
-  public function redirectPermanent($url)
+  public function redirectPermanent(?string $url = '')
   {
     $this->internalRedirect($url, true);
   }
 
-  public function send404($message = null)
+  /**
+   * @param string|null $response
+   * @return void
+   */
+  public function send404(?string $response = '')
   {
     if (!headers_sent()) {
       header(self::RESPONSE_404_NOT_FOUND);
     }
 
-    if ($message) {
-      echo $message;
+    if ($response) {
+      echo $response;
     } else {
       echo '<h1>404 Not Found</h1>';
       echo 'The page that you have requested could not be found.';
@@ -156,14 +200,14 @@ class BrResponse extends BrObject
     exit();
   }
 
-  public function sendBadRequest($message = null)
+  public function sendBadRequest(?string $response = '')
   {
     if (!headers_sent()) {
       header(self::RESPONSE_400_BAD_REQUEST);
     }
 
-    if ($message) {
-      echo $message;
+    if ($response) {
+      echo $response;
     } else {
       echo '<h1>400 Bad Request</h1>';
     }
@@ -171,14 +215,14 @@ class BrResponse extends BrObject
     exit();
   }
 
-  public function sendNotAuthorized($error = null)
+  public function sendNotAuthorized(?string $response = '')
   {
     if (!headers_sent()) {
       header(self::RESPONSE_401_NOT_AUTHORIZED);
     }
 
-    if ($error) {
-      echo $error;
+    if ($response) {
+      echo $response;
     } else {
       echo '<h1>401 Not Authorized</h1>';
     }
@@ -186,40 +230,40 @@ class BrResponse extends BrObject
     exit();
   }
 
-  public function sendNoContent($error = null)
+  public function sendNoContent(?string $response = '')
   {
     if (!headers_sent()) {
       header(self::RESPONSE_204_NO_CONTENT);
     }
 
-    if ($error) {
-      echo $error;
+    if ($response) {
+      echo $response;
     }
 
     exit();
   }
 
-  public function sendForbidden($error = null)
+  public function sendForbidden(?string $response = '')
   {
     if (!headers_sent()) {
       header(self::RESPONSE_403_FORBIDDEN);
     }
 
-    if ($error) {
-      echo $error;
+    if ($response) {
+      echo $response;
     }
 
     exit();
   }
 
-  public function sendMethodNotAllowed($error = null)
+  public function sendMethodNotAllowed(?string $response = '')
   {
     if (!headers_sent()) {
       header(self::RESPONSE_405_METHOD_NOT_ALLOWED);
     }
 
-    if ($error) {
-      echo $error;
+    if ($response) {
+      echo $response;
     }
 
     exit();
@@ -261,7 +305,7 @@ class BrResponse extends BrObject
     exit();
   }
 
-  public function sendConflict($response = null)
+  public function sendConflict(?string $response = '')
   {
     if (!headers_sent()) {
       header(self::RESPONSE_409_CONFLICT);
@@ -274,12 +318,7 @@ class BrResponse extends BrObject
     exit();
   }
 
-  public function send($response = null)
-  {
-    $this->sendSuccess($response);
-  }
-
-  public function sendSuccess($response = null)
+  public function sendSuccess(?string $response = '')
   {
     if (!headers_sent()) {
       header(sprintf(BrConst::HEADER_CACHE_CONTROL, self::CACHE_CONTROL_NO_CACHE));
@@ -295,10 +334,15 @@ class BrResponse extends BrObject
     exit();
   }
 
-  public function sendCacheHeaders($ageMin = 30)
+  public function send(?string $response = '')
+  {
+    $this->sendSuccess($response);
+  }
+
+  public function sendCacheHeaders(int $ageMin = 30)
   {
     $etag = hash('sha256', @$_SERVER[BrConst::PHP_SERVER_VAR_QUERY_STRING]);
-    $if_none_match = (isset($_SERVER[BrConst::PHP_SERVER_VAR_HTTP_IF_NONE_MATCH]) ? $_SERVER[BrConst::PHP_SERVER_VAR_HTTP_IF_NONE_MATCH] : false);
+    $if_none_match = ($_SERVER[BrConst::PHP_SERVER_VAR_HTTP_IF_NONE_MATCH] ?? false);
 
     if ($if_none_match == $etag) {
       header(self::RESPONSE_304_NOT_MODIFIED);
@@ -313,6 +357,9 @@ class BrResponse extends BrObject
     header(sprintf(BrConst::HEADER_CACHE_CONTROL, 'public, max-age=' . $ageSec . ', no-transform'));
   }
 
+  /**
+   * @throws BrGenericRendererException
+   */
   public function injectSystemStyles()
   {
     if (!$this->systemStylesInjected) {
@@ -321,6 +368,10 @@ class BrResponse extends BrObject
     }
   }
 
+  /**
+   * @param $messageOrObject
+   * @return void
+   */
   public function displayError($messageOrObject)
   {
     try {
@@ -332,7 +383,7 @@ class BrResponse extends BrObject
 
       $data = [
         'error' => [
-          'message' => BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, false),
+          'message' => BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject),
           'timestamp' => br()->getUnifiedTimestamp(),
           'type' => (($messageOrObject instanceof \ErrorException) ? br()->getErrorSeverityName($messageOrObject->getSeverity()) : 'Error'),
           'file' => (($messageOrObject instanceof \Throwable) ? $messageOrObject->getFile() . ', line ' . $messageOrObject->getLine() : ''),

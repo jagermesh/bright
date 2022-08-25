@@ -10,7 +10,10 @@
 
 namespace Bright;
 
-class BrGenericUploadHandler extends BrObject
+/**
+ *
+ */
+abstract class BrGenericUploadHandler extends BrObject
 {
   const UPLOADER_OPTION_UPLOAD_LIMIT = 'uploadLimit';
   const UPLOADER_OPTION_ALLOWED_EXTENSIONS = 'allowedExtensions';
@@ -31,15 +34,22 @@ class BrGenericUploadHandler extends BrObject
 
   const DEFAULT_UPLOADER_PATH = 'uploads/';
 
-  protected $options;
-  protected $allowedExtensions;
-  protected $sizeLimit;
+  protected array $options;
+  protected array $allowedExtensions = [];
+  protected int $sizeLimit = 0;
 
-  public function __construct($options = array())
+  abstract public function save(string $srcFilePath, string $path): array;
+
+  public function __construct(?array $options = [])
   {
+    parent::__construct();
+
     $this->options = $options;
   }
 
+  /**
+   * @throws BrGenericUploadHandlerException
+   */
   public function getFileSize()
   {
     if (isset($_GET['qqfile'])) {
@@ -55,6 +65,9 @@ class BrGenericUploadHandler extends BrObject
     }
   }
 
+  /**
+   * @throws BrGenericUploadHandlerException
+   */
   public function getFileName()
   {
     if (isset($_GET['qqfile'])) {
@@ -68,6 +81,10 @@ class BrGenericUploadHandler extends BrObject
     }
   }
 
+  /**
+   * @throws BrGenericUploadHandlerException
+   * @throws \Exception
+   */
   public function getUploadedFile()
   {
     if (isset($_GET['qqfile'])) {
@@ -88,10 +105,10 @@ class BrGenericUploadHandler extends BrObject
     }
   }
 
-  public function handle($callback = null)
+  public function handle(callable $callback = null)
   {
     // list of valid extensions, ex. array("jpeg", "xml", "bmp")
-    $this->allowedExtensions = br($this->options, self::UPLOADER_OPTION_ALLOWED_EXTENSIONS, array());
+    $this->allowedExtensions = br($this->options, self::UPLOADER_OPTION_ALLOWED_EXTENSIONS, []);
     $this->allowedExtensions = array_map('strtolower', $this->allowedExtensions);
 
     // max file size in bytes
@@ -104,20 +121,19 @@ class BrGenericUploadHandler extends BrObject
       $this->sizeLimit = min($this->sizeLimit, $this->options[self::UPLOADER_OPTION_UPLOAD_LIMIT]);
     }
 
-    if (br($this->options, self::UPLOADER_OPTION_CHECK_LOGIN) || br($this->options, self::UPLOADER_OPTION_USER_BASED_PATH)) {
-      if (!($login = br()->auth()->getLogin())) {
-        br()->response()->sendNotAuthorized();
-      }
-    }
-
     if (br($this->options, self::UPLOADER_OPTION_PATH)) {
       $path = br($this->options, self::UPLOADER_OPTION_PATH);
     } else {
       $path = self::DEFAULT_UPLOADER_PATH;
     }
 
-    if (br($this->options, self::UPLOADER_OPTION_USER_BASED_PATH)) {
-      $path .= br()->db()->rowidValue($login) . '/';
+    if (br($this->options, self::UPLOADER_OPTION_CHECK_LOGIN) || br($this->options, self::UPLOADER_OPTION_USER_BASED_PATH)) {
+      if (!($login = br()->auth()->getLogin())) {
+        br()->response()->sendNotAuthorized();
+      }
+      if (br($this->options, self::UPLOADER_OPTION_USER_BASED_PATH)) {
+        $path .= br()->db()->rowidValue($login) . '/';
+      }
     }
 
     try {

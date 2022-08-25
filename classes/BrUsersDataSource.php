@@ -83,8 +83,7 @@ class BrUsersDataSource extends BrDataSource
           $this->callEvent(sprintf(BrConst::EVENT_BEFORE, BrConst::EVENT_LOGIN_SELECT_USER), $params, $filter, $order);
           if ($row = $this->selectOne($filter, [], $order)) {
             $row[$passwordField] = $params[$passwordField];
-            $row = $this->loginUser($row, $params);
-            return $row;
+            return $this->loginUser($row, $params);
           } else {
             throw new BrAppException('Invalid login/password or user not found');
           }
@@ -306,7 +305,7 @@ class BrUsersDataSource extends BrDataSource
     });
   }
 
-  public function canUpdate($row, $new = [])
+  public function canUpdate($row, $new = []): bool
   {
     if ($login = br()->auth()->getLogin()) {
       $security = br()->auth()->getAttr(BrDBUsersAuthProvider::USERS_API_UPDATE);
@@ -320,7 +319,7 @@ class BrUsersDataSource extends BrDataSource
     return true;
   }
 
-  public function canRemove($row)
+  public function canRemove($row): bool
   {
     if ($login = br()->auth()->getLogin()) {
       $security = br()->auth()->getAttr(BrDBUsersAuthProvider::USERS_API_REMOVE);

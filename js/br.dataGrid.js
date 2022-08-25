@@ -77,6 +77,12 @@
       _this.table = br.table($(_this.selector).closest('table'), settings);
     }
 
+    _this.reformat = function() {
+      if (_this.table) {
+        _this.table.update();
+      }
+    }
+
     let noMoreData = false;
     let disconnected = false;
 
@@ -98,9 +104,7 @@
     });
 
     _this.after('change', function() {
-      if (_this.table) {
-        _this.table.update();
-      }
+      _this.reformat();
     });
 
     _this.getContainer = function() {
@@ -134,6 +138,13 @@
       let filter = br.storage.get(`${_this.storageTag}Filter`);
       filter = filter || {};
       filter[name] = value;
+      br.storage.set(`${_this.storageTag}Filter`, filter);
+    };
+
+    _this.clearFilter = function(name) {
+      let filter = br.storage.get(`${_this.storageTag}Filter`);
+      filter = filter || {};
+      delete filter[name];
       br.storage.set(`${_this.storageTag}Filter`, filter);
     };
 
@@ -197,42 +208,40 @@
       }
     };
 
-    _this.renderRow = function(srcDataRow, asString) {
+    _this.renderRow = function(srcDataRow, asString, triggerRenderEvent) {
+      let result;
       let dataRow = _this.events.trigger('renderRow', srcDataRow) || srcDataRow;
       let template = _this.templates.row(dataRow).trim();
       if (asString) {
-        return {
-          rendered: template,
-          dataRow: dataRow
-        };
+        return template;
+      } else
+      if (template.length > 0) {
+        result = $(template);
+        if (_this.options.storeDataRow) {
+          result.data('data-row', dataRow);
+        }
+      } else {
+        result = null;
+      }
+      if (triggerRenderEvent) {
+        _this.events.triggerAfter('renderRow', dataRow, result);
+      }
+      return {
+        renderedRow: result,
+        dataRow: dataRow
+      };
+    };
+
+    _this.renderGroupRow = function(data, asString) {
+      let dataRow = _this.events.trigger('renderGroupRow', data) || data;
+      let template = _this.templates.groupRow(data).trim();
+      if (asString) {
+        return template;
       } else
       if (template.length > 0) {
         let result = $(template);
         if (_this.options.storeDataRow) {
           result.data('data-row', dataRow);
-        }
-        return {
-          renderedRow: result,
-          dataRow: dataRow
-        };
-      } else {
-        return {
-          renderedRow: null,
-          dataRow: dataRow
-        };
-      }
-    };
-
-    _this.renderGroupRow = function(data, asString) {
-      data = _this.events.trigger('renderGroupRow', data) || data;
-      let s = _this.templates.groupRow(data).trim();
-      if (asString) {
-        return s;
-      } else
-      if (s.length > 0) {
-        let result = $(s);
-        if (_this.options.storeDataRow) {
-          result.data('data-row', data);
         }
         return result;
       } else {
@@ -298,11 +307,17 @@
           let resultingRows = [];
           if (renderedRow.renderedRow.length > 1) {
             let row = renderedRow.renderedRow.clone();
+            if (_this.options.storeDataRow) {
+              row.data('data-row', renderedRow.dataRow);
+            }
             $(existingRows[0]).before(row);
             resultingRows.push(row);
           } else {
             existingRows.each(function() {
               let row = renderedRow.renderedRow.clone();
+              if (_this.options.storeDataRow) {
+                row.data('data-row', renderedRow.dataRow);
+              }
               $(this).before(row);
               resultingRows.push(row);
             });

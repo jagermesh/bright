@@ -2,6 +2,9 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrStackTraceException extends BrException
 {
   public function __construct()

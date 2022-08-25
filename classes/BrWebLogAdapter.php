@@ -1,5 +1,7 @@
 <?php
 
+namespace Bright;
+
 /**
  * Project:     Bright framework
  * Author:      Jager Mesh (jagermesh@gmail.com)
@@ -8,11 +10,13 @@
  * @package Bright Core
  */
 
-namespace Bright;
-
 class BrWebLogAdapter extends BrGenericLogAdapter
 {
-  public function write($messageOrObject, $params)
+  /**
+   * @param $messageOrObject
+   * @param array|null $params
+   */
+  public function write($messageOrObject, ?array $params = [])
   {
     if ($this->isDebugEventType($params)) {
       if (!br()->isConsoleMode() && (br()->request()->isLocalHost() || br()->request()->isDevHost())) {

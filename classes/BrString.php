@@ -10,48 +10,209 @@
 
 namespace Bright;
 
+use ForceUTF8\Encoding;
+
+/**
+ *
+ */
 class BrString extends BrGenericDataType
 {
-  const TRIM_CHARS_LIST = " \t\n\r\0\x0B\xA0\x09";
+  private const TRIM_CHARS_LIST = " \t\n\r\0\x0B\xA0\x09";
 
-  public function length()
+  private $value;
+
+  /**
+   * @param $value
+   */
+  public function __construct($value = null)
+  {
+    parent::__construct();
+
+    $this->value = $value;
+  }
+
+  public function length(): int
   {
     return mb_strlen($this->value);
   }
 
-  public function like($pattern)
+  /**
+   * @param $needle
+   * @param bool $ignoreCase
+   * @return bool
+   */
+  public function contain($needle, bool $ignoreCase = false): bool
   {
-    $pattern = str_replace(['%', '.*?'], ['_', '.'], $pattern);
-
-    return preg_match('#^' . $pattern . '$#ism', $this->value);
+    return (strpos($this->value, $needle) !== false);
   }
 
-  public function contain($pattern)
+  /**
+   * @param mixed
+   * @param boolean
+   * @return boolean
+   */
+  public function has($needle, bool $ignoreCase = false): bool
   {
-    return (strpos($this->value, $pattern) !== false);
+    return $this->exists($needle, $ignoreCase);
   }
 
-  public function inArray($array)
+  /**
+   * @param $needle
+   * @param bool $ignoreCase
+   * @return bool
+   */
+  public function exists($needle, bool $ignoreCase = false): bool
+  {
+    if (is_array($needle)) {
+      foreach ($needle as $value) {
+        if ($this->equal($value, $ignoreCase)) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      return $this->equal($needle, $ignoreCase);
+    }
+  }
+
+  /**
+   * @param $needle
+   * @return int
+   */
+  public function indexOf($needle): int
+  {
+    $result = mb_strpos($this->value, (string)$needle);
+
+    return ($result === false ? -1 : $result);
+  }
+
+  /**
+   * @throws \Exception
+   */
+  public function split(string $delimiters = ',;', bool $removeEmpty = true): array
+  {
+    $delimiters = str_replace('/', '\/', $delimiters);
+    $result = preg_split('/[' . $delimiters . ']/', $this->value);
+    for ($i = 0; $i < count($result); $i++) {
+      $result[$i] = trim($result[$i]);
+    }
+    if ($removeEmpty) {
+      $result = br($result)->removeEmptyValues(false);
+    }
+
+    return $result;
+  }
+
+  /**
+   * @param $candidate
+   * @param bool $ignoreCase
+   * @return int
+   */
+  public function compare($candidate, bool $ignoreCase = false): int
+  {
+    if (is_null($candidate)) {
+      $candidate = '';
+    }
+
+    if (is_scalar($candidate)) {
+      if ($ignoreCase) {
+        return strcasecmp($this->value, $candidate);
+      } else {
+        return strcmp($this->value, $candidate);
+      }
+    } else {
+      return -1;
+    }
+  }
+
+  /**
+   * @param $candidate
+   * @param bool $ignoreCase
+   * @return bool
+   */
+  public function equal($candidate, bool $ignoreCase = false): bool
+  {
+    return ($this->compare($candidate, $ignoreCase) == 0);
+  }
+
+  public function isNumeric(): bool
+  {
+    return (is_numeric($this->value) && (($this->value * 1) == $this->value) && ($this->value * 1 != INF));
+  }
+
+  public function in(array $array): bool
   {
     return in_array($this->value, $array);
   }
 
-  public function trim($charlist = self::TRIM_CHARS_LIST)
+  public function inArray(array $array): bool
   {
-    return trim($this->value, $charlist);
+    return $this->in($array);
   }
 
-  public function trimLeft($charlist = self::TRIM_CHARS_LIST)
+  public function join(string $glue = ', '): string
   {
-    return ltrim($this->value, $charlist);
+    return (string)$this->value;
   }
 
-  public function trimRight($charlist = self::TRIM_CHARS_LIST)
+  public function match(string $pattern, array &$matches = [], int $flags = 0, int $offset = 0): bool
   {
-    return rtrim($this->value, $charlist);
+    return (bool)preg_match($pattern, $this->value, $matches, $flags, $offset);
   }
 
-  public function toBytes()
+  public function matchAll(string $pattern, array &$matches = [], int $flags = PREG_PATTERN_ORDER, int $offset = 0): bool
+  {
+    return (bool)preg_match_all($pattern, $this->value, $matches, $flags, $offset);
+  }
+
+  /**
+   * @throws \Exception
+   */
+  public function isHtml(): bool
+  {
+    return br()->html()->isHtml($this->value);
+  }
+
+  // scalar related
+
+  public function replace(string $search, string $replace, ?int &$count = null): string
+  {
+    return (string)str_replace($search, $replace, $this->value, $count);
+  }
+
+  public function replaceIgnoreCase(string $search, string $replace, ?int &$count = null): string
+  {
+    return (string)str_ireplace($search, $replace, $this->value, $count);
+  }
+
+  public function replaceRegExp(string $pattern, string $replacement, int $limit = -1, ?int &$count = null): string
+  {
+    return (string)preg_replace($pattern, $replacement, $this->value, $limit, $count);
+  }
+
+  public function like(string $pattern): bool
+  {
+    $pattern = str_replace(['%', '.*?'], ['_', '.'], $pattern);
+
+    return (bool)preg_match('#^' . $pattern . '$#ism', $this->value);
+  }
+
+  public function trim(string $charsList = self::TRIM_CHARS_LIST): string
+  {
+    return trim($this->value, $charsList);
+  }
+
+  public function trimLeft(string $charsList = self::TRIM_CHARS_LIST): string
+  {
+    return ltrim($this->value, $charsList);
+  }
+
+  public function trimRight(string $charsList = self::TRIM_CHARS_LIST): string
+  {
+    return rtrim($this->value, $charsList);
+  }
+
+  public function toBytes(): int
   {
     if (preg_match('/([0-9]+)(g|m|k|)/ism', trim($this->value), $matches)) {
       $val = $matches[1];
@@ -73,94 +234,49 @@ class BrString extends BrGenericDataType
     return 0;
   }
 
-  public function exists($value, $ignoreCase = false)
+  public function toLowerCase(): string
   {
-    if (is_array($value)) {
-      foreach ($value as $val) {
-        if ($this->exists($val)) {
-          return true;
-        }
-      }
-      return false;
-    } elseif ($ignoreCase) {
-      return (strtolower($value) === strtolower($this->value));
-    } else {
-      return ((string)$value === (string)$this->value);
-    }
+    return (string)mb_strtolower($this->value);
   }
 
-  public function toLowerCase()
+  public function toUpperCase(): string
   {
-    return mb_strtolower($this->value);
+    return (string)mb_strtoupper($this->value);
   }
 
-  public function toUpperCase()
+  public function trimByLength(int $length, bool $addPoints = false, bool $aligned = false): string
   {
-    return mb_strtoupper($this->value);
-  }
+    $result = $this->substring(0, $length);
 
-  public function trimByLength($length, $addPoints = false, $aligned = false)
-  {
-    $s = $this->substring(0, $length);
     if ($aligned) {
-      $s = preg_replace('/[\s]*[\w]*?$/', '', $s);
+      $result = preg_replace('/[\s]*[\w]*?$/', '', $result);
     }
+
     if ($addPoints && ($this->length() > $length)) {
-      $s .= '...';
+      $result .= '...';
     }
 
-    return $s;
+    return $result;
   }
 
-  public function substring($start = 0, $length = 0xFFFFFFF)
+  public function substring(int $start = 0, int $length = 0xFFFFFFF): string
   {
-    return mb_substr($this->value, $start, $length);
+    return (string)mb_substr($this->value, $start, $length);
   }
 
-  public function replace($search, $replace, &$count = null)
+  /**
+   * @param int $index
+   * @return string
+   */
+  public function charAt(int $index): string
   {
-    return str_replace($search, $replace, $this->value, $count);
+    return $this->substring($index, 1);
   }
 
-  public function replaceIgnoreCase($search, $replace, &$count = null)
-  {
-    return str_ireplace($search, $replace, $this->value, $count);
-  }
-
-  public function match($pattern, &$matches = null, $flags = 0, $offset = 0)
-  {
-    if (!is_array($matches)) {
-      $matches = [];
-    }
-
-    return preg_match($pattern, $this->value, $matches, $flags, $offset);
-  }
-
-  public function matchAll($pattern, &$matches = null, $flags = PREG_PATTERN_ORDER, $offset = 0)
-  {
-    if (!is_array($matches)) {
-      $matches = [];
-    }
-
-    return preg_match_all($pattern, $this->value, $matches, $flags, $offset);
-  }
-
-  public function replaceRegExp($pattern, $replacement, $limit = -1, &$count = null)
-  {
-    return preg_replace($pattern, $replacement, $this->value, $limit, $count);
-  }
-
-  public function charAt($index)
-  {
-    return $this->substr($index, 1);
-  }
-
-  public function indexOf($search)
-  {
-    return mb_strpos($this->value, $search);
-  }
-
-  public function subst($pattern)
+  /**
+   * @throws \Exception
+   */
+  public function subst(): string
   {
     $args = func_get_args();
     $result = br()->placeholderEx($this->value, $args, $error);
@@ -171,46 +287,31 @@ class BrString extends BrGenericDataType
     }
   }
 
-  public function split($delimiters = ',;', $removeEmpty = true)
+  /**
+   * @return string
+   */
+  public function toCharPath(): string
   {
-    $delimiters = str_replace('/', '\/', $delimiters);
-    $result = preg_split('/[' . $delimiters . ']/', $this->value);
-    for ($i = 0; $i < count($result); $i++) {
-      $result[$i] = trim($result[$i]);
-    }
-    if ($removeEmpty) {
-      $result = br($result)->removeEmptyValues(false);
+    $result = '';
+
+    for ($i = 0; $i < strlen($this->value); $i++) {
+      $result .= $this->value[$i] . '/';
     }
 
     return $result;
   }
 
-  public function toCharPath()
-  {
-    $charPath = '';
-    for ($i = 0; $i < strlen($this->value); $i++) {
-      $charPath .= $this->value[$i] . '/';
-    }
-
-    return $charPath;
-  }
-
-  public function inc($var, $glue = ', ')
+  public function inc(string $var, string $glue = ', '): string
   {
     return $this->value . ($this->value ? $glue : '') . $var;
   }
 
-  public function repeat($amount)
+  public function repeat(int $amount): string
   {
-    $result = '';
-    for ($i = 0; $i < $amount; $i++) {
-      $result .= $this->value;
-    }
-
-    return $result;
+    return str_repeat($this->value, max(0, $amount));
   }
 
-  public function padLeft($amount, $glue = ' ')
+  public function padLeft(int $amount, string $glue = ' '): string
   {
     if ($amount > strlen($this->value)) {
       return str_pad($this->value, $amount * strlen($glue), $glue, STR_PAD_LEFT);
@@ -219,47 +320,64 @@ class BrString extends BrGenericDataType
     }
   }
 
-  public function floor($precision = 0)
+  /**
+   * @return array
+   */
+  public function fromJSON(): array
   {
-    return floor($this->value * pow(10, $precision)) / pow(10, $precision);
+    return (array)json_decode($this->value, true);
   }
 
-  public function join()
+  /**
+   * @throws BrGenericDataTypeException
+   * @throws \Exception
+   */
+  public function toJSON(): string
   {
-    return $this->value;
+    $result = (string)json_encode($this->value);
+
+    if (json_last_error()) {
+      if (json_last_error() == JSON_ERROR_UTF8) {
+        return br($this->utf8ize($this->value))->toJSON();
+      } else {
+        throw new BrGenericDataTypeException('Unknown error');
+      }
+    }
+
+    return $result;
   }
 
-  public function fromJSON()
+
+  /**
+   * @throws \Exception
+   */
+  public function textToHtml(): string
   {
-    return json_decode($this->value, true);
+    return br()->html()->fromText($this->value);
   }
 
-  public function textToHtml()
+  /**
+   * @throws \Exception
+   */
+  public function htmlToText(bool $smart = false): string
   {
-    return br()->HTML()->fromText($this->value);
+    return br()->html()->toText($this->value, $smart);
   }
 
-  public function isHtml()
+  /**
+   * @throws \Exception
+   */
+  public function decodeNumHtmlEntities(): string
   {
-    return br()->HTML()->isHtml($this->value);
+    return br()->html()->decodeNumEntities($this->value);
   }
 
-  public function htmlToText($smart = false)
+  public function toSingleLine(): string
   {
-    return br()->HTML()->toText($this->value, $smart);
+    return (string)preg_replace('#[\n\r]#', ' ', $this->value);
   }
 
-  public function decodeNumHtmlEntities()
-  {
-    return br()->HTML()->decodeNumEntities($this->value);
-  }
-
-  public function toSingleLine()
-  {
-    return preg_replace('#[\n\r]#', ' ', $this->value);
-  }
-
-  public function crc16()
+  public function crc16(): int
   {
     $crc = 0xFFFF;
 
@@ -277,99 +395,12 @@ class BrString extends BrGenericDataType
     return $crc;
   }
 
-  public function in($value)
-  {
-    if (is_array($value)) {
-      return in_array($this->value, $value);
-    } else {
-      return false;
-    }
-  }
-
-  private function mergeText($old_text, $new_text)
-  {
-    $result = [];
-    $lineNo = 1;
-    $old_text = explode("\n", $old_text);
-    $new_text = explode("\n", $new_text);
-    for ($i = 0; $i < count($old_text); $i++) {
-      $old_text[$i] = trim($old_text[$i], "\r\n");
-    }
-    for ($i = 0; $i < count($new_text); $i++) {
-      $new_text[$i] = trim($new_text[$i], "\r\n");
-    }
-    $old_text_int = $old_text;
-    $new_text_int = $new_text;
-    for ($i = 0; $i < count($old_text); $i++) {
-      $old_text_int[$i] = trim(strtolower($old_text[$i]));
-    }
-    for ($i = 0; $i < count($new_text); $i++) {
-      $new_text_int[$i] = trim(strtolower($new_text[$i]));
-    }
-    $old_lines_count = count($old_text);
-    $new_lines_count = count($new_text);
-    $max_lines = round(log10($old_lines_count + $old_lines_count));
-    $old_text_offset = 0;
-    $new_text_offset = 0;
-    while (($old_text_offset < $old_lines_count) || ($new_text_offset < $new_lines_count)) {
-      if (($old_text_offset < $old_lines_count) && ($new_text_offset < $new_lines_count)) {
-        $old_line = trim($old_text_int[$old_text_offset]);
-        $new_line = trim($new_text_int[$new_text_offset]);
-        if ($old_line == $new_line) {
-          $result[] = [
-            'lineNo' => $lineNo++,
-            'maxLines' => $max_lines,
-            'type' => ' ',
-            'text' => $new_text[$new_text_offset]
-          ];
-          $old_text_offset++;
-          $new_text_offset++;
-        } else {
-          $old_line_next_index = array_search($old_line, $new_text_int);
-          if (($old_line_next_index !== false) && ($old_line_next_index > $new_text_offset) && ($old_line_next_index - $new_text_offset < 5)) {
-            for ($k = $new_text_offset; $k < $old_line_next_index; $k++) {
-              $result[] = [
-                'lineNo' => $lineNo++,
-                'maxLines' => $max_lines,
-                'type' => '+',
-                'text' => $new_text[$k]
-              ];
-            }
-            $new_text_offset = $old_line_next_index;
-          } else {
-            similar_text($old_line, $new_line, $percent);
-            $result[] = [
-              'lineNo' => $lineNo++,
-              'maxLines' => $max_lines,
-              'type' => '-',
-              'text' => $old_text[$old_text_offset]
-            ];
-            $old_text_offset++;
-          }
-        }
-      } elseif ($old_text_offset < $old_lines_count) {
-        $result[] = [
-          'lineNo' => $lineNo++,
-          'maxLines' => $max_lines,
-          'type' => '-',
-          'text' => $old_text[$old_text_offset]
-        ];
-        $old_text_offset++;
-      } else {
-        $result[] = [
-          'lineNo' => $lineNo++,
-          'maxLines' => $max_lines,
-          'type' => '+',
-          'text' => $new_text[$new_text_offset]
-        ];
-        $new_text_offset++;
-      }
-    }
-
-    return $result;
-  }
-
-  public function logDifference($newText, $console = true)
+  /**
+   * @param string $newText
+   * @param bool $console
+   * @throws \Exception
+   */
+  public function logDifference(string $newText, bool $console = true)
   {
     $mergeStruct = $this->mergeText($this->value, $newText);
     foreach ($mergeStruct as $line) {
@@ -390,31 +421,28 @@ class BrString extends BrGenericDataType
     }
   }
 
-  public function isSimpleArray()
+  /**
+   * @throws \Exception
+   */
+  public function forceUTF8(): string
   {
-    return false;
+    $result = str_replace('&#1048576;', "'", $this->value);
+
+    return br(Encoding::toUTF8($result))->encodeUTF8MB4();
   }
 
-  public function forceUTF8()
+  public function encodeUTF8MB4(): string
   {
-    $value = $this->value;
-    $value = str_replace('&#1048576;', "'", $value);
-
-    return br(\ForceUTF8\Encoding::toUTF8($value, \ForceUTF8\Encoding::ICONV_TRANSLIT))->encodeUTF8MB4();
-  }
-
-  public function encodeUTF8MB4()
-  {
-    return preg_replace_callback('/./u', function (array $match) {
+    return (string)preg_replace_callback('/./u', function (array $match) {
       $res = $match[0];
       if (strlen($res) >= 4) {
-        $res = mb_convert_encoding($res, 'HTML-ENTITIES', "UTF-8");
+        $res = mb_convert_encoding($res, 'HTML-ENTITIES', 'UTF-8');
       }
       return $res;
     }, $this->value);
   }
 
-  public function cleanUpSpaces()
+  public function cleanUpSpaces(): string
   {
     $html = $this->value;
 
@@ -427,15 +455,18 @@ class BrString extends BrGenericDataType
       $html = preg_replace('/&nbsp;&nbsp;/ism', ' ', $html);
     }
 
-    return $html;
+    return (string)$html;
   }
 
-  public function removeWidthsFromTableColumns()
+  /**
+   * @throws \Exception
+   */
+  public function removeWidthsFromTableColumns(): string
   {
-    $html = $this->value;
+    $html = (string)$this->value;
 
     if (strlen(trim($html)) > 0) {
-      if (br()->HTML()->isHtml($html)) {
+      if (br()->html()->isHtml($html)) {
         require_once(dirname(__DIR__) . '/3rdparty/phpQuery/latest/phpQuery.php');
         try {
           $doc = \phpQuery::newDocument($html);
@@ -454,28 +485,116 @@ class BrString extends BrGenericDataType
       }
     }
 
-    return $html;
+    return (string)$html;
   }
 
-  public function formatDate($format)
-  {
-    return (new \DateTime((is_numeric($this->value) ? '@' : '') . $this->value))->format($format);
-  }
-
-  public function isNumeric()
-  {
-    return (is_numeric($this->value) && (($this->value * 1) == $this->value) && ($this->value * 1 != INF));
-  }
-
-  public function trimSpaces()
+  public function trimSpaces(): string
   {
     $result = '';
+
     $lines = preg_split('/[\n\r]/', $this->value);
     foreach ($lines as $line) {
       if (trim($line)) {
         $result .= trim($line) . ' ';
       }
     }
+
     return trim($result);
+  }
+
+  // numeric
+
+  /**
+   * @param int $precision
+   * @return float
+   */
+  public function floor(int $precision = 0): float
+  {
+    return floor($this->value * pow(10, $precision)) / pow(10, $precision);
+  }
+
+  // private
+
+  private function mergeText(string $oldText, string $newText): array
+  {
+    $result = [];
+    $lineNo = 1;
+    $oldText = explode("\n", $oldText);
+    $newText = explode("\n", $newText);
+    for ($i = 0; $i < count($oldText); $i++) {
+      $oldText[$i] = trim($oldText[$i], "\r\n");
+    }
+    for ($i = 0; $i < count($newText); $i++) {
+      $newText[$i] = trim($newText[$i], "\r\n");
+    }
+    $oldText_int = $oldText;
+    $newText_int = $newText;
+    for ($i = 0; $i < count($oldText); $i++) {
+      $oldText_int[$i] = trim(strtolower($oldText[$i]));
+    }
+    for ($i = 0; $i < count($newText); $i++) {
+      $newText_int[$i] = trim(strtolower($newText[$i]));
+    }
+    $old_lines_count = count($oldText);
+    $new_lines_count = count($newText);
+    $max_lines = round(log10($old_lines_count + $old_lines_count));
+    $oldText_offset = 0;
+    $newText_offset = 0;
+    while (($oldText_offset < $old_lines_count) || ($newText_offset < $new_lines_count)) {
+      if (($oldText_offset < $old_lines_count) && ($newText_offset < $new_lines_count)) {
+        $old_line = trim($oldText_int[$oldText_offset]);
+        $new_line = trim($newText_int[$newText_offset]);
+        if ($old_line == $new_line) {
+          $result[] = [
+            'lineNo' => $lineNo++,
+            'maxLines' => $max_lines,
+            'type' => ' ',
+            'text' => $newText[$newText_offset]
+          ];
+          $oldText_offset++;
+          $newText_offset++;
+        } else {
+          $old_line_next_index = array_search($old_line, $newText_int);
+          if (($old_line_next_index !== false) && ($old_line_next_index > $newText_offset) && ($old_line_next_index - $newText_offset < 5)) {
+            for ($k = $newText_offset; $k < $old_line_next_index; $k++) {
+              $result[] = [
+                'lineNo' => $lineNo++,
+                'maxLines' => $max_lines,
+                'type' => '+',
+                'text' => $newText[$k]
+              ];
+            }
+            $newText_offset = $old_line_next_index;
+          } else {
+            similar_text($old_line, $new_line);
+            $result[] = [
+              'lineNo' => $lineNo++,
+              'maxLines' => $max_lines,
+              'type' => '-',
+              'text' => $oldText[$oldText_offset]
+            ];
+            $oldText_offset++;
+          }
+        }
+      } elseif ($oldText_offset < $old_lines_count) {
+        $result[] = [
+          'lineNo' => $lineNo++,
+          'maxLines' => $max_lines,
+          'type' => '-',
+          'text' => $oldText[$oldText_offset]
+        ];
+        $oldText_offset++;
+      } else {
+        $result[] = [
+          'lineNo' => $lineNo++,
+          'maxLines' => $max_lines,
+          'type' => '+',
+          'text' => $newText[$newText_offset]
+        ];
+        $newText_offset++;
+      }
+    }
+
+    return $result;
   }
 }

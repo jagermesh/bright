@@ -68,11 +68,11 @@
   };
 
   window.br.isTouchScreen = function() {
-    return /iPad|iPhone|iPod/.test(navigator.platform) || /Android/i.test(navigator.userAgent);
+    return ('maxTouchPoints' in navigator) ? (navigator.maxTouchPoints > 0 ? true : false) : false;
   };
 
   window.br.isMobileDevice = function() {
-    return /iPad|iPhone|iPod/.test(navigator.platform) || /Android/i.test(navigator.userAgent);
+    return br.isTouchScreen() || screen.height <= 768;
   };
 
   window.br.isiOS = function() {

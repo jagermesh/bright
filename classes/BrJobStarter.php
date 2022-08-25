@@ -10,20 +10,29 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrJobStarter
 {
-  private $jobsFolder;
+  private string $jobsFolder;
 
   public function __construct()
   {
     $this->jobsFolder = br()->getScriptBasePath() . 'jobs/';
   }
 
+  /**
+   * @throws BrAppException
+   */
   public function check()
   {
     $this->doit(true);
   }
 
+  /**
+   * @throws BrAppException
+   */
   public function run()
   {
     $this->doit(false);
@@ -31,6 +40,7 @@ class BrJobStarter
 
   /**
    * @throws BrAppException
+   * @throws \Exception
    */
   public function doit($check)
   {
@@ -65,7 +75,7 @@ class BrJobStarter
           @fclose($handle);
           @unlink(br()->OS()->lockFileName($tag));
           return true;
-        } catch (\Exeception $e) {
+        } catch (\Exception $e) {
           @fclose($handle);
           @unlink(br()->OS()->lockFileName($tag));
           throw $e;

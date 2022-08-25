@@ -10,19 +10,26 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrRESTUsersBinder extends BrRESTBinder
 {
-  private $params;
-  private $usersDataSource;
+  private BrGenericDataSource $usersDataSource;
 
-  public function __construct($usersDataSource, $params = [])
+  /**
+   * @param $usersDataSource
+   */
+  public function __construct($usersDataSource)
   {
     $this->usersDataSource = is_object($usersDataSource) ? $usersDataSource : new $usersDataSource();
-    $this->params = $params;
 
     parent::__construct();
   }
 
+  /**
+   * @throws \Exception
+   */
   public function doRouting()
   {
     if (br()->auth()) {
@@ -81,7 +88,7 @@ class BrRESTUsersBinder extends BrRESTBinder
                 throw new BrRESTUsersBinderException('We can not send you new password because mail template is empty');
               }
             } else {
-              throw new BrRESTUsersBinderException('We can not send you new password because ther is not e-mail for your account');
+              throw new BrRESTUsersBinderException('We can not send you new password because there is not e-mail for your account');
             }
           } else {
             br()->response()->redirect(br()->request()->host() . br()->request()->baseUrl() . 'login.html?login=' .
@@ -103,7 +110,7 @@ class BrRESTUsersBinder extends BrRESTBinder
             [
               'get' => 'keyword',
               'type' => 'regexp',
-              'fields' => array($loginField)
+              'fields' => [$loginField]
             ],
             [
               'get' => 'status',

@@ -21,6 +21,9 @@
   const menuItemTemplate = br.compile(`
     <li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>
   `);
+  const menuItemTemplateHtml = br.compile(`
+    <li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{&name}}</a></li>
+  `);
   const dropDownTemplate = `
     <div class="dropdown br-ajax-dropdown" style="position:absolute;z-index:99999;">
       <a style="display:none;" href="javascript:;" role="button" data-toggle="dropdown" class="dropdown-toggle br-ex-action-change-menu-menu" style="cursor:pointer;"><span>{{value}}</span> <b class="caret"></b></a>
@@ -61,10 +64,11 @@
     if (options.onBeforeRenderMenu) {
       options.onBeforeRenderMenu.call(dropDownList, menuItemTemplateStr);
     }
-    for (let i = 0, length = items.length; i < length; i++) {
-      dropDownList.append(menuItemTemplate({
-        id: items[i][options.keyField],
-        name: items[i][options.nameField]
+    const template = options.isHTmlName ? menuItemTemplateHtml : menuItemTemplate;
+    for (let item of items) {
+      dropDownList.append(template({
+        id: item[options.keyField],
+        name: item[options.nameField]
       }));
     }
     const invokerItem = invoker.find('.br-ex-action-change-menu-menu');
@@ -92,11 +96,17 @@
     if (options.onSelect) {
       options.onSelect.call(choicesDataSource, filter, rowid, $(el));
     }
-    choicesDataSource.select(filter, function(result, response) {
-      if (result && (response.length > 0)) {
+    if (options.onGetItems) {
+      setTimeout(() => options.onGetItems.call(rowid, $(el), function(response) {
         showDropDownMenu(invoker, response, rowid, menuElement, dataSource, fieldName, options);
-      }
-    });
+      }), 50);
+    } else {
+      choicesDataSource.select(filter, function(result, response) {
+        if (result && (response.length > 0)) {
+          showDropDownMenu(invoker, response, rowid, menuElement, dataSource, fieldName, options);
+        }
+      });
+    }
   }
 
   function handleClick(el, invoker, choicesDataSource, dataSource, fieldName, options) {

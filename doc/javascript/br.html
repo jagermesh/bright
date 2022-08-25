@@ -35,7 +35,7 @@
                 $('#br_startProgress_example').on('click', function() {
                   br.startProgress(25, 'Working...');
                   (function(i) {
-                    var func = arguments.callee;
+                    let func = arguments.callee;
                     if (i > 0) {
                       i--;
                       br.stepProgress();

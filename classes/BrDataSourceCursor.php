@@ -19,6 +19,8 @@ class BrDataSourceCursor extends BrObject
 
   public function __construct($dataSource, $cursor, $transientData, $options)
   {
+    parent::__construct();
+
     $this->cursor = $cursor;
     $this->dataSource = $dataSource;
     $this->transientData = $transientData;
@@ -37,8 +39,8 @@ class BrDataSourceCursor extends BrObject
       if ($this->dataSource->invokeMethodExists(BrConst::DATASOURCE_METHOD_PROTECT_FIELDS)) {
         $this->dataSource->callEvent(BrConst::DATASOURCE_METHOD_PROTECT_FIELDS, $row, $this->transientData, $this->options);
       }
-    }
 
-    return $row;
+      return $row;
+    }
   }
 }

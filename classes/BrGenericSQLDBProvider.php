@@ -160,7 +160,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     $args = func_get_args();
     $sql = array_shift($args);
 
-    return new BrGenericSQLProviderCursor($sql, $args, $this, true);
+    return new BrGenericSQLProviderCursor($sql, $args, $this);
   }
 
   public function select()
@@ -181,7 +181,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
 
   public function selectNext($query, $options = [])
   {
-    return false;
+    return null;
   }
 
   public function getRow()
@@ -303,7 +303,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     $result = [];
     if (is_object($query) || is_resource($query)) {
       while ($row = $this->selectNext($query)) {
-        array_push($result, array_shift($row));
+        $result[] = array_shift($row);
       }
     }
 
@@ -319,13 +319,13 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
 
     $result = br()->cache()->getEx($cacheTag);
     if ($result['success']) {
-      $result = $result['value'];
+      $result = (array)$result['value'];
     } else {
       $query = $this->runQueryEx($sql, $args);
       $result = [];
       if (is_object($query) || is_resource($query)) {
         while ($row = $this->selectNext($query)) {
-          array_push($result, array_shift($row));
+          $result[] = array_shift($row);
         }
       }
       br()->cache()->set($cacheTag, $result);
@@ -374,12 +374,27 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     return 0;
   }
 
-  public function runQueryEx($sql, $args = [], $iteration = 0, $rerunError = null)
+  public function runQueryEx($sql, $args = [], $iteration = 0, $rerunError = null, $resultMode = MYSQLI_STORE_RESULT)
   {
     return false;
   }
 
   public function getRowsAmountEx($sql, $args)
+  {
+    return 0;
+  }
+
+  public function getLastError()
+  {
+    return null;
+  }
+
+  public function getLastId(): ?int
+  {
+    return null;
+  }
+
+  public function getAffectedRowsAmount($query = null): int
   {
     return 0;
   }

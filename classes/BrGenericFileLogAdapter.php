@@ -10,20 +10,25 @@
 
 namespace Bright;
 
-class BrGenericFileLogAdapter extends BrGenericLogAdapter
+/**
+ *
+ */
+abstract class BrGenericFileLogAdapter extends BrGenericLogAdapter
 {
-  protected $fileName;
-  protected $isOrganized;
-  protected $isJson;
+  protected string $filePath;
+  protected string $fileName;
+  protected bool $isOrganized;
 
+  private string $commandLineParams;
+  private string $logFormat;
   private $filePointer = null;
 
-  public function __construct($params = [])
+  public function __construct(?array $params = [])
   {
     parent::__construct();
 
-    $this->isOrganized = br($params, 'organized');
-    $this->logFormat = br($params, 'format');
+    $this->isOrganized = (bool)br($params, 'organized');
+    $this->logFormat = br($params, 'format', '');
     $this->fileName = br($params, 'fileName', 'application');
     $this->commandLineParams = br()->fs()->normalizeFileName(br(br()->getCommandLineArguments())->join('_'));
 
@@ -40,8 +45,8 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter
         $this->fileName .= '_' . str_replace('.', '-', br()->request()->clientIP());
         if (br()->auth()) {
           if ($login = br()->auth()->getSessionLogin()) {
-            if ($logindId = br($login, 'id')) {
-              $this->fileName .= '_' . $logindId;
+            if ($loginId = br($login, 'id')) {
+              $this->fileName .= '_' . $loginId;
             }
           }
         }
@@ -55,9 +60,13 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter
     }
   }
 
+  /**
+   * @throws \Exception
+   */
   protected function generateLogFileName()
   {
     $this->filePath = br()->getLogsPath();
+
     if ($this->isOrganized) {
       $dateTime = new \DateTime();
       $this->filePath .= $dateTime->format('Y-m-d') . '/';
@@ -72,8 +81,8 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter
         $this->filePath .= br()->request()->clientIP() . '/';
         if (br()->auth()) {
           if ($login = br()->auth()->getSessionLogin()) {
-            if ($logindId = br($login, 'id')) {
-              $this->filePath .= $logindId . '/';
+            if ($loginId = br($login, 'id')) {
+              $this->filePath .= $loginId . '/';
             }
           }
         }
@@ -82,7 +91,7 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter
     $this->filePath .= $this->fileName;
   }
 
-  protected function isJsonLogFormat()
+  protected function isJsonLogFormat(): bool
   {
     return ($this->logFormat == 'json');
   }
@@ -107,7 +116,7 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter
     }
   }
 
-  protected function getLogPrefix(array $info)
+  protected function getLogPrefix(array $info): string
   {
     return
       $info['timestamp'] . ' ' .
@@ -120,7 +129,7 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter
       str_pad(substr($info['log_event'], 0, 8), 8, ' ', STR_PAD_LEFT);
   }
 
-  protected function writeToLogFile(string $message, string $prefix = '')
+  protected function writeToLogFile(?string $message = '', ?string $prefix = '')
   {
     if ($this->isEnabled()) {
       $this->checkFile();
@@ -143,7 +152,7 @@ class BrGenericFileLogAdapter extends BrGenericLogAdapter
             $prefixLength = mb_strlen($outputPrefix);
             $fakePrefix = '';
             if ($prefixLength > 0) {
-              $fakePrefix = str_pad(' ', $prefixLength, ' ');
+              $fakePrefix = str_pad(' ', $prefixLength);
             }
             for ($i = 1; $i < count($messages); $i++) {
               if (strlen($messages[$i])) {

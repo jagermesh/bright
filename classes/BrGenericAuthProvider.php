@@ -10,47 +10,70 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrGenericAuthProvider extends BrObject
 {
-  public function __construct($config = [])
+  public function __construct(?array $settings = [])
   {
-    $this->setAttributes($config);
+    parent::__construct();
+
+    $this->setAttributes($settings);
   }
 
-  public function getAuthTag()
+  public function getAuthTag(): string
   {
     return '_br01';
   }
 
-  public function isLoggedIn()
+  public function isLoggedIn(): bool
   {
     return !empty(br()->session()->get('login'));
   }
 
+  /**
+   * @return array|bool|BrArray|BrCore|BrString|float|int|string|NULL
+   */
   public function getSessionLogin()
   {
     return br()->session()->get('login');
   }
 
+  /**
+   * @throws \Exception
+   */
   public function checkLogin($returnNotAuthorized = true)
   {
     if ($login = $this->getSessionLogin()) {
       $this->login($login);
     }
     if (!$login && $returnNotAuthorized) {
-      return br()->response()->sendNotAuthorized();
+      br()->response()->sendNotAuthorized();
+      return false;
     }
     return $login;
   }
 
-  public function setLogin($attributeName, $value)
+  /**
+   * @param string $attributeName
+   * @param $value
+   * @return mixed
+   */
+  public function setLogin(string $attributeName, $value)
   {
     $data = $this->getLogin();
     $data[$attributeName] = $value;
+
     return br()->session()->set('login', $data);
   }
 
-  public function getLogin($attributeName = null, $default = null)
+  /**
+   * @param string|null $attributeName
+   * @param $default
+   * @return array|bool|BrArray|BrCore|BrString|float|int|mixed|string|null
+   */
+  public function getLogin(?string $attributeName = null, $default = null)
   {
     if ($login = $this->getSessionLogin()) {
       if ($attributeName) {
@@ -64,6 +87,9 @@ class BrGenericAuthProvider extends BrObject
     return null;
   }
 
+  /**
+   * @throws \Exception
+   */
   public function validateLogin($login)
   {
     try {
@@ -77,7 +103,10 @@ class BrGenericAuthProvider extends BrObject
     }
   }
 
-  public function login($login, $remember = false)
+  /**
+   * @throws \Exception
+   */
+  public function login($login, bool $remember = false)
   {
     $login = $this->validateLogin($login);
     if ($remember) {
@@ -89,16 +118,16 @@ class BrGenericAuthProvider extends BrObject
       ];
       if (!br()->isConsoleMode()) {
         setcookie($this->getAuthTag(), base64_encode(json_encode($cookie)),
-          time() + 60 * 60 * 24 * 30, br()->request()->baseUrl(), br()->request()->domain(), true, true);
+          time() + 60 * 60 * 24 * 30, br()->request()->baseUrl(), br()->request()->getDomain(), true, true);
       }
     }
     return $login;
   }
 
-  public function logout()
+  public function logout(): bool
   {
     if (!br()->isConsoleMode()) {
-      setcookie($this->getAuthTag(), '', time() - 60 * 60 * 24 * 30, br()->request()->baseUrl(), br()->request()->domain(), true, true);
+      setcookie($this->getAuthTag(), '', time() - 60 * 60 * 24 * 30, br()->request()->baseUrl(), br()->request()->getDomain(), true, true);
     }
     if ($login = $this->getLogin()) {
       $this->trigger('logout', $login);
@@ -108,15 +137,21 @@ class BrGenericAuthProvider extends BrObject
     return true;
   }
 
-  public function findLogin($options = [])
+  /**
+   * @param array|null $options
+   * @return array|bool|BrArray|BrCore|BrString|float|int|mixed|string|NULL
+   */
+  public function findLogin(?array $options = [])
   {
     // Check permissions
     $userId = br($options, 'userId');
+
     if (!$userId) {
       if ($login = $this->getLogin()) {
         $userId = $login['rowid'];
       }
     }
+
     if (!$userId) {
       if ($this->trigger('findLogin', $options)) {
         if ($login = $this->getLogin()) {
@@ -124,6 +159,7 @@ class BrGenericAuthProvider extends BrObject
         }
       }
     }
+
     return $userId;
   }
 }

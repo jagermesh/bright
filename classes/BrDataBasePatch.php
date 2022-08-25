@@ -10,21 +10,29 @@
 
 namespace Bright;
 
-class BrDataBasePatch
+/**
+ *
+ */
+abstract class BrDataBasePatch
 {
-  private $stepNo = 0;
-  private $guid = null;
-  private $dependencies = [];
-  private $className;
-  private $patchFile;
+  private int $stepNo = 0;
+  private string $guid = '';
+  private array $dependencies = [];
+  private string $className;
+  private string $patchFile;
+  private string $patchHash;
 
-  protected $dbManager;
+  protected BrDataBaseManager $dbManager;
 
   const DO_ABORT = 0;
   const DO_CONTINUE = 1;
   const DO_RETRY = 2;
 
-  public function __construct($patchFile, $dbManager)
+  abstract public function up();
+  abstract public function down($failedStepName, $errorMessage);
+
+
+  public function __construct(string $patchFile, BrDataBaseManager $dbManager)
   {
     $this->patchFile = $patchFile;
     $this->className = get_called_class();
@@ -32,22 +40,25 @@ class BrDataBasePatch
     $this->dbManager = $dbManager;
   }
 
-  public function setGuid($value)
+  public function setGuid(?string $value = '')
   {
     $this->guid = $value;
   }
 
-  public function logPrefix()
+  public function logPrefix(): string
   {
     return '[' . $this->className . ']';
   }
 
-  public function addDependency($value)
+  public function addDependency(string $value)
   {
     $this->dependencies[] = $value;
   }
 
-  public function checkDependencies()
+  /**
+   * @throws BrAppException
+   */
+  public function checkDependencies(): bool
   {
     foreach ($this->dependencies as $dependency) {
       if (!br()->db()->getValue('
@@ -64,7 +75,12 @@ class BrDataBasePatch
     return true;
   }
 
-  public function checkRequirements($regularRun = true, $command = 'run')
+  /**
+   * @throws BrSamePatchException
+   * @throws BrAppException
+   * @throws BrAssertException
+   */
+  public function checkRequirements($regularRun = true, $command = 'run'): bool
   {
     br()->assert($this->guid, 'Please generate GUID for this patch');
 
@@ -126,7 +142,7 @@ class BrDataBasePatch
     return true;
   }
 
-  public function run()
+  public function run(): bool
   {
     br()->log()->message('Apply');
 
@@ -135,7 +151,10 @@ class BrDataBasePatch
     br()->db()->runQuery('
       INSERT INTO br_db_patch (guid, patch_file, patch_hash, body, installed_at) VALUES (?, ?, ?, ?, NOW())
           ON DUPLICATE KEY
-      UPDATE patch_file = ?, patch_hash = ?, body = ?, re_installed_at = NOW()
+      UPDATE patch_file = ?
+           , patch_hash = ?
+           , body = ?
+           , re_installed_at = NOW()
     ',
       $this->guid,
       basename($this->patchFile),
@@ -151,30 +170,42 @@ class BrDataBasePatch
     return true;
   }
 
+  /**
+   * @throws \Exception
+   */
   public function refreshTableSupport($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $isCascadeAudited = 1, $excludeFields = null)
   {
-    return $this->dbManager->refreshTableSupport($tableName, $isInsertAudited, $isUpdateAudited, $isDeleteAudited, $isCascadeAudited, $excludeFields);
+    $this->dbManager->refreshTableSupport($tableName, $isInsertAudited, $isUpdateAudited, $isDeleteAudited, $isCascadeAudited, $excludeFields);
   }
 
+  /**
+   * @throws \Exception
+   */
   public function setupTableSupport($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $isCascadeAudited = 1, $excludeFields = null)
   {
     br()->log()->message(br('=')->repeat(80));
     br()->log()->message('setupTableSupport(' . $tableName . ', ' . $isInsertAudited . ', ' .
       $isUpdateAudited . ', ' . $isDeleteAudited . ', "' . $excludeFields . '")');
 
-    return $this->dbManager->setupTableSupport($tableName, $isInsertAudited, $isUpdateAudited, $isDeleteAudited, $isCascadeAudited, $excludeFields);
+    $this->dbManager->setupTableSupport($tableName, $isInsertAudited, $isUpdateAudited, $isDeleteAudited, $isCascadeAudited, $excludeFields);
   }
 
-  public function execute($sql, $stepName = null)
+  /**
+   * @throws BrAppException
+   */
+  public function execute($sql, $stepName = null): int
   {
     $this->stepNo++;
 
     $stepName = $stepName ? $stepName : $this->stepNo;
 
-    return $this->internalExecute($sql, $stepName, false);
+    return $this->internalExecute($sql, $stepName);
   }
 
-  public function executeScript($script, $stepName = null)
+  /**
+   * @throws BrAppException
+   */
+  public function executeScript($script, $stepName = null): int
   {
     $this->stepNo++;
 
@@ -182,14 +213,17 @@ class BrDataBasePatch
     $result = 0;
     if ($statements = $this->dbManager->parseScript($script)) {
       foreach ($statements as $statement) {
-        $result += $this->internalExecute($statement, $stepName, false);
+        $result += $this->internalExecute($statement, $stepName);
       }
     }
 
     return $result;
   }
 
-  public function executeScriptFile($fileName, $stepName = null)
+  /**
+   * @throws BrAppException
+   */
+  public function executeScriptFile($fileName, $stepName = null): int
   {
     $this->stepNo++;
 
@@ -212,7 +246,10 @@ class BrDataBasePatch
     }
   }
 
-  private function internalExecute($sql, $stepName = null)
+  /**
+   * @throws BrAppException
+   */
+  private function internalExecute($sql, $stepName = null): int
   {
     $stepName = $stepName ? $stepName : $this->stepNo;
 
@@ -266,6 +303,10 @@ class BrDataBasePatch
     return br()->db()->getAffectedRowsAmount();
   }
 
+  /**
+   * @throws BrAppException
+   * @throws \Exception
+   */
   public static function generatePatchScript($name, $path)
   {
     $name = ucfirst($name);

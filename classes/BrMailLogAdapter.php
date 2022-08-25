@@ -10,13 +10,21 @@
 
 namespace Bright;
 
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
+
+/**
+ *
+ */
 class BrMailLogAdapter extends BrGenericLogAdapter
 {
-  protected $cache;
-  protected $cacheInitialized = false;
+  protected BrFileCacheProvider $cache;
+  protected bool $cacheInitialized = false;
 
   private $email;
 
+  /**
+   * @param $email
+   */
   public function __construct($email = null)
   {
     $this->email = $email;
@@ -24,11 +32,18 @@ class BrMailLogAdapter extends BrGenericLogAdapter
     parent::__construct();
   }
 
+  /**
+   * @param $email
+   * @return void
+   */
   public function setEMail($email)
   {
     $this->email = $email;
   }
 
+  /**
+   * @return array|mixed|null
+   */
   public function getEMail()
   {
     if ($this->email) {
@@ -51,7 +66,13 @@ class BrMailLogAdapter extends BrGenericLogAdapter
     }
   }
 
-  public function write($messageOrObject, $params)
+  /**
+   * @param $messageOrObject
+   * @param array|null $params
+   * @throws TransportExceptionInterface
+   * @throws \Exception
+   */
+  public function write($messageOrObject, ?array $params = [])
   {
     if ($this->getEMail()) {
       if ($this->isErrorEventType($params) || $this->isDebugEventType($params)) {
@@ -61,7 +82,7 @@ class BrMailLogAdapter extends BrGenericLogAdapter
               return;
             }
 
-            $excerpt = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, false);
+            $excerpt = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject);
 
             $this->initCache();
 
@@ -77,17 +98,24 @@ class BrMailLogAdapter extends BrGenericLogAdapter
               $subject = 'Error report: ' . $excerpt;
             } elseif ($this->isDebugEventType($params)) {
               $subject = 'Debug message: ' . $excerpt;
+            } else {
+              $subject = $excerpt;
             }
 
             $info = $this->getLogInfo($messageOrObject, $params, ['snapshot']);
             $message = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, true);
 
-            $body = '<html>';
-            $body .= '<body>';
-            $body .= '<pre>' . json_encode($info, JSON_PRETTY_PRINT) . '</pre>';
-            $body .= '<pre>' . $message . '</pre>';
-            $body .= '</body>';
-            $body .= '</html>';
+            $body = sprintf('
+              <html>
+              <body>
+                <pre>%s</pre>
+                <pre>%s</pre>
+              </body>
+              </html>
+            ',
+              json_encode($info, JSON_PRETTY_PRINT),
+              $message,
+            );
 
             br()->sendMail($this->getEMail(), $subject, $body);
           } catch (\Exception $e) {

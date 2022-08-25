@@ -112,12 +112,24 @@ class BrSFTP extends BrRemoteConnection
             case 'datetime':
             case 'datetimeAsc':
               uasort($ftpRAWList, function ($a, $b) {
-                return br($a, 'mtime') == br($b, 'mtime') ? 0 : (br($a, 'mtime') > br($b, 'mtime') ? -1 : 1);
+                if (br($a, 'mtime') == br($b, 'mtime')) {
+                  return 0;
+                } elseif (br($a, 'mtime') > br($b, 'mtime')) {
+                  return -1;
+                } else {
+                  return 1;
+                }
               });
               break;
             case 'datetimeDesc':
               uasort($ftpRAWList, function ($a, $b) {
-                return br($a, 'mtime') == br($b, 'mtime') ? 0 : (br($a, 'mtime') > br($b, 'mtime') ? 1 : -1);
+                if (br($a, 'mtime') == br($b, 'mtime')) {
+                  return 0;
+                } elseif (br($a, 'mtime') > br($b, 'mtime')) {
+                  return 1;
+                } else {
+                  return -1;
+                }
               });
               break;
             case 'name':

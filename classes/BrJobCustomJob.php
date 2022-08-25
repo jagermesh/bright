@@ -10,24 +10,32 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrJobCustomJob extends BrObject
 {
   const SHELL_SCRIPT = 'nohup ' . PHP_BINARY . ' -f';
   const RUN_JOB_SCRIPT = 'run-job.php';
   const CHECK_JOB_SCRIPT = 'check-job.php';
-  const DEFAULT_JOB_RECHECK_PERIOD = 5;
+  const DEFAULT_JOB_RECHECK_PERIOD = 5 * 60;
   const JOB_RUN_RECHECK_PERIOD = 10;
   const MAX_PROCESSES_AMOUNT_MULTIPLIER = 16;
 
-  protected $lastRunFile;
+  protected string $lastRunFile;
 
-  private $runJobCommand;
-  private $checkJobCommand;
-  private $coresAmount;
-  private $maxProcessesAmount;
+  private string $runJobCommand;
+  private string $checkJobCommand;
+  private int $coresAmount;
+  private int $maxProcessesAmount;
 
+  /**
+   * @throws \Exception
+   */
   public function __construct()
   {
+    parent::__construct();
+
     $this->lastRunFile = br()->getTempPath() . get_class($this) . '.timestamp';
     $this->checkJobCommand = self::CHECK_JOB_SCRIPT . ' ' . get_class($this);
     $this->runJobCommand = self::RUN_JOB_SCRIPT . ' ' . get_class($this);
@@ -35,7 +43,7 @@ class BrJobCustomJob extends BrObject
     $this->maxProcessesAmount = $this->coresAmount * self::MAX_PROCESSES_AMOUNT_MULTIPLIER;
   }
 
-  private function getCommand($check, $withPath = true, $arguments = ''): string
+  private function getCommand(bool $check, bool $withPath = true, ?string $arguments = ''): string
   {
     if ($check) {
       $cmd = trim($this->checkJobCommand . ' ' . $arguments);
@@ -50,17 +58,20 @@ class BrJobCustomJob extends BrObject
     return $cmd;
   }
 
-  public function getCheckCommand($withPath = true, $arguments = ''): string
+  public function getCheckCommand(bool $withPath = true, ?string $arguments = ''): string
   {
     return $this->getCommand(true, $withPath, $arguments);
   }
 
-  public function getRunCommand($withPath = true, $arguments = ''): string
+  public function getRunCommand(bool $withPath = true, ?string $arguments = ''): string
   {
     return $this->getCommand(false, $withPath, $arguments);
   }
 
-  public function spawn($check, $arguments = '')
+  /**
+   * @throws \Exception
+   */
+  public function spawn(bool $check, ?string $arguments = '')
   {
     while (br()->OS()->findProcesses([self::RUN_JOB_SCRIPT])->count() > $this->maxProcessesAmount) {
       br()->log('[...] Too many processes started, maximum is ' . $this->maxProcessesAmount . '. Waiting to continue');
@@ -93,6 +104,9 @@ class BrJobCustomJob extends BrObject
     }
   }
 
+  /**
+   * @throws \Exception
+   */
   public function check()
   {
     if ($list = $this->timeToStart()) {
@@ -105,7 +119,7 @@ class BrJobCustomJob extends BrObject
     }
   }
 
-  public function getLastRunTime()
+  public function getLastRunTime(): ?int
   {
     if (file_exists($this->lastRunFile)) {
       return filemtime($this->lastRunFile);
@@ -114,13 +128,18 @@ class BrJobCustomJob extends BrObject
     }
   }
 
-  public function timeToStart($periodMin = self::DEFAULT_JOB_RECHECK_PERIOD)
+  public function getSecondsSinceLastRun(): int
   {
     if (file_exists($this->lastRunFile)) {
-      return time() - filemtime($this->lastRunFile) > $periodMin * 60;
+      return time() - filemtime($this->lastRunFile);
     } else {
-      return true;
+      return time();
     }
+  }
+
+  public function timeToStart()
+  {
+    return $this->getSecondsSinceLastRun() > self::DEFAULT_JOB_RECHECK_PERIOD;
   }
 
   public function done()
@@ -128,6 +147,10 @@ class BrJobCustomJob extends BrObject
     br()->fs()->saveToFile($this->lastRunFile, time());
   }
 
+  /**
+   * @param $params
+   * @return void
+   */
   public function run($params)
   {
     $this->done();
@@ -135,10 +158,12 @@ class BrJobCustomJob extends BrObject
 
   /**
    * @throws BrAppException
+   * @throws \Exception
    */
-  public static function generateJobScript($name, $path)
+  public static function generateJobScript(string $name, string $path)
   {
     $name = ucfirst($name);
+
     $fileName = $path . '/jobs/Job' . $name . '.php';
 
     if (file_exists($fileName)) {

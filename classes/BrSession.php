@@ -10,10 +10,16 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrSession extends BrObject
 {
-  private $tag = '';
+  private string $tag;
 
+  /**
+   * @throws BrSessionException
+   */
   public function __construct()
   {
     $this->tag = hash('sha256', __FILE__);
@@ -48,19 +54,24 @@ class BrSession extends BrObject
     }
   }
 
-  public function regenerate($deleteOld = false)
+  public function regenerate(bool $deleteOld = false)
   {
     if (!br()->isConsoleMode()) {
       session_regenerate_id($deleteOld);
     }
   }
 
-  public function getId()
+  public function getId(): string
   {
     return session_id();
   }
 
-  public function get($name = null, $default = null)
+  /**
+   * @param string|null $name
+   * @param $default
+   * @return array|bool|BrArray|BrCore|BrString|float|int|string|null
+   */
+  public function get(?string $name = null, $default = null)
   {
     if (isset($_SESSION)) {
       if ($name) {
@@ -81,7 +92,12 @@ class BrSession extends BrObject
     }
   }
 
-  public function set($name, $value)
+  /**
+   * @param string $name
+   * @param $value
+   * @return mixed
+   */
+  public function set(string $name, $value)
   {
     if (isset($_SESSION)) {
       $name = $this->tag . ':' . $name;

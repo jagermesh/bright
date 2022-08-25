@@ -10,6 +10,9 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrMemoryCacheProvider extends BrGenericCacheProvider
 {
   public static function isSupported(): bool
@@ -17,58 +20,64 @@ class BrMemoryCacheProvider extends BrGenericCacheProvider
     return true;
   }
 
-  public function reset()
+  public function reset(): bool
   {
     $this->clearAttributes();
+
+    return true;
   }
 
-  public function exists($name): bool
+  public function exists(string $name): bool
+  {
+    return $this->isAttrExists($this->getSafeName($name));
+  }
+
+  /**
+   * @param string $name
+   * @param $default
+   * @param bool $saveDefault
+   * @return mixed
+   */
+  public function getEx(string $name, $default = null, bool $saveDefault = false): array
   {
     $name = $this->getSafeName($name);
 
-    return $this->isAttrExists($name);
-  }
-
-  public function get($name, $default = null, $saveDefault = false)
-  {
-    $name = $this->getSafeName($name);
-
-    if ($this->isAttrExists($name)) {
-      $result = $this->getAttr($name);
-    } else {
-      $result = $default;
-      if ($saveDefault) {
-        $this->set($name, $result);
+    if (!$this->isAttrExists($name)) {
+      if ($saveDefault && $default) {
+        $this->set($name, $default);
       }
-    }
-
-    return $result;
-  }
-
-  public function getEx($name, $default = null, $saveDefault = false)
-  {
-    $name = $this->getSafeName($name);
-
-    if ($this->isAttrExists($name)) {
-      $result = ['success' => true, 'value' => $this->getAttr($name)];
+      return [
+        'success' => $saveDefault,
+        'value' => $default
+      ];
     } else {
-      $result = ['success' => false];
+      return [
+        'success' => true,
+        'value' => $this->getAttr($name),
+      ];
+    }
+  }
+
+  /**
+   * @param string $name
+   * @param $value
+   * @param int|null $lifeTime
+   * @return bool
+   */
+  public function set(string $name, $value, ?int $lifeTime = null): bool
+  {
+    $this->setAttr($this->getSafeName($name), $value);
+
+    return true;
+  }
+
+  public function remove(string $name): bool
+  {
+    if ($this->isAttrExists($name)) {
+      $this->clearAttr($this->getSafeName($name));
+      return true;
     }
 
-    return $result;
-  }
-
-  public function set($name, $value, $lifeTime = null)
-  {
-    $name = $this->getSafeName($name);
-
-    return $this->setAttr($name, $value);
-  }
-
-  public function remove($name)
-  {
-    $name = $this->getSafeName($name);
-
-    $this->clearAttr($name);
+    return false;
   }
 }

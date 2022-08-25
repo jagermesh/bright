@@ -10,14 +10,17 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrDataBaseDictionary extends BrObject implements IDataBaseDictionary
 {
-  protected $schema = [];
+  protected array $schema = [];
 
   /**
    * @throws BrAppException
    */
-  public function validate($tableName, $row)
+  public function validate(string $tableName, ?array $row = []): array
   {
     if ($row && ($tableDesc = br($this->schema, $tableName))) {
       foreach ($row as $fieldName => $value) {
@@ -80,8 +83,8 @@ class BrDataBaseDictionary extends BrObject implements IDataBaseDictionary
     return $row;
   }
 
-  public function getStructure($tableName)
+  public function getStructure(string $tableName): array
   {
-    return br($this->schema, $tableName);
+    return (array)br($this->schema, $tableName, []);
   }
 }

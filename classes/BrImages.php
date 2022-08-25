@@ -10,19 +10,22 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrImages extends BrObject
 {
-  public function isValid($path)
+  public function isValid(string $path): bool
   {
     try {
-      $image = new BrImage($path);
-      return is_object($image);
+      new BrImage($path);
+      return true;
     } catch (\Exception $e) {
       return false;
     }
   }
 
-  public function getFormat($path)
+  public function getFormat(string $path): string
   {
     try {
       $image = new BrImage($path);
@@ -32,7 +35,7 @@ class BrImages extends BrObject
     }
   }
 
-  public function getHeight($path)
+  public function getHeight(string $path): int
   {
     try {
       $image = new BrImage($path);
@@ -42,7 +45,7 @@ class BrImages extends BrObject
     }
   }
 
-  public function getWidth($path)
+  public function getWidth(string $path): int
   {
     try {
       $image = new BrImage($path);
@@ -52,7 +55,10 @@ class BrImages extends BrObject
     }
   }
 
-  public function generateThumbnails($src, $thumbnails = null)
+  /**
+   * @throws BrImageException
+   */
+  public function generateThumbnails(string $src, ?array $thumbnails = []): array
   {
     $result = [];
 
@@ -79,7 +85,10 @@ class BrImages extends BrObject
     return $result;
   }
 
-  public function generateThumbnail($src, $w, $h, $relativePath = null)
+  /**
+   * @throws BrImageException
+   */
+  public function generateThumbnail(string $src, int $w, int $h, ?string $relativePath = ''): string
   {
     $path = $src;
 
@@ -108,15 +117,13 @@ class BrImages extends BrObject
 
     $dstPath .= '/' . $pathinfo['basename'];
 
-    if (file_exists($dstPath)) {
-      return $dst;
-    } else {
+    if (!file_exists($dstPath)) {
       br()->log()->message('Creating thumbnail from ' . $src . ' in ' . $dstPath);
 
       $image = new BrImage($path);
       $image->generateThumbnail($w, $h, $dstPath);
-
-      return $dst;
     }
+
+    return $dst;
   }
 }

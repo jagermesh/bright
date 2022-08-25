@@ -10,18 +10,21 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrRedisCacheProvider extends BrGenericCacheProvider
 {
-  const DEFAULT_HOST_NAME = 'localhost';
-  const DEFAULT_PORT = 6379;
+  private const DEFAULT_HOST_NAME = 'localhost';
+  private const DEFAULT_PORT = 6379;
 
-  private $redis;
+  private \Redis $redis;
 
   /**
    * @throws BrRedisCacheProviderException
    * @throws BrException
    */
-  public function __construct($settings = [])
+  public function __construct(?array $settings = [])
   {
     parent::__construct($settings);
 
@@ -37,14 +40,17 @@ class BrRedisCacheProvider extends BrGenericCacheProvider
     if (!@$this->redis->connect($hostname, $port)) {
       throw new BrRedisCacheProviderException('Can not connect to Redis server ' . $hostname . ':' . $port);
     }
+
     if (br($settings, 'password')) {
       if (!@$this->redis->auth($settings['password'])) {
         throw new BrRedisCacheProviderException('Can not authenticate with Redis server ' . $hostname . ':' . $port);
       }
     }
+
     if (br($settings, 'namePrefix')) {
       $this->setDefaultNamePrefix($settings['namePrefix'] . ':');
     }
+
     if (!@$this->redis->setOption(\Redis::OPT_PREFIX, $this->getDefaultNamePrefix())) {
       throw new BrRedisCacheProviderException('Can not change Redis prefix');
     }
@@ -55,58 +61,57 @@ class BrRedisCacheProvider extends BrGenericCacheProvider
     return class_exists('Redis');
   }
 
-  public function reset()
+  public function reset(): bool
   {
     try {
-      return @$this->redis->flushAll();
-    } catch (\Exception $e) {
-      return null;
-    }
-  }
-
-  public function exists($name): bool
-  {
-    try {
-      return @$this->redis->exists($name);
+      return (bool)$this->redis->flushAll();
     } catch (\Exception $e) {
       return false;
     }
   }
 
-  public function get($name, $default = null, $saveDefault = false)
+  public function exists(string $name): bool
   {
     try {
-      $result = @$this->redis->get($name);
-      if ($result === false) {
-        $result = $default;
-        if ($saveDefault) {
-          $this->set($name, $result);
+      return (bool)@$this->redis->exists($name);
+    } catch (\Exception $e) {
+      return false;
+    }
+  }
+
+  /**
+   * @param string $name
+   * @param $default
+   * @param bool $saveDefault
+   * @return mixed
+   */
+  public function getEx(string $name, $default = null, bool $saveDefault = false): array
+  {
+    try {
+      $cachedValue = @$this->redis->get($name);
+      if ($cachedValue === false) {
+        if ($saveDefault && $default) {
+          $this->set($name, $default);
         }
+        return [
+          'success' => $saveDefault,
+          'value' => $default
+        ];
       } else {
-        $result = json_decode($result, true);
+        return [
+          'success' => true,
+          'value' => json_decode($cachedValue, true),
+        ];
       }
-      return $result;
     } catch (\Exception $e) {
-      return null;
+      return [
+        'success' => false,
+        'value' => null
+      ];
     }
   }
 
-  public function getEx($name, $default = null, $saveDefault = false)
-  {
-    try {
-      $result = @$this->redis->get($name);
-      if ($result === false) {
-        $result = ['success' => false];
-      } else {
-        $result = ['success' => true, 'value' => json_decode($result, true)];
-      }
-      return $result;
-    } catch (\Exception $e) {
-      $result = ['success' => false];
-    }
-  }
-
-  public function getKeys($pattern)
+  public function getKeys(string $pattern): array
   {
     try {
       if ($result = @$this->redis->keys($pattern)) {
@@ -118,35 +123,37 @@ class BrRedisCacheProvider extends BrGenericCacheProvider
       }
       return $result;
     } catch (\Exception $e) {
-      return null;
+      return [];
     }
   }
 
-  public function set($name, $value, $lifeTime = null)
+  /**
+   * @param string $name
+   * @param $value
+   * @param int|null $lifeTime
+   * @return bool
+   */
+  public function set(string $name, $value, ?int $lifeTime = null): bool
   {
     try {
       $lifeTime = $lifeTime ? $lifeTime : $this->getCacheLifeTime();
-      $packed = json_encode($value);
-      if (@$this->redis->set($name, $packed, $lifeTime)) {
-        return $value;
-      } else {
-        return false;
-      }
+
+      return (bool)$this->redis->set($name, json_encode($value), $lifeTime);
     } catch (\Exception $e) {
       return false;
     }
   }
 
-  public function remove($name)
+  public function remove(string $name): bool
   {
     try {
-      return @$this->redis->del($name);
+      return (bool)$this->redis->del($name);
     } catch (\Exception $e) {
       return false;
     }
   }
 
-  public function getService()
+  public function getService(): \Redis
   {
     return $this->redis;
   }

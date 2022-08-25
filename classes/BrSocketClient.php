@@ -10,30 +10,33 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrSocketClient extends BrObject
 {
-  const EVENT = 2;
-
-  const MESSAGE = 4;
-  const UPGRADE = 5;
-
-  const OPCODE_TEXT = 0x1;
-
-  const CONNECT_TIMEOUT = 30;
-  const RECONNECT_TIMEOUT = 10;
+  private const EVENT = 2;
+  private const MESSAGE = 4;
+  private const UPGRADE = 5;
+  private const OPCODE_TEXT = 0x1;
+  private const CONNECT_TIMEOUT = 30;
+  private const RECONNECT_TIMEOUT = 10;
 
   private $socket;
-  private $connected = false;
-  private $connecting = false;
-  private $wasEverConnected = false;
-  private $failedToConnect = false;
-  private $keepAlive = true;
-  private $url;
-  private $parsedUrl;
-  private $pollingUrl;
+  private bool $connected = false;
+  private bool $connecting = false;
+  private bool $wasEverConnected = false;
+  private bool $failedToConnect = false;
+  private bool $keepAlive = true;
+  private string $url;
+  private array $parsedUrl;
+  private string $pollingUrl;
+  private string $socketUrl;
 
-  public function __construct($url, $params = [])
+  public function __construct(string $url, ?array $params = [])
   {
+    parent::__construct();
+
     $this->url = $url;
     $this->parsedUrl = parse_url($this->url);
     if (!@$this->parsedUrl['scheme']) {
@@ -53,11 +56,13 @@ class BrSocketClient extends BrObject
     }
   }
 
-  private function maskData($data, $maskKey)
+  private function maskData(string $data, string $maskKey): string
   {
     $masked = '';
+
     $data = str_split($data);
     $key = str_split($maskKey);
+
     foreach ($data as $i => $letter) {
       $masked .= $letter ^ $key[$i % 4];
     }
@@ -65,9 +70,10 @@ class BrSocketClient extends BrObject
     return $masked;
   }
 
-  private function encodeData($data, $mask = true)
+  private function encodeData(string $data, bool $mask = true): string
   {
     $pack = '';
+
     $length = strlen($data);
 
     if (0xFFFF < $length) {
@@ -99,18 +105,24 @@ class BrSocketClient extends BrObject
     return $payload . $data;
   }
 
-  public function emit($event, array $args)
+  /**
+   * @throws BrSocketConnectionException
+   */
+  public function emit(string $event, ?array $args = []): bool
   {
     return $this->write(self::MESSAGE, self::EVENT . json_encode([$event, $args]));
   }
 
-  private function write($code, $message = null)
+  /**
+   * @throws BrSocketConnectionException
+   */
+  private function write(string $code, ?string $message = null): bool
   {
     if (!$this->socket) {
       $this->connect();
     }
     $payload = $this->encodeData($code . $message);
-    $result = @fwrite($this->socket, (string)$payload);
+    $result = @fwrite($this->socket, $payload);
     if (!$result) {
       $this->socket = null;
       $this->connected = false;
@@ -126,6 +138,9 @@ class BrSocketClient extends BrObject
     }
   }
 
+  /**
+   * @throws BrSocketConnectionException
+   */
   public function connect()
   {
     if ($this->connected || $this->connecting) {
@@ -201,7 +216,7 @@ class BrSocketClient extends BrObject
           $this->connected = true;
           $this->wasEverConnected = true;
         } else {
-          throw new BrSocketConnectionException('Can not connect to socket: ' . $errorString . "(" . $errorNumber . ")");
+          throw new BrSocketConnectionException('Can not connect to socket: ' . $errorString . '(' . $errorNumber . ')');
         }
       } catch (\Exception $e) {
         $this->failedToConnect = true;
@@ -222,7 +237,7 @@ class BrSocketClient extends BrObject
     }
   }
 
-  public function isConnected()
+  public function isConnected(): bool
   {
     return $this->connected;
   }

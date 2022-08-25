@@ -10,7 +10,10 @@
 
 namespace Bright;
 
-class BrGenericRenderer extends BrObject
+/**
+ *
+ */
+abstract class BrGenericRenderer extends BrObject
 {
   const TEMPLATE_PLACEHOLDER_BR_REQUEST_BRIGHT_URL = '[[br.request.brightUrl]]';
   const TEMPLATE_PLACEHOLDER_BR_REQUEST_BASE_URL = '[[br.request.baseUrl]]';
@@ -51,32 +54,43 @@ class BrGenericRenderer extends BrObject
   const TEMPLATE_PLACEHOLDER_REQUEST_DOMAIN = '{request.domain}';
   const TEMPLATE_PLACEHOLDER_REQUEST_HOST = '{request.host}';
 
-  private $templates = [];
-  private $vars = [];
+  private array $templates = [];
+  private array $vars = [];
 
-  protected $params = [];
+  protected array $params = [];
 
-  public function getTemplates()
+  abstract protected function render(string $template, ?array $variables = []): string;
+
+  public function getTemplates(): array
   {
     return $this->templates;
   }
 
-  public function assign($name, $values)
+  /**
+   * @param string $name
+   * @param $values
+   * @return void
+   */
+  public function assign(string $name, $values)
   {
     $this->vars[$name] = $values;
   }
 
-  public function getVar($name)
+  /**
+   * @param string|null $name
+   * @return array|bool|BrArray|BrCore|BrString|float|int|string|NULL
+   */
+  public function getVar(?string $name = null)
   {
     return br($this->vars, $name);
   }
 
-  public function unassign($name)
+  public function unassign(string $name)
   {
     unset($this->vars[$name]);
   }
 
-  public function unassignByPattern($pattern)
+  public function unassignByPattern(string $pattern)
   {
     foreach ($this->vars as $key => $value) {
       if (preg_match($pattern, $key)) {
@@ -90,9 +104,12 @@ class BrGenericRenderer extends BrObject
     $this->params = $params;
   }
 
-  private function fetchFile(string $templateName)
+  /**
+   * @throws BrGenericRendererException
+   */
+  private function fetchFile(string $templateName): array
   {
-    $result = '';
+    $content = '';
     $templateFile = $templateName;
     if (!file_exists($templateFile)) {
       $templateFile = br()->atTemplatesPath($templateName);
@@ -100,22 +117,25 @@ class BrGenericRenderer extends BrObject
     if (file_exists($templateFile)) {
       ob_start();
       @include($templateFile);
-      $result = ob_get_contents();
+      $content = ob_get_contents();
       ob_end_clean();
       return [
         self::TEMPLATE_COMPILE_RESULT_FILE => $templateFile,
-        self::TEMPLATE_COMPILE_RESULT_CONTENT => $result
+        self::TEMPLATE_COMPILE_RESULT_CONTENT => $content
       ];
     }
 
     throw new BrGenericRendererException('Template not found: ' . htmlspecialchars($templateName));
   }
 
-  public function fetchString(string $string, array $subst = [])
+  public function fetchString(?string $string = '', array $subst = []): string
   {
     return $this->compile($string, $subst);
   }
 
+  /**
+   * @throws BrGenericRendererException
+   */
   public function display(string $templateName, array $subst = [])
   {
     br()->response()->sendAutodetect($this->fetch($templateName, $subst));
@@ -126,6 +146,9 @@ class BrGenericRenderer extends BrObject
     // must be implemented in descendant class
   }
 
+  /**
+   * @throws BrGenericRendererException
+   */
   public function fetch(string $templateName, array $subst = [], bool $compile = true)
   {
     $template = $this->fetchFile($templateName);
@@ -140,8 +163,8 @@ class BrGenericRenderer extends BrObject
       $fileName = $matches[2];
       if (preg_match('/^([^ ]+?)[ ](.+)/', $fileName, $matches2)) {
         $fileName = $matches2[1];
-        if ($fileSubsts = br($matches2, 2)) {
-          if (preg_match_all('/([A-Z-.]+)="([^"]+)"/ism', $fileSubsts, $matches3, PREG_SET_ORDER)) {
+        if ($fileSubstitutes = br($matches2, 2)) {
+          if (preg_match_all('/([A-Z-.]+)="([^"]+)"/im', $fileSubstitutes, $matches3, PREG_SET_ORDER)) {
             $compileSubTemplate = true;
             foreach ($matches3 as $match3) {
               $internalSubst[$match3[1]] = $match3[2];
@@ -161,7 +184,7 @@ class BrGenericRenderer extends BrObject
     return $content;
   }
 
-  protected function compile(string $body, array $subst = [])
+  protected function compile(?string $body = '', ?array $subst = []): string
   {
     $localVars = array_merge($this->vars, $subst);
 
@@ -172,18 +195,18 @@ class BrGenericRenderer extends BrObject
         self::TEMPLATE_VAR_IS_PRODUCTION => br()->request()->isProduction(),
         self::TEMPLATE_VAR_IS_REST => br()->request()->isRest(),
         self::TEMPLATE_VAR_HOST => br()->request()->host(),
-        self::TEMPLATE_VAR_DOMAIN => br()->request()->domain(),
+        self::TEMPLATE_VAR_DOMAIN => br()->request()->getDomain(),
         self::TEMPLATE_VAR_URL => br()->request()->url(),
         self::TEMPLATE_VAR_GET => br()->request()->get(),
         self::TEMPLATE_VAR_POST => br()->request()->post(),
-        self::TEMPLATE_VAR_BRIGHT_URL => br()->request()->brightUrl(),
+        self::TEMPLATE_VAR_BRIGHT_URL => br()->request()->getBrightUrl(),
         self::TEMPLATE_VAR_BASE_URL => br()->request()->baseUrl(),
         self::TEMPLATE_VAR_CLIENT_IP => br()->request()->clientIP(),
         self::TEMPLATE_VAR_REFERER => br()->request()->referer(),
       ],
       self::TEMPLATE_VAR_CONFIG => br()->config()->get(),
-      self::TEMPLATE_VAR_CORE => br()->request()->brightUrl() . 'dist/js/bright.core.min.js',
-      self::TEMPLATE_VAR_LIB => br()->request()->brightUrl() . 'dist/js/bright.latest.min.js',
+      self::TEMPLATE_VAR_CORE => br()->request()->getBrightUrl() . 'dist/js/bright.core.min.js',
+      self::TEMPLATE_VAR_LIB => br()->request()->getBrightUrl() . 'dist/js/bright.latest.min.js',
       self::TEMPLATE_VAR_AUTHORIZED => false,
     ];
 

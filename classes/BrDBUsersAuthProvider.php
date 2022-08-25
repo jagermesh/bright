@@ -10,6 +10,9 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrDBUsersAuthProvider extends BrGenericAuthProvider
 {
   const MAIL_FROM = 'mail.from';
@@ -62,12 +65,12 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider
   const USERS_TABLE = 'usersTable';
   const PLAIN_PASSWORDS = 'plainPasswords';
   const REGISTRATION_COMPLETE = 'Registration complete';
-  const SQL_FIND_USERR_BY_ID = '
+  const SQL_FIND_USER_BY_ID = '
     SELECT *
       FROM %s
      WHERE id = ?
   ';
-  const SQL_FIND_USERR_BY_LOGIN = '
+  const SQL_FIND_USER_BY_LOGIN = '
     SELECT *
       FROM %s
      WHERE %s = ?&
@@ -77,7 +80,7 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider
   const EVENT_FIND_LOGIN = 'findLogin';
   const USER_ATTR_ROWID = 'rowid';
 
-  public function __construct($settings = [])
+  public function __construct(?array $settings = [])
   {
     parent::__construct($settings);
 
@@ -159,21 +162,32 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider
     }
   }
 
-  private function getUserById($rowid)
+  /**
+   * @param $rowid
+   * @return array|null
+   */
+  private function getUserById($rowid): ?array
   {
     $usersTable = $this->getAttr(self::USERS_TABLE_NAME);
 
-    return br()->db()->getCachedRow(sprintf(self::SQL_FIND_USERR_BY_ID, $usersTable), $rowid);
+    return br()->db()->getCachedRow(sprintf(self::SQL_FIND_USER_BY_ID, $usersTable), $rowid);
   }
 
-  private function findUserByLogin($login)
+  /**
+   * @param $login
+   * @return array
+   */
+  private function findUserByLogin($login): array
   {
     $usersTable = $this->getAttr(self::USERS_TABLE_NAME);
     $loginField = $this->getAttr(self::USERS_TABLE_LOGIN_FIELD);
 
-    return br()->db()->getCachedRows(sprintf(self::SQL_FIND_USERR_BY_LOGIN, $usersTable, $loginField), $login);
+    return br()->db()->getCachedRows(sprintf(self::SQL_FIND_USER_BY_LOGIN, $usersTable, $loginField), $login);
   }
 
+  /**
+   * @throws BrDBUsersAuthProviderException
+   */
   public function checkLogin($returnNotAuthorized = true)
   {
     $passwordField = $this->getAttr(self::USERS_TABLE_PASSWORD_FIELD);
@@ -215,6 +229,9 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider
     return $login;
   }
 
+  /**
+   * @throws BrDBUsersAuthProviderException
+   */
   public function validateLogin($login)
   {
     try {
@@ -233,6 +250,9 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider
     }
   }
 
+  /**
+   * @throws BrDBUsersAuthProviderException
+   */
   public function login($login, $remember = false)
   {
     $loginField = $this->getAttr(self::USERS_TABLE_LOGIN_FIELD);
@@ -243,7 +263,9 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider
         if ($rawUser = $this->getUserById($rowid)) {
           $login = array_merge($rawUser, $login);
           $login[self::USER_ATTR_ROWID] = $rowid;
-          $rememberPassword = ($remember && ($password = br($login, $passwordField)) && ($username = br($login, $loginField)));
+          $password = br($login, $passwordField);
+          $username = br($login, $loginField);
+          $rememberPassword = ($remember && $password && $username);
           $login = parent::validateLogin($login);
           if ($rememberPassword) {
             $cookie = [
@@ -251,7 +273,7 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider
               self::COOKIE_ATTR_TOKEN => sha1(md5(sha1($password) . sha1($rowid)))
             ];
             setcookie($this->getAuthTag(), base64_encode(json_encode($cookie)),
-              time() + 60 * 60 * 24 * 30, br()->request()->baseUrl(), br()->request()->domain(), true, true);
+              time() + 60 * 60 * 24 * 30, br()->request()->baseUrl(), br()->request()->getDomain(), true, true);
           }
           return $login;
         }

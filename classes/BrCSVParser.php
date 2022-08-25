@@ -10,12 +10,15 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrCSVParser extends BrObject
 {
-  private $delimiter = ',';
-  private $enclosureArr = ['"', "'"];
+  private string $delimiter = ',';
+  private array $enclosureArr = ['"', "'"];
 
-  public function setDelimiter($delimiter)
+  public function setDelimiter(string $delimiter)
   {
     $this->delimiter = $delimiter;
   }
@@ -23,7 +26,7 @@ class BrCSVParser extends BrObject
   /**
    * @throws BrCSVParserException
    */
-  public function parse($fileName): array
+  public function parse(string $fileName): array
   {
     $result = [];
 
@@ -36,8 +39,9 @@ class BrCSVParser extends BrObject
 
   /**
    * @throws BrCSVParserException
+   * @throws \Exception
    */
-  public function iterate($fileName, $callback): int
+  public function iterate(string $fileName, callable $callback): int
   {
     ini_set('auto_detect_line_endings', true);
 

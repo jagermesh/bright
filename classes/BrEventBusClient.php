@@ -2,18 +2,21 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrEventBusClient extends BrEventBusEngine
 {
 
   /**
    * @throws \Exception
    */
-  public function sendAsync($action, $data = [], $additionalRequestParams = [])
+  public function sendAsync(string $action, ?array $data = [], ?array $additionalRequestParams = [])
   {
     $this->sendSync($action, $data, $additionalRequestParams);
   }
 
-  public function sendUntill($action, $data = [], $additionalRequestParams = [], $onMessage = null)
+  public function sendUntil(string $action, ?array $data = [], ?array $additionalRequestParams = [], callable $onMessage = null)
   {
     if ($this->url) {
       $loop = \React\EventLoop\Factory::create();
@@ -55,7 +58,7 @@ class BrEventBusClient extends BrEventBusEngine
   /**
    * @throws \Exception
    */
-  public function sendSync($action, $data = [], $additionalRequestParams = [], $stopOnError = false)
+  public function sendSync(string $action, ?array $data = [], ?array $additionalRequestParams = [], bool $stopOnError = false)
   {
     if ($this->url) {
       try {

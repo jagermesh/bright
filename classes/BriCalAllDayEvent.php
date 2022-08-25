@@ -10,9 +10,17 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BriCalAllDayEvent extends BriCalEvent
 {
-  public function __construct($title, $dateStart, $dateEnd = null)
+  /**
+   * @param string $title
+   * @param $dateStart
+   * @param $dateEnd
+   */
+  public function __construct(string $title, $dateStart, $dateEnd = null)
   {
     parent::__construct($title, $dateStart, $dateEnd);
 

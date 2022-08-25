@@ -10,15 +10,18 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrRenderer extends BrObject
 {
   /**
+   * Get provider Instance
+   * @return BrMustacheRenderer
    * @throws BrRendererException
    */
-  public static function getInstance($name = 'mustache')
+  public static function getProviderInstance(?string $name = 'mustache'): BrGenericRenderer
   {
-    $instance = null;
-
     if (!isset(self::$instances[$name])) {
       switch ($name) {
         case 'mustache':
@@ -26,7 +29,6 @@ class BrRenderer extends BrObject
           break;
         default:
           throw new BrRendererException('Unknown renderer engine ' . $name);
-          break;
       }
       self::$instances[$name] = $instance;
     } else {

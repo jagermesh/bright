@@ -886,15 +886,15 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   Element.prototype.scrollIntoViewIfNeeded = function(centerIfNeeded) {
     centerIfNeeded = arguments.length === 0 ? true : !!centerIfNeeded;
 
-    var parent = this.parentNode,
-      parentComputedStyle = window.getComputedStyle(parent, null),
-      parentBorderTopWidth = parseInt(parentComputedStyle.getPropertyValue('border-top-width')),
-      parentBorderLeftWidth = parseInt(parentComputedStyle.getPropertyValue('border-left-width')),
-      overTop = this.offsetTop - parent.offsetTop < parent.scrollTop,
-      overBottom = (this.offsetTop - parent.offsetTop + this.clientHeight - parentBorderTopWidth) > (parent.scrollTop + parent.clientHeight),
-      overLeft = this.offsetLeft - parent.offsetLeft < parent.scrollLeft,
-      overRight = (this.offsetLeft - parent.offsetLeft + this.clientWidth - parentBorderLeftWidth) > (parent.scrollLeft + parent.clientWidth),
-      alignWithTop = overTop && !overBottom;
+    let parent = this.parentNode;
+    let parentComputedStyle = window.getComputedStyle(parent, null);
+    let parentBorderTopWidth = parseInt(parentComputedStyle.getPropertyValue('border-top-width'));
+    let parentBorderLeftWidth = parseInt(parentComputedStyle.getPropertyValue('border-left-width'));
+    let overTop = this.offsetTop - parent.offsetTop < parent.scrollTop;
+    let overBottom = (this.offsetTop - parent.offsetTop + this.clientHeight - parentBorderTopWidth) > (parent.scrollTop + parent.clientHeight);
+    let overLeft = this.offsetLeft - parent.offsetLeft < parent.scrollLeft;
+    let overRight = (this.offsetLeft - parent.offsetLeft + this.clientWidth - parentBorderLeftWidth) > (parent.scrollLeft + parent.clientWidth);
+    let alignWithTop = overTop && !overBottom;
 
     if ((overTop || overBottom) && centerIfNeeded) {
       parent.scrollTop = this.offsetTop - parent.offsetTop - parent.clientHeight / 2 - parentBorderTopWidth + this.clientHeight / 2;
@@ -1458,7 +1458,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     if (document) {
       if (document.cookie) {
-        var csrfCookieRegexp = document.cookie.match(/Csrf-Token=([\w-]+)/);
+        let csrfCookieRegexp = document.cookie.match(/Csrf-Token=([\w-]+)/);
         if (csrfCookieRegexp) {
           _this.csrfToken = csrfCookieRegexp[1];
         }
@@ -1937,11 +1937,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   };
 
   window.br.isTouchScreen = function() {
-    return /iPad|iPhone|iPod/.test(navigator.platform) || /Android/i.test(navigator.userAgent);
+    return ('maxTouchPoints' in navigator) ? (navigator.maxTouchPoints > 0 ? true : false) : false;
   };
 
   window.br.isMobileDevice = function() {
-    return /iPad|iPhone|iPod/.test(navigator.platform) || /Android/i.test(navigator.userAgent);
+    return br.isTouchScreen() || screen.height <= 768;
   };
 
   window.br.isiOS = function() {
@@ -3478,7 +3478,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
               try {
                 _this.ajaxRequest = null;
                 if (!br.isUnloading()) {
-                  var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                  let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
                   reject({
                     request: request,
                     options: options,
@@ -3778,17 +3778,17 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         thead.css({
           'display': 'block',
           'box-sizing': 'border-box',
-          'overflow': 'hidden'
+          'overflow': 'hidden',
         });
         tbody.css({
           'display': 'block',
           'box-sizing': 'border-box',
-          'overflow': 'auto'
+          'overflow': 'auto',
         });
         table.css({
           'border-bottom': '0px',
           'border-left': '0px',
-          'border-right': '0px'
+          'border-right': '0px',
         });
         initialized = true;
       }
@@ -3940,6 +3940,12 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       _this.table = br.table($(_this.selector).closest('table'), settings);
     }
 
+    _this.reformat = function() {
+      if (_this.table) {
+        _this.table.update();
+      }
+    }
+
     let noMoreData = false;
     let disconnected = false;
 
@@ -3961,9 +3967,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     });
 
     _this.after('change', function() {
-      if (_this.table) {
-        _this.table.update();
-      }
+      _this.reformat();
     });
 
     _this.getContainer = function() {
@@ -3997,6 +4001,13 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       let filter = br.storage.get(`${_this.storageTag}Filter`);
       filter = filter || {};
       filter[name] = value;
+      br.storage.set(`${_this.storageTag}Filter`, filter);
+    };
+
+    _this.clearFilter = function(name) {
+      let filter = br.storage.get(`${_this.storageTag}Filter`);
+      filter = filter || {};
+      delete filter[name];
       br.storage.set(`${_this.storageTag}Filter`, filter);
     };
 
@@ -4060,42 +4071,40 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       }
     };
 
-    _this.renderRow = function(srcDataRow, asString) {
+    _this.renderRow = function(srcDataRow, asString, triggerRenderEvent) {
+      let result;
       let dataRow = _this.events.trigger('renderRow', srcDataRow) || srcDataRow;
       let template = _this.templates.row(dataRow).trim();
       if (asString) {
-        return {
-          rendered: template,
-          dataRow: dataRow
-        };
+        return template;
+      } else
+      if (template.length > 0) {
+        result = $(template);
+        if (_this.options.storeDataRow) {
+          result.data('data-row', dataRow);
+        }
+      } else {
+        result = null;
+      }
+      if (triggerRenderEvent) {
+        _this.events.triggerAfter('renderRow', dataRow, result);
+      }
+      return {
+        renderedRow: result,
+        dataRow: dataRow
+      };
+    };
+
+    _this.renderGroupRow = function(data, asString) {
+      let dataRow = _this.events.trigger('renderGroupRow', data) || data;
+      let template = _this.templates.groupRow(data).trim();
+      if (asString) {
+        return template;
       } else
       if (template.length > 0) {
         let result = $(template);
         if (_this.options.storeDataRow) {
           result.data('data-row', dataRow);
-        }
-        return {
-          renderedRow: result,
-          dataRow: dataRow
-        };
-      } else {
-        return {
-          renderedRow: null,
-          dataRow: dataRow
-        };
-      }
-    };
-
-    _this.renderGroupRow = function(data, asString) {
-      data = _this.events.trigger('renderGroupRow', data) || data;
-      let s = _this.templates.groupRow(data).trim();
-      if (asString) {
-        return s;
-      } else
-      if (s.length > 0) {
-        let result = $(s);
-        if (_this.options.storeDataRow) {
-          result.data('data-row', data);
         }
         return result;
       } else {
@@ -4161,11 +4170,17 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           let resultingRows = [];
           if (renderedRow.renderedRow.length > 1) {
             let row = renderedRow.renderedRow.clone();
+            if (_this.options.storeDataRow) {
+              row.data('data-row', renderedRow.dataRow);
+            }
             $(existingRows[0]).before(row);
             resultingRows.push(row);
           } else {
             existingRows.each(function() {
               let row = renderedRow.renderedRow.clone();
+              if (_this.options.storeDataRow) {
+                row.data('data-row', renderedRow.dataRow);
+              }
               $(this).before(row);
               resultingRows.push(row);
             });
@@ -5288,12 +5303,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         if (_this.options.onGetContent) {
           content = _this.options.onGetContent.call(_this.ctrl, _this.editor, content);
         }
-        let fields = {
-          value: {
-            title: _this.ctrl.attr('title'),
-            value: content
-          }
-        };
+        let fields = [{
+          title: _this.ctrl.attr('title'),
+          value: content,
+          valueType: 'text',
+        }];
         br.prompt('Please enter value', fields, function(values) {
           if (_this.options.onSave) {
             _this.options.onSave.call(_this.ctrl, values[0], 'keyup');
@@ -5301,7 +5315,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             _this.apply(values[0]);
           }
         }, {
-          valueType: 'text',
           okTitle: 'Save',
         });
       } else
@@ -5513,12 +5526,20 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
   const flyovers = new Flyovers();
 
-  window.br.growlError = function(message, settings) {
-    flyovers.showError(br.trn('Error'), message, settings);
+  window.br.growlError = function(message, title, settings) {
+    if (title) {
+      flyovers.showError(title, message, settings);
+    } else {
+      flyovers.showError(br.trn('Error'), message, settings);
+    }
   };
 
-  window.br.growlWarning = function(message, settings) {
-    flyovers.showWarning(br.trn('Warning'), message, settings);
+  window.br.growlWarning = function(message, title, settings) {
+    if (title) {
+      flyovers.showWarning(title, message, settings);
+    } else {
+      flyovers.showWarning(br.trn('Warning'), message, settings);
+    }
   };
 
   window.br.growlMessage = function(message, title, settings) {
@@ -5871,21 +5892,13 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       cancelTitle: br.trn('Cancel'),
     }, settings)
 
-    let inputs = {
-
-    };
-
-    if (br.isObject(fields)) {
-      inputs = fields;
-    } else {
-      options.valueRequired = true;
-      inputs[fields] = {
-        id: '',
-        class: '',
-        value: '',
-        title: fields,
-      };
-    }
+    let inputs = br.isObject(fields) ? fields : [{
+      id: '',
+      class: '',
+      required: true,
+      value: '',
+      title: fields,
+    }];
 
     if (options.onhide) {
       options.onHide = options.onhide;
@@ -5913,46 +5926,41 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     const modal = $(template);
 
-    for (let inputLabel in inputs) {
-      if (br.isObject(inputs[inputLabel])) {
-        inputs[inputLabel] = Object.assign({
-          id: '',
-          class: '',
-          value: '',
-          title: '',
-        }, inputs[inputLabel]);
-      } else {
-        inputs[inputLabel] = {
-          id: '',
-          class: '',
-          value: inputs[inputLabel],
-          title: '',
-        }
-      }
-    }
+    br.log(inputs);
 
-    for (let inputLabel in inputs) {
-      let tag = (options.valueType == 'text' ? 'textarea' : 'input');
+    inputs.forEach(function(input) {
+      let tag = (input.valueType == 'text' ? 'textarea' : 'input');
       let control = $(`
         <div class="row-fluid">
           <div class="span12">
             <label></label>
-            <${tag} type="text" id="${inputs[inputLabel].id}" class="value-control form-control" rows="8"></${tag}>
+            <${tag} type="text" id="${input.id}" class="value-control form-control" rows="8"></${tag}>
           </div>
         </div>
       `);
-      control.find('label').text(inputs[inputLabel].title);
-      control.find('.value-control').val(inputs[inputLabel].value);
-      if (options.valueType == 'int') {
-        control.find('.value-control').addClass('input-small');
+      const inputControl = control.find('.value-control');
+      const inputLabel = control.find('label');
+      if (input.required) {
+        inputLabel.html(`<span class="required">*</span>${input.title}`);
       } else {
-        control.find('.value-control').addClass('justified');
+        inputLabel.text(input.title);
       }
-      if (!br.isEmpty(inputs[inputLabel].class)) {
-        control.find('.value-control').addClass(inputs[inputLabel].class);
+      if (input.value) {
+        inputControl.val(input.value);
+      }
+      if (options.valueType == 'int') {
+        inputControl.addClass('input-small');
+      } else {
+        inputControl.addClass('justified');
+      }
+      if (input.required) {
+        inputControl.addClass('required');
+      }
+      if (!br.isEmpty(input.class)) {
+        inputControl.addClass(input.class);
       }
       modal.find('.modal-body').append(control);
-    }
+    });
 
     const oldActiveElement = document.activeElement;
     if (oldActiveElement) {
@@ -6342,8 +6350,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             showMeridian: true,
             useCurrent: false,
             todayHighlight: false
-          }).on('show', function() {
-            // $(this).datetimepicker('update', $(this).val());
           });
         });
       } catch (error) {
@@ -6391,7 +6397,14 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         floatValues++;
       }
       if (floatValues == 2) {
-        return (val1F == val2F ? 0 : (val1F > val2F ? direction : direction * -1));
+        if (val1F == val2F) {
+          return 0;
+        } else
+        if (val1F > val2F) {
+          return direction;
+        } else {
+          return direction * -1;
+        }
       } else {
         return val1.localeCompare(val2) * direction;
       }
@@ -6463,6 +6476,19 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     });
   };
 
+  window.br.markInputAsModified = function(input) {
+    const val = $(input).val();
+    let container = $(input).parent();
+    if (!container.hasClass('input-append')) {
+      container = $(input);
+    }
+    if (br.isEmpty(val)) {
+      container.removeClass('br-input-has-value');
+    } else {
+      container.addClass('br-input-has-value');
+    }
+  };
+
   if (typeof window.Handlebars == 'object') {
     Handlebars.registerHelper('if_eq', function(a, b, opts) {
       if (a === b) {
@@ -6473,51 +6499,21 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     });
   }
 
-  function enchanceBootstrap() {
-    // const tabbableElements = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, *[tabindex], *[contenteditable]';
-
-    // function disableTabbingOnPage(except) {
-    //   $.each($(tabbableElements), function (idx, item) {
-    //     const el = $(item);
-    //     if (!el.closest(except).length) {
-    //       const tabindex = el.attr('tabindex');
-    //       if (tabindex) {
-    //         el.attr('data-prev-tabindex', tabindex);
-    //       }
-    //       el.attr('tabindex', '-1');
-    //     }
-    //   });
-    // }
-
-    // function reEnableTabbingOnPage(except) {
-    //   $.each($(tabbableElements), function (idx, item) {
-    //     const el = $(item);
-    //     if (!el.closest(except).length) {
-    //       const prevTabindex = el.attr('data-prev-tabindex');
-    //       if (prevTabindex) {
-    //         el.attr('tabindex', prevTabindex);
-    //       } else {
-    //         el.removeAttr('tabindex');
-    //       }
-    //       el.removeAttr('data-prev-tabindex');
-    //     }
-    //   });
-    // }
-
-    function configureAutosize(control) {
-      if (!control.data('brAutoSizeConfigured')) {
-        control.data('brAutoSizeConfigured', 1);
-        if (br.bootstrapVersion == 2) {
-          control.css('top', '20px');
-          control.css('margin-top', '0px');
-          control.css('position', 'fixed');
-        }
-        $(window).on('resize', function() {
-          br.resizeModalPopup(control);
-        });
+  function configureAutosize(control) {
+    if (!control.data('brAutoSizeConfigured')) {
+      control.data('brAutoSizeConfigured', 1);
+      if (br.bootstrapVersion == 2) {
+        control.css('top', '20px');
+        control.css('margin-top', '0px');
+        control.css('position', 'fixed');
       }
+      $(window).on('resize', function() {
+        br.resizeModalPopup(control);
+      });
     }
+  }
 
+  function enchanceBootstrap() {
     const defaultOpacity = 50;
 
     $(document).on('shown.bs.modal', function(event) {
@@ -6543,7 +6539,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             'filter': 'alpha(opacity=' + opacity + ')'
           });
         }
-        // disableTabbingOnPage(target);
       }
       br.draggable(target, {
         handler: '.modal-header'
@@ -6586,7 +6581,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             });
           }
         }
-        // reEnableTabbingOnPage(target);
       }
     });
 
@@ -6702,7 +6696,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     $(document).on('click', '.action-clear-selector-value', function() {
       const target = $($(this).attr('data-selector'));
       if (target.length > 0) {
-        br.setValue(target, '');
+        const val = $(this).attr('data-default') ? $(this).attr('data-default') : '';
+        br.setValue(target, val);
         target.trigger('change');
         if (target.attr('data-click-on-enter')) {
           $(target.attr('data-click-on-enter')).trigger('click');
@@ -7722,8 +7717,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       },
       appendInInsert: _this.options.appendInInsert,
       defaultOrderAndGroup: _this.options.defaultOrderAndGroup,
-      fixedHeader: _this.options.fixedHeader,
-      autoHeight: !br.isMobileDevice() ? _this.options.autoHeight : false,
+      fixedHeader: br.isMobileDevice() ? false : _this.options.fixedHeader,
+      autoHeight: _this.options.autoHeight,
       autoWidth: _this.options.autoWidth,
       storageTag: _this.options.storageTag,
       storeDataRow: _this.options.storeDataRow
@@ -7787,6 +7782,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     _this.setFilter = function(name, value) {
       _this.dataGrid.setFilter(name, value);
+    };
+
+    _this.clearFilter = function(name) {
+      _this.dataGrid.clearFilter(name);
     };
 
     _this.getFilter = function(name, defaultValue) {
@@ -7908,12 +7907,16 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       }
     };
 
+    _this.getKeywordFilterControl = function() {
+      return $(findNode('input.data-filter[name="keyword"]'));
+    }
+
     _this.init = function() {
       if (_this.options.nav) {
         $(`.nav-item[rel="${_this.options.nav}"]`).addClass('active');
       }
 
-      const keywordControl = $(findNode('input.data-filter[name="keyword"]'));
+      const keywordControl = _this.getKeywordFilterControl();
       const inputControls = $(findNode('input.data-filter,select.data-filter'));
 
       _this.dataSource.before('select', function(request, options) {
@@ -8082,14 +8085,17 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         _this.refresh();
       });
 
-      $(findNode('input.data-filter[name=keyword]')).val(_this.getFilter('keyword'));
+      if (_this.getFilter('keyword')) {
+        $(findNode('input.data-filter[name="keyword"]')).val(_this.getFilter('keyword'));
+        br.markInputAsModified($(findNode('input.data-filter[name="keyword"]')));
+      }
 
       $(findNode('.action-reset-filters')).on('click', function() {
         _this.resetFilters(false, $(this).attr('data-in-popup'));
       });
 
       function checkAutoLoad() {
-        const docsHeight = $(_this.options.selectors.dataTable).height();
+        const docsHeight = _this.getTableContainer().height();
         const docsContainerHeight = _this.getScrollContainer().height();
         const scrollTop = _this.getScrollContainer().scrollTop();
 
@@ -8108,6 +8114,14 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         _this.selectAll($(this).is(':checked'));
       });
 
+      $(document).on('click', findNode('.action-clear-selection'), function() {
+        _this.clearSelection();
+      });
+
+      $(document).on('click', findNode('.action-delete-selected'), function() {
+        _this.deleteSelection();
+      });
+
       $(document).on('click', findNode('.action-select-row'), function() {
         const row = $(this).closest('[data-rowid]');
         const rowid = row.attr('data-rowid');
@@ -8117,14 +8131,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         } else {
           _this.unSelectRow(rowid);
         }
-      });
-
-      $(document).on('click', findNode('.action-clear-selection'), function() {
-        _this.clearSelection();
-      });
-
-      $(document).on('click', findNode('.action-delete-selected'), function() {
-        _this.deleteSelection();
       });
 
       _this.dataGrid.before('changeOrder', function() {
@@ -8147,7 +8153,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         if (count > 0) {
           $(findNode('.selection-count')).text(count);
           $(findNode('.selection-stat')).text(`${count} record(s) selected`);
-          $(findNode('.selection-stat')).show();
+          $(findNode('.pager-selection-container')).show();
           $(findNode('.action-clear-selection')).show();
           const selection = _this.selection.get();
           let deletable = selection.filter(function(rowid) {
@@ -8160,7 +8166,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           }
         } else {
           $(findNode('.selection-count')).text('0');
-          $(findNode('.selection-stat')).hide();
+          $(findNode('.pager-selection-container')).hide();
           $(findNode('.action-clear-selection')).hide();
           $(findNode('.action-delete-selected')).hide();
         }
@@ -8229,7 +8235,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           $pc.html(s);
           $(findNode('.pager-page-size-container')).show();
         } else {
-          $(findNode('.pager-page-size-container')).css('display', 'none');
+          $(findNode('.pager-page-size-container')).hide();
         }
 
         const min = (_this.skip + 1);
@@ -8240,20 +8246,20 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             $(findNode('.action-next')).show();
             $(findNode('.pager-action-next')).show();
           } else {
-            $(findNode('.action-next')).css('display', 'none');
-            $(findNode('.pager-action-next')).css('display', 'none');
+            $(findNode('.action-next')).hide();
+            $(findNode('.pager-action-next')).hide();
           }
           if (_this.skip > 0) {
             $(findNode('.action-prior')).show();
             $(findNode('.pager-action-prior')).show();
           } else {
-            $(findNode('.action-prior')).css('display', 'none');
-            $(findNode('.pager-action-prior')).css('display', 'none');
+            $(findNode('.action-prior')).hide();
+            $(findNode('.pager-action-prior')).hide();
           }
-          $(findNode('.pager-control')).show();
+          _this.showPager();
           _this.events.triggerAfter('pager.show');
         } else {
-          $(findNode('.pager-control')).css('display', 'none');
+          _this.hidePager();
           _this.events.triggerAfter('pager.hide');
         }
         $(findNode('.pager-stat')).text('Records ' + min + '-' + max + ' of ' + _this.recordsAmount);
@@ -8267,9 +8273,19 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       }
     }
 
+    _this.hidePager = function() {
+      $(findNode('.pager-pager-container')).hide();
+      $(findNode('.pager-page-size-container')).hide();
+    };
+
+    _this.showPager = function() {
+      $(findNode('.pager-pager-container')).show();
+      $(findNode('.pager-page-size-container')).show();
+    };
+
     _this.reset = function() {
       _this.getTableContainer().html('');
-      $(findNode('.pager-control')).hide();
+      _this.showPager();
     };
 
     _this.restoreSelection = function(selection) {
@@ -8326,7 +8342,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             internalUpdatePager();
             _this.events.triggerAfter('recordsCountRetrieved', result);
           } else {
-            $(findNode('.pager-control')).css('display', 'none');
+            _this.hidePager();
             _this.events.triggerAfter('pager.hide');
           }
         });
@@ -8345,10 +8361,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     };
 
     _this.unSelectRow = function(rowid, multiple) {
-      const chk = $(_this.options.selectors.dataTable).find(`input.action-select-row[value="${rowid}"]`);
-      const row = (chk.length > 0) ? $(chk).closest('[data-rowid]') : $(_this.options.selectors.dataTable).find(`tr[data-rowid="${rowid}"]`);
+      const chk = _this.getTableContainer().find(`input.action-select-row[value="${rowid}"]`);
+      const row = (chk.length > 0) ? $(chk).closest('[data-rowid]') : _this.getTableContainer().find(`tr[data-rowid="${rowid}"]`);
       if (row.length > 0) {
-        row.find('.action-select-row').prop('checked', false);
+        const action = $(row.find('.action-select-row')[0]);
+        action.prop('checked', false);
         row.removeClass('row-selected');
       }
       _this.selection.remove(rowid);
@@ -8358,10 +8375,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     };
 
     _this.selectRow = function(rowid, multiple) {
-      const chk = $(_this.options.selectors.dataTable).find('input.action-select-row[value=' + rowid + ']');
-      const row = (chk.length > 0) ? $(chk).closest('[data-rowid]') : $(_this.options.selectors.dataTable).find(`tr[data-rowid="${rowid}"]`);
+      const chk = _this.getTableContainer().find(`input.action-select-row[value="${rowid}"]`);
+      const row = (chk.length > 0) ? $(chk).closest('[data-rowid]') : _this.getTableContainer().find(`tr[data-rowid="${rowid}"]`);
       if (row.length > 0) {
-        row.find('.action-select-row').prop('checked', true);
+        const action = $(row.find('.action-select-row')[0]);
+        action.prop('checked', true);
         row.addClass('row-selected');
         _this.selection.append(rowid);
         if (!multiple) {
@@ -8490,6 +8508,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   const menuItemTemplate = br.compile(`
     <li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{name}}</a></li>
   `);
+  const menuItemTemplateHtml = br.compile(`
+    <li><a class="br-ex-action-change-menu" href="javascript:;" data-value="{{id}}">{{&name}}</a></li>
+  `);
   const dropDownTemplate = `
     <div class="dropdown br-ajax-dropdown" style="position:absolute;z-index:99999;">
       <a style="display:none;" href="javascript:;" role="button" data-toggle="dropdown" class="dropdown-toggle br-ex-action-change-menu-menu" style="cursor:pointer;"><span>{{value}}</span> <b class="caret"></b></a>
@@ -8530,10 +8551,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     if (options.onBeforeRenderMenu) {
       options.onBeforeRenderMenu.call(dropDownList, menuItemTemplateStr);
     }
-    for (let i = 0, length = items.length; i < length; i++) {
-      dropDownList.append(menuItemTemplate({
-        id: items[i][options.keyField],
-        name: items[i][options.nameField]
+    const template = options.isHTmlName ? menuItemTemplateHtml : menuItemTemplate;
+    for (let item of items) {
+      dropDownList.append(template({
+        id: item[options.keyField],
+        name: item[options.nameField]
       }));
     }
     const invokerItem = invoker.find('.br-ex-action-change-menu-menu');
@@ -8561,11 +8583,17 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     if (options.onSelect) {
       options.onSelect.call(choicesDataSource, filter, rowid, $(el));
     }
-    choicesDataSource.select(filter, function(result, response) {
-      if (result && (response.length > 0)) {
+    if (options.onGetItems) {
+      setTimeout(() => options.onGetItems.call(rowid, $(el), function(response) {
         showDropDownMenu(invoker, response, rowid, menuElement, dataSource, fieldName, options);
-      }
-    });
+      }), 50);
+    } else {
+      choicesDataSource.select(filter, function(result, response) {
+        if (result && (response.length > 0)) {
+          showDropDownMenu(invoker, response, rowid, menuElement, dataSource, fieldName, options);
+        }
+      });
+    }
   }
 
   function handleClick(el, invoker, choicesDataSource, dataSource, fieldName, options) {
@@ -8664,7 +8692,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   function execute(funcToExecute, paramsQueue, extraParams, resolve, reject) {
     let functionsQueue = [];
 
-    while ((functionsQueue.length <= extraParams.workers) && (paramsQueue.length > 0)) {
+    while ((functionsQueue.length < extraParams.workers) && (paramsQueue.length > 0)) {
       functionsQueue.push(funcToExecute(paramsQueue.pop()).then(function() {
         br.stepProgress();
       }));

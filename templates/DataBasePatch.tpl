@@ -15,7 +15,7 @@ class Patch[[name]] extends \Bright\BrDataBasePatch
     // put your patch code here using $this->execute($sql, $stepName);
   }
 
-  public function down($failedUpStep, $errorMessage)
+  public function down($failedStepName, $errorMessage)
   {
     // put your error recovering code here
   }

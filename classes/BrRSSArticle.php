@@ -10,6 +10,9 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrRSSArticle extends BrObject
 {
   public $Categories = [];

@@ -19,7 +19,7 @@ const configs = {
     ]
   },
   shell: {
-    touch: 'for i in $(grep -l -r -e "<script" -e "<link" templates); do node vendor/jagermesh/bright/tools/randomize-urls.js "$i"; done;'
+    touch: 'for i in $(grep -l -r -e "<script" -e "<link" templates); do node vendor/jagermesh/bright/tools/touch-templates.js "$i"; done;'
   }
 };
 

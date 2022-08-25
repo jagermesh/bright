@@ -10,7 +10,10 @@
 
 namespace Bright;
 
-class BrGenericLogAdapter extends BrObject
+/**
+ *
+ */
+abstract class BrGenericLogAdapter extends BrObject
 {
   const CLIENT_IP = 'client_ip';
   const PID = 'pid';
@@ -57,10 +60,11 @@ class BrGenericLogAdapter extends BrObject
   const USER_FIELD_NAME = 'name';
   const USER_FIELD_ID = 'id';
 
-  protected $fixedLogInfo;
-  protected $logSnapshot;
+  protected array $fixedLogInfo;
+  protected array $logSnapshot;
+  protected string $commandLine;
 
-  public function __construct()
+  public function __construct(?array $settings = [])
   {
     parent::__construct();
 
@@ -105,7 +109,7 @@ class BrGenericLogAdapter extends BrObject
       unset($requestData[self::PASWD]);
       if ($requestData) {
         foreach ($requestData as $key => $value) {
-          $requestData[$key] = BrGenericLogAdapter::convertMessageOrObjectToText($requestData[$key], false);
+          $requestData[$key] = BrGenericLogAdapter::convertMessageOrObjectToText($value);
           if (mb_strlen($requestData[$key]) > 512) {
             $remain = mb_strlen($requestData[$key]) - 512;
             $suffix = ($remain > 1 ? 's' : '');
@@ -148,42 +152,43 @@ class BrGenericLogAdapter extends BrObject
     }
   }
 
-  public function write($messageOrObject, $params)
-  {
-    // must be implemented in descendant class
-  }
+  /**
+   * @param $messageOrObject
+   * @param array|null $params
+   */
+  abstract public function write($messageOrObject, ?array $params = []);
 
-  protected function isDebugEventType($params): bool
+  protected function isDebugEventType(?array $params = []): bool
   {
     return ($params[self::LOG_EVENT] == self::EVENT_TYPE_DEBUG);
   }
 
-  protected function isErrorEventType($params): bool
+  protected function isErrorEventType(?array $params = []): bool
   {
     return ($params[self::LOG_EVENT] == self::EVENT_TYPE_ERROR);
   }
 
-  protected function isWarningEventType($params): bool
+  protected function isWarningEventType(?array $params = []): bool
   {
     return ($params[self::LOG_EVENT] == self::EVENT_TYPE_WARNING);
   }
 
-  protected function isMessageEventType($params): bool
+  protected function isMessageEventType(?array $params = []): bool
   {
     return ($params[self::LOG_EVENT] == self::EVENT_TYPE_MESSAGE);
   }
 
-  protected function isSnapshotEventType($params): bool
+  protected function isSnapshotEventType(?array $params = []): bool
   {
     return ($params[self::LOG_EVENT] == self::EVENT_TYPE_SNAPSHOT);
   }
 
-  protected function isProfilerEventType($params): bool
+  protected function isProfilerEventType(?array $params = []): bool
   {
     return ($params[self::LOG_EVENT] == self::EVENT_TYPE_PROFILER);
   }
 
-  protected function isRegularEventType($params): bool
+  protected function isRegularEventType(?array $params = []): bool
   {
     return
       $this->isDebugEventType($params) ||
@@ -193,7 +198,13 @@ class BrGenericLogAdapter extends BrObject
       $this->isProfilerEventType($params);
   }
 
-  protected function getLogInfo($messageOrObject, $params, $contentType = []): array
+  /**
+   * @param $messageOrObject
+   * @param array|null $params
+   * @param array|null $contentType
+   * @return array
+   */
+  protected function getLogInfo($messageOrObject, ?array $params = [], ?array $contentType = []): array
   {
     $withMessage = in_array(self::EVENT_TYPE_MESSAGE, $contentType);
     $withSnapshot = in_array(self::EVENT_TYPE_SNAPSHOT, $contentType);
@@ -227,12 +238,19 @@ class BrGenericLogAdapter extends BrObject
     return $result;
   }
 
-  public static function convertMessageOrObjectToText($messageOrObject, $includeStackTrace = false): string
+  /**
+   * @param $messageOrObject
+   * @param bool $includeStackTrace
+   * @return string
+   */
+  public static function convertMessageOrObjectToText($messageOrObject, bool $includeStackTrace = false): string
   {
     $result = '';
 
-    if (is_scalar($messageOrObject)) {
-      $result = $messageOrObject;
+    if (is_bool($messageOrObject)) {
+      $result = $messageOrObject ? 'true' : 'false';
+    } elseif (is_null($messageOrObject) || is_scalar($messageOrObject)) {
+      $result = (string)$messageOrObject;
     } elseif (is_array($messageOrObject)) {
       $result = @print_r($messageOrObject, true);
     } elseif ($messageOrObject instanceof \Throwable) {

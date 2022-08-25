@@ -16,7 +16,7 @@ class CustomDataSource extends \Bright\BrDataSource
     });
   }
 
-  public function canInsert($row = [])
+  public function canInsert($row = []): bool
   {
     if (br()->auth()) {
       return !empty(br()->auth()->getLogin('id'));
@@ -25,7 +25,7 @@ class CustomDataSource extends \Bright\BrDataSource
     return false;
   }
 
-  public function canUpdate($row, $new = [])
+  public function canUpdate($row, $new = []): bool
   {
     if (br()->auth()) {
       return !empty(br()->auth()->getLogin('id'));
@@ -34,7 +34,7 @@ class CustomDataSource extends \Bright\BrDataSource
     return false;
   }
 
-  public function canRemove($row)
+  public function canRemove($row): bool
   {
     if (br()->auth()) {
       return !empty(br()->auth()->getLogin('id'));

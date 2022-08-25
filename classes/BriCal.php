@@ -10,44 +10,49 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BriCal extends BrObject
 {
-  const ICAL_DATE_TIME_FORMAT = "Ymd\THis";
-  const ICAL_DATE_FORMAT = "Ymd";
+  const ICAL_DATE_TIME_FORMAT = 'Ymd\THis';
+  const ICAL_DATE_FORMAT = 'Ymd';
 
-  private $calendarName;
-  private $calendarUID;
-  private $calendarEvents = array();
+  private string $calendarName;
+  private array $calendarEvents = [];
 
-  public function __construct($calendarName = 'GENERIC', $calendarUID = null)
+  public function __construct(?string $calendarName = 'GENERIC')
   {
+    parent::__construct();
+
     $this->calendarName = $calendarName;
-    $this->calendarUID = $calendarUID ? $calendarUID : preg_replace('/[^A-Z0-9]/i', '', $this->calendarName);
   }
 
-  public function addEvent($event)
+  public function addEvent(BriCalEvent $event)
   {
     $this->calendarEvents[] = $event;
   }
 
-  public function display($fileName = 'calendar.ics')
+  public function display(string $fileName = 'calendar.ics')
   {
     $ics = $this->render();
 
-    header("Pragma: public");
-    header("Expires: 0");
-    header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
-    header("Cache-Control: public");
-    header("Content-Description: File Transfer");
-    header("Content-type: text/calendar; charset=utf-8");
-    header("Content-Disposition: attachment; filename=\"" . $fileName . "\"");
-    header("Content-Transfer-Encoding: binary");
-    header("Content-Length: " . strlen($ics));
+    header('Pragma: public');
+    header('Expires: 0');
+    header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+    header('Cache-Control: public');
+    header('Content-Description: File Transfer');
+    header('Content-type: text/calendar; charset=utf-8');
+    header(sprintf('Content-Disposition: attachment; filename="%s"', $fileName));
+    header('Content-Transfer-Encoding: binary');
+    header('Content-Length: ' . strlen($ics));
 
     echo $ics;
+
+    exit();
   }
 
-  public function formatOffset($offset)
+  public function formatOffset(int $offset): string
   {
     $offset = $offset / 60 / 60;
     $neg = preg_match('/^[-]/', $offset);
@@ -64,6 +69,7 @@ class BriCal extends BrObject
       $offset = '0' . $offset;
     }
     $offset .= $hours;
+
     if ($neg) {
       $offset = '-' . $offset;
     } else {
@@ -73,7 +79,7 @@ class BriCal extends BrObject
     return $offset;
   }
 
-  public function render()
+  public function render(): string
   {
     $timeZone = date_default_timezone_get();
 
@@ -83,13 +89,13 @@ class BriCal extends BrObject
       "CALSCALE:GREGORIAN\r\n" .
       "METHOD:PUBLISH\r\n" .
       "PRODID:-//jagermesh//bright//EN\r\n" .
-      "X-WR-CALNAME:" . $this->calendarName . "\r\n" .
-      "X-WR-TIMEZONE:" . $timeZone . "//EN\r\n";
+      'X-WR-CALNAME:' . $this->calendarName . "\r\n" .
+      'X-WR-TIMEZONE:' . $timeZone . "//EN\r\n";
 
     $result .=
       "BEGIN:VTIMEZONE\r\n" .
-      "TZID:" . $timeZone . "\r\n" .
-      "X-LIC-LOCATION:" . $timeZone . "\r\n";
+      'TZID:' . $timeZone . "\r\n" .
+      'X-LIC-LOCATION:' . $timeZone . "\r\n";
 
     $minYear = date('Y');
     $maxYear = date('Y');
@@ -133,15 +139,15 @@ class BriCal extends BrObject
       $result .= "BEGIN:VEVENT\r\n";
 
       if ($event->isAllDayEvent()) {
-        $result .= "DTSTART;VALUE=DATE:" . date(self::ICAL_DATE_FORMAT, $event->getDateStart()) . "\r\n";
+        $result .= 'DTSTART;VALUE=DATE:' . date(self::ICAL_DATE_FORMAT, $event->getDateStart()) . "\r\n";
 
         $dateEnd = new BrDateTime($event->getDateEnd());
         $dateEnd->incDay();
 
-        $result .= "DTEND;VALUE=DATE:" . date(self::ICAL_DATE_FORMAT, $dateEnd->asDateTime()) . "\r\n";
+        $result .= 'DTEND;VALUE=DATE:' . date(self::ICAL_DATE_FORMAT, $dateEnd->asDateTime()) . "\r\n";
       } else {
-        $result .= "DTSTART:" . date(self::ICAL_DATE_TIME_FORMAT, $event->getDateStart()) . "\r\n";
-        $result .= "DTEND:" . date(self::ICAL_DATE_TIME_FORMAT, $event->getDateEnd()) . "\r\n";
+        $result .= 'DTSTART:' . date(self::ICAL_DATE_TIME_FORMAT, $event->getDateStart()) . "\r\n";
+        $result .= 'DTEND:' . date(self::ICAL_DATE_TIME_FORMAT, $event->getDateEnd()) . "\r\n";
       }
 
       $attachments = '';
@@ -150,7 +156,7 @@ class BriCal extends BrObject
       if ($event->hasAttachments()) {
         $descriptionHTML .= '<B>Atachments:</B><P>';
         foreach ($event->getAttachments() as $attachment) {
-          $attachments .= "ATTACH:" . br()->request()->host() . '/' . $attachment['url'] . "\r\n";
+          $attachments .= 'ATTACH:' . br()->request()->host() . '/' . $attachment['url'] . "\r\n";
           $descriptionHTML .= '  <A HREF="' . br()->request()->host() . '/' . $attachment['url'] . '">'
             . '    <SPAN>'
             . $attachment['name']
@@ -158,62 +164,60 @@ class BriCal extends BrObject
             . '  </A>'
             . '<BR>';
         }
-        $descriptionHTML .= '</P>';
       }
 
       $title = preg_replace('#[\n\r]#', '', $event->getTitle());
-      $descriptionHTML = preg_replace('#[\n\r]#', '', $descriptionHTML);
       $description = rtrim(trim(preg_replace('#[\n\r]#', '', $event->getDescription())), ';');
 
       $result .= "TRANSP:OPAQUE\r\n"
         . "SEQUENCE:0\r\n"
         . "STATUS:CONFIRMED\r\n";
-      $result .= "SUMMARY:" . $title . "\r\n";
-      $result .= "DTSTAMP:" . gmdate(self::ICAL_DATE_TIME_FORMAT) . "Z\r\n";
+      $result .= 'SUMMARY:' . $title . "\r\n";
+      $result .= 'DTSTAMP:' . gmdate(self::ICAL_DATE_TIME_FORMAT) . "Z\r\n";
       if ($event->getUID()) {
-        $result .= "UID:" . $event->getUID() . "\r\n";
+        $result .= 'UID:' . $event->getUID() . "\r\n";
       }
       if ($event->getCreatedAt()) {
-        $result .= "CREATED:" . gmdate(self::ICAL_DATE_TIME_FORMAT, $event->getCreatedAt()) . "Z\r\n";
+        $result .= 'CREATED:' . gmdate(self::ICAL_DATE_TIME_FORMAT, $event->getCreatedAt()) . "Z\r\n";
       }
       if ($description) {
-        $result .= "DESCRIPTION:" . $description . "\r\n";
+        $result .= 'DESCRIPTION:' . $description . "\r\n";
       }
       if ($event->getUrl()) {
-        $result .= "URL;VALUE=URI:" . $event->getUrl() . "\r\n";
+        $result .= 'URL;VALUE=URI:' . $event->getUrl() . "\r\n";
       }
       if ($event->getColor()) {
-        $result .= "COLOR:" . $event->getColor() . "\r\n";
+        $result .= 'COLOR:' . $event->getColor() . "\r\n";
       }
       if ($attachments) {
         $result .= $attachments;
       }
       if ($event->getOrganizer()) {
-        $result .= "ORGANIZER:" . $event->getOrganizer() . "\r\n";
+        $result .= 'ORGANIZER:' . $event->getOrganizer() . "\r\n";
       }
       if ($event->getPriority()) {
-        $result .= "PRIORITY:" . $event->getPriority() . "\r\n";
+        $result .= 'PRIORITY:' . $event->getPriority() . "\r\n";
       }
       if ($event->getClass()) {
-        $result .= "CLASS:" . $event->getClass() . "\r\n";
+        $result .= 'CLASS:' . $event->getClass() . "\r\n";
       }
       if ($event->hasAlarm()) {
         $alarmDate = new BrDateTime($event->getDateStart());
-        $alarmDate->decDay(1);
+        $alarmDate->decDay();
         $alarmDate->setHour(9);
         $alarmDate->setMinutes(0);
         $alarmDate->setSeconds(0);
         $alarmDate = date(self::ICAL_DATE_TIME_FORMAT, $alarmDate->asDateTime());
         $result .= "BEGIN:VALARM\r\n"
-          . "TRIGGER;VALUE=DATE-TIME:" . $alarmDate . "\r\n"
+          . 'TRIGGER;VALUE=DATE-TIME:' . $alarmDate . "\r\n"
           . "ACTION:DISPLAY\r\n"
-          . "DESCRIPTION:" . $title . "\r\n"
+          . 'DESCRIPTION:' . $title . "\r\n"
           . "END:VALARM\r\n";
       }
       $result .= "END:VEVENT\r\n";
     }
 
-    $result .= "END:VCALENDAR";
+    $result .= 'END:VCALENDAR';
 
     return $result;
   }

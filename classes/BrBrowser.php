@@ -10,9 +10,16 @@
 
 namespace Bright;
 
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\BadResponseException;
+use GuzzleHttp\Exception\GuzzleException;
+
+/**
+ *
+ */
 class BrBrowser extends BrObject
 {
-  private static $defaultRequestParams = [
+  private static array $defaultRequestParams = [
     'connect_timeout' => 5,
     'read_timeout' => 5,
     'timeout' => 30,
@@ -23,34 +30,54 @@ class BrBrowser extends BrObject
     return self::$defaultRequestParams;
   }
 
-  public static function setDefaultRequestsParam($name, $value)
+  /**
+   * @param string $name
+   * @param $value
+   * @return void
+   */
+  public static function setDefaultRequestsParam(string $name, $value)
   {
-    return self::$defaultRequestParams[$name] = $value;
+    self::$defaultRequestParams[$name] = $value;
   }
 
-  public function head($url, $params = [])
+  /**
+   * @throws GuzzleException
+   */
+  public function head(string $url, ?array $params = []): array
   {
-    $client = new \GuzzleHttp\Client();
+    $client = new Client();
+
     $requestParams = $this->getDefaultRequestsParams();
     foreach ($params as $name => $value) {
       $requestParams[$name] = $value;
     }
-    br()->log()->message('Getting headers for ' . $url . ' (' . json_encode($requestParams) . ')');
+
+    br()->log()->message(sprintf('Getting headers for %s (%s)', $url, json_encode($requestParams)));
+
     $response = $client->request('HEAD', $url, $requestParams);
+
     return $response->getHeaders();
   }
 
-  public function getStream($url, $bytes = 0, $params = [])
+  /**
+   * @throws GuzzleException
+   */
+  public function getStream(string $url, int $bytes = 0, ?array $params = []): string
   {
-    $client = new \GuzzleHttp\Client();
+    $client = new Client();
+
     $requestParams = $this->getDefaultRequestsParams();
     foreach ($params as $name => $value) {
       $requestParams[$name] = $value;
     }
     $requestParams['stream'] = true;
-    br()->log()->message('Getting stream for ' . $url . ' (' . json_encode($requestParams) . ')');
+
+    br()->log()->message(sprintf('Getting stream for %s (%s)', $url, json_encode($requestParams)));
+
     $response = $client->request('GET', $url, $requestParams);
+
     $buffer = '';
+
     if ($bytes > 0) {
       $body = $response->getBody();
       while (!$body->eof() && (strlen($buffer) < $bytes)) {
@@ -58,72 +85,104 @@ class BrBrowser extends BrObject
       }
       $body->close();
     }
+
     return $buffer;
   }
 
-  public function check($url, $params = [])
+  /**
+   * @throws GuzzleException
+   */
+  public function check(string $url, ?array $params = []): bool
   {
     try {
-      $this->head($url);
+      $this->head($url, $params);
     } catch (\Exception $e) {
-      $this->getStream($url);
+      $this->getStream($url, 0, $params);
     }
+
+    return true;
   }
 
-  public function get($url, $params = [])
+  /**
+   * @throws GuzzleException
+   */
+  public function get(string $url, ?array $params = []): string
   {
-    $client = new \GuzzleHttp\Client();
+    $client = new Client();
+
     $requestParams = $this->getDefaultRequestsParams();
     foreach ($params as $name => $value) {
       $requestParams[$name] = $value;
     }
-    br()->log()->message('Downloading ' . $url . ' (' . json_encode($requestParams) . ')');
+
+    br()->log()->message(sprintf('Downloading %s (%s)', $url, json_encode($requestParams)));
+
     $response = $client->request('GET', $url, $requestParams);
+
     return $response->getBody()->getContents();
   }
 
-  public function post($url, $data = [])
+  /**
+   * @throws GuzzleException
+   */
+  public function post(string $url, ?array $data = []): string
   {
-    $client = new \GuzzleHttp\Client();
+    $client = new Client();
+
     $requestParams = $this->getDefaultRequestsParams();
     $requestParams['form_params'] = $data;
+
     $response = $client->request('POST', $url, $requestParams);
+
     return $response->getBody()->getContents();
   }
 
-  public function download($url, $filePath, $params = [])
+  /**
+   * @throws GuzzleException
+   */
+  public function download(string $url, string $filePath, ?array $params = []): int
   {
-    $client = new \GuzzleHttp\Client();
+    $client = new Client();
+
     $requestParams = $this->getDefaultRequestsParams();
     $requestParams['sink'] = $filePath;
     foreach ($params as $name => $value) {
       $requestParams[$name] = $value;
     }
-    br()->log()->message('Downloading ' . $url . ' (' . json_encode($requestParams) . ') into ' . $filePath);
+
+    br()->log()->message(sprintf('Downloading %s (%s) into %s', $url, json_encode($requestParams), $filePath));
+
     $client->request('GET', $url, $requestParams);
+
     return filesize($filePath);
   }
 
-  public function downloadUntilDone($url, $filePath)
+  /**
+   * @throws BrNonRecoverableException
+   */
+  public function downloadUntilDone(string $url, string $filePath)
   {
     return $this->retry(function () use ($url, $filePath) {
       try {
         return $this->download($url, $filePath);
-      } catch (\GuzzleHttp\Exception\BadResponseException $e) {
-        throw new \Bright\BrNonRecoverableException($e->getResponse()->getBody()->getContents());
+      } catch (BadResponseException $e) {
+        throw new BrNonRecoverableException($e->getResponse()->getBody()->getContents());
       }
     });
   }
 
-  public function extractMetaTags($url): array
+  /**
+   * @throws GuzzleException
+   */
+  public function extractMetaTags(string $url): array
   {
     $result = [];
 
     if ($body = $this->get($url)) {
-      if (preg_match('/<title>([^>]*)<\/title>/si', $body, $matches)) {
+      if (preg_match('/<title>([^>]*)<\/title>/i', $body, $matches)) {
         $result['title'] = trim($matches[1]);
       }
-      if (preg_match_all('/<[\s]*meta[\s]*name="?([^>"]*)"?[\s]*content="?([^>"]*)"?[\s]*[\/]?[\s]*>/si', $body, $matches, PREG_SET_ORDER)) {
+      if (preg_match_all('/<[\s]*meta[\s]*name="?([^>"]*)"?[\s]*content="?([^>"]*)"?[\s]*[\/]?[\s]*>/i', $body, $matches, PREG_SET_ORDER)) {
         foreach ($matches as $match) {
           $result[$match[1]] = trim($match[2]);
         }
@@ -131,10 +190,5 @@ class BrBrowser extends BrObject
     }
 
     return $result;
-  }
-
-  public function responseCode()
-  {
-    return $this->responseCode;
   }
 }

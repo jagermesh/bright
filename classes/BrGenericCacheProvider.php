@@ -10,30 +10,49 @@
 
 namespace Bright;
 
-class BrGenericCacheProvider extends BrObject
+/**
+ *
+ */
+abstract class BrGenericCacheProvider extends BrObject
 {
-  const CACHE_LIFE_TIME = 'lifeTime';
+  protected const CACHE_LIFE_TIME = 'lifeTime';
 
-  private $defaultNamePrefix = '';
-  private $cacheLifeTime = 300;
+  private string $defaultNamePrefix = '';
+  private int $cacheLifeTime = 300;
+
+  abstract public static function isSupported(): bool;
+  abstract public function reset(): bool;
+  abstract public function exists(string $name): bool;
+
+  /**
+   * @param string $name
+   * @param $default
+   * @param bool $saveDefault
+   * @return mixed
+   */
+  abstract public function getEx(string $name, $default = null, bool $saveDefault = false): array;
+
+  /**
+   * @param string $name
+   * @param $value
+   * @param int|null $lifeTime
+   * @return bool
+   */
+  abstract public function set(string $name, $value, ?int $lifeTime = null): bool;
+  abstract public function remove(string $name): bool;
 
   /**
    * @throws BrException
    */
-  public function __construct($settings = [])
+  public function __construct(?array $settings = [])
   {
     parent::__construct();
 
     if ($this->isSupported()) {
-      $this->setDefaultNamePrefix(hash('sha256', __FILE__) . ':');
+      $this->setDefaultNamePrefix(sprintf('%s:', hash('sha256', __FILE__)));
     } else {
-      throw new BrException(get_class($this) . ' is not supported.');
+      throw new BrException(sprintf('%s is not supported', get_class($this)));
     }
-  }
-
-  public static function isSupported(): bool
-  {
-    return true;
   }
 
   public function clear()
@@ -41,42 +60,20 @@ class BrGenericCacheProvider extends BrObject
     $this->reset();
   }
 
-  public function reset()
+  /**
+   * @param string $name
+   * @param null $default
+   * @param bool $saveDefault
+   * @return mixed
+   */
+  public function get(string $name, $default = null, bool $saveDefault = false)
   {
-    // must be overridden in descendant class
+    $result = $this->getEx($name, $default, $saveDefault);
+
+    return $result['value'];
   }
 
-  public function exists($name): bool
-  {
-    return false;
-  }
-
-  public function get($name, $default = null, $saveDefault = false)
-  {
-    // must be overridden in descendant class
-  }
-
-  public function getEx($name)
-  {
-    // must be overridden in descendant class
-  }
-
-  public function getKeys($pattern)
-  {
-    // must be overridden in descendant class
-  }
-
-  public function set($name, $value, $lifeTime = null)
-  {
-    // must be overridden in descendant class
-  }
-
-  public function remove($name)
-  {
-    // must be overridden in descendant class
-  }
-
-  public function setCacheLifeTime($seconds)
+  public function setCacheLifeTime(int $seconds)
   {
     $this->cacheLifeTime = $seconds;
   }
@@ -86,17 +83,12 @@ class BrGenericCacheProvider extends BrObject
     return $this->cacheLifeTime;
   }
 
-  public function getService()
-  {
-    // must be overridden in descendant class
-  }
-
-  public function getSafeName($name): string
+  public function getSafeName(string $name): string
   {
     return $this->defaultNamePrefix . $name;
   }
 
-  protected function setDefaultNamePrefix($value)
+  protected function setDefaultNamePrefix(string $value)
   {
     $this->defaultNamePrefix = $value;
   }

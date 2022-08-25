@@ -10,16 +10,19 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrCmd extends BrObject
 {
-  public function getParam($index, $default = '')
+  public function getParam(int $index, ?string $default = ''): string
   {
     global $argv;
 
     return br($argv, $index, $default);
   }
 
-  public function getSwitches()
+  public function getSwitches(): array
   {
     global $argv;
 
@@ -29,7 +32,7 @@ class BrCmd extends BrObject
       if (preg_match('/--([A-Z]+)=(.+)/ism', $value, $matches)) {
         $result[$matches[1]] = $matches[2];
       }
-      if (preg_match('/--([A-Z]+)$/ism', $value, $matches)) {
+      if (preg_match('/--([A-Z]+)$/im', $value, $matches)) {
         $result[$matches[1]] = true;
       }
     }

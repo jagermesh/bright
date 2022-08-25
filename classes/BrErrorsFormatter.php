@@ -10,9 +10,12 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrErrorsFormatter
 {
-  private static function formatCallParams($params, $level = 0): string
+  private static function formatCallParams(?array $params = [], int $level = 0): string
   {
     $result = '';
 
@@ -51,7 +54,7 @@ class BrErrorsFormatter
     return rtrim($result, ', ');
   }
 
-  private static function formatStackTraceCall($trace): string
+  private static function formatStackTraceCall(?array $trace = []): string
   {
     $result = '';
 
@@ -71,7 +74,7 @@ class BrErrorsFormatter
     return $result;
   }
 
-  private static function formatStackTraceSource($trace): string
+  private static function formatStackTraceSource(?array $trace = []): string
   {
     $result = '';
 
@@ -87,7 +90,7 @@ class BrErrorsFormatter
     return $result;
   }
 
-  public static function getStackTraceFromException($e): string
+  public static function getStackTraceFromException(\Throwable $e): string
   {
     $result = '';
 

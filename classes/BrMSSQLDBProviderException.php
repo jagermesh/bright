@@ -2,6 +2,9 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrMSSQLDBProviderException extends \Exception
 {
 

@@ -10,13 +10,19 @@
 
 namespace Bright;
 
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
+
+/**
+ *
+ */
 class BrSlackLogAdapter extends BrGenericLogAdapter
 {
-  private $cache;
-  private $cacheInitialized = false;
-  private $webHookUrl;
+  private ?BrFileCacheProvider $cache;
+  private bool $cacheInitialized = false;
+  private string $webHookUrl;
 
-  public function __construct($webHookUrl)
+  public function __construct(string $webHookUrl)
   {
     $this->webHookUrl = $webHookUrl;
 
@@ -36,7 +42,10 @@ class BrSlackLogAdapter extends BrGenericLogAdapter
     }
   }
 
-  public function write($messageOrObject, $params)
+  /**
+   * @throws GuzzleException
+   */
+  public function write($messageOrObject, ?array $params = [])
   {
     if ($this->webHookUrl) {
       if ($this->isErrorEventType($params) || $this->isDebugEventType($params)) {
@@ -46,7 +55,7 @@ class BrSlackLogAdapter extends BrGenericLogAdapter
               return;
             }
 
-            $excerpt = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, false);
+            $excerpt = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject);
 
             $this->initCache();
 
@@ -62,6 +71,8 @@ class BrSlackLogAdapter extends BrGenericLogAdapter
               $subject = 'Error report: ' . $excerpt;
             } elseif ($this->isDebugEventType($params)) {
               $subject = 'Debug message: ' . $excerpt;
+            } else {
+              $subject = $excerpt;
             }
 
             $info = $this->getLogInfo($messageOrObject, $params, ['snapshot']);
@@ -80,7 +91,7 @@ class BrSlackLogAdapter extends BrGenericLogAdapter
                 'payload' => json_encode($payload),
               ]
             ];
-            $client = new \GuzzleHttp\Client();
+            $client = new Client();
             $client->request('POST', $this->webHookUrl, $requestParams);
           } catch (\Exception $e) {
             // no luck

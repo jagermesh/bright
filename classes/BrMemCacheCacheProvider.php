@@ -10,14 +10,17 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrMemCacheCacheProvider extends BrGenericCacheProvider
 {
   const DEFAULT_HOST_NAME = 'localhost';
   const DEFAULT_PORT = 11211;
 
-  private $memCache = null;
+  private \Memcache $memCache;
 
-  public function __construct($settings = [])
+  public function __construct(?array $settings = [])
   {
     parent::__construct($settings);
 
@@ -40,70 +43,68 @@ class BrMemCacheCacheProvider extends BrGenericCacheProvider
     return class_exists('Memcache');
   }
 
-  public function reset()
+  public function reset(): bool
   {
     return $this->memCache->flush();
   }
 
-  public function exists($name): bool
+  public function exists(string $name): bool
   {
-    $name = $this->getSafeName($name);
-
-    return ($this->memCache->get($name) !== false);
+    return ($this->memCache->get($this->getSafeName($name)) !== false);
   }
 
-  public function get($name, $default = null, $saveDefault = false)
+  /**
+   * @param string $name
+   * @param $default
+   * @param bool $saveDefault
+   * @return mixed
+   */
+  public function getEx(string $name, $default = null, bool $saveDefault = false): array
   {
     $name = $this->getSafeName($name);
 
-    $result = $this->memCache->get($name);
+    $cachedValue = $this->memCache->get($name);
 
-    if ($result === false) {
-      $result = $default;
-      if ($saveDefault) {
-        $this->set($name, $result);
+    if ($cachedValue === false) {
+      if ($saveDefault && $default) {
+        $this->set($name, $default);
       }
+      return [
+        'success' => $saveDefault,
+        'value' => $default
+      ];
     } else {
-      $result = unserialize($result);
-    }
-
-    return $result;
-  }
-
-  public function getEx($name): array
-  {
-    $name = $this->getSafeName($name);
-
-    $result = $this->memCache->get($name);
-
-    if ($result === false) {
-      $result = ['success' => false];
-    } else {
-      $result = ['success' => true, 'value' => unserialize($result)];
-    }
-
-    return $result;
-  }
-
-  public function set($name, $value, $lifeTime = null)
-  {
-    $name = $this->getSafeName($name);
-
-    if (!$lifeTime) {
-      $lifeTime = $this->getCacheLifeTime();
-    }
-
-    if ($this->memCache->set($name, serialize($value), false, $lifeTime)) {
-      return $value;
-    } else {
-      return false;
+      return [
+        'success' => true,
+        'value' => json_decode($cachedValue, true),
+      ];
     }
   }
 
-  public function remove($name)
+  /**
+   * @param string $name
+   * @param $value
+   * @param int|null $lifeTime
+   * @return bool
+   */
+  public function set(string $name, $value, ?int $lifeTime = null): bool
   {
-    $name = $this->getSafeName($name);
+    $lifeTime = $lifeTime ? $lifeTime : $this->getCacheLifeTime();
 
-    return $this->memCache->delete($name);
+    $this->memCache->set($this->getSafeName($name), json_encode($value), false, $lifeTime);
+
+    return true;
+  }
+
+  public function remove(string $name): bool
+  {
+    $this->memCache->delete($this->getSafeName($name));
+
+    return true;
+  }
+
+  public function getService(): \Memcache
+  {
+    return $this->memCache;
   }
 }

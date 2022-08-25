@@ -23,6 +23,8 @@ class BrNestedSet extends BrObject
 
   public function __construct($tableName, $params = [])
   {
+    parent::__construct();
+
     $this->tableName = $tableName;
 
     $this->keyField = br($params, 'keyField', 'id');

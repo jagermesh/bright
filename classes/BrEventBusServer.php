@@ -2,28 +2,26 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageComponentInterface
 {
-  const EVENT_SUBSCRIBE = 'eventBus.subscribe';
+  private const EVENT_SUBSCRIBE = 'eventBus.subscribe';
 
-  protected $clients = [];
+  protected array $clients = [];
 
-  public function __construct($params = array())
-  {
-    parent::__construct($params);
-  }
-
-  protected function log($message)
+  protected function log(string $message)
   {
     br()->log('[' . strftime('%Y-%m-%d %H:%M:%S', time()) . '] ' . $message);
   }
 
-  protected function getLogPrefix($clientData)
+  protected function getLogPrefix(array $clientData): string
   {
     return '[' . $clientData['clientIP'] . '] [' . $clientData['clientUID'] . '] ';
   }
 
-  public function start($params = array())
+  public function start()
   {
     $wsServer = new \Ratchet\WebSocket\WsServer($this);
 
@@ -33,16 +31,16 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
     $httpServer->run();
   }
 
-  public function onOpen(\Ratchet\ConnectionInterface $from)
+  public function onOpen(\Ratchet\ConnectionInterface $conn)
   {
-    $clientHash = spl_object_hash($from);
+    $clientHash = spl_object_hash($conn);
 
-    $headers = $from->httpRequest->getHeaders();
+    $headers = $conn->httpRequest->getHeaders();
     $header = br($headers, 'X-Real-IP', br($headers, 'X-Forwarded-For'));
-    $clientIP = br($header, 0, $from->remoteAddress);
+    $clientIP = br($header, 0, $conn->remoteAddress);
 
     $clientData = [
-      'connection' => $from,
+      'connection' => $conn,
       'hash' => $clientHash,
       'clientUID' => br()->guid(),
       'clientIP' => $clientIP,
@@ -59,7 +57,7 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
       'clientsCount' => count($this->clients)
     ]);
 
-    $from->send($message);
+    $conn->send($message);
 
     $this->log($this->getLogPrefix($clientData) . 'Client connected (' . count($this->clients) . ')');
   }

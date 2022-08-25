@@ -2,23 +2,29 @@
 
 namespace Bright;
 
-class BrOAuthV1 extends BrRemoteConnection
+class BrOAuthV1 extends BrOAuth
 {
   private $OAuthKey;
   private $OAuthSecret;
   private $signatureMethod = 'SHA1';
 
-  public $debugMode = false;
+  public bool $debugMode = false;
 
-  public function __construct($key, $secret, $signatureMethod = 'SHA1')
+  public function __construct(string $key, string $secret, string $signatureMethod = 'SHA1')
   {
+    parent::__construct();
+
     $this->OAuthKey = $key;
     $this->OAuthSecret = $secret;
 
     $this->setSignatureMethod($signatureMethod);
   }
 
-  private function generateBaseString($method, $url, $params)
+  public function resetToken()
+  {
+  }
+
+  private function generateBaseString(string $method, string $url, array $params = [])
   {
     $url = parse_url($url);
     if (isset($url['query'])) {
@@ -37,12 +43,12 @@ class BrOAuthV1 extends BrRemoteConnection
     return substr($baseStr, 0, -3);
   }
 
-  public function setSignatureMethod($setMethod = 'SHA1')
+  public function setSignatureMethod(string $value = 'SHA1')
   {
-    $this->signatureMethod = $setMethod;
+    $this->signatureMethod = $value;
   }
 
-  public function sign($method, $url, $params = [], $content = '')
+  public function sign(string $method, string $url, array $params = [], string $content = '')
   {
     switch (strtolower($this->signatureMethod)) {
       case 'sha1':
@@ -76,7 +82,7 @@ class BrOAuthV1 extends BrRemoteConnection
     return substr($authHeader, 0, -2);
   }
 
-  public function sendSignedRequest($method, $url, $params = [], $content = '', array $additionalHeaders = [])
+  public function sendSignedRequest(string $method, string $url, array $params = [], string $content = '', array $additionalHeaders = [])
   {
     $checkurl = parse_url($url);
 

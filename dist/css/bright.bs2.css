@@ -125,7 +125,6 @@ span.br-required {
     margin-top: 0px !important;
     height: auto !important;
   }
-
   .br-scrollable {
     height: auto;
     overflow: visible;
@@ -150,7 +149,6 @@ span.br-required {
   .br-no-print {
     display: none;
   }
-
   .br-print-only {
     display: inline;
   }
@@ -206,6 +204,52 @@ div.br-editable, span.br-editable {
   border-radius: 2px;
 }
 
+.br-uppercase,
+.uppercase {
+  text-transform: uppercase;
+}
+
+.br-lowercase,
+.lowercase {
+  text-transform: lowercase;
+}
+
+.br-capitalize,
+.capitalize {
+  text-transform: capitalize;
+}
+
+.br-pager-control .br-pager-pager-container,
+.br-pager-control .br-pager-selection-container,
+.br-pager-control .br-pager-page-size-container,
+.pager-control .pager-pager-container,
+.pager-control .pager-selection-container,
+.pager-control .pager-page-size-container {
+  margin-bottom: 8px;
+}
+
+.br-pager-control .pbr-ager-nav-element,
+.br-pager-control .br-pager-size-element,
+.pager-control .pager-nav-element,
+.pager-control .pager-size-element {
+  padding: 1px;
+  padding-left: 3px;
+  padding-right: 3px;
+}
+
+.br-pager-control .br-pager-nav-element:hover,
+.br-pager-control .br-pager-size-element:hover,
+.pager-control .pager-nav-element:hover,
+.pager-control .pager-size-element:hover {
+  text-decoration: none;
+  padding: 0px;
+  padding-left: 2px;
+  padding-right: 2px;
+  border: 1px solid #AAA;
+  border-radius: 3px;
+  color: none;
+}
+
 /* Bootstrap fx */
 .navbar .nav > li > img {
   margin-top: 8px;
@@ -224,12 +268,10 @@ div.br-editable, span.br-editable {
     padding-left: 0px;
     padding-right: 5px;
   }
-
   .navbar-fixed-top .navbar-inner .container-fluid {
     padding-left: 5px;
     padding-right: 5px;
   }
-
   .shadow-paper-box, .shadow-paper-box-fluid {
     margin-top: 10px !important;
     padding: 23px !important;
@@ -421,34 +463,6 @@ table.table th {
   vertical-align: middle;
   font-weight: 400;
   line-height: 1.3em;
-}
-
-.uppercase {
-  text-transform: uppercase;
-}
-
-.lowercase {
-  text-transform: lowercase;
-}
-
-.capitalize {
-  text-transform: capitalize;
-}
-
-.pager-nav-element, .pager-size-element {
-  padding: 1px;
-  padding-left: 3px;
-  padding-right: 3px;
-}
-
-a.pager-nav-element:hover, a.pager-size-element:hover {
-  text-decoration: none;
-  padding: 0px;
-  padding-left: 2px;
-  padding-right: 2px;
-  border: 1px solid #AAA;
-  border-radius: 3px;
-  color: none;
 }
 
 .tooltip {

@@ -10,6 +10,9 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrApplication extends BrObject
 {
   const DEFAULT_SCRIPT_FILE = 'index.php';
@@ -23,6 +26,10 @@ class BrApplication extends BrObject
     register_shutdown_function([&$this, 'captureShutdown']);
   }
 
+  /**
+   * @throws BrGenericRendererException
+   * @throws \Exception
+   */
   public function run()
   {
     if (!br()->isConsoleMode()) {

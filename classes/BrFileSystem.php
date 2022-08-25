@@ -10,47 +10,51 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrFileSystem extends BrObject
 {
-  private $currentDir;
+  private string $currentDir = '';
 
-  public function normalizePath($path)
+  public function normalizePath(string $path): string
   {
     return rtrim(str_replace('\\', '/', $path), '/') . '/';
   }
 
-  public function normalizeFileName($fileName)
+  public function normalizeFileName(string $fileName): string
   {
     return preg_replace('~[^-A-Za-z0-9_.$!()\[\]]~', '_', $fileName);
   }
 
-  public function fileName($fileName, $addIndex = null)
+  public function fileName(string $fileName, ?string $addIndex = ''): string
   {
     $pathinfo = pathinfo($fileName);
     if ($addIndex) {
       return br($pathinfo, 'filename') . '-' . $addIndex . '.' . br($pathinfo, 'extension');
     } else {
-      return br($pathinfo, 'basename');
+      return (string)br($pathinfo, 'basename');
     }
   }
 
-  public function fileNameOnly($fileName)
+  public function fileNameOnly(string $fileName): string
   {
     $pathinfo = pathinfo($fileName);
-    return br($pathinfo, 'filename');
+
+    return (string)br($pathinfo, 'filename');
   }
 
-  public function filePath($path)
+  public function filePath(string $path): string
   {
     return $this->normalizePath(dirname($path));
   }
 
-  public function dirName($path)
+  public function dirName(string $path): string
   {
-    return rtrim(str_replace('\\', '/', dirname($path)), '/');
+    return (string)rtrim(str_replace('\\', '/', dirname($path)), '/');
   }
 
-  public function folderName($path)
+  public function folderName(string $path): string
   {
     if ($s = preg_split('|/|', $this->dirname($path))) {
       return $s[count($s) - 1];
@@ -59,23 +63,24 @@ class BrFileSystem extends BrObject
     }
   }
 
-  public function fileExt($fileName)
+  public function fileExt(string $fileName): string
   {
     $pathinfo = pathinfo($fileName);
-    return br($pathinfo, 'extension');
+
+    return (string)br($pathinfo, 'extension');
   }
 
-  public function fileExists($filePath)
+  public function fileExists(string $filePath): bool
   {
     return file_exists($filePath);
   }
 
-  public function loadFromFile($fileName)
+  public function loadFromFile(string $fileName): string
   {
-    return file_get_contents($fileName);
+    return (string)file_get_contents($fileName);
   }
 
-  public function getCharsPath($fileName, $finalFileName = null)
+  public function getCharsPath(string $fileName, ?string $finalFileName = ''): string
   {
     $md5mode = false;
     if ($finalFileName) {
@@ -99,7 +104,7 @@ class BrFileSystem extends BrObject
     return $s . $finalFileName;
   }
 
-  public function saveToFile($fileName, $content, $access = 0666)
+  public function saveToFile(string $fileName, ?string $content = '', int $access = 0666): string
   {
     if ($result = file_put_contents($fileName, $content)) {
       @chmod($fileName, $access);
@@ -107,7 +112,7 @@ class BrFileSystem extends BrObject
     return $result;
   }
 
-  public function makeDir($path, $access = 0777)
+  public function makeDir(string $path, int $access = 0777): bool
   {
     if (file_exists($path)) {
       return true;
@@ -120,17 +125,22 @@ class BrFileSystem extends BrObject
     }
   }
 
-  public function getCurrentDir()
+  public function getCurrentDir(): string
   {
     return $this->currentDir;
   }
 
-  public function changeDir($path, $createIfMissing = false)
+  /**
+   * @throws BrFileSystemException
+   */
+  public function changeDir(string $path, bool $createIfMissing = false)
   {
     $newDir = br()->fs()->normalizePath($path);
+
     if ($createIfMissing) {
       $this->makeDir($newDir);
     }
+
     if (is_dir($newDir)) {
       $this->currentDir = $newDir;
     } else {
@@ -138,17 +148,17 @@ class BrFileSystem extends BrObject
     }
   }
 
-  public function isFileExists($fileName)
+  public function isFileExists(string $fileName): bool
   {
     return file_exists($this->getCurrentDir() . $fileName);
   }
 
-  public function renameFile($oldFileName, $newFileName)
+  public function renameFile(string $oldFileName, string $newFileName): bool
   {
     return rename($this->getCurrentDir() . $oldFileName, $this->getCurrentDir() . $newFileName);
   }
 
-  public function uploadFile($sourceFilePath, $targetFileName = null)
+  public function uploadFile(string $sourceFilePath, ?string $targetFileName = null): bool
   {
     if (!$targetFileName) {
       $targetFileName = $this->fileName($sourceFilePath);
@@ -161,14 +171,17 @@ class BrFileSystem extends BrObject
       @unlink($targetFilePathTmp);
     }
 
-    if ($result = copy($sourceFilePath, $targetFilePathTmp)) {
+    if (copy($sourceFilePath, $targetFilePathTmp)) {
       return rename($targetFilePathTmp, $targetFilePath);
     } else {
-      return $result;
+      return false;
     }
   }
 
-  public function createDir($path, $access = 0777)
+  /**
+   * @throws BrFileSystemException
+   */
+  public function createDir($path, $access = 0777): BrFileSystem
   {
     if (!$this->makeDir($path, $access)) {
       throw new BrFileSystemException('Can not create directory "' . $path . '"');
@@ -177,14 +190,17 @@ class BrFileSystem extends BrObject
     return $this;
   }
 
-  public function checkWriteable($path)
+  /**
+   * @throws BrFileSystemException
+   */
+  public function checkWriteable(string $path)
   {
     if (!is_writeable($path)) {
       throw new BrFileSystemException('Can not create directory "' . $path . '"');
     }
   }
 
-  public function copyFolder($src, $dst)
+  public function copyFolder(string $src, string $dst)
   {
     $src = $this->normalizePath($src);
     $dst = $this->normalizePath($dst);
@@ -198,7 +214,7 @@ class BrFileSystem extends BrObject
     });
   }
 
-  public function iteratePath($startingDir, $mask, $callback = null)
+  public function iteratePath(string $startingDir, string $mask, callable $callback)
   {
     if (gettype($mask) != 'string') {
       $callback = $mask;
@@ -227,7 +243,7 @@ class BrFileSystem extends BrObject
     }
   }
 
-  public function iterateDir($startingDir, $mask, $callback = null)
+  public function iterateDir(string $startingDir, string $mask, callable $callback)
   {
     if (gettype($mask) != 'string') {
       $callback = $mask;

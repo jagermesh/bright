@@ -10,6 +10,9 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrDataBaseManager
 {
   const TABLE_AUDIT_CHANGE_OLD = 'audit_change';
@@ -26,17 +29,17 @@ class BrDataBaseManager
 
   const VIEW_BR_AUDIT_TABLES = 'view_br_audit_tables';
 
-  const SQL_ERROR_DOESN_T_EXIST = "doesn't exist";
+  const SQL_ERROR_DOES_NOT_EXIST = "doesn't exist";
 
-  private $auditTablesTable = self::TABLE_AUDIT_TABLES;
-  private $auditChangeTable = self::TABLE_AUDIT_CHANGE;
-  private $auditChangeLogTable = self::TABLE_AUDIT_CHANGE_LOG;
-  private $auditSubsystemInitialized = false;
-  private $migrationSubsystemInitialized = false;
+  private string $auditTablesTable = self::TABLE_AUDIT_TABLES;
+  private string $auditChangeTable = self::TABLE_AUDIT_CHANGE;
+  private string $auditChangeLogTable = self::TABLE_AUDIT_CHANGE_LOG;
+  private bool $auditSubsystemInitialized = false;
+  private bool $migrationSubsystemInitialized = false;
 
-  private $definer;
+  private string $definer = '';
 
-  public function parseScript($script)
+  public function parseScript(string $script): array
   {
     $result = [];
 
@@ -56,7 +59,7 @@ class BrDataBaseManager
     return $result;
   }
 
-  public function executeScript($script)
+  public function executeScript(string $script): int
   {
     $result = 0;
 
@@ -69,7 +72,10 @@ class BrDataBaseManager
     return $result;
   }
 
-  public function executeScriptFile($fileName)
+  /**
+   * @throws BrAppException
+   */
+  public function executeScriptFile($fileName): int
   {
     if (file_exists($fileName)) {
       if ($script = br()->fs()->loadFromFile($fileName)) {
@@ -88,7 +94,7 @@ class BrDataBaseManager
     }
   }
 
-  private function internalExecute($sql)
+  private function internalExecute(string $sql): int
   {
     br()->db()->runQuery($sql);
 
@@ -99,32 +105,35 @@ class BrDataBaseManager
     return br()->db()->getAffectedRowsAmount();
   }
 
-  public function setAuditSubsystemInitialized($value)
+  public function setAuditSubsystemInitialized(bool $value)
   {
     $this->auditSubsystemInitialized = $value;
   }
 
-  protected function getTableStructure(string $tableName)
+  protected function getTableStructure(string $tableName): array
   {
     return br()->db()->getRows('DESC ' . $tableName);
   }
 
+  /**
+   * @throws \Exception
+   */
   public function initAuditSubsystem()
   {
     if ($this->auditSubsystemInitialized) {
-      return true;
+      return;
     }
 
     $this->auditChangeTable = self::TABLE_AUDIT_CHANGE_OLD;
     try {
       $this->getTableStructure($this->auditChangeTable);
     } catch (\Exception $e) {
-      if (stripos($e->getMessage(), self::SQL_ERROR_DOESN_T_EXIST)) {
+      if (stripos($e->getMessage(), self::SQL_ERROR_DOES_NOT_EXIST)) {
         $this->auditChangeTable = self::TABLE_AUDIT_CHANGE;
         try {
           $this->getTableStructure($this->auditChangeTable);
         } catch (\Exception $e) {
-          if (stripos($e->getMessage(), self::SQL_ERROR_DOESN_T_EXIST)) {
+          if (stripos($e->getMessage(), self::SQL_ERROR_DOES_NOT_EXIST)) {
             br()->db()->runQuery('
               CREATE TABLE ' . $this->auditChangeTable . ' (
                   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
@@ -157,12 +166,12 @@ class BrDataBaseManager
     try {
       $this->getTableStructure($this->auditChangeLogTable);
     } catch (\Exception $e) {
-      if (stripos($e->getMessage(), self::SQL_ERROR_DOESN_T_EXIST)) {
+      if (stripos($e->getMessage(), self::SQL_ERROR_DOES_NOT_EXIST)) {
         $this->auditChangeLogTable = self::TABLE_AUDIT_CHANGE_LOG;
         try {
           $this->getTableStructure($this->auditChangeLogTable);
         } catch (\Exception $e) {
-          if (stripos($e->getMessage(), self::SQL_ERROR_DOESN_T_EXIST)) {
+          if (stripos($e->getMessage(), self::SQL_ERROR_DOES_NOT_EXIST)) {
             br()->db()->runQuery('
               CREATE TABLE ' . $this->auditChangeLogTable . ' (
                   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
@@ -188,12 +197,12 @@ class BrDataBaseManager
     try {
       $this->getTableStructure($this->auditTablesTable);
     } catch (\Exception $e) {
-      if (stripos($e->getMessage(), self::SQL_ERROR_DOESN_T_EXIST)) {
+      if (stripos($e->getMessage(), self::SQL_ERROR_DOES_NOT_EXIST)) {
         $this->auditTablesTable = self::TABLE_AUDIT_TABLES;
         try {
           $this->getTableStructure($this->auditTablesTable);
         } catch (\Exception $e) {
-          if (stripos($e->getMessage(), self::SQL_ERROR_DOESN_T_EXIST)) {
+          if (stripos($e->getMessage(), self::SQL_ERROR_DOES_NOT_EXIST)) {
             br()->db()->runQuery('
               CREATE TABLE ' . $this->auditTablesTable . ' (
                   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
@@ -218,7 +227,7 @@ class BrDataBaseManager
     try {
       $this->getTableStructure(self::TABLE_CONSTRAINT_KEYS);
     } catch (\Exception $e) {
-      if (stripos($e->getMessage(), self::SQL_ERROR_DOESN_T_EXIST)) {
+      if (stripos($e->getMessage(), self::SQL_ERROR_DOES_NOT_EXIST)) {
         br()->db()->runQuery('
           CREATE TABLE ' . self::TABLE_CONSTRAINT_KEYS . ' (
               id                     BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
@@ -251,7 +260,7 @@ class BrDataBaseManager
     try {
       $this->getTableStructure(self::TABLE_CONSTRAINT_REFS);
     } catch (\Exception $e) {
-      if (stripos($e->getMessage(), self::SQL_ERROR_DOESN_T_EXIST)) {
+      if (stripos($e->getMessage(), self::SQL_ERROR_DOES_NOT_EXIST)) {
         br()->db()->runQuery('
           CREATE TABLE ' . self::TABLE_CONSTRAINT_REFS . ' (
               id                    BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
@@ -286,7 +295,7 @@ class BrDataBaseManager
     try {
       $this->getTableStructure(self::TABLE_DB_TRIGGERS);
     } catch (\Exception $e) {
-      if (stripos($e->getMessage(), self::SQL_ERROR_DOESN_T_EXIST)) {
+      if (stripos($e->getMessage(), self::SQL_ERROR_DOES_NOT_EXIST)) {
         br()->db()->runQuery('
           CREATE TABLE ' . self::TABLE_DB_TRIGGERS . ' (
               id                    BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
@@ -394,16 +403,19 @@ class BrDataBaseManager
     $this->auditSubsystemInitialized = true;
   }
 
+  /**
+   * @throws \Exception
+   */
   public function initMigrationsSubsystem()
   {
     if ($this->migrationSubsystemInitialized) {
-      return true;
+      return;
     }
 
     try {
       $this->getTableStructure(self::TABLE_DB_PATCH);
     } catch (\Exception $e) {
-      if (stripos($e->getMessage(), self::SQL_ERROR_DOESN_T_EXIST)) {
+      if (stripos($e->getMessage(), self::SQL_ERROR_DOES_NOT_EXIST)) {
         br()->db()->runQuery('
           CREATE TABLE ' . self::TABLE_DB_PATCH . ' (
               id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY
@@ -424,7 +436,10 @@ class BrDataBaseManager
     $this->migrationSubsystemInitialized = true;
   }
 
-  private function getAuditExcludeFields($tableName)
+  /**
+   * @throws \Exception
+   */
+  private function getAuditExcludeFields($tableName): array
   {
     $this->initAuditSubsystem();
 
@@ -437,7 +452,10 @@ class BrDataBaseManager
     ))->split();
   }
 
-  private function getAuditFields($tableName)
+  /**
+   * @throws \Exception
+   */
+  private function getAuditFields($tableName): array
   {
     $this->initAuditSubsystem();
 
@@ -456,7 +474,10 @@ class BrDataBaseManager
     return $fields;
   }
 
-  private function generateInsertAuditTrigger($tableName)
+  /**
+   * @throws \Exception
+   */
+  private function generateInsertAuditTrigger($tableName): string
   {
     $this->initAuditSubsystem();
 
@@ -484,7 +505,10 @@ class BrDataBaseManager
     return $sql;
   }
 
-  private function generateUpdateAuditTrigger($tableName)
+  /**
+   * @throws \Exception
+   */
+  private function generateUpdateAuditTrigger($tableName): string
   {
     $this->initAuditSubsystem();
 
@@ -526,7 +550,10 @@ class BrDataBaseManager
     return $sql;
   }
 
-  private function generateDeleteAuditTrigger($tableName)
+  /**
+   * @throws \Exception
+   */
+  private function generateDeleteAuditTrigger($tableName): string
   {
     $this->initAuditSubsystem();
 
@@ -554,6 +581,9 @@ class BrDataBaseManager
     return $sql;
   }
 
+  /**
+   * @throws \Exception
+   */
   private function generateCascadeAuditTrigger($tableName)
   {
     $this->initAuditSubsystem();
@@ -647,6 +677,9 @@ class BrDataBaseManager
     }
   }
 
+  /**
+   * @throws \Exception
+   */
   private function createInsertAuditTrigger($tableName)
   {
     $this->initAuditSubsystem();
@@ -656,6 +689,9 @@ class BrDataBaseManager
     br()->log()->message('[' . $tableName . '] Insert audited');
   }
 
+  /**
+   * @throws \Exception
+   */
   private function deleteInsertAuditTrigger($tableName, $log = true)
   {
     $this->initAuditSubsystem();
@@ -668,6 +704,9 @@ class BrDataBaseManager
     }
   }
 
+  /**
+   * @throws \Exception
+   */
   private function createUpdateAuditTrigger($tableName)
   {
     $this->initAuditSubsystem();
@@ -677,6 +716,9 @@ class BrDataBaseManager
     br()->log()->message('[' . $tableName . '] Update audited');
   }
 
+  /**
+   * @throws \Exception
+   */
   private function deleteUpdateAuditTrigger($tableName, $log = true)
   {
     $this->initAuditSubsystem();
@@ -689,6 +731,9 @@ class BrDataBaseManager
     }
   }
 
+  /**
+   * @throws \Exception
+   */
   private function createDeleteAuditTrigger($tableName)
   {
     $this->initAuditSubsystem();
@@ -698,6 +743,9 @@ class BrDataBaseManager
     br()->log()->message('[' . $tableName . '] Delete audited');
   }
 
+  /**
+   * @throws \Exception
+   */
   private function deleteDeleteAuditTrigger($tableName, $log = true)
   {
     $this->initAuditSubsystem();
@@ -710,6 +758,9 @@ class BrDataBaseManager
     }
   }
 
+  /**
+   * @throws \Exception
+   */
   public function createCascadeAuditTrigger($tableName)
   {
     $this->initAuditSubsystem();
@@ -723,6 +774,9 @@ class BrDataBaseManager
     }
   }
 
+  /**
+   * @throws \Exception
+   */
   private function deleteCascadeAuditTrigger($tableName, $log = true)
   {
     $this->initAuditSubsystem();
@@ -735,11 +789,14 @@ class BrDataBaseManager
     }
   }
 
+  /**
+   * @throws \Exception
+   */
   public function createAuditTriggers($tableName)
   {
     $this->initAuditSubsystem();
 
-    $this->deleteAuditTriggers($tableName, true);
+    $this->deleteAuditTriggers($tableName);
 
     if ($table = br()->db()->getCachedRow('
       SELECT *
@@ -763,6 +820,9 @@ class BrDataBaseManager
     }
   }
 
+  /**
+   * @throws \Exception
+   */
   public function deleteAuditTriggers($tableName, $log = true)
   {
     $this->initAuditSubsystem();
@@ -773,6 +833,9 @@ class BrDataBaseManager
     $this->deleteCascadeAuditTrigger($tableName, $log);
   }
 
+  /**
+   * @throws \Exception
+   */
   public function printAuditTriggers($tableName)
   {
     $this->initAuditSubsystem();
@@ -791,7 +854,10 @@ class BrDataBaseManager
     }
   }
 
-  public function refreshTableSupport($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $isCascadeAudited = 1, $excludeFields = null)
+  /**
+   * @throws \Exception
+   */
+  public function refreshTableSupport(string $tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $isCascadeAudited = 1, $excludeFields = null)
   {
     $this->initAuditSubsystem();
 
@@ -812,7 +878,10 @@ class BrDataBaseManager
     $this->createAuditTriggers($tableName);
   }
 
-  public function setupTableSupport($tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $isCascadeAudited = 1, $excludeFields = null)
+  /**
+   * @throws \Exception
+   */
+  public function setupTableSupport(string $tableName, $isInsertAudited = 1, $isUpdateAudited = 1, $isDeleteAudited = 1, $isCascadeAudited = 1, $excludeFields = null)
   {
     $this->initAuditSubsystem();
 
@@ -837,6 +906,9 @@ class BrDataBaseManager
     $this->createAuditTriggers($tableName);
   }
 
+  /**
+   * @throws \Exception
+   */
   public function runAuditCommand($scriptFile)
   {
     $this->initAuditSubsystem();
@@ -860,7 +932,6 @@ class BrDataBaseManager
         break;
       case '?':
       case 'help':
-        $showHelp = true;
         exit();
       default:
         $tableName = $command;
@@ -886,7 +957,7 @@ class BrDataBaseManager
 
     if ($showHelp) {
       br()->log()->message('Usage: php ' . basename($scriptFile) . ' [setup|delete|print] [tableName]');
-      br()->log()->message('Usage: php ' . basename($scriptFile) . '');
+      br()->log()->message('Usage: php ' . basename($scriptFile));
       br()->log()->message('Usage: php ' . basename($scriptFile) . ' setup year');
       exit();
     }
@@ -910,6 +981,9 @@ class BrDataBaseManager
     }
   }
 
+  /**
+   * @throws \Exception
+   */
   public function runMigrationCommand($scriptFile, $results = [])
   {
     $this->initMigrationsSubsystem();
@@ -967,7 +1041,7 @@ class BrDataBaseManager
 
     if ($showHelp) {
       br()->log()->message('Usage: php ' . basename($scriptFile) . ' [run|force|register] [patchName]');
-      br()->log()->message('       php ' . basename($scriptFile) . '');
+      br()->log()->message('       php ' . basename($scriptFile));
       br()->log()->message('       php ' . basename($scriptFile) . ' register Patch1234');
       br()->log()->message('       php ' . basename($scriptFile) . ' force Patch1234');
       exit();
@@ -1090,13 +1164,13 @@ class BrDataBaseManager
     return true;
   }
 
-  public function setDefiner($value)
+  public function setDefiner(?string $value = '')
   {
-    $this->definer = $value;
+    $this->definer = (string)$value;
   }
 
-  public function getDefiner()
+  public function getDefiner(): string
   {
-    return $this->definer;
+    return (string)$this->definer;
   }
 }

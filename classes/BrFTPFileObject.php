@@ -10,14 +10,17 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrFTPFileObject
 {
-  private $name;
-  private $size;
-  private $date;
-  private $isDirectory;
+  private string $name;
+  private string $size;
+  private string $date;
+  private bool $isDirectory;
 
-  public function __construct($line)
+  public function __construct(string $line)
   {
     if (preg_match('#([-d]).* ([0-9]+) ([a-zA-Z]{3}) ([ 0-9]?[0-9]) (([0-9]{2}):([0-9]{2})| [0-9]{4}) (.+)#', $line, $matches)) {
       $this->isDirectory = ($matches[1] == 'd');
@@ -42,12 +45,12 @@ class BrFTPFileObject
     return $this->isDirectory;
   }
 
-  public function name()
+  public function name(): string
   {
     return $this->name;
   }
 
-  public function size()
+  public function size(): string
   {
     return $this->size;
   }

@@ -14,6 +14,8 @@ class BrMongoDBProvider extends BrGenericDBProvider
 {
   public function __construct($settings)
   {
+    parent::__construct();
+
     $this->connection = new \Mongo();
     $this->database = $this->connection->{$settings['name']};
   }
@@ -57,7 +59,7 @@ class BrMongoDBProvider extends BrGenericDBProvider
 
   public function regexpCondition($value)
   {
-    return new \MongoRegex("/.*" . $value . ".*/i");
+    return new \MongoRegex('/.*' . $value . '.*/i');
   }
 
   public function toDateTime($date)

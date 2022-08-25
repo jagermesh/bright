@@ -10,20 +10,23 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrColors extends BrObject
 {
-  public function colorToRGB($color)
+  public function colorToRGB(string $color): string
   {
     if (preg_match('/^#/', $color)) {
       $color = ltrim($color, '#');
     } else {
-      $color = br(BrConst::COLORS_MAP, strtolower($color), $color);
+      $color = (string)br(BrConst::COLORS_MAP, strtolower($color), $color);
     }
 
     return $color ? $color : 'FFFFFF';
   }
 
-  public function getGoodColorForBackground($color): string
+  public function getGoodColorForBackground(string $color): string
   {
     $color = $this->colorToRGB($color);
 
@@ -38,7 +41,6 @@ class BrColors extends BrObject
     $L1 = 0.2126 * pow($R1 / 255, 2.2) + 0.7152 * pow($G1 / 255, 2.2) + 0.0722 * pow($B1 / 255, 2.2);
     $L2 = 0.2126 * pow($R2BlackColor / 255, 2.2) + 0.7152 * pow($G2BlackColor / 255, 2.2) + 0.0722 * pow($B2BlackColor / 255, 2.2);
 
-    $contrastRatio = 0;
     if ($L1 > $L2) {
       $contrastRatio = (int)(($L1 + 0.05) / ($L2 + 0.05));
     } else {

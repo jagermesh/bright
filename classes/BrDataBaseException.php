@@ -2,6 +2,9 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrDataBaseException extends \Exception
 {
 

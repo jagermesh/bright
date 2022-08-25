@@ -258,6 +258,10 @@ class BrGenericDataSource extends BrObject
     return isset($this->events[$method]);
   }
 
+  /**
+   * @throws BrGenericDataSourceException
+   * @throws BrDBException
+   */
   public function invoke($method, $params, &$transientData = [], $optionsParam = [], $iteration = 0, $rerunError = null)
   {
     if ($iteration > $this->rerunIterations) {
@@ -278,7 +282,6 @@ class BrGenericDataSource extends BrObject
       case BrConst::DATASOURCE_METHOD_CALC_FIELDS:
       case BrConst::DATASOURCE_METHOD_PROTECT_FIELDS:
         throw new BrGenericDataSourceException(sprintf(BrConst::ERROR_MESSAGE_METHOD_NOT_SUPPORTED, $method));
-        break;
       default:
         $methodName = 'onInvoke' . ucfirst($method);
         if (!method_exists($this, $methodName) && !$this->invokeMethodExists($method)) {
@@ -360,7 +363,6 @@ class BrGenericDataSource extends BrObject
           }
           throw $result;
         }
-        break;
     }
   }
 
@@ -385,22 +387,22 @@ class BrGenericDataSource extends BrObject
   }
 
   // validation
-  public function canInsert($row = [])
+  public function canInsert($row = []): bool
   {
     return true;
   }
 
-  public function canUpdate($row, $new = [])
+  public function canUpdate($row, $new = []): bool
   {
     return true;
   }
 
-  public function canRemove($row)
+  public function canRemove($row): bool
   {
     return true;
   }
 
-  public function canSelect($filter = [])
+  public function canSelect($filter = []): bool
   {
     return true;
   }

@@ -21,6 +21,8 @@ class BrIMAP extends BrObject
 
   public function __construct($hostName, $userName, $password, $protocol = 'ssl', $port = 993)
   {
+    parent::__construct();
+
     $this->hostName = $hostName;
     $this->connectString = '{' . $hostName;
     if ($port) {
@@ -63,7 +65,7 @@ class BrIMAP extends BrObject
 
     if ($mailbox = $this->openMailbox($path)) {
       if ($check = imap_check($mailbox)) {
-        if ($messages = imap_fetch_overview($mailbox, '1:' . $check->Nmsgs, 0)) {
+        if ($messages = imap_fetch_overview($mailbox, '1:' . $check->Nmsgs)) {
           for ($i = 0; $i < count($messages); $i++) {
             if (!@$messages[$i]->deleted) {
               $result[] = new BrIMAPMailMessage($this, $path, $messages[$i]);
@@ -127,9 +129,9 @@ class BrIMAP extends BrObject
     for ($i = 0; $i < 256; $i++) {
       $c1 = dechex($i);
       if (strlen($c1) == 1) {
-        $c1 = "0" . $c1;
+        $c1 = '0' . $c1;
       }
-      $c1 = "=" . $c1;
+      $c1 = '=' . $c1;
       $myqprinta[] = $c1;
       $myqprintb[] = chr($i);
     }

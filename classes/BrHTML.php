@@ -10,24 +10,23 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrHTML extends BrObject
 {
-  public function isHtml($text)
+  public function isHtml(?string $text = ''): bool
   {
-    return preg_match('~<[/]?[\w][^>]*?>~i', $text) ||
+    return
+      preg_match('~<[/]?[\w][^>]*?>~i', $text) ||
       preg_match('~&[a-z#0-9]+;~i', $text);
   }
 
-  public function XSSCleanUp($html, $callback = null)
-  {
-    return br()->XSS()->cleanUp($html, $callback);
-  }
-
-  public function tidyUp($inHtml)
+  public function tidyUp(?string $inHtml = ''): string
   {
     $result = trim($inHtml);
 
-    if (br()->HTML()->isHtml($inHtml)) {
+    if (br()->html()->isHtml($inHtml)) {
       require_once(dirname(__DIR__) . '/3rdparty/phpQuery/latest/phpQuery.php');
       try {
         $doc = \phpQuery::newDocument($result);
@@ -47,21 +46,22 @@ class BrHTML extends BrObject
     return $result;
   }
 
-  public function cleanUpEndOfText($html)
+  public function cleanUpEndOfText(?string $html = ''): string
   {
     $tmp = $html;
+
     while (true) {
-      $htmlNew = preg_replace('|<br[ /]*>$|i', '', $tmp);
-      if ($htmlNew == $tmp) {
+      $result = preg_replace('|<br[ /]*>$|i', '', $tmp);
+      if ($result == $tmp) {
         break;
       }
-      $tmp = $htmlNew;
+      $tmp = $result;
     }
 
-    return $htmlNew;
+    return $result;
   }
 
-  public function cleanUp($html)
+  public function cleanUp(?string $html = ''): string
   {
     $result = str_replace('{cke_protected}{C}', '', $html);
 
@@ -70,12 +70,12 @@ class BrHTML extends BrObject
     $result = preg_replace('|<script[^>]*?>.*?</script>|ism', '', $result);
     $result = preg_replace('|<style[^>]*?>.*?</style>|ism', '', $result);
     $result = preg_replace('|<head[^>]*?>.*?</head>|ism', '', $result);
-    $result = preg_replace('|<html[^>]*?>|ism', '', $result);
-    $result = preg_replace('|</html>|ism', '', $result);
-    $result = preg_replace('|<base[^>]*?>|ism', '', $result);
-    $result = preg_replace('|<body[^>]*?>|ism', '', $result);
-    $result = preg_replace('|</body>|ism', '', $result);
-    $result = preg_replace('|onload="[^"]+"|ism', '', $result);
+    $result = preg_replace('|<html[^>]*?>|im', '', $result);
+    $result = preg_replace('|</html>|im', '', $result);
+    $result = preg_replace('|<base[^>]*?>|im', '', $result);
+    $result = preg_replace('|<body[^>]*?>|im', '', $result);
+    $result = preg_replace('|</body>|im', '', $result);
+    $result = preg_replace('|onload="[^"]+"|im', '', $result);
     $result = preg_replace('|<p>[\s\r\t\n ]*&nbsp;</p>|i', '', $result);
 
     $result = str_replace('%u2019', '&lsquo;', $result);
@@ -89,7 +89,7 @@ class BrHTML extends BrObject
     return $result;
   }
 
-  public function cleanUpSpaces($html)
+  public function cleanUpSpaces(?string $html = ''): string
   {
     $result = '';
 
@@ -118,97 +118,95 @@ class BrHTML extends BrObject
       $result .= $line;
     }
 
-    $result = preg_replace('~(&nbsp;){1,}$~m', '', $result);
-    $result = trim($result);
+    $result = preg_replace('~(&nbsp;)+$~m', '', $result);
 
-    return $result;
+    return trim($result);
   }
 
-  public function toOutput($html)
+  public function toOutput(?string $html = ''): string
   {
     $flags = ENT_COMPAT;
     if (defined('ENT_HTML401')) {
       $flags = $flags | ENT_HTML401;
     }
-    $html = htmlspecialchars($html, $flags, 'UTF-8');
 
-    return $html;
+    return htmlspecialchars($html, $flags);
   }
 
-  public function toText($html, $smart = false)
+  public function toText(?string $html = '', bool $smart = false): string
   {
     if ($smart) {
-      $html = preg_replace('~<div[^>]*?>~ism', "\n", $html);
+      $result = preg_replace('~<div[^>]*?>~im', "\n", $html);
+    } else {
+      $result = $html;
     }
-    $html = preg_replace('~<!DOCTYPE[^>]*?>~ism', '', $html);
-    $html = preg_replace('~<head[^>]*?>.*?</head>~ism', '', $html);
-    $html = preg_replace('~<style[^>]*?>.*?</style>~ism', '', $html);
-    $html = preg_replace('~<script[^>]*?>.*?</script>~ism', '', $html);
-    $html = preg_replace('~&nbsp;~ism', ' ', $html);
-    $html = preg_replace("~<br[^>]*?>[\n]+~ism", "\n", $html);
-    $html = preg_replace("~<br[^>]*?>~ism", "\n", $html);
-    $html = preg_replace('~<[A-Z][^>]*?>~ism', '', $html);
-    $html = preg_replace('~<\/[A-Z][^>]*?>~ism', '', $html);
-    $html = preg_replace('~<!--.*?-->~ism', ' ', $html);
-    $html = preg_replace('~^[ ]+$~ism', '', $html);
-    $html = preg_replace('~^[ ]+~ism', '', $html);
-    $html = preg_replace("~^(\n\r){2,}~ism", "\n", $html);
-    $html = preg_replace("~^(\r\n){2,}~ism", "\n", $html);
-    $html = preg_replace("~^(\n){2,}~ism", "\n", $html);
-    $html = preg_replace("~^(\r){2,}~ism", "\n", $html);
+    $result = preg_replace('~<!DOCTYPE[^>]*?>~im', '', $result);
+    $result = preg_replace('~<head[^>]*?>.*?</head>~ism', '', $result);
+    $result = preg_replace('~<style[^>]*?>.*?</style>~ism', '', $result);
+    $result = preg_replace('~<script[^>]*?>.*?</script>~ism', '', $result);
+    $result = preg_replace('~&nbsp;~im', ' ', $result);
+    $result = preg_replace("~<br[^>]*?>[\n]+~im", "\n", $result);
+    $result = preg_replace('~<br[^>]*?>~im', "\n", $result);
+    $result = preg_replace('~<[A-Z][^>]*?>~im', '', $result);
+    $result = preg_replace('~<\/[A-Z][^>]*?>~im', '', $result);
+    $result = preg_replace('~<!--.*?-->~ism', ' ', $result);
+    $result = preg_replace('~^[ ]+$~im', '', $result);
+    $result = preg_replace('~^[ ]+~im', '', $result);
+    $result = preg_replace("~^(\n\r){2,}~im", "\n", $result);
+    $result = preg_replace("~^(\r\n){2,}~im", "\n", $result);
+    $result = preg_replace("~^(\n){2,}~im", "\n", $result);
+    $result = preg_replace("~^(\r){2,}~im", "\n", $result);
 
     $flags = ENT_COMPAT;
     if (defined('ENT_HTML401')) {
       $flags = $flags | ENT_HTML401;
     }
-    $html = html_entity_decode($html, $flags, 'UTF-8');
+    $result = html_entity_decode($result, $flags, 'UTF-8');
 
-    return trim($html);
+    return trim($result);
   }
 
-  public function fromText($html)
+  public function fromText(?string $html = ''): string
   {
     $flags = ENT_COMPAT;
     if (defined('ENT_HTML401')) {
       $flags = $flags | ENT_HTML401;
     }
-    $html = htmlspecialchars($html, $flags, 'UTF-8');
-    $html = preg_replace("/\n/ism", '<br />', $html);
-    $html = preg_replace("/\r/ism", '', $html);
 
-    return trim($html);
+    $result = htmlspecialchars($html, $flags);
+    $result = preg_replace("/\n/m", '<br />', $result);
+    $result = preg_replace("/\r/m", '', $result);
+
+    return trim($result);
   }
 
-  public function decodeNumEntities($html)
+  public function decodeNumEntities(?string $html = ''): string
   {
-    $html = preg_replace_callback("/(&#[0-9]+;)/", function ($m) {
-      return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES");
-    }, $html);
-    $html = preg_replace_callback("/(&#x[0-9A-Z]+;)/i", function ($m) {
-      return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES");
-    }, $html);
-
-    return $html;
+    return preg_replace_callback('/(&#x[0-9A-Z]+;)/i', function ($m) {
+      return mb_convert_encoding($m[1], 'UTF-8', 'HTML-ENTITIES');
+    }, preg_replace_callback('/(&#[0-9]+;)/', function ($m) {
+      return mb_convert_encoding($m[1], 'UTF-8', 'HTML-ENTITIES');
+    }, $html));
   }
 
-  public function unicodeToNamedEntities($html)
+  public function unicodeToNamedEntities(?string $html = ''): string
   {
     if (strlen($html) > 0) {
-      $html = json_encode($html);
-      $html = preg_replace('/\\\u([0-9a-z]{4})/', '&#x$1;', $html);
-      $html = json_decode($html);
-      $html = trim($html);
-      if (strlen($html) > 0) {
+      $result = json_encode($html);
+      $result = preg_replace('/\\\u([0-9a-z]{4})/', '&#x$1;', $result);
+      $result = json_decode($result);
+      $result = trim($result);
+      if (strlen($result) > 0) {
         $xmlErrors = libxml_use_internal_errors(true);
         try {
           $doc = new \DOMDocument();
-          if ($doc->loadHTML($html)) {
+          if ($doc->loadHTML($result)) {
             $search = new \DOMXPath($doc);
             $results = $search->evaluate('//*[@style]');
             foreach ($results as $result) {
               $result->removeAttribute('style');
             }
-            $html = $doc->saveHTML();
+            $result = $doc->saveHTML();
           }
         } catch (\Exception $e) {
           // no luck
@@ -216,22 +214,25 @@ class BrHTML extends BrObject
         libxml_clear_errors();
         libxml_use_internal_errors($xmlErrors);
       }
-      $html = preg_replace("/&nbsp;/ism", ' ', $html);
-      $html = preg_replace("/(\n\n|\r\n\r\n|\r\r)/ism", '', $html);
-      $html = preg_replace('/<br[^>]*>/ism', "\n", $html);
-      $html = preg_replace('/<[A-Z][^>]*?>/ism', '', $html);
-      $html = preg_replace('/<\/[A-Z][^>]*?>/ism', '', $html);
-      $html = preg_replace('/<!DOCTYPE[^>]*?>/ism', '', $html);
-      $html = preg_replace('/<!--[^>]*?>/ism', '', $html);
+      $result = preg_replace('/&nbsp;/im', ' ', $result);
+      $result = preg_replace("/(\n\n|\r\n\r\n|\r\r)/im", '', $result);
+      $result = preg_replace('/<br[^>]*>/im', "\n", $result);
+      $result = preg_replace('/<[A-Z][^>]*?>/im', '', $result);
+      $result = preg_replace('/<\/[A-Z][^>]*?>/im', '', $result);
+      $result = preg_replace('/<!DOCTYPE[^>]*?>/im', '', $result);
+      $result = preg_replace('/<!--[^>]*?>/im', '', $result);
+
+      return trim($result);
     }
 
-    return trim($html);
+    return '';
   }
 
-  public function parseStyle($value)
+  public function parseStyle(?string $value = ''): array
   {
     $result = [];
-    preg_match_all("/([\w-]+)\s*:\s*([^;]+)\s*;?/", $value, $matches, PREG_SET_ORDER);
+
+    preg_match_all('/([\w-]+)\s*:\s*([^;]+)\s*;?/', $value, $matches, PREG_SET_ORDER);
     foreach ($matches as $match) {
       $result[$match[1]] = $match[2];
     }
@@ -239,10 +240,11 @@ class BrHTML extends BrObject
     return $result;
   }
 
-  public function packStyle($value)
+  public function packStyle(?array $values = []): string
   {
     $result = [];
-    foreach ($value as $name => $value) {
+
+    foreach ($values as $name => $value) {
       $result[] = $name . ':' . $value;
     }
 

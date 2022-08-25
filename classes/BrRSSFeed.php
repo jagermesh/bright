@@ -15,7 +15,6 @@ class BrRSSFeed extends BrObject
   public $articles = [];
   public $XMLParserError = null;
 
-  private $XMLParser = null;
   private $article = null;
   private $currentTag = null;
   private $insideData = false;
@@ -32,24 +31,24 @@ class BrRSSFeed extends BrObject
   {
     $this->articles = [];
 
-    $this->XMLParser = xml_parser_create();
+    $XMLParser = xml_parser_create();
 
-    xml_parser_set_option($this->XMLParser, XML_OPTION_TARGET_ENCODING, "UTF-8");
+    xml_parser_set_option($XMLParser, XML_OPTION_TARGET_ENCODING, 'UTF-8');
 
-    xml_set_object($this->XMLParser, $this);
-    xml_set_element_handler($this->XMLParser, 'startElement', 'endElement');
-    xml_set_character_data_handler($this->XMLParser, 'content');
+    xml_set_object($XMLParser, $this);
+    xml_set_element_handler($XMLParser, 'startElement', 'endElement');
+    xml_set_character_data_handler($XMLParser, 'content');
 
     try {
-      if (!xml_parse($this->XMLParser, $content)) {
-        $this->XMLParserError = 'Line ' . xml_get_current_line_number($this->XMLParser) . ': ' .
-          (xml_get_error_code($this->XMLParser) ? xml_error_string(xml_get_error_code($this->XMLParser)) : 'Unknown error');
+      if (!xml_parse($XMLParser, $content)) {
+        $this->XMLParserError = 'Line ' . xml_get_current_line_number($XMLParser) . ': ' .
+          (xml_get_error_code($XMLParser) ? xml_error_string(xml_get_error_code($XMLParser)) : 'Unknown error');
       }
     } catch (\Exception $e) {
       $this->XMLParserError = $e->getMessage();
     }
 
-    xml_parser_free($this->XMLParser);
+    xml_parser_free($XMLParser);
 
     return (!$this->XMLParserError && count($this->articles));
   }

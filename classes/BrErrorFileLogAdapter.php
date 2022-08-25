@@ -10,18 +10,27 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrErrorFileLogAdapter extends BrGenericFileLogAdapter
 {
-  public function __construct($params = [])
+  public function __construct(?array $params = [])
   {
     if (!is_array($params)) {
       $params = [];
     }
+
     $params['fileName'] = 'error';
+
     parent::__construct($params);
   }
 
-  public function write($messageOrObject, $params)
+  /**
+   * @param $messageOrObject
+   * @param array|null $params
+   */
+  public function write($messageOrObject, ?array $params = [])
   {
     if ($this->isErrorEventType($params)) {
       $info = $this->getLogInfo($messageOrObject, $params, ['snapshot']);

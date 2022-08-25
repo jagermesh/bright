@@ -123,5 +123,22 @@ class BrArrayTest extends \Codeception\Test\Unit
     $this->assertEquals(false, br(['name1' => 'a', 'name2' => ['$ne' => 1]])->isSimpleArray());
     $this->assertEquals(true, br([])->isSimpleArray());
     $this->assertEquals(false, br('a')->isSimpleArray());
+
+    $this->assertEquals(true, br(null)->equal(null));
+    $this->assertEquals(false, br(null)->equal('a'));
+    $this->assertEquals(false, br(null)->equal(['a']));
+    $this->assertEquals(false, br('a')->equal(null));
+    $this->assertEquals(false, br(['a'])->equal(null));
+    $this->assertEquals(true, br('a')->equal('a'));
+    $this->assertEquals(false, br('a')->equal('b'));
+    $this->assertEquals(false, br('b')->equal('a'));
+    $this->assertEquals(true, br(['a'])->equal(['a']));
+    $this->assertEquals(false, br(['a'])->equal(['b']));
+    $this->assertEquals(false, br(['b'])->equal(['a']));
+    $this->assertEquals(false, br('a')->equal(['a']));
+    $this->assertEquals(false, br('a')->equal(['b']));
+    $this->assertEquals(false, br(['a'])->equal('a'));
+    $this->assertEquals(false, br(['b'])->equal('a'));
+    $this->assertEquals(false, br(['name' => 'value'])->equal(['name' => 'value2']));
   }
 }

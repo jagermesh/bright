@@ -10,6 +10,9 @@
 
 namespace Bright;
 
+use PhpAmqpLib\Connection\AMQPConnection;
+use PhpAmqpLib\Message\AMQPMessage;
+
 class BrRabbitMQ extends BrObject
 {
   private $connection;
@@ -19,7 +22,7 @@ class BrRabbitMQ extends BrObject
   public function connect($params = [])
   {
     if (!$this->connection) {
-      $this->connection = new \PhpAmqpLib\Connection\AMQPConnection(
+      $this->connection = new AMQPConnection(
         br($params, 'host', 'localhost'),
         br($params, 'port', 5672),
         br($params, 'login', 'guest'),
@@ -54,7 +57,7 @@ class BrRabbitMQ extends BrObject
   public function sendMessage($exchangeName, $message, $routingKey = null)
   {
     $this->connect();
-    $msg = new \PhpAmqpLib\Message\AMQPMessage(json_encode($message), [
+    $msg = new AMQPMessage(json_encode($message), [
       'content_type' => 'application/json',
       'delivery_mode' => 2
     ]);

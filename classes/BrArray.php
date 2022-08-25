@@ -10,43 +10,57 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrArray extends BrGenericDataType
 {
   /**
-   * Return length of the array
-   * @return integer
+   * @var array
    */
+  private array $value;
+
+  /**
+   * @param mixed $value
+   */
+  public function __construct($value = [])
+  {
+    parent::__construct();
+
+    $this->value = (array)$value;
+  }
+
   public function length(): int
   {
     return count($this->value);
   }
 
   /**
-   * @param alpha-numeric|array
+   * @param mixed
    * @param boolean
    * @return boolean
    */
-  public function contain($value, $ignoreCase = false)
+  public function contain($needle, bool $ignoreCase = false): bool
   {
-    return $this->exists($value, $ignoreCase);
+    return $this->exists($needle, $ignoreCase);
   }
 
   /**
-   * @param alpha-numeric|array
+   * @param mixed
    * @param boolean
    * @return boolean
    */
-  public function has($value, $ignoreCase = false)
+  public function has($needle, bool $ignoreCase = false): bool
   {
-    return $this->exists($value, $ignoreCase);
+    return $this->exists($needle, $ignoreCase);
   }
 
   /**
-   * @param alpha-numeric|array
+   * @param mixed
    * @param boolean
    * @return boolean
    */
-  public function exists($needle, $ignoreCase = false)
+  public function exists($needle, bool $ignoreCase = false): bool
   {
     $needle = is_array($needle) ? $needle : [$needle];
 
@@ -73,78 +87,61 @@ class BrArray extends BrGenericDataType
   }
 
   /**
-   * @param alpha-numeric
-   * @return integer
+   * @param $needle
+   * @return int
    */
-  public function indexOf($value)
+  public function indexOf($needle): int
   {
-    return array_search($value, $this->value);
+    $result = array_search((string)$needle, $this->value);
+
+    return ($result === false ? -1 : $result);
   }
 
   /**
+   * @param string $delimiters
+   * @param bool $removeEmpty
    * @return array
+   * @throws \Exception
    */
-  public function copy()
+  public function split(bool $removeEmpty = false): array
   {
-    return json_decode(json_encode($this->value), true);
+    if ($removeEmpty) {
+      return br($this->value)->removeEmptyValues(false);
+    } else {
+      return $this->value;
+    }
   }
 
   /**
+   * @param mixed
+   * @param bool $ignoreCase
    * @return array
+   * @throws \Exception
    */
-  public function split(): array
-  {
-    return $this->value;
-  }
-
-  /**
-   * @param string
-   * @return string
-   */
-  public function join($glue = ', '): string
-  {
-    return implode($glue, $this->value);
-  }
-
-  /**
-   * @param boolean
-   * @return array
-   */
-  public function removeEmptyValues($assoc = true)
+  public function compare($candidate, bool $ignoreCase = false): array
   {
     $result = [];
 
-    array_filter($this->value, function ($value, $name) use (&$result, $assoc) {
-      if ((is_array($value) && (count($value) > 0)) || (is_scalar($value) && (strlen($value) > 0))) {
-        if ($assoc) {
+    if (is_null($candidate)) {
+      $candidate = [null];
+    }
+
+    if (!is_array($candidate)) {
+      return $this->value;
+    }
+
+    array_filter($this->value, function ($value, $name) use ($candidate, &$result, $ignoreCase) {
+      if (array_key_exists($name, $candidate) && (is_scalar($value) || is_null($value)) && (is_scalar($candidate[$name]) || is_null($candidate[$name]))) {
+        if (br($value)->isNumeric() && br($candidate[$name])->isNumeric()) {
+          if (abs($value - $candidate[$name]) > 0.00001) {
+            $result[$name] = $value;
+          }
+        } elseif ($ignoreCase && strcasecmp($value, $candidate[$name]) !== 0) {
           $result[$name] = $value;
-        } else {
-          $result[] = $value;
-        }
-      }
-    }, ARRAY_FILTER_USE_BOTH);
-
-    return $result;
-  }
-
-  /**
-   * @param array
-   * @return array
-   */
-  public function compare($array2)
-  {
-    $result = [];
-
-    array_filter($this->value, function ($value, $name) use ($array2, &$result) {
-      if (!array_key_exists($name, $array2)) {
-        if (is_array($value) || (is_scalar($value) && (strlen($value) > 0))) {
+        } elseif (!$ignoreCase && strcmp($value, $candidate[$name]) !== 0) {
           $result[$name] = $value;
         }
-      } elseif (br($value)->isNumeric() && br($array2[$name])->isNumeric()) {
-        if (abs($value - $array2[$name]) > 0.00001) {
-          $result[$name] = $value;
-        }
-      } elseif ($value != $array2[$name]) {
+      } elseif (!is_null($value)) {
         $result[$name] = $value;
       }
     }, ARRAY_FILTER_USE_BOTH);
@@ -153,10 +150,152 @@ class BrArray extends BrGenericDataType
   }
 
   /**
-   * @param array
-   * @return boolean
+   * @param mixed $candidate
+   * @param bool $ignoreCase
+   * @return bool
+   * @throws \Exception
    */
-  public function hasOnlyNames($names)
+  public function equal($candidate, bool $ignoreCase = false): bool
+  {
+    return (count($this->compare($candidate, $ignoreCase)) == 0);
+  }
+
+  public function in(array $array): bool
+  {
+    $intersection = array_filter($this->value, function ($value) use ($array) {
+      return in_array($value, $array);
+    }, ARRAY_FILTER_USE_BOTH);
+    return (count($intersection) == count($this->value));
+  }
+
+  public function inArray(array $array): bool
+  {
+    return $this->in($array);
+  }
+
+  public function join(string $glue = ', '): string
+  {
+    return implode($glue, $this->value);
+  }
+
+  public function match(string $pattern, array &$matches = [], int $flags = 0, int $offset = 0): bool
+  {
+    foreach ($this->value as $index => $value) {
+      if (preg_match($pattern, $value, $tmpMatches, $flags, $offset)) {
+        $matches[] = [
+          'index' => $index,
+          'matches' => $tmpMatches,
+        ];
+      }
+    }
+
+    return !empty($matches);
+  }
+
+  public function matchAll(string $pattern, array &$matches = [], int $flags = PREG_PATTERN_ORDER, int $offset = 0): bool
+  {
+    foreach ($this->value as $index => $value) {
+      if (preg_match_all($pattern, $value, $tmpMatches, $flags, $offset)) {
+        $matches[] = [
+          'index' => $index,
+          'matches' => $tmpMatches,
+        ];
+      }
+    }
+
+    return !empty($matches);
+  }
+
+  public function isRegularArray(): bool
+  {
+    return (
+      count(array_filter($this->value, function ($value, $key) {
+        return is_array($value) || is_object($value) || !is_numeric($key);
+      }, ARRAY_FILTER_USE_BOTH)) === 0
+    );
+  }
+
+  public function isMultiArray(): bool
+  {
+    return (
+      count(array_filter($this->value, function ($value) {
+        return is_array($value);
+      }, ARRAY_FILTER_USE_BOTH)) > 0
+    );
+  }
+
+  public function isSimpleArray(): bool
+  {
+    if ($this->isEmpty()) {
+      return true;
+    }
+
+    $result = array_filter($this->value, function ($value, $key) {
+      return (
+        preg_match('/^[$]/', $key) ||
+        !is_string($key) ||
+        (
+          is_array($value) &&
+          count(array_filter($value, function ($value, $key) {
+            return !is_numeric($key) || !is_scalar($value);
+          }, ARRAY_FILTER_USE_BOTH)) > 0
+        )
+      );
+    }, ARRAY_FILTER_USE_BOTH);
+
+    return count($result) === 0;
+  }
+
+  /**
+   * @throws BrGenericDataTypeException
+   * @throws \Exception
+   */
+  public function toJSON()
+  {
+    $result = @json_encode($this->value);
+    if ($result === false) {
+      switch (json_last_error()) {
+        case JSON_ERROR_DEPTH:
+          throw new BrGenericDataTypeException('Maximum stack depth exceeded');
+        case JSON_ERROR_STATE_MISMATCH:
+          throw new BrGenericDataTypeException('Underflow or the modes mismatch');
+        case JSON_ERROR_CTRL_CHAR:
+          throw new BrGenericDataTypeException('Unexpected control character found');
+        case JSON_ERROR_SYNTAX:
+          throw new BrGenericDataTypeException('Syntax error, malformed JSON');
+        case JSON_ERROR_UTF8:
+          return br($this->utf8ize($this->value))->toJSON();
+        default:
+          throw new BrGenericDataTypeException('Unknown error');
+      }
+    }
+    return $result;
+  }
+
+  // array related
+
+  public function copy(): array
+  {
+    return json_decode(json_encode($this->value), true);
+  }
+
+  public function removeEmptyValues(bool $assoc = true): array
+  {
+    $result = array_filter($this->value, function ($value) {
+      return ((is_array($value) && (count($value) > 0)) || (is_scalar($value) && (strlen($value) > 0)));
+    }, ARRAY_FILTER_USE_BOTH);
+
+    if ($assoc) {
+      return $result;
+    } else {
+      return array_values($result);
+    }
+  }
+
+  /**
+   * @throws \Exception
+   */
+  public function hasOnlyNames($names): bool
   {
     $names = br($names)->split();
 
@@ -167,11 +306,7 @@ class BrArray extends BrGenericDataType
     return (count($result) === 0);
   }
 
-  /**
-   * @param alpha-numeric
-   * @return array
-   */
-  public function valuesOf($name)
+  public function valuesOf(string $name): array
   {
     $result = [];
     array_map(function ($item) use ($name, &$result) {
@@ -184,12 +319,13 @@ class BrArray extends BrGenericDataType
   }
 
   /**
-   * @param string|array
-   * @return array
+   * @throws \Exception
    */
-  public function extract($fields)
+  public function extract($fields): array
   {
     $fields = br($fields)->split();
+
+    $result = [];
 
     array_map(function ($item) use ($fields, &$result) {
       $row = [];
@@ -203,39 +339,13 @@ class BrArray extends BrGenericDataType
       }
     }, $this->value);
 
-    return $result ? $result : [];
+    return $result;
   }
 
   /**
-   * @param array
-   * @return boolean
+   * @throws \Exception
    */
-  public function in($array2)
-  {
-    if (is_array($array2)) {
-      $intersection = array_filter($this->value, function ($value) use ($array2) {
-        return in_array($value, $array2);
-      }, ARRAY_FILTER_USE_BOTH);
-      return (count($intersection) == count($this->value));
-    } else {
-      return false;
-    }
-  }
-
-  private function canMoveElement($element, $blockShufflingCheck)
-  {
-    if (is_callable($blockShufflingCheck)) {
-      return !$blockShufflingCheck($element);
-    } else {
-      return true;
-    }
-  }
-
-  /**
-   * @param function
-   * @return array
-   */
-  public function shuffle($blockShufflingCheck = null)
+  public function shuffle(?callable $blockShufflingCheck = null): array
   {
     $result = $this->value;
 
@@ -260,75 +370,41 @@ class BrArray extends BrGenericDataType
     return $result;
   }
 
-  /**
-   * @return boolean
-   */
-  public function isRegularArray()
+  public function sortKeysRecursively(): array
   {
-    return (
-      count(array_filter($this->value, function ($value, $key) {
-        return is_array($value) || is_object($value) || !is_numeric($key);
-      }, ARRAY_FILTER_USE_BOTH)) === 0
-    );
+    $result = $this->value;
+
+    ksort($result);
+    array_walk($result, [$this, 'sortArrayKeysRecursively']);
+
+    return $result;
   }
 
-  /**
-   * @return boolean
-   */
-  public function isMultiArray()
-  {
-    return (
-      count(array_filter($this->value, function ($value) {
-        return is_array($value);
-      }, ARRAY_FILTER_USE_BOTH)) > 0
-    );
-  }
+  // private
 
   /**
-   * @return boolean
+   * @param $element
+   * @param callable|null $blockShufflingCheck
+   * @return bool
    */
-  public function isSimpleArray()
+  private function canMoveElement($element, ?callable $blockShufflingCheck): bool
   {
-    if (count($this->value) === 0) {
+    if (is_callable($blockShufflingCheck)) {
+      return !$blockShufflingCheck($element);
+    } else {
       return true;
     }
-
-    $result = array_filter($this->value, function ($value, $key) {
-      return (
-        preg_match('/^[$]/', $key) ||
-        !is_string($key) ||
-        (
-          !is_scalar($value) &&
-          is_array($value) &&
-          count(array_filter($value, function ($value, $key) {
-            return !is_numeric($key) || !is_scalar($value);
-          }, ARRAY_FILTER_USE_BOTH)) > 0
-        )
-      );
-    }, ARRAY_FILTER_USE_BOTH);
-
-    return count($result) === 0;
   }
 
-  public function isNumeric()
-  {
-    return false;
-  }
-
-  protected function sortArrayKeysRecursively(&$item)
+  /**
+   * @param $item
+   * @return void
+   */
+  private function sortArrayKeysRecursively(&$item)
   {
     if (is_array($item)) {
       ksort($item);
       array_walk($item, [$this, 'sortArrayKeysRecursively']);
     }
-  }
-
-  public function sortKeysRecursively()
-  {
-    $array = $this->value;
-    ksort($array);
-    array_walk($array, [$this, 'sortArrayKeysRecursively']);
-
-    return $array;
   }
 }

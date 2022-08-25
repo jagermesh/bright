@@ -10,14 +10,29 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrXSS extends BrObject
 {
-  private $allowedDomains = [
-    'playposit.com', 'vimeo.com', 'youtu.be', 'youtube.com', 'flickr.com', 'soundcloud.com',
-    'edpuzzle.com', 'docs.google.com', 'drive.google.com'
+  private array $allowedDomains = [
+    'playposit.com',
+    'vimeo.com',
+    'youtu.be',
+    'youtube.com',
+    'flickr.com',
+    'soundcloud.com',
+    'edpuzzle.com',
+    'docs.google.com',
+    'drive.google.com'
   ];
 
-  public function cleanUp($html, $callback = null)
+  /**
+   * @param $html
+   * @param callable|null $callback
+   * @return mixed|string
+   */
+  public function cleanUp($html, callable $callback = null)
   {
     if (is_array($html)) {
       foreach ($html as $key => $value) {
@@ -26,11 +41,11 @@ class BrXSS extends BrObject
           $callback($key, $proceed);
         }
         if ($proceed) {
-          $html[$key] = $this->cleanUp($html[$key], $callback);
+          $html[$key] = $this->cleanUp($value, $callback);
         }
       }
     } else {
-      if (br()->HTML()->isHtml($html)) {
+      if (br()->html()->isHtml($html)) {
         $jsonArray = is_array(@json_decode($html, true));
         if (!$jsonArray) {
           require_once(dirname(__DIR__) . '/3rdparty/phpQuery/latest/phpQuery.php');

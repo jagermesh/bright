@@ -10,10 +10,15 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrErrorHandler extends BrObject
 {
   public function __construct()
   {
+    parent::__construct();
+
     error_reporting(E_ALL);
 
     set_error_handler([&$this, 'errorHandler']);
@@ -32,7 +37,10 @@ class BrErrorHandler extends BrObject
     }
   }
 
-  public function handleError($errno, $errmsg, $errfile, $errline, $shutdown = false)
+  /**
+   * @throws \ErrorException
+   */
+  public function handleError(int $errno, string $errorMessage, string $errorFile, string $errorLine, bool $shutdown = false)
   {
     if ($this->isEnabled()) {
       if ((error_reporting() & $errno) == $errno) {
@@ -41,16 +49,15 @@ class BrErrorHandler extends BrObject
           ini_set('display_errors', true);
         }
         if ($shutdown) {
-          br()->log()->error(new \ErrorException($errmsg, 0, $errno, $errfile, $errline));
+          br()->log()->error(new \ErrorException($errorMessage, 0, $errno, $errorFile, $errorLine));
         } else {
-          $exception = new \ErrorException($errmsg, 0, $errno, $errfile, $errline);
+          $exception = new \ErrorException($errorMessage, 0, $errno, $errorFile, $errorLine);
           switch ($errno) {
             case E_ERROR:
             case E_USER_NOTICE:
             case E_USER_WARNING:
             case E_USER_ERROR:
               throw $exception;
-              break;
             default:
               if (br()->request()->isDevHost() || (br()->isConsoleMode() && !br()->isJobMode())) {
                 throw $exception;
@@ -64,24 +71,27 @@ class BrErrorHandler extends BrObject
     }
   }
 
+  /**
+   * @throws \ErrorException
+   */
   public function captureShutdown()
   {
     if ($error = error_get_last()) {
       if ($this->isEnabled()) {
-        $errmsg = $error['message'];
+        $errorMessage = $error['message'];
         $errno = $error['type'];
-        $errfile = $error['file'];
-        $errline = $error['line'];
-        if ($errmsg != 'Unknown: Cannot destroy the zip context') {
+        $errorFile = $error['file'];
+        $errorLine = $error['line'];
+        if ($errorMessage != 'Unknown: Cannot destroy the zip context') {
           if (!br()->isThreadMode()) {
-            $this->handleError($errno, $errmsg, $errfile, $errline, true);
+            $this->handleError($errno, $errorMessage, $errorFile, $errorLine, true);
           }
         }
       }
     }
   }
 
-  public function exceptionHandler($e)
+  public function exceptionHandler(\Throwable $e)
   {
     if ($this->isEnabled()) {
       try {
@@ -108,8 +118,11 @@ class BrErrorHandler extends BrObject
     }
   }
 
-  public function errorHandler($errno, $errmsg, $errfile, $errline)
+  /**
+   * @throws \ErrorException
+   */
+  public function errorHandler(int $errno, string $errorMessage, string $errorFile, string $errorLine)
   {
-    $this->handleError($errno, $errmsg, $errfile, $errline, false);
+    $this->handleError($errno, $errorMessage, $errorFile, $errorLine);
   }
 }

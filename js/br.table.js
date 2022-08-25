@@ -152,17 +152,17 @@
         thead.css({
           'display': 'block',
           'box-sizing': 'border-box',
-          'overflow': 'hidden'
+          'overflow': 'hidden',
         });
         tbody.css({
           'display': 'block',
           'box-sizing': 'border-box',
-          'overflow': 'auto'
+          'overflow': 'auto',
         });
         table.css({
           'border-bottom': '0px',
           'border-left': '0px',
-          'border-right': '0px'
+          'border-right': '0px',
         });
         initialized = true;
       }

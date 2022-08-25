@@ -10,22 +10,26 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrOS extends BrObject
 {
-  public function execute($command)
+  public function execute(string $command): array
   {
     exec($command, $output);
-    return $output;
+
+    return (array)$output;
   }
 
-  public function killProcess($pid): bool
+  public function killProcess(string $pid): bool
   {
     $this->execute('kill ' . $pid);
 
     return !$this->isValidProcessId($pid);
   }
 
-  public function getCoresAmount()
+  public function getCoresAmount(): int
   {
     $result = 0;
 
@@ -48,13 +52,19 @@ class BrOS extends BrObject
     return $result;
   }
 
-  public function findProcesses($masks, $regexp = false): \ArrayObject
+  /**
+   * @param $masks
+   * @param bool $regexp
+   * @return \ArrayObject
+   */
+  public function findProcesses($masks, bool $regexp = false): \ArrayObject
   {
     $result = [];
 
     if (!is_array($masks)) {
       $masks = [$masks];
     }
+
     $output = $this->execute('ps ax 2>&1');
     foreach ($masks as $mask) {
       $mask = trim($mask);
@@ -84,24 +94,24 @@ class BrOS extends BrObject
     return new \ArrayObject($result);
   }
 
-  public function isValidProcessId($pid): bool
+  public function isValidProcessId(string $pid): bool
   {
     $output = $this->execute('ps -p ' . $pid);
 
     return (count($output) > 1);
   }
 
-  public function nohup($command): int
+  public function nohup(string $command): int
   {
     $output = $this->execute('nohup ' . $command . ' >/dev/null 2>&1 & echo $!');
 
     return (int)$output[0];
   }
 
-  public function isPHPScriptRunning($scriptCommand)
+  public function isPHPScriptRunning(string $scriptCommand): bool
   {
     $scriptCommand = trim($scriptCommand);
-    exec("ps ax 2>&1", $output);
+    exec('ps ax 2>&1', $output);
     foreach ($output as $line) {
       $line = trim($line);
       if (preg_match('#^([0-9]+).*?[0-9]+:[0-9.]+ .*?php .*?' . $scriptCommand . '$#', $line, $matches)) {
@@ -114,7 +124,7 @@ class BrOS extends BrObject
     return false;
   }
 
-  public function lockFileName($scriptCommand = null): string
+  public function lockFileName(?string $scriptCommand = null): string
   {
     if ($scriptCommand) {
       return rtrim(sys_get_temp_dir(), '/') . '/' . hash('sha256', $scriptCommand) . '.lock';
@@ -126,7 +136,7 @@ class BrOS extends BrObject
   /**
    * @throws BrAppException
    */
-  public function lockIfRunning($scriptCommand = null)
+  public function lockIfRunning(?string $scriptCommand = null)
   {
     $lockFile = $this->lockFileName($scriptCommand);
 

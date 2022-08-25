@@ -33,16 +33,21 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
 
   private $connection;
   private $config;
-  private $reconnectIterations = 50;
-  private $rerunIterations = 30;
+  private int $reconnectIterations = 50;
+  private int $rerunIterations = 30;
 
   public function __construct($config)
   {
+    parent::__construct();
+
     $this->config = $config;
 
     register_shutdown_function([&$this, 'captureShutdown']);
   }
 
+  /**
+   * @throws BrDBConnectionErrorException
+   */
   public function establishConnection()
   {
     if (!$this->connection) {
@@ -50,6 +55,9 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
     }
   }
 
+  /**
+   * @throws BrDBConnectionErrorException
+   */
   public function connect($iteration = 0, $rerunError = null)
   {
     $wasConnected = !empty($this->connection);
@@ -81,48 +89,48 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
       $port = br($this->config, 'port');
     }
 
-    try {
-      foreach ($dataBaseNames as $dataBaseName) {
-        if ($this->connection = @mysqli_connect($hostName, $userName, $password, $dataBaseName, $port)) {
-          $this->setDataBaseName($dataBaseName);
-          break;
-        }
-      }
-      if ($this->connection) {
-        if (br($this->config, 'charset')) {
-          $this->runQuery('SET NAMES ?', $this->config['charset']);
-        }
-        $this->version = mysqli_get_server_info($this->connection);
-
-        $this->triggerSticky(sprintf(BrConst::EVENT_AFTER, BrConst::EVENT_CONNECT));
-        br()->triggerSticky(sprintf(BrConst::EVENT_AFTER, BrConst::EVENT_BR_DB_CONNECT));
-
-        if ($wasConnected) {
-          $this->triggerSticky(sprintf(BrConst::EVENT_AFTER, BrConst::EVENT_RECONNECT));
-          br()->triggerSticky(sprintf(BrConst::EVENT_AFTER, BrConst::EVENT_BR_DB_RECONNECT));
-        }
-      } else {
-        throw new BrMySQLDBProviderException(mysqli_connect_errno() . ': ' . mysqli_connect_error());
-      }
-    } catch (\Exception $e) {
-      if (
-        preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_UNKNOWN_DATABASE), $e->getMessage()) ||
-        preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_ACCESS_DENIED), $e->getMessage())
-      ) {
-        $this->triggerSticky(BrConst::EVENT_CONNECT_ERROR, $e);
-        br()->triggerSticky(BrConst::EVENT_BR_DB_CONNECT_ERROR, $e);
-        if ($wasConnected) {
-          $this->triggerSticky(BrConst::EVENT_RECONNECT_ERROR, $e);
-          br()->triggerSticky(BrConst::EVENT_BR_DB_RECONNECT_ERROR, $e);
-        }
-        throw new BrDBConnectionErrorException($e->getMessage());
-      } else {
-        $this->connection = null;
-        usleep(250000);
-        $error = $e->getMessage() . ' (' . $userName . '@' . $hostName . ':' . $port . '' . $dataBaseName . ')';
-        $this->connect($iteration + 1, $error);
+    // try {
+    foreach ($dataBaseNames as $dataBaseName) {
+      if ($this->connection = @mysqli_connect($hostName, $userName, $password, $dataBaseName, $port)) {
+        $this->setDataBaseName($dataBaseName);
+        break;
       }
     }
+    if ($this->connection) {
+      if (br($this->config, 'charset')) {
+        $this->runQuery('SET NAMES ?', $this->config['charset']);
+      }
+      $this->version = mysqli_get_server_info($this->connection);
+
+      $this->triggerSticky(sprintf(BrConst::EVENT_AFTER, BrConst::EVENT_CONNECT));
+      br()->triggerSticky(sprintf(BrConst::EVENT_AFTER, BrConst::EVENT_BR_DB_CONNECT));
+
+      if ($wasConnected) {
+        $this->triggerSticky(sprintf(BrConst::EVENT_AFTER, BrConst::EVENT_RECONNECT));
+        br()->triggerSticky(sprintf(BrConst::EVENT_AFTER, BrConst::EVENT_BR_DB_RECONNECT));
+      }
+    } else {
+      throw new BrMySQLDBProviderException(mysqli_connect_errno() . ': ' . mysqli_connect_error());
+    }
+    // } catch (\Exception $e) {
+    //   if (
+    //     preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_UNKNOWN_DATABASE), $e->getMessage()) ||
+    //     preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_ACCESS_DENIED), $e->getMessage())
+    //   ) {
+    //     $this->triggerSticky(BrConst::EVENT_CONNECT_ERROR, $e);
+    //     br()->triggerSticky(BrConst::EVENT_BR_DB_CONNECT_ERROR, $e);
+    //     if ($wasConnected) {
+    //       $this->triggerSticky(BrConst::EVENT_RECONNECT_ERROR, $e);
+    //       br()->triggerSticky(BrConst::EVENT_BR_DB_RECONNECT_ERROR, $e);
+    //     }
+    //     throw new BrDBConnectionErrorException($e->getMessage());
+    //   } else {
+    //     $this->connection = null;
+    //     usleep(250000);
+    //     $error = $e->getMessage() . ' (' . $userName . '@' . $hostName . ':' . $port . $dataBaseName . ')';
+    //     $this->connect($iteration + 1, $error);
+    //   }
+    // }
 
     return $this->connection;
   }
@@ -150,19 +158,18 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
 
   public function selectNext($query, $options = [])
   {
-    $result = mysqli_fetch_assoc($query);
-    if (!br($options, 'doNotChangeCase')) {
-      if (is_array($result)) {
+    if ($result = mysqli_fetch_assoc($query)) {
+      if (!br($options, 'doNotChangeCase')) {
         $result = array_change_key_case($result, CASE_LOWER);
       }
-    }
 
-    return $result;
+      return $result;
+    }
   }
 
-  public function isEmptyDate($date)
+  public function isEmptyDate($date): bool
   {
-    return (($date == "0000-00-00") || ($date == "0000-00-00 00:00:00") || !$date);
+    return (($date == '0000-00-00') || ($date == '0000-00-00 00:00:00') || !$date);
   }
 
   public function toDateTime($date)
@@ -186,7 +193,10 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
     }
   }
 
-  public function getLastId()
+  /**
+   * @throws BrDBServerGoneAwayException
+   */
+  public function getLastId(): ?int
   {
     if ($this->connection) {
       return mysqli_insert_id($this->connection);
@@ -195,7 +205,10 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
     }
   }
 
-  public function getAffectedRowsAmount()
+  /**
+   * @throws BrDBServerGoneAwayException
+   */
+  public function getAffectedRowsAmount($query = null): int
   {
     if ($this->connection) {
       return mysqli_affected_rows($this->connection);
@@ -224,12 +237,22 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
     }
     $field_defs = array_change_key_case($field_defs, CASE_LOWER);
     foreach ($field_defs as $field => $defs) {
-      $field_defs[$field]['genericType'] = $this->toGenericDataType($field_defs[$field]['type']);
+      $field_defs[$field]['genericType'] = $this->toGenericDataType($defs['type']);
     }
 
     return $field_defs;
   }
 
+  /**
+   * @throws BrDBForeignKeyException
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBException
+   * @throws BrDBDeadLockException
+   * @throws BrDBUniqueException
+   * @throws BrDBEngineException
+   * @throws BrDBLockException
+   * @throws BrDBServerGoneAwayException
+   */
   public function runQueryEx($sql, $args = [], $iteration = 0, $rerunError = null, $resultMode = MYSQLI_STORE_RESULT)
   {
     try {
@@ -377,32 +400,32 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
     $this->disconnect();
   }
 
-  public function internalDataTypeToGenericDataType($type)
+  public function internalDataTypeToGenericDataType(string $type): int
   {
     switch (strtolower($type)) {
-      case "date";
+      case 'date';
         return self::DATA_TYPE_DATE;
-      case "datetime":
-      case "timestamp":
+      case 'datetime':
+      case 'timestamp':
         return self::DATA_TYPE_DATETIME;
-      case "time";
+      case 'time';
         return self::DATA_TYPE_TIME;
-      case "bigint":
-      case "int":
-      case "mediumint":
-      case "smallint":
-      case "tinyint":
+      case 'bigint':
+      case 'int':
+      case 'mediumint':
+      case 'smallint':
+      case 'tinyint':
         return self::DATA_TYPE_INTEGER;
-      case "decimal":
-      case "numeric":
-      case "double":
-      case "float":
+      case 'decimal':
+      case 'numeric':
+      case 'double':
+      case 'float':
         return self::DATA_TYPE_DECIMAL;
-      case "char":
-      case "longtext":
-      case "mediumtext":
-      case "text":
-      case "varchar":
+      case 'char':
+      case 'longtext':
+      case 'mediumtext':
+      case 'text':
+      case 'varchar':
         return self::DATA_TYPE_STRING;
       default:
         return self::DATA_TYPE_UNKNOWN;

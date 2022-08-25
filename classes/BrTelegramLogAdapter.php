@@ -10,22 +10,32 @@
 
 namespace Bright;
 
+use Longman\TelegramBot\Exception\TelegramException;
+use Longman\TelegramBot\Request;
+use Longman\TelegramBot\Telegram;
+
+/**
+ *
+ */
 class BrTelegramLogAdapter extends BrGenericLogAdapter
 {
-  private $cache;
-  private $cacheInitialized = false;
-  private $apiKey;
-  private $username;
-  private $chatIds;
-  private $telegram;
+  private BrGenericCacheProvider $cache;
+  private bool $cacheInitialized = false;
+  private string $apiKey;
+  private string $username;
+  private array $chatIds;
 
-  public function __construct($apiKey, $username, $chatIds)
+  /**
+   * @throws TelegramException
+   * @throws \Exception
+   */
+  public function __construct(string $apiKey, string $username, $chatIds)
   {
     $this->apiKey = $apiKey;
     $this->username = $username;
     $this->chatIds = br($chatIds)->split();
 
-    $this->telegram = new \Longman\TelegramBot\Telegram($this->apiKey, $this->username);
+    new Telegram($this->apiKey, $this->username);
 
     parent::__construct();
   }
@@ -43,7 +53,11 @@ class BrTelegramLogAdapter extends BrGenericLogAdapter
     }
   }
 
-  public function write($messageOrObject, $params)
+  /**
+   * @param $messageOrObject
+   * @param array|null $params
+   */
+  public function write($messageOrObject, ?array $params = [])
   {
     if ($this->apiKey && $this->username && $this->chatIds) {
       if ($this->isErrorEventType($params) || $this->isDebugEventType($params)) {
@@ -53,7 +67,7 @@ class BrTelegramLogAdapter extends BrGenericLogAdapter
               return;
             }
 
-            $excerpt = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, false);
+            $excerpt = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject);
 
             $this->initCache();
 
@@ -69,6 +83,8 @@ class BrTelegramLogAdapter extends BrGenericLogAdapter
               $subject = 'Error report: ' . $excerpt;
             } elseif ($this->isDebugEventType($params)) {
               $subject = 'Debug message: ' . $excerpt;
+            } else {
+              $subject = '';
             }
 
             $info = $this->getLogInfo($messageOrObject, $params, ['snapshot']);
@@ -81,7 +97,7 @@ class BrTelegramLogAdapter extends BrGenericLogAdapter
                   json_encode($info, JSON_PRETTY_PRINT) .
                   $message,
               ];
-              \Longman\TelegramBot\Request::sendMessage($payload);
+              Request::sendMessage($payload);
             }
           } catch (\Exception $e) {
             // no luck

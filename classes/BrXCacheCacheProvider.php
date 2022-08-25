@@ -10,11 +10,14 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrXCacheCacheProvider extends BrGenericCacheProvider
 {
-  public function __construct($settings = [])
+  public function __construct(?array $settings = [])
   {
-    parent::__construct($settings);
+    parent::__construct();
 
     if (br($settings, self::CACHE_LIFE_TIME)) {
       $this->setCacheLifeTime($settings[self::CACHE_LIFE_TIME]);
@@ -26,70 +29,65 @@ class BrXCacheCacheProvider extends BrGenericCacheProvider
     return extension_loaded('xcache');
   }
 
-  public function reset()
+  public function reset(): bool
   {
-    return xcache_clear_cache(XC_TYPE_VAR, 0);
+    return (bool)xcache_clear_cache(XC_TYPE_VAR, 0);
   }
 
-  public function exists($name): bool
+  public function exists(string $name): bool
   {
     $name = $this->getSafeName($name);
 
-    return xcache_isset($name);
+    return (bool)xcache_isset($name);
   }
 
-  public function get($name, $default = null, $saveDefault = false)
+  /**
+   * @param string $name
+   * @param null $default
+   * @param bool $saveDefault
+   * @return array
+   */
+  public function getEx(string $name, $default = null, bool $saveDefault = false): array
   {
     $name = $this->getSafeName($name);
 
-    $result = xcache_get($name);
+    $cachedValue = xcache_get($name);
 
-    if ($result === false) {
-      $result = $default;
-      if ($saveDefault) {
-        $this->set($name, $result);
+    if ($cachedValue === false) {
+      if ($saveDefault && $default) {
+        $this->set($name, $default);
       }
+      return [
+        'success' => $saveDefault,
+        'value' => $default
+      ];
     } else {
-      $result = unserialize($result);
-    }
-
-    return $result;
-  }
-
-  public function getEx($name)
-  {
-    $name = $this->getSafeName($name);
-
-    $result = xcache_get($name);
-
-    if ($result === false) {
-      $result = ['success' => false];
-    } else {
-      $result = ['success' => true, 'value' => unserialize($result)];
-    }
-
-    return $result;
-  }
-
-  public function set($name, $value, $lifeTime = null)
-  {
-    $name = $this->getSafeName($name);
-
-    if (!$lifeTime) {
-      $lifeTime = $this->getCacheLifeTime();
-    }
-
-    if (xcache_set($name, serialize($value), $lifeTime)) {
-      return $value;
-    } else {
-      return false;
+      return [
+        'success' => true,
+        'value' => json_decode($cachedValue, true),
+      ];
     }
   }
 
-  public function remove($name)
+  /**
+   * @param string $name
+   * @param $value
+   * @param int|null $lifeTime
+   * @return bool
+   */
+  public function set(string $name, $value, ?int $lifeTime = null): bool
+  {
+    $lifeTime = $lifeTime ? $lifeTime : $this->getCacheLifeTime();
+
+    $name = $this->getSafeName($name);
+
+    return (bool)xcache_set($name, json_encode($value), $lifeTime);
+  }
+
+  public function remove(string $name): bool
   {
     $name = $this->getSafeName($name);
 
-    return xcache_unset($name);
+    return (bool)xcache_unset($name);
   }
 }

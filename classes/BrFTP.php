@@ -34,7 +34,7 @@ class BrFTP extends BrRemoteConnection
         br()->log('Connecting to ' . $userName . '@' . $hostName . ($iteration > 1 ? ' (' . $iteration . ')' : ''));
         if ($_this->connectionId = ftp_connect($hostName, $port)) {
           if (ftp_login($_this->connectionId, $userName, $password)) {
-            if (ftp_pasv($_this->connectionId, $passiveMode ? true : false)) {
+            if (ftp_pasv($_this->connectionId, (bool)$passiveMode)) {
               $_this->currentDirectory = $_this->getServerDir();
             } else {
               throw new BrFTPException('Can not switch passive mode to ' . $passiveMode);

@@ -642,7 +642,7 @@
               try {
                 _this.ajaxRequest = null;
                 if (!br.isUnloading()) {
-                  var errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
+                  let errorMessage = (br.isEmpty(jqXHR.responseText) ? jqXHR.statusText : jqXHR.responseText);
                   reject({
                     request: request,
                     options: options,

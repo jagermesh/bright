@@ -51,6 +51,8 @@ class BrGenericSQLProviderTable extends BrObject
 
   public function __construct(&$provider, $tableName, $params = [])
   {
+    parent::__construct();
+
     $this->tableName = $tableName;
     $this->tableAlias = br($params, self::SQL_PROVIDER_OPTION_TABLE_ALIAS);
     $this->indexHint = br($params, self::SQL_PROVIDER_OPTION_INDEX_HINT);
@@ -116,6 +118,8 @@ class BrGenericSQLProviderTable extends BrObject
         return $row;
       }
     }
+
+    return [];
   }
 
   private function internaleInsert(&$values, $ignoreDuplicate = false)
@@ -168,6 +172,9 @@ class BrGenericSQLProviderTable extends BrObject
     return $this->internaleInsert($values, true);
   }
 
+  /**
+   * @throws BrGenericSQLProviderTableException
+   */
   public function replace(&$values)
   {
     $values = $this->validateRow($values);
@@ -186,7 +193,7 @@ class BrGenericSQLProviderTable extends BrObject
     $sql = 'REPLACE INTO ' . $this->tableName . ' (' . $fields_str . ') VALUES (' . $values_str . ')';
 
     $args = [];
-    foreach ($values as $field => $value) {
+    foreach ($values as $value) {
       $args[] = $value;
     }
 
@@ -201,6 +208,9 @@ class BrGenericSQLProviderTable extends BrObject
     }
   }
 
+  /**
+   * @throws BrGenericSQLProviderTableException
+   */
   public function update($values, $filter)
   {
     $values = $this->validateRow($values);
@@ -251,10 +261,10 @@ class BrGenericSQLProviderTable extends BrObject
     }
 
     if (is_array($filter)) {
-      foreach ($filter as $field => $value) {
+      foreach ($filter as $value) {
         $args[] = $value;
       }
-    } elseif ($filter) {
+    } else {
       $args[] = $filter;
     }
 
@@ -455,6 +465,9 @@ class BrGenericSQLProviderTable extends BrObject
     }
   }
 
+  /**
+   * @throws BrGenericSQLProviderTableException
+   */
   private function compileFilter($filter, $tableName, $fieldName, $link, &$joins, &$joinsTables, &$where, &$args)
   {
     foreach ($filter as $currentFieldName => $filterValue) {
@@ -498,7 +511,7 @@ class BrGenericSQLProviderTable extends BrObject
           $this->compileNotExists($filterValue, $tableName, $link, $where);
           break;
         case BrConst::FILTER_RULE_JOIN:
-          $this->compileJoin($filterValue, $tableName, $fieldName, $joins, $joinsTables, self::SQL_JOIN_TYPE_INNER);
+          $this->compileJoin($filterValue, $tableName, $fieldName, $joins, $joinsTables);
           break;
         case BrConst::FILTER_RULE_LEFT_JOIN:
           $this->compileJoin($filterValue, $tableName, $fieldName, $joins, $joinsTables, self::SQL_JOIN_TYPE_LEFT);
@@ -693,26 +706,22 @@ class BrGenericSQLProviderTable extends BrObject
               $this->compileFilter($filterValue, $tableName, is_numeric($currentFieldName) ? $fieldName : $currentFieldName,
                 $link, $joins, $joinsTables, $where, $args);
             }
-          } else {
-            if (is_object($filterValue) && ($filterValue instanceof BrGenericSQLRegExp)) {
-              $where .= $link . $fname . self::SQL_CMD_REGEXP;
-              $args[] = preg_replace('~([?*+\(\)])~', '[$1]', str_replace('\\', '\\\\', rtrim(ltrim($filterValue->getValue(), '/'), '/i')));
+          } elseif ($filterValue instanceof BrGenericSQLRegExp) {
+            $where .= $link . $fname . self::SQL_CMD_REGEXP;
+            $args[] = preg_replace('~([?*+\(\)])~', '[$1]', str_replace('\\', '\\\\', rtrim(ltrim($filterValue->getValue(), '/'), '/i')));
+          } elseif (br($filterValue)->isEmpty()) {
+            if (is_numeric($currentFieldName)) {
+              $where .= $link . $fname2 . self::SQL_CMD_IS_NULL;
             } else {
-              if (strlen($filterValue) > 0) {
-                if (is_numeric($currentFieldName)) {
-                  $where .= $link . $fname2 . ' = ?';
-                } else {
-                  $where .= $link . $fname . ' = ?';
-                }
-                $args[] = $filterValue;
-              } else {
-                if (is_numeric($currentFieldName)) {
-                  $where .= $link . $fname2 . self::SQL_CMD_IS_NULL;
-                } else {
-                  $where .= $link . $fname . self::SQL_CMD_IS_NULL;
-                }
-              }
+              $where .= $link . $fname . self::SQL_CMD_IS_NULL;
             }
+          } else {
+            if (is_numeric($currentFieldName)) {
+              $where .= $link . $fname2 . ' = ?';
+            } else {
+              $where .= $link . $fname . ' = ?';
+            }
+            $args[] = $filterValue;
           }
           break;
       }

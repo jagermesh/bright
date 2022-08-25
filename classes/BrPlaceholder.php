@@ -120,7 +120,7 @@ class BrPlaceholder extends BrObject
       $result = $comma = '';
       foreach ($value as $oneValue) {
         $result .= $comma . self::formatString($oneValue);
-        $comma = ",";
+        $comma = ',';
       }
       return $result;
     } else {

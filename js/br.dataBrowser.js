@@ -123,8 +123,8 @@
       },
       appendInInsert: _this.options.appendInInsert,
       defaultOrderAndGroup: _this.options.defaultOrderAndGroup,
-      fixedHeader: _this.options.fixedHeader,
-      autoHeight: !br.isMobileDevice() ? _this.options.autoHeight : false,
+      fixedHeader: br.isMobileDevice() ? false : _this.options.fixedHeader,
+      autoHeight: _this.options.autoHeight,
       autoWidth: _this.options.autoWidth,
       storageTag: _this.options.storageTag,
       storeDataRow: _this.options.storeDataRow
@@ -188,6 +188,10 @@
 
     _this.setFilter = function(name, value) {
       _this.dataGrid.setFilter(name, value);
+    };
+
+    _this.clearFilter = function(name) {
+      _this.dataGrid.clearFilter(name);
     };
 
     _this.getFilter = function(name, defaultValue) {
@@ -309,12 +313,16 @@
       }
     };
 
+    _this.getKeywordFilterControl = function() {
+      return $(findNode('input.data-filter[name="keyword"]'));
+    }
+
     _this.init = function() {
       if (_this.options.nav) {
         $(`.nav-item[rel="${_this.options.nav}"]`).addClass('active');
       }
 
-      const keywordControl = $(findNode('input.data-filter[name="keyword"]'));
+      const keywordControl = _this.getKeywordFilterControl();
       const inputControls = $(findNode('input.data-filter,select.data-filter'));
 
       _this.dataSource.before('select', function(request, options) {
@@ -483,14 +491,17 @@
         _this.refresh();
       });
 
-      $(findNode('input.data-filter[name=keyword]')).val(_this.getFilter('keyword'));
+      if (_this.getFilter('keyword')) {
+        $(findNode('input.data-filter[name="keyword"]')).val(_this.getFilter('keyword'));
+        br.markInputAsModified($(findNode('input.data-filter[name="keyword"]')));
+      }
 
       $(findNode('.action-reset-filters')).on('click', function() {
         _this.resetFilters(false, $(this).attr('data-in-popup'));
       });
 
       function checkAutoLoad() {
-        const docsHeight = $(_this.options.selectors.dataTable).height();
+        const docsHeight = _this.getTableContainer().height();
         const docsContainerHeight = _this.getScrollContainer().height();
         const scrollTop = _this.getScrollContainer().scrollTop();
 
@@ -509,6 +520,14 @@
         _this.selectAll($(this).is(':checked'));
       });
 
+      $(document).on('click', findNode('.action-clear-selection'), function() {
+        _this.clearSelection();
+      });
+
+      $(document).on('click', findNode('.action-delete-selected'), function() {
+        _this.deleteSelection();
+      });
+
       $(document).on('click', findNode('.action-select-row'), function() {
         const row = $(this).closest('[data-rowid]');
         const rowid = row.attr('data-rowid');
@@ -518,14 +537,6 @@
         } else {
           _this.unSelectRow(rowid);
         }
-      });
-
-      $(document).on('click', findNode('.action-clear-selection'), function() {
-        _this.clearSelection();
-      });
-
-      $(document).on('click', findNode('.action-delete-selected'), function() {
-        _this.deleteSelection();
       });
 
       _this.dataGrid.before('changeOrder', function() {
@@ -548,7 +559,7 @@
         if (count > 0) {
           $(findNode('.selection-count')).text(count);
           $(findNode('.selection-stat')).text(`${count} record(s) selected`);
-          $(findNode('.selection-stat')).show();
+          $(findNode('.pager-selection-container')).show();
           $(findNode('.action-clear-selection')).show();
           const selection = _this.selection.get();
           let deletable = selection.filter(function(rowid) {
@@ -561,7 +572,7 @@
           }
         } else {
           $(findNode('.selection-count')).text('0');
-          $(findNode('.selection-stat')).hide();
+          $(findNode('.pager-selection-container')).hide();
           $(findNode('.action-clear-selection')).hide();
           $(findNode('.action-delete-selected')).hide();
         }
@@ -630,7 +641,7 @@
           $pc.html(s);
           $(findNode('.pager-page-size-container')).show();
         } else {
-          $(findNode('.pager-page-size-container')).css('display', 'none');
+          $(findNode('.pager-page-size-container')).hide();
         }
 
         const min = (_this.skip + 1);
@@ -641,20 +652,20 @@
             $(findNode('.action-next')).show();
             $(findNode('.pager-action-next')).show();
           } else {
-            $(findNode('.action-next')).css('display', 'none');
-            $(findNode('.pager-action-next')).css('display', 'none');
+            $(findNode('.action-next')).hide();
+            $(findNode('.pager-action-next')).hide();
           }
           if (_this.skip > 0) {
             $(findNode('.action-prior')).show();
             $(findNode('.pager-action-prior')).show();
           } else {
-            $(findNode('.action-prior')).css('display', 'none');
-            $(findNode('.pager-action-prior')).css('display', 'none');
+            $(findNode('.action-prior')).hide();
+            $(findNode('.pager-action-prior')).hide();
           }
-          $(findNode('.pager-control')).show();
+          _this.showPager();
           _this.events.triggerAfter('pager.show');
         } else {
-          $(findNode('.pager-control')).css('display', 'none');
+          _this.hidePager();
           _this.events.triggerAfter('pager.hide');
         }
         $(findNode('.pager-stat')).text('Records ' + min + '-' + max + ' of ' + _this.recordsAmount);
@@ -668,9 +679,19 @@
       }
     }
 
+    _this.hidePager = function() {
+      $(findNode('.pager-pager-container')).hide();
+      $(findNode('.pager-page-size-container')).hide();
+    };
+
+    _this.showPager = function() {
+      $(findNode('.pager-pager-container')).show();
+      $(findNode('.pager-page-size-container')).show();
+    };
+
     _this.reset = function() {
       _this.getTableContainer().html('');
-      $(findNode('.pager-control')).hide();
+      _this.showPager();
     };
 
     _this.restoreSelection = function(selection) {
@@ -727,7 +748,7 @@
             internalUpdatePager();
             _this.events.triggerAfter('recordsCountRetrieved', result);
           } else {
-            $(findNode('.pager-control')).css('display', 'none');
+            _this.hidePager();
             _this.events.triggerAfter('pager.hide');
           }
         });
@@ -746,10 +767,11 @@
     };
 
     _this.unSelectRow = function(rowid, multiple) {
-      const chk = $(_this.options.selectors.dataTable).find(`input.action-select-row[value="${rowid}"]`);
-      const row = (chk.length > 0) ? $(chk).closest('[data-rowid]') : $(_this.options.selectors.dataTable).find(`tr[data-rowid="${rowid}"]`);
+      const chk = _this.getTableContainer().find(`input.action-select-row[value="${rowid}"]`);
+      const row = (chk.length > 0) ? $(chk).closest('[data-rowid]') : _this.getTableContainer().find(`tr[data-rowid="${rowid}"]`);
       if (row.length > 0) {
-        row.find('.action-select-row').prop('checked', false);
+        const action = $(row.find('.action-select-row')[0]);
+        action.prop('checked', false);
         row.removeClass('row-selected');
       }
       _this.selection.remove(rowid);
@@ -759,10 +781,11 @@
     };
 
     _this.selectRow = function(rowid, multiple) {
-      const chk = $(_this.options.selectors.dataTable).find('input.action-select-row[value=' + rowid + ']');
-      const row = (chk.length > 0) ? $(chk).closest('[data-rowid]') : $(_this.options.selectors.dataTable).find(`tr[data-rowid="${rowid}"]`);
+      const chk = _this.getTableContainer().find(`input.action-select-row[value="${rowid}"]`);
+      const row = (chk.length > 0) ? $(chk).closest('[data-rowid]') : _this.getTableContainer().find(`tr[data-rowid="${rowid}"]`);
       if (row.length > 0) {
-        row.find('.action-select-row').prop('checked', true);
+        const action = $(row.find('.action-select-row')[0]);
+        action.prop('checked', true);
         row.addClass('row-selected');
         _this.selection.append(rowid);
         if (!multiple) {

@@ -2,7 +2,7 @@
 
 namespace Bright;
 
-class BrOAuthV2 extends BrRemoteConnection
+class BrOAuthV2 extends BrOAuth
 {
   private $OAuthKey;
   private $OAuthSecret;
@@ -12,8 +12,10 @@ class BrOAuthV2 extends BrRemoteConnection
 
   public $debugMode = false;
 
-  public function __construct($key = '', $secret = '', $tokenUrl = '', $scope = '')
+  public function __construct(string $key = '', string $secret = '', string $tokenUrl = '', string $scope = '')
   {
+    parent::__construct();
+
     $this->OAuthKey = $key;
     $this->OAuthSecret = $secret;
     $this->OAuthTokenUrl = $tokenUrl;
@@ -21,7 +23,12 @@ class BrOAuthV2 extends BrRemoteConnection
     $this->cachedName = 'OAuth2' . $key;
   }
 
-  public function getAccessToken($key, $secret, $url, array $additionalFields = [])
+  public function resetToken()
+  {
+    br()->cache('redis')->remove($this->cachedName);
+  }
+
+  public function getAccessToken(string $key, string $secret, string $url, array $additionalFields = [])
   {
     $token = br()->cache('redis')->get($this->cachedName);
 
@@ -73,16 +80,22 @@ class BrOAuthV2 extends BrRemoteConnection
         logme('Response: ' . $rawResponse);
       }
 
-      if ($response) {
-        $token = $response['token_type'] . ' ' . $response['access_token'];
-        br()->cache('redis')->set($this->cachedName, $token, 3600);
+      if ($responseCode >= 400) {
+        throw new BrOAuthV2Exception(br($response, 'error_description', 'Failed to retrieve token'));
+      } else {
+        if (br($response, 'token_type') && br($response, 'access_token')) {
+          $token = $response['token_type'] . ' ' . $response['access_token'];
+          br()->cache('redis')->set($this->cachedName, $token, 20*60);
+        } else {
+          throw new BrOAuthV2Exception('Unexpected response from authorization request: ' . json_encode($response));
+        }
       }
     }
 
     return $token;
   }
 
-  public function sendSignedRequest($method, $url, $params = [], $content = '', array $additionalHeaders = [])
+  public function sendSignedRequest(string $method, string $url, array $params = [], string $content = '', array $additionalHeaders = [])
   {
     $checkurl = parse_url($url);
 
@@ -107,55 +120,71 @@ class BrOAuthV2 extends BrRemoteConnection
           throw new BrOAuthV2Exception('Unknown request method');
       }
 
-      $headers = [];
-      $headers[] = sprintf(BrConst::HEADER_CACHE_CONTROL, 'no-cache');
-      $headers[] = sprintf(BrConst::HEADER_AUTHORIZATION, $this->getAccessToken($this->OAuthKey, $this->OAuthSecret, $this->OAuthTokenUrl));
-      $headers[] = sprintf(BrConst::HEADER_CONTENT_TYPE, 'application/json;charset=UTF-8');
+      try {
+        $token = $this->getAccessToken($this->OAuthKey, $this->OAuthSecret, $this->OAuthTokenUrl);
 
-      foreach ($additionalHeaders as $additionalHeader) {
-        $headers[] = $additionalHeader;
+        $headers = [];
+        $headers[] = sprintf(BrConst::HEADER_CACHE_CONTROL, 'no-cache');
+        $headers[] = sprintf(BrConst::HEADER_AUTHORIZATION, $token);
+        $headers[] = sprintf(BrConst::HEADER_CONTENT_TYPE, 'application/json;charset=UTF-8');
+
+        foreach ($additionalHeaders as $additionalHeader) {
+          $headers[] = $additionalHeader;
+        }
+
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($curl, CURLOPT_HEADER, 0);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($curl, CURLOPT_USERAGENT, br($_SERVER, BrConst::PHP_SERVER_VAR_HTTP_USER_AGENT, BrConst::TYPICAL_USER_AGENT));
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 1);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+
+        if ($this->debugMode) {
+          curl_setopt($curl, CURLOPT_VERBOSE, true);
+          logme('Url: ' . $url);
+          logme('Payload: ' . $content);
+        }
+
+        $rawResponse = curl_exec($curl);
+        $responseCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $response = @json_decode($rawResponse, true);
+        if (!$response) {
+          $response = $rawResponse;
+        }
+
+        if ($this->debugMode) {
+          logme('ResponseCode: ' . $responseCode);
+          logme('Response: ' . $rawResponse);
+        }
+
+        return [
+          'responseCode' => $responseCode,
+          'response' => $response,
+        ];
+      } catch (\Exception $e) {
+        return [
+          'responseCode' => 401,
+          'response' => [
+            'errors' => [
+              0 => [
+                'description' => $e->getMessage()
+              ]
+            ]
+          ]
+        ];
       }
-
-      curl_setopt($curl, CURLOPT_URL, $url);
-      curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
-      curl_setopt($curl, CURLOPT_HEADER, 0);
-      curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-      curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-      curl_setopt($curl, CURLOPT_USERAGENT, br($_SERVER, BrConst::PHP_SERVER_VAR_HTTP_USER_AGENT, BrConst::TYPICAL_USER_AGENT));
-      curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 1);
-      curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
-      curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
-      curl_setopt($curl, CURLOPT_TIMEOUT, 60);
-
-      if ($this->debugMode) {
-        curl_setopt($curl, CURLOPT_VERBOSE, true);
-        logme('Url: ' . $url);
-        logme('Payload: ' . $content);
-      }
-
-      $rawResponse = curl_exec($curl);
-      $responseCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-      $response = @json_decode($rawResponse, true);
-      if (!$response) {
-        $response = $rawResponse;
-      }
-
-      if ($this->debugMode) {
-        logme('ResponseCode: ' . $responseCode);
-        logme('Response: ' . $rawResponse);
-      }
-
-      return [
-        'responseCode' => $responseCode,
-        'response' => $response,
-      ];
     } else {
       return [
         'responseCode' => 500,
-        'response' => [],
-        'errors' => [
-          0 => [
-            'description' => 'Not a valid host name. ' . $url
+        'response' => [
+          'errors' => [
+            0 => [
+              'description' => 'Not a valid host name. ' . $url
+            ]
           ]
         ]
       ];

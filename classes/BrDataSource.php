@@ -23,50 +23,34 @@ class BrDataSource extends BrGenericDataSource
     parent::__construct($options);
   }
 
-  public function dbEntity($newValue = null)
-  {
-    if ($newValue) {
-      $this->dbEntity = $newValue;
-    }
-
-    return $this->dbEntity;
-  }
-
   public function getDbEntity()
   {
     return $this->dbEntity;
   }
 
-  public function setDbEntity($newValue)
+  public function setDbEntity($value)
   {
-    $this->dbEntity = $newValue;
-
-    return $this->dbEntity;
+    $this->dbEntity = $value;
   }
 
-  public function dbEntityAlias($newValue = null)
+  public function getDbEntityAlias()
   {
-    if ($newValue) {
-      $this->dbEntityAlias = $newValue;
-    }
-
     return $this->dbEntityAlias;
   }
 
-  public function setDbEntityAlias($newValue)
+  public function setDbEntityAlias($value)
   {
-    $this->dbEntityAlias = $newValue;
-
-    return $this->dbEntityAlias;
+    $this->dbEntityAlias = $value;
   }
 
-  public function dbIndexHint($newValue = null)
+  public function getDbIndexHint()
   {
-    if ($newValue) {
-      $this->dbIndexHint = $newValue;
-    }
-
     return $this->dbIndexHint;
+  }
+
+  public function setDbIndexHint($value)
+  {
+    $this->dbIndexHint = $value;
   }
 
   protected function internalSelect($filter = [], $fields = [], $order = [], $options = [])
@@ -132,7 +116,6 @@ class BrDataSource extends BrGenericDataSource
       $fields = $options[BrConst::DATASOURCE_OPTION_FIELDS];
     }
 
-
     $this->validateSelect($filter);
 
     $result = $this->callEvent(BrConst::DATASOURCE_EVENT_SELECT, $filter, $transientData, $options);
@@ -143,8 +126,8 @@ class BrDataSource extends BrGenericDataSource
     if (is_null($result)) {
       $result = [];
       $this->lastSelectAmount = 0;
-      $table = $this->getDb()->table($this->dbEntity(), $this->dbEntityAlias(), [BrConst::DATASOURCE_OPTION_INDEX_HINT => $this->dbIndexHint]);
-      if (!strlen($resultsLimit) || ($resultsLimit > 0)) {
+      $table = $this->getDb()->table($this->getDbEntity(), $this->getDbEntityAlias(), [BrConst::DATASOURCE_OPTION_INDEX_HINT => $this->getDbIndexHint()]);
+      if (!$resultsLimit || ($resultsLimit > 0)) {
         try {
           $cursor = $table->select($filter, $fields, $distinct);
 
@@ -341,7 +324,7 @@ class BrDataSource extends BrGenericDataSource
 
         if (is_null($result)) {
           if ($row) {
-            $table = $this->getDb()->table($this->dbEntity());
+            $table = $this->getDb()->table($this->getDbEntity());
             $rowid = $table->insert($row);
             $tmpOptions = $options;
             $tmpOptions[BrConst::DATASOURCE_OPTION_NO_CALC_FIELDS] = true;
@@ -423,7 +406,7 @@ class BrDataSource extends BrGenericDataSource
     $options[BrConst::DATASOURCE_OPTION_RENDER_MODE] = br($options, BrConst::DATASOURCE_OPTION_RENDER_MODE);
     $options[BrConst::DATASOURCE_OPTION_FILTER] = [];
 
-    $table = $this->getDb()->table($this->dbEntity());
+    $table = $this->getDb()->table($this->getDbEntity());
 
     $filter = [];
     $filter[$this->getDb()->rowidField()] = $this->getDb()->rowid($rowid);
@@ -455,7 +438,7 @@ class BrDataSource extends BrGenericDataSource
           if (is_null($result)) {
             $changes = [];
             foreach ($new as $name => $value) {
-              if (!array_key_exists($name, $old) || ($new[$name] !== $old[$name])) {
+              if (!array_key_exists($name, $old) || ($value !== $old[$name])) {
                 $changes[$name] = $value;
               }
             }
@@ -518,7 +501,7 @@ class BrDataSource extends BrGenericDataSource
           if (preg_match("/Data truncated for column '([a-z_]+)'/i", $error, $matches)) {
             br()->log()->error($e);
             throw new BrAppException('Wrong value for field ' .
-              br()->config()->get('dbSchema.' . $this->dbEntity() . '.' . $matches[1] . '.displayName', $matches[1]));
+              br()->config()->get('dbSchema.' . $this->getDbEntity() . '.' . $matches[1] . '.displayName', $matches[1]));
           }
           throw $e;
         }
@@ -544,7 +527,7 @@ class BrDataSource extends BrGenericDataSource
     $options[BrConst::DATASOURCE_OPTION_RENDER_MODE] = br($options, BrConst::DATASOURCE_OPTION_RENDER_MODE);
     $options[BrConst::DATASOURCE_OPTION_FILTER] = [];
 
-    $table = $this->getDb()->table($this->dbEntity());
+    $table = $this->getDb()->table($this->getDbEntity());
 
     $filter = [];
     $filter[$this->getDb()->rowidField()] = $this->getDb()->rowid($rowid);

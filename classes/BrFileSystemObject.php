@@ -10,12 +10,15 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrFileSystemObject
 {
-  private $name;
-  private $path;
+  private string $name;
+  private string $path;
 
-  public function __construct($path)
+  public function __construct(string $path)
   {
     $info = pathinfo($path);
     $this->name = $info['basename'];
@@ -32,12 +35,12 @@ class BrFileSystemObject
     return is_dir($this->nameWithPath());
   }
 
-  public function name()
+  public function name(): string
   {
     return $this->name;
   }
 
-  public function path()
+  public function path(): string
   {
     return $this->path;
   }

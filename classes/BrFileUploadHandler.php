@@ -10,13 +10,20 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrFileUploadHandler extends BrGenericUploadHandler
 {
   /**
    * Save the file to the specified path
-   * @return boolean TRUE on success
+   * @param string $srcFilePath
+   * @param string $path
+   * @return array
+   * @throws BrFileSystemException
+   * @throws BrGenericUploadHandlerException
    */
-  public function save($srcFilePath, $path)
+  public function save(string $srcFilePath, string $path): array
   {
     if (br($this->options, 'basePath')) {
       $dstPath = rtrim($this->options['basePath'], '/') . '/' . ltrim(rtrim($path, '/'), '/') . '/';

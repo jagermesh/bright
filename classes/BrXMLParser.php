@@ -10,10 +10,12 @@
 
 namespace Bright;
 
+/**
+ *
+ */
 class BrXMLParser extends BrObject
 {
   private $xmlParserError = null;
-  private $xmlParser = null;
   private $currentTag = '';
   private $currentState = [];
   private $context = '';
@@ -27,25 +29,25 @@ class BrXMLParser extends BrObject
     $this->currentTag = '';
     $this->currentState = [];
 
-    $this->xmlParser = xml_parser_create();
+    $xmlParser = xml_parser_create();
 
-    xml_parser_set_option($this->xmlParser, XML_OPTION_TARGET_ENCODING, "UTF-8");
-    xml_set_object($this->xmlParser, $this);
-    xml_set_element_handler($this->xmlParser, 'startElement', 'endElement');
-    xml_set_character_data_handler($this->xmlParser, 'content');
+    xml_parser_set_option($xmlParser, XML_OPTION_TARGET_ENCODING, 'UTF-8');
+    xml_set_object($xmlParser, $this);
+    xml_set_element_handler($xmlParser, 'startElement', 'endElement');
+    xml_set_character_data_handler($xmlParser, 'content');
 
     $this->trigger('before:import');
 
     try {
-      if (!xml_parse($this->xmlParser, $xml)) {
-        $this->xmlParserError = 'Line ' . xml_get_current_line_number($this->xmlParser) . ': ' .
-          (xml_get_error_code($this->xmlParser) ? xml_error_string(xml_get_error_code($this->xmlParser)) : 'Unknown error');
+      if (!xml_parse($xmlParser, $xml)) {
+        $this->xmlParserError = 'Line ' . xml_get_current_line_number($xmlParser) . ': ' .
+          (xml_get_error_code($xmlParser) ? xml_error_string(xml_get_error_code($xmlParser)) : 'Unknown error');
       }
     } catch (\Exception $e) {
       $this->xmlParserError = $e->getMessage();
     }
 
-    xml_parser_free($this->xmlParser);
+    xml_parser_free($xmlParser);
 
     if ($this->xmlParserError) {
       $this->raiseError($this->xmlParserError);
@@ -122,7 +124,7 @@ class BrXMLParser extends BrObject
     $this->currentState[] = $value;
   }
 
-  public function startElement($parser, $name, $attrs = array())
+  public function startElement($parser, $name, $attrs = [])
   {
     $this->setCurrentTag($name);
     $this->setCurrentState($name);
