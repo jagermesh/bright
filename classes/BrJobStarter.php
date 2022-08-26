@@ -60,7 +60,7 @@ class BrJobStarter
         } else {
           $tag = 'run-' . $tag;
         }
-        $handle = br()->OS()->lockIfRunning($tag);
+        $handle = br()->os()->lockIfRunning($tag);
         require_once($classFile);
         $job = new $className();
         try {
@@ -73,11 +73,11 @@ class BrJobStarter
           }
           br()->log()->message('[' . $className . '] Done');
           @fclose($handle);
-          @unlink(br()->OS()->lockFileName($tag));
+          @unlink(br()->os()->lockFileName($tag));
           return true;
         } catch (\Exception $e) {
           @fclose($handle);
-          @unlink(br()->OS()->lockFileName($tag));
+          @unlink(br()->os()->lockFileName($tag));
           throw $e;
         }
       } else {

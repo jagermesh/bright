@@ -27,7 +27,7 @@ class BrJobsManager
     if (!br()->isConsoleMode()) {
       br()->panic('Console mode only');
     }
-    $handle = br()->OS()->lockIfRunning(br()->getScriptPath());
+    $handle = br()->os()->lockIfRunning(br()->getScriptPath());
 
     br()->log('[...] Jobs folder: ' . $this->jobsFolder);
 

@@ -39,7 +39,7 @@ class BrJobCustomJob extends BrObject
     $this->lastRunFile = br()->getTempPath() . get_class($this) . '.timestamp';
     $this->checkJobCommand = self::CHECK_JOB_SCRIPT . ' ' . get_class($this);
     $this->runJobCommand = self::RUN_JOB_SCRIPT . ' ' . get_class($this);
-    $this->coresAmount = br()->OS()->getCoresAmount();
+    $this->coresAmount = br()->os()->getCoresAmount();
     $this->maxProcessesAmount = $this->coresAmount * self::MAX_PROCESSES_AMOUNT_MULTIPLIER;
   }
 
@@ -73,7 +73,7 @@ class BrJobCustomJob extends BrObject
    */
   public function spawn(bool $check, ?string $arguments = '')
   {
-    while (br()->OS()->findProcesses([self::RUN_JOB_SCRIPT])->count() > $this->maxProcessesAmount) {
+    while (br()->os()->findProcesses([self::RUN_JOB_SCRIPT])->count() > $this->maxProcessesAmount) {
       br()->log('[...] Too many processes started, maximum is ' . $this->maxProcessesAmount . '. Waiting to continue');
       sleep(self::JOB_RUN_RECHECK_PERIOD);
     }
@@ -82,7 +82,7 @@ class BrJobCustomJob extends BrObject
     $runCommandWithPath = $this->getCommand($check, true, $arguments);
 
     br()->log('[CHK] Checking ' . $runCommandWithPath);
-    if (br()->OS()->findProcesses($runCommandWithPath)->count() == 0) {
+    if (br()->os()->findProcesses($runCommandWithPath)->count() == 0) {
       $logFileName = br()->getLogsPath();
       if (is_writable($logFileName) && br()->config()->get(BrConst::CONFIG_OPTION_LOGGER_FILE_ACTIVE)) {
         $logFileName .= date('Y-m-d') . '/' . date('H-00') . '/' . br()->fs()->normalizeFileName(trim($runCommand));

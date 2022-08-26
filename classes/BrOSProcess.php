@@ -28,14 +28,14 @@ class BrOSProcess extends BrObject
 
   public function kill(): bool
   {
-    br()->OS()->execute('kill ' . $this->pid);
+    br()->os()->execute('kill ' . $this->pid);
 
     return !$this->isValid();
   }
 
   public function isValid(): bool
   {
-    return br()->OS()->isValidProcessId($this->pid);
+    return br()->os()->isValidProcessId($this->pid);
   }
 
   public function getPID(): int
