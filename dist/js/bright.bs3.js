@@ -6716,6 +6716,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     br.attachDatePickers();
 
+    br.attachHint('.br-hint');
+
     enchanceBootstrap();
 
     if ($('.focused').length > 0) {
