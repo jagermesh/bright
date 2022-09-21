@@ -115,9 +115,9 @@ class BrRedisCacheProvider extends BrGenericCacheProvider
   {
     try {
       if ($result = @$this->redis->keys($pattern)) {
-        foreach ($result as &$res) {
-          $res = str_replace($this->getDefaultNamePrefix(), '', $res);
-        }
+        $result = array_map(function ($item) {
+          return str_replace($this->getDefaultNamePrefix(), '', $item);
+        }, $result);
       } else {
         $result = [];
       }

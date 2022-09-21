@@ -10,18 +10,24 @@
 
 namespace Bright;
 
-class BrSFTP extends BrRemoteConnection
+use phpseclib\Crypt\RSA;
+use phpseclib\Net\SFTP;
+
+class BrSFTP extends BrRemoteFileServerConnection
 {
   private $connection;
-  private $currentDirectory = '/';
-  private $currentHostName;
-  private $currentUserName;
+  private string $currentDirectory = '/';
+  private string $currentHostName;
+  private string $currentUserName;
   private $currentPassword;
-  private $currentPort;
+  private int $currentPort;
 
-  public function connectWithKey($hostName, $userName, $keyFileName, $port = 22, $keyFilePassword = '')
+  /**
+   * @throws BrRemoteConnectionErrorException
+   */
+  public function connectWithKey(string $hostName, string $userName, string $keyFileName, int $port = 22, ?string $keyFilePassword = '')
   {
-    $key = new \phpseclib\Crypt\RSA();
+    $key = new RSA();
     if ($keyFilePassword) {
       $key->setPassword($keyFilePassword);
     }
@@ -30,7 +36,10 @@ class BrSFTP extends BrRemoteConnection
     $this->connect($hostName, $userName, $key, $port);
   }
 
-  public function connect($hostName, $userName, $password, $port = 22)
+  /**
+   * @throws BrRemoteConnectionErrorException
+   */
+  public function connect(string $hostName, string $userName, $password, int $port = 22)
   {
     $this->currentHostName = $hostName;
     $this->currentUserName = $userName;
@@ -42,7 +51,7 @@ class BrSFTP extends BrRemoteConnection
     try {
       $this->retry(function ($iteration) use ($_this, $hostName, $userName, $password, $port) {
         br()->log('Connecting to ' . $userName . '@' . $hostName . ($iteration > 1 ? ' (' . $iteration . ')' : ''));
-        $_this->connection = new \phpseclib\Net\SFTP($hostName, $port);
+        $_this->connection = new SFTP($hostName, $port);
         if ($_this->connection->login($userName, $password)) {
           $_this->currentDirectory = $_this->getServerDir();
         } else {
@@ -54,7 +63,7 @@ class BrSFTP extends BrRemoteConnection
     }
   }
 
-  public function disconnect()
+  public function disconnect(): void
   {
     try {
       $this->connection = null;
@@ -63,7 +72,11 @@ class BrSFTP extends BrRemoteConnection
     }
   }
 
-  public function reset()
+  /**
+   * @throws BrSFTPException
+   * @throws BrRemoteConnectionErrorException
+   */
+  public function reset(): void
   {
     $dir = $this->currentDirectory;
     $this->disconnect();
@@ -71,33 +84,31 @@ class BrSFTP extends BrRemoteConnection
     $this->changeDir($dir);
   }
 
-  public function changeDir($directory)
+  /**
+   * @throws BrSFTPException
+   */
+  public function changeDir(string $directory): bool
   {
     if ($this->connection->chdir($directory)) {
       $this->currentDirectory = $this->getServerDir();
+      return true;
     } else {
       throw new BrSFTPException('Can not change remote directory to ' . $directory);
     }
   }
 
-  public function getCurrentDir()
+  public function getCurrentDir(): string
   {
     return $this->getServerDir();
   }
 
-  public function getServerDir()
+  public function getServerDir(): string
   {
     return rtrim(str_replace('\\', '/', $this->connection->pwd()), '/') . '/';
   }
 
-  public function iterateDir($mask, $callback = null, $options = [])
+  public function iterateDir(string $mask, callable $callback, array $options = []): void
   {
-    if (gettype($mask) != 'string') {
-      $options = $callback;
-      $callback = $mask;
-      $mask = null;
-    }
-
     $order = br($options, 'order');
 
     if (br($options, 'onlyNames')) {
@@ -140,22 +151,14 @@ class BrSFTP extends BrRemoteConnection
           }
           foreach ($ftpRAWList as $name => $params) {
             $ftpFileObject = new BrSFTPFileObject($name, $params);
-            $proceed = true;
-            if ($mask) {
-              $proceed = preg_match('#' . $mask . '#', $ftpFileObject->name());
-            }
-            if ($proceed) {
+            if (preg_match('#' . $mask . '#', $ftpFileObject->name())) {
               $callback($this, $ftpFileObject);
             }
           }
         } else {
           foreach ($ftpRAWList as $name) {
             $ftpFileObject = new BrSFTPFileObject($name, []);
-            $proceed = true;
-            if ($mask) {
-              $proceed = preg_match('#' . $mask . '#', $ftpFileObject->name());
-            }
-            if ($proceed) {
+            if (preg_match('#' . $mask . '#', $ftpFileObject->name())) {
               $callback($this, $ftpFileObject);
             }
           }
@@ -164,7 +167,10 @@ class BrSFTP extends BrRemoteConnection
     }
   }
 
-  public function uploadFile($sourceFilePath, $targetFileName = null)
+  /**
+   * @throws BrSFTPException
+   */
+  public function uploadFile(string $sourceFilePath, ?string $targetFileName = null): bool
   {
     if (!$targetFileName) {
       $targetFileName = br()->fs()->fileName($targetFileName);
@@ -172,7 +178,7 @@ class BrSFTP extends BrRemoteConnection
 
     $targetFileNamePartial = $targetFileName . '.partial';
 
-    if ($this->connection->put($this->currentDirectory . $targetFileNamePartial, $sourceFilePath, \phpseclib\Net\SFTP::SOURCE_LOCAL_FILE)) {
+    if ($this->connection->put($this->currentDirectory . $targetFileNamePartial, $sourceFilePath, SFTP::SOURCE_LOCAL_FILE)) {
       if ($this->renameFile($this->currentDirectory . $targetFileNamePartial, $this->currentDirectory . $targetFileName)) {
         return true;
       } elseif ($this->deleteFile($this->currentDirectory . $targetFileName)) {
@@ -189,17 +195,17 @@ class BrSFTP extends BrRemoteConnection
     }
   }
 
-  public function deleteFile($fileName)
+  public function deleteFile(string $fileName): bool
   {
     return $this->connection->delete($fileName);
   }
 
-  public function renameFile($oldFileName, $newFileName)
+  public function renameFile(string $oldFileName, string $newFileName): bool
   {
     return $this->connection->rename($oldFileName, $newFileName);
   }
 
-  public function makeDir($name)
+  public function makeDir(string $name): bool
   {
     if ($name[0] != '/') {
       $name = $this->currentDirectory . $name;
@@ -208,7 +214,10 @@ class BrSFTP extends BrRemoteConnection
     return $this->connection->mkdir($name);
   }
 
-  public function downloadFile($sourceFileName, $targetFilePath, $targetFileName = null)
+  /**
+   * @throws BrFileNotFoundException
+   */
+  public function downloadFile(string $sourceFileName, string $targetFilePath, ?string $targetFileName = null): bool
   {
     $targetFilePath = br()->fs()->normalizePath($targetFilePath);
 
@@ -227,7 +236,7 @@ class BrSFTP extends BrRemoteConnection
     throw new BrFileNotFoundException('Can not download file ' . $sourceFileName);
   }
 
-  public function isFileExists($fileName)
+  public function isFileExists(string $fileName): bool
   {
     $exists = false;
     $this->iterateDir($fileName, function () use (&$exists) {
@@ -236,8 +245,11 @@ class BrSFTP extends BrRemoteConnection
     return $exists;
   }
 
-  public function getLastError()
+  /**
+   * @return mixed
+   */
+  public function getLastError(): string
   {
-    return $this->connection->getLastSFTPError();
+    return (string)$this->connection->getLastSFTPError();
   }
 }

@@ -15,7 +15,7 @@ v2.0.10
 
 - CHG: Enchanced protection against malicious REST param values
 - CHG: [br.dataSource] prromise will not be rejected in case of error if there is "on error" event configured.
-- NEW: tools/touch-templates.js - script to randomize urls, usefull when you don't have or can't install mod-pagespeed
+- NEW: tools/randomize-urls.js - script to randomize urls, usefull when you don't have or can't install mod-pagespeed
 
   value of v in below url's will be refreshed
 
@@ -30,7 +30,7 @@ v2.0.10
     options: {
       stdout: true
     }
-  , command: 'node vendor/jagermesh/bright/tools/touch-templates.js templates/head.html && node vendor/jagermesh/bright/tools/touch-templates.js templates/footer.html'
+  , command: 'node vendor/jagermesh/bright/tools/randomize-urls.js templates/head.html && node vendor/jagermesh/bright/tools/randomize-urls.js templates/footer.html'
   }
 ```
 

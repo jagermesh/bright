@@ -14,7 +14,12 @@
   text-align: right !important;
 }
 
-a.justified, select.justified, textarea.justified, audio.justified, input.justified, div.justified {
+a.justified,
+select.justified,
+textarea.justified,
+audio.justified,
+input.justified,
+div.justified {
   width: 100%;
   box-sizing: border-box;
   -webkit-box-sizing: border-box;
@@ -24,8 +29,13 @@ a.justified, select.justified, textarea.justified, audio.justified, input.justif
   margin-bottom: 2px;
 }
 
-input.justified, div.justified {
-  height: 2em;
+select.justified,
+textarea.justified,
+audio.justified,
+input.justified,
+div.justified {
+  min-height: 30px;
+  line-height: 1em;
 }
 
 td.optimal-width, th.optimal-width {
@@ -65,7 +75,8 @@ textarea.br-justified {
   margin-bottom: 2px;
 }
 
-input.br-justified, div.br-justified {
+input.br-justified,
+div.br-justified {
   width: 100%;
   height: 2em;
   box-sizing: border-box;
@@ -96,7 +107,8 @@ a.br-justified {
   margin-bottom: 2px;
 }
 
-td.br-optimal-width, th.br-optimal-width {
+td.br-optimal-width,
+th.br-optimal-width {
   width: 10px;
   white-space: nowrap;
 }

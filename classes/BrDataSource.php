@@ -540,42 +540,49 @@ class BrDataSource extends BrGenericDataSource
           $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_BEFORE, BrConst::DATASOURCE_EVENT_DELETE), $crow, $transientData, $options);
           $this->onBeforeDelete($crow, $transientData, $options);
 
-          $this->validateRemove($crow);
-
-          if ($this->isTransactionalDML()) {
-            $this->getDb()->startTransaction();
+          if ($filter[$this->getDb()->rowidField()] != $crow[$this->getDb()->rowidField()]) {
+            $filter[$this->getDb()->rowidField()] = $crow[$this->getDb()->rowidField()];
+            $crow = $table->selectOne($filter);
           }
 
-          $result = $this->callEvent(BrConst::DATASOURCE_EVENT_DELETE, $crow, $transientData, $options);
+          if ($crow) {
+            $this->validateRemove($crow);
 
-          if (is_null($result)) {
-            $result = $this->onDelete($crow, $transientData, $options);
-          }
-
-          if (is_null($result)) {
-            $table->remove($filter);
-            $result = $crow;
-            unset($result[BrConst::DATASOURCE_SYSTEM_FIELD_ROWID]);
-            $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, BrConst::DATASOURCE_EVENT_DELETE), $result, $transientData, $options);
-            $this->onAfterDelete($result, $transientData, $options);
-            $result[BrConst::DATASOURCE_SYSTEM_FIELD_ROWID] = $this->getDb()->rowidValue($result);
-            if (!br($options, BrConst::DATASOURCE_OPTION_NO_CALC_FIELDS)) {
-              $resultsArr = [$result];
-              $this->callEvent(BrConst::DATASOURCE_EVENT_PREPARE_CALC_FIELDS, $resultsArr, $transientData, $options);
-              $this->onPrepareCalcFields($resultsArr, $transientData, $options);
-              $this->callEvent(BrConst::DATASOURCE_EVENT_CALC_FIELDS, $result, $transientData, $options);
-              $this->onCalcFields($result, $transientData, $options);
+            if ($this->isTransactionalDML()) {
+              $this->getDb()->startTransaction();
             }
-            $this->callEvent(BrConst::DATASOURCE_METHOD_PROTECT_FIELDS, $result, $transientData, $options);
-            $this->onProtectFields($result, $transientData, $options);
-          }
 
-          if ($this->isTransactionalDML()) {
-            $this->getDb()->commitTransaction();
-          }
+            $result = $this->callEvent(BrConst::DATASOURCE_EVENT_DELETE, $crow, $transientData, $options);
 
-          $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, BrConst::DATASOURCE_EVENT_COMMIT), $result, $transientData, $crow, $options);
-          $this->onAfterCommit($result, $transientData, $crow, $options);
+            if (is_null($result)) {
+              $result = $this->onDelete($crow, $transientData, $options);
+            }
+
+            if (is_null($result)) {
+              $table->remove($filter);
+              $result = $crow;
+              unset($result[BrConst::DATASOURCE_SYSTEM_FIELD_ROWID]);
+              $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, BrConst::DATASOURCE_EVENT_DELETE), $result, $transientData, $options);
+              $this->onAfterDelete($result, $transientData, $options);
+              $result[BrConst::DATASOURCE_SYSTEM_FIELD_ROWID] = $this->getDb()->rowidValue($result);
+              if (!br($options, BrConst::DATASOURCE_OPTION_NO_CALC_FIELDS)) {
+                $resultsArr = [$result];
+                $this->callEvent(BrConst::DATASOURCE_EVENT_PREPARE_CALC_FIELDS, $resultsArr, $transientData, $options);
+                $this->onPrepareCalcFields($resultsArr, $transientData, $options);
+                $this->callEvent(BrConst::DATASOURCE_EVENT_CALC_FIELDS, $result, $transientData, $options);
+                $this->onCalcFields($result, $transientData, $options);
+              }
+              $this->callEvent(BrConst::DATASOURCE_METHOD_PROTECT_FIELDS, $result, $transientData, $options);
+              $this->onProtectFields($result, $transientData, $options);
+            }
+
+            if ($this->isTransactionalDML()) {
+              $this->getDb()->commitTransaction();
+            }
+
+            $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, BrConst::DATASOURCE_EVENT_COMMIT), $result, $transientData, $crow, $options);
+            $this->onAfterCommit($result, $transientData, $crow, $options);
+          }
         } catch (BrDBRecoverableException $e) {
           br()->log('Repeating remove... (' . $iteration . ') because of ' . $e->getMessage());
           if (time() - $startMarker > $this->rerunTimeLimit) {

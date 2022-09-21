@@ -13,6 +13,8 @@ namespace Bright;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\RequestException;
 
 /**
  *
@@ -190,5 +192,21 @@ class BrBrowser extends BrObject
     }
 
     return $result;
+  }
+
+  public function request(string $method, string $url, array $requestParams = [])
+  {
+    $client = new Client();
+    return $this->retry(function () use ($method, $client, $url, $requestParams) {
+      try {
+        return $client->request($method, $url, $requestParams);
+      } catch (ClientException $e) {
+        if (($e->getResponse()->getStatusCode() == 403) || ($e->getResponse()->getStatusCode() == 404) || ($e->getResponse()->getStatusCode() == 406)) {
+          throw new BrNonRecoverableException($e->getResponse()->getBody()->getContents());
+        } else {
+          throw $e;
+        }
+      }
+    });
   }
 }

@@ -12,24 +12,54 @@ namespace Bright;
 
 class BrMySQLDBProvider extends BrGenericSQLDBProvider
 {
-  const ERROR_REGEXP = '/%s/';
+  private const ERROR_REGEXP = '/%s/';
 
-  const ERROR_ERROR_WHILE_SENDING_QUERY_PACKET = 'Error while sending QUERY packet';
-  const ERROR_ERROR_READING_RESULT_SET = 'Error reading result set';
-  const ERROR_LOST_CONNECTION_TO_BACKEND_SERVER = 'Lost connection to backend server';
-  const ERROR_CONNECTION_WAS_KILLED = 'Connection was killed';
-  const ERROR_FAILED_TO_CREATE_NEW_SESSION = 'failed to create new session';
-  const ERROR_WSREP_HAS_NOT_YET_PREPARED_NODE_FOR_APPLICATION_USE = 'WSREP has not yet prepared node for application use';
-  const ERROR_PACKETS_OUT_OF_ORDER = 'Packets out of order';
-  const ERROR_LOCK_WAIT_TIMEOUT_EXCEEDED = 'Lock wait timeout exceeded';
-  const ERROR_DEADLOCK_WSREP_ABORTED_TRANSACTION = 'Deadlock: wsrep aborted transaction';
-  const ERROR_DEADLOCK_FOUND_WHEN_TRYING_TO_GET_LOCK = 'Deadlock found when trying to get lock';
-  const ERROR_NO_DATA = '1329: No data';
-  const ERROR_DUPLICATE_ENTRY = 'Duplicate entry';
-  const ERROR_CANNOT_DELETE_OR_UPDATE_A_PARENT_ROW = 'Cannot delete or update a parent row';
-  const ERROR_MY_SQL_SERVER_HAS_GONE_AWAY = 'MySQL server has gone away';
-  const ERROR_UNKNOWN_DATABASE = 'Unknown database';
-  const ERROR_ACCESS_DENIED = 'Access denied';
+  private const ERROR_ERROR_WHILE_SENDING_QUERY_PACKET = 'Error while sending QUERY packet';
+  private const ERROR_ERROR_READING_RESULT_SET = 'Error reading result set';
+  private const ERROR_LOST_CONNECTION_TO_BACKEND_SERVER = 'Lost connection to backend server';
+  private const ERROR_CONNECTION_WAS_KILLED = 'Connection was killed';
+  private const ERROR_FAILED_TO_CREATE_NEW_SESSION = 'failed to create new session';
+  private const ERROR_WSREP_HAS_NOT_YET_PREPARED_NODE_FOR_APPLICATION_USE = 'WSREP has not yet prepared node for application use';
+  private const ERROR_PACKETS_OUT_OF_ORDER = 'Packets out of order';
+  private const ERROR_LOCK_WAIT_TIMEOUT_EXCEEDED = 'Lock wait timeout exceeded';
+  private const ERROR_DEADLOCK_WSREP_ABORTED_TRANSACTION = 'Deadlock: wsrep aborted transaction';
+  private const ERROR_DEADLOCK_FOUND_WHEN_TRYING_TO_GET_LOCK = 'Deadlock found when trying to get lock';
+  private const ERROR_NO_DATA = '1329: No data';
+  private const ERROR_DUPLICATE_ENTRY = 'Duplicate entry';
+  private const ERROR_CANNOT_DELETE_OR_UPDATE_A_PARENT_ROW = 'Cannot delete or update a parent row';
+  private const ERROR_MY_SQL_SERVER_HAS_GONE_AWAY = 'MySQL server has gone away';
+  private const ERROR_UNKNOWN_DATABASE = 'Unknown database';
+  private const ERROR_ACCESS_DENIED = 'Access denied';
+  private const ERROR_CONNECTINO_REFUSED = 'Connection refused';
+
+  private const RECONNECT_ERRORS = [
+    self::ERROR_ERROR_WHILE_SENDING_QUERY_PACKET,
+    self::ERROR_ERROR_READING_RESULT_SET,
+    self::ERROR_LOST_CONNECTION_TO_BACKEND_SERVER,
+    self::ERROR_CONNECTION_WAS_KILLED,
+    self::ERROR_FAILED_TO_CREATE_NEW_SESSION,
+    self::ERROR_WSREP_HAS_NOT_YET_PREPARED_NODE_FOR_APPLICATION_USE,
+    self::ERROR_MY_SQL_SERVER_HAS_GONE_AWAY,
+    self::ERROR_PACKETS_OUT_OF_ORDER,
+    self::ERROR_CONNECTINO_REFUSED,
+  ];
+
+  private const RETRY_ERRORS = [...self::RECONNECT_ERRORS, ...[
+    self::ERROR_LOCK_WAIT_TIMEOUT_EXCEEDED,
+    self::ERROR_DEADLOCK_WSREP_ABORTED_TRANSACTION,
+    self::ERROR_DEADLOCK_FOUND_WHEN_TRYING_TO_GET_LOCK,
+  ]];
+
+  private const DB_LOCK_ERRORS = [
+    self::ERROR_LOCK_WAIT_TIMEOUT_EXCEEDED,
+  ];
+
+  private const DB_DEAD_LOCK_ERRORS = [
+    self::ERROR_DEADLOCK_WSREP_ABORTED_TRANSACTION,
+    self::ERROR_DEADLOCK_FOUND_WHEN_TRYING_TO_GET_LOCK,
+  ];
+
+  private const RECONNECT_TIMEOUT = 250000;
 
   private $connection;
   private $config;
@@ -89,7 +119,6 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
       $port = br($this->config, 'port');
     }
 
-    // try {
     foreach ($dataBaseNames as $dataBaseName) {
       if ($this->connection = @mysqli_connect($hostName, $userName, $password, $dataBaseName, $port)) {
         $this->setDataBaseName($dataBaseName);
@@ -112,25 +141,6 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
     } else {
       throw new BrMySQLDBProviderException(mysqli_connect_errno() . ': ' . mysqli_connect_error());
     }
-    // } catch (\Exception $e) {
-    //   if (
-    //     preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_UNKNOWN_DATABASE), $e->getMessage()) ||
-    //     preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_ACCESS_DENIED), $e->getMessage())
-    //   ) {
-    //     $this->triggerSticky(BrConst::EVENT_CONNECT_ERROR, $e);
-    //     br()->triggerSticky(BrConst::EVENT_BR_DB_CONNECT_ERROR, $e);
-    //     if ($wasConnected) {
-    //       $this->triggerSticky(BrConst::EVENT_RECONNECT_ERROR, $e);
-    //       br()->triggerSticky(BrConst::EVENT_BR_DB_RECONNECT_ERROR, $e);
-    //     }
-    //     throw new BrDBConnectionErrorException($e->getMessage());
-    //   } else {
-    //     $this->connection = null;
-    //     usleep(250000);
-    //     $error = $e->getMessage() . ' (' . $userName . '@' . $hostName . ':' . $port . $dataBaseName . ')';
-    //     $this->connect($iteration + 1, $error);
-    //   }
-    // }
 
     return $this->connection;
   }
@@ -219,7 +229,15 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
 
   public function getTableStructure($tableName)
   {
-    return $this->getQueryStructure('SELECT * FROM ' . $tableName . ' LIMIT 1');
+    return $this->getQueryStructure(
+      sprintf('
+        SELECT *
+          FROM %s
+         LIMIT 1
+      ',
+        $tableName
+      )
+    );
   }
 
   public function getQueryStructure($query)
@@ -243,6 +261,47 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
     return $field_defs;
   }
 
+  private function isReconnectError($errorMessage)
+  {
+    return count(array_values(array_filter(self::RECONNECT_ERRORS, function ($errorPattern) use ($errorMessage) {
+      return (bool)preg_match(sprintf(self::ERROR_REGEXP, $errorPattern), $errorMessage);
+    }))) > 0;
+  }
+
+  private function isRetryError($errorMessage)
+  {
+    return count(array_values(array_filter(self::RETRY_ERRORS, function ($errorPattern) use ($errorMessage) {
+      return (bool)preg_match(sprintf(self::ERROR_REGEXP, $errorPattern), $errorMessage);
+    }))) > 0;
+  }
+
+  private function isDeadLockError($errorMessage)
+  {
+    return count(array_values(array_filter(self::DB_DEAD_LOCK_ERRORS, function ($errorPattern) use ($errorMessage) {
+      return (bool)preg_match(sprintf(self::ERROR_REGEXP, $errorPattern), $errorMessage);
+    }))) > 0;
+  }
+
+  private function isLockError($errorMessage)
+  {
+    return count(array_values(array_filter(self::DB_LOCK_ERRORS, function ($errorPattern) use ($errorMessage) {
+      return (bool)preg_match(sprintf(self::ERROR_REGEXP, $errorPattern), $errorMessage);
+    }))) > 0;
+  }
+
+  private function convertErrorIntoException($errorMessage)
+  {
+    if ($this->isDeadLockError($errorMessage)) {
+      return new BrDBDeadLockException($errorMessage);
+    } elseif ($this->isLockError($errorMessage)) {
+      return new BrDBLockException($errorMessage);
+    } elseif ($this->isReconnectError($errorMessage)) {
+      return new BrDBServerGoneAwayException($errorMessage);
+    } else {
+      return new BrDBEngineException($errorMessage);
+    }
+  }
+
   /**
    * @throws BrDBForeignKeyException
    * @throws BrDBConnectionErrorException
@@ -259,7 +318,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
       if (count($args) > 0) {
         $queryText = br()->placeholderEx($sql, $args, $error);
         if (!$queryText) {
-          $error = $error . '.' . "\n" . $sql;
+          $error = sprintf("%s.\n%s", $error, $sql);
           throw new BrDBException($error);
         }
       } else {
@@ -267,7 +326,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
       }
 
       if ($iteration > $this->rerunIterations) {
-        $error = $rerunError . '.' . "\n" . $queryText;
+        $error = sprintf("%s.\n%s", $rerunError, $queryText);
         throw new BrDBException($error);
       }
 
@@ -289,64 +348,32 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
         $error = $e->getMessage();
         $error .= "\n" . $queryText;
         // if connection lost - we'll try to restore it first
-        if (
-          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_ERROR_WHILE_SENDING_QUERY_PACKET), $e->getMessage()) ||
-          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_ERROR_READING_RESULT_SET), $e->getMessage()) ||
-          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_LOST_CONNECTION_TO_BACKEND_SERVER), $e->getMessage()) ||
-          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_CONNECTION_WAS_KILLED), $e->getMessage()) ||
-          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_FAILED_TO_CREATE_NEW_SESSION), $e->getMessage()) ||
-          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_WSREP_HAS_NOT_YET_PREPARED_NODE_FOR_APPLICATION_USE), $e->getMessage()) ||
-          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_MY_SQL_SERVER_HAS_GONE_AWAY), $e->getMessage()) ||
-          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_PACKETS_OUT_OF_ORDER), $e->getMessage())
-        ) {
+        if ($this->isReconnectError($e->getMessage())) {
           $this->connect();
         }
         // then we will try re-run queries
-        if (
-          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_ERROR_WHILE_SENDING_QUERY_PACKET), $e->getMessage()) ||
-          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_ERROR_READING_RESULT_SET), $e->getMessage()) ||
-          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_LOST_CONNECTION_TO_BACKEND_SERVER), $e->getMessage()) ||
-          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_CONNECTION_WAS_KILLED), $e->getMessage()) ||
-          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_FAILED_TO_CREATE_NEW_SESSION), $e->getMessage()) ||
-          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_WSREP_HAS_NOT_YET_PREPARED_NODE_FOR_APPLICATION_USE), $e->getMessage()) ||
-          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_MY_SQL_SERVER_HAS_GONE_AWAY), $e->getMessage()) ||
-          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_PACKETS_OUT_OF_ORDER), $e->getMessage()) ||
-          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_LOCK_WAIT_TIMEOUT_EXCEEDED), $e->getMessage()) ||
-          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_DEADLOCK_WSREP_ABORTED_TRANSACTION), $e->getMessage()) ||
-          preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_DEADLOCK_FOUND_WHEN_TRYING_TO_GET_LOCK), $e->getMessage())
-        ) {
+        if ($this->isRetryError($e->getMessage())) {
           if ($this->isInTransaction()) {
             if ($this->isTransactionBufferEmpty()) {
               br()->log()->message($error, [], BrConst::LOG_EVENT_SQL_RETRY);
-              usleep(250000);
+              usleep(self::RECONNECT_TIMEOUT);
               $this->rollbackTransaction();
               $this->startTransaction();
               $query = $this->runQueryEx($sql, $args, $iteration + 1, $e->getMessage(), $resultMode);
             } else {
-              br()->log()->message($error . "\n" . 'Automatic retrying was not possible - ' . $this->transactionBufferLength() .
-                ' statement(s) in transaction buffer', $this->getTransactionBuffer(), BrConst::LOG_EVENT_SQL_ERROR);
-              if (preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_DEADLOCK_FOUND_WHEN_TRYING_TO_GET_LOCK), $error) ||
-                preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_DEADLOCK_WSREP_ABORTED_TRANSACTION), $error)) {
-                throw new BrDBDeadLockException($error);
-              } elseif (preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_LOCK_WAIT_TIMEOUT_EXCEEDED), $error)) {
-                throw new BrDBLockException($error);
-              } elseif (preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_PACKETS_OUT_OF_ORDER), $error)) {
-                throw new BrDBEngineException($error);
-              } elseif (
-                preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_ERROR_WHILE_SENDING_QUERY_PACKET), $e->getMessage()) ||
-                preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_ERROR_READING_RESULT_SET), $e->getMessage()) ||
-                preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_LOST_CONNECTION_TO_BACKEND_SERVER), $e->getMessage()) ||
-                preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_CONNECTION_WAS_KILLED), $e->getMessage()) ||
-                preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_FAILED_TO_CREATE_NEW_SESSION), $e->getMessage()) ||
-                preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_WSREP_HAS_NOT_YET_PREPARED_NODE_FOR_APPLICATION_USE), $e->getMessage()) ||
-                preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_MY_SQL_SERVER_HAS_GONE_AWAY), $e->getMessage())
-              ) {
-                throw new BrDBServerGoneAwayException($error);
-              }
+              br()->log()->message(
+                sprintf("%s\nAutomatic retrying was not possible - %d statement(s) in transaction buffer",
+                  $error,
+                  $this->transactionBufferLength()
+                ),
+                $this->getTransactionBuffer(),
+                BrConst::LOG_EVENT_SQL_ERROR
+              );
+              throw $this->convertErrorIntoException($error);
             }
           } else {
             br()->log()->message($error, [], BrConst::LOG_EVENT_SQL_RETRY);
-            sleep(1);
+            usleep(self::RECONNECT_TIMEOUT);
             $query = $this->runQueryEx($sql, $args, $iteration + 1, $e->getMessage(), $resultMode);
           }
         } elseif (preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_NO_DATA), $e->getMessage())) {
@@ -434,7 +461,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
 
   public function generateDictionaryScript($scriptFile)
   {
-    br()->log()->message('[' . br()->db()->getDataBaseName() . '] Generating dictionary file');
+    br()->log()->message(sprintf('[%s] Generating dictionary file', br()->db()->getDataBaseName()));
 
     $sql = br()->placeholder('
       SELECT col.*
@@ -552,6 +579,6 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
       'schema' => $schema2
     ]));
 
-    br()->log()->message('[' . br()->db()->getDataBaseName() . '] Dictionary file saved into ' . $fileName);
+    br()->log()->message(sprintf('[%s] Dictionary file saved into %s', br()->db()->getDataBaseName(), $fileName));
   }
 }

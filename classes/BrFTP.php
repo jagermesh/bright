@@ -10,17 +10,20 @@
 
 namespace Bright;
 
-class BrFTP extends BrRemoteConnection
+class BrFTP extends BrRemoteFileServerConnection
 {
   private $connectionId;
-  private $currentDirectory = '/';
-  private $currentHostName;
-  private $currentUserName;
-  private $currentPassword;
-  private $currentPort;
-  private $currentPassiveMode;
+  private string $currentDirectory = '/';
+  private string $currentHostName;
+  private string $currentUserName;
+  private string $currentPassword;
+  private int $currentPort;
+  private bool $currentPassiveMode;
 
-  public function connect($hostName, $userName, $password, $port = 21, $passiveMode = true)
+  /**
+   * @throws BrRemoteConnectionErrorException
+   */
+  public function connect(string $hostName, string $userName, string $password, int $port = 21, bool $passiveMode = true)
   {
     $this->currentHostName = $hostName;
     $this->currentUserName = $userName;
@@ -34,7 +37,7 @@ class BrFTP extends BrRemoteConnection
         br()->log('Connecting to ' . $userName . '@' . $hostName . ($iteration > 1 ? ' (' . $iteration . ')' : ''));
         if ($_this->connectionId = ftp_connect($hostName, $port)) {
           if (ftp_login($_this->connectionId, $userName, $password)) {
-            if (ftp_pasv($_this->connectionId, (bool)$passiveMode)) {
+            if (ftp_pasv($_this->connectionId, $passiveMode)) {
               $_this->currentDirectory = $_this->getServerDir();
             } else {
               throw new BrFTPException('Can not switch passive mode to ' . $passiveMode);
@@ -51,7 +54,7 @@ class BrFTP extends BrRemoteConnection
     }
   }
 
-  public function disconnect()
+  public function disconnect(): void
   {
     try {
       ftp_close($this->connectionId);
@@ -60,7 +63,12 @@ class BrFTP extends BrRemoteConnection
     }
   }
 
-  public function reset()
+  /**
+   * @return void
+   * @throws BrFTPException
+   * @throws BrRemoteConnectionErrorException
+   */
+  public function reset(): void
   {
     $dir = $this->currentDirectory;
     $this->disconnect();
@@ -68,40 +76,36 @@ class BrFTP extends BrRemoteConnection
     $this->changeDir($dir);
   }
 
-  public function getCurrentDir()
+  public function getCurrentDir(): string
   {
     return $this->getServerDir();
   }
 
-  public function getServerDir()
+  public function getServerDir(): string
   {
     return rtrim(str_replace('\\', '/', ftp_pwd($this->connectionId)), '/') . '/';
   }
 
-  public function changeDir($directory)
+  /**
+   * @throws BrFTPException
+   */
+  public function changeDir(string $directory): bool
   {
     if (ftp_chdir($this->connectionId, $directory)) {
       $this->currentDirectory = $this->getServerDir();
+      return true;
     } else {
       throw new BrFTPException('Can not change remote directory to ' . $directory);
     }
   }
 
-  public function iterateDir($mask, $callback = null)
+  public function iterateDir(string $mask, callable $callback, array $options = []): void
   {
-    if (gettype($mask) != 'string') {
-      $callback = $mask;
-      $mask = null;
-    }
     if ($ftpRAWList = ftp_rawlist($this->connectionId, $this->currentDirectory)) {
       if (is_array($ftpRAWList)) {
         foreach ($ftpRAWList as $line) {
           $ftpFileObject = new BrFTPFileObject($line);
-          $proceed = true;
-          if ($mask) {
-            $proceed = preg_match('#' . $mask . '#', $ftpFileObject->name());
-          }
-          if ($proceed) {
+          if (preg_match('#' . $mask . '#', $ftpFileObject->name())) {
             $callback($this, $ftpFileObject);
           }
         }
@@ -109,13 +113,16 @@ class BrFTP extends BrRemoteConnection
     }
   }
 
-  public function uploadFile($sourceFilePath, $targetFileName = null, $mode = FTP_BINARY)
+  /**
+   * @throws BrFTPException
+   */
+  public function uploadFile(string $sourceFilePath, ?string $targetFileName = null): bool
   {
     if (!$targetFileName) {
       $targetFileName = br()->fs()->fileName($sourceFilePath);
     }
     $targetFileNamePartial = $targetFileName . '.partial';
-    if (ftp_put($this->connectionId, $targetFileNamePartial, $sourceFilePath, $mode)) {
+    if (ftp_put($this->connectionId, $targetFileNamePartial, $sourceFilePath, FTP_BINARY)) {
       if ($this->renameFile($targetFileNamePartial, $targetFileName)) {
         return true;
       }
@@ -123,29 +130,32 @@ class BrFTP extends BrRemoteConnection
     throw new BrFTPException('Can not upload file ' . $sourceFilePath);
   }
 
-  public function deleteFile($fileName)
+  public function deleteFile(string $fileName): bool
   {
-    return @ftp_delete($this->connectionId, $fileName);
+    return ftp_delete($this->connectionId, $fileName);
   }
 
-  public function renameFile($oldFileName, $newFileName)
+  public function renameFile(string $oldFileName, string $newFileName): bool
   {
-    return @ftp_rename($this->connectionId, $oldFileName, $newFileName);
+    return ftp_rename($this->connectionId, $oldFileName, $newFileName);
   }
 
-  public function makeDir($name)
+  public function makeDir(string $name): bool
   {
-    return @ftp_mkdir($this->connectionId, $name);
+    return (bool)ftp_mkdir($this->connectionId, $name);
   }
 
-  public function downloadFile($sourceFileName, $targetFilePath, $targetFileName = null, $mode = FTP_BINARY)
+  /**
+   * @throws BrFTPException
+   */
+  public function downloadFile(string $sourceFileName, string $targetFilePath, ?string $targetFileName = null): bool
   {
     $targetFilePath = br()->fs()->normalizePath($targetFilePath);
     if (!$targetFileName) {
       $targetFileName = $sourceFileName;
     }
     $targetFileNamePartial = $targetFileName . '.partial';
-    if (ftp_get($this->connectionId, $targetFilePath . $targetFileNamePartial, $sourceFileName, $mode)) {
+    if (ftp_get($this->connectionId, $targetFilePath . $targetFileNamePartial, $sourceFileName, FTP_BINARY)) {
       if (rename($targetFilePath . $targetFileNamePartial, $targetFilePath . $targetFileName)) {
         return true;
       }
@@ -153,7 +163,7 @@ class BrFTP extends BrRemoteConnection
     throw new BrFTPException('Can not download file ' . $sourceFileName);
   }
 
-  public function isFileExists($fileName)
+  public function isFileExists(string $fileName): bool
   {
     $exists = false;
     $this->iterateDir($fileName, function () use (&$exists) {
@@ -162,7 +172,7 @@ class BrFTP extends BrRemoteConnection
     return $exists;
   }
 
-  public function getLastError()
+  public function getLastError(): string
   {
     return '';
   }

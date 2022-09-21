@@ -11,16 +11,16 @@
     "gulp-sass-universal": "^1.0.1",
     "gulp-shell": "^0.8.0",
     "gulp-terser": "^2.1.0",
-    "eslint": "^8.22.0",
+    "eslint": "^8.23.1",
     "merge-stream": "^2.0.0",
     "phplint": "^2.0.5",
-    "sass": "^1.54.5",
+    "sass": "^1.54.9",
     "terser": "^5.15.0"
   },
   "dependencies": {
     "js-flyovers": "^1.0.7",
     "js-link-previewer": "^1.0.4",
-    "js-smart-hint": "^1.0.4"
+    "js-smart-hint": "^1.0.6"
   },
   "repository": {
     "type": "git",
