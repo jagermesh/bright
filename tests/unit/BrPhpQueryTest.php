@@ -9,13 +9,12 @@ class BrPhpQueryTest extends \Codeception\Test\Unit
 
   protected function _before()
   {
-      require_once(dirname(dirname(__DIR__)) . '/Bright.php');
+    require_once(dirname(dirname(__DIR__)) . '/Bright.php');
   }
 
   // tests
   public function testPhpQuery()
   {
-
     require_once(br()->getBrightPath() . '3rdparty/phpQuery/latest/phpQuery.php');
 
     $html = '

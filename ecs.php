@@ -3,17 +3,21 @@
 declare(strict_types=1);
 
 use PhpCsFixer\Fixer\ArrayNotation\ArraySyntaxFixer;
-use PhpCsFixer\Fixer\FunctionNotation\MethodArgumentSpaceFixer;
-use PhpCsFixer\Fixer\Operator\NotOperatorWithSuccessorSpaceFixer;
 use PhpCsFixer\Fixer\CastNotation\CastSpacesFixer;
 use PhpCsFixer\Fixer\ClassNotation\ClassAttributesSeparationFixer;
+use PhpCsFixer\Fixer\FunctionNotation\MethodArgumentSpaceFixer;
+use PhpCsFixer\Fixer\Operator\NotOperatorWithSuccessorSpaceFixer;
+use Symplify\CodingStandard\Fixer\Commenting\RemoveUselessDefaultCommentFixer;
 use Symplify\EasyCodingStandard\Config\ECSConfig;
-use Symplify\EasyCodingStandard\ValueObject\Set\SetList;
 use Symplify\EasyCodingStandard\FixerRunner\ValueObject\Spacing;
+use Symplify\EasyCodingStandard\ValueObject\Set\SetList;
+
+ini_set('memory_limit', '1024M');
 
 return static function (ECSConfig $ecsConfig): void {
+  $ecsConfig->parallel();
   $ecsConfig->paths([
-    __DIR__ . '/classes',
+    __DIR__ . '/',
   ]);
 
   $ecsConfig->ruleWithConfiguration(ArraySyntaxFixer::class, [
@@ -37,6 +41,10 @@ return static function (ECSConfig $ecsConfig): void {
   $ecsConfig->skip([
     NotOperatorWithSuccessorSpaceFixer::class,
     CastSpacesFixer::class,
-    ClassAttributesSeparationFixer::class
+    ClassAttributesSeparationFixer::class,
+    RemoveUselessDefaultCommentFixer::class,
+    __DIR__ . '/vendor',
+    __DIR__ . '/3rdparty',
+    __DIR__ . '/node_modules',
   ]);
 };

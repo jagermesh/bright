@@ -17,11 +17,10 @@ if (file_exists(dirname(dirname(__DIR__)) . '/autoload.php')) {
 }
 
 /**
- *
  * @param mixed $array
  * @param mixed $name
  * @param mixed $default
- * @return \Bright\BrCore|\Bright\BrArray|\Bright\BrString|string|array|int|float|bool|NULL
+ * @return \Bright\BrCore|\Bright\BrArray|\Bright\BrString|string|array|int|float|bool|null
  */
 function br($array = null, $name = null, $default = null)
 {

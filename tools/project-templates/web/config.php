@@ -19,7 +19,9 @@ br()->config()->set('br/mail/from', 'noreply@nosender.nodomain');
 br()->config()->set('br/mail/support', 'noreply@nosender.nodomain');
 
 // auth
-br()->config()->set('br/auth', [ 'type' => 'DBUsers' ]);
+br()->config()->set('br/auth', [
+  'type' => 'DBUsers',
+]);
 
 br()->auth()->setAttr('usersTable.name', 'br_user');
 br()->auth()->setAttr('usersAPI.select', 'anyone login');

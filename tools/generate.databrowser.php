@@ -8,13 +8,13 @@ $templatesPath = dirname(dirname(__DIR__)) . '/templates/';
 if ($tableName = br($argv, 1)) {
   logme('Generating code for ' . $tableName);
 
-  $data = array();
+  $data = [];
   $data['entityName'] = $tableName;
-  $data['fields'] = array();
+  $data['fields'] = [];
 
-  $configFile = dirname(dirname(__DIR__)).'/config.php';
+  $configFile = dirname(dirname(__DIR__)) . '/config.php';
   if (file_exists($configFile)) {
-    logme('Loading settings from '.$configFile);
+    logme('Loading settings from ' . $configFile);
     require_once($configFile);
     if (br()->db()) {
       $fields = br()->db()->getTableStructure($tableName);
@@ -25,8 +25,8 @@ if ($tableName = br($argv, 1)) {
     }
   }
 
-  br()->fs()->saveToFile($scriptsPath.$tableName.'.js', br()->renderer()->fetch(__DIR__.'/template.databrowser.js', $data));
-  br()->fs()->saveToFile($templatesPath.$tableName.'.html', br()->renderer()->fetch(__DIR__.'/template.databrowser.html', $data));
+  br()->fs()->saveToFile($scriptsPath . $tableName . '.js', br()->renderer()->fetch(__DIR__ . '/template.databrowser.js', $data));
+  br()->fs()->saveToFile($templatesPath . $tableName . '.html', br()->renderer()->fetch(__DIR__ . '/template.databrowser.html', $data));
 } else {
   logme('Table not specified');
 }

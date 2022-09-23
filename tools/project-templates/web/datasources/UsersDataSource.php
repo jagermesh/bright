@@ -25,7 +25,9 @@ class UsersDataSource extends \Bright\BrUsersDataSource
     });
 
     $this->before('loginSelectUser', function ($dataSource, $params, &$filter) {
-      $filter[] = [ 'is_active' => 1 ];
+      $filter[] = [
+        'is_active' => 1,
+      ];
     });
 
     $this->on('error', function ($dataSource, $error, $operation) {
