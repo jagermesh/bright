@@ -59,7 +59,7 @@ class BrRabbitMQ extends BrObject
     $this->connect();
     $msg = new AMQPMessage(json_encode($message), [
       'content_type' => 'application/json',
-      'delivery_mode' => 2
+      'delivery_mode' => 2,
     ]);
     if (!in_array($exchangeName, $this->exchanges)) {
       $this->createExchange($exchangeName, 'topic');
@@ -79,7 +79,7 @@ class BrRabbitMQ extends BrObject
 
     $this->connect();
     if (!($queueName = br($params, 'queueName'))) {
-      list($queueName, ,) = $this->channel->queue_declare('', false, false, true, false);
+      list($queueName, , ) = $this->channel->queue_declare('', false, false, true, false);
     }
     $consumerTag = br($params, 'consumerTag', 'unknown');
     $this->channel->queue_bind($queueName, $exchangeName, $bindingKey);
@@ -111,7 +111,7 @@ class BrRabbitMQ extends BrObject
 
     $this->connect();
     if (!($queueName = br($params, 'queueName'))) {
-      list($queueName, ,) = $this->channel->queue_declare('', false, false, true, false);
+      list($queueName, , ) = $this->channel->queue_declare('', false, false, true, false);
     }
     $consumerTag = br($params, 'consumerTag', 'unknown');
     $this->channel->queue_bind($queueName, $exchangeName, $bindingKey);

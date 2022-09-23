@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 abstract class BrRemoteFileServerConnection extends BrRemoteConnection
 {
   abstract public function reset(): void;

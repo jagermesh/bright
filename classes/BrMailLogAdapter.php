@@ -12,9 +12,6 @@ namespace Bright;
 
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
-/**
- *
- */
 class BrMailLogAdapter extends BrGenericLogAdapter
 {
   protected BrFileCacheProvider $cache;
@@ -34,7 +31,6 @@ class BrMailLogAdapter extends BrGenericLogAdapter
 
   /**
    * @param $email
-   * @return void
    */
   public function setEMail($email)
   {
@@ -68,7 +64,6 @@ class BrMailLogAdapter extends BrGenericLogAdapter
 
   /**
    * @param $messageOrObject
-   * @param array|null $params
    * @throws TransportExceptionInterface
    * @throws \Exception
    */

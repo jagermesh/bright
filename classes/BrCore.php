@@ -16,9 +16,6 @@ use Symfony\Component\Mailer\Transport;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 
-/**
- *
- */
 class BrCore extends BrObject
 {
   public const HRS = 'hrs';
@@ -47,7 +44,7 @@ class BrCore extends BrObject
     'Mb',
     'Gb',
     'Tb',
-    'Pb'
+    'Pb',
   ];
 
   public function __construct()
@@ -292,10 +289,7 @@ class BrCore extends BrObject
     }
   }
 
-  /**
-   *
-   * @return BrLog
-   */
+
   public function log(): BrLog
   {
     $log = BrLog::getInstance();
@@ -310,7 +304,6 @@ class BrCore extends BrObject
 
   /**
    * Get Instance of BrConfig OR value of config-element
-   * @param string|null $name
    * @param mixed $defaultValue
    * @return BrConfig|mixed
    */
@@ -439,7 +432,7 @@ class BrCore extends BrObject
       $compiled = $this->placeholderCompile($tmpl);
     }
 
-    list ($compiled, $tmpl, $has_named) = $compiled;
+    list($compiled, $tmpl, $has_named) = $compiled;
 
     if ($has_named) {
       $args = @$args[0];
@@ -450,7 +443,7 @@ class BrCore extends BrObject
     $error = false;
 
     foreach ($compiled as $num => $e) {
-      list ($key, $type, $start, $length) = $e;
+      list($key, $type, $start, $length) = $e;
 
       $out .= substr($tmpl, $p, $start - $p);
       $p = $start + $length;
@@ -549,7 +542,7 @@ class BrCore extends BrObject
       $out = '';
       $p = 0;
       foreach ($compiled as $e) {
-        list ($key, $type, $start, $length) = $e;
+        list($key, $type, $start, $length) = $e;
         $out .= substr($tmpl, $p, $start - $p);
         $p = $start + $length;
         $out .= $e['error'] ?? substr($tmpl, $start, $length);
@@ -586,7 +579,6 @@ class BrCore extends BrObject
   }
 
   /**
-   * @param string|null $json
    * @param $default
    * @return mixed|null
    */
@@ -603,7 +595,6 @@ class BrCore extends BrObject
 
   /**
    * @param $data
-   * @return string
    */
   public function toJSON($data): string
   {
@@ -621,7 +612,6 @@ class BrCore extends BrObject
   }
 
   /**
-   * @param bool $asString
    * @return array|string
    */
   public function getCommandLineArguments(bool $asString = false)
@@ -714,8 +704,6 @@ class BrCore extends BrObject
   /**
    * Send email
    * @param string $emails
-   * @param string $subject
-   * @param string $body
    * @param array|callable $params
    * @param callable|null $callback
    * @return boolean
@@ -834,7 +822,6 @@ class BrCore extends BrObject
   /**
    * @param $var
    * @param $secondVar
-   * @param string $glue
    * @return int|string
    */
   public function inc(&$var, $secondVar, string $glue = ', ')
@@ -898,20 +885,17 @@ class BrCore extends BrObject
       $secs = $duration - $hrs * 60 * 60 - $minutes * 60;
     }
     if ($hrs) {
-      return
-        ($includeSign ? ($duration > 0 ? '+' : '') : '') . $hrs .
+      return ($includeSign ? ($duration > 0 ? '+' : '') : '') . $hrs .
         ($withUnits ? ' ' . self::HRS . ' ' : ':') . str_pad($minutes, 2, '0') .
         ($withUnits ? ' ' . self::MINS . ' ' : ':') . number_format(br()->smartRound($secs, 3), 3) .
         ($withUnits ? ' ' . self::SECS : '');
     }
     if ($minutes) {
-      return
-        ($includeSign ? ($duration > 0 ? '+' : '') : '') . $minutes .
+      return ($includeSign ? ($duration > 0 ? '+' : '') : '') . $minutes .
         ($withUnits ? ' ' . self::MINS . ' ' : ':') . number_format(br()->smartRound($secs, 3), 3) .
         ($withUnits ? ' ' . self::SECS : '');
     }
-    return
-      ($includeSign ? ($duration > 0 ? '+' : '') : '') . number_format(br()->smartRound($secs, 3), 3) .
+    return ($includeSign ? ($duration > 0 ? '+' : '') : '') . number_format(br()->smartRound($secs, 3), 3) .
       ($withUnits ? ' ' . self::SECS : '');
   }
 
@@ -930,8 +914,7 @@ class BrCore extends BrObject
                 ($abs < 1024 * 1024 * 1024 * 1024 ? 3 :
                   ($abs < 1024 * 1024 * 1024 * 1024 * 1024 ? 4 :
                     floor(log($abs, 1024)))))));
-        return
-          ($includeSign ? ($size > 0 ? '+' : '') : '') .
+        return ($includeSign ? ($size > 0 ? '+' : '') : '') .
           ($size < 0 ? '-' : '') . @round($abs / pow(1024, $unit), 2) .
           ($compact ? '' : ' ') .
           $this->trafficUnits[$unit];
@@ -971,7 +954,6 @@ class BrCore extends BrObject
 
   /**
    * @param $value
-   * @param int $precision
    * @return float|string
    */
   public function smartRound($value, int $precision = 2)
@@ -1008,7 +990,6 @@ class BrCore extends BrObject
   }
 
   /**
-   * @param string|null $phrase
    * @return array|BrObject|BrTrn|mixed|null
    */
   public function trn(?string $phrase = null)
@@ -1081,7 +1062,7 @@ class BrCore extends BrObject
       if ($p->isOptional()) {
         $s .= ' = ' . var_export($p->getDefaultValue(), true);
       }
-      $params [] = $s;
+      $params[] = $s;
     }
     $str .= implode(', ', $params);
     $str .= '){' . PHP_EOL;
@@ -1115,7 +1096,7 @@ class BrCore extends BrObject
     $result = [
       'stdout' => $log,
       'stderr' => $err,
-      'exitCode' => $retval
+      'exitCode' => $retval,
     ];
 
     if ($whatToReturn == 'all') {
@@ -1147,7 +1128,6 @@ class BrCore extends BrObject
 
   /**
    * @param $obj
-   * @return string
    */
   public function getShortClassName($obj): string
   {
@@ -1157,8 +1137,6 @@ class BrCore extends BrObject
   // statics
 
   /**
-   * @param string $name
-   * @param array $arguments
    * @return mixed
    */
   public function __call(string $name, array $arguments = [])
@@ -1168,7 +1146,6 @@ class BrCore extends BrObject
 
   /**
    * Get Instance of BrSession
-   * @return BrSession
    */
   public function session(): BrSession
   {
@@ -1177,7 +1154,6 @@ class BrCore extends BrObject
 
   /**
    * Get Instance of BrColors
-   * @return BrColors
    */
   public function colors(): BrColors
   {
@@ -1186,7 +1162,6 @@ class BrCore extends BrObject
 
   /**
    * Get Instance of BrCmd
-   * @return BrCmd
    */
   public function cmd(): BrCmd
   {
@@ -1195,7 +1170,6 @@ class BrCore extends BrObject
 
   /**
    * Get Instance of BrRabbitMQ
-   * @return BrRabbitMQ
    */
   public function rabbitMQ(): BrRabbitMQ
   {
@@ -1204,7 +1178,6 @@ class BrCore extends BrObject
 
   /**
    * Get Instance of BrFileSystem
-   * @return BrFileSystem
    */
   public function fs(): BrFileSystem
   {
@@ -1213,7 +1186,6 @@ class BrCore extends BrObject
 
   /**
    * Get Instance of BrConsole
-   * @return BrConsole
    */
   public function console(): BrConsole
   {
@@ -1222,7 +1194,6 @@ class BrCore extends BrObject
 
   /**
    * Get Instance of BrErrorHandler
-   * @return BrErrorHandler
    */
   public function errorHandler(): BrErrorHandler
   {
@@ -1231,7 +1202,6 @@ class BrCore extends BrObject
 
   /**
    * Get Instance of BrRequest
-   * @return BrRequest
    */
   public function request(): BrRequest
   {
@@ -1240,7 +1210,6 @@ class BrCore extends BrObject
 
   /**
    * Get Instance of BrResponse
-   * @return BrResponse
    */
   public function response(): BrResponse
   {
@@ -1249,7 +1218,6 @@ class BrCore extends BrObject
 
   /**
    * Get Instance of BrXSS
-   * @return BrXSS
    */
   public function xss(): BrXSS
   {
@@ -1258,7 +1226,6 @@ class BrCore extends BrObject
 
   /**
    * Get Instance of BrHTML
-   * @return BrHTML
    */
   public function html(): BrHTML
   {
@@ -1267,7 +1234,6 @@ class BrCore extends BrObject
 
   /**
    * Get Instance of BrOS
-   * @return BrOS
    */
   public function os(): BrOS
   {
@@ -1276,7 +1242,6 @@ class BrCore extends BrObject
 
   /**
    * Get Instance of BrImages
-   * @return BrImages
    */
   public function images(): BrImages
   {
@@ -1285,7 +1250,6 @@ class BrCore extends BrObject
 
   /**
    * Get Instance of BrBrowser
-   * @return BrBrowser
    */
   public function browser(): BrBrowser
   {
@@ -1294,7 +1258,6 @@ class BrCore extends BrObject
 
   /**
    * Get Instance of BrAWS
-   * @return BrAWS
    */
   public function aws(): BrAWS
   {
@@ -1303,7 +1266,6 @@ class BrCore extends BrObject
 
   /**
    * Get Instance of BrProfiler
-   * @return BrProfiler
    */
   public function profiler(): BrProfiler
   {
@@ -1312,7 +1274,6 @@ class BrCore extends BrObject
 
   /**
    * Get Instance of database Provider
-   * @param string|null $name
    * @return BrGenericSQLDBProvider
    */
   public function db(?string $name = ''): ?BrGenericSQLDBProvider
@@ -1322,8 +1283,6 @@ class BrCore extends BrObject
 
   /**
    * Get Instance of cache provider
-   * @param string|null $name
-   * @return BrGenericCacheProvider
    */
   public function cache(?string $name = ''): BrGenericCacheProvider
   {
@@ -1332,8 +1291,6 @@ class BrCore extends BrObject
 
   /**
    * Get Instance of renderer provider
-   * @param string|null $name
-   * @return BrGenericRenderer
    */
   public function renderer(?string $name = ''): BrGenericRenderer
   {

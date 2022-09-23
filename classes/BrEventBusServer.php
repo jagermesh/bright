@@ -2,9 +2,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageComponentInterface
 {
   private const EVENT_SUBSCRIBE = 'eventBus.subscribe';
@@ -46,7 +43,7 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
       'clientIP' => $clientIP,
       'events' => [],
       'spaces' => [],
-      'userInfo' => []
+      'userInfo' => [],
     ];
 
     $this->clients[$clientHash] = $clientData;
@@ -54,7 +51,7 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
     $message = json_encode([
       'action' => 'eventBus.registered',
       'clientUID' => $clientData['clientUID'],
-      'clientsCount' => count($this->clients)
+      'clientsCount' => count($this->clients),
     ]);
 
     $conn->send($message);
@@ -92,7 +89,7 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
                 $message = json_encode([
                   'action' => 'eventBus.subscribed',
                   'events' => $events,
-                  'spaces' => $spaces
+                  'spaces' => $spaces,
                 ]);
                 $connection->send($message);
                 $this->broadcastUsersList($clientData);
@@ -179,8 +176,8 @@ class BrEventBusServer extends BrEventBusEngine implements \Ratchet\MessageCompo
                   'spaceName' => $spaceName,
                   'data' => [
                     'users' => $users,
-                    'count' => count($users)
-                  ]
+                    'count' => count($users),
+                  ],
                 ]);
                 $tmpClientData['connection']->send($message);
               }

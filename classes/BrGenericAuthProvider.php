@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrGenericAuthProvider extends BrObject
 {
   public function __construct(?array $settings = [])
@@ -33,7 +30,7 @@ class BrGenericAuthProvider extends BrObject
   }
 
   /**
-   * @return array|bool|BrArray|BrCore|BrString|float|int|string|NULL
+   * @return array|bool|BrArray|BrCore|BrString|float|int|string|null
    */
   public function getSessionLogin()
   {
@@ -56,7 +53,6 @@ class BrGenericAuthProvider extends BrObject
   }
 
   /**
-   * @param string $attributeName
    * @param $value
    * @return mixed
    */
@@ -69,7 +65,6 @@ class BrGenericAuthProvider extends BrObject
   }
 
   /**
-   * @param string|null $attributeName
    * @param $default
    * @return array|bool|BrArray|BrCore|BrString|float|int|mixed|string|null
    */
@@ -114,7 +109,7 @@ class BrGenericAuthProvider extends BrObject
       $token = sha1(md5(sha1($password)));
       $cookie = [
         'login' => $login['login'],
-        'token' => $token
+        'token' => $token,
       ];
       if (!br()->isConsoleMode()) {
         setcookie($this->getAuthTag(), base64_encode(json_encode($cookie)),
@@ -138,8 +133,7 @@ class BrGenericAuthProvider extends BrObject
   }
 
   /**
-   * @param array|null $options
-   * @return array|bool|BrArray|BrCore|BrString|float|int|mixed|string|NULL
+   * @return array|bool|BrArray|BrCore|BrString|float|int|mixed|string|null
    */
   public function findLogin(?array $options = [])
   {

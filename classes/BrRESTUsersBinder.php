@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrRESTUsersBinder extends BrRESTBinder
 {
   private BrGenericDataSource $usersDataSource;
@@ -62,9 +59,12 @@ class BrRESTUsersBinder extends BrRESTBinder
                 $data = [];
                 $data['password'] = $password;
                 $data['loginUrl'] = br()->request()->host() . br()->request()->baseUrl() . 'login.html?login=' . $user['login'] . '&' . 'from=passwordRemind';
-                if ($message = br()->renderer()->fetch($mailTemplate, ['user' => $user, 'data' => $data])) {
+                if ($message = br()->renderer()->fetch($mailTemplate, [
+                  'user' => $user,
+                  'data' => $data,
+                ])) {
                   if (br()->sendMail($email, br()->auth()->getAttr('passwordReminder.passwordMail.subject'), $message, [
-                    'sender' => br()->auth()->getAttr('passwordReminder.passwordMail.from')
+                    'sender' => br()->auth()->getAttr('passwordReminder.passwordMail.from'),
                   ])) {
                     br()->db()->runQuery('
                           UPDATE ' . $usersTable . '
@@ -96,7 +96,7 @@ class BrRESTUsersBinder extends BrRESTBinder
             return true;
           }
         }
-      );
+        );
 
       parent::route(
         '/api/users/',
@@ -104,20 +104,20 @@ class BrRESTUsersBinder extends BrRESTBinder
         [
           'security' => [
             'invoke' => '',
-            '.*' => 'login'
+            '.*' => 'login',
           ],
           'filterMappings' => [
             [
               'get' => 'keyword',
               'type' => 'regexp',
-              'fields' => [$loginField]
+              'fields' => [$loginField],
             ],
             [
               'get' => 'status',
-              'field' => 'status'
-            ]
+              'field' => 'status',
+            ],
           ],
-          'allowEmptyFilter' => true
+          'allowEmptyFilter' => true,
         ]
       );
     }

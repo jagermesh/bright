@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrSocketClient extends BrObject
 {
   private const EVENT = 2;
@@ -156,7 +153,11 @@ class BrSocketClient extends BrObject
         $errorString = null;
 
         $timeout = $this->wasEverConnected ? self::RECONNECT_TIMEOUT : self::CONNECT_TIMEOUT;
-        $context = ['http' => ['timeout' => $timeout]];
+        $context = [
+          'http' => [
+            'timeout' => $timeout,
+          ],
+        ];
 
         $workingPollingUrl = $this->pollingUrl . '/socket.io/?use_b64=0&EIO=3&transport=polling';
         $result = @file_get_contents($workingPollingUrl, false, stream_context_create($context));

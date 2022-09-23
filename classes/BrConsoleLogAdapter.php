@@ -10,14 +10,10 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrConsoleLogAdapter extends BrGenericLogAdapter
 {
   /**
    * @param $messageOrObject
-   * @param array|null $params
    */
   public function write($messageOrObject, ?array $params = [])
   {

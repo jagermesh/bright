@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrDateTime extends BrObject
 {
   public int $weekday;
@@ -36,7 +33,6 @@ class BrDateTime extends BrObject
 
   /**
    * @param $date
-   * @return void
    */
   public function set($date = null)
   {
@@ -171,8 +167,6 @@ class BrDateTime extends BrObject
 
   /**
    * @param null $date
-   * @param bool $withSign
-   * @return int
    */
   public function daysBetween($date = null, bool $withSign = false): int
   {
@@ -190,7 +184,6 @@ class BrDateTime extends BrObject
 
   /**
    * @param $date
-   * @return int
    */
   public function minutesBetween($date = null): int
   {
@@ -204,7 +197,6 @@ class BrDateTime extends BrObject
 
   /**
    * @param $date
-   * @return int
    */
   public function secondsBetween($date = null): int
   {
@@ -218,7 +210,6 @@ class BrDateTime extends BrObject
 
   /**
    * @param $date
-   * @return string
    */
   public function differenceToString($date = null): string
   {
@@ -227,7 +218,6 @@ class BrDateTime extends BrObject
 
   /**
    * @param $date
-   * @return string
    */
   public function daysDifferenceToString($date = null): string
   {
@@ -269,7 +259,6 @@ class BrDateTime extends BrObject
 
   /**
    * @param $date
-   * @return int
    */
   public function hoursBetween($date = null): int
   {
@@ -283,7 +272,6 @@ class BrDateTime extends BrObject
 
   /**
    * @param $date
-   * @return int
    */
   public function daysTill($date = null): int
   {
@@ -297,8 +285,6 @@ class BrDateTime extends BrObject
 
   /**
    * @param null $date
-   * @param bool $withSign
-   * @return int
    */
   public function weeksBetween($date = null, bool $withSign = false): int
   {
@@ -318,8 +304,6 @@ class BrDateTime extends BrObject
 
   /**
    * @param null $date
-   * @param bool $withSign
-   * @return int
    */
   public function monthsBetween($date = null, bool $withSign = false): int
   {
@@ -338,7 +322,6 @@ class BrDateTime extends BrObject
 
   /**
    * @param $date
-   * @return bool
    */
   public function isSameDate($date): bool
   {
@@ -347,7 +330,6 @@ class BrDateTime extends BrObject
 
   /**
    * @param $dateTime
-   * @return bool
    */
   public function equalTo($dateTime): bool
   {

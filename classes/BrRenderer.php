@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrRenderer extends BrObject
 {
   /**

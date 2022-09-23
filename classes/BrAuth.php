@@ -10,15 +10,10 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrAuth extends BrObject
 {
   /**
    * Get provider instance
-   * @param string|null $name
-   * @return BrGenericAuthProvider|null
    */
   public static function getProviderInstance(?string $name = null): ?BrGenericAuthProvider
   {

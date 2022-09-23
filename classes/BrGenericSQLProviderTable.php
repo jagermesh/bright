@@ -12,36 +12,36 @@ namespace Bright;
 
 class BrGenericSQLProviderTable extends BrObject
 {
-  const SQL_CMD_JOIN = ' JOIN ';
-  const SQL_CMD_ON = ' ON ';
-  const SQL_CMD_IN_SET = ' IN (?@) ';
-  const SQL_CMD_NOT_IN_SET = ' NOT IN (?@) ';
-  const SQL_CMD_NOT_IN_NULL = ' NOT IN (NULL) ';
-  const SQL_CMD_IN_NULL = ' IN (NULL) ';
-  const SQL_CMD_IN_SMTH = ' IN (%s) ';
-  const SQL_CMD_NOT_IN_SMTH = ' NOT IN (%s) ';
-  const SQL_CMD_IS_NULL = ' IS NULL ';
-  const SQL_CMD_IS_NOT_NULL = ' IS NOT NULL ';
-  const SQL_CMD_OR = ' OR ';
-  const SQL_CMD_AND = ' AND ';
-  const SQL_CMD_LIKE = ' LIKE ? ';
-  const SQL_CMD_REGEXP = ' REGEXP ?& ';
-  const SQL_CMD_SELECT = 'SELECT ';
-  const SQL_CMD_DISTINCT = ' DISTINCT ';
-  const SQL_CMD_FROM = ' FROM ';
-  const SQL_CMD_FORCE_INDEX = ' FORCE INDEX (%s) ';
-  const SQL_CMD_MATCH_IN_BOOLEAN_MODE = ' MATCH (%s) AGAINST (? IN BOOLEAN MODE) ';
-  const SQL_CMD_WHERE = ' WHERE ';
-  const SQL_CMD_FAKE_TRUE = ' 1=1 ';
-  const SQL_CMD_FAKE_FALSE = ' 1=2 ';
-  const SQL_CMD_EXISTS = ' EXISTS ';
-  const SQL_CMD_NOT_EXISTS = ' NOT EXISTS ';
+  public const SQL_CMD_JOIN = ' JOIN ';
+  public const SQL_CMD_ON = ' ON ';
+  public const SQL_CMD_IN_SET = ' IN (?@) ';
+  public const SQL_CMD_NOT_IN_SET = ' NOT IN (?@) ';
+  public const SQL_CMD_NOT_IN_NULL = ' NOT IN (NULL) ';
+  public const SQL_CMD_IN_NULL = ' IN (NULL) ';
+  public const SQL_CMD_IN_SMTH = ' IN (%s) ';
+  public const SQL_CMD_NOT_IN_SMTH = ' NOT IN (%s) ';
+  public const SQL_CMD_IS_NULL = ' IS NULL ';
+  public const SQL_CMD_IS_NOT_NULL = ' IS NOT NULL ';
+  public const SQL_CMD_OR = ' OR ';
+  public const SQL_CMD_AND = ' AND ';
+  public const SQL_CMD_LIKE = ' LIKE ? ';
+  public const SQL_CMD_REGEXP = ' REGEXP ?& ';
+  public const SQL_CMD_SELECT = 'SELECT ';
+  public const SQL_CMD_DISTINCT = ' DISTINCT ';
+  public const SQL_CMD_FROM = ' FROM ';
+  public const SQL_CMD_FORCE_INDEX = ' FORCE INDEX (%s) ';
+  public const SQL_CMD_MATCH_IN_BOOLEAN_MODE = ' MATCH (%s) AGAINST (? IN BOOLEAN MODE) ';
+  public const SQL_CMD_WHERE = ' WHERE ';
+  public const SQL_CMD_FAKE_TRUE = ' 1=1 ';
+  public const SQL_CMD_FAKE_FALSE = ' 1=2 ';
+  public const SQL_CMD_EXISTS = ' EXISTS ';
+  public const SQL_CMD_NOT_EXISTS = ' NOT EXISTS ';
 
-  const SQL_JOIN_TYPE_INNER = 'INNER';
-  const SQL_JOIN_TYPE_LEFT = 'LEFT';
+  public const SQL_JOIN_TYPE_INNER = 'INNER';
+  public const SQL_JOIN_TYPE_LEFT = 'LEFT';
 
-  const SQL_PROVIDER_OPTION_TABLE_ALIAS = 'tableAlias';
-  const SQL_PROVIDER_OPTION_INDEX_HINT = 'indexHint';
+  public const SQL_PROVIDER_OPTION_TABLE_ALIAS = 'tableAlias';
+  public const SQL_PROVIDER_OPTION_INDEX_HINT = 'indexHint';
 
   private $tableName;
   private $tableAlias;
@@ -66,7 +66,9 @@ class BrGenericSQLProviderTable extends BrObject
     $joinsTables = [];
     $args = [];
 
-    $filter = [BrConst::FILTER_RULE_AND => $filter];
+    $filter = [
+      BrConst::FILTER_RULE_AND => $filter,
+    ];
 
     if ($this->tableAlias) {
       $targetTableName = $this->tableAlias;
@@ -156,7 +158,9 @@ class BrGenericSQLProviderTable extends BrObject
 
     $this->provider->runQueryEx($sql, $args);
     $newId = $this->provider->getLastId();
-    if ($newValues = $this->selectOne([$this->provider->rowidField() => $newId])) {
+    if ($newValues = $this->selectOne([
+      $this->provider->rowidField() => $newId,
+    ])) {
       $values = $newValues;
     }
     return $newId;
@@ -199,7 +203,9 @@ class BrGenericSQLProviderTable extends BrObject
 
     $this->provider->runQueryEx($sql, $args);
     if ($newId = $this->provider->getLastId()) {
-      if ($newValues = $this->selectOne([$this->provider->rowidField() => $newId])) {
+      if ($newValues = $this->selectOne([
+        $this->provider->rowidField() => $newId,
+      ])) {
         $values = $newValues;
         return $newId;
       } else {
@@ -282,7 +288,9 @@ class BrGenericSQLProviderTable extends BrObject
     if ($filter) {
       if (is_array($filter)) {
         $joinsTables = [];
-        $filter = [BrConst::FILTER_RULE_AND => $filter];
+        $filter = [
+          BrConst::FILTER_RULE_AND => $filter,
+        ];
         $this->compileFilter($filter, $this->tableName, '', self::SQL_CMD_AND, $joins, $joinsTables, $where, $args);
       } else {
         $where .= self::SQL_CMD_AND . $this->provider->rowidField() . ' = ?';

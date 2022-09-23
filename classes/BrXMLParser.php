@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrXMLParser extends BrObject
 {
   private $xmlParserError = null;

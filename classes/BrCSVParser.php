@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrCSVParser extends BrObject
 {
   private string $delimiter = ',';

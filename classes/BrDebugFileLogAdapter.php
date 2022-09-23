@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrDebugFileLogAdapter extends BrGenericFileLogAdapter
 {
   public function __construct(?array $params = [])
@@ -28,7 +25,6 @@ class BrDebugFileLogAdapter extends BrGenericFileLogAdapter
 
   /**
    * @param $messageOrObject
-   * @param array|null $params
    */
   public function write($messageOrObject, ?array $params = [])
   {

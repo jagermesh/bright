@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrFileSystemObject
 {
   private string $name;

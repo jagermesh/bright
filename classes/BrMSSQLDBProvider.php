@@ -78,7 +78,11 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider
         if ($port) {
           $serverName .= ', ' . $port;
         }
-        $connectionInfo = ['Database' => $dataBaseName, 'UID' => $userName, 'PWD' => $password];
+        $connectionInfo = [
+          'Database' => $dataBaseName,
+          'UID' => $userName,
+          'PWD' => $password,
+        ];
         if (br($this->config, 'charset')) {
           $connectionInfo['CharacterSet'] = $this->config['charset'];
         }
@@ -234,7 +238,7 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider
         $field_defs[strtolower($finfo->name)] = [
           'length' => $finfo->max_length,
           'type' => $finfo->type,
-          'flags' => $finfo->flags
+          'flags' => $finfo->flags,
         ];
       }
       mysqli_free_result($query);
@@ -287,7 +291,7 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider
       br()->log()->message($queryText, [], BrConst::LOG_EVENT_SQL_OK);
     } catch (\Exception $e) {
       $error = $e->getMessage();
-      br()->log()->message($error . "\n". $queryText, [], BrConst::LOG_EVENT_SQL_ERROR);
+      br()->log()->message($error . "\n" . $queryText, [], BrConst::LOG_EVENT_SQL_ERROR);
       br()->trigger(BrConst::EVENT_BR_DB_QUERY_ERROR, $error);
       throw $e;
     }

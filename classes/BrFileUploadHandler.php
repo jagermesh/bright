@@ -10,16 +10,10 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrFileUploadHandler extends BrGenericUploadHandler
 {
   /**
    * Save the file to the specified path
-   * @param string $srcFilePath
-   * @param string $path
-   * @return array
    * @throws BrFileSystemException
    * @throws BrGenericUploadHandlerException
    */
@@ -42,8 +36,8 @@ class BrFileUploadHandler extends BrGenericUploadHandler
       'url' => $dstFileUrl,
       'href' => $dstFileHref,
       'internal' => [
-        'filePath' => $dstFilePath
-      ]
+        'filePath' => $dstFilePath,
+      ],
     ];
   }
 }

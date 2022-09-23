@@ -10,13 +10,10 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BriCal extends BrObject
 {
-  const ICAL_DATE_TIME_FORMAT = 'Ymd\THis';
-  const ICAL_DATE_FORMAT = 'Ymd';
+  public const ICAL_DATE_TIME_FORMAT = 'Ymd\THis';
+  public const ICAL_DATE_FORMAT = 'Ymd';
 
   private string $calendarName;
   private array $calendarEvents = [];

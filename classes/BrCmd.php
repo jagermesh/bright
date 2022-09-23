@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrCmd extends BrObject
 {
   public function getParam(int $index, ?string $default = ''): string

@@ -12,10 +12,10 @@ namespace Bright;
 
 class BrIMAPBody extends BrObject
 {
-  const IMAP_ATTR_CHARSET = 'charset';
-  const PART_ATTR_CHARSET = 'charset';
-  const PART_ATTR_PART_NO = 'partNo';
-  const PART_ATTR_ENCODING = 'encoding';
+  public const IMAP_ATTR_CHARSET = 'charset';
+  public const PART_ATTR_CHARSET = 'charset';
+  public const PART_ATTR_PART_NO = 'partNo';
+  public const PART_ATTR_ENCODING = 'encoding';
 
   private $message;
   private $parts;
@@ -49,7 +49,7 @@ class BrIMAPBody extends BrObject
     $this->parts[] = [
       self::PART_ATTR_PART_NO => $partNo,
       self::PART_ATTR_CHARSET => $charset,
-      self::PART_ATTR_ENCODING => $encoding
+      self::PART_ATTR_ENCODING => $encoding,
     ];
   }
 

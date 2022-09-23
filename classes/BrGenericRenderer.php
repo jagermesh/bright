@@ -10,49 +10,46 @@
 
 namespace Bright;
 
-/**
- *
- */
 abstract class BrGenericRenderer extends BrObject
 {
-  const TEMPLATE_PLACEHOLDER_BR_REQUEST_BRIGHT_URL = '[[br.request.brightUrl]]';
-  const TEMPLATE_PLACEHOLDER_BR_REQUEST_BASE_URL = '[[br.request.baseUrl]]';
-  const TEMPLATE_PLACEHOLDER_BR_REQUEST_HOST = '[[br.request.host]]';
-  const TEMPLATE_PLACEHOLDER_BR_REQUEST_DOMAIN = '[[br.request.domain]]';
-  const TEMPLATE_PLACEHOLDER_BR_REQUEST_URL = '[[br.request.url]]';
-  const TEMPLATE_PLACEHOLDER_SLASH1 = '[[/]]';
-  const TEMPLATE_PLACEHOLDER_SLASH2 = '{/}';
-  const TEMPLATE_PLACEHOLDER_SLASH3 = '[/]';
-  const TEMPLATE_PLACEHOLDER_BR1 = '[[br]]';
-  const TEMPLATE_PLACEHOLDER_BR2 = '{br}';
-  const TEMPLATE_PLACEHOLDER_BR3 = '[br]';
+  public const TEMPLATE_PLACEHOLDER_BR_REQUEST_BRIGHT_URL = '[[br.request.brightUrl]]';
+  public const TEMPLATE_PLACEHOLDER_BR_REQUEST_BASE_URL = '[[br.request.baseUrl]]';
+  public const TEMPLATE_PLACEHOLDER_BR_REQUEST_HOST = '[[br.request.host]]';
+  public const TEMPLATE_PLACEHOLDER_BR_REQUEST_DOMAIN = '[[br.request.domain]]';
+  public const TEMPLATE_PLACEHOLDER_BR_REQUEST_URL = '[[br.request.url]]';
+  public const TEMPLATE_PLACEHOLDER_SLASH1 = '[[/]]';
+  public const TEMPLATE_PLACEHOLDER_SLASH2 = '{/}';
+  public const TEMPLATE_PLACEHOLDER_SLASH3 = '[/]';
+  public const TEMPLATE_PLACEHOLDER_BR1 = '[[br]]';
+  public const TEMPLATE_PLACEHOLDER_BR2 = '{br}';
+  public const TEMPLATE_PLACEHOLDER_BR3 = '[br]';
 
-  const TEMPLATE_VAR_IS_DEV_HOST = 'isDevHost';
-  const TEMPLATE_VAR_IS_LOCAL_HOST = 'isLocalHost';
-  const TEMPLATE_VAR_IS_PRODUCTION = 'isProduction';
-  const TEMPLATE_VAR_IS_REST = 'isRest';
-  const TEMPLATE_VAR_HOST = 'host';
-  const TEMPLATE_VAR_DOMAIN = 'domain';
-  const TEMPLATE_VAR_URL = 'url';
-  const TEMPLATE_VAR_GET = 'get';
-  const TEMPLATE_VAR_POST = 'post';
-  const TEMPLATE_VAR_BRIGHT_URL = 'brightUrl';
-  const TEMPLATE_VAR_BASE_URL = 'baseUrl';
-  const TEMPLATE_VAR_CLIENT_IP = 'clientIP';
-  const TEMPLATE_VAR_REFERER = 'referer';
-  const TEMPLATE_VAR_REQUEST = 'request';
-  const TEMPLATE_VAR_BR = 'br';
-  const TEMPLATE_VAR_CONFIG = 'config';
-  const TEMPLATE_VAR_CORE = 'core';
-  const TEMPLATE_VAR_LIB = 'lib';
-  const TEMPLATE_VAR_AUTHORIZED = 'authorized';
-  const TEMPLATE_VAR_LOGIN = 'login';
+  public const TEMPLATE_VAR_IS_DEV_HOST = 'isDevHost';
+  public const TEMPLATE_VAR_IS_LOCAL_HOST = 'isLocalHost';
+  public const TEMPLATE_VAR_IS_PRODUCTION = 'isProduction';
+  public const TEMPLATE_VAR_IS_REST = 'isRest';
+  public const TEMPLATE_VAR_HOST = 'host';
+  public const TEMPLATE_VAR_DOMAIN = 'domain';
+  public const TEMPLATE_VAR_URL = 'url';
+  public const TEMPLATE_VAR_GET = 'get';
+  public const TEMPLATE_VAR_POST = 'post';
+  public const TEMPLATE_VAR_BRIGHT_URL = 'brightUrl';
+  public const TEMPLATE_VAR_BASE_URL = 'baseUrl';
+  public const TEMPLATE_VAR_CLIENT_IP = 'clientIP';
+  public const TEMPLATE_VAR_REFERER = 'referer';
+  public const TEMPLATE_VAR_REQUEST = 'request';
+  public const TEMPLATE_VAR_BR = 'br';
+  public const TEMPLATE_VAR_CONFIG = 'config';
+  public const TEMPLATE_VAR_CORE = 'core';
+  public const TEMPLATE_VAR_LIB = 'lib';
+  public const TEMPLATE_VAR_AUTHORIZED = 'authorized';
+  public const TEMPLATE_VAR_LOGIN = 'login';
 
-  const TEMPLATE_COMPILE_RESULT_FILE = 'file';
-  const TEMPLATE_COMPILE_RESULT_CONTENT = 'content';
-  const TEMPLATE_PLACEHOLDER_REQUEST_URL = '{request.url}';
-  const TEMPLATE_PLACEHOLDER_REQUEST_DOMAIN = '{request.domain}';
-  const TEMPLATE_PLACEHOLDER_REQUEST_HOST = '{request.host}';
+  public const TEMPLATE_COMPILE_RESULT_FILE = 'file';
+  public const TEMPLATE_COMPILE_RESULT_CONTENT = 'content';
+  public const TEMPLATE_PLACEHOLDER_REQUEST_URL = '{request.url}';
+  public const TEMPLATE_PLACEHOLDER_REQUEST_DOMAIN = '{request.domain}';
+  public const TEMPLATE_PLACEHOLDER_REQUEST_HOST = '{request.host}';
 
   private array $templates = [];
   private array $vars = [];
@@ -67,9 +64,7 @@ abstract class BrGenericRenderer extends BrObject
   }
 
   /**
-   * @param string $name
    * @param $values
-   * @return void
    */
   public function assign(string $name, $values)
   {
@@ -77,8 +72,7 @@ abstract class BrGenericRenderer extends BrObject
   }
 
   /**
-   * @param string|null $name
-   * @return array|bool|BrArray|BrCore|BrString|float|int|string|NULL
+   * @return array|bool|BrArray|BrCore|BrString|float|int|string|null
    */
   public function getVar(?string $name = null)
   {
@@ -121,7 +115,7 @@ abstract class BrGenericRenderer extends BrObject
       ob_end_clean();
       return [
         self::TEMPLATE_COMPILE_RESULT_FILE => $templateFile,
-        self::TEMPLATE_COMPILE_RESULT_CONTENT => $content
+        self::TEMPLATE_COMPILE_RESULT_CONTENT => $content,
       ];
     }
 

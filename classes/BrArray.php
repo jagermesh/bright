@@ -10,14 +10,8 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrArray extends BrGenericDataType
 {
-  /**
-   * @var array
-   */
   private array $value;
 
   /**
@@ -88,7 +82,6 @@ class BrArray extends BrGenericDataType
 
   /**
    * @param $needle
-   * @return int
    */
   public function indexOf($needle): int
   {
@@ -98,9 +91,6 @@ class BrArray extends BrGenericDataType
   }
 
   /**
-   * @param string $delimiters
-   * @param bool $removeEmpty
-   * @return array
    * @throws \Exception
    */
   public function split(bool $removeEmpty = false): array
@@ -114,8 +104,6 @@ class BrArray extends BrGenericDataType
 
   /**
    * @param mixed
-   * @param bool $ignoreCase
-   * @return array
    * @throws \Exception
    */
   public function compare($candidate, bool $ignoreCase = false): array
@@ -151,8 +139,6 @@ class BrArray extends BrGenericDataType
 
   /**
    * @param mixed $candidate
-   * @param bool $ignoreCase
-   * @return bool
    * @throws \Exception
    */
   public function equal($candidate, bool $ignoreCase = false): bool
@@ -384,8 +370,6 @@ class BrArray extends BrGenericDataType
 
   /**
    * @param $element
-   * @param callable|null $blockShufflingCheck
-   * @return bool
    */
   private function canMoveElement($element, ?callable $blockShufflingCheck): bool
   {
@@ -398,7 +382,6 @@ class BrArray extends BrGenericDataType
 
   /**
    * @param $item
-   * @return void
    */
   private function sortArrayKeysRecursively(&$item)
   {

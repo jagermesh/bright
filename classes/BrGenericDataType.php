@@ -10,37 +10,27 @@
 
 namespace Bright;
 
-/**
- *
- */
 abstract class BrGenericDataType extends BrObject
 {
   abstract public function length(): int;
 
   /**
    * @param $needle
-   * @param bool $ignoreCase
-   * @return bool
    */
   abstract public function contain($needle, bool $ignoreCase = false): bool;
 
   /**
    * @param $needle
-   * @param bool $ignoreCase
-   * @return bool
    */
   abstract public function has($needle, bool $ignoreCase = false): bool;
 
   /**
    * @param $needle
-   * @param bool $ignoreCase
-   * @return bool
    */
   abstract public function exists($needle, bool $ignoreCase = false): bool;
 
   /**
    * @param $needle
-   * @return int
    */
   abstract public function indexOf($needle): int;
   abstract public function in(array $array): bool;
@@ -51,8 +41,6 @@ abstract class BrGenericDataType extends BrObject
 
   /**
    * @param $candidate
-   * @param bool $ignoreCase
-   * @return bool
    */
   abstract public function equal($candidate, bool $ignoreCase = false): bool;
 

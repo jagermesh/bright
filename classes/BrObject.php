@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrObject
 {
   private array $attributes = [];
@@ -42,9 +39,6 @@ class BrObject
   }
 
   /**
-   * @param callable $func
-   * @param int $iterationsLimit
-   * @param int $sleepTimeout
    * @return mixed
    * @throws BrNonRecoverableException
    * @throws \Exception
@@ -69,7 +63,6 @@ class BrObject
   }
 
   /**
-   * @param string $name
    * @param $default
    * @return array|mixed|null
    */
@@ -98,7 +91,6 @@ class BrObject
   }
 
   /**
-   * @param string $name
    * @param $value
    * @return mixed
    */
@@ -197,14 +189,12 @@ class BrObject
   }
 
   /**
-   * @param string $event
    * @param $context1
    * @param $context2
    * @param $context3
    * @param $context4
    * @param $context5
    * @param $context6
-   * @return null
    */
   public function trigger(string $event, &$context1 = null, &$context2 = null, &$context3 = null, &$context4 = null, &$context5 = null, &$context6 = null)
   {
@@ -212,14 +202,12 @@ class BrObject
   }
 
   /**
-   * @param string $event
    * @param $context1
    * @param $context2
    * @param $context3
    * @param $context4
    * @param $context5
    * @param $context6
-   * @return null
    */
   public function triggerSticky(string $event, &$context1 = null, &$context2 = null, &$context3 = null, &$context4 = null, &$context5 = null, &$context6 = null)
   {
@@ -229,7 +217,6 @@ class BrObject
   }
 
   /**
-   * @param string $event
    * @param $context1
    * @param $context2
    * @param $context3

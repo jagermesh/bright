@@ -10,55 +10,52 @@
 
 namespace Bright;
 
-/**
- *
- */
 abstract class BrGenericLogAdapter extends BrObject
 {
-  const CLIENT_IP = 'client_ip';
-  const PID = 'pid';
-  const SID = 'sid';
-  const SCRIPT_NAME = 'script_name';
-  const SERVER_IP = 'server_ip';
-  const COMMAND_LINE = 'command_line';
-  const REQUEST_TYPE = 'request_type';
-  const URL = 'url';
-  const URL_QUERY = 'url_query';
-  const REFERER = 'referer';
-  const PASSWORD = 'password';
-  const PASWD = 'paswd';
-  const REQUEST_DATA = 'request_data';
-  const DB_NAME = 'name';
-  const DB_HOSTNAME = 'hostname';
-  const DB = 'db';
-  const USER_ID = 'user_id';
-  const USER_NAME = 'user_name';
-  const USER_LOGIN = 'user_login';
-  const USER_EMAIL = 'user_email';
-  const AUTH = 'auth';
-  const LOG_EVENT = 'log_event';
+  public const CLIENT_IP = 'client_ip';
+  public const PID = 'pid';
+  public const SID = 'sid';
+  public const SCRIPT_NAME = 'script_name';
+  public const SERVER_IP = 'server_ip';
+  public const COMMAND_LINE = 'command_line';
+  public const REQUEST_TYPE = 'request_type';
+  public const URL = 'url';
+  public const URL_QUERY = 'url_query';
+  public const REFERER = 'referer';
+  public const PASSWORD = 'password';
+  public const PASWD = 'paswd';
+  public const REQUEST_DATA = 'request_data';
+  public const DB_NAME = 'name';
+  public const DB_HOSTNAME = 'hostname';
+  public const DB = 'db';
+  public const USER_ID = 'user_id';
+  public const USER_NAME = 'user_name';
+  public const USER_LOGIN = 'user_login';
+  public const USER_EMAIL = 'user_email';
+  public const AUTH = 'auth';
+  public const LOG_EVENT = 'log_event';
 
-  const EVENT_TYPE_DEBUG = 'debug';
-  const EVENT_TYPE_ERROR = 'error';
-  const EVENT_TYPE_WARNING = 'warning';
-  const EVENT_TYPE_MESSAGE = 'message';
-  const EVENT_TYPE_SNAPSHOT = 'snapshot';
-  const EVENT_TYPE_PROFILER = 'profiler';
+  public const EVENT_TYPE_DEBUG = 'debug';
+  public const EVENT_TYPE_ERROR = 'error';
+  public const EVENT_TYPE_WARNING = 'warning';
+  public const EVENT_TYPE_MESSAGE = 'message';
+  public const EVENT_TYPE_SNAPSHOT = 'snapshot';
+  public const EVENT_TYPE_PROFILER = 'profiler';
 
-  const DETAILS = 'details';
+  public const DETAILS = 'details';
 
-  const TIMESTAMP_INIT = 'timestamp_init';
-  const TIMESTAMP = 'timestamp';
-  const TIMESTAMP_SINCE_START = 'timestamp_since_start';
-  const TIMESTAMP_SINCE_PRIOR = 'timestamp_since_prior';
+  public const TIMESTAMP_INIT = 'timestamp_init';
+  public const TIMESTAMP = 'timestamp';
+  public const TIMESTAMP_SINCE_START = 'timestamp_since_start';
+  public const TIMESTAMP_SINCE_PRIOR = 'timestamp_since_prior';
 
-  const MEM_USAGE_INIT = 'mem_usage_init';
-  const MEM_USAGE = 'mem_usage';
-  const MEM_USAGE_SINCE_START = 'mem_usage_since_start';
-  const MEM_USAGE_SINCE_PRIOR = 'mem_usage_since_prior';
+  public const MEM_USAGE_INIT = 'mem_usage_init';
+  public const MEM_USAGE = 'mem_usage';
+  public const MEM_USAGE_SINCE_START = 'mem_usage_since_start';
+  public const MEM_USAGE_SINCE_PRIOR = 'mem_usage_since_prior';
 
-  const USER_FIELD_NAME = 'name';
-  const USER_FIELD_ID = 'id';
+  public const USER_FIELD_NAME = 'name';
+  public const USER_FIELD_ID = 'id';
 
   protected array $fixedLogInfo;
   protected array $logSnapshot;
@@ -130,7 +127,7 @@ abstract class BrGenericLogAdapter extends BrObject
     if (br()->auth()) {
       if ($login = br()->auth()->getSessionLogin()) {
         $auth = [
-          self::USER_ID => br($login, self::USER_FIELD_ID)
+          self::USER_ID => br($login, self::USER_FIELD_ID),
         ];
         if (br($login, self::USER_FIELD_NAME)) {
           $auth[self::USER_NAME] = br($login, self::USER_FIELD_NAME);
@@ -154,7 +151,6 @@ abstract class BrGenericLogAdapter extends BrObject
 
   /**
    * @param $messageOrObject
-   * @param array|null $params
    */
   abstract public function write($messageOrObject, ?array $params = []);
 
@@ -190,8 +186,7 @@ abstract class BrGenericLogAdapter extends BrObject
 
   protected function isRegularEventType(?array $params = []): bool
   {
-    return
-      $this->isDebugEventType($params) ||
+    return $this->isDebugEventType($params) ||
       $this->isErrorEventType($params) ||
       $this->isWarningEventType($params) ||
       $this->isMessageEventType($params) ||
@@ -200,9 +195,6 @@ abstract class BrGenericLogAdapter extends BrObject
 
   /**
    * @param $messageOrObject
-   * @param array|null $params
-   * @param array|null $contentType
-   * @return array
    */
   protected function getLogInfo($messageOrObject, ?array $params = [], ?array $contentType = []): array
   {
@@ -240,8 +232,6 @@ abstract class BrGenericLogAdapter extends BrObject
 
   /**
    * @param $messageOrObject
-   * @param bool $includeStackTrace
-   * @return string
    */
   public static function convertMessageOrObjectToText($messageOrObject, bool $includeStackTrace = false): string
   {

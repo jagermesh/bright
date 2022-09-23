@@ -10,14 +10,10 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrCache extends BrObject
 {
   /**
    * Get provider Instance
-   * @param string|null $name
    * @return BrMemCacheCacheProvider|BrFileCacheProvider|BrAPCCacheProvider|BrXCacheCacheProvider|BrRedisCacheProvider|BrMemoryCacheProvider
    * @throws BrCacheException
    * @throws BrException
@@ -29,7 +25,7 @@ class BrCache extends BrObject
 
     if (!array_key_exists($name, self::$instances)) {
       $settings = [
-        'engine' => $name
+        'engine' => $name,
       ];
 
       if ($config = br()->config()->get('cache')) {
@@ -86,7 +82,7 @@ class BrCache extends BrObject
       case 'apc':
         return new BrAPCCacheProvider($settings);
       case 'xcache':
-        return new BrXCacheCacheProvider( $settings);
+        return new BrXCacheCacheProvider($settings);
       case 'redis':
         return new BrRedisCacheProvider($settings);
       case 'memory':

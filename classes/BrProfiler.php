@@ -80,7 +80,7 @@ class BrProfiler extends BrObject
   {
     $this->start($name);
     $details = [
-      'operation' => $name
+      'operation' => $name,
     ];
     br()->log()->message('Started: ' . $name, $details, BrConst::LOG_EVENT_PROFILER);
   }
@@ -91,17 +91,25 @@ class BrProfiler extends BrObject
     if ($metric['count'] > 1) {
       $details = [
         'operation' => $name,
-        'total_duration' => br()->formatDuration($metric['totalDuration'], ['withUnits' => true]),
+        'total_duration' => br()->formatDuration($metric['totalDuration'], [
+          'withUnits' => true,
+        ]),
         'total_memory' => br()->formatBytes($metric['totalMemory']),
-        'avg_duration' => br()->formatDuration($metric['avgDuration'], ['withUnits' => true]),
+        'avg_duration' => br()->formatDuration($metric['avgDuration'], [
+          'withUnits' => true,
+        ]),
         'avg_memory' => br()->formatBytes($metric['avgMemory']),
       ];
       br()->log()->message(
         'Statistic: ' . $name .
         ' (cnt ' . $metric['count'] .
-        ', total duration ' . br()->formatDuration($metric['totalDuration'], ['withUnits' => true]) .
+        ', total duration ' . br()->formatDuration($metric['totalDuration'], [
+          'withUnits' => true,
+        ]) .
         ', total memory ' . br()->formatBytes($metric['totalMemory']) .
-        ', avg duration ' . br()->formatDuration($metric['avgDuration'], ['withUnits' => true]) .
+        ', avg duration ' . br()->formatDuration($metric['avgDuration'], [
+          'withUnits' => true,
+        ]) .
         ', avg memory ' . br()->formatBytes($metric['avgMemory']) . ')',
         $details,
         $tag
@@ -114,10 +122,14 @@ class BrProfiler extends BrObject
     $metric = $this->finish($name);
     $details = [
       'operation' => $name,
-      'duration' => br()->formatDuration($metric['duration'], ['withUnits' => true]),
+      'duration' => br()->formatDuration($metric['duration'], [
+        'withUnits' => true,
+      ]),
       'memory' => br()->formatTraffic($metric['memory']),
     ];
-    br()->log()->message('Finished: ' . $name . ' (' . br()->formatDuration($metric['duration'], ['withUnits' => true]) . ', ' .
+    br()->log()->message('Finished: ' . $name . ' (' . br()->formatDuration($metric['duration'], [
+      'withUnits' => true,
+    ]) . ', ' .
       br()->formatBytes($metric['memory']) . ')', $details, BrConst::LOG_EVENT_PROFILER);
     $this->logStatistic($name);
     if ($comment) {

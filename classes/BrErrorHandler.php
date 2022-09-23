@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrErrorHandler extends BrObject
 {
   public function __construct()

@@ -14,9 +14,6 @@ use Longman\TelegramBot\Exception\TelegramException;
 use Longman\TelegramBot\Request;
 use Longman\TelegramBot\Telegram;
 
-/**
- *
- */
 class BrTelegramLogAdapter extends BrGenericLogAdapter
 {
   private BrGenericCacheProvider $cache;
@@ -55,7 +52,6 @@ class BrTelegramLogAdapter extends BrGenericLogAdapter
 
   /**
    * @param $messageOrObject
-   * @param array|null $params
    */
   public function write($messageOrObject, ?array $params = [])
   {

@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrConsole extends BrObject
 {
   public function red(string $message): string
@@ -41,7 +38,6 @@ class BrConsole extends BrObject
   }
 
   /**
-   * @param string $name
    * @param array|null $arguments
    * @return mixed|void
    */

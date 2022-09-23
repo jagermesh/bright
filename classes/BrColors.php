@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrColors extends BrObject
 {
   public function colorToRGB(string $color): string

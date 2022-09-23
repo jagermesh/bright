@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrErrorsFormatter
 {
   private static function formatCallParams(?array $params = [], int $level = 0): string

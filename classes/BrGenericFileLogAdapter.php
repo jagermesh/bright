@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 abstract class BrGenericFileLogAdapter extends BrGenericLogAdapter
 {
   protected string $filePath;
@@ -118,8 +115,7 @@ abstract class BrGenericFileLogAdapter extends BrGenericLogAdapter
 
   protected function getLogPrefix(array $info): string
   {
-    return
-      $info['timestamp'] . ' ' .
+    return $info['timestamp'] . ' ' .
       str_pad($info['timestamp_since_start'], 8, ' ', STR_PAD_LEFT) . ' ' .
       str_pad($info['timestamp_since_prior'], 8, ' ', STR_PAD_LEFT) . ' ' .
       str_pad($info['mem_usage_since_start'], 8, ' ', STR_PAD_LEFT) . ' ' .

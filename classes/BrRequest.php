@@ -12,8 +12,8 @@ namespace Bright;
 
 class BrRequest extends BrObject
 {
-  const IP_LOCALHOST = '127.0.0.1';
-  const HOST_LOCALHOST = 'localhost';
+  public const IP_LOCALHOST = '127.0.0.1';
+  public const HOST_LOCALHOST = 'localhost';
 
   private $host;
   private $url = null;
@@ -171,7 +171,6 @@ class BrRequest extends BrObject
   /**
    * Get referer
    * @param null $default
-   * @return string
    */
   public function referer($default = null): string
   {
@@ -180,7 +179,6 @@ class BrRequest extends BrObject
 
   /**
    * Check if request referer is this site
-   * @return bool
    */
   public function isSelfReferer(): bool
   {
@@ -190,7 +188,6 @@ class BrRequest extends BrObject
   /**
    * Check if requested specified url
    * @param string $url Urls to check
-   * @return array|null
    */
   public function isAt(string $url): ?array
   {
@@ -231,7 +228,7 @@ class BrRequest extends BrObject
 
   /**
    * Get current url
-   * @return String
+   * @return string
    */
   public function url()
   {
@@ -588,8 +585,7 @@ class BrRequest extends BrObject
   public function isFileUploaded($name)
   {
     if ($this->getUploadedFileInfo($name)) {
-      return
-        $this->getUploadedFileLocation($name) &&
+      return $this->getUploadedFileLocation($name) &&
         file_exists($this->getUploadedFileLocation($name)) &&
         ($this->getUploadedFileError($name) == UPLOAD_ERR_OK) &&
         ($this->getUploadedFileSize($name) > 0);

@@ -12,13 +12,10 @@ namespace Bright;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\BadResponseException;
-use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 
-/**
- *
- */
 class BrBrowser extends BrObject
 {
   private static array $defaultRequestParams = [
@@ -33,9 +30,7 @@ class BrBrowser extends BrObject
   }
 
   /**
-   * @param string $name
    * @param $value
-   * @return void
    */
   public static function setDefaultRequestsParam(string $name, $value)
   {

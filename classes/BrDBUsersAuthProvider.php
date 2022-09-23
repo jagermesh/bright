@@ -10,75 +10,72 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrDBUsersAuthProvider extends BrGenericAuthProvider
 {
-  const MAIL_FROM = 'mail.from';
-  const BR_AUTH_PLAIN_PASSWORDS = 'br/auth/plainPasswords';
-  const USERS_TABLE_NAME = 'usersTable.name';
-  const USERS_TABLE_LOGIN_FIELD = 'usersTable.loginField';
-  const USERS_TABLE_PASSWORD_FIELD = 'usersTable.passwordField';
-  const USERS_TABLE_LOGIN_FIELD_LABEL = 'usersTable.loginFieldLabel';
-  const USERS_TABLE_PASSWORD_FIELD_LABEL = 'usersTable.passwordFieldLabel';
-  const USERS_TABLE_PASSWORD_RESET_FIELD = 'usersTable.passwordResetField';
-  const USERS_TABLE_EMAIL_FIELD = 'usersTable.emailField';
-  const USERS_API_SELECT = 'usersAPI.select';
-  const USERS_API_INSERT = 'usersAPI.insert';
-  const USERS_API_UPDATE = 'usersAPI.update';
-  const USERS_API_REMOVE = 'usersAPI.remove';
-  const SIGNUP_ENABLED = 'signup.enabled';
-  const SIGNUP_PASSWORD_REQUIRED = 'signup.passwordRequired';
-  const SIGNUP_EMAIL_REQUIRED = 'signup.emailRequired';
-  const SIGNUP_MAIL_TEMPLATE = 'signup.mail.template';
-  const SIGNUP_MAIL_SUBJECT = 'signup.mail.subject';
-  const SIGNUP_MAIL_FROM = 'signup.mail.from';
-  const PASSWORD_REMINDER_VERIFICATION_MAIL_TEMPLATE = 'passwordReminder.verificationMail.template';
-  const PASSWORD_REMINDER_VERIFICATION_MAIL_SUBJECT = 'passwordReminder.verificationMail.subject';
-  const PASSWORD_REMINDER_VERIFICATION_MAIL_FROM = 'passwordReminder.verificationMail.from';
-  const PASSWORD_REMINDER_PASSWORD_MAIL_TEMPLATE = 'passwordReminder.passwordMail.template';
-  const PASSWORD_REMINDER_PASSWORD_MAIL_SUBJECT = 'passwordReminder.passwordMail.subject';
-  const PASSWORD_REMINDER_PASSWORD_MAIL_FROM = 'passwordReminder.passwordMail.from';
-  const BR_AUTH_API_SIGNUP_ENABLED = 'br/auth/api/signupEnabled';
-  const BR_AUTH_MAIL_SIGNUP_TEMPLATE = 'br/auth/mail/signup/template';
-  const BR_AUTH_MAIL_SIGNUP_SUBJECT = 'br/auth/mail/signup/subject';
-  const BR_AUTH_MAIL_FROM = 'br/auth/mail/from';
-  const BR_AUTH_DB_API_SELECT_USER = 'br/auth/db/api/select-user';
-  const BR_AUTH_DB_API_INSERT_USER = 'br/auth/db/api/insert-user';
-  const BR_AUTH_DB_API_UPDATE_USER = 'br/auth/db/api/update-user';
-  const BR_AUTH_DB_API_REMOVE_USER = 'br/auth/db/api/remove-user';
-  const BR_AUTH_DB_TABLE = 'br/auth/db/table';
-  const BR_AUTH_DB_LOGIN_FIELD = 'br/auth/db/login-field';
-  const BR_AUTH_DB_LOGIN_FIELD_LABEL = 'br/auth/db/login-field-label';
-  const BR_AUTH_DB_PASSWORD_FIELD = self::BR_AUTH_DB_PASSWORD_FIELD1;
-  const BR_AUTH_DB_PASSWORD_FIELD1 = 'br/auth/db/password-field';
-  const BR_AUTH_DB_PASSWORD_RESET_FIELD = 'br/auth/db/password-reset-field';
-  const BR_AUTH_DB_EMAIL_FIELD = 'br/auth/db/email-field';
-  const PASSWORD_REMINDER_ENABLED = 'passwordReminder.enabled';
-  const VERIFICATION_MAIL = 'verificationMail';
-  const PASSWORD_MAIL = 'passwordMail';
-  const PASSWORD_REMINDER = 'passwordReminder';
-  const SIGNUP = 'signup';
-  const MAIL = 'mail';
-  const USERS_API = 'usersAPI';
-  const USERS_TABLE = 'usersTable';
-  const PLAIN_PASSWORDS = 'plainPasswords';
-  const REGISTRATION_COMPLETE = 'Registration complete';
-  const SQL_FIND_USER_BY_ID = '
+  public const MAIL_FROM = 'mail.from';
+  public const BR_AUTH_PLAIN_PASSWORDS = 'br/auth/plainPasswords';
+  public const USERS_TABLE_NAME = 'usersTable.name';
+  public const USERS_TABLE_LOGIN_FIELD = 'usersTable.loginField';
+  public const USERS_TABLE_PASSWORD_FIELD = 'usersTable.passwordField';
+  public const USERS_TABLE_LOGIN_FIELD_LABEL = 'usersTable.loginFieldLabel';
+  public const USERS_TABLE_PASSWORD_FIELD_LABEL = 'usersTable.passwordFieldLabel';
+  public const USERS_TABLE_PASSWORD_RESET_FIELD = 'usersTable.passwordResetField';
+  public const USERS_TABLE_EMAIL_FIELD = 'usersTable.emailField';
+  public const USERS_API_SELECT = 'usersAPI.select';
+  public const USERS_API_INSERT = 'usersAPI.insert';
+  public const USERS_API_UPDATE = 'usersAPI.update';
+  public const USERS_API_REMOVE = 'usersAPI.remove';
+  public const SIGNUP_ENABLED = 'signup.enabled';
+  public const SIGNUP_PASSWORD_REQUIRED = 'signup.passwordRequired';
+  public const SIGNUP_EMAIL_REQUIRED = 'signup.emailRequired';
+  public const SIGNUP_MAIL_TEMPLATE = 'signup.mail.template';
+  public const SIGNUP_MAIL_SUBJECT = 'signup.mail.subject';
+  public const SIGNUP_MAIL_FROM = 'signup.mail.from';
+  public const PASSWORD_REMINDER_VERIFICATION_MAIL_TEMPLATE = 'passwordReminder.verificationMail.template';
+  public const PASSWORD_REMINDER_VERIFICATION_MAIL_SUBJECT = 'passwordReminder.verificationMail.subject';
+  public const PASSWORD_REMINDER_VERIFICATION_MAIL_FROM = 'passwordReminder.verificationMail.from';
+  public const PASSWORD_REMINDER_PASSWORD_MAIL_TEMPLATE = 'passwordReminder.passwordMail.template';
+  public const PASSWORD_REMINDER_PASSWORD_MAIL_SUBJECT = 'passwordReminder.passwordMail.subject';
+  public const PASSWORD_REMINDER_PASSWORD_MAIL_FROM = 'passwordReminder.passwordMail.from';
+  public const BR_AUTH_API_SIGNUP_ENABLED = 'br/auth/api/signupEnabled';
+  public const BR_AUTH_MAIL_SIGNUP_TEMPLATE = 'br/auth/mail/signup/template';
+  public const BR_AUTH_MAIL_SIGNUP_SUBJECT = 'br/auth/mail/signup/subject';
+  public const BR_AUTH_MAIL_FROM = 'br/auth/mail/from';
+  public const BR_AUTH_DB_API_SELECT_USER = 'br/auth/db/api/select-user';
+  public const BR_AUTH_DB_API_INSERT_USER = 'br/auth/db/api/insert-user';
+  public const BR_AUTH_DB_API_UPDATE_USER = 'br/auth/db/api/update-user';
+  public const BR_AUTH_DB_API_REMOVE_USER = 'br/auth/db/api/remove-user';
+  public const BR_AUTH_DB_TABLE = 'br/auth/db/table';
+  public const BR_AUTH_DB_LOGIN_FIELD = 'br/auth/db/login-field';
+  public const BR_AUTH_DB_LOGIN_FIELD_LABEL = 'br/auth/db/login-field-label';
+  public const BR_AUTH_DB_PASSWORD_FIELD = self::BR_AUTH_DB_PASSWORD_FIELD1;
+  public const BR_AUTH_DB_PASSWORD_FIELD1 = 'br/auth/db/password-field';
+  public const BR_AUTH_DB_PASSWORD_RESET_FIELD = 'br/auth/db/password-reset-field';
+  public const BR_AUTH_DB_EMAIL_FIELD = 'br/auth/db/email-field';
+  public const PASSWORD_REMINDER_ENABLED = 'passwordReminder.enabled';
+  public const VERIFICATION_MAIL = 'verificationMail';
+  public const PASSWORD_MAIL = 'passwordMail';
+  public const PASSWORD_REMINDER = 'passwordReminder';
+  public const SIGNUP = 'signup';
+  public const MAIL = 'mail';
+  public const USERS_API = 'usersAPI';
+  public const USERS_TABLE = 'usersTable';
+  public const PLAIN_PASSWORDS = 'plainPasswords';
+  public const REGISTRATION_COMPLETE = 'Registration complete';
+  public const SQL_FIND_USER_BY_ID = '
     SELECT *
       FROM %s
      WHERE id = ?
   ';
-  const SQL_FIND_USER_BY_LOGIN = '
+  public const SQL_FIND_USER_BY_LOGIN = '
     SELECT *
       FROM %s
      WHERE %s = ?&
   ';
-  const COOKIE_ATTR_LOGIN = 'login';
-  const COOKIE_ATTR_TOKEN = 'token';
-  const EVENT_FIND_LOGIN = 'findLogin';
-  const USER_ATTR_ROWID = 'rowid';
+  public const COOKIE_ATTR_LOGIN = 'login';
+  public const COOKIE_ATTR_TOKEN = 'token';
+  public const EVENT_FIND_LOGIN = 'findLogin';
+  public const USER_ATTR_ROWID = 'rowid';
 
   public function __construct(?array $settings = [])
   {
@@ -164,7 +161,6 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider
 
   /**
    * @param $rowid
-   * @return array|null
    */
   private function getUserById($rowid): ?array
   {
@@ -175,7 +171,6 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider
 
   /**
    * @param $login
-   * @return array
    */
   private function findUserByLogin($login): array
   {
@@ -270,7 +265,7 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider
           if ($rememberPassword) {
             $cookie = [
               self::COOKIE_ATTR_LOGIN => $username,
-              self::COOKIE_ATTR_TOKEN => sha1(md5(sha1($password) . sha1($rowid)))
+              self::COOKIE_ATTR_TOKEN => sha1(md5(sha1($password) . sha1($rowid))),
             ];
             setcookie($this->getAuthTag(), base64_encode(json_encode($cookie)),
               time() + 60 * 60 * 24 * 30, br()->request()->baseUrl(), br()->request()->getDomain(), true, true);

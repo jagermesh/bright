@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrDataBaseDictionary extends BrObject implements IDataBaseDictionary
 {
   protected array $schema = [];

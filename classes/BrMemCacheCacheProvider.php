@@ -10,13 +10,10 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrMemCacheCacheProvider extends BrGenericCacheProvider
 {
-  const DEFAULT_HOST_NAME = 'localhost';
-  const DEFAULT_PORT = 11211;
+  public const DEFAULT_HOST_NAME = 'localhost';
+  public const DEFAULT_PORT = 11211;
 
   private \Memcache $memCache;
 
@@ -54,9 +51,7 @@ class BrMemCacheCacheProvider extends BrGenericCacheProvider
   }
 
   /**
-   * @param string $name
    * @param $default
-   * @param bool $saveDefault
    * @return mixed
    */
   public function getEx(string $name, $default = null, bool $saveDefault = false): array
@@ -71,7 +66,7 @@ class BrMemCacheCacheProvider extends BrGenericCacheProvider
       }
       return [
         'success' => $saveDefault,
-        'value' => $default
+        'value' => $default,
       ];
     } else {
       return [
@@ -82,10 +77,7 @@ class BrMemCacheCacheProvider extends BrGenericCacheProvider
   }
 
   /**
-   * @param string $name
    * @param $value
-   * @param int|null $lifeTime
-   * @return bool
    */
   public function set(string $name, $value, ?int $lifeTime = null): bool
   {

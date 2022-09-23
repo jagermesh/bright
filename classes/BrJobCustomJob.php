@@ -10,17 +10,14 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrJobCustomJob extends BrObject
 {
-  const SHELL_SCRIPT = 'nohup ' . PHP_BINARY . ' -f';
-  const RUN_JOB_SCRIPT = 'run-job.php';
-  const CHECK_JOB_SCRIPT = 'check-job.php';
-  const DEFAULT_JOB_RECHECK_PERIOD = 5 * 60;
-  const JOB_RUN_RECHECK_PERIOD = 10;
-  const MAX_PROCESSES_AMOUNT_MULTIPLIER = 16;
+  public const SHELL_SCRIPT = 'nohup ' . PHP_BINARY . ' -f';
+  public const RUN_JOB_SCRIPT = 'run-job.php';
+  public const CHECK_JOB_SCRIPT = 'check-job.php';
+  public const DEFAULT_JOB_RECHECK_PERIOD = 5 * 60;
+  public const JOB_RUN_RECHECK_PERIOD = 10;
+  public const MAX_PROCESSES_AMOUNT_MULTIPLIER = 16;
 
   protected string $lastRunFile;
 
@@ -149,7 +146,6 @@ class BrJobCustomJob extends BrObject
 
   /**
    * @param $params
-   * @return void
    */
   public function run($params)
   {
@@ -171,7 +167,7 @@ class BrJobCustomJob extends BrObject
     } else {
       br()->fs()->saveToFile($fileName, br()->renderer()->fetchString(br()->fs()->loadFromFile(dirname(__DIR__) . '/templates/Job.tpl'), [
         'guid' => br()->guid(),
-        'name' => $name
+        'name' => $name,
       ]));
     }
   }

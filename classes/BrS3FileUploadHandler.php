@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrS3FileUploadHandler extends BrGenericUploadHandler
 {
   /**
@@ -29,7 +26,7 @@ class BrS3FileUploadHandler extends BrGenericUploadHandler
     return [
       'fileName' => $dstFileName,
       'url' => $dstFilePath,
-      'href' => $url
+      'href' => $url,
     ];
   }
 }

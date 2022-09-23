@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrAPCCacheProvider extends BrGenericCacheProvider
 {
   /**
@@ -43,9 +40,7 @@ class BrAPCCacheProvider extends BrGenericCacheProvider
   }
 
   /**
-   * @param string $name
    * @param $default
-   * @param bool $saveDefault
    * @return mixed|null
    */
   public function getEx(string $name, $default = null, bool $saveDefault = false): array
@@ -60,7 +55,7 @@ class BrAPCCacheProvider extends BrGenericCacheProvider
       }
       return [
         'success' => $saveDefault,
-        'value' => $default
+        'value' => $default,
       ];
     } else {
       return [
@@ -71,10 +66,7 @@ class BrAPCCacheProvider extends BrGenericCacheProvider
   }
 
   /**
-   * @param string $name
    * @param $value
-   * @param int|null $lifeTime
-   * @return bool
    */
   public function set(string $name, $value, ?int $lifeTime = null): bool
   {

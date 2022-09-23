@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrDataBase extends BrObject
 {
   /**

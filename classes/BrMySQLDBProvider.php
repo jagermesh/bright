@@ -248,7 +248,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
         $field_defs[strtolower($finfo->name)] = [
           'length' => $finfo->max_length,
           'type' => $finfo->type,
-          'flags' => $finfo->flags
+          'flags' => $finfo->flags,
         ];
       }
       mysqli_free_result($query);
@@ -389,7 +389,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
       br()->log()->message($queryText, [], BrConst::LOG_EVENT_SQL_OK);
     } catch (\Exception $e) {
       $error = $e->getMessage();
-      br()->log()->message($error . "\n". $queryText, [], BrConst::LOG_EVENT_SQL_ERROR);
+      br()->log()->message($error . "\n" . $queryText, [], BrConst::LOG_EVENT_SQL_ERROR);
       br()->trigger(BrConst::EVENT_BR_DB_QUERY_ERROR, $error);
       throw $e;
     }
@@ -430,12 +430,12 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
   public function internalDataTypeToGenericDataType(string $type): int
   {
     switch (strtolower($type)) {
-      case 'date';
+      case 'date':
         return self::DATA_TYPE_DATE;
       case 'datetime':
       case 'timestamp':
         return self::DATA_TYPE_DATETIME;
-      case 'time';
+      case 'time':
         return self::DATA_TYPE_TIME;
       case 'bigint':
       case 'int':
@@ -564,19 +564,19 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
         $table_data[] = [
           'is_first' => empty($table_data),
           'field_name' => $field_name,
-          'field_data' => $field_data
+          'field_data' => $field_data,
         ];
       }
       $schema2[] = [
         'is_first' => empty($schema2),
         'table_name' => $table_name,
-        'table_data' => $table_data
+        'table_data' => $table_data,
       ];
     }
 
     $fileName = br()->fs()->filePath($scriptFile) . 'schema/DataBaseDictionary.php';
     br()->fs()->saveToFile($fileName, br()->renderer()->fetchString(br()->fs()->loadFromFile(dirname(__DIR__) . '/templates/DataBaseDictionary.tpl'), [
-      'schema' => $schema2
+      'schema' => $schema2,
     ]));
 
     br()->log()->message(sprintf('[%s] Dictionary file saved into %s', br()->db()->getDataBaseName(), $fileName));

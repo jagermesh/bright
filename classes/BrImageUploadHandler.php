@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrImageUploadHandler extends BrFileUploadHandler
 {
   public function __construct(?array $options = [])

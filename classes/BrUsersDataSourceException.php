@@ -11,5 +11,4 @@ namespace Bright;
  */
 class BrUsersDataSourceException extends \Exception
 {
-
 }

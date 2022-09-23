@@ -2,9 +2,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrDBForeignKeyException extends BrDBAppException
 {
   public function __construct(?string $message = '')

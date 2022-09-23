@@ -2,12 +2,8 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrEventBusClient extends BrEventBusEngine
 {
-
   /**
    * @throws \Exception
    */
@@ -20,7 +16,9 @@ class BrEventBusClient extends BrEventBusEngine
   {
     if ($this->url) {
       $loop = \React\EventLoop\Factory::create();
-      $reactConnector = new \React\Socket\Connector($loop, ['timeout' => 10]);
+      $reactConnector = new \React\Socket\Connector($loop, [
+        'timeout' => 10,
+      ]);
       $connector = new \Ratchet\Client\Connector($loop, $reactConnector);
 
       $connector($this->url)->then(

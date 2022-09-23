@@ -12,8 +12,8 @@ namespace Bright;
 
 class BrIMAP extends BrObject
 {
-  const ENCODING_BASE64 = 3;
-  const ENCODING_QPRINT = 4;
+  public const ENCODING_BASE64 = 3;
+  public const ENCODING_QPRINT = 4;
 
   private $hostName;
   private $userName;
@@ -51,7 +51,7 @@ class BrIMAP extends BrObject
           'path' => $name,
           'pathArray' => $path,
           'delimiter' => $element->delimiter,
-          'attributes' => $element->attributes
+          'attributes' => $element->attributes,
         ];
       }
     }

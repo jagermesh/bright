@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrRedisCacheProvider extends BrGenericCacheProvider
 {
   private const DEFAULT_HOST_NAME = 'localhost';
@@ -80,9 +77,7 @@ class BrRedisCacheProvider extends BrGenericCacheProvider
   }
 
   /**
-   * @param string $name
    * @param $default
-   * @param bool $saveDefault
    * @return mixed
    */
   public function getEx(string $name, $default = null, bool $saveDefault = false): array
@@ -95,7 +90,7 @@ class BrRedisCacheProvider extends BrGenericCacheProvider
         }
         return [
           'success' => $saveDefault,
-          'value' => $default
+          'value' => $default,
         ];
       } else {
         return [
@@ -106,7 +101,7 @@ class BrRedisCacheProvider extends BrGenericCacheProvider
     } catch (\Exception $e) {
       return [
         'success' => false,
-        'value' => null
+        'value' => null,
       ];
     }
   }
@@ -128,10 +123,7 @@ class BrRedisCacheProvider extends BrGenericCacheProvider
   }
 
   /**
-   * @param string $name
    * @param $value
-   * @param int|null $lifeTime
-   * @return bool
    */
   public function set(string $name, $value, ?int $lifeTime = null): bool
   {

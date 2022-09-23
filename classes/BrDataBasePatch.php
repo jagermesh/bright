@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 abstract class BrDataBasePatch
 {
   private int $stepNo = 0;
@@ -24,9 +21,9 @@ abstract class BrDataBasePatch
 
   protected BrDataBaseManager $dbManager;
 
-  const DO_ABORT = 0;
-  const DO_CONTINUE = 1;
-  const DO_RETRY = 2;
+  public const DO_ABORT = 0;
+  public const DO_CONTINUE = 1;
+  public const DO_RETRY = 2;
 
   abstract public function up();
   abstract public function down($failedStepName, $errorMessage);
@@ -316,7 +313,7 @@ abstract class BrDataBasePatch
     } else {
       br()->fs()->saveToFile($fileName, br()->renderer()->fetchString(br()->fs()->loadFromFile(dirname(__DIR__) . '/templates/DataBasePatch.tpl'), [
         'guid' => br()->guid(),
-        'name' => $name
+        'name' => $name,
       ]));
     }
   }

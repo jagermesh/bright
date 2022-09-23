@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrImage extends BrObject
 {
   private $image;

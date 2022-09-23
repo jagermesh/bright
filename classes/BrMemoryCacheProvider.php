@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrMemoryCacheProvider extends BrGenericCacheProvider
 {
   public static function isSupported(): bool
@@ -33,9 +30,7 @@ class BrMemoryCacheProvider extends BrGenericCacheProvider
   }
 
   /**
-   * @param string $name
    * @param $default
-   * @param bool $saveDefault
    * @return mixed
    */
   public function getEx(string $name, $default = null, bool $saveDefault = false): array
@@ -48,7 +43,7 @@ class BrMemoryCacheProvider extends BrGenericCacheProvider
       }
       return [
         'success' => $saveDefault,
-        'value' => $default
+        'value' => $default,
       ];
     } else {
       return [
@@ -59,10 +54,7 @@ class BrMemoryCacheProvider extends BrGenericCacheProvider
   }
 
   /**
-   * @param string $name
    * @param $value
-   * @param int|null $lifeTime
-   * @return bool
    */
   public function set(string $name, $value, ?int $lifeTime = null): bool
   {

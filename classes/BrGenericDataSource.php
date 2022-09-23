@@ -72,7 +72,9 @@ class BrGenericDataSource extends BrObject
 
   public function existsOne($filter = [])
   {
-    if ($this->selectOne($filter, [], [], [BrConst::DATASOURCE_OPTION_NO_CALC_FIELDS => true])) {
+    if ($this->selectOne($filter, [], [], [
+      BrConst::DATASOURCE_OPTION_NO_CALC_FIELDS => true,
+    ])) {
       return true;
     }
 
@@ -81,7 +83,9 @@ class BrGenericDataSource extends BrObject
 
   public function existsOneCached($filter = [])
   {
-    if ($this->selectOneCached($filter, [], [], [BrConst::DATASOURCE_OPTION_NO_CALC_FIELDS => true])) {
+    if ($this->selectOneCached($filter, [], [], [
+      BrConst::DATASOURCE_OPTION_NO_CALC_FIELDS => true,
+    ])) {
       return true;
     }
 
@@ -91,7 +95,9 @@ class BrGenericDataSource extends BrObject
   public function selectOneCached($filter = [], $fields = [], $order = [], $options = [])
   {
     if (!is_array($filter)) {
-      $filter = [$this->getDb()->rowidField() => $this->getDb()->rowid($filter)];
+      $filter = [
+        $this->getDb()->rowidField() => $this->getDb()->rowid($filter),
+      ];
     }
 
     $options[BrConst::DATASOURCE_OPTION_LIMIT] = 1;
@@ -146,7 +152,9 @@ class BrGenericDataSource extends BrObject
   public function selectOne($filter = [], $fields = [], $order = [], $options = [])
   {
     if (!is_array($filter)) {
-      $filter = [$this->getDb()->rowidField() => $this->getDb()->rowid($filter)];
+      $filter = [
+        $this->getDb()->rowidField() => $this->getDb()->rowid($filter),
+      ];
     }
 
     $options[BrConst::DATASOURCE_OPTION_LIMIT] = 1;
@@ -241,7 +249,9 @@ class BrGenericDataSource extends BrObject
 
   public function remove($rowid, &$transientData = [])
   {
-    $row = [BrConst::DATASOURCE_SYSTEM_FIELD_ROWID => $rowid];
+    $row = [
+      BrConst::DATASOURCE_SYSTEM_FIELD_ROWID => $rowid,
+    ];
 
     $this->validateRemove($row);
 

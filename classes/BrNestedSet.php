@@ -12,7 +12,7 @@ namespace Bright;
 
 class BrNestedSet extends BrObject
 {
-  const ERROR_NESTED_SET_IS_BROKEN = 'Nested set is broken';
+  public const ERROR_NESTED_SET_IS_BROKEN = 'Nested set is broken';
 
   private $tableName;
   private $keyField;

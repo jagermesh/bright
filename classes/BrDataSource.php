@@ -101,7 +101,9 @@ class BrDataSource extends BrGenericDataSource
       $sortOrder = $this->defaultOrder;
     }
     if ($sortOrder && !is_array($sortOrder)) {
-      $sortOrder = [$sortOrder => BrConst::SORT_ASC];
+      $sortOrder = [
+        $sortOrder => BrConst::SORT_ASC,
+      ];
     }
     if (($groupBy = br($options, BrConst::DATASOURCE_OPTION_GROUP_BY, [])) && !is_array($groupBy)) {
       $groupBy = [$groupBy];
@@ -126,7 +128,9 @@ class BrDataSource extends BrGenericDataSource
     if (is_null($result)) {
       $result = [];
       $this->lastSelectAmount = 0;
-      $table = $this->getDb()->table($this->getDbEntity(), $this->getDbEntityAlias(), [BrConst::DATASOURCE_OPTION_INDEX_HINT => $this->getDbIndexHint()]);
+      $table = $this->getDb()->table($this->getDbEntity(), $this->getDbEntityAlias(), [
+        BrConst::DATASOURCE_OPTION_INDEX_HINT => $this->getDbIndexHint(),
+      ]);
       if (!$resultsLimit || ($resultsLimit > 0)) {
         try {
           $cursor = $table->select($filter, $fields, $distinct);

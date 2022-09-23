@@ -10,13 +10,9 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrConfig extends BrObject
 {
   /**
-   * @param string $name
    * @param $value
    * @return $this
    */
@@ -28,7 +24,6 @@ class BrConfig extends BrObject
   }
 
   /**
-   * @param string|null $name
    * @param $default
    * @return array|mixed|null
    */

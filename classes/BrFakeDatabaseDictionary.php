@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrFakeDatabaseDictionary extends BrObject implements IDataBaseDictionary
 {
   public function validate(string $tableName, ?array $row = []): array

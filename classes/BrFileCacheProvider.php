@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrFileCacheProvider extends BrGenericCacheProvider
 {
   private string $cachePath;
@@ -92,9 +89,7 @@ class BrFileCacheProvider extends BrGenericCacheProvider
   }
 
   /**
-   * @param string $name
    * @param $default
-   * @param bool $saveDefault
    * @return mixed
    * @throws \Exception
    */
@@ -110,7 +105,7 @@ class BrFileCacheProvider extends BrGenericCacheProvider
       }
       return [
         'success' => $saveDefault,
-        'value' => $default
+        'value' => $default,
       ];
     } else {
       return [
@@ -121,10 +116,7 @@ class BrFileCacheProvider extends BrGenericCacheProvider
   }
 
   /**
-   * @param string $name
    * @param $value
-   * @param int|null $lifeTime
-   * @return bool
    * @throws \Exception
    */
   public function set(string $name, $value, ?int $lifeTime = null): bool

@@ -10,15 +10,11 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrHTML extends BrObject
 {
   public function isHtml(?string $text = ''): bool
   {
-    return
-      preg_match('~<[/]?[\w][^>]*?>~i', $text) ||
+    return preg_match('~<[/]?[\w][^>]*?>~i', $text) ||
       preg_match('~&[a-z#0-9]+;~i', $text);
   }
 

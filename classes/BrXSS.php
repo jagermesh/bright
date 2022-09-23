@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrXSS extends BrObject
 {
   private array $allowedDomains = [
@@ -24,12 +21,11 @@ class BrXSS extends BrObject
     'soundcloud.com',
     'edpuzzle.com',
     'docs.google.com',
-    'drive.google.com'
+    'drive.google.com',
   ];
 
   /**
    * @param $html
-   * @param callable|null $callback
    * @return mixed|string
    */
   public function cleanUp($html, callable $callback = null)

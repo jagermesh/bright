@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 interface IDataBaseDictionary
 {
   public function validate(string $tableName, ?array $row = []): array;

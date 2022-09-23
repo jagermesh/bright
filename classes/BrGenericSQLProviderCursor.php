@@ -12,12 +12,12 @@ namespace Bright;
 
 class BrGenericSQLProviderCursor implements \Iterator
 {
-  const SQL_CMD_HAVING = ' HAVING ';
-  const SQL_CMD_GROUP_BY = ' GROUP BY ';
-  const SQL_CMD_ORDER_BY = ' ORDER BY ';
-  const SQL_CMD_ORDER_ASC = ' ASC ';
-  const SQL_CMD_ORDER_DESC = ' DESC ';
-  const SQL_CMD_AND = ' AND ';
+  public const SQL_CMD_HAVING = ' HAVING ';
+  public const SQL_CMD_GROUP_BY = ' GROUP BY ';
+  public const SQL_CMD_ORDER_BY = ' ORDER BY ';
+  public const SQL_CMD_ORDER_ASC = ' ASC ';
+  public const SQL_CMD_ORDER_DESC = ' DESC ';
+  public const SQL_CMD_AND = ' AND ';
 
   private $sql;
   private $args;
@@ -123,7 +123,7 @@ class BrGenericSQLProviderCursor implements \Iterator
 
     return [
       'sql' => $finalSql,
-      'args' => $this->args
+      'args' => $this->args,
     ];
   }
 

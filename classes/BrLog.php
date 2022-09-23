@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrLog extends BrObject
 {
   private string $initTime;
@@ -100,8 +97,6 @@ class BrLog extends BrObject
 
   /**
    * @param $messageOrObject
-   * @param array|null $params
-   * @return void
    */
   private function writeToAdapters($messageOrObject, ?array $params = [])
   {
@@ -113,8 +108,12 @@ class BrLog extends BrObject
         $microTime = br()->getMicrotime();
         $params['timestamp'] = $unifiedTimestamp;
         $params['timestamp_init'] = $this->initTime;
-        $params['timestamp_since_start'] = br()->formatDuration($microTime - $this->initMicroTime, ['includeSign' => true]);
-        $params['timestamp_since_prior'] = br()->formatDuration($microTime - $this->savedMicroTime, ['includeSign' => true]);
+        $params['timestamp_since_start'] = br()->formatDuration($microTime - $this->initMicroTime, [
+          'includeSign' => true,
+        ]);
+        $params['timestamp_since_prior'] = br()->formatDuration($microTime - $this->savedMicroTime, [
+          'includeSign' => true,
+        ]);
         $this->savedMicroTime = $microTime;
       } else {
         $params['timestamp'] = '';
@@ -127,8 +126,14 @@ class BrLog extends BrObject
         $memUsage = memory_get_usage(true);
         $params['mem_usage'] = $memUsage;
         $params['mem_usage_init'] = $this->initMemory;
-        $params['mem_usage_since_start'] = br()->formatBytes($memUsage - $this->initMemory, ['includeSign' => true, 'compact' => true]);
-        $params['mem_usage_since_prior'] = br()->formatBytes($memUsage - $this->savedMemory, ['includeSign' => true, 'compact' => true]);
+        $params['mem_usage_since_start'] = br()->formatBytes($memUsage - $this->initMemory, [
+          'includeSign' => true,
+          'compact' => true,
+        ]);
+        $params['mem_usage_since_prior'] = br()->formatBytes($memUsage - $this->savedMemory, [
+          'includeSign' => true,
+          'compact' => true,
+        ]);
         $this->savedMemory = $memUsage;
       } else {
         $params['mem_usage'] = '';
@@ -147,8 +152,6 @@ class BrLog extends BrObject
 
   /**
    * @param $messageOrObject
-   * @param array|null $details
-   * @return void
    */
   public function debug($messageOrObject, ?array $details = [])
   {
@@ -156,15 +159,13 @@ class BrLog extends BrObject
       'log_event' => BrConst::LOG_EVENT_DEBUG,
       'log_level' => $this->logLevel,
       'log_prefix' => $this->logPrefix,
-      'details' => $details
+      'details' => $details,
     ];
     $this->writeToAdapters($messageOrObject, $params);
   }
 
   /**
    * @param $messageOrObject
-   * @param array|null $details
-   * @return void
    */
   public function error($messageOrObject, ?array $details = [])
   {
@@ -172,15 +173,13 @@ class BrLog extends BrObject
       'log_event' => BrConst::LOG_EVENT_ERROR,
       'log_level' => $this->logLevel,
       'log_prefix' => $this->logPrefix,
-      'details' => $details
+      'details' => $details,
     ];
     $this->writeToAdapters($messageOrObject, $params);
   }
 
   /**
    * @param $messageOrObject
-   * @param array|null $details
-   * @return void
    */
   public function warning($messageOrObject, ?array $details = [])
   {
@@ -188,16 +187,13 @@ class BrLog extends BrObject
       'log_event' => BrConst::LOG_EVENT_WARNING,
       'log_level' => $this->logLevel,
       'log_prefix' => $this->logPrefix,
-      'details' => $details
+      'details' => $details,
     ];
     $this->writeToAdapters($messageOrObject, $params);
   }
 
   /**
    * @param $messageOrObject
-   * @param array|null $details
-   * @param string $logEvent
-   * @return void
    */
   public function message($messageOrObject, ?array $details = [], string $logEvent = BrConst::LOG_EVENT_MESSAGE)
   {
@@ -205,7 +201,7 @@ class BrLog extends BrObject
       'log_event' => $logEvent,
       'log_level' => $this->logLevel,
       'log_prefix' => $this->logPrefix,
-      'details' => $details
+      'details' => $details,
     ];
     $this->writeToAdapters($messageOrObject, $params);
   }

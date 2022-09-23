@@ -2,9 +2,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrNotImplementedException extends BrException
 {
   public function __construct()

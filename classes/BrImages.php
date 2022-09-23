@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrImages extends BrObject
 {
   public function isValid(string $path): bool
@@ -71,7 +68,7 @@ class BrImages extends BrObject
           if (preg_match('~([0-9]+)x([0-9]+)~i', $dimension, $matches)) {
             $thumbnails[$dimension] = [
               'width' => $matches[1],
-              'height' => $matches[2]
+              'height' => $matches[2],
             ];
           }
         }

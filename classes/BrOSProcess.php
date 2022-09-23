@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrOSProcess extends BrObject
 {
   private string $pid;

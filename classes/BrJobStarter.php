@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrJobStarter
 {
   private string $jobsFolder;

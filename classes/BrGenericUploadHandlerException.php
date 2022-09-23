@@ -2,10 +2,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrGenericUploadHandlerException extends \Exception
 {
-
 }

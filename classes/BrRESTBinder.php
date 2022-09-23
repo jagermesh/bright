@@ -10,18 +10,15 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrRESTBinder extends BrObject
 {
-  const PARAM_CROSSDOMAIN = 'crossdomain';
-  const ERROR_RECORD_NOT_FOUND = 'Record not found';
-  const ERROR_BAD_REQUEST = 'Bad request';
+  public const PARAM_CROSSDOMAIN = 'crossdomain';
+  public const ERROR_RECORD_NOT_FOUND = 'Record not found';
+  public const ERROR_BAD_REQUEST = 'Bad request';
 
-  const FIELD_NAME_REGEXP_PATTERN = '#^[.A-Za-z_0-9]+$#';
-  const ID_REGEXP_PATTERN = '[-0-9a-zA-Z]+';
-  const METHOD_REGEXP_PATTERN = '[_a-zA-Z]+';
+  public const FIELD_NAME_REGEXP_PATTERN = '#^[.A-Za-z_0-9]+$#';
+  public const ID_REGEXP_PATTERN = '[-0-9a-zA-Z]+';
+  public const METHOD_REGEXP_PATTERN = '[_a-zA-Z]+';
 
   public function doRouting()
   {
@@ -31,7 +28,6 @@ class BrRESTBinder extends BrObject
   /**
    * @param $path
    * @param null $dataSource
-   * @param array|null $options
    * @return $this
    * @throws \Exception
    */
@@ -59,9 +55,7 @@ class BrRESTBinder extends BrObject
   }
 
   /**
-   * @param string $path
    * @param $dataSource
-   * @param array|null $options
    * @return $this
    * @throws \Exception
    */
@@ -77,9 +71,7 @@ class BrRESTBinder extends BrObject
   }
 
   /**
-   * @param string $path
    * @param $dataSource
-   * @param array|null $options
    * @return $this
    */
   public function routePOST(string $path, $dataSource, ?array $options = []): BrRESTBinder
@@ -94,9 +86,7 @@ class BrRESTBinder extends BrObject
   }
 
   /**
-   * @param string $path
    * @param $dataSource
-   * @param array|null $options
    * @return $this
    */
   public function routePUT(string $path, $dataSource, ?array $options = []): BrRESTBinder
@@ -111,9 +101,7 @@ class BrRESTBinder extends BrObject
   }
 
   /**
-   * @param string $path
    * @param $dataSource
-   * @param array|null $options
    * @return $this
    */
   public function routeDELETE(string $path, $dataSource, ?array $options = []): BrRESTBinder
@@ -175,9 +163,7 @@ class BrRESTBinder extends BrObject
   }
 
   /**
-   * @param string $path
    * @param $dataSource
-   * @param array|null $options
    * @return $this
    * @throws \Exception
    */
@@ -199,7 +185,7 @@ class BrRESTBinder extends BrObject
       $this->checkPermissions($options, [$event, BrConst::DATASOURCE_METHOD_SELECT]);
 
       $dataSourceOptions = [
-        BrConst::DATASOURCE_OPTION_SOURCE => BrConst::REQUEST_SOURCE_REST_BINDER
+        BrConst::DATASOURCE_OPTION_SOURCE => BrConst::REQUEST_SOURCE_REST_BINDER,
       ];
 
       $filter = [];
@@ -243,41 +229,55 @@ class BrRESTBinder extends BrObject
                         $name = (string)$name;
                         switch ($name) {
                           case BrConst::FILTER_RULE_NOT_NULL:
-                            $subFilter[] = [BrConst::FILTER_RULE_NOT_NULL => ''];
+                            $subFilter[] = [
+                              BrConst::FILTER_RULE_NOT_NULL => '',
+                            ];
                             break;
                           case BrConst::FILTER_RULE_NOT_EQ:
                             if (is_scalar($singleValue) || (is_array($singleValue) && br($singleValue)->isRegularArray())) {
-                              $subFilter[] = [BrConst::FILTER_RULE_NOT_EQ => $singleValue];
+                              $subFilter[] = [
+                                BrConst::FILTER_RULE_NOT_EQ => $singleValue,
+                              ];
                             }
                             break;
                           case '<':
                           case BrConst::FILTER_RULE_LT:
                             if (is_scalar($singleValue)) {
-                              $subFilter[] = [BrConst::FILTER_RULE_LT => $singleValue];
+                              $subFilter[] = [
+                                BrConst::FILTER_RULE_LT => $singleValue,
+                              ];
                             }
                             break;
                           case '>':
                           case BrConst::FILTER_RULE_GT:
                             if (is_scalar($singleValue)) {
-                              $subFilter[] = [BrConst::FILTER_RULE_GT => $singleValue];
+                              $subFilter[] = [
+                                BrConst::FILTER_RULE_GT => $singleValue,
+                              ];
                             }
                             break;
                           case '<=':
                           case BrConst::FILTER_RULE_LTE:
                             if (is_scalar($singleValue)) {
-                              $subFilter[] = [BrConst::FILTER_RULE_LTE => $singleValue];
+                              $subFilter[] = [
+                                BrConst::FILTER_RULE_LTE => $singleValue,
+                              ];
                             }
                             break;
                           case '>=':
                           case BrConst::FILTER_RULE_GTE:
                             if (is_scalar($singleValue)) {
-                              $subFilter[] = [BrConst::FILTER_RULE_GTE => $singleValue];
+                              $subFilter[] = [
+                                BrConst::FILTER_RULE_GTE => $singleValue,
+                              ];
                             }
                             break;
                           case '=':
                           case BrConst::FILTER_RULE_EQ:
                             if (is_scalar($singleValue)) {
-                              $subFilter[] = [BrConst::FILTER_RULE_EQ => $singleValue];
+                              $subFilter[] = [
+                                BrConst::FILTER_RULE_EQ => $singleValue,
+                              ];
                             }
                             break;
                           default:
@@ -299,7 +299,9 @@ class BrRESTBinder extends BrObject
                   if (is_array($fields)) {
                     $subFilter = [];
                     foreach ($fields as $field) {
-                      $subFilter[] = [$field => br()->db()->regexpCondition($value)];
+                      $subFilter[] = [
+                        $field => br()->db()->regexpCondition($value),
+                      ];
                     }
                     $filter[BrConst::FILTER_RULE_OR] = $subFilter;
                   } else {
@@ -310,33 +312,49 @@ class BrRESTBinder extends BrObject
                   if (is_array($fields)) {
                     $subFilter = [];
                     foreach ($fields as $field) {
-                      $subFilter[] = [$field => [BrConst::FILTER_RULE_LIKE => $value]];
+                      $subFilter[] = [
+                        $field => [
+                          BrConst::FILTER_RULE_LIKE => $value,
+                        ],
+                      ];
                     }
                     $filter[BrConst::FILTER_RULE_OR] = $subFilter;
                   } else {
-                    $filter[$fields] = [BrConst::FILTER_RULE_LIKE => $value];
+                    $filter[$fields] = [
+                      BrConst::FILTER_RULE_LIKE => $value,
+                    ];
                   }
                   break;
                 case 'contains':
                   if (is_array($fields)) {
                     $subFilter = [];
                     foreach ($fields as $field) {
-                      $subFilter[] = [$field => [BrConst::FILTER_RULE_CONTAINS => $value]];
+                      $subFilter[] = [
+                        $field => [
+                          BrConst::FILTER_RULE_CONTAINS => $value,
+                        ],
+                      ];
                     }
                     $filter[BrConst::FILTER_RULE_OR] = $subFilter;
                   } else {
-                    $filter[$fields] = [BrConst::FILTER_RULE_CONTAINS => $value];
+                    $filter[$fields] = [
+                      BrConst::FILTER_RULE_CONTAINS => $value,
+                    ];
                   }
                   break;
                 case 'fulltext':
                   if (is_array($fields)) {
                     $subFilter = [];
                     foreach ($fields as $field) {
-                      $subFilter[] = [$field => $value];
+                      $subFilter[] = [
+                        $field => $value,
+                      ];
                     }
                     $filter[BrConst::FILTER_RULE_FULLTEXT] = $subFilter;
                   } else {
-                    $filter[$fields] = [BrConst::FILTER_RULE_FULLTEXT => $value];
+                    $filter[$fields] = [
+                      BrConst::FILTER_RULE_FULLTEXT => $value,
+                    ];
                   }
                   break;
                 default:
@@ -385,7 +403,9 @@ class BrRESTBinder extends BrObject
 
       if ($order = br()->request()->get(BrConst::REST_OPTION_ORDER)) {
         if (!is_array($order)) {
-          $order = [$order => BrConst::SORT_ASC];
+          $order = [
+            $order => BrConst::SORT_ASC,
+          ];
         }
         $verifiedOrder = [];
         foreach ($order as $name => $direction) {
@@ -419,7 +439,9 @@ class BrRESTBinder extends BrObject
           if (!$filter && !$allowEmptyFilter) {
             $result = 0;
           } else {
-            $result = $dataSource->selectCount($filter, [], [], [BrConst::DATASOURCE_OPTION_SOURCE => BrConst::REQUEST_SOURCE_REST_BINDER]);
+            $result = $dataSource->selectCount($filter, [], [], [
+              BrConst::DATASOURCE_OPTION_SOURCE => BrConst::REQUEST_SOURCE_REST_BINDER,
+            ]);
           }
         } else {
           if (!$filter && !$allowEmptyFilter) {
@@ -449,9 +471,7 @@ class BrRESTBinder extends BrObject
   }
 
   /**
-   * @param string $path
    * @param $dataSource
-   * @param array|null $options
    * @return $this
    */
   public function routeAsPOST(string $path, $dataSource, ?array $options = []): BrRESTBinder
@@ -465,7 +485,7 @@ class BrRESTBinder extends BrObject
       }
 
       $dataSourceOptions = [
-        BrConst::DATASOURCE_OPTION_SOURCE => BrConst::REQUEST_SOURCE_REST_BINDER
+        BrConst::DATASOURCE_OPTION_SOURCE => BrConst::REQUEST_SOURCE_REST_BINDER,
       ];
 
       $method = br()->request()->get(BrConst::REST_OPTION_METHOD);
@@ -570,9 +590,7 @@ class BrRESTBinder extends BrObject
   }
 
   /**
-   * @param string $path
    * @param $dataSource
-   * @param array|null $options
    * @return $this
    */
   public function routeAsPUT(string $path, $dataSource, ?array $options = []): BrRESTBinder
@@ -586,7 +604,7 @@ class BrRESTBinder extends BrObject
       }
 
       $dataSourceOptions = [
-        BrConst::DATASOURCE_OPTION_SOURCE => BrConst::REQUEST_SOURCE_REST_BINDER
+        BrConst::DATASOURCE_OPTION_SOURCE => BrConst::REQUEST_SOURCE_REST_BINDER,
       ];
 
       $this->checkPermissions($options, [BrConst::DATASOURCE_METHOD_INSERT]);
@@ -641,9 +659,7 @@ class BrRESTBinder extends BrObject
   }
 
   /**
-   * @param string $path
    * @param $dataSource
-   * @param array|null $options
    * @return $this
    */
   public function routeAsDELETE(string $path, $dataSource, ?array $options = []): BrRESTBinder
@@ -657,7 +673,7 @@ class BrRESTBinder extends BrObject
       }
 
       $dataSourceOptions = [
-        BrConst::DATASOURCE_OPTION_SOURCE => BrConst::REQUEST_SOURCE_REST_BINDER
+        BrConst::DATASOURCE_OPTION_SOURCE => BrConst::REQUEST_SOURCE_REST_BINDER,
       ];
 
       if ($matches = br()->request()->isAt(rtrim($path, '/') . '/(' . self::ID_REGEXP_PATTERN . ')')) {

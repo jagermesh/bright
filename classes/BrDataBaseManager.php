@@ -10,26 +10,23 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrDataBaseManager
 {
-  const TABLE_AUDIT_CHANGE_OLD = 'audit_change';
-  const TABLE_AUDIT_CHANGE_LOG_OLD = 'audit_change_log';
-  const TABLE_AUDIT_TABLES_OLD = 'audit_tables';
+  public const TABLE_AUDIT_CHANGE_OLD = 'audit_change';
+  public const TABLE_AUDIT_CHANGE_LOG_OLD = 'audit_change_log';
+  public const TABLE_AUDIT_TABLES_OLD = 'audit_tables';
 
-  const TABLE_AUDIT_CHANGE = 'br_audit_change';
-  const TABLE_AUDIT_CHANGE_LOG = 'br_audit_change_log';
-  const TABLE_AUDIT_TABLES = 'br_audit_tables';
-  const TABLE_CONSTRAINT_KEYS = 'br_constraint_keys';
-  const TABLE_CONSTRAINT_REFS = 'br_constraint_refs';
-  const TABLE_DB_TRIGGERS = 'br_db_triggers';
-  const TABLE_DB_PATCH = 'br_db_patch';
+  public const TABLE_AUDIT_CHANGE = 'br_audit_change';
+  public const TABLE_AUDIT_CHANGE_LOG = 'br_audit_change_log';
+  public const TABLE_AUDIT_TABLES = 'br_audit_tables';
+  public const TABLE_CONSTRAINT_KEYS = 'br_constraint_keys';
+  public const TABLE_CONSTRAINT_REFS = 'br_constraint_refs';
+  public const TABLE_DB_TRIGGERS = 'br_db_triggers';
+  public const TABLE_DB_PATCH = 'br_db_patch';
 
-  const VIEW_BR_AUDIT_TABLES = 'view_br_audit_tables';
+  public const VIEW_BR_AUDIT_TABLES = 'view_br_audit_tables';
 
-  const SQL_ERROR_DOES_NOT_EXIST = "doesn't exist";
+  public const SQL_ERROR_DOES_NOT_EXIST = "doesn't exist";
 
   private string $auditTablesTable = self::TABLE_AUDIT_TABLES;
   private string $auditChangeTable = self::TABLE_AUDIT_CHANGE;
@@ -966,7 +963,7 @@ class BrDataBaseManager
 
     foreach ($tables as $table) {
       switch ($command) {
-        case  'delete':
+        case 'delete':
           $this->deleteAuditTriggers($table['name']);
           break;
         case 'setup':
@@ -1029,7 +1026,7 @@ class BrDataBaseManager
     br()->fs()->iterateDir(br()->getScriptBasePath() . 'patches/', '^' . $patchName . '$', function ($patchFile) use (&$patches) {
       $patches[] = [
         'classFile' => $patchFile->nameWithPath(),
-        'className' => br()->fs()->fileNameOnly($patchFile->name())
+        'className' => br()->fs()->fileNameOnly($patchFile->name()),
       ];
     });
 
@@ -1064,13 +1061,13 @@ class BrDataBaseManager
         $results[] = [
           'message' => $patch->logPrefix() . ' ' . $e->getMessage(),
           'is_warning' => true,
-          'is_error' => false
+          'is_error' => false,
         ];
       } catch (\Exception $e) {
         $results[] = [
           'message' => $patch->logPrefix() . ' ' . $e->getMessage(),
           'is_error' => true,
-          'is_warning' => false
+          'is_warning' => false,
         ];
       } finally {
         br()->log()->setLogPrefix('');
@@ -1104,7 +1101,7 @@ class BrDataBaseManager
               $results[] = [
                 'message' => $patch->logPrefix() . ' ' . $e->getMessage(),
                 'is_error' => true,
-                'is_warning' => false
+                'is_warning' => false,
               ];
             }
           } catch (\Exception $e) {
@@ -1126,13 +1123,13 @@ class BrDataBaseManager
                 $results[] = [
                   'message' => $patch->logPrefix() . ' ' . $e->getMessage(),
                   'is_warning' => true,
-                  'is_error' => false
+                  'is_error' => false,
                 ];
               } catch (\Exception $e) {
                 $results[] = [
                   'message' => $patch->logPrefix() . ' ' . $e->getMessage(),
                   'is_error' => true,
-                  'is_warning' => false
+                  'is_warning' => false,
                 ];
               } finally {
                 br()->log()->setLogPrefix('');

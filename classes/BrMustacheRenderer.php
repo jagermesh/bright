@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrMustacheRenderer extends BrGenericRenderer
 {
   private \Mustache_Engine $mustache;
@@ -31,6 +28,8 @@ class BrMustacheRenderer extends BrGenericRenderer
 
   public function resetEngine()
   {
-    $this->mustache = new \Mustache_Engine(['delimiters' => br($this->params, 'delimiters', '[[ ]]')]);
+    $this->mustache = new \Mustache_Engine([
+      'delimiters' => br($this->params, 'delimiters', '[[ ]]'),
+    ]);
   }
 }

@@ -2,18 +2,15 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrAWS extends BrObject
 {
-  const AMAZON_POLLY_MAX_CHARACTERS = 1500;
+  public const AMAZON_POLLY_MAX_CHARACTERS = 1500;
 
-  const ERROR_MESSAGE_INCORRECT_BUCKET = 'Incorrect bucket: %s';
-  const ERROR_MESSAGE_INVALID_ACCESS_KEY = 'Invalid access key Id';
+  public const ERROR_MESSAGE_INCORRECT_BUCKET = 'Incorrect bucket: %s';
+  public const ERROR_MESSAGE_INVALID_ACCESS_KEY = 'Invalid access key Id';
 
-  const AWS_ERROR_INVALID_ACCESS_KEY = 'InvalidAccessKeyId';
-  const AWS_ERROR_ACCESS_DENIED = 'AccessDenied';
+  public const AWS_ERROR_INVALID_ACCESS_KEY = 'InvalidAccessKeyId';
+  public const AWS_ERROR_ACCESS_DENIED = 'AccessDenied';
 
   private $S3Client;
   private $pollyClient;
@@ -25,10 +22,10 @@ class BrAWS extends BrObject
       $this->S3Client = new \Aws\S3\S3Client([
         'credentials' => [
           'key' => br()->config()->get(BrConst::CONFIG_OPTION_AWS_S3_ACCESS_KEY, br()->config()->get('AWS/S3AccessKey')),
-          'secret' => br()->config()->get(BrConst::CONFIG_OPTION_AWS_S3_ACCESS_SECRET, br()->config()->get('AWS/S3AccessSecret'))
+          'secret' => br()->config()->get(BrConst::CONFIG_OPTION_AWS_S3_ACCESS_SECRET, br()->config()->get('AWS/S3AccessSecret')),
         ],
         'region' => br()->config()->get(BrConst::CONFIG_OPTION_AWS_S3_REGION, br()->config()->get('AWS/S3Region')),
-        'version' => 'latest'
+        'version' => 'latest',
       ]);
     }
 
@@ -50,7 +47,7 @@ class BrAWS extends BrObject
     if (preg_match('~([A-Z0-9.-]+)[/](.+)~i', $url, $matches)) {
       return [
         'bucketName' => $matches[1],
-        'objectPath' => $matches[2]
+        'objectPath' => $matches[2],
       ];
     } else {
       throw new BrAppException('Incorrect object path: ' . $url);
@@ -79,7 +76,7 @@ class BrAWS extends BrObject
       $params = [
         'Bucket' => $dstStruct['bucketName'],
         'Key' => $dstStruct['objectPath'],
-        'SourceFile' => $source
+        'SourceFile' => $source,
       ];
 
       if ($contentType = br()->getContentTypeByExtension($destination)) {
@@ -144,7 +141,7 @@ class BrAWS extends BrObject
       $params = [
         'Bucket' => $dstStruct['bucketName'],
         'Key' => $dstStruct['objectPath'],
-        'CopySource' => $srcStruct['bucketName'] . '/' . $srcStruct['objectPath']
+        'CopySource' => $srcStruct['bucketName'] . '/' . $srcStruct['objectPath'],
       ];
 
       if ($contentType = br()->getContentTypeByExtension($destination)) {
@@ -237,7 +234,7 @@ class BrAWS extends BrObject
         return [
           'fileSize' => $result['ContentLength'],
           'fileType' => $result['ContentType'],
-          'url' => $this->assembleUrl($srcStruct)
+          'url' => $this->assembleUrl($srcStruct),
         ];
       } else {
         return false;
@@ -267,7 +264,7 @@ class BrAWS extends BrObject
           'fileSize' => $result['ContentLength'],
           'fileType' => $result['ContentType'],
           'url' => $this->assembleUrl($srcStruct),
-          'content' => $result['Body']->getContents()
+          'content' => $result['Body']->getContents(),
         ];
       } else {
         return false;
@@ -317,10 +314,10 @@ class BrAWS extends BrObject
       $this->pollyClient = new \Aws\Polly\PollyClient([
         'credentials' => [
           'key' => br()->config()->get('AWS/Polly/AccessKey', br()->config()->get('AWS/S3AccessKey')),
-          'secret' => br()->config()->get('AWS/Polly/AccessSecret', br()->config()->get('AWS/S3AccessSecret'))
+          'secret' => br()->config()->get('AWS/Polly/AccessSecret', br()->config()->get('AWS/S3AccessSecret')),
         ],
         'region' => br()->config()->get('AWS/Polly/Region', br()->config()->get('AWS/S3Region')),
-        'version' => 'latest'
+        'version' => 'latest',
       ]);
     }
 
@@ -399,14 +396,14 @@ class BrAWS extends BrObject
           'OutputFormat' => 'mp3',
           'TextType' => 'text',
           'Text' => $chunk,
-          'VoiceId' => br($additionalParams, 'voice', 'Salli')
+          'VoiceId' => br($additionalParams, 'voice', 'Salli'),
         ]);
         $promises[] = $polly->synthesizeSpeechAsync([
           'OutputFormat' => 'json',
           'TextType' => 'text',
           'Text' => $chunk,
           'VoiceId' => br($additionalParams, 'voice', 'Salli'),
-          'SpeechMarkTypes' => ['word']
+          'SpeechMarkTypes' => ['word'],
         ]);
       }
 
@@ -435,7 +432,7 @@ class BrAWS extends BrObject
             'audioSize' => $audioSize,
             'marksUrl' => br()->aws()->uploadData(json_encode($marksData), $additionalParams['marksUrl'], $additionalParams),
             'marks' => $marksData,
-            'marksSize' => strlen(json_encode($marksData))
+            'marksSize' => strlen(json_encode($marksData)),
           ];
         } else {
           $filesFolder = br()->getTempPath() . br()->guid();
@@ -472,7 +469,7 @@ class BrAWS extends BrObject
                   'audioSize' => filesize($finalAudioFilePath),
                   'marksUrl' => br()->aws()->uploadData(json_encode($marksData), $additionalParams['marksUrl'], $additionalParams),
                   'marks' => $marksData,
-                  'marksSize' => strlen(json_encode($marksData))
+                  'marksSize' => strlen(json_encode($marksData)),
                 ];
               } finally {
                 unlink($finalAudioFilePath);

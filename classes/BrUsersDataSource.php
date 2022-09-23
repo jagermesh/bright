@@ -4,10 +4,10 @@ namespace Bright;
 
 class BrUsersDataSource extends BrDataSource
 {
-  const ERROR_ACCESS_DENIED = 'Access denied';
-  const ERROR_SUCH_USER_ALREADY_EXISTS = 'Such user already exists';
-  const ERROR_PLEASE_ENTER = 'Please enter %s';
-  const ERROR_YOU_ARE_NOT_ALLOWED_TO_SEE_USERS = 'You are not allowed to see users';
+  public const ERROR_ACCESS_DENIED = 'Access denied';
+  public const ERROR_SUCH_USER_ALREADY_EXISTS = 'Such user already exists';
+  public const ERROR_PLEASE_ENTER = 'Please enter %s';
+  public const ERROR_YOU_ARE_NOT_ALLOWED_TO_SEE_USERS = 'You are not allowed to see users';
 
   public function __construct()
   {
@@ -19,7 +19,9 @@ class BrUsersDataSource extends BrDataSource
       $loginField = br()->auth()->getAttr(BrDBUsersAuthProvider::USERS_TABLE_LOGIN_FIELD);
     }
 
-    parent::__construct($usersTable, [BrConst::DATASOURCE_OPTION_DEFAULT_ORDER => $loginField]);
+    parent::__construct($usersTable, [
+      BrConst::DATASOURCE_OPTION_DEFAULT_ORDER => $loginField,
+    ]);
 
     $this->on('signup', function ($dataSource, $params) {
       $passwordField = br()->auth()->getAttr(BrDBUsersAuthProvider::USERS_TABLE_PASSWORD_FIELD);
@@ -40,7 +42,7 @@ class BrUsersDataSource extends BrDataSource
             $message = br()->renderer()->fetch($mailTemplate, $user);
             br()->log()->message('Sending signup mail to ' . $email);
             if (br()->sendMail($email, br()->auth()->getAttr(BrDBUsersAuthProvider::SIGNUP_MAIL_SUBJECT), $message, [
-              'sender' => br()->auth()->getAttr('mail.from')
+              'sender' => br()->auth()->getAttr('mail.from'),
             ])) {
               br()->log()->message('Sent');
             } else {
@@ -77,7 +79,7 @@ class BrUsersDataSource extends BrDataSource
           }
           $filter = [
             $loginField => $params[$loginField],
-            $passwordField => $params[$passwordField]
+            $passwordField => $params[$passwordField],
           ];
           $order = [];
           $this->callEvent(sprintf(BrConst::EVENT_BEFORE, BrConst::EVENT_LOGIN_SELECT_USER), $params, $filter, $order);
@@ -128,7 +130,9 @@ class BrUsersDataSource extends BrDataSource
         $emailField = br()->auth()->getAttr(BrDBUsersAuthProvider::USERS_TABLE_EMAIL_FIELD);
 
         if ($login = br($params, $loginField)) {
-          if ($user = $this->selectOne([$loginField => $login])) {
+          if ($user = $this->selectOne([
+            $loginField => $login,
+          ])) {
             if ($email = br($user, $emailField)) {
               if ($mailTemplate = br()->auth()->getAttr(BrDBUsersAuthProvider::PASSWORD_REMINDER_VERIFICATION_MAIL_TEMPLATE)) {
                 $user[$passwordResetField] = br()->guid();
@@ -136,7 +140,7 @@ class BrUsersDataSource extends BrDataSource
 
                 if ($message = br()->renderer()->fetch($mailTemplate, $user)) {
                   if (br()->sendMail($email, br()->auth()->getAttr(BrDBUsersAuthProvider::PASSWORD_REMINDER_VERIFICATION_MAIL_SUBJECT), $message, [
-                    'sender' => br()->auth()->getAttr(BrDBUsersAuthProvider::PASSWORD_REMINDER_VERIFICATION_MAIL_FROM)
+                    'sender' => br()->auth()->getAttr(BrDBUsersAuthProvider::PASSWORD_REMINDER_VERIFICATION_MAIL_FROM),
                   ])) {
                     br()->db()->runQuery('
                       UPDATE ' . $usersTable . '
@@ -200,7 +204,7 @@ class BrUsersDataSource extends BrDataSource
 
       $row[BrConst::DATASOURCE_SYSTEM_FIELD_PERMISSIONS] = [
         'canUpdate' => $this->canUpdate($row),
-        'canRemove' => $this->canRemove($row)
+        'canRemove' => $this->canRemove($row),
       ];
     });
 
@@ -243,7 +247,9 @@ class BrUsersDataSource extends BrDataSource
       // we are here so let's work
       if ($login = trim(br()->html2text(br($row, $loginField)))) {
         $row[$loginField] = $login;
-        if ($this->selectOne([$loginField => $login])) {
+        if ($this->selectOne([
+          $loginField => $login,
+        ])) {
           throw new BrAppException(self::ERROR_SUCH_USER_ALREADY_EXISTS);
         } else {
           if ($password) {
@@ -276,7 +282,12 @@ class BrUsersDataSource extends BrDataSource
       if (array_key_exists($loginField, $row)) {
         if ($login = trim(br()->html2text($row[$loginField]))) {
           $row[$loginField] = $login;
-          if ($this->selectOne([$loginField => $login, br()->db()->rowidField() => [BrConst::FILTER_RULE_NOT_EQ => br()->db()->rowid($row)]])) {
+          if ($this->selectOne([
+            $loginField => $login,
+            br()->db()->rowidField() => [
+              BrConst::FILTER_RULE_NOT_EQ => br()->db()->rowid($row),
+            ],
+          ])) {
             throw new BrAppException(self::ERROR_SUCH_USER_ALREADY_EXISTS);
           }
         } else {

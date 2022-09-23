@@ -12,9 +12,6 @@ namespace Bright;
 
 use ForceUTF8\Encoding;
 
-/**
- *
- */
 class BrString extends BrGenericDataType
 {
   private const TRIM_CHARS_LIST = " \t\n\r\0\x0B\xA0\x09";
@@ -38,8 +35,6 @@ class BrString extends BrGenericDataType
 
   /**
    * @param $needle
-   * @param bool $ignoreCase
-   * @return bool
    */
   public function contain($needle, bool $ignoreCase = false): bool
   {
@@ -58,8 +53,6 @@ class BrString extends BrGenericDataType
 
   /**
    * @param $needle
-   * @param bool $ignoreCase
-   * @return bool
    */
   public function exists($needle, bool $ignoreCase = false): bool
   {
@@ -77,7 +70,6 @@ class BrString extends BrGenericDataType
 
   /**
    * @param $needle
-   * @return int
    */
   public function indexOf($needle): int
   {
@@ -105,8 +97,6 @@ class BrString extends BrGenericDataType
 
   /**
    * @param $candidate
-   * @param bool $ignoreCase
-   * @return int
    */
   public function compare($candidate, bool $ignoreCase = false): int
   {
@@ -127,8 +117,6 @@ class BrString extends BrGenericDataType
 
   /**
    * @param $candidate
-   * @param bool $ignoreCase
-   * @return bool
    */
   public function equal($candidate, bool $ignoreCase = false): bool
   {
@@ -264,10 +252,7 @@ class BrString extends BrGenericDataType
     return (string)mb_substr($this->value, $start, $length);
   }
 
-  /**
-   * @param int $index
-   * @return string
-   */
+
   public function charAt(int $index): string
   {
     return $this->substring($index, 1);
@@ -287,9 +272,7 @@ class BrString extends BrGenericDataType
     }
   }
 
-  /**
-   * @return string
-   */
+
   public function toCharPath(): string
   {
     $result = '';
@@ -320,9 +303,7 @@ class BrString extends BrGenericDataType
     }
   }
 
-  /**
-   * @return array
-   */
+
   public function fromJSON(): array
   {
     return (array)json_decode($this->value, true);
@@ -396,8 +377,6 @@ class BrString extends BrGenericDataType
   }
 
   /**
-   * @param string $newText
-   * @param bool $console
    * @throws \Exception
    */
   public function logDifference(string $newText, bool $console = true)
@@ -504,10 +483,7 @@ class BrString extends BrGenericDataType
 
   // numeric
 
-  /**
-   * @param int $precision
-   * @return float
-   */
+
   public function floor(int $precision = 0): float
   {
     return floor($this->value * pow(10, $precision)) / pow(10, $precision);
@@ -549,7 +525,7 @@ class BrString extends BrGenericDataType
             'lineNo' => $lineNo++,
             'maxLines' => $max_lines,
             'type' => ' ',
-            'text' => $newText[$newText_offset]
+            'text' => $newText[$newText_offset],
           ];
           $oldText_offset++;
           $newText_offset++;
@@ -561,7 +537,7 @@ class BrString extends BrGenericDataType
                 'lineNo' => $lineNo++,
                 'maxLines' => $max_lines,
                 'type' => '+',
-                'text' => $newText[$k]
+                'text' => $newText[$k],
               ];
             }
             $newText_offset = $old_line_next_index;
@@ -571,7 +547,7 @@ class BrString extends BrGenericDataType
               'lineNo' => $lineNo++,
               'maxLines' => $max_lines,
               'type' => '-',
-              'text' => $oldText[$oldText_offset]
+              'text' => $oldText[$oldText_offset],
             ];
             $oldText_offset++;
           }
@@ -581,7 +557,7 @@ class BrString extends BrGenericDataType
           'lineNo' => $lineNo++,
           'maxLines' => $max_lines,
           'type' => '-',
-          'text' => $oldText[$oldText_offset]
+          'text' => $oldText[$oldText_offset],
         ];
         $oldText_offset++;
       } else {
@@ -589,7 +565,7 @@ class BrString extends BrGenericDataType
           'lineNo' => $lineNo++,
           'maxLines' => $max_lines,
           'type' => '+',
-          'text' => $newText[$newText_offset]
+          'text' => $newText[$newText_offset],
         ];
         $newText_offset++;
       }

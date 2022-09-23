@@ -29,7 +29,6 @@ class BriCalEvent extends BrObject
   private $allDayEvent = false;
 
   /**
-   * @param string $title
    * @param $dateStart
    * @param $dateEnd
    */
@@ -116,7 +115,7 @@ class BriCalEvent extends BrObject
   {
     $this->attachments[] = [
       'name' => $name,
-      'url' => $url
+      'url' => $url,
     ];
   }
 

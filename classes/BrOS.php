@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrOS extends BrObject
 {
   public function execute(string $command): array
@@ -54,8 +51,6 @@ class BrOS extends BrObject
 
   /**
    * @param $masks
-   * @param bool $regexp
-   * @return \ArrayObject
    */
   public function findProcesses($masks, bool $regexp = false): \ArrayObject
   {

@@ -12,7 +12,6 @@ namespace Bright;
 
 class BrGenericSQLDBProvider extends BrGenericDBProvider
 {
-
   private $inTransaction = 0;
   private $transactionBuffer = [];
   private $deadlocksHandlerEnabled = true;
@@ -435,12 +434,12 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
   protected function toGenericDataType($type)
   {
     switch (strtolower($type)) {
-      case "date";
+      case "date":
         return "date";
       case "datetime":
       case "timestamp":
         return "date_time";
-      case "time";
+      case "time":
         return "time";
       case "int":
       case "smallint":

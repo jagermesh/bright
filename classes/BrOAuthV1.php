@@ -67,7 +67,7 @@ class BrOAuthV1 extends BrOAuth
       'oauth_nonce' => hash('sha256', random_int(0, PHP_INT_MAX)),
       'oauth_version' => '1.0',
       'oauth_callback' => 'about:blank',
-      'oauth_body_hash' => $oauth_body_hash
+      'oauth_body_hash' => $oauth_body_hash,
     ];
 
     $oauth = array_merge($oauth, $params);
@@ -154,9 +154,9 @@ class BrOAuthV1 extends BrOAuth
         'response' => [],
         'errors' => [
           0 => [
-            'description' => 'Not a valid host name. ' . $url
-          ]
-        ]
+            'description' => 'Not a valid host name. ' . $url,
+          ],
+        ],
       ];
     }
   }

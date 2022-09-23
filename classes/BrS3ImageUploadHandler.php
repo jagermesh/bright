@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrS3ImageUploadHandler extends BrGenericUploadHandler
 {
   public function __construct(?array $params = [])
@@ -38,7 +35,7 @@ class BrS3ImageUploadHandler extends BrGenericUploadHandler
     $result = [
       'fileName' => $dstFileName,
       'url' => $dstFilePath,
-      'href' => $url
+      'href' => $url,
     ];
 
     if (br()->request()->get('tw') && br()->request()->get('th')) {

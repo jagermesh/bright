@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrSession extends BrObject
 {
   private string $tag;
@@ -67,7 +64,6 @@ class BrSession extends BrObject
   }
 
   /**
-   * @param string|null $name
    * @param $default
    * @return array|bool|BrArray|BrCore|BrString|float|int|string|null
    */
@@ -93,7 +89,6 @@ class BrSession extends BrObject
   }
 
   /**
-   * @param string $name
    * @param $value
    * @return mixed
    */

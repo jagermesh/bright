@@ -10,13 +10,9 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BriCalAllDayEvent extends BriCalEvent
 {
   /**
-   * @param string $title
    * @param $dateStart
    * @param $dateEnd
    */

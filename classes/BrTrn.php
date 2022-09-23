@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrTrn extends BrObject
 {
   public function set(string $phrase, string $translation): BrTrn

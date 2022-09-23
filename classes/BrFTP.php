@@ -64,7 +64,6 @@ class BrFTP extends BrRemoteFileServerConnection
   }
 
   /**
-   * @return void
    * @throws BrFTPException
    * @throws BrRemoteConnectionErrorException
    */

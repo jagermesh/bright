@@ -2,9 +2,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrEventBusEngine extends BrObject
 {
   protected $url;

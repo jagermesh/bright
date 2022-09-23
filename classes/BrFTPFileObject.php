@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrFTPFileObject
 {
   private string $name;

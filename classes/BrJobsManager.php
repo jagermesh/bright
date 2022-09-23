@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrJobsManager
 {
   private string $jobsFolder;
@@ -37,7 +34,7 @@ class BrJobsManager
       br()->fs()->iterateDir($this->jobsFolder, '^Job.*[.]php$', function ($jobFile) use (&$jobs) {
         $jobs[] = [
           'classFile' => $jobFile->nameWithPath(),
-          'className' => br()->fs()->fileNameOnly($jobFile->name())
+          'className' => br()->fs()->fileNameOnly($jobFile->name()),
         ];
       });
       foreach ($jobs as $jobDesc) {

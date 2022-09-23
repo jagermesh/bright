@@ -10,34 +10,29 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrResponse extends BrObject
 {
-  const EXPIRES_IMMEDIATELY = 'Mon, 26 Jul 1997 05:00:00 GMT';
-  const CACHE_CONTROL_NO_CACHE = 'no-cache, no-store, must-revalidate';
+  public const EXPIRES_IMMEDIATELY = 'Mon, 26 Jul 1997 05:00:00 GMT';
+  public const CACHE_CONTROL_NO_CACHE = 'no-cache, no-store, must-revalidate';
 
-  const RESPONSE_301_MOVED_PERMANENTLY = 'HTTP/1.1 301 Moved Permanently';
-  const RESPONSE_404_NOT_FOUND = 'HTTP/1.0 404 Not Found';
-  const RESPONSE_400_BAD_REQUEST = 'HTTP/1.0 400 Bad Request';
-  const RESPONSE_401_NOT_AUTHORIZED = 'HTTP/1.0 401 Not Authorized';
-  const RESPONSE_204_NO_CONTENT = 'HTTP/1.0 204 No Content';
-  const RESPONSE_403_FORBIDDEN = 'HTTP/1.0 403 Forbidden';
-  const RESPONSE_405_METHOD_NOT_ALLOWED = 'HTTP/1.0 405 Method Not Allowed';
-  const RESPONSE_201_CREATED = 'HTTP/1.0 201 Created';
-  const RESPONSE_304_NOT_MODIFIED = 'HTTP/1.0 304 Not Modified';
-  const RESPONSE_500_INTERNAL_SERVER_ERROR = 'HTTP/1.0 500 Internal Server Error';
-  const RESPONSE_503_SERVICE_UNAVAILABLE = 'HTTP/1.0 503 Service unavailable';
-  const RESPONSE_409_CONFLICT = 'HTTP/1.0 409 Conflict';
-  const RESPONSE_200_OK = 'HTTP/1.0 200 OK';
+  public const RESPONSE_301_MOVED_PERMANENTLY = 'HTTP/1.1 301 Moved Permanently';
+  public const RESPONSE_404_NOT_FOUND = 'HTTP/1.0 404 Not Found';
+  public const RESPONSE_400_BAD_REQUEST = 'HTTP/1.0 400 Bad Request';
+  public const RESPONSE_401_NOT_AUTHORIZED = 'HTTP/1.0 401 Not Authorized';
+  public const RESPONSE_204_NO_CONTENT = 'HTTP/1.0 204 No Content';
+  public const RESPONSE_403_FORBIDDEN = 'HTTP/1.0 403 Forbidden';
+  public const RESPONSE_405_METHOD_NOT_ALLOWED = 'HTTP/1.0 405 Method Not Allowed';
+  public const RESPONSE_201_CREATED = 'HTTP/1.0 201 Created';
+  public const RESPONSE_304_NOT_MODIFIED = 'HTTP/1.0 304 Not Modified';
+  public const RESPONSE_500_INTERNAL_SERVER_ERROR = 'HTTP/1.0 500 Internal Server Error';
+  public const RESPONSE_503_SERVICE_UNAVAILABLE = 'HTTP/1.0 503 Service unavailable';
+  public const RESPONSE_409_CONFLICT = 'HTTP/1.0 409 Conflict';
+  public const RESPONSE_200_OK = 'HTTP/1.0 200 OK';
 
   private bool $systemStylesInjected = false;
 
   /**
    * @param $response
-   * @param bool $alreadyPacked
-   * @return void
    * @throws BrGenericDataTypeException
    */
   public function sendJSON($response, bool $alreadyPacked = false)
@@ -62,7 +57,6 @@ class BrResponse extends BrObject
   /**
    * @param $response
    * @param $callback
-   * @return void
    * @throws BrGenericDataTypeException
    */
   public function sendJSONP($response, $callback = null)
@@ -84,10 +78,7 @@ class BrResponse extends BrObject
     exit();
   }
 
-  /**
-   * @param string $response
-   * @return void
-   */
+
   public function sendHTML(string $response)
   {
     if (!headers_sent()) {
@@ -99,10 +90,7 @@ class BrResponse extends BrObject
     echo $response;
   }
 
-  /**
-   * @param string $response
-   * @return void
-   */
+
   public function sendXML(string $response)
   {
     if (!headers_sent()) {
@@ -116,10 +104,7 @@ class BrResponse extends BrObject
     exit();
   }
 
-  /**
-   * @param string $response
-   * @return void
-   */
+
   public function sendAutodetect(string $response)
   {
     if (!headers_sent()) {
@@ -130,13 +115,7 @@ class BrResponse extends BrObject
     echo $response;
   }
 
-  /**
-   * @param string|null $url
-   * @param bool $permanent
-   * @param bool $saveCaller
-   * @param bool $timedOut
-   * @return void
-   */
+
   private function internalRedirect(?string $url = '', bool $permanent = false, bool $saveCaller = false, bool $timedOut = false)
   {
     if (!preg_match('~^/~', $url) && !preg_match('~^http[s]?://~', $url)) {
@@ -164,12 +143,7 @@ class BrResponse extends BrObject
     exit();
   }
 
-  /**
-   * @param string|null $url
-   * @param bool $saveCaller
-   * @param bool $timedOut
-   * @return void
-   */
+
   public function redirect(?string $url = '', bool $saveCaller = false, bool $timedOut = false)
   {
     $this->internalRedirect($url, false, $saveCaller, $timedOut);
@@ -180,10 +154,7 @@ class BrResponse extends BrObject
     $this->internalRedirect($url, true);
   }
 
-  /**
-   * @param string|null $response
-   * @return void
-   */
+
   public function send404(?string $response = '')
   {
     if (!headers_sent()) {
@@ -370,7 +341,6 @@ class BrResponse extends BrObject
 
   /**
    * @param $messageOrObject
-   * @return void
    */
   public function displayError($messageOrObject)
   {
@@ -388,7 +358,7 @@ class BrResponse extends BrObject
           'type' => (($messageOrObject instanceof \ErrorException) ? br()->getErrorSeverityName($messageOrObject->getSeverity()) : 'Error'),
           'file' => (($messageOrObject instanceof \Throwable) ? $messageOrObject->getFile() . ', line ' . $messageOrObject->getLine() : ''),
           'traceInfo' => (($messageOrObject instanceof \Throwable) ? BrErrorsFormatter::getStackTraceFromException($messageOrObject) : ''),
-        ]
+        ],
       ];
 
       br()->renderer()->display(dirname(__DIR__) . '/templates/ErrorMessage.html', $data);

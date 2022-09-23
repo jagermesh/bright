@@ -39,7 +39,7 @@ class BrOAuthV2 extends BrOAuth
         'grant_type' => 'client_credentials',
         'client_id' => urlencode($key),
         'client_secret' => urlencode($secret),
-        'scope' => $this->scope
+        'scope' => $this->scope,
       ];
       $fields = array_merge($fields, $additionalFields);
 
@@ -85,7 +85,7 @@ class BrOAuthV2 extends BrOAuth
       } else {
         if (br($response, 'token_type') && br($response, 'access_token')) {
           $token = $response['token_type'] . ' ' . $response['access_token'];
-          br()->cache('redis')->set($this->cachedName, $token, 20*60);
+          br()->cache('redis')->set($this->cachedName, $token, 20 * 60);
         } else {
           throw new BrOAuthV2Exception('Unexpected response from authorization request: ' . json_encode($response));
         }
@@ -171,10 +171,10 @@ class BrOAuthV2 extends BrOAuth
           'response' => [
             'errors' => [
               0 => [
-                'description' => $e->getMessage()
-              ]
-            ]
-          ]
+                'description' => $e->getMessage(),
+              ],
+            ],
+          ],
         ];
       }
     } else {
@@ -183,10 +183,10 @@ class BrOAuthV2 extends BrOAuth
         'response' => [
           'errors' => [
             0 => [
-              'description' => 'Not a valid host name. ' . $url
-            ]
-          ]
-        ]
+              'description' => 'Not a valid host name. ' . $url,
+            ],
+          ],
+        ],
       ];
     }
   }

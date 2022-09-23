@@ -2,9 +2,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrDBNotFoundException extends BrDBAppException
 {
   public function __construct(?string $message = '')

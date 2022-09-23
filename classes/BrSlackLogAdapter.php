@@ -13,9 +13,6 @@ namespace Bright;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
-/**
- *
- */
 class BrSlackLogAdapter extends BrGenericLogAdapter
 {
   private ?BrFileCacheProvider $cache;
@@ -80,8 +77,8 @@ class BrSlackLogAdapter extends BrGenericLogAdapter
             $payload = [
               'text' => '*' . $subject . '*' . "\n" . json_encode($info, JSON_PRETTY_PRINT),
               'attachments' => [[
-                'text' => $message
-              ]]
+                'text' => $message,
+              ]],
             ];
             $requestParams = [
               'connect_timeout' => 5,
@@ -89,7 +86,7 @@ class BrSlackLogAdapter extends BrGenericLogAdapter
               'timeout' => 5,
               'form_params' => [
                 'payload' => json_encode($payload),
-              ]
+              ],
             ];
             $client = new Client();
             $client->request('POST', $this->webHookUrl, $requestParams);

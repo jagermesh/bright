@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrFileSystem extends BrObject
 {
   private string $currentDir = '';

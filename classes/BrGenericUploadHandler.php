@@ -10,29 +10,26 @@
 
 namespace Bright;
 
-/**
- *
- */
 abstract class BrGenericUploadHandler extends BrObject
 {
-  const UPLOADER_OPTION_UPLOAD_LIMIT = 'uploadLimit';
-  const UPLOADER_OPTION_ALLOWED_EXTENSIONS = 'allowedExtensions';
-  const UPLOADER_OPTION_USER_BASED_PATH = 'userBasedPath';
-  const UPLOADER_OPTION_CHECK_LOGIN = 'checkLogin';
-  const UPLOADER_OPTION_PATH = 'path';
+  public const UPLOADER_OPTION_UPLOAD_LIMIT = 'uploadLimit';
+  public const UPLOADER_OPTION_ALLOWED_EXTENSIONS = 'allowedExtensions';
+  public const UPLOADER_OPTION_USER_BASED_PATH = 'userBasedPath';
+  public const UPLOADER_OPTION_CHECK_LOGIN = 'checkLogin';
+  public const UPLOADER_OPTION_PATH = 'path';
 
-  const UPLOAD_RESULT_SUCCESS = 'success';
-  const UPLOAD_RESULT_ORIGINAL_FILE_NAME = 'originalFileName';
-  const UPLOAD_RESULT_FILE_SIZE = 'fileSize';
-  const UPLOAD_RESULT_FILE_SIZE_STR = 'fileSizeStr';
-  const UPLOAD_RESULT_ERROR = 'error';
+  public const UPLOAD_RESULT_SUCCESS = 'success';
+  public const UPLOAD_RESULT_ORIGINAL_FILE_NAME = 'originalFileName';
+  public const UPLOAD_RESULT_FILE_SIZE = 'fileSize';
+  public const UPLOAD_RESULT_FILE_SIZE_STR = 'fileSizeStr';
+  public const UPLOAD_RESULT_ERROR = 'error';
 
-  const ERROR_CAN_NOT_DETECT_UPLOADED_FILE = 'Can not detect uploaded file';
-  const ERROR_COULD_NOT_SAVE_UPLOADED_FILE = 'Could not save uploaded file. The upload was cancelled, or server error encountered';
-  const ERROR_FILE_IS_TOO_LARGE = 'File is too large. Max allowed file size is %s';
-  const ERROR_FILE_HAS_AN_INVALID_EXTENSION = 'File has an invalid extension, it should be one of the following: %s';
+  public const ERROR_CAN_NOT_DETECT_UPLOADED_FILE = 'Can not detect uploaded file';
+  public const ERROR_COULD_NOT_SAVE_UPLOADED_FILE = 'Could not save uploaded file. The upload was cancelled, or server error encountered';
+  public const ERROR_FILE_IS_TOO_LARGE = 'File is too large. Max allowed file size is %s';
+  public const ERROR_FILE_HAS_AN_INVALID_EXTENSION = 'File has an invalid extension, it should be one of the following: %s';
 
-  const DEFAULT_UPLOADER_PATH = 'uploads/';
+  public const DEFAULT_UPLOADER_PATH = 'uploads/';
 
   protected array $options;
   protected array $allowedExtensions = [];
@@ -152,7 +149,7 @@ abstract class BrGenericUploadHandler extends BrObject
           self::UPLOAD_RESULT_SUCCESS => true,
           self::UPLOAD_RESULT_ORIGINAL_FILE_NAME => $this->getFileName(),
           self::UPLOAD_RESULT_FILE_SIZE => $this->getFileSize(),
-          self::UPLOAD_RESULT_FILE_SIZE_STR => br()->formatBytes($this->getFileSize())
+          self::UPLOAD_RESULT_FILE_SIZE_STR => br()->formatBytes($this->getFileSize()),
         ];
         foreach ($saveResult as $name => $value) {
           $result[$name] = $value;
@@ -160,14 +157,14 @@ abstract class BrGenericUploadHandler extends BrObject
       } else {
         $result = [
           self::UPLOAD_RESULT_SUCCESS => false,
-          self::UPLOAD_RESULT_ERROR => self::ERROR_COULD_NOT_SAVE_UPLOADED_FILE
+          self::UPLOAD_RESULT_ERROR => self::ERROR_COULD_NOT_SAVE_UPLOADED_FILE,
         ];
       }
       unset($result['internal']);
     } catch (\Exception $e) {
       $result = [
         self::UPLOAD_RESULT_SUCCESS => false,
-        self::UPLOAD_RESULT_ERROR => $e->getMessage()
+        self::UPLOAD_RESULT_ERROR => $e->getMessage(),
       ];
     }
 

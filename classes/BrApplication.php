@@ -10,12 +10,9 @@
 
 namespace Bright;
 
-/**
- *
- */
 class BrApplication extends BrObject
 {
-  const DEFAULT_SCRIPT_FILE = 'index.php';
+  public const DEFAULT_SCRIPT_FILE = 'index.php';
 
   public function __construct()
   {

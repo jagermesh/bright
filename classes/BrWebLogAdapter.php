@@ -14,7 +14,6 @@ class BrWebLogAdapter extends BrGenericLogAdapter
 {
   /**
    * @param $messageOrObject
-   * @param array|null $params
    */
   public function write($messageOrObject, ?array $params = [])
   {
@@ -24,8 +23,8 @@ class BrWebLogAdapter extends BrGenericLogAdapter
           br()->response()->injectSystemStyles();
           $data = [
             'debug' => [
-              'message' => htmlspecialchars(BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, true))
-            ]
+              'message' => htmlspecialchars(BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, true)),
+            ],
           ];
           br()->renderer()->display(dirname(__DIR__) . '/templates/DebugMessage.html', $data);
         } catch (\Exception $e) {

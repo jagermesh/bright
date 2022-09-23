@@ -10,9 +10,6 @@
 
 namespace Bright;
 
-/**
- *
- */
 abstract class BrGenericCacheProvider extends BrObject
 {
   protected const CACHE_LIFE_TIME = 'lifeTime';
@@ -25,18 +22,13 @@ abstract class BrGenericCacheProvider extends BrObject
   abstract public function exists(string $name): bool;
 
   /**
-   * @param string $name
    * @param $default
-   * @param bool $saveDefault
    * @return mixed
    */
   abstract public function getEx(string $name, $default = null, bool $saveDefault = false): array;
 
   /**
-   * @param string $name
    * @param $value
-   * @param int|null $lifeTime
-   * @return bool
    */
   abstract public function set(string $name, $value, ?int $lifeTime = null): bool;
   abstract public function remove(string $name): bool;
@@ -61,9 +53,7 @@ abstract class BrGenericCacheProvider extends BrObject
   }
 
   /**
-   * @param string $name
    * @param null $default
-   * @param bool $saveDefault
    * @return mixed
    */
   public function get(string $name, $default = null, bool $saveDefault = false)
