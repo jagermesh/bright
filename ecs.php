@@ -13,8 +13,7 @@ use Symplify\EasyCodingStandard\FixerRunner\ValueObject\Spacing;
 
 return static function (ECSConfig $ecsConfig): void {
   $ecsConfig->paths([
-    __DIR__ . '/lib',
-    __DIR__ . '/datasources'
+    __DIR__ . '/classes',
   ]);
 
   $ecsConfig->ruleWithConfiguration(ArraySyntaxFixer::class, [
