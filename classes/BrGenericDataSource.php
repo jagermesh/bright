@@ -397,22 +397,22 @@ class BrGenericDataSource extends BrObject
   }
 
   // validation
-  public function canInsert($row = []): bool
+  public function canInsert(?array $row = []): bool
   {
     return true;
   }
 
-  public function canUpdate($row, $new = []): bool
+  public function canUpdate(array $row, ?array $new = []): bool
   {
     return true;
   }
 
-  public function canRemove($row): bool
+  public function canRemove(array $row): bool
   {
     return true;
   }
 
-  public function canSelect($filter = []): bool
+  public function canSelect(?array $filter = []): bool
   {
     return true;
   }

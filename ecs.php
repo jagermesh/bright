@@ -12,7 +12,7 @@ use Symplify\EasyCodingStandard\Config\ECSConfig;
 use Symplify\EasyCodingStandard\FixerRunner\ValueObject\Spacing;
 use Symplify\EasyCodingStandard\ValueObject\Set\SetList;
 
-ini_set('memory_limit', '1024M');
+ini_set('memory_limit', '2048M');
 
 return static function (ECSConfig $ecsConfig): void {
   $ecsConfig->parallel();

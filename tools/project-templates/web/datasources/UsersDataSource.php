@@ -41,7 +41,7 @@ class UsersDataSource extends \Bright\BrUsersDataSource
     });
   }
 
-  public function canInsert($row = []): bool
+  public function canInsert(?array $row = []): bool
   {
     if (br()->auth()) {
       return !empty(br()->auth()->getLogin('id'));
@@ -50,7 +50,7 @@ class UsersDataSource extends \Bright\BrUsersDataSource
     return false;
   }
 
-  public function canUpdate($row, $new = []): bool
+  public function canUpdate(array $row, ?array $new = []): bool
   {
     if (br()->auth()) {
       return !empty(br()->auth()->getLogin('id'));
@@ -59,7 +59,7 @@ class UsersDataSource extends \Bright\BrUsersDataSource
     return false;
   }
 
-  public function canRemove($row): bool
+  public function canRemove(array $row): bool
   {
     if (br()->auth()) {
       return !empty(br()->auth()->getLogin('id'));

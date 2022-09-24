@@ -24,7 +24,7 @@ class BrDateTime extends BrObject
   /**
    * @param $date
    */
-  public function __construct($date = null)
+  public function __construct(?string $date = null)
   {
     parent::__construct();
 
@@ -34,7 +34,7 @@ class BrDateTime extends BrObject
   /**
    * @param $date
    */
-  public function set($date = null)
+  public function set(?string $date = null)
   {
     if (!$date) {
       $date = time();

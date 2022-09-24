@@ -316,7 +316,7 @@ class BrUsersDataSource extends BrDataSource
     });
   }
 
-  public function canUpdate($row, $new = []): bool
+  public function canUpdate(array $row, ?array $new = []): bool
   {
     if ($login = br()->auth()->getLogin()) {
       $security = br()->auth()->getAttr(BrDBUsersAuthProvider::USERS_API_UPDATE);
@@ -330,7 +330,7 @@ class BrUsersDataSource extends BrDataSource
     return true;
   }
 
-  public function canRemove($row): bool
+  public function canRemove(array $row): bool
   {
     if ($login = br()->auth()->getLogin()) {
       $security = br()->auth()->getAttr(BrDBUsersAuthProvider::USERS_API_REMOVE);
