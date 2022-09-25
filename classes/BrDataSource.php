@@ -238,28 +238,26 @@ class BrDataSource extends BrGenericDataSource
           throw $e;
         }
       }
-    } else {
-      if (!$countOnly && is_array($result)) {
-        $this->lastSelectAmount = 0;
+    } elseif (!$countOnly && is_array($result)) {
+      $this->lastSelectAmount = 0;
+      foreach ($result as $key => $row) {
+        $row[BrConst::DATASOURCE_SYSTEM_FIELD_ROWID] = $this->getDb()->rowidValue($row, $this->rowidFieldName);
+        $result[$key] = $row;
+        $this->lastSelectAmount++;
+      }
+      if (!br($options, BrConst::DATASOURCE_OPTION_NO_CALC_FIELDS)) {
+        $this->callEvent(BrConst::DATASOURCE_EVENT_PREPARE_CALC_FIELDS, $result, $transientData, $options);
+        $this->onPrepareCalcFields($result, $transientData, $options);
         foreach ($result as $key => $row) {
-          $row[BrConst::DATASOURCE_SYSTEM_FIELD_ROWID] = $this->getDb()->rowidValue($row, $this->rowidFieldName);
-          $result[$key] = $row;
-          $this->lastSelectAmount++;
-        }
-        if (!br($options, BrConst::DATASOURCE_OPTION_NO_CALC_FIELDS)) {
-          $this->callEvent(BrConst::DATASOURCE_EVENT_PREPARE_CALC_FIELDS, $result, $transientData, $options);
-          $this->onPrepareCalcFields($result, $transientData, $options);
-          foreach ($result as $key => $row) {
-            $this->callEvent(BrConst::DATASOURCE_EVENT_CALC_FIELDS, $row, $transientData, $options);
-            $this->onCalcFields($row, $transientData, $options);
-            $result[$key] = $row;
-          }
-        }
-        foreach ($result as $key => $row) {
-          $this->callEvent(BrConst::DATASOURCE_METHOD_PROTECT_FIELDS, $row, $transientData, $options);
-          $this->onProtectFields($row, $transientData, $options);
+          $this->callEvent(BrConst::DATASOURCE_EVENT_CALC_FIELDS, $row, $transientData, $options);
+          $this->onCalcFields($row, $transientData, $options);
           $result[$key] = $row;
         }
+      }
+      foreach ($result as $key => $row) {
+        $this->callEvent(BrConst::DATASOURCE_METHOD_PROTECT_FIELDS, $row, $transientData, $options);
+        $this->onProtectFields($row, $transientData, $options);
+        $result[$key] = $row;
       }
     }
 

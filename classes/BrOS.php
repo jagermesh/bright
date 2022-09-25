@@ -32,13 +32,13 @@ class BrOS extends BrObject
 
     if (is_readable('/proc/cpuinfo')) {
       $data = br()->fs()->loadFromFile('/proc/cpuinfo');
-      if (preg_match_all('#processor.*?:.*?[0-9]+#ism', $data, $matches, PREG_SET_ORDER)) {
+      if (preg_match_all('#processor.*?:.*?\d+#ism', $data, $matches, PREG_SET_ORDER)) {
         $result = count($matches);
       }
     } else {
       exec('sysctl hw.ncpu', $data);
       $data = implode("\n", $data);
-      if (preg_match('#hw[.]ncpu:[ ]*([0-9]+)#', $data, $matches)) {
+      if (preg_match('#hw[.]ncpu:[ ]*(\d+)#', $data, $matches)) {
         $result = $matches[1];
       }
     }
@@ -71,7 +71,7 @@ class BrOS extends BrObject
           $found = strpos($line, $mask);
         }
         if ($found !== false) {
-          if (preg_match('#^([0-9]+).*?[0-9]+:[0-9]+([.0-9]+|) (.+)$#', $line, $matches)) {
+          if (preg_match('#^(\d+).*?\d+:\d+([.0-9]+|) (.+)$#', $line, $matches)) {
             $command = $matches[3];
             if ($regexp) {
               $found = (preg_match($mask, $command) > 0);

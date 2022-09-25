@@ -992,7 +992,7 @@ class BrDataBaseManager
       $patchName = 'Patch.+[.]php';
       $regularRun = true;
     } else {
-      $patchName = $patchName . '[.]php';
+      $patchName .= '[.]php';
       $regularRun = false;
     }
 

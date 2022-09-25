@@ -14,7 +14,6 @@ class BrConfig extends BrObject
 {
   /**
    * @param $value
-   * @return $this
    */
   public function set(string $name, $value): BrConfig
   {

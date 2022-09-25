@@ -54,7 +54,7 @@ class BriCal extends BrObject
     $offset = $offset / 60 / 60;
     $neg = preg_match('/^[-]/', $offset);
     $offset = ltrim(ltrim($offset, '-'), '+');
-    if (preg_match('/([0-9]+)[.]([0-9]+)/', $offset, $matches)) {
+    if (preg_match('/(\d+)[.](\d+)/', $offset, $matches)) {
       $offset = $matches[1];
       $hours = $matches[2];
       $hours = '0.' . $hours;
@@ -110,7 +110,7 @@ class BriCal extends BrObject
     if ($transitions = $timezone->getTransitions(mktime(0, 0, 0, 1, 1, $minYear), mktime(0, 0, 0, 12, 31, $maxYear))) {
       for ($i = 1; $i < count($transitions); $i++) {
         $time = $transitions[$i - 1]['time'];
-        if (preg_match('/([0-9]+)[-]([0-9]+)[-]([0-9]+[T][0-9]+)[:]([0-9]+)[:]([0-9]+)/', $time, $matches)) {
+        if (preg_match('/(\d+)[-](\d+)[-](\d+[T]\d+)[:](\d+)[:](\d+)/', $time, $matches)) {
           $time = $matches[1] . $matches[2] . $matches[3] . $matches[4] . $matches[5];
           if ($transitions[$i]['isdst']) {
             $result .= "BEGIN:DAYLIGHT\r\n";
@@ -166,9 +166,10 @@ class BriCal extends BrObject
       $title = preg_replace('#[\n\r]#', '', $event->getTitle());
       $description = rtrim(trim(preg_replace('#[\n\r]#', '', $event->getDescription())), ';');
 
-      $result .= "TRANSP:OPAQUE\r\n"
-        . "SEQUENCE:0\r\n"
-        . "STATUS:CONFIRMED\r\n";
+      $result .= 'TRANSP:OPAQUE
+SEQUENCE:0
+STATUS:CONFIRMED
+';
       $result .= 'SUMMARY:' . $title . "\r\n";
       $result .= 'DTSTAMP:' . gmdate(self::ICAL_DATE_TIME_FORMAT) . "Z\r\n";
       if ($event->getUID()) {

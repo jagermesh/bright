@@ -371,7 +371,7 @@ class BrAWS extends BrObject
     $command = 'ffmpeg -i "' . $fileName . '" 2>' . $tempFile;
     exec($command);
     $output = file_get_contents($tempFile);
-    if (preg_match('/Duration[:] ([0-9]+)[:]([0-9]+)[:]([0-9.]+)/', $output, $matches)) {
+    if (preg_match('/Duration[:] (\d+)[:](\d+)[:]([0-9.]+)/', $output, $matches)) {
       $h = $matches[1];
       $m = $matches[2];
       $s = $matches[3];

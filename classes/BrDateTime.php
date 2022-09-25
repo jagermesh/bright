@@ -470,12 +470,10 @@ class BrDateTime extends BrObject
         } else {
           $result = sprintf(br()->trn('%d months ago'), $this->monthsBetween() - 1);
         }
+      } elseif ($this->monthsBetween(null, true) == 1) {
+        $result = br()->trn('In next month');
       } else {
-        if ($this->monthsBetween(null, true) == 1) {
-          $result = br()->trn('In next month');
-        } else {
-          $result = sprintf(br()->trn('In next %d months'), $this->monthsBetween());
-        }
+        $result = sprintf(br()->trn('In next %d months'), $this->monthsBetween());
       }
     } else {
       $result = br()->trn('Year ago');

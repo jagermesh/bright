@@ -290,11 +290,9 @@ class BrCore extends BrObject
   }
 
 
-  public function log(): BrLog
+  public function log(...$args): BrLog
   {
     $log = BrLog::getInstance();
-
-    $args = func_get_args();
     foreach ($args as $var) {
       $log->message($var);
     }
@@ -347,9 +345,8 @@ class BrCore extends BrObject
     return hrtime(true) / 1e+9;
   }
 
-  public function placeholder(): string
+  public function placeholder(...$args): string
   {
-    $args = func_get_args();
     $tmpl = array_shift($args);
     $result = $this->placeholderEx($tmpl, $args, $error);
     if ($result === false) {
@@ -389,7 +386,7 @@ class BrCore extends BrObject
         case '#':
           $type = $c;
           if (substr($tmpl, $p + 1, 1) == '&') {
-            $type = $type . '&';
+            $type .= '&';
             ++$p;
           }
           ++$p;
@@ -459,13 +456,15 @@ class BrCore extends BrObject
         if ($type === '#') {
           $repl = @constant($key);
           if (null === $repl) {
-            $error = $errmsg = "UNKNOWN_CONSTANT_$key";
+            $error = sprintf('UNKNOWN_CONSTANT_%s', $key);
+            $errmsg = sprintf('UNKNOWN_CONSTANT_%s', $key);
           }
           break;
         }
 
         if (!isset($args[$key])) {
-          $error = $errmsg = "UNKNOWN_PLACEHOLDER_$key";
+          $error = sprintf('UNKNOWN_PLACEHOLDER_%s', $key);
+          $errmsg = sprintf('UNKNOWN_PLACEHOLDER_%s', $key);
           break;
         }
 
@@ -479,7 +478,8 @@ class BrCore extends BrObject
           break;
         } elseif ($type === '') {
           if (is_array($a)) {
-            $error = $errmsg = "NOT_A_SCALAR_PLACEHOLDER_$key";
+            $error = sprintf('NOT_A_SCALAR_PLACEHOLDER_%s', $key);
+            $errmsg = sprintf('NOT_A_SCALAR_PLACEHOLDER_%s', $key);
             break;
           } elseif (strlen($a) === 0) {
             $repl = 'null';
@@ -491,7 +491,8 @@ class BrCore extends BrObject
         }
 
         if (!is_array($a)) {
-          $error = $errmsg = "NOT_AN_ARRAY_PLACEHOLDER_$key";
+          $error = sprintf('NOT_AN_ARRAY_PLACEHOLDER_%s', $key);
+          $errmsg = sprintf('NOT_AN_ARRAY_PLACEHOLDER_%s', $key);
           break;
         }
 
@@ -508,7 +509,7 @@ class BrCore extends BrObject
           $lerror = [];
           foreach ($a as $k => $v) {
             if (!is_string($k)) {
-              $lerror[$k] = "NOT_A_STRING_KEY_{$k}_FOR_PLACEHOLDER_$key";
+              $lerror[$k] = sprintf('NOT_A_STRING_KEY_%d_FOR_PLACEHOLDER_%s', $k, $key);
             } else {
               $k = preg_replace('/[^a-zA-Z0-9_]/', '_', $k);
             }
@@ -516,7 +517,7 @@ class BrCore extends BrObject
           }
           if (count($lerror)) {
             $repl = '';
-            foreach ($a as $k => $v) {
+            foreach (array_keys($a) as $k) {
               if (isset($lerror[$k])) {
                 $repl .= ($repl === '' ? '' : ', ') . $lerror[$k];
               } else {
@@ -524,7 +525,8 @@ class BrCore extends BrObject
                 $repl .= ($repl === '' ? '' : ', ') . $k . '=?';
               }
             }
-            $error = $errmsg = $repl;
+            $error = $repl;
+            $errmsg = $repl;
           }
         }
       } while (false);
@@ -706,7 +708,6 @@ class BrCore extends BrObject
    * @param string $emails
    * @param array|callable $params
    * @param callable|null $callback
-   * @return boolean
    * @throws BrAppException
    * @throws TransportExceptionInterface
    * @throws \Exception
@@ -827,7 +828,7 @@ class BrCore extends BrObject
   public function inc(&$var, $secondVar, string $glue = ', ')
   {
     if (is_integer($var)) {
-      $var = $var + $secondVar;
+      $var += $secondVar;
     } else {
       $var = $var . ($var ? $glue : '') . $secondVar;
     }
@@ -842,7 +843,7 @@ class BrCore extends BrObject
   public function stripSlashes(&$element)
   {
     if (is_array($element)) {
-      foreach ($element as $key => $value) {
+      foreach (array_keys($element) as $key) {
         $this->stripSlashes($element[$key]);
       }
     } else {
@@ -872,8 +873,8 @@ class BrCore extends BrObject
   {
     $includeSign = br($params, 'includeSign');
     $withUnits = br($params, 'withUnits');
-
-    $minutes = $hrs = 0;
+    $minutes = 0;
+    $hrs = 0;
     if ($duration < 60) {
       $secs = $duration;
     } elseif ($duration < 60 * 60) {
@@ -940,7 +941,7 @@ class BrCore extends BrObject
         $date = new \DateTime();
         $date->setTimestamp($datetime);
       } else {
-        $datetime = preg_replace('/([0-9])([AP]M)/i', '$1 $2', $datetime);
+        $datetime = preg_replace('/(\d)([AP]M)/i', '$1 $2', $datetime);
         $date = new \DateTime($datetime);
       }
       if ($minYear && ($date->format('Y') < $minYear)) {
@@ -1030,7 +1031,7 @@ class BrCore extends BrObject
 
     if ($extension) {
       rename($fileName, $fileName . $extension);
-      $fileName = $fileName . $extension;
+      $fileName .= $extension;
     }
 
     if ($register) {

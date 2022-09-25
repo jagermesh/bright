@@ -43,12 +43,10 @@ class BrMongoDBProvider extends BrGenericDBProvider
   {
     if (is_array($row)) {
       return $row['_id'];
+    } elseif (!is_object($row)) {
+      return new \MongoId($row);
     } else {
-      if (!is_object($row)) {
-        return new \MongoId($row);
-      } else {
-        return $row;
-      }
+      return $row;
     }
   }
 

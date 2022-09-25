@@ -19,7 +19,7 @@ class BrIMAPMailMessage extends BrObject
   private $overview;
   private $HTMLBody;
   private $textBody;
-  private $attachments;
+  private $attachments = [];
   private $structure = null;
   private $parsed = false;
   private $parentPart = '';
@@ -33,7 +33,6 @@ class BrIMAPMailMessage extends BrObject
     $this->overview = $overview;
     $this->HTMLBody = new BrIMAPBody($this, true);
     $this->textBody = new BrIMAPBody($this, false);
-    $this->attachments = [];
   }
 
   public function getHTMLBody()
@@ -70,12 +69,10 @@ class BrIMAPMailMessage extends BrObject
     foreach ($elements as $element) {
       if ($element->charset == 'default') {
         $result .= $element->text;
+      } elseif ($encoded = @iconv($element->charset, 'UTF-8', $element->text)) {
+        $result .= $encoded;
       } else {
-        if ($encoded = @iconv($element->charset, 'UTF-8', $element->text)) {
-          $result .= $encoded;
-        } else {
-          $result .= $element->text;
-        }
+        $result .= $element->text;
       }
     }
 

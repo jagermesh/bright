@@ -19,12 +19,12 @@ class BrFTPFileObject
 
   public function __construct(string $line)
   {
-    if (preg_match('#([-d]).* ([0-9]+) ([a-zA-Z]{3}) ([ 0-9]?[0-9]) (([0-9]{2}):([0-9]{2})| [0-9]{4}) (.+)#', $line, $matches)) {
+    if (preg_match('#([-d]).* (\d+) ([a-zA-Z]{3}) ([ 0-9]?\d) ((\d{2}):(\d{2})| \d{4}) (.+)#', $line, $matches)) {
       $this->isDirectory = ($matches[1] == 'd');
       $this->size = $matches[2];
       $this->name = $matches[8];
       $this->date = trim($matches[3] . $matches[4] . ', ' . $matches[5]);
-    } elseif (preg_match('#[0-9]{2}[-][0-9]{2}[-][0-9]{2}  [0-9]{2}:[0-9]{2}[AP]M[ ]+([0-9]+) (.+)#', $line, $matches)) {
+    } elseif (preg_match('#\d{2}[-]\d{2}[-]\d{2}  \d{2}:\d{2}[AP]M[ ]+(\d+) (.+)#', $line, $matches)) {
       $this->isDirectory = false;
       $this->size = $matches[1];
       $this->name = $matches[2];

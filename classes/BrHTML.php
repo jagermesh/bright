@@ -123,7 +123,7 @@ class BrHTML extends BrObject
   {
     $flags = ENT_COMPAT;
     if (defined('ENT_HTML401')) {
-      $flags = $flags | ENT_HTML401;
+      $flags |= ENT_HTML401;
     }
 
     return htmlspecialchars($html, $flags);
@@ -155,7 +155,7 @@ class BrHTML extends BrObject
 
     $flags = ENT_COMPAT;
     if (defined('ENT_HTML401')) {
-      $flags = $flags | ENT_HTML401;
+      $flags |= ENT_HTML401;
     }
     $result = html_entity_decode($result, $flags, 'UTF-8');
 
@@ -166,7 +166,7 @@ class BrHTML extends BrObject
   {
     $flags = ENT_COMPAT;
     if (defined('ENT_HTML401')) {
-      $flags = $flags | ENT_HTML401;
+      $flags |= ENT_HTML401;
     }
 
     $result = htmlspecialchars($html, $flags);
@@ -180,7 +180,7 @@ class BrHTML extends BrObject
   {
     return preg_replace_callback('/(&#x[0-9A-Z]+;)/i', function ($m) {
       return mb_convert_encoding($m[1], 'UTF-8', 'HTML-ENTITIES');
-    }, preg_replace_callback('/(&#[0-9]+;)/', function ($m) {
+    }, preg_replace_callback('/(&#\d+;)/', function ($m) {
       return mb_convert_encoding($m[1], 'UTF-8', 'HTML-ENTITIES');
     }, $html));
   }

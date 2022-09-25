@@ -86,7 +86,7 @@ abstract class BrGenericRenderer extends BrObject
 
   public function unassignByPattern(string $pattern)
   {
-    foreach ($this->vars as $key => $value) {
+    foreach (array_keys($this->vars) as $key) {
       if (preg_match($pattern, $key)) {
         unset($this->vars[$key]);
       }

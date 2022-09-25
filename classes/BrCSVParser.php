@@ -88,7 +88,7 @@ class BrCSVParser extends BrObject
 
         $enclosuresArr = [];
         foreach ($this->enclosureArr as $enclosure) {
-          $enclosuresArr[] = ["\\" . $enclosure, $enclosure . $enclosure];
+          $enclosuresArr[] = ['\\' . $enclosure, $enclosure . $enclosure];
         }
 
         while (($line = fgets($handle)) !== false) {

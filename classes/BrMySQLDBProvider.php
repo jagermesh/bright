@@ -112,7 +112,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
     $password = br($this->config, 'password');
     $dataBaseNames = br(br($this->config, 'name'))->split();
 
-    if (preg_match('/(.+?)[:]([0-9]+)$/', $hostName, $matches)) {
+    if (preg_match('/(.+?)[:](\d+)$/', $hostName, $matches)) {
       $hostName = $matches[1];
       $port = $matches[2];
     } else {

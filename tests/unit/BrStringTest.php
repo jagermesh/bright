@@ -9,7 +9,7 @@ class BrStringTest extends \Codeception\Test\Unit
 
   protected function _before()
   {
-    require_once(dirname(dirname(__DIR__)) . '/Bright.php');
+    require_once(dirname(__DIR__, 2) . '/Bright.php');
   }
 
   // tests

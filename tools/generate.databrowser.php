@@ -2,8 +2,8 @@
 
 require_once(dirname(__DIR__) . '/Bright.php');
 
-$scriptsPath = dirname(dirname(__DIR__)) . '/js/';
-$templatesPath = dirname(dirname(__DIR__)) . '/templates/';
+$scriptsPath = dirname(__DIR__, 2) . '/js/';
+$templatesPath = dirname(__DIR__, 2) . '/templates/';
 
 if ($tableName = br($argv, 1)) {
   logme('Generating code for ' . $tableName);
@@ -12,7 +12,7 @@ if ($tableName = br($argv, 1)) {
   $data['entityName'] = $tableName;
   $data['fields'] = [];
 
-  $configFile = dirname(dirname(__DIR__)) . '/config.php';
+  $configFile = dirname(__DIR__, 2) . '/config.php';
   if (file_exists($configFile)) {
     logme('Loading settings from ' . $configFile);
     require_once($configFile);

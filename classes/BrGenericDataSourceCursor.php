@@ -13,13 +13,12 @@ namespace Bright;
 class BrGenericDataSourceCursor implements Iterator
 {
   private $dataSource;
-  private $data;
+  private $data = [];
   private $position;
 
   public function __construct(&$dataSource, $data)
   {
     $this->dataSource = $dataSource;
-    $this->data = [];
     foreach ($data as $row) {
       $this->data[] = new BrGenericDataSourceRow($this->dataSource, $row);
     }

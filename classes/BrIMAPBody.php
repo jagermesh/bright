@@ -18,8 +18,8 @@ class BrIMAPBody extends BrObject
   public const PART_ATTR_ENCODING = 'encoding';
 
   private $message;
-  private $parts;
-  private $inlines;
+  private $parts = [];
+  private $inlines = [];
   private $isHTML;
   private $body = null;
 
@@ -29,8 +29,6 @@ class BrIMAPBody extends BrObject
 
     $this->isHTML = $isHTML;
     $this->message = $message;
-    $this->inlines = [];
-    $this->parts = [];
   }
 
   public function configure($partNo, $structure)

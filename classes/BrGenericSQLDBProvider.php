@@ -138,41 +138,36 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     }
   }
 
-  public function runQuery()
+  public function runQuery(...$args)
   {
-    $args = func_get_args();
     $sql = array_shift($args);
 
     return $this->runQueryEx($sql, $args);
   }
 
-  public function openCursor()
+  public function openCursor(...$args)
   {
-    $args = func_get_args();
     $sql = array_shift($args);
 
     return $this->runQueryEx($sql, $args);
   }
 
-  public function getCursor()
+  public function getCursor(...$args)
   {
-    $args = func_get_args();
     $sql = array_shift($args);
 
     return new BrGenericSQLProviderCursor($sql, $args, $this);
   }
 
-  public function select()
+  public function select(...$args)
   {
-    $args = func_get_args();
     $sql = array_shift($args);
 
     return $this->runQueryEx($sql, $args);
   }
 
-  public function selectUnbuffered()
+  public function selectUnbuffered(...$args)
   {
-    $args = func_get_args();
     $sql = array_shift($args);
 
     return $this->runQueryEx($sql, $args, 0, null, MYSQLI_USE_RESULT);
@@ -183,9 +178,8 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     return null;
   }
 
-  public function getRow()
+  public function getRow(...$args)
   {
-    $args = func_get_args();
     $sql = array_shift($args);
 
     return $this->selectNext($this->runQueryEx($sql, $args));
@@ -196,9 +190,8 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     return get_class($this) . ':' . $method . ':' . hash('sha256', br($sql)->trimSpaces() . serialize($args));
   }
 
-  public function getCachedRow()
+  public function getCachedRow(...$args)
   {
-    $args = func_get_args();
     $sql = array_shift($args);
 
     $cacheTag = $this->getCacheTag('getCachedRow', $sql, $args);
@@ -214,9 +207,8 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     return $result;
   }
 
-  public function getRows()
+  public function getRows(...$args)
   {
-    $args = func_get_args();
     $sql = array_shift($args);
 
     $query = $this->runQueryEx($sql, $args);
@@ -230,9 +222,8 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     return $result;
   }
 
-  public function getCachedRows()
+  public function getCachedRows(...$args)
   {
-    $args = func_get_args();
     $sql = array_shift($args);
 
     $cacheTag = $this->getCacheTag('getCachedRows', $sql, $args);
@@ -254,9 +245,8 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     return $result;
   }
 
-  public function getValue()
+  public function getValue(...$args)
   {
-    $args = func_get_args();
     $sql = array_shift($args);
 
     $result = $this->selectNext($this->runQueryEx($sql, $args));
@@ -267,9 +257,8 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     }
   }
 
-  public function getCachedValue()
+  public function getCachedValue(...$args)
   {
-    $args = func_get_args();
     $sql = array_shift($args);
 
     $cacheTag = $this->getCacheTag('getCachedValue', $sql, $args);
@@ -293,9 +282,8 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     return $result;
   }
 
-  public function getValues()
+  public function getValues(...$args)
   {
-    $args = func_get_args();
     $sql = array_shift($args);
 
     $query = $this->runQueryEx($sql, $args);
@@ -309,9 +297,8 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     return $result;
   }
 
-  public function getCachedValues()
+  public function getCachedValues(...$args)
   {
-    $args = func_get_args();
     $sql = array_shift($args);
 
     $cacheTag = $this->getCacheTag('getCachedValues', $sql, $args);
@@ -333,9 +320,8 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     return $result;
   }
 
-  public function getRowsAmount()
+  public function getRowsAmount(...$args)
   {
-    $args = func_get_args();
     $sql = array_shift($args);
 
     return $this->getRowsAmountEx($sql, $args);
@@ -348,7 +334,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
 
   public function getMajorVersion()
   {
-    if (preg_match('~^([0-9]+)[.]([0-9]+)[.]([0-9]+)~', $this->version, $matches)) {
+    if (preg_match('~^(\d+)[.](\d+)[.](\d+)~', $this->version, $matches)) {
       return (int)$matches[1];
     }
 
@@ -357,7 +343,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
 
   public function getMinorVersion()
   {
-    if (preg_match('~^([0-9]+)[.]([0-9])[.]([0-9]+)~', $this->version, $matches)) {
+    if (preg_match('~^(\d+)[.](\d)[.](\d+)~', $this->version, $matches)) {
       return (int)$matches[2];
     }
 
@@ -366,7 +352,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
 
   public function getBuildNumber()
   {
-    if (preg_match('~^([0-9]+)[.]([0-9]+)[.]([0-9]+)~', $this->version, $matches)) {
+    if (preg_match('~^(\d+)[.](\d+)[.](\d+)~', $this->version, $matches)) {
       return (int)$matches[3];
     }
 
@@ -434,34 +420,34 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
   protected function toGenericDataType($type)
   {
     switch (strtolower($type)) {
-      case "date":
-        return "date";
-      case "datetime":
-      case "timestamp":
-        return "date_time";
-      case "time":
-        return "time";
-      case "int":
-      case "smallint":
-      case "integer":
-      case "int64":
-      case "long":
-      case "long binary":
-      case "tinyint":
-        return "int";
-      case "real":
-      case "numeric":
-      case "double":
-      case "float":
-        return "real";
-      case "string":
-      case "text":
-      case "blob":
-      case "varchar":
-      case "char":
-      case "long varchar":
-      case "varying":
-        return "text";
+      case 'date':
+        return 'date';
+      case 'datetime':
+      case 'timestamp':
+        return 'date_time';
+      case 'time':
+        return 'time';
+      case 'int':
+      case 'smallint':
+      case 'integer':
+      case 'int64':
+      case 'long':
+      case 'long binary':
+      case 'tinyint':
+        return 'int';
+      case 'real':
+      case 'numeric':
+      case 'double':
+      case 'float':
+        return 'real';
+      case 'string':
+      case 'text':
+      case 'blob':
+      case 'varchar':
+      case 'char':
+      case 'long varchar':
+      case 'varying':
+        return 'text';
       default:
         return 'unknown';
         break;

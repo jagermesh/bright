@@ -117,7 +117,8 @@ class BrPlaceholder extends BrObject
     if (!$value) {
       return 'NULL';
     } elseif (is_array($value)) {
-      $result = $comma = '';
+      $result = '';
+      $comma = '';
       foreach ($value as $oneValue) {
         $result .= $comma . self::formatString($oneValue);
         $comma = ',';

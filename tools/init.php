@@ -29,7 +29,7 @@ if ($templateName = @$argv[1]) {
     br()->log(br()->console()->red('Template [' . $templateName . '] not found'));
     die(1);
   }
-  $projectRoot = dirname(dirname(dirname(dirname(__DIR__))));
+  $projectRoot = dirname(__DIR__, 4);
   try {
     br()->log()->message('Checking root folder...');
     br()->fs()->iteratePath($templatePath, function ($file) use ($templatePath, $projectRoot) {

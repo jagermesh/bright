@@ -65,7 +65,7 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider
     $userName = br($this->config, 'username');
     $password = br($this->config, 'password');
 
-    if (preg_match('/(.+?)[:]([0-9]+)$/', $hostName, $matches)) {
+    if (preg_match('/(.+?)[:](\d+)$/', $hostName, $matches)) {
       $hostName = $matches[1];
       $port = $matches[2];
     } else {

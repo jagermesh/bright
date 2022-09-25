@@ -65,7 +65,7 @@ class BrImages extends BrObject
         $thumbnails = [];
         foreach ($dimensions as $dimension) {
           $dimension = trim($dimension);
-          if (preg_match('~([0-9]+)x([0-9]+)~i', $dimension, $matches)) {
+          if (preg_match('~(\d+)x(\d+)~i', $dimension, $matches)) {
             $thumbnails[$dimension] = [
               'width' => $matches[1],
               'height' => $matches[2],

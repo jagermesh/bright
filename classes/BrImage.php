@@ -12,7 +12,7 @@ namespace Bright;
 
 class BrImage extends BrObject
 {
-  private $image;
+  private $image = null;
   private string $format = '';
   private int $width = 0;
   private int $height = 0;
@@ -23,8 +23,6 @@ class BrImage extends BrObject
   public function __construct(string $path)
   {
     parent::__construct();
-
-    $this->image = null;
 
     $oldErrorReporting = error_reporting();
     error_reporting(0);

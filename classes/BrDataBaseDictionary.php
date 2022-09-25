@@ -35,40 +35,36 @@ class BrDataBaseDictionary extends BrObject implements IDataBaseDictionary
               } elseif ($length > $columnDesc['max_length']) {
                 throw new BrAppException($columnTitle . ' is too long. Maximum length is ' . $columnDesc['max_length'] . ' character' .
                   ($columnDesc['max_length'] > 1 ? 's' : ''));
+              } elseif (($columnDesc['data_type_id'] == BrGenericDBProvider::DATA_TYPE_INTEGER) ||
+              ($columnDesc['data_type_id'] == BrGenericDBProvider::DATA_TYPE_DECIMAL)) {
+                if (!is_numeric($value)) {
+                  throw new BrAppException($columnTitle . ' must be numeric value');
+                } elseif (($columnDesc['data_type_id'] == BrGenericDBProvider::DATA_TYPE_INTEGER) && !preg_match('/^[-]?\d+$/', $value)) {
+                  throw new BrAppException($columnTitle . ' must be integer value');
+                } elseif ($value < $columnDesc['min_value']) {
+                  throw new BrAppException($columnTitle . ' must be greater or equal to ' . $columnDesc['min_value']);
+                } elseif ($value > $columnDesc['max_value']) {
+                  throw new BrAppException($columnTitle . ' must be less or equal to ' . $columnDesc['max_value']);
+                }
               } else {
-                if (
-                  ($columnDesc['data_type_id'] == BrGenericDBProvider::DATA_TYPE_INTEGER) ||
-                  ($columnDesc['data_type_id'] == BrGenericDBProvider::DATA_TYPE_DECIMAL)
-                ) {
-                  if (!is_numeric($value)) {
-                    throw new BrAppException($columnTitle . ' must be numeric value');
-                  } elseif (($columnDesc['data_type_id'] == BrGenericDBProvider::DATA_TYPE_INTEGER) && !preg_match('/^[-]?[0-9]+$/', $value)) {
-                    throw new BrAppException($columnTitle . ' must be integer value');
-                  } elseif ($value < $columnDesc['min_value']) {
-                    throw new BrAppException($columnTitle . ' must be greater or equal to ' . $columnDesc['min_value']);
-                  } elseif ($value > $columnDesc['max_value']) {
-                    throw new BrAppException($columnTitle . ' must be less or equal to ' . $columnDesc['max_value']);
-                  }
-                } else {
-                  switch ($columnDesc['data_type_id']) {
-                    case BrGenericDBProvider::DATA_TYPE_DATETIME:
-                      if (!strtotime($value)) {
-                        throw new BrAppException($columnTitle . ' must be date and time value in format: YYYY-MM-DD HH:MM:SS');
-                      }
-                      break;
-                    case BrGenericDBProvider::DATA_TYPE_DATE:
-                      if (!strtotime($value)) {
-                        throw new BrAppException($columnTitle . ' must be date value in format: YYYY-MM-DD');
-                      }
-                      break;
-                    case BrGenericDBProvider::DATA_TYPE_TIME:
-                      if (!strtotime($value)) {
-                        throw new BrAppException($columnTitle . ' must be time value in format HH:MM:SS ');
-                      }
-                      break;
-                    default:
-                      break;
-                  }
+                switch ($columnDesc['data_type_id']) {
+                  case BrGenericDBProvider::DATA_TYPE_DATETIME:
+                    if (!strtotime($value)) {
+                      throw new BrAppException($columnTitle . ' must be date and time value in format: YYYY-MM-DD HH:MM:SS');
+                    }
+                    break;
+                  case BrGenericDBProvider::DATA_TYPE_DATE:
+                    if (!strtotime($value)) {
+                      throw new BrAppException($columnTitle . ' must be date value in format: YYYY-MM-DD');
+                    }
+                    break;
+                  case BrGenericDBProvider::DATA_TYPE_TIME:
+                    if (!strtotime($value)) {
+                      throw new BrAppException($columnTitle . ' must be time value in format HH:MM:SS ');
+                    }
+                    break;
+                  default:
+                    break;
                 }
               }
             }

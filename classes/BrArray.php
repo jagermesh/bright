@@ -32,7 +32,6 @@ class BrArray extends BrGenericDataType
   /**
    * @param mixed
    * @param boolean
-   * @return boolean
    */
   public function contain($needle, bool $ignoreCase = false): bool
   {
@@ -42,7 +41,6 @@ class BrArray extends BrGenericDataType
   /**
    * @param mixed
    * @param boolean
-   * @return boolean
    */
   public function has($needle, bool $ignoreCase = false): bool
   {
@@ -52,7 +50,6 @@ class BrArray extends BrGenericDataType
   /**
    * @param mixed
    * @param boolean
-   * @return boolean
    */
   public function exists($needle, bool $ignoreCase = false): bool
   {

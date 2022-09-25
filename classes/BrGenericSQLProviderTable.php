@@ -152,7 +152,7 @@ class BrGenericSQLProviderTable extends BrObject
     }
 
     $args = [];
-    foreach ($values as $field => $value) {
+    foreach ($values as $value) {
       $args[] = $value;
     }
 
@@ -239,7 +239,7 @@ class BrGenericSQLProviderTable extends BrObject
 
     if ($filter) {
       if (is_array($filter)) {
-        foreach ($filter as $field => $value) {
+        foreach (array_keys($filter) as $field) {
           if ($where) {
             $where .= self::SQL_CMD_AND;
           }
@@ -335,12 +335,10 @@ class BrGenericSQLProviderTable extends BrObject
             } else {
               throw new BrGenericSQLProviderTableException('Wrong join format');
             }
+          } elseif (strpos($fieldName, '.') === false) {
+            $joins .= "\n" . ' ' . $joinType . self::SQL_CMD_JOIN . $joinTableName . ' ' . $joinTableAlias . self::SQL_CMD_ON . $tableName . '.' . $fieldName . ' = ' . $joinTableAlias . '.' . $joinField;
           } else {
-            if (strpos($fieldName, '.') === false) {
-              $joins .= "\n" . ' ' . $joinType . self::SQL_CMD_JOIN . $joinTableName . ' ' . $joinTableAlias . self::SQL_CMD_ON . $tableName . '.' . $fieldName . ' = ' . $joinTableAlias . '.' . $joinField;
-            } else {
-              $joins .= "\n" . ' ' . $joinType . self::SQL_CMD_JOIN . $joinTableName . ' ' . $joinTableAlias . self::SQL_CMD_ON . $fieldName . ' = ' . $joinTableAlias . '.' . $joinField;
-            }
+            $joins .= "\n" . ' ' . $joinType . self::SQL_CMD_JOIN . $joinTableName . ' ' . $joinTableAlias . self::SQL_CMD_ON . $fieldName . ' = ' . $joinTableAlias . '.' . $joinField;
           }
         }
         $first = false;

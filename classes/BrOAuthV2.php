@@ -82,13 +82,11 @@ class BrOAuthV2 extends BrOAuth
 
       if ($responseCode >= 400) {
         throw new BrOAuthV2Exception(br($response, 'error_description', 'Failed to retrieve token'));
+      } elseif (br($response, 'token_type') && br($response, 'access_token')) {
+        $token = $response['token_type'] . ' ' . $response['access_token'];
+        br()->cache('redis')->set($this->cachedName, $token, 20 * 60);
       } else {
-        if (br($response, 'token_type') && br($response, 'access_token')) {
-          $token = $response['token_type'] . ' ' . $response['access_token'];
-          br()->cache('redis')->set($this->cachedName, $token, 20 * 60);
-        } else {
-          throw new BrOAuthV2Exception('Unexpected response from authorization request: ' . json_encode($response));
-        }
+        throw new BrOAuthV2Exception('Unexpected response from authorization request: ' . json_encode($response));
       }
     }
 

@@ -28,7 +28,6 @@ class BrRESTBinder extends BrObject
   /**
    * @param $path
    * @param null $dataSource
-   * @return $this
    * @throws \Exception
    */
   public function route($path, $dataSource = null, ?array $options = []): BrRESTBinder
@@ -56,7 +55,6 @@ class BrRESTBinder extends BrObject
 
   /**
    * @param $dataSource
-   * @return $this
    * @throws \Exception
    */
   public function routeGET(string $path, $dataSource, ?array $options = []): BrRESTBinder
@@ -72,7 +70,6 @@ class BrRESTBinder extends BrObject
 
   /**
    * @param $dataSource
-   * @return $this
    */
   public function routePOST(string $path, $dataSource, ?array $options = []): BrRESTBinder
   {
@@ -87,7 +84,6 @@ class BrRESTBinder extends BrObject
 
   /**
    * @param $dataSource
-   * @return $this
    */
   public function routePUT(string $path, $dataSource, ?array $options = []): BrRESTBinder
   {
@@ -102,7 +98,6 @@ class BrRESTBinder extends BrObject
 
   /**
    * @param $dataSource
-   * @return $this
    */
   public function routeDELETE(string $path, $dataSource, ?array $options = []): BrRESTBinder
   {
@@ -117,6 +112,7 @@ class BrRESTBinder extends BrObject
 
   private function checkPermissions(array $options, array $methods)
   {
+    $mustBeLoggedIn = null;
     if (!array_key_exists(BrConst::REST_SETTING_SECURITY, $options)) {
       $mustBeLoggedIn = true;
     } else {
@@ -164,7 +160,6 @@ class BrRESTBinder extends BrObject
 
   /**
    * @param $dataSource
-   * @return $this
    * @throws \Exception
    */
   public function routeAsGET(string $path, $dataSource, ?array $options = []): BrRESTBinder
@@ -472,7 +467,6 @@ class BrRESTBinder extends BrObject
 
   /**
    * @param $dataSource
-   * @return $this
    */
   public function routeAsPOST(string $path, $dataSource, ?array $options = []): BrRESTBinder
   {
@@ -591,7 +585,6 @@ class BrRESTBinder extends BrObject
 
   /**
    * @param $dataSource
-   * @return $this
    */
   public function routeAsPUT(string $path, $dataSource, ?array $options = []): BrRESTBinder
   {
@@ -660,7 +653,6 @@ class BrRESTBinder extends BrObject
 
   /**
    * @param $dataSource
-   * @return $this
    */
   public function routeAsDELETE(string $path, $dataSource, ?array $options = []): BrRESTBinder
   {

@@ -44,7 +44,6 @@ class BrString extends BrGenericDataType
   /**
    * @param mixed
    * @param boolean
-   * @return boolean
    */
   public function has($needle, bool $ignoreCase = false): bool
   {
@@ -202,7 +201,7 @@ class BrString extends BrGenericDataType
 
   public function toBytes(): int
   {
-    if (preg_match('/([0-9]+)(g|m|k|)/ism', trim($this->value), $matches)) {
+    if (preg_match('/(\d+)(g|m|k|)/ism', trim($this->value), $matches)) {
       $val = $matches[1];
       switch (strtolower($matches[2])) {
         case 'g':
@@ -261,9 +260,9 @@ class BrString extends BrGenericDataType
   /**
    * @throws \Exception
    */
-  public function subst(): string
+  public function subst(...$args): string
   {
-    $args = func_get_args();
+    $error = null;
     $result = br()->placeholderEx($this->value, $args, $error);
     if ($result === false) {
       return 'ERROR:' . $error;
@@ -363,12 +362,12 @@ class BrString extends BrGenericDataType
     $crc = 0xFFFF;
 
     for ($x = 0; $x < strlen($this->value); $x++) {
-      $crc = $crc ^ ord($this->value[$x]);
+      $crc ^= ord($this->value[$x]);
       for ($y = 0; $y < 8; $y++) {
         if (($crc & 0x0001) == 0x0001) {
           $crc = (($crc >> 1) ^ 0xA001);
         } else {
-          $crc = $crc >> 1;
+          $crc >>= 1;
         }
       }
     }

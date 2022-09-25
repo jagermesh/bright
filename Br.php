@@ -12,8 +12,8 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
   require_once(__DIR__ . '/vendor/autoload.php');
 }
 
-if (file_exists(dirname(dirname(__DIR__)) . '/autoload.php')) {
-  require_once(dirname(dirname(__DIR__)) . '/autoload.php');
+if (file_exists(dirname(__DIR__, 2) . '/autoload.php')) {
+  require_once(dirname(__DIR__, 2) . '/autoload.php');
 }
 
 /**
@@ -76,9 +76,8 @@ function br($array = null, $name = null, $default = null)
 }
 
 if (!function_exists('debug')) {
-  function debug()
+  function debug(...$args)
   {
-    $args = func_get_args();
     foreach ($args as $var) {
       br()->log()->debug($var);
     }
@@ -86,9 +85,8 @@ if (!function_exists('debug')) {
 }
 
 if (!function_exists('logme')) {
-  function logme()
+  function logme(...$args)
   {
-    $args = func_get_args();
     foreach ($args as $var) {
       br()->log()->message($var);
     }
