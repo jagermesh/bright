@@ -94,7 +94,7 @@ return static function (RectorConfig $rectorConfig): void {
   $rectorConfig->rule(MakeInheritedMethodVisibilitySameAsParentRector::class);
   $rectorConfig->rule(SplitDoubleAssignRector::class);
   $rectorConfig->rule(SplitGroupedConstantsAndPropertiesRector::class);
-  // $rectorConfig->rule(RemoveDelegatingParentCallRector::class);
+  $rectorConfig->rule(RemoveDelegatingParentCallRector::class);
   $rectorConfig->rule(RemoveDuplicatedArrayKeyRector::class);
   $rectorConfig->rule(RemoveDoubleAssignRector::class);
   $rectorConfig->rule(RemoveDuplicatedCaseInSwitchRector::class);
@@ -113,7 +113,7 @@ return static function (RectorConfig $rectorConfig): void {
   $rectorConfig->rule(GetCalledClassToSelfClassRector::class);
   $rectorConfig->rule(ClassConstantToSelfClassRector::class);
   $rectorConfig->rule(RemoveReferenceFromCallRector::class);
-  // $rectorConfig->rule(AddDefaultValueForUndefinedVariableRector::class);
+  $rectorConfig->rule(AddDefaultValueForUndefinedVariableRector::class);
   $rectorConfig->rule(MultiDirnameRector::class);
   $rectorConfig->rule(RandomFunctionRector::class);
   $rectorConfig->rule(PublicConstantVisibilityRector::class);
