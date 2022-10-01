@@ -257,6 +257,17 @@ gulp.task('build',
     'concat:core',
     gulp.parallel('concat:dist', 'concat:css'),
     'uglify:dist',
+    'shell:chmod'
+  )
+);
+
+gulp.task('check',
+  gulp.series(
+    gulp.parallel('eslint', 'phplint', 'uglify:libs'),
+    'sass',
+    'concat:core',
+    gulp.parallel('concat:dist', 'concat:css'),
+    'uglify:dist',
     'shell:codecheck',
     'shell:chmod'
   )
@@ -271,13 +282,6 @@ gulp.task('css',
 
 gulp.task('test',
   gulp.series(
-    'shell:test'
-  )
-);
-
-gulp.task('default',
-  gulp.series(
-    'build',
     'shell:test'
   )
 );
