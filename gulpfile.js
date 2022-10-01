@@ -147,6 +147,8 @@ const configs = {
   },
   shell: {
     chmod: 'chmod 644 dist/js/*.js && chmod 644 dist/css/*.css',
+    ecs: 'vendor/bin/ecs check --fix',
+    rector: 'vendor/bin/rector process',
     test: 'php vendor/codeception/codeception/codecept run'
   }
 };
@@ -232,6 +234,18 @@ gulp.task('shell:chmod', function() {
   }).pipe(shell(configs.shell.chmod));
 });
 
+gulp.task('shell:ecs', function() {
+  return gulp.src('gulpfile.js', {
+    read: false
+  }).pipe(shell(configs.shell.ecs));
+});
+
+gulp.task('shell:rector', function() {
+  return gulp.src('gulpfile.js', {
+    read: false
+  }).pipe(shell(configs.shell.rector));
+});
+
 gulp.task('shell:test', function() {
   return gulp.src('gulpfile.js', {
     read: false
@@ -245,6 +259,8 @@ gulp.task('build',
     'concat:core',
     gulp.parallel('concat:dist', 'concat:css'),
     'uglify:dist',
+    'shell:rector',
+    'shell:ecs',
     'shell:chmod'
   )
 );

@@ -3,54 +3,47 @@
 
 class GitPreCommitHook
 {
-  private $isWindows;
+  private bool $isWindows;
 
   public function __construct()
   {
-    $this->isWindows = (substr(php_uname(), 0, 7) == "Windows");
+    $this->isWindows = (substr(php_uname(), 0, 7) == 'Windows');
   }
 
-  private function log($s)
+  private function log(string $message)
   {
-    echo($s . "\n");
+    echo(sprintf("%s\n", $message));
   }
 
   private function beginError()
   {
-    echo(chr(27) . '[31m' . "\n");
+    echo(sprintf("%s[31m\n", chr(27)));
   }
 
   private function endError()
   {
-    echo(chr(27) . '[0m' . "\n");
+    echo(sprintf("%s[0m\n", chr(27)));
   }
 
-  private function logError($s)
-  {
-    $this->beginError();
-    echo($s . "\n");
-    $this->endError();
-  }
-
-  private function lint($fileMask, $command, $toolName, $installUrl)
+  private function lint(string $fileMask, string $command, string $toolName, string $installUrl, callable $errorCallback = null)
   {
     $files  = [];
     $output = [];
     $retval = 0;
     if ($this->isWindows) {
-      $grep = 'findstr "' . $fileMask . '"';
+      $grep = sprintf('findstr "%s$" /R', $fileMask);
     } else {
-      $grep = 'grep "' . $fileMask . '$"';
+      $grep = sprintf('grep "%s$"', $fileMask);
     }
-    $cmd = 'git diff --cached --name-only --diff-filter=ACM | ' . $grep;
+    $cmd = sprintf('git diff --cached --name-only --diff-filter=ACM | %s', $grep);
     exec($cmd, $files, $retval);
     if ($files) {
       $this->log('Running ' . $toolName . ' validation');
       foreach($files as $file) {
-        if (!preg_match('~/vendor/~i', $file)) {
-          $cmd = $command . ' "' . $file . '"';
+        if (!preg_match('~/vendor/~i', $file) || preg_match('~/vendor/jagermesh/~i', $file)) {
+          $cmd = sprintf('%s "%s"', $command, $file);
           if (!$this->isWindows) {
-            $cmd = 'export PATH=/usr/local/bin:$PATH; ' . $cmd;
+            $cmd = sprintf('export PATH=/usr/local/bin:$PATH; %s', $cmd);
           }
           $this->log($cmd);
           exec($cmd, $output, $retval);
@@ -63,10 +56,13 @@ class GitPreCommitHook
                 }
               }
             } else {
-              $this->log('Command "' . $cmd . '" failed with code ' . $retval . ', probably ' . $toolName . ' not installed');
-              $this->log('Please refer to this link about how to install ' . $toolName . ': ' . $installUrl);
+              $this->log(sprintf('Command "%s" failed with code %d, probably %s not installed', $cmd, $retval, $toolName));
+              $this->log(sprintf('Please refer to this link about how to install %s: %s', $toolName, $installUrl));
             }
             $this->endError();
+            if ($errorCallback) {
+              $errorCallback();
+            }
             exit(1);
           }
         }
@@ -74,36 +70,57 @@ class GitPreCommitHook
     }
   }
 
-  private function JSLint()
+  private function jsLint()
   {
     $this->lint('.js', 'eslint --fix --quiet', 'ESLint', 'https://eslint.org/docs/user-guide/getting-started');
   }
 
-  private function PHPLint()
+  private function phpLint()
   {
     $this->lint('.php', 'php -l', 'PHP', 'https://php.net/');
   }
 
-  private function PHPCS()
+  private function findTool(string $toolName): string
   {
-    $toolName = $this->isWindows ? 'squizlabs/php_codesniffer/bin/phpcs.bat' : 'bin/phpcs';
-    $cmdPath = file_exists(dirname(dirname(__DIR__)) . '/vendor/' . $toolName) ? dirname(dirname(__DIR__)) . '/vendor/' . $toolName :  dirname(dirname(__DIR__)) . '/v2/vendor/' . $toolName;
-    $this->lint('.php', $cmdPath, 'PHPCBF', 'https://github.com/squizlabs/PHP_CodeSniffer');
+    return sprintf('%s/vendor/%s', file_exists(dirname(__DIR__, 2)), $toolName);
   }
 
-  private function PHPCBF()
+  private function phpCS()
+  {
+    $toolName = $this->isWindows ? 'squizlabs/php_codesniffer/bin/phpcs.bat' : 'bin/ecs check';
+    $cmdPath = $this->findTool($toolName);
+    $this->lint('.php', $cmdPath, 'phpcs', 'https://github.com/squizlabs/PHP_CodeSniffer');
+  }
+
+  private function phpCBF()
   {
     $toolName = $this->isWindows ? 'squizlabs/php_codesniffer/bin/phpcbf.bat' : 'bin/phpcbf';
-    $cmdPath = file_exists(dirname(dirname(__DIR__)) . '/vendor/' . $toolName) ? dirname(dirname(__DIR__)) . '/vendor/' . $toolName :  dirname(dirname(__DIR__)) . '/v2/vendor/' . $toolName;
-    $this->lint('.php', $cmdPath, 'PHPCBF', 'https://github.com/squizlabs/PHP_CodeSniffer');
+    $cmdPath = $this->findTool($toolName);
+    $this->lint('.php', $cmdPath, 'phpcbf', 'https://github.com/squizlabs/PHP_CodeSniffer');
+  }
+
+  private function phpECS()
+  {
+    $cmdPath = $this->findTool('bin/ecs');
+    $this->lint('.php', $cmdPath . ' check --clear-cache', 'ecs', 'https://https://github.com/symplify/easy-coding-standard', function() use ($cmdPath) {
+      $this->lint('.php', $cmdPath . ' check --fix --clear-cache', 'ecs', 'https://https://github.com/symplify/easy-coding-standard');
+    });
+  }
+
+  private function phpRector()
+  {
+    $cmdPath = $this->findTool('bin/rector');
+    $this->lint('.php', $cmdPath . ' process --clear-cache --dry-run', 'rector', 'https://github.com/rectorphp/rector', function() use ($cmdPath) {
+      $this->lint('.php', $cmdPath . ' process --clear-cache', 'rector', 'https://github.com/rectorphp/rector');
+    });
   }
 
   public function run()
   {
-    $this->JSLint();
-    $this->PHPLint();
-    $this->PHPCBF();
-    // $this->PHPCS();
+    $this->jsLint();
+    $this->phpLint();
+    $this->phpRector();
+    $this->phpECS();
   }
 }
 
