@@ -16,7 +16,7 @@
     "ext-mbstring": "*",
     "ext-openssl": "*",
     "aws/aws-sdk-php": "^3",
-    "guzzlehttp/guzzle": "^6",
+    "guzzlehttp/guzzle": "^6 || ^7",
     "cboden/ratchet": "^0.4",
     "ratchet/pawl": "^0.4",
     "phpseclib/phpseclib": "^2",
