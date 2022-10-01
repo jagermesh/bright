@@ -2714,6 +2714,18 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
   };
 
+  function triggerErrorEvent(data) {
+    if (data.reason && (data.reason != 'Script error.')) {
+      try {
+        let result = window.br.events.trigger('error', data);
+        if (result) {
+          event.preventDefault();
+        }
+      } catch (error) {
+        // we don't care
+      }
+    }
+  }
   if (window.addEventListener) {
     window.addEventListener('error', function(event) {
       if (event.origin != document.location.origin) {
@@ -2721,7 +2733,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       }
 
       let data = {
-        message: event.message,
+        reason: event.message,
         data: null,
         filename: event.filename,
         lineno: event.lineno,
@@ -2730,26 +2742,16 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         location: document.location.toString()
       };
 
-      if (data.message && (data.message != 'Script error.')) {
-        try {
-          let result = window.br.events.trigger('error', data);
-          if (result) {
-            event.preventDefault();
-          }
-        } catch (error) {
-          //
-        }
-      }
+      triggerErrorEvent(data);
     });
 
     window.addEventListener('unhandledrejection', function(event) {
-      if (event.origin != document.location.origin) {
+      if (event.srcElement.origin != document.location.origin) {
         return;
       }
 
       let data = {
-        message: typeof event.reason == 'string' ? event.reason : null,
-        data: typeof event.reason == 'string' ? null : event.reason,
+        reason: event.reason,
         filename: null,
         lineno: null,
         colno: null,
@@ -2757,13 +2759,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         location: document.location.toString()
       };
 
-      if (data.message && (data.message != 'Script error.')) {
-        try {
-          window.br.events.trigger('error', data);
-        } catch (error) {
-          // we don't care
-        }
-      }
+      triggerErrorEvent(data);
 
       window.br.logWarning(`Unhandled Promise Rejection: ${data.message}`);
       if (data.data) {
@@ -7677,7 +7673,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     function findNode(selector) {
       if (_this.options.selectors.container !== '') {
-        return _this.options.selectors.container + ' ' + selector;
+        return `${_this.options.selectors.container} ${selector}`;
       } else {
         return selector;
       }
@@ -8221,6 +8217,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           $(findNode('.action-clear-selection')).hide();
           $(findNode('.action-delete-selected')).hide();
         }
+        $(findNode('a.br-selection-action')).attr('disabled', count == 0);
+        $(findNode('button.br-selection-action')).prop('disabled', count == 0);
+        $(findNode('a.br-multi-select-action')).attr('disabled', count <= 1);
+        $(findNode('button.br-multi-select-action')).prop('disabled', count <= 1);
       });
 
       return this;
@@ -8351,8 +8351,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     _this.clearSelection = function(disableEvents) {
       _this.selection.clear();
-      $(findNode('.action-select-row')).prop('checked', false);
       $(findNode('tr.row-selected')).removeClass('row-selected');
+      $(findNode('.action-select-row')).prop('checked', false);
       $(findNode('.action-select-all')).prop('checked', false);
       if (!disableEvents) {
         _this.events.trigger('selectionChanged', _this.selection.get().length);

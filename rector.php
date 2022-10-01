@@ -20,6 +20,7 @@ use Rector\CodingStyle\Rector\ClassConst\SplitGroupedConstantsAndPropertiesRecto
 use Rector\CodingStyle\Rector\ClassMethod\FuncGetArgsToVariadicParamRector;
 use Rector\CodingStyle\Rector\ClassMethod\MakeInheritedMethodVisibilitySameAsParentRector;
 use Rector\CodingStyle\Rector\Encapsed\EncapsedStringsToSprintfRector;
+use Rector\CodingStyle\Rector\Switch_\BinarySwitchToIfElseRector;
 use Rector\Config\RectorConfig;
 use Rector\DeadCode\Rector\Array_\RemoveDuplicatedArrayKeyRector;
 use Rector\DeadCode\Rector\Assign\RemoveDoubleAssignRector;
@@ -53,6 +54,7 @@ return static function (RectorConfig $rectorConfig): void {
   $rectorConfig->rule(ShortenElseIfRector::class);
   $rectorConfig->rule(InlineConstructorDefaultToPropertyRector::class);
   $rectorConfig->rule(UnusedForeachValueToArrayKeysRector::class);
+  // $rectorConfig->rule(BinarySwitchToIfElseRector::class);
   $rectorConfig->rule(SingularSwitchToIfRector::class);
   $rectorConfig->rule(ReplaceMultipleBooleanNotRector::class);
   $rectorConfig->rule(SimplifyBoolIdenticalTrueRector::class);

@@ -41,7 +41,7 @@ class BrXSS extends BrObject
         }
       }
     } elseif (br()->html()->isHtml($html)) {
-      $jsonArray = is_array(@json_decode($html, true));
+      $jsonArray = is_array(json_decode($html, true));
       if (!$jsonArray) {
         require_once(dirname(__DIR__) . '/3rdparty/phpQuery/latest/phpQuery.php');
         try {
@@ -67,7 +67,7 @@ class BrXSS extends BrObject
               if ($additionalDomains = br()->config()->get('br/xss/domains')) {
                 $domains = array_merge($domains, $additionalDomains);
               }
-              $regexp = '~^(http[s]?:|)//.*?(' . br($domains)->join('|') . ')(/|$)~ism';
+              $regexp = '~^(https?:|)//.*?(' . br($domains)->join('|') . ')(/|$)~ism';
               if (!preg_match($regexp, pq($el)->attr('src'))) {
                 pq($el)->remove();
               }

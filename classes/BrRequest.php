@@ -97,7 +97,7 @@ class BrRequest extends BrObject
 
       if ($this->contentType != BrConst::CONTENT_TYPE_APPLICATION_OCTET_STREAM) {
         $rawInput = file_get_contents('php://input');
-        if ($json = @json_decode($rawInput, true)) {
+        if ($json = json_decode($rawInput, true)) {
           if (is_array($json)) {
             $this->putVars = $json;
           }
@@ -344,7 +344,7 @@ class BrRequest extends BrObject
       return true;
     }
 
-    if (preg_match('/^local[.]/ism', $this->getDomain())) {
+    if (preg_match('/^local[.]/im', $this->getDomain())) {
       return true;
     }
 

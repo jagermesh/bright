@@ -89,8 +89,8 @@ class BrDataSource extends BrGenericDataSource
     $distinct = br($options, BrConst::DATASOURCE_OPTION_DISTINCT);
 
     $this->lastSelectAmount = null;
-    $this->priorAdjancedRecord = null;
-    $this->nextAdjancedRecord = null;
+    $this->priorAdjacentRecord = null;
+    $this->nextAdjacentRecord = null;
 
     $sortOrder = br($options, BrConst::DATASOURCE_OPTION_ORDER, br($options, BrConst::DATASOURCE_OPTION_ORDER_BY, []));
 
@@ -161,7 +161,7 @@ class BrDataSource extends BrGenericDataSource
           }
 
           if ($rowsSkip) {
-            if ($this->selectAdjancedRecords) {
+            if ($this->selectAdjacentRecords) {
               $cursor = $cursor->skip($rowsSkip - 1);
             } else {
               $cursor = $cursor->skip($rowsSkip);
@@ -169,7 +169,7 @@ class BrDataSource extends BrGenericDataSource
           }
 
           if (strlen($resultsLimit)) {
-            if ($this->selectAdjancedRecords) {
+            if ($this->selectAdjacentRecords) {
               if ($rowsSkip) {
                 $cursor = $cursor->limit($resultsLimit + 2);
               } else {
@@ -200,10 +200,10 @@ class BrDataSource extends BrGenericDataSource
                   unset($row[$excludeFieldName]);
                 }
               }
-              if ($this->selectAdjancedRecords && $rowsSkip && ($idx == 1)) {
-                $this->nextAdjancedRecord = $row;
-              } elseif ($this->selectAdjancedRecords && (count($result) == $resultsLimit)) {
-                $this->priorAdjancedRecord = $row;
+              if ($this->selectAdjacentRecords && $rowsSkip && ($idx == 1)) {
+                $this->nextAdjacentRecord = $row;
+              } elseif ($this->selectAdjacentRecords && (count($result) == $resultsLimit)) {
+                $this->priorAdjacentRecord = $row;
                 $this->lastSelectAmount++;
               } elseif (!$resultsLimit || (count($result) < $resultsLimit)) {
                 $result[] = $row;

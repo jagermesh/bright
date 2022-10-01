@@ -72,7 +72,7 @@ class BrHTML extends BrObject
     $result = preg_replace('|<body[^>]*?>|im', '', $result);
     $result = preg_replace('|</body>|im', '', $result);
     $result = preg_replace('|onload="[^"]+"|im', '', $result);
-    $result = preg_replace('|<p>[\s\r\t\n ]*&nbsp;</p>|i', '', $result);
+    $result = preg_replace('|<p>[\s\r\t\n]*&nbsp;</p>|i', '', $result);
 
     $result = str_replace('%u2019', '&lsquo;', $result);
 

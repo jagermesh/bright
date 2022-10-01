@@ -32,7 +32,7 @@
 
     function findNode(selector) {
       if (_this.options.selectors.container !== '') {
-        return _this.options.selectors.container + ' ' + selector;
+        return `${_this.options.selectors.container} ${selector}`;
       } else {
         return selector;
       }
@@ -576,6 +576,10 @@
           $(findNode('.action-clear-selection')).hide();
           $(findNode('.action-delete-selected')).hide();
         }
+        $(findNode('a.br-selection-action')).attr('disabled', count == 0);
+        $(findNode('button.br-selection-action')).prop('disabled', count == 0);
+        $(findNode('a.br-multi-select-action')).attr('disabled', count <= 1);
+        $(findNode('button.br-multi-select-action')).prop('disabled', count <= 1);
       });
 
       return this;
@@ -706,8 +710,8 @@
 
     _this.clearSelection = function(disableEvents) {
       _this.selection.clear();
-      $(findNode('.action-select-row')).prop('checked', false);
       $(findNode('tr.row-selected')).removeClass('row-selected');
+      $(findNode('.action-select-row')).prop('checked', false);
       $(findNode('.action-select-all')).prop('checked', false);
       if (!disableEvents) {
         _this.events.trigger('selectionChanged', _this.selection.get().length);

@@ -66,8 +66,8 @@ class BrIMAPBody extends BrObject
         }
         $messageBody = trim($messageBody);
         $messageBody = preg_replace('~<head[^>]*?>.*?</head>~ism', '', $messageBody);
-        $messageBody = preg_replace('~<meta[^>]*?>~ism', '', $messageBody);
-        $messageBody = preg_replace('~<base[^>]*?>~ism', '', $messageBody);
+        $messageBody = preg_replace('~<meta[^>]*?>~im', '', $messageBody);
+        $messageBody = preg_replace('~<base[^>]*?>~im', '', $messageBody);
         $messageBody = preg_replace('~<style[^>]*?>.*?</style>~ism', '', $messageBody);
 
         if ($this->isHTML && $messageBody) {

@@ -16,9 +16,9 @@ class BrGenericDataSource extends BrObject
   protected $defaultOrder = null;
   protected $canTraverseBack = null;
   protected $checkTraversing = false;
-  protected $selectAdjancedRecords = false;
-  protected $priorAdjancedRecord = null;
-  protected $nextAdjancedRecord = null;
+  protected $selectAdjacentRecords = false;
+  protected $priorAdjacentRecord = null;
+  protected $nextAdjacentRecord = null;
   protected $rowidFieldName = null;
   protected $rerunIterations = 20;
   protected $rerunTimeLimit = 60;
@@ -34,7 +34,7 @@ class BrGenericDataSource extends BrObject
     $this->skip = br($options, BrConst::DATASOURCE_OPTION_SKIP);
     $this->limit = br($options, BrConst::DATASOURCE_OPTION_LIMIT);
     $this->checkTraversing = br($options, BrConst::DATASOURCE_OPTION_CHECK_TRAVERSING);
-    $this->selectAdjancedRecords = br($options, BrConst::DATASOURCE_OPTION_SELCT_ADJANCED);
+    $this->selectAdjacentRecords = br($options, BrConst::DATASOURCE_OPTION_SELCT_ADJACENT);
     $this->rowidFieldName = br($options, BrConst::DATASOURCE_OPTION_ROWID_FIELD_NAME);
   }
 
@@ -201,8 +201,8 @@ class BrGenericDataSource extends BrObject
     $transientData = [];
 
     $this->lastSelectAmount = null;
-    $this->priorAdjancedRecord = null;
-    $this->nextAdjancedRecord = null;
+    $this->priorAdjacentRecord = null;
+    $this->nextAdjacentRecord = null;
 
     if (!$order && $this->defaultOrder) {
       if (is_array($this->defaultOrder)) {
@@ -386,14 +386,14 @@ class BrGenericDataSource extends BrObject
     return $this->skip > 0;
   }
 
-  public function priorAdjancedRecord()
+  public function priorAdjacentRecord()
   {
-    return $this->priorAdjancedRecord;
+    return $this->priorAdjacentRecord;
   }
 
-  public function nextAdjancedRecord()
+  public function nextAdjacentRecord()
   {
-    return $this->nextAdjancedRecord;
+    return $this->nextAdjacentRecord;
   }
 
   // validation

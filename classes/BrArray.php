@@ -235,7 +235,7 @@ class BrArray extends BrGenericDataType
    */
   public function toJSON()
   {
-    $result = @json_encode($this->value);
+    $result = json_encode($this->value);
     if ($result === false) {
       switch (json_last_error()) {
         case JSON_ERROR_DEPTH:

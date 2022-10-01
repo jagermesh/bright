@@ -76,7 +76,7 @@ abstract class BrGenericDataType extends BrObject
 
   /**
    * @param $mixed
-   * @return false|string
+   * @return mixed|string
    */
   protected function utf8ize($mixed)
   {

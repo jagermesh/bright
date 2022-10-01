@@ -126,8 +126,6 @@ class BrIMAP extends BrObject
 
   public static function decode($body, $encoding)
   {
-    $myqprinta = [];
-    $myqprintb = [];
     for ($i = 0; $i < 256; $i++) {
       $c1 = dechex($i);
       if (strlen($c1) == 1) {

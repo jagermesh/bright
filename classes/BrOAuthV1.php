@@ -134,7 +134,7 @@ class BrOAuthV1 extends BrOAuth
 
       $rawResponse = curl_exec($curl);
       $responseCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-      $response = @json_decode($rawResponse, true);
+      $response = json_decode($rawResponse, true);
       if (!$response) {
         $response = $rawResponse;
       }

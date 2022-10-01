@@ -21,9 +21,6 @@ class BrDateTime extends BrObject
   public int $second;
   public string $weekday_name;
 
-  /**
-   * @param $date
-   */
   public function __construct(?string $date = null)
   {
     parent::__construct();
@@ -31,9 +28,6 @@ class BrDateTime extends BrObject
     $this->set($date);
   }
 
-  /**
-   * @param $date
-   */
   public function set(?string $date = null)
   {
     if (!$date) {

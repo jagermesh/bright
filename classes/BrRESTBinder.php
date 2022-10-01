@@ -112,7 +112,6 @@ class BrRESTBinder extends BrObject
 
   private function checkPermissions(array $options, array $methods)
   {
-    $mustBeLoggedIn = null;
     if (!array_key_exists(BrConst::REST_SETTING_SECURITY, $options)) {
       $mustBeLoggedIn = true;
     } else {

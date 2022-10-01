@@ -192,7 +192,7 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider
     } else {
       if ($cookie = br($_COOKIE, $this->getAuthTag())) {
         if ($cookie = @base64_decode($cookie)) {
-          if ($cookie = @json_decode($cookie, true)) {
+          if ($cookie = json_decode($cookie, true)) {
             if (br()->db() && br($cookie, self::COOKIE_ATTR_LOGIN) && br($cookie, self::COOKIE_ATTR_TOKEN)) {
               if (br($cookie, self::COOKIE_ATTR_LOGIN) != '%') {
                 if ($users = $this->findUserByLogin($cookie[self::COOKIE_ATTR_LOGIN])) {

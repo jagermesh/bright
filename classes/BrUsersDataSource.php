@@ -9,6 +9,14 @@ class BrUsersDataSource extends BrDataSource
   public const ERROR_PLEASE_ENTER = 'Please enter %s';
   public const ERROR_YOU_ARE_NOT_ALLOWED_TO_SEE_USERS = 'You are not allowed to see users';
 
+  /**
+   * @throws BrAppException
+   * @throws BrDBException
+   * @throws BrDBUniqueException
+   * @throws BrGenericRendererException
+   * @throws BrUsersDataSourceException
+   * @throws \Exception
+   */
   public function __construct()
   {
     $usersTable = 'none';
@@ -113,7 +121,7 @@ class BrUsersDataSource extends BrDataSource
       return true;
     });
 
-    $this->on('getCurrentUser', function ($dataSource) {
+    $this->on('getCurrentUser', function () {
       if ($login = br()->auth()->getLogin()) {
         return $this->selectOne($login['id']);
       }
@@ -344,6 +352,12 @@ class BrUsersDataSource extends BrDataSource
     return true;
   }
 
+  /**
+   * @throws BrGenericDataSourceException
+   * @throws BrDBException
+   * @throws BrAppException
+   * @throws \Exception
+   */
   public function loginUser($row, $params = [])
   {
     if ($this->invokeMethodExists(BrConst::DATASOURCE_METHOD_CHECK_LOGIN_PRIVILEGE)) {

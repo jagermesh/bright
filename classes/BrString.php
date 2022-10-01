@@ -42,8 +42,7 @@ class BrString extends BrGenericDataType
   }
 
   /**
-   * @param mixed
-   * @param boolean
+   * @param $needle
    */
   public function has($needle, bool $ignoreCase = false): bool
   {
@@ -201,7 +200,7 @@ class BrString extends BrGenericDataType
 
   public function toBytes(): int
   {
-    if (preg_match('/(\d+)(g|m|k|)/ism', trim($this->value), $matches)) {
+    if (preg_match('/(\d+)(g|m|k|)/im', trim($this->value), $matches)) {
       $val = $matches[1];
       switch (strtolower($matches[2])) {
         case 'g':
@@ -223,12 +222,12 @@ class BrString extends BrGenericDataType
 
   public function toLowerCase(): string
   {
-    return (string)mb_strtolower($this->value);
+    return mb_strtolower($this->value);
   }
 
   public function toUpperCase(): string
   {
-    return (string)mb_strtoupper($this->value);
+    return mb_strtoupper($this->value);
   }
 
   public function trimByLength(int $length, bool $addPoints = false, bool $aligned = false): string
@@ -236,7 +235,7 @@ class BrString extends BrGenericDataType
     $result = $this->substring(0, $length);
 
     if ($aligned) {
-      $result = preg_replace('/[\s]*[\w]*?$/', '', $result);
+      $result = preg_replace('/\s*\w*?$/', '', $result);
     }
 
     if ($addPoints && ($this->length() > $length)) {
@@ -262,7 +261,6 @@ class BrString extends BrGenericDataType
    */
   public function subst(...$args): string
   {
-    $error = null;
     $result = br()->placeholderEx($this->value, $args, $error);
     if ($result === false) {
       return 'ERROR:' . $error;
@@ -426,11 +424,11 @@ class BrString extends BrGenericDataType
 
     if (strlen(trim($html)) > 0) {
       // UTF version of &nbsp;
-      $html = preg_replace('/\xC2\xA0/ism', '&nbsp;', $html);
+      $html = preg_replace('/\xC2\xA0/im', '&nbsp;', $html);
       // Replace single &nbsp; with space
-      $html = preg_replace('/([^; ])&nbsp;([^& ])/ism', '$1 $2', $html);
+      $html = preg_replace('/([^; ])&nbsp;([^& ])/im', '$1 $2', $html);
       // Replace double &nbsp; with &nbsp;space
-      $html = preg_replace('/&nbsp;&nbsp;/ism', ' ', $html);
+      $html = preg_replace('/&nbsp;&nbsp;/im', ' ', $html);
     }
 
     return (string)$html;

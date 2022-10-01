@@ -147,9 +147,9 @@ const configs = {
   },
   shell: {
     chmod: 'chmod 644 dist/js/*.js && chmod 644 dist/css/*.css',
-    ecs: 'vendor/bin/ecs check --fix',
-    rector: 'vendor/bin/rector process',
-    test: 'php vendor/codeception/codeception/codecept run'
+    test: 'php vendor/codeception/codeception/codecept run',
+    rector: 'php vendor/bin/rector process',
+    ecs: 'php vendor/bin/ecs check --fix',
   }
 };
 
@@ -231,25 +231,23 @@ gulp.task('concat:dist', function() {
 gulp.task('shell:chmod', function() {
   return gulp.src('gulpfile.js', {
     read: false
-  }).pipe(shell(configs.shell.chmod));
-});
-
-gulp.task('shell:ecs', function() {
-  return gulp.src('gulpfile.js', {
-    read: false
-  }).pipe(shell(configs.shell.ecs));
-});
-
-gulp.task('shell:rector', function() {
-  return gulp.src('gulpfile.js', {
-    read: false
-  }).pipe(shell(configs.shell.rector));
+  })
+    .pipe(shell(configs.shell.chmod));
 });
 
 gulp.task('shell:test', function() {
   return gulp.src('gulpfile.js', {
     read: false
-  }).pipe(shell(configs.shell.test));
+  })
+    .pipe(shell(configs.shell.test));
+});
+
+gulp.task('shell:codecheck', function() {
+  return gulp.src('gulpfile.js', {
+    read: false
+  })
+    .pipe(shell(configs.shell.rector))
+    .pipe(shell(configs.shell.ecs))
 });
 
 gulp.task('build',
@@ -259,8 +257,7 @@ gulp.task('build',
     'concat:core',
     gulp.parallel('concat:dist', 'concat:css'),
     'uglify:dist',
-    'shell:rector',
-    'shell:ecs',
+    'shell:codecheck',
     'shell:chmod'
   )
 );

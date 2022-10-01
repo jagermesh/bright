@@ -34,7 +34,8 @@ div.justified {
   min-height: 30px;
   line-height: 1em;
 }
-td.optimal-width, th.optimal-width {
+td.optimal-width,
+th.optimal-width {
   width:10px;
   white-space:nowrap;
 }
@@ -43,6 +44,28 @@ span.required {
   margin-right: 5px;
   font-weight: bold;
 }
+a[disabled] {
+  pointer-events: none;
+}
+.btn:focus {
+  outline: 0 !important;
+}
+.btn-two-lines {
+  padding-top: 1px;
+  padding-bottom: 1px;
+  padding-left: 6px;
+  padding-right: 6px;
+  line-height: 1em;
+  font-size: 13px;
+}
+.btn-two-lines div {
+  float: right;
+  padding-left: 6px;
+  text-align: left;
+}
+
+/* BR */
+
 .br-template {
   display: none;
 }

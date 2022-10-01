@@ -15,7 +15,7 @@ use GuzzleHttp\Exception\GuzzleException;
 
 class BrSlackLogAdapter extends BrGenericLogAdapter
 {
-  private ?BrFileCacheProvider $cache;
+  private ?BrFileCacheProvider $cache = null;
   private bool $cacheInitialized = false;
   private string $webHookUrl;
 

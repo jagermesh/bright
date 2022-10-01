@@ -98,7 +98,7 @@ class BrConst
   public const DATASOURCE_OPTION_LIMIT = 'limit';
   public const DATASOURCE_OPTION_SKIP = 'skip';
   public const DATASOURCE_OPTION_CHECK_TRAVERSING = 'checkTraversing';
-  public const DATASOURCE_OPTION_SELCT_ADJANCED = 'selectAdjancedRecords';
+  public const DATASOURCE_OPTION_SELCT_ADJACENT = 'selectAdjacentRecords';
   public const DATASOURCE_OPTION_ROWID_FIELD_NAME = 'rowidFieldName';
   public const DATASOURCE_OPTION_NO_CALC_FIELDS = 'noCalcFields';
   public const DATASOURCE_OPTION_RESULT = 'result';

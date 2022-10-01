@@ -796,6 +796,18 @@
     }
   };
 
+  function triggerErrorEvent(data) {
+    if (data.reason && (data.reason != 'Script error.')) {
+      try {
+        let result = window.br.events.trigger('error', data);
+        if (result) {
+          event.preventDefault();
+        }
+      } catch (error) {
+        // we don't care
+      }
+    }
+  }
   if (window.addEventListener) {
     window.addEventListener('error', function(event) {
       if (event.origin != document.location.origin) {
@@ -803,7 +815,7 @@
       }
 
       let data = {
-        message: event.message,
+        reason: event.message,
         data: null,
         filename: event.filename,
         lineno: event.lineno,
@@ -812,26 +824,16 @@
         location: document.location.toString()
       };
 
-      if (data.message && (data.message != 'Script error.')) {
-        try {
-          let result = window.br.events.trigger('error', data);
-          if (result) {
-            event.preventDefault();
-          }
-        } catch (error) {
-          //
-        }
-      }
+      triggerErrorEvent(data);
     });
 
     window.addEventListener('unhandledrejection', function(event) {
-      if (event.origin != document.location.origin) {
+      if (event.srcElement.origin != document.location.origin) {
         return;
       }
 
       let data = {
-        message: typeof event.reason == 'string' ? event.reason : null,
-        data: typeof event.reason == 'string' ? null : event.reason,
+        reason: event.reason,
         filename: null,
         lineno: null,
         colno: null,
@@ -839,13 +841,7 @@
         location: document.location.toString()
       };
 
-      if (data.message && (data.message != 'Script error.')) {
-        try {
-          window.br.events.trigger('error', data);
-        } catch (error) {
-          // we don't care
-        }
-      }
+      triggerErrorEvent(data);
 
       window.br.logWarning(`Unhandled Promise Rejection: ${data.message}`);
       if (data.data) {

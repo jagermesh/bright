@@ -33,11 +33,11 @@ return static function (ECSConfig $ecsConfig): void {
     'syntax' => 'short',
   ]);
 
+  $ecsConfig->rule(SingleQuoteFixer::class);
+
   $ecsConfig->ruleWithConfiguration(MethodArgumentSpaceFixer::class, [
     'on_multiline' => 'ignore',
   ]);
-
-  $ecsConfig->rule(SingleQuoteFixer::class);
 
   $ecsConfig->indentation(Spacing::TWO_SPACES);
 

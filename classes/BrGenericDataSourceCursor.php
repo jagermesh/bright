@@ -10,19 +10,18 @@
 
 namespace Bright;
 
-class BrGenericDataSourceCursor implements Iterator
+class BrGenericDataSourceCursor implements \Iterator
 {
-  private $dataSource;
-  private $data = [];
-  private $position;
+  private BrGenericDataSource $dataSource;
+  private array $data = [];
+  private int $position = 0;
 
-  public function __construct(&$dataSource, $data)
+  public function __construct(BrGenericDataSource $dataSource, array $data)
   {
     $this->dataSource = $dataSource;
     foreach ($data as $row) {
       $this->data[] = new BrGenericDataSourceRow($this->dataSource, $row);
     }
-    $this->position = 0;
   }
 
   public function current()

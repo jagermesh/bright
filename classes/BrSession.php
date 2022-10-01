@@ -64,8 +64,8 @@ class BrSession extends BrObject
   }
 
   /**
-   * @param $default
-   * @return array|bool|BrArray|BrCore|BrString|float|int|string|null
+   * @param null $default
+   * @return mixed
    */
   public function get(?string $name = null, $default = null)
   {
@@ -102,6 +102,9 @@ class BrSession extends BrObject
     return $value;
   }
 
+  /**
+   * @param $name
+   */
   public function clear($name = null): bool
   {
     if (isset($_SESSION)) {

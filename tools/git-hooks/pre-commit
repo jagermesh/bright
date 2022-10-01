@@ -80,11 +80,6 @@ class GitPreCommitHook
     $this->lint('.php', 'php -l', 'PHP', 'https://php.net/');
   }
 
-  private function findTool(string $toolName): string
-  {
-    return sprintf('%s/vendor/%s', file_exists(dirname(__DIR__, 2)), $toolName);
-  }
-
   private function phpCS()
   {
     $toolName = $this->isWindows ? 'squizlabs/php_codesniffer/bin/phpcs.bat' : 'bin/ecs check';
@@ -101,17 +96,21 @@ class GitPreCommitHook
 
   private function phpECS()
   {
-    $cmdPath = $this->findTool('bin/ecs');
-    $this->lint('.php', $cmdPath . ' check --clear-cache', 'ecs', 'https://https://github.com/symplify/easy-coding-standard', function() use ($cmdPath) {
-      $this->lint('.php', $cmdPath . ' check --fix --clear-cache', 'ecs', 'https://https://github.com/symplify/easy-coding-standard');
+    $cmdPath = sprintf('%s/vendor/bin/ecs', dirname(__DIR__, 2));
+    $checkCmd = sprintf('%s check --clear-cache --config=%s/ecs.php', $cmdPath, dirname(__DIR__, 2));
+    $fixCmd = sprintf('%s check --clear-cache --fix --config=%s/ecs.php', $cmdPath, dirname(__DIR__, 2));
+    $this->lint('.php', $checkCmd, 'ecs', 'https://https://github.com/symplify/easy-coding-standard', function() use ($fixCmd) {
+      $this->lint('.php', $fixCmd, 'ecs', 'https://https://github.com/symplify/easy-coding-standard');
     });
   }
 
   private function phpRector()
   {
-    $cmdPath = $this->findTool('bin/rector');
-    $this->lint('.php', $cmdPath . ' process --clear-cache --dry-run', 'rector', 'https://github.com/rectorphp/rector', function() use ($cmdPath) {
-      $this->lint('.php', $cmdPath . ' process --clear-cache', 'rector', 'https://github.com/rectorphp/rector');
+    $cmdPath = sprintf('%s/vendor/bin/rector', dirname(__DIR__, 2));
+    $checkCmd = sprintf('%s process --clear-cache --dry-run --config=%s/rector.php', $cmdPath, dirname(__DIR__, 2));
+    $fixCmd = sprintf('%s process --clear-cache --config=%s/rector.php', $cmdPath, dirname(__DIR__, 2));
+    $this->lint('.php', $checkCmd, 'rector', 'https://github.com/rectorphp/rector', function() use ($fixCmd) {
+      $this->lint('.php', $fixCmd, 'rector', 'https://github.com/rectorphp/rector');
     });
   }
 
