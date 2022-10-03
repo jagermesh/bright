@@ -22,7 +22,7 @@
     "phpseclib/phpseclib": "^2",
     "textalk/websocket": "^1",
     "mustache/mustache": "^2",
-    "michelf/php-markdown": "^1",
+    "michelf/php-markdown": "^1 || ^2",
     "longman/telegram-bot": "^0.75",
     "neitanod/forceutf8": "^2",
     "symfony/mailer": "^5"
