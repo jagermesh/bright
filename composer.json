@@ -23,7 +23,7 @@
     "textalk/websocket": "^1",
     "mustache/mustache": "^2",
     "michelf/php-markdown": "^1",
-    "longman/telegram-bot": "^0.75",
+    "longman/telegram-bot": "^0.75 || ^0.80",
     "neitanod/forceutf8": "^2",
     "symfony/mailer": "^5"
   },
