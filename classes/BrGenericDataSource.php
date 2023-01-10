@@ -10,114 +10,87 @@
 
 namespace Bright;
 
-class BrGenericDataSource extends BrObject
+abstract class BrGenericDataSource extends BrObject
 {
-  protected $db = null;
-  protected $defaultOrder = null;
-  protected $canTraverseBack = null;
-  protected $checkTraversing = false;
-  protected $selectAdjacentRecords = false;
-  protected $priorAdjacentRecord = null;
-  protected $nextAdjacentRecord = null;
-  protected $rowidFieldName = null;
-  protected $rerunIterations = 20;
-  protected $rerunTimeLimit = 60;
-  protected $lastSelectAmount = null;
+  protected array $defaultOrder = [];
+  protected int $lastSelectedAmount = 0;
 
-  private $transactionalDML = true;
+  abstract public function select(array $filter = [], array $fields = [], array $order = [], array $options = []): array;
+  abstract public function selectCount(array $filter = [], array $fields = [], array $order = [], array $options = []): int;
+  abstract public function exportToExcel(array $filter = [], array $fields = [], array $order = [], array $options = []): string;
+  /**
+   * @param int|array $filter
+   */
+  abstract public function selectOne($filter, array $fields = [], array $order = [], array $options = []): array;
 
-  public function __construct($options = [])
+  abstract public function insert(array $row = [], array &$transientData = [], array $options = []): array;
+  abstract public function update(int $rowid, array $row, array &$transientData = [], array $options = []): array;
+  abstract public function remove(int $rowid, array &$transientData = [], array $options = []): array;
+
+  /**
+   * @return mixed
+   */
+  abstract public function invoke(string $method, array $params = [], array &$transientData = [], array $options = []);
+
+  public function __construct(array $options = [])
   {
     parent::__construct();
 
-    $this->defaultOrder = br($options, BrConst::DATASOURCE_OPTION_DEFAULT_ORDER);
-    $this->skip = br($options, BrConst::DATASOURCE_OPTION_SKIP);
-    $this->limit = br($options, BrConst::DATASOURCE_OPTION_LIMIT);
-    $this->checkTraversing = br($options, BrConst::DATASOURCE_OPTION_CHECK_TRAVERSING);
-    $this->selectAdjacentRecords = br($options, BrConst::DATASOURCE_OPTION_SELCT_ADJACENT);
-    $this->rowidFieldName = br($options, BrConst::DATASOURCE_OPTION_ROWID_FIELD_NAME);
+    if ($defaultOrder = br($options, BrConst::DATASOURCE_OPTION_DEFAULT_ORDER)) {
+      if (is_array($defaultOrder)) {
+        $this->defaultOrder = $defaultOrder;
+      } else {
+        $this->defaultOrder = [
+          $defaultOrder => BrConst::SORT_ASC,
+        ];
+      }
+    }
   }
 
-  public function getDb()
-  {
-    return $this->db ? $this->db : br()->db();
-  }
-
-  public function setDb($db)
-  {
-    $this->db = $db;
-
-    return $this->db;
-  }
-
-  public function setTransactionalDML($value)
-  {
-    $this->transactionalDML = $value;
-  }
-
-  public function isTransactionalDML()
-  {
-    return $this->transactionalDML;
-  }
-
-  public function rowidFieldName()
-  {
-    return $this->rowidFieldName;
-  }
-
-  public function setDefaultOrder($value = [])
+  public function setDefaultOrder(array $value = [])
   {
     $this->defaultOrder = $value;
   }
 
-  public function existsOne($filter = [])
+  /**
+   * @param int|array $filter
+   */
+  public function existsOne($filter): bool
   {
-    if ($this->selectOne($filter, [], [], [
+    return (bool)$this->selectOne($filter, [], [], [
       BrConst::DATASOURCE_OPTION_NO_CALC_FIELDS => true,
-    ])) {
-      return true;
-    }
-
-    return false;
+    ]);
   }
 
-  public function existsOneCached($filter = [])
+  /**
+   * @param int|array $filter
+   */
+  public function existsOneCached($filter): bool
   {
-    if ($this->selectOneCached($filter, [], [], [
+    return (bool)$this->selectOneCached($filter, [], [], [
       BrConst::DATASOURCE_OPTION_NO_CALC_FIELDS => true,
-    ])) {
-      return true;
-    }
-
-    return false;
+    ]);
   }
 
-  public function selectOneCached($filter = [], $fields = [], $order = [], $options = [])
+  /**
+   * @param int|array $filter
+   */
+  public function selectOneCached($filter, array $fields = [], array $order = [], array $options = []): array
   {
-    if (!is_array($filter)) {
-      $filter = [
-        $this->getDb()->rowidField() => $this->getDb()->rowid($filter),
-      ];
-    }
-
-    $options[BrConst::DATASOURCE_OPTION_LIMIT] = 1;
-
     $cacheTag = 'DataSource:selectOneCached:' . get_class($this) .
       hash('sha256', serialize($filter) . serialize($fields) . serialize($order) . serialize($options));
 
     if (br()->cache()->exists($cacheTag)) {
       $result = br()->cache()->get($cacheTag);
     } else {
-      if ($result = $this->select($filter, $fields, $order, $options)) {
-        $result = $result[0];
-      }
+      $result = $this->selectOne($filter, $fields, $order, $options);
       br()->cache()->set($cacheTag, $result);
     }
 
-    return $result;
+    return (array)$result;
   }
 
-  public function selectCached($filter = [], $fields = [], $order = [], $options = [])
+  public function selectCached(array $filter = [], array $fields = [], array $order = [], array $options = []): array
   {
     $cacheTag = 'DataSource:selectCached:' . get_class($this) .
       hash('sha256', serialize($filter) . serialize($fields) . serialize($order) . serialize($options));
@@ -129,404 +102,191 @@ class BrGenericDataSource extends BrObject
       br()->cache()->set($cacheTag, $result);
     }
 
-    return $result;
+    return (array)$result;
   }
 
-  public function selectCountCached($filter = [], $fields = [], $order = [], $options = [])
+  public function selectCountCached(array $filter = [], array $fields = [], array $order = [], array $options = []): int
   {
-    $options[BrConst::DATASOURCE_OPTION_RESULT] = BrConst::DATASOURCE_RESULT_TYPE_COUNT;
-
     $cacheTag = 'DataSource:selectCountCached:' . get_class($this) .
       hash('sha256', serialize($filter) . serialize($fields) . serialize($order) . serialize($options));
 
     if (br()->cache()->exists($cacheTag)) {
       $result = br()->cache()->get($cacheTag);
     } else {
-      $result = $this->select($filter, $fields, $order, $options);
+      $result = $this->selectCount($filter, $fields, $order, $options);
       br()->cache()->set($cacheTag, $result);
     }
 
-    return $result;
+    return (int)$result;
   }
 
-  public function selectOne($filter = [], $fields = [], $order = [], $options = [])
+  public function getCursor(array $filter = [], array $fields = [], array $order = [], array $options = []): BrGenericDataSourceCursor
   {
-    if (!is_array($filter)) {
-      $filter = [
-        $this->getDb()->rowidField() => $this->getDb()->rowid($filter),
-      ];
-    }
-
-    $options[BrConst::DATASOURCE_OPTION_LIMIT] = 1;
-
-    if ($result = $this->select($filter, $fields, $order, $options)) {
-      $result = $result[0];
-    }
-
-    return $result;
-  }
-
-  public function selectCount($filter = [], $fields = [], $order = [], $options = [])
-  {
-    $options[BrConst::DATASOURCE_OPTION_RESULT] = BrConst::DATASOURCE_RESULT_TYPE_COUNT;
-
-    return $this->select($filter, $fields, $order, $options);
-  }
-
-  public function select($filter = [], $fields = [], $order = [], $options = [])
-  {
-    return $this->internalSelect($filter, $fields, $order, $options);
-  }
-
-  public function find($filter = [], $fields = [], $order = [], $options = [])
-  {
-    $data = $this->internalSelect($filter, $fields, $order, $options);
-
-    return new BrGenericDataSourceCursor($this, $data);
-  }
-
-  protected function internalSelect($filter = [], $fields = [], $order = [], $options = [])
-  {
-    $this->limit = br($options, BrConst::DATASOURCE_OPTION_LIMIT);
-    $this->skip = br($options, BrConst::DATASOURCE_OPTION_SKIP, 0);
-
-    if (!$this->skip || ($this->skip < 0)) {
-      $this->skip = 0;
-    }
-
-    $options[BrConst::DATASOURCE_OPTION_LIMIT] = $this->limit;
-    $options[BrConst::DATASOURCE_OPTION_SKIP] = $this->skip;
-    $options[BrConst::DATASOURCE_OPTION_FIELDS] = $fields ? $fields : [];
-
-    $transientData = [];
-
-    $this->lastSelectAmount = null;
-    $this->priorAdjacentRecord = null;
-    $this->nextAdjacentRecord = null;
-
-    if (!$order && $this->defaultOrder) {
-      if (is_array($this->defaultOrder)) {
-        $order = $this->defaultOrder;
-      } else {
-        $order[$this->defaultOrder] = BrConst::SORT_ASC;
-      }
-    }
-
-    $this->validateSelect($filter);
-
-    $result = $this->callEvent(BrConst::DATASOURCE_EVENT_SELECT, $filter, $transientData, $options);
-    if (is_null($result)) {
-      $result = $this->onSelect($filter, $transientData, $options);
-    }
-    return $result;
-  }
-
-  public function update($rowid, $row, &$transientData = [])
-  {
-    $row[BrConst::DATASOURCE_SYSTEM_FIELD_ROWID] = $rowid;
-
-    $this->validateUpdate($row);
-
-    $result = $this->callEvent(BrConst::DATASOURCE_EVENT_UPDATE, $row, $transientData);
-    if (is_null($result)) {
-      $result = $this->onUpdate($row, $transientData);
-    }
-
-    return $result;
-  }
-
-  public function insert($row = [], &$transientData = [])
-  {
-    $this->validateInsert($row);
-
-    $result = $this->callEvent(BrConst::DATASOURCE_EVENT_INSERT, $row, $transientData);
-    if (is_null($result)) {
-      $result = $this->onInsert($row, $transientData);
-    }
-
-    return $result;
-  }
-
-  public function remove($rowid, &$transientData = [])
-  {
-    $row = [
-      BrConst::DATASOURCE_SYSTEM_FIELD_ROWID => $rowid,
-    ];
-
-    $this->validateRemove($row);
-
-    $result = $this->callEvent(BrConst::DATASOURCE_EVENT_DELETE, $row, $transientData);
-    if (is_null($result)) {
-      $result = $this->onDelete($row, $transientData);
-    }
-
-    return $result;
-  }
-
-  public function invokeMethodExists($method)
-  {
-    return isset($this->events[$method]);
-  }
-
-  /**
-   * @throws BrGenericDataSourceException
-   * @throws BrDBException
-   */
-  public function invoke($method, $params, &$transientData = [], $optionsParam = [], $iteration = 0, $rerunError = null)
-  {
-    if ($iteration > $this->rerunIterations) {
-      throw new BrDBException($rerunError);
-    }
-
-    $startMarker = time();
-
-    $method = trim($method);
-
-    switch ($method) {
-      case BrConst::DATASOURCE_METHOD_SELECT:
-      case BrConst::DATASOURCE_METHOD_SELECT_ONE:
-      case BrConst::DATASOURCE_METHOD_INSERT:
-      case BrConst::DATASOURCE_METHOD_UPDATE:
-      case BrConst::DATASOURCE_METHOD_DELETE:
-      case BrConst::DATASOURCE_METHOD_PREPARE_CALC_FIELDS:
-      case BrConst::DATASOURCE_METHOD_CALC_FIELDS:
-      case BrConst::DATASOURCE_METHOD_PROTECT_FIELDS:
-        throw new BrGenericDataSourceException(sprintf(BrConst::ERROR_MESSAGE_METHOD_NOT_SUPPORTED, $method));
-      default:
-        $methodName = 'onInvoke' . ucfirst($method);
-        if (!method_exists($this, $methodName) && !$this->invokeMethodExists($method)) {
-          throw new BrGenericDataSourceException(sprintf(BrConst::ERROR_MESSAGE_METHOD_NOT_SUPPORTED, $method));
-        }
-
-        $options = $optionsParam;
-        $options[BrConst::DATASOURCE_OPTION_OPERATION] = $method;
-        $options[BrConst::DATASOURCE_OPTION_DATASETS] = br(br($options, BrConst::DATASOURCE_OPTION_DATASETS))->split();
-        $options[BrConst::DATASOURCE_OPTION_CLIENTUID] = br($options, BrConst::DATASOURCE_OPTION_CLIENTUID);
-
-        try {
-          try {
-            if ($this->getDb() && $this->isTransactionalDML()) {
-              $this->getDb()->startTransaction();
-            }
-
-            $methodName = 'onBeforeInvoke' . ucfirst($method);
-            if (method_exists($this, $methodName)) {
-              $this->$methodName($params, $transientData, $options);
-            }
-            $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_BEFORE, $method), $params, $transientData, $options);
-
-            $methodName = 'onInvoke' . ucfirst($method);
-            if (method_exists($this, $methodName)) {
-              $data = $this->$methodName($params, $transientData, $options);
-            } else {
-              $data = $this->callEvent($method, $params, $transientData, $options);
-            }
-            $result = true;
-
-            $methodName = 'onAfterInvoke' . ucfirst($method);
-            if (method_exists($this, $methodName)) {
-              $this->$methodName($result, $data, $params, $transientData, $options);
-            }
-            $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, $method), $result, $data, $params, $transientData, $options);
-
-            if ($this->getDb() && $this->isTransactionalDML()) {
-              $this->getDb()->commitTransaction();
-              $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, BrConst::DATASOURCE_EVENT_COMMIT), $params, $transientData, $data, $options);
-              $this->onAfterCommit($params, $transientData, $data, $options);
-            }
-            return $data;
-          } catch (BrDBRecoverableException $e) {
-            br()->log('Repeating invoke of ' . $method . '... (' . $iteration . ') because of ' . $e->getMessage());
-            if (time() - $startMarker > $this->rerunTimeLimit) {
-              br()->log('Too much time passed since the beginning of the operation: ' . (time() - $startMarker) . 's');
-              throw $e;
-            }
-            if ($this->isTransactionalDML()) {
-              $this->getDb()->rollbackTransaction();
-            }
-            usleep(250000);
-            return $this->invoke($method, $params, $transientData, $options);
-          }
-        } catch (\Exception $e) {
-          try {
-            if ($this->getDb() && $this->isTransactionalDML()) {
-              $this->getDb()->rollbackTransaction();
-            }
-          } catch (\Exception $e2) {
-            // skip rollback error
-          }
-          $operation = $method;
-          $error = $e->getMessage();
-          $result = $this->callEvent(BrConst::DATASOURCE_EVENT_ERROR, $error, $operation, $e);
-          if (is_null($result)) {
-            $result = $this->onError($error, $operation, $e, null);
-          }
-          if (is_null($result)) {
-            $result = false;
-            $data = null;
-            $methodName = 'onAfterInvoke' . ucfirst($method);
-            if (method_exists($this, $methodName)) {
-              $this->$methodName($result, $data, $params, $transientData, $options);
-            }
-            $this->callEvent(sprintf(BrConst::DATASOURCE_EVENT_TYPE_AFTER, $method), $result, $data, $params, $transientData, $options);
-            throw $e;
-          }
-          throw $result;
-        }
-    }
-  }
-
-  public function canTraverseBack()
-  {
-    return $this->lastSelectAmount > $this->limit;
-  }
-
-  public function canTraverseForward()
-  {
-    return $this->skip > 0;
-  }
-
-  public function priorAdjacentRecord()
-  {
-    return $this->priorAdjacentRecord;
-  }
-
-  public function nextAdjacentRecord()
-  {
-    return $this->nextAdjacentRecord;
+    return new BrGenericDataSourceCursor($this, $this->select($filter, $fields, $order, $options));
   }
 
   // validation
+  public function canSelect(?array $filter = []): bool
+  {
+    return false;
+  }
+
   public function canInsert(?array $row = []): bool
   {
-    return true;
+    return false;
   }
 
   public function canUpdate(array $row, ?array $new = []): bool
   {
-    return true;
+    return false;
   }
 
   public function canRemove(array $row): bool
   {
-    return true;
+    return false;
   }
 
-  public function canSelect(?array $filter = []): bool
-  {
-    return true;
-  }
-
-  protected function validateInsert($row = [])
-  {
-    if (!$this->canInsert($row)) {
-      throw new BrAppException(BrConst::ERROR_MESSAGE_ACCESS_DENIED);
-    }
-  }
-
-  protected function validateUpdate($row, $new = [])
-  {
-    if (!$this->canUpdate($row, $new)) {
-      throw new BrAppException(BrConst::ERROR_MESSAGE_ACCESS_DENIED);
-    }
-  }
-
-  protected function validateRemove($row)
-  {
-    if (!$this->canRemove($row)) {
-      throw new BrAppException(BrConst::ERROR_MESSAGE_ACCESS_DENIED);
-    }
-  }
-
-  protected function validateSelect($filter)
+  /**
+   * @throws BrAppException
+   */
+  protected function validateSelect(array $filter = [])
   {
     if (!$this->canSelect($filter)) {
       throw new BrAppException(BrConst::ERROR_MESSAGE_ACCESS_DENIED);
     }
   }
 
-  protected function onBeforeSelect(&$filter, &$transientData, &$options)
+  /**
+   * @throws BrAppException
+   */
+  protected function validateInsert(?array $row = [])
+  {
+    if (!$this->canInsert($row)) {
+      throw new BrAppException(BrConst::ERROR_MESSAGE_ACCESS_DENIED);
+    }
+  }
+
+  /**
+   * @throws BrAppException
+   */
+  protected function validateUpdate(array $row, ?array $new = [])
+  {
+    if (!$this->canUpdate($row, $new)) {
+      throw new BrAppException(BrConst::ERROR_MESSAGE_ACCESS_DENIED);
+    }
+  }
+
+  /**
+   * @throws BrAppException
+   */
+  protected function validateRemove(array $row)
+  {
+    if (!$this->canRemove($row)) {
+      throw new BrAppException(BrConst::ERROR_MESSAGE_ACCESS_DENIED);
+    }
+  }
+
+  protected function onBeforeSelect(array &$filter, array &$transientData, array &$options)
   {
     //
   }
 
-  protected function onSelect(&$filter, &$transientData, &$options)
+  /**
+   * @return ?array
+   */
+  protected function onSelect(array &$filter, array &$transientData, array &$options)
   {
     return null;
   }
 
-  protected function onPrepareCalcFields(&$result, &$transientData, &$options)
+  protected function onPrepareCalcFields(array &$result, array &$transientData, array &$options)
   {
     //
   }
 
-  protected function onCalcFields(&$row, &$transientData, &$options)
+  protected function onCalcFields(array &$row, array &$transientData, array &$options)
   {
     //
   }
 
-  protected function onProtectFields(&$row, &$transientData, &$options)
+  protected function onProtectFields(array &$row, array &$transientData, array &$options)
   {
     //
   }
 
-  protected function onAfterSelect(&$result, &$transientData, &$options)
+  /**
+   * @param int|array $result
+   */
+  protected function onAfterSelect(&$result, array &$transientData, array &$options)
   {
     //
   }
 
-  protected function onBeforeInsert(&$row, &$transientData, &$options)
+  protected function onBeforeInsert(array &$row, array &$transientData, array &$options)
   {
     //
   }
 
-  protected function onInsert(&$row, &$transientData, &$options)
+  protected function onInsert(array &$row, array &$transientData, array &$options): ?array
   {
     return null;
   }
 
-  protected function onAfterInsert(&$row, &$transientData, &$options)
+  protected function onAfterInsert(array &$row, array &$transientData, array &$options)
   {
     //
   }
 
-  protected function onAfterCommit(&$result, &$transientData, $old, &$options)
+  protected function onAfterCommit(string $operation, array $params, array $transientData, array $options)
   {
     //
   }
 
-  protected function onBeforeUpdate(&$row, &$transientData, $old, &$options)
+  protected function onBeforeUpdate(array &$row, array &$transientData, array $old, array &$options)
   {
     //
   }
 
-  protected function onUpdate(&$row, &$transientData, $old, &$options)
+  protected function onUpdate(array &$row, array &$transientData, array $old, array &$options): ?array
   {
     return null;
   }
 
-  protected function onAfterUpdate(&$row, &$transientData, $old, &$options)
+  protected function onAfterUpdate(array &$row, array &$transientData, array $old, array &$options)
   {
     //
   }
 
-  protected function onBeforeDelete(&$row, &$transientData, &$options)
+  protected function onBeforeDelete(array &$row, array &$transientData, array &$options)
   {
     //
   }
 
-  protected function onDelete(&$row, &$transientData, &$options)
+  protected function onDelete(array &$row, array &$transientData, array &$options): ?array
   {
     return null;
   }
 
-  protected function onAfterDelete(&$row, &$transientData, &$options)
+  protected function onAfterDelete(array &$row, array &$transientData, array &$options)
   {
     //
   }
 
-  protected function onError($error, $operation, $exception, $data)
+  /**
+   * @return ?array
+   */
+  protected function onError(string $error, string $operation, \Exception $exception, ?array $data)
   {
     return null;
+  }
+
+  protected function onCalcFieldsForExcel(array $row, array $transientData, array $options): array
+  {
+    return [];
+  }
+
+  protected function onPostProcessingExcelExportFile(string $exportFileName, array $options): string
+  {
+    return $exportFileName;
   }
 }

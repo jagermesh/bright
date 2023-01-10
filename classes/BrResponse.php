@@ -32,7 +32,6 @@ class BrResponse extends BrObject
   private bool $systemStylesInjected = false;
 
   /**
-   * @param $response
    * @throws BrGenericDataTypeException
    */
   public function sendJSON($response, bool $alreadyPacked = false)
@@ -55,8 +54,6 @@ class BrResponse extends BrObject
   }
 
   /**
-   * @param $response
-   * @param $callback
    * @throws BrGenericDataTypeException
    */
   public function sendJSONP($response, $callback = null)
@@ -312,7 +309,7 @@ class BrResponse extends BrObject
 
   public function sendCacheHeaders(int $ageMin = 30)
   {
-    $etag = hash('sha256', @$_SERVER[BrConst::PHP_SERVER_VAR_QUERY_STRING]);
+    $etag = hash('sha256', br($_SERVER, BrConst::PHP_SERVER_VAR_QUERY_STRING));
     $if_none_match = ($_SERVER[BrConst::PHP_SERVER_VAR_HTTP_IF_NONE_MATCH] ?? false);
 
     if ($if_none_match == $etag) {
@@ -339,9 +336,7 @@ class BrResponse extends BrObject
     }
   }
 
-  /**
-   * @param $messageOrObject
-   */
+
   public function displayError($messageOrObject)
   {
     try {

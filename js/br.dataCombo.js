@@ -206,11 +206,11 @@
         if (_this.isValid()) {
           br.setValue(_this.selector, value, true);
           switch (beautifier) {
-          case 'select2':
-            break;
-          case 'selectize':
-            _this.selector[0].selectize.setValue(value);
-            break;
+            case 'select2':
+              break;
+            case 'selectize':
+              _this.selector[0].selectize.setValue(value);
+              break;
           }
           beautify();
           if (_this.options.lookupMode) {

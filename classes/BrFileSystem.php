@@ -48,12 +48,12 @@ class BrFileSystem extends BrObject
 
   public function dirName(string $path): string
   {
-    return (string)rtrim(str_replace('\\', '/', dirname($path)), '/');
+    return rtrim(str_replace('\\', '/', dirname($path)), '/');
   }
 
   public function folderName(string $path): string
   {
-    if ($s = preg_split('|/|', $this->dirname($path))) {
+    if ($s = explode('/', $this->dirName($path))) {
       return $s[count($s) - 1];
     } else {
       return '';

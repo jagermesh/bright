@@ -24,7 +24,7 @@ class BrErrorFileLogAdapter extends BrGenericFileLogAdapter
   }
 
   /**
-   * @param $messageOrObject
+   * @param mixed $messageOrObject
    */
   public function write($messageOrObject, ?array $params = [])
   {

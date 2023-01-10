@@ -20,28 +20,50 @@ class BrGenericDBProvider extends BrObject
   public const DATA_TYPE_STRING = 32;
   public const DATA_TYPE_UNKNOWN = 256;
 
-  private $dataBaseName;
+  private string $dataBaseName = '';
 
-  public function setDataBaseName($name)
+  public function setDataBaseName(string $name)
   {
     $this->dataBaseName = $name;
   }
 
-  public function getDataBaseName()
+  public function getDataBaseName(): string
   {
     $this->establishConnection();
 
     return $this->dataBaseName;
   }
 
+  /**
+   * @return false|string
+   */
   public function now()
   {
     return $this->toDateTime(time());
   }
 
+  /**
+   * @return false|string
+   */
   public function today()
   {
     return $this->toDate(time());
+  }
+
+  /**
+   * @return false|string
+   */
+  public function toDateTime($date)
+  {
+    return date('Y-m-d H:i:s', $date);
+  }
+
+  /**
+   * @return false|string
+   */
+  public function toDate($date)
+  {
+    return date('Y-m-d', $date);
   }
 
   public function establishConnection()

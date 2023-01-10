@@ -1,7 +1,3 @@
-.template {
-  display: none;
-}
-
 .centered {
   text-align: center !important;
 }
@@ -14,28 +10,30 @@
   text-align: right !important;
 }
 
-a.justified,
+a:not(.btn).justified,
 select.justified,
 textarea.justified,
 audio.justified,
 input.justified,
 div.justified {
   width: 100%;
+  min-height: 30px;
   box-sizing: border-box;
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   -ms-box-sizing: border-box;
-  margin-top: 2px;
-  margin-bottom: 2px;
 }
 
-select.justified,
-textarea.justified,
-audio.justified,
-input.justified,
+a.btn.justified {
+  width: 100%;
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -ms-box-sizing: border-box;
+}
+
 div.justified {
-  min-height: 30px;
-  line-height: 1em;
+  min-height: 28px;
 }
 
 td.optimal-width,
@@ -63,7 +61,7 @@ a[disabled] {
   padding-bottom: 1px;
   padding-left: 6px;
   padding-right: 6px;
-  line-height: 1em;
+  line-height: 1;
   font-size: 13px;
 }
 
@@ -318,30 +316,40 @@ div.br-editable, span.br-editable {
   margin-bottom: 9px !important;
 }
 
-.nav .btn-toolbar {
-  margin-top: 6px;
-  margin-bottom: 4px;
+.navbar .nav {
+  margin-right: 5px;
 }
 
-.nav .btn-toolbar .btn-group {
+.navbar .btn-toolbar {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.navbar .btn,
+.navbar input {
+  margin-left: 0 !important;
+  margin-right: 5px;
+  margin-bottom: 5px;
+  margin-top: 5px !important;
+}
+
+.navbar .btn-group {
   margin-top: 0;
 }
 
-.navbar-inner {
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-.navbar .btn {
-  margin: 5px 0px 5px 0px;
-}
-
-.navbar .input-append .btn {
-  margin: 0px 0px 0px 0px;
-}
-
 .navbar .input-append {
-  margin: 5px 0px 5px 0px;
+  white-space: nowrap;
+}
+
+.navbar .btn-group .btn,
+.navbar .input-append input,
+.navbar .input-append .btn {
+  margin-right: 0;
+}
+
+.navbar-inner {
+  padding-left: 8px;
+  padding-right: 5px;
 }
 
 .navbar-internal {
@@ -421,11 +429,6 @@ div.br-sort-index {
   max-width: none !important;
 }
 
-.nav .btn-toolbar .btn {
-  margin-top: 0px;
-  margin-bottom: 2px;
-}
-
 /* filters */
 .filter-panel {
   min-height: 20px;
@@ -499,7 +502,6 @@ table.table th {
   text-align: center;
   vertical-align: middle;
   font-weight: 400;
-  line-height: 1.3em;
 }
 
 .tooltip {

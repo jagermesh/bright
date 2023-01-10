@@ -149,17 +149,9 @@ class BriCal extends BrObject
 
       $attachments = '';
 
-      $descriptionHTML = $event->getHTMLDescription();
       if ($event->hasAttachments()) {
-        $descriptionHTML .= '<B>Atachments:</B><P>';
         foreach ($event->getAttachments() as $attachment) {
           $attachments .= 'ATTACH:' . br()->request()->host() . '/' . $attachment['url'] . "\r\n";
-          $descriptionHTML .= '  <A HREF="' . br()->request()->host() . '/' . $attachment['url'] . '">'
-            . '    <SPAN>'
-            . $attachment['name']
-            . '    </SPAN>'
-            . '  </A>'
-            . '<BR>';
         }
       }
 

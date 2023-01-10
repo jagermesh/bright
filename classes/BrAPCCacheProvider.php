@@ -40,8 +40,7 @@ class BrAPCCacheProvider extends BrGenericCacheProvider
   }
 
   /**
-   * @param $default
-   * @return mixed|null
+   * @param mixed $default
    */
   public function getEx(string $name, $default = null, bool $saveDefault = false): array
   {
@@ -66,7 +65,7 @@ class BrAPCCacheProvider extends BrGenericCacheProvider
   }
 
   /**
-   * @param $value
+   * @param mixed $value
    */
   public function set(string $name, $value, ?int $lifeTime = null): bool
   {

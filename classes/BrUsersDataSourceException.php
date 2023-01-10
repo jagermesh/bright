@@ -9,6 +9,6 @@ namespace Bright;
  * @version 2.0
  * @package Bright Core
  */
-class BrUsersDataSourceException extends \Exception
+class BrUsersDataSourceException extends BrException
 {
 }

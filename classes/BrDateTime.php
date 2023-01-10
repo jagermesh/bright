@@ -19,7 +19,7 @@ class BrDateTime extends BrObject
   public int $hour;
   public int $minute;
   public int $second;
-  public string $weekday_name;
+  public string $weekdayName;
 
   public function __construct(?string $date = null)
   {
@@ -45,7 +45,7 @@ class BrDateTime extends BrObject
     $this->hour = $date_parts[4];
     $this->minute = $date_parts[5];
     $this->second = $date_parts[6];
-    $this->weekday_name = $date_parts[7];
+    $this->weekdayName = $date_parts[7];
   }
 
   public function setDay(int $day)
@@ -177,7 +177,7 @@ class BrDateTime extends BrObject
   }
 
   /**
-   * @param $date
+   * @param mixed $date
    */
   public function minutesBetween($date = null): int
   {
@@ -190,7 +190,7 @@ class BrDateTime extends BrObject
   }
 
   /**
-   * @param $date
+   * @param mixed $date
    */
   public function secondsBetween($date = null): int
   {
@@ -203,7 +203,7 @@ class BrDateTime extends BrObject
   }
 
   /**
-   * @param $date
+   * @param mixed $date
    */
   public function differenceToString($date = null): string
   {
@@ -211,7 +211,7 @@ class BrDateTime extends BrObject
   }
 
   /**
-   * @param $date
+   * @param mixed $date
    */
   public function daysDifferenceToString($date = null): string
   {
@@ -252,7 +252,7 @@ class BrDateTime extends BrObject
   }
 
   /**
-   * @param $date
+   * @param mixed $date
    */
   public function hoursBetween($date = null): int
   {
@@ -265,7 +265,7 @@ class BrDateTime extends BrObject
   }
 
   /**
-   * @param $date
+   * @param mixed $date
    */
   public function daysTill($date = null): int
   {
@@ -314,18 +314,12 @@ class BrDateTime extends BrObject
     return $diff;
   }
 
-  /**
-   * @param $date
-   */
-  public function isSameDate($date): bool
+  public function isSameDate(BrDateTime $date): bool
   {
     return ($date->asDate() == $this->asDate());
   }
 
-  /**
-   * @param $dateTime
-   */
-  public function equalTo($dateTime): bool
+  public function equalTo(BrDateTime $dateTime): bool
   {
     return ($dateTime->asDateTime() == $this->asDateTime());
   }

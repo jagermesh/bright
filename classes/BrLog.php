@@ -21,15 +21,15 @@ class BrLog extends BrObject
   private string $logPrefix = '';
   private array $adapters = [];
 
-  public static bool $LOG_MEMORY = true;
-  public static bool $LOG_TIME = true;
+  private const LOG_MEMORY = true;
+  private const LOG_TIME = true;
 
   public function __construct()
   {
     parent::__construct();
 
     $this->initTime = br()->getUnifiedTimestamp();
-    $this->initMicroTime = br()->getMicrotime();
+    $this->initMicroTime = br()->getMicroTime();
     $this->savedMicroTime = $this->initMicroTime;
     $this->initMemory = memory_get_usage(true);
     $this->savedMemory = $this->initMemory;
@@ -96,16 +96,16 @@ class BrLog extends BrObject
   }
 
   /**
-   * @param $messageOrObject
+   * @param mixed $messageOrObject
    */
   private function writeToAdapters($messageOrObject, ?array $params = [])
   {
     if ($this->isEnabled()) {
       $params['log_level'] = $this->logLevel;
 
-      if (self::$LOG_TIME) {
+      if (self::LOG_TIME) {
         $unifiedTimestamp = br()->getUnifiedTimestamp();
-        $microTime = br()->getMicrotime();
+        $microTime = br()->getMicroTime();
         $params['timestamp'] = $unifiedTimestamp;
         $params['timestamp_init'] = $this->initTime;
         $params['timestamp_since_start'] = br()->formatDuration($microTime - $this->initMicroTime, [
@@ -122,7 +122,7 @@ class BrLog extends BrObject
         $params['timestamp_since_prior'] = '';
       }
 
-      if (self::$LOG_MEMORY) {
+      if (self::LOG_MEMORY) {
         $memUsage = memory_get_usage(true);
         $params['mem_usage'] = $memUsage;
         $params['mem_usage_init'] = $this->initMemory;
@@ -151,7 +151,7 @@ class BrLog extends BrObject
   }
 
   /**
-   * @param $messageOrObject
+   * @param mixed $messageOrObject
    */
   public function debug($messageOrObject, ?array $details = [])
   {
@@ -165,7 +165,7 @@ class BrLog extends BrObject
   }
 
   /**
-   * @param $messageOrObject
+   * @param mixed $messageOrObject
    */
   public function error($messageOrObject, ?array $details = [])
   {
@@ -179,7 +179,7 @@ class BrLog extends BrObject
   }
 
   /**
-   * @param $messageOrObject
+   * @param mixed $messageOrObject
    */
   public function warning($messageOrObject, ?array $details = [])
   {
@@ -193,7 +193,7 @@ class BrLog extends BrObject
   }
 
   /**
-   * @param $messageOrObject
+   * @param mixed $messageOrObject
    */
   public function message($messageOrObject, ?array $details = [], string $logEvent = BrConst::LOG_EVENT_MESSAGE)
   {

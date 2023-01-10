@@ -89,7 +89,6 @@ class BrSession extends BrObject
   }
 
   /**
-   * @param $value
    * @return mixed
    */
   public function set(string $name, $value)
@@ -102,9 +101,6 @@ class BrSession extends BrObject
     return $value;
   }
 
-  /**
-   * @param $name
-   */
   public function clear($name = null): bool
   {
     if (isset($_SESSION)) {

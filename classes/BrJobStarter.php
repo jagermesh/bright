@@ -24,7 +24,7 @@ class BrJobStarter
    */
   public function check()
   {
-    $this->doit(true);
+    $this->execute(true);
   }
 
   /**
@@ -32,21 +32,21 @@ class BrJobStarter
    */
   public function run()
   {
-    $this->doit(false);
+    $this->execute(false);
   }
 
   /**
    * @throws BrAppException
    * @throws \Exception
    */
-  public function doit($check)
+  private function execute(bool $check)
   {
     if (!br()->isConsoleMode()) {
       br()->panic('Console mode only');
     }
 
     $arguments = br()->getCommandLineArguments();
-    if (@$arguments[0]) {
+    if (br($arguments, 0)) {
       $classFile = $this->jobsFolder . $arguments[0] . '.php';
       $className = $arguments[0];
       if (file_exists($classFile)) {
@@ -71,7 +71,7 @@ class BrJobStarter
           br()->log()->message('[' . $className . '] Done');
           @fclose($handle);
           @unlink(br()->os()->lockFileName($tag));
-          return true;
+          return;
         } catch (\Exception $e) {
           @fclose($handle);
           @unlink(br()->os()->lockFileName($tag));

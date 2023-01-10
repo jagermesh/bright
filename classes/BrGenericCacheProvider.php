@@ -22,13 +22,13 @@ abstract class BrGenericCacheProvider extends BrObject
   abstract public function exists(string $name): bool;
 
   /**
-   * @param $default
+   * @param null $default
    * @return mixed
    */
   abstract public function getEx(string $name, $default = null, bool $saveDefault = false): array;
 
   /**
-   * @param $value
+   * @param mixed $value
    */
   abstract public function set(string $name, $value, ?int $lifeTime = null): bool;
   abstract public function remove(string $name): bool;
@@ -40,7 +40,7 @@ abstract class BrGenericCacheProvider extends BrObject
   {
     parent::__construct();
 
-    if ($this->isSupported()) {
+    if (static::isSupported()) {
       $this->setDefaultNamePrefix(sprintf('%s:', hash('sha256', __FILE__)));
     } else {
       throw new BrException(sprintf('%s is not supported', get_class($this)));

@@ -12,13 +12,13 @@ namespace Bright;
 
 class BrProfiler extends BrObject
 {
-  private $completedMetrics = [];
-  private $activeMetrics = [];
+  private array $completedMetrics = [];
+  private array $activeMetrics = [];
 
-  public function start($name)
+  public function start(string $name): array
   {
     $result = [
-      'time' => br()->getMicrotime(),
+      'time' => br()->getMicroTime(),
       'memory' => memory_get_usage(true),
     ];
 
@@ -27,10 +27,10 @@ class BrProfiler extends BrObject
     return $result;
   }
 
-  public function finish($name)
+  public function finish(string $name): array
   {
     $result = [
-      'time' => br()->getMicrotime(),
+      'time' => br()->getMicroTime(),
       'memory' => 0,
       'duration' => 0,
     ];
@@ -47,7 +47,7 @@ class BrProfiler extends BrObject
     return $result;
   }
 
-  public function getStatistic($name)
+  public function getStatistic(string $name): array
   {
     $result = [
       'count' => 0,
@@ -76,7 +76,7 @@ class BrProfiler extends BrObject
     return $result;
   }
 
-  public function logStart($name)
+  public function logStart(string $name)
   {
     $this->start($name);
     $details = [
@@ -85,7 +85,7 @@ class BrProfiler extends BrObject
     br()->log()->message('Started: ' . $name, $details, BrConst::LOG_EVENT_PROFILER);
   }
 
-  public function logStatistic($name, $tag = BrConst::LOG_EVENT_PROFILER)
+  public function logStatistic(string $name, string $tag = BrConst::LOG_EVENT_PROFILER)
   {
     $metric = $this->getStatistic($name);
     if ($metric['count'] > 1) {
@@ -117,7 +117,7 @@ class BrProfiler extends BrObject
     }
   }
 
-  public function logFinish($name, $comment = null)
+  public function logFinish(string $name, ?string $comment = null): array
   {
     $metric = $this->finish($name);
     $details = [

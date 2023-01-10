@@ -12,4 +12,14 @@ namespace Bright;
 
 class BrException extends \Exception
 {
+  protected string $displayMessage = '';
+
+  public function getDisplayMessage(): string
+  {
+    if ($this->displayMessage) {
+      return $this->displayMessage;
+    } else {
+      return $this->getMessage();
+    }
+  }
 }

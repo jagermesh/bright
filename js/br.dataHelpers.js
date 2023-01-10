@@ -58,7 +58,9 @@
     }, extraParams);
 
     return new Promise(function(resolve, reject) {
-      br.startProgress(funcToGetTotal(), extraParams.title);
+      if (extraParams.title) {
+        br.startProgress(funcToGetTotal(), extraParams.title);
+      }
       window.setTimeout(function() {
         let paramsQueue = [];
         let params = funcToGetParams();

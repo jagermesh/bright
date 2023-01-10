@@ -2,6 +2,6 @@
 
 namespace Bright;
 
-class BrCSVParserException extends \Exception
+class BrCSVParserException extends BrException
 {
 }

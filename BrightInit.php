@@ -48,6 +48,7 @@ if (function_exists('get_magic_quotes_gpc') && @get_magic_quotes_gpc()) {
   }
 }
 
+ini_set('serialize_precision', -1);
 ini_set('url_rewriter.tags', null);
 @date_default_timezone_set(@date_default_timezone_get());
 // Core PHP settings - End
@@ -77,7 +78,7 @@ if (br()->config()->get(\Bright\BrConst::CONFIG_OPTION_LOGGER_FILE_ACTIVE)) {
   br()->log()->addAdapter(new \Bright\BrApplicationFileLogAdapter([
     'organized' => true,
   ]));
-  if (br()->request()->isDevHost()) {
+  if (br()->request()->isDevHost() || br()->request()->isLocalHost()) {
     br()->log()->addAdapter(new \Bright\BrDebugFileLogAdapter());
     br()->log()->addAdapter(new \Bright\BrErrorFileLogAdapter());
   }

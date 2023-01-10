@@ -14,32 +14,9 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider
 {
   private const ERROR_MSSQL_SERVER_HAS_GONE_AWAY = 'MSSQL server has gone away';
 
-  private $connection;
-  private $config;
-  private $reconnectIterations = 50;
-  private $rerunIterations = 30;
-
-  public function __construct($config)
-  {
-    parent::__construct();
-
-    $this->config = $config;
-
-    register_shutdown_function([&$this, 'captureShutdown']);
-  }
-
   /**
    * @throws BrDBConnectionErrorException
-   */
-  public function establishConnection()
-  {
-    if (!$this->connection) {
-      return $this->connect();
-    }
-  }
-
-  /**
-   * @throws BrDBConnectionErrorException
+   * @throws \Exception
    */
   public function connect($iteration = 0, $rerunError = null)
   {
@@ -49,7 +26,7 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider
       $this->disconnect();
     }
 
-    if ($iteration > $this->reconnectIterations) {
+    if ($iteration > self::CONNECT_RETRY_LIMIT) {
       $e = new BrDBConnectionErrorException($rerunError);
       $this->triggerSticky(BrConst::EVENT_CONNECT_ERROR, $e);
       br()->triggerSticky(BrConst::EVENT_BR_DB_CONNECT_ERROR, $e);
@@ -104,7 +81,7 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider
         }
       } else {
         $errors = sqlsrv_errors();
-        throw new BrMSSQLDBProviderException($errors[0]['code'] . ': ' . $errors[0]['message']);
+        throw new BrDBConnectionErrorException($errors[0]['code'] . ': ' . $errors[0]['message']);
       }
     } catch (\Exception $e) {
       $this->triggerSticky(BrConst::EVENT_CONNECT_ERROR, $e);
@@ -122,7 +99,7 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider
   /**
    * @throws BrDBServerGoneAwayException
    */
-  public function startTransaction($force = false)
+  public function startTransaction(bool $force = false)
   {
     if ($this->connection) {
       sqlsrv_begin_transaction($this->connection);
@@ -136,7 +113,7 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider
   /**
    * @throws BrDBServerGoneAwayException
    */
-  public function commitTransaction($force = false)
+  public function commitTransaction(bool $force = false)
   {
     if ($this->connection) {
       sqlsrv_commit($this->connection);
@@ -150,7 +127,7 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider
   /**
    * @throws BrDBServerGoneAwayException
    */
-  public function rollbackTransaction($force = false)
+  public function rollbackTransaction(bool $force = false)
   {
     if ($this->connection) {
       sqlsrv_rollback($this->connection);
@@ -161,34 +138,27 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider
     }
   }
 
-  public function selectNext($query, $options = [])
+  /**
+   * @param mixed $query
+   */
+  public function selectNext($query, array $options = []): ?array
   {
     if ($result = sqlsrv_fetch_array($query, SQLSRV_FETCH_ASSOC)) {
-      $doNotChangeCase = array_key_exists('doNotChangeCase', $options) ? (bool)$options['doNotChangeCase'] : true;
+      $doNotChangeCase = !array_key_exists('doNotChangeCase', $options) || $options['doNotChangeCase'];
 
       if (!$doNotChangeCase) {
-        $result = array_change_key_case($result, CASE_LOWER);
+        $result = array_change_key_case($result);
       }
 
       return $result;
     }
+
+    return null;
   }
 
-  public function isEmptyDate($date): bool
-  {
-    return (($date == '0000-00-00') || ($date == '0000-00-00 00:00:00') || !$date);
-  }
-
-  public function toDateTime($date)
-  {
-    return date('Y-m-d H:i:s', $date);
-  }
-
-  public function toDate($date)
-  {
-    return date('Y-m-d', $date);
-  }
-
+  /**
+   * @return string|void
+   */
   public function getLastError()
   {
     if ($errors = sqlsrv_errors()) {
@@ -201,12 +171,24 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider
   }
 
   /**
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
    * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
    */
   public function getLastId(): ?int
   {
     if ($this->connection) {
-      return mysqli_insert_id($this->connection);
+      $query = $this->runQuery('SELECT @@IDENTITY AS id');
+      if ($row = $this->selectNext($query)) {
+        return $row['id'];
+      }
+      return null;
     } else {
       throw new BrDBServerGoneAwayException(self::ERROR_MSSQL_SERVER_HAS_GONE_AWAY);
     }
@@ -224,54 +206,66 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider
     }
   }
 
-  public function getTableStructure($tableName)
+  /**
+   * @throws BrDBException
+   * @throws BrDBConnectionErrorException
+   */
+  public function getTableStructure(string $tableName): array
   {
-    return $this->getQueryStructure('SELECT * FROM ' . $tableName . ' LIMIT 1');
-  }
-
-  public function getQueryStructure($query): array
-  {
-    $field_defs = [];
-
-    if ($query = $this->runQueryEx($query)) {
-      while ($finfo = mysqli_fetch_field($query)) {
-        $field_defs[strtolower($finfo->name)] = [
-          'length' => $finfo->max_length,
-          'type' => $finfo->type,
-          'flags' => $finfo->flags,
-        ];
-      }
-      mysqli_free_result($query);
-    }
-
-    $field_defs = array_change_key_case($field_defs, CASE_LOWER);
-
-    foreach ($field_defs as $field => $defs) {
-      $field_defs[$field]['genericType'] = $this->toGenericDataType($defs['type']);
-    }
-
-    return $field_defs;
+    return $this->getQueryStructure(sprintf('
+      SELECT *
+        FROM %s
+       LIMIT 1
+    ',
+      $tableName
+    ));
   }
 
   /**
    * @throws BrDBException
    * @throws BrDBConnectionErrorException
    */
-  public function runQueryEx($sql, $args = [], $iteration = 0, $rerunError = null, $resultMode = MYSQLI_STORE_RESULT)
+  public function getQueryStructure(string $query): array
   {
+    $fieldDefs = [];
+
+    if ($query = $this->runQueryEx($query)) {
+      while ($fieldInfo = sqlsrv_field_metadata($query)) {
+        $fieldDefs[strtolower($fieldInfo['Name'])] = [
+          'length' => $fieldInfo['Size'],
+          'type' => $fieldInfo['Type'],
+        ];
+      }
+    }
+
+    $fieldDefs = array_change_key_case($fieldDefs);
+
+    foreach ($fieldDefs as $field => $defs) {
+      $fieldDefs[$field]['genericType'] = $this->toGenericDataType($defs['type']);
+    }
+
+    return $fieldDefs;
+  }
+
+  /**
+   * @throws BrDBException
+   * @throws BrDBConnectionErrorException
+   */
+  public function runQueryEx(string $sql, array $args = [], bool $streamMode = false, int $iteration = 0, ?string $rerunError = null)
+  {
+    $queryText = $sql;
+
     try {
-      if (count($args) > 0) {
+      if (!empty($args)) {
         $queryText = br()->placeholderEx($sql, $args, $error);
         if (!$queryText) {
-          $error = $error . '.' . "\n" . $sql;
+          $error = sprintf("%s.\n%s", $error, $sql);
           throw new BrDBException($error);
         }
-      } else {
-        $queryText = $sql;
       }
 
-      if ($iteration > $this->rerunIterations) {
-        $error = $rerunError . '.' . "\n" . $queryText;
+      if ($iteration > self::QUERY_RETRY_LIMIT) {
+        $error = sprintf("%s.\n%s", $rerunError, $queryText);
         throw new BrDBException($error);
       }
 
@@ -289,23 +283,27 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider
       }
 
       br()->log()->message($queryText, [], BrConst::LOG_EVENT_SQL_OK);
+
+      return $query;
     } catch (\Exception $e) {
-      $error = $e->getMessage();
-      br()->log()->message($error . "\n" . $queryText, [], BrConst::LOG_EVENT_SQL_ERROR);
-      br()->trigger(BrConst::EVENT_BR_DB_QUERY_ERROR, $error);
+      $errorMessage = $e->getMessage();
+      br()->log()->message(sprintf("%s\n%s", $errorMessage, $queryText), [], BrConst::LOG_EVENT_SQL_ERROR);
+      br()->trigger(BrConst::EVENT_BR_DB_QUERY_ERROR, $errorMessage);
       throw $e;
     }
-
-    return $query;
   }
 
-  public function getRowsAmountEx($sql, $args)
+  /**
+   * @throws BrDBException
+   * @throws BrDBConnectionErrorException
+   */
+  public function getRowsAmountEx(string $sql, array $args): int
   {
     $countSQL = $this->getCountSQL($sql);
     try {
       $query = $this->runQueryEx($countSQL, $args);
       if ($row = $this->selectNext($query)) {
-        return array_shift($row);
+        return (int)array_shift($row);
       } else {
         return sqlsrv_num_rows($this->runQueryEx($sql, $args));
       }
@@ -314,18 +312,14 @@ class BrMSSQLDBProvider extends BrGenericSQLDBProvider
     }
   }
 
-  public function disconnect()
+
+  public function disconnect(): void
   {
     if ($this->connection) {
       @sqlsrv_close($this->connection);
     }
 
     $this->connection = null;
-  }
-
-  public function captureShutdown()
-  {
-    $this->disconnect();
   }
 
   public function internalDataTypeToGenericDataType(string $type): int

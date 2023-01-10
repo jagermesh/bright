@@ -8,6 +8,7 @@ use PhpCsFixer\Fixer\ClassNotation\ClassAttributesSeparationFixer;
 use PhpCsFixer\Fixer\FunctionNotation\MethodArgumentSpaceFixer;
 use PhpCsFixer\Fixer\Operator\NotOperatorWithSuccessorSpaceFixer;
 use PhpCsFixer\Fixer\StringNotation\SingleQuoteFixer;
+
 use Symplify\CodingStandard\Fixer\Commenting\RemoveUselessDefaultCommentFixer;
 use Symplify\EasyCodingStandard\Config\ECSConfig;
 use Symplify\EasyCodingStandard\FixerRunner\ValueObject\Spacing;
@@ -29,16 +30,13 @@ return static function (ECSConfig $ecsConfig): void {
     SetList::PSR_12,
   ]);
 
+  $ecsConfig->rule(SingleQuoteFixer::class);
   $ecsConfig->ruleWithConfiguration(ArraySyntaxFixer::class, [
     'syntax' => 'short',
   ]);
-
-  $ecsConfig->rule(SingleQuoteFixer::class);
-
   $ecsConfig->ruleWithConfiguration(MethodArgumentSpaceFixer::class, [
     'on_multiline' => 'ignore',
   ]);
-
   $ecsConfig->indentation(Spacing::TWO_SPACES);
 
   $ecsConfig->skip([

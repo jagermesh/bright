@@ -93,7 +93,7 @@ class BrHTML extends BrObject
     for ($k = 0; $k < count($lines); $k++) {
       $wordFound = false;
       $line = '';
-      $words = preg_split('~&nbsp;~', $lines[$k]);
+      $words = explode('&nbsp;', $lines[$k]);
       for ($i = 0; $i < count($words); $i++) {
         if ($wordFound) {
           $glue = ' ';

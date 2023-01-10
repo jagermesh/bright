@@ -2,6 +2,11 @@
 
 namespace Bright;
 
+use Aws\Polly\PollyClient;
+use Aws\S3\Exception\PermanentRedirectException;
+use Aws\S3\Exception\S3Exception;
+use Aws\S3\S3Client;
+
 class BrAWS extends BrObject
 {
   public const AMAZON_POLLY_MAX_CHARACTERS = 1500;
@@ -12,14 +17,15 @@ class BrAWS extends BrObject
   public const AWS_ERROR_INVALID_ACCESS_KEY = 'InvalidAccessKeyId';
   public const AWS_ERROR_ACCESS_DENIED = 'AccessDenied';
 
-  private $S3Client;
-  private $pollyClient;
-  private $rerunIterations = 50;
+  protected const RETRY_LIMIT = 30;
 
-  private function getS3Client(): \Aws\S3\S3Client
+  private ?S3Client $s3Client = null;
+  private ?PollyClient $pollyClient = null;
+
+  private function getS3Client(): S3Client
   {
-    if (!$this->S3Client) {
-      $this->S3Client = new \Aws\S3\S3Client([
+    if (!$this->s3Client) {
+      $this->s3Client = new S3Client([
         'credentials' => [
           'key' => br()->config()->get(BrConst::CONFIG_OPTION_AWS_S3_ACCESS_KEY, br()->config()->get('AWS/S3AccessKey')),
           'secret' => br()->config()->get(BrConst::CONFIG_OPTION_AWS_S3_ACCESS_SECRET, br()->config()->get('AWS/S3AccessSecret')),
@@ -29,7 +35,7 @@ class BrAWS extends BrObject
       ]);
     }
 
-    return $this->S3Client;
+    return $this->s3Client;
   }
 
   private function getS3Endpoint(): string
@@ -64,7 +70,7 @@ class BrAWS extends BrObject
    */
   public function uploadFile($source, $destination, $additionalParams = [], $iteration = 0, $rerunError = null)
   {
-    if ($iteration > $this->rerunIterations) {
+    if ($iteration > self::RETRY_LIMIT) {
       throw new BrAppException($rerunError);
     }
 
@@ -96,9 +102,9 @@ class BrAWS extends BrObject
       $client->putObject($params);
 
       return $this->assembleUrl($dstStruct);
-    } catch (\Aws\S3\Exception\PermanentRedirectException $e) {
+    } catch (PermanentRedirectException $e) {
       throw new BrAppException(sprintf(self::ERROR_MESSAGE_INCORRECT_BUCKET, $dstStruct['bucketName']));
-    } catch (\Aws\S3\Exception\S3Exception $e) {
+    } catch (S3Exception $e) {
       if ($e->getAwsErrorCode() == self::AWS_ERROR_INVALID_ACCESS_KEY) {
         throw new BrAppException(self::ERROR_MESSAGE_INVALID_ACCESS_KEY);
       } else {
@@ -113,6 +119,7 @@ class BrAWS extends BrObject
 
   /**
    * @throws BrAppException
+   * @throws \Exception
    */
   public function uploadData($content, $destination, $additionalParams = []): string
   {
@@ -128,7 +135,7 @@ class BrAWS extends BrObject
    */
   public function copyFile($source, $destination, $additionalParams = [], $iteration = 0, $rerunError = null): string
   {
-    if ($iteration > $this->rerunIterations) {
+    if ($iteration > self::RETRY_LIMIT) {
       throw new BrAppException($rerunError);
     }
 
@@ -159,9 +166,9 @@ class BrAWS extends BrObject
       $client->copyObject($params);
 
       return $this->assembleUrl($dstStruct);
-    } catch (\Aws\S3\Exception\PermanentRedirectException $e) {
+    } catch (PermanentRedirectException $e) {
       throw new BrAppException(sprintf(self::ERROR_MESSAGE_INCORRECT_BUCKET, $dstStruct['bucketName']));
-    } catch (\Aws\S3\Exception\S3Exception $e) {
+    } catch (S3Exception $e) {
       if ($e->getAwsErrorCode() == self::AWS_ERROR_INVALID_ACCESS_KEY) {
         throw new BrAppException(self::ERROR_MESSAGE_INVALID_ACCESS_KEY);
       } elseif ($e->getAwsErrorCode() == self::AWS_ERROR_ACCESS_DENIED) {
@@ -183,7 +190,7 @@ class BrAWS extends BrObject
    */
   public function deleteFile($source, $additionalParams = [], $iteration = 0, $rerunError = null): string
   {
-    if ($iteration > $this->rerunIterations) {
+    if ($iteration > self::RETRY_LIMIT) {
       throw new BrAppException($rerunError);
     }
 
@@ -200,7 +207,7 @@ class BrAWS extends BrObject
       $client->deleteObject($params);
 
       return $this->assembleUrl($srcStruct);
-    } catch (\Aws\S3\Exception\S3Exception $e) {
+    } catch (S3Exception $e) {
       if ($e->getAwsErrorCode() == self::AWS_ERROR_INVALID_ACCESS_KEY) {
         throw new BrAppException(self::ERROR_MESSAGE_INVALID_ACCESS_KEY);
       } elseif ($e->getAwsErrorCode() == 'NoSuchKey') {
@@ -308,10 +315,10 @@ class BrAWS extends BrObject
     return $result;
   }
 
-  private function getPollyClient(): \Aws\Polly\PollyClient
+  private function getPollyClient(): PollyClient
   {
     if (!$this->pollyClient) {
-      $this->pollyClient = new \Aws\Polly\PollyClient([
+      $this->pollyClient = new PollyClient([
         'credentials' => [
           'key' => br()->config()->get('AWS/Polly/AccessKey', br()->config()->get('AWS/S3AccessKey')),
           'secret' => br()->config()->get('AWS/Polly/AccessSecret', br()->config()->get('AWS/S3AccessSecret')),

@@ -120,10 +120,10 @@ class BrCSVParser extends BrObject
           $line = trim($line);
 
           $ind = 0;
-          $tcount = 0;
+          $tmpCount = 0;
           foreach ($this->enclosureArr as $key => $enclosure) {
-            if ($tcount < substr_count($line, $enclosure)) {
-              $tcount = substr_count($line, $enclosure);
+            if ($tmpCount < substr_count($line, $enclosure)) {
+              $tmpCount = substr_count($line, $enclosure);
               $ind = $key;
             }
           }

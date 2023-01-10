@@ -28,9 +28,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
   private const ERROR_DUPLICATE_ENTRY = 'Duplicate entry';
   private const ERROR_CANNOT_DELETE_OR_UPDATE_A_PARENT_ROW = 'Cannot delete or update a parent row';
   private const ERROR_MY_SQL_SERVER_HAS_GONE_AWAY = 'MySQL server has gone away';
-  private const ERROR_UNKNOWN_DATABASE = 'Unknown database';
-  private const ERROR_ACCESS_DENIED = 'Access denied';
-  private const ERROR_CONNECTINO_REFUSED = 'Connection refused';
+  private const ERROR_CONNECTION_REFUSED = 'Connection refused';
 
   private const RECONNECT_ERRORS = [
     self::ERROR_ERROR_WHILE_SENDING_QUERY_PACKET,
@@ -41,7 +39,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
     self::ERROR_WSREP_HAS_NOT_YET_PREPARED_NODE_FOR_APPLICATION_USE,
     self::ERROR_MY_SQL_SERVER_HAS_GONE_AWAY,
     self::ERROR_PACKETS_OUT_OF_ORDER,
-    self::ERROR_CONNECTINO_REFUSED,
+    self::ERROR_CONNECTION_REFUSED,
   ];
 
   private const RETRY_ERRORS = [...self::RECONNECT_ERRORS, ...[
@@ -61,34 +59,12 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
 
   private const RECONNECT_TIMEOUT = 250000;
 
-  private $connection;
-  private $config;
-  private int $reconnectIterations = 50;
-  private int $rerunIterations = 30;
-
-  public function __construct($config)
-  {
-    parent::__construct();
-
-    $this->config = $config;
-
-    register_shutdown_function([&$this, 'captureShutdown']);
-  }
-
   /**
+   * @return false|\mysqli
    * @throws BrDBConnectionErrorException
+   * @throws \Exception
    */
-  public function establishConnection()
-  {
-    if (!$this->connection) {
-      return $this->connect();
-    }
-  }
-
-  /**
-   * @throws BrDBConnectionErrorException
-   */
-  public function connect($iteration = 0, $rerunError = null)
+  public function connect(int $iteration = 0, ?string $rerunError = null)
   {
     $wasConnected = !empty($this->connection);
 
@@ -96,7 +72,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
       $this->disconnect();
     }
 
-    if ($iteration > $this->reconnectIterations) {
+    if ($iteration > self::CONNECT_RETRY_LIMIT) {
       $e = new BrDBConnectionErrorException($rerunError);
       $this->triggerSticky(BrConst::EVENT_CONNECT_ERROR, $e);
       br()->triggerSticky(BrConst::EVENT_BR_DB_CONNECT_ERROR, $e);
@@ -139,59 +115,85 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
         br()->triggerSticky(sprintf(BrConst::EVENT_AFTER, BrConst::EVENT_BR_DB_RECONNECT));
       }
     } else {
-      throw new BrMySQLDBProviderException(mysqli_connect_errno() . ': ' . mysqli_connect_error());
+      throw new BrDBConnectionErrorException(mysqli_connect_errno() . ': ' . mysqli_connect_error());
     }
 
     return $this->connection;
   }
 
-  public function startTransaction($force = false)
+  /**
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
+   */
+  public function startTransaction(bool $force = false)
   {
     $this->runQuery('START TRANSACTION');
 
     parent::startTransaction($force);
   }
 
-  public function commitTransaction($force = false)
+  /**
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
+   */
+  public function commitTransaction(bool $force = false)
   {
     $this->runQuery('COMMIT');
 
     parent::commitTransaction($force);
   }
 
-  public function rollbackTransaction($force = false)
+  /**
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
+   */
+  public function rollbackTransaction(bool $force = false)
   {
     $this->runQuery('ROLLBACK');
 
     parent::rollbackTransaction($force);
   }
 
-  public function selectNext($query, $options = [])
+  /**
+   * @param mixed $query
+   */
+  public function selectNext($query, array $options = []): ?array
   {
     if ($result = mysqli_fetch_assoc($query)) {
       if (!br($options, 'doNotChangeCase')) {
-        $result = array_change_key_case($result, CASE_LOWER);
+        $result = array_change_key_case($result);
       }
 
       return $result;
     }
+
+    return null;
   }
 
-  public function isEmptyDate($date): bool
-  {
-    return (($date == '0000-00-00') || ($date == '0000-00-00 00:00:00') || !$date);
-  }
-
-  public function toDateTime($date)
-  {
-    return date('Y-m-d H:i:s', $date);
-  }
-
-  public function toDate($date)
-  {
-    return date('Y-m-d', $date);
-  }
-
+  /**
+   * @return string|void
+   */
   public function getLastError()
   {
     if ($this->connection) {
@@ -227,7 +229,18 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
     }
   }
 
-  public function getTableStructure($tableName)
+  /**
+   * @throws BrDBForeignKeyException
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBException
+   * @throws BrDBDeadLockException
+   * @throws BrDBUniqueException
+   * @throws BrDBEngineException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBRecoverableException
+   * @throws BrDBLockException
+   */
+  public function getTableStructure(string $tableName): array
   {
     return $this->getQueryStructure(
       sprintf('
@@ -240,56 +253,70 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
     );
   }
 
-  public function getQueryStructure($query)
+  /**
+   * @throws BrDBForeignKeyException
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBException
+   * @throws BrDBDeadLockException
+   * @throws BrDBUniqueException
+   * @throws BrDBEngineException
+   * @throws BrDBRecoverableException
+   * @throws BrDBLockException
+   * @throws BrDBServerGoneAwayException
+   */
+  public function getQueryStructure(string $query): array
   {
-    $field_defs = [];
+    $result = [];
+
     if ($query = $this->runQueryEx($query)) {
-      while ($finfo = mysqli_fetch_field($query)) {
-        $field_defs[strtolower($finfo->name)] = [
-          'length' => $finfo->max_length,
-          'type' => $finfo->type,
-          'flags' => $finfo->flags,
+      while ($fieldInfo = mysqli_fetch_field($query)) {
+        $result[strtolower($fieldInfo->name)] = [
+          'length' => $fieldInfo->max_length,
+          'type' => $fieldInfo->type,
+          'flags' => $fieldInfo->flags,
         ];
       }
       mysqli_free_result($query);
     }
-    $field_defs = array_change_key_case($field_defs, CASE_LOWER);
-    foreach ($field_defs as $field => $defs) {
-      $field_defs[$field]['genericType'] = $this->toGenericDataType($defs['type']);
+
+    $result = array_change_key_case($result);
+
+    foreach ($result as $field => $defs) {
+      $result[$field]['genericType'] = $this->toGenericDataType($defs['type']);
     }
 
-    return $field_defs;
+    return $result;
   }
 
-  private function isReconnectError($errorMessage)
+  private function isReconnectError(string $errorMessage): bool
   {
     return count(array_values(array_filter(self::RECONNECT_ERRORS, function ($errorPattern) use ($errorMessage) {
       return (bool)preg_match(sprintf(self::ERROR_REGEXP, $errorPattern), $errorMessage);
     }))) > 0;
   }
 
-  private function isRetryError($errorMessage)
+  private function isRetryError(string $errorMessage): bool
   {
     return count(array_values(array_filter(self::RETRY_ERRORS, function ($errorPattern) use ($errorMessage) {
       return (bool)preg_match(sprintf(self::ERROR_REGEXP, $errorPattern), $errorMessage);
     }))) > 0;
   }
 
-  private function isDeadLockError($errorMessage)
+  private function isDeadLockError(string $errorMessage): bool
   {
     return count(array_values(array_filter(self::DB_DEAD_LOCK_ERRORS, function ($errorPattern) use ($errorMessage) {
       return (bool)preg_match(sprintf(self::ERROR_REGEXP, $errorPattern), $errorMessage);
     }))) > 0;
   }
 
-  private function isLockError($errorMessage)
+  private function isLockError(string $errorMessage): bool
   {
     return count(array_values(array_filter(self::DB_LOCK_ERRORS, function ($errorPattern) use ($errorMessage) {
       return (bool)preg_match(sprintf(self::ERROR_REGEXP, $errorPattern), $errorMessage);
     }))) > 0;
   }
 
-  private function convertErrorIntoException($errorMessage)
+  private function convertErrorIntoException(string $errorMessage): BrDBRecoverableException
   {
     if ($this->isDeadLockError($errorMessage)) {
       return new BrDBDeadLockException($errorMessage);
@@ -303,31 +330,35 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
   }
 
   /**
-   * @throws BrDBForeignKeyException
+   * @return bool|\mysqli_result
    * @throws BrDBConnectionErrorException
-   * @throws BrDBException
    * @throws BrDBDeadLockException
-   * @throws BrDBUniqueException
    * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
    * @throws BrDBLockException
+   * @throws BrDBRecoverableException
    * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
    */
-  public function runQueryEx($sql, $args = [], $iteration = 0, $rerunError = null, $resultMode = MYSQLI_STORE_RESULT)
+  public function runQueryEx(string $sql, array $args = [], bool $streamMode = false, int $iteration = 0, ?string $rerunError = null)
   {
+    $queryText = $sql;
+
     try {
-      if (count($args) > 0) {
-        $queryText = br()->placeholderEx($sql, $args, $error);
-        if (!$queryText) {
-          $error = sprintf("%s.\n%s", $error, $sql);
-          throw new BrDBException($error);
+      try {
+        if (!empty($args)) {
+          $queryText = br()->placeholderEx($sql, $args, $error);
+          if (!$queryText) {
+            throw new BrDBException(sprintf("%s.\n%s", $error, $sql));
+          }
         }
-      } else {
-        $queryText = $sql;
+      } catch (\Exception $e) {
+        throw new BrDBException(sprintf("%s\n%s", $e->getMessage(), $queryText));
       }
 
-      if ($iteration > $this->rerunIterations) {
-        $error = sprintf("%s.\n%s", $rerunError, $queryText);
-        throw new BrDBException($error);
+      if ($iteration > self::QUERY_RETRY_LIMIT) {
+        throw new BrDBException($rerunError);
       }
 
       // check connection
@@ -335,7 +366,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
 
       try {
         // moved to check problem line
-        $query = @mysqli_query($this->connection, $queryText, $resultMode);
+        $query = @mysqli_query($this->connection, $queryText, $streamMode ? MYSQLI_USE_RESULT : MYSQLI_STORE_RESULT);
         if ($query) {
           if ($this->isInTransaction()) {
             $this->incTransactionBuffer($queryText);
@@ -345,8 +376,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
           throw new BrDBException($error);
         }
       } catch (\Exception $e) {
-        $error = $e->getMessage();
-        $error .= "\n" . $queryText;
+        $error = sprintf("%s\n%s", $e->getMessage(), $queryText);
         // if connection lost - we'll try to restore it first
         if ($this->isReconnectError($e->getMessage())) {
           $this->connect();
@@ -359,7 +389,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
               usleep(self::RECONNECT_TIMEOUT);
               $this->rollbackTransaction();
               $this->startTransaction();
-              $query = $this->runQueryEx($sql, $args, $iteration + 1, $e->getMessage(), $resultMode);
+              $query = $this->runQueryEx($sql, $args, $streamMode, $iteration + 1, $error);
             } else {
               br()->log()->message(
                 sprintf("%s\nAutomatic retrying was not possible - %d statement(s) in transaction buffer",
@@ -374,7 +404,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
           } else {
             br()->log()->message($error, [], BrConst::LOG_EVENT_SQL_RETRY);
             usleep(self::RECONNECT_TIMEOUT);
-            $query = $this->runQueryEx($sql, $args, $iteration + 1, $e->getMessage(), $resultMode);
+            $query = $this->runQueryEx($sql, $args, $streamMode, $iteration + 1, $error);
           }
         } elseif (preg_match(sprintf(self::ERROR_REGEXP, self::ERROR_NO_DATA), $e->getMessage())) {
           // it's ok
@@ -388,22 +418,38 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
       }
       br()->log()->message($queryText, [], BrConst::LOG_EVENT_SQL_OK);
     } catch (\Exception $e) {
-      $error = $e->getMessage();
-      br()->log()->message($error . "\n" . $queryText, [], BrConst::LOG_EVENT_SQL_ERROR);
-      br()->trigger(BrConst::EVENT_BR_DB_QUERY_ERROR, $error);
+      $errorMessage = $e->getMessage();
+      br()->log()->message(
+        sprintf("%s\n%s", $errorMessage, BrErrorsFormatter::getStackTraceFromException($e)),
+        [],
+        BrConst::LOG_EVENT_SQL_ERROR
+      );
+      br()->trigger(BrConst::EVENT_BR_DB_QUERY_ERROR, $errorMessage);
       throw $e;
     }
 
     return $query;
   }
 
-  public function getRowsAmountEx($sql, $args)
+  /**
+   * @return int|mixed|string|null
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
+   */
+  public function getRowsAmountEx(string $sql, array $args): int
   {
     $countSQL = $this->getCountSQL($sql);
     try {
       $query = $this->runQueryEx($countSQL, $args);
       if ($row = $this->selectNext($query)) {
-        return array_shift($row);
+        return (int)array_shift($row);
       } else {
         return mysqli_num_rows($this->runQueryEx($sql, $args));
       }
@@ -413,18 +459,13 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
     }
   }
 
-  public function disconnect()
+  public function disconnect(): void
   {
     if ($this->connection) {
       @mysqli_close($this->connection);
     }
 
     $this->connection = null;
-  }
-
-  public function captureShutdown()
-  {
-    $this->disconnect();
   }
 
   public function internalDataTypeToGenericDataType(string $type): int
@@ -459,7 +500,19 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
     }
   }
 
-  public function generateDictionaryScript($scriptFile)
+
+  /**
+   * @throws BrDBForeignKeyException
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBException
+   * @throws BrDBDeadLockException
+   * @throws BrDBUniqueException
+   * @throws BrDBEngineException
+   * @throws BrDBRecoverableException
+   * @throws BrDBLockException
+   * @throws BrDBServerGoneAwayException
+   */
+  public function generateDictionaryScript(string $scriptFile)
   {
     br()->log()->message(sprintf('[%s] Generating dictionary file', br()->db()->getDataBaseName()));
 

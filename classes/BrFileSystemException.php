@@ -2,6 +2,6 @@
 
 namespace Bright;
 
-class BrFileSystemException extends \Exception
+class BrFileSystemException extends BrException
 {
 }

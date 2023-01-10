@@ -2,6 +2,6 @@
 
 namespace Bright;
 
-class BrRedisCacheProviderException extends \Exception
+class BrRedisCacheProviderException extends BrException
 {
 }

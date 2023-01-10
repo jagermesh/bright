@@ -95,7 +95,7 @@ class BrJobCustomJob extends BrObject
       br()->log('[PRC] Starting ' . $command);
       $output = '';
       exec($command, $output);
-      br()->log('[PRC] PID ' . @$output[0]);
+      br()->log('[PRC] PID ' . br($output, 0));
     } else {
       br()->log('[ERR] Already running');
     }
@@ -134,6 +134,9 @@ class BrJobCustomJob extends BrObject
     }
   }
 
+  /**
+   * @return mixed
+   */
   public function timeToStart()
   {
     return $this->getSecondsSinceLastRun() > self::DEFAULT_JOB_RECHECK_PERIOD;
@@ -144,9 +147,7 @@ class BrJobCustomJob extends BrObject
     br()->fs()->saveToFile($this->lastRunFile, time());
   }
 
-  /**
-   * @param $params
-   */
+
   public function run($params)
   {
     $this->done();

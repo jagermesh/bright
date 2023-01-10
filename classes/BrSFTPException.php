@@ -2,6 +2,6 @@
 
 namespace Bright;
 
-class BrSFTPException extends \Exception
+class BrSFTPException extends BrException
 {
 }

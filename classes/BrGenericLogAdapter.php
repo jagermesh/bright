@@ -67,7 +67,7 @@ abstract class BrGenericLogAdapter extends BrObject
 
     $this->fixedLogInfo = [
       self::CLIENT_IP => br()->request()->clientIP(),
-      self::PID => br()->getProcessID(),
+      self::PID => br()->getProcessId(),
       self::SID => br()->session()->getId(),
     ];
 
@@ -150,7 +150,7 @@ abstract class BrGenericLogAdapter extends BrObject
   }
 
   /**
-   * @param $messageOrObject
+   * @param mixed $messageOrObject
    */
   abstract public function write($messageOrObject, ?array $params = []);
 
@@ -194,7 +194,7 @@ abstract class BrGenericLogAdapter extends BrObject
   }
 
   /**
-   * @param $messageOrObject
+   * @param mixed $messageOrObject
    */
   protected function getLogInfo($messageOrObject, ?array $params = [], ?array $contentType = []): array
   {
@@ -231,9 +231,9 @@ abstract class BrGenericLogAdapter extends BrObject
   }
 
   /**
-   * @param $messageOrObject
+   * @param mixed $messageOrObject
    */
-  public static function convertMessageOrObjectToText($messageOrObject, bool $includeStackTrace = false): string
+  public static function convertMessageOrObjectToText($messageOrObject, bool $detailedInfo = false): string
   {
     $result = '';
 
@@ -244,10 +244,13 @@ abstract class BrGenericLogAdapter extends BrObject
     } elseif (is_array($messageOrObject)) {
       $result = @print_r($messageOrObject, true);
     } elseif ($messageOrObject instanceof \Throwable) {
-      $exceptionMessage = BrErrorsFormatter::getStackTraceFromException($messageOrObject);
-      $result = $messageOrObject->getMessage();
-      if ($includeStackTrace) {
-        $result .= "\n\n" . $exceptionMessage;
+      if (($messageOrObject instanceof BrException) && $messageOrObject->getDisplayMessage()) {
+        $result = $messageOrObject->getDisplayMessage();
+      } else {
+        $result = $messageOrObject->getMessage();
+      }
+      if ($detailedInfo) {
+        $result .= "\n\n" . BrErrorsFormatter::getStackTraceFromException($messageOrObject);
       }
     } elseif (is_object($messageOrObject)) {
       $result = @print_r($messageOrObject, true);

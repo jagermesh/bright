@@ -2,6 +2,6 @@
 
 namespace Bright;
 
-class BrGenericDataSourceException extends \Exception
+class BrGenericDataSourceException extends BrException
 {
 }

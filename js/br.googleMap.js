@@ -191,32 +191,32 @@
 
     _this.setMapType = function(value) {
       switch (value) {
-      case 'r':
-        _this.map.setMapTypeId(google.maps.MapTypeId.ROADMAP);
-        break;
-      case 's':
-        _this.map.setMapTypeId(google.maps.MapTypeId.SATELLITE);
-        break;
-      case 't':
-        _this.map.setMapTypeId(google.maps.MapTypeId.SATELLITE);
-        break;
-      case 'h':
-        _this.map.setMapTypeId(google.maps.MapTypeId.SATELLITE);
-        break;
+        case 'r':
+          _this.map.setMapTypeId(google.maps.MapTypeId.ROADMAP);
+          break;
+        case 's':
+          _this.map.setMapTypeId(google.maps.MapTypeId.SATELLITE);
+          break;
+        case 't':
+          _this.map.setMapTypeId(google.maps.MapTypeId.SATELLITE);
+          break;
+        case 'h':
+          _this.map.setMapTypeId(google.maps.MapTypeId.SATELLITE);
+          break;
       }
     };
 
     _this.setTravelMode = function(value) {
       switch (value) {
-      case 'd':
-        _this.travelMode = google.maps.DirectionsTravelMode.DRIVING;
-        break;
-      case 'b':
-        _this.travelMode = google.maps.DirectionsTravelMode.BICYCLING;
-        break;
-      case 'w':
-        _this.travelMode = google.maps.DirectionsTravelMode.WALKING;
-        break;
+        case 'd':
+          _this.travelMode = google.maps.DirectionsTravelMode.DRIVING;
+          break;
+        case 'b':
+          _this.travelMode = google.maps.DirectionsTravelMode.BICYCLING;
+          break;
+        case 'w':
+          _this.travelMode = google.maps.DirectionsTravelMode.WALKING;
+          break;
       }
     };
 

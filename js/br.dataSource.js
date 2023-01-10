@@ -85,7 +85,7 @@
         reject({
           request: request,
           options: options,
-          errorMessage: errorMessage
+          errorMessage: errorMessage.toString()
         });
       }
     };
@@ -145,7 +145,7 @@
                 reject({
                   request: request,
                   options: options,
-                  errorMessage: errorMessage
+                  errorMessage: errorMessage.toString()
                 });
               }
             },
@@ -158,7 +158,7 @@
           reject({
             request: request,
             options: options,
-            errorMessage: errorMessage
+            errorMessage: errorMessage.toString()
           });
         }
       }).then(function(data) {
@@ -249,7 +249,7 @@
           reject({
             request: request,
             options: options,
-            errorMessage: errorMessage
+            errorMessage: errorMessage.toString()
           });
         }
       }).then(function(data) {
@@ -339,7 +339,7 @@
                   rowid: rowid,
                   request: request,
                   options: options,
-                  errorMessage: errorMessage
+                  errorMessage: errorMessage.toString()
                 });
               }
             }
@@ -349,7 +349,7 @@
             rowid: rowid,
             request: request,
             options: options,
-            errorMessage: errorMessage
+            errorMessage: errorMessage.toString()
           });
         }
       }).then(function(data) {
@@ -393,6 +393,26 @@
         newFilter[name] = filter[name];
       }
       newFilter.__result = 'count';
+
+      let requestOptions = Object.assign({
+        selectCount: true
+      }, options);
+
+      return _this.select(newFilter, callback, requestOptions);
+    };
+
+    _this.exportToExcel = function(filter, callback, options) {
+      if (typeof filter == 'function') {
+        options = callback;
+        callback = filter;
+        filter = {};
+      }
+
+      let newFilter = {};
+      for (let name in filter) {
+        newFilter[name] = filter[name];
+      }
+      newFilter.__result = 'exportToExcel';
 
       let requestOptions = Object.assign({
         selectCount: true
@@ -612,6 +632,10 @@
             request.__page = options.page;
           }
 
+          if (options && options.result) {
+            request.__result = options.result;
+          }
+
           if (_this.options.crossdomain) {
             request.crossdomain = 'get';
           }
@@ -646,7 +670,7 @@
                   reject({
                     request: request,
                     options: options,
-                    errorMessage: errorMessage
+                    errorMessage: errorMessage.toString()
                   });
                 }
               } finally {
@@ -751,7 +775,7 @@
                 method: method,
                 request: request,
                 options: options,
-                errorMessage: errorMessage
+                errorMessage: errorMessage.toString()
               });
             }
           }

@@ -2,6 +2,6 @@
 
 namespace Bright;
 
-class BrSessionException extends \Exception
+class BrSessionException extends BrException
 {
 }

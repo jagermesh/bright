@@ -17,27 +17,27 @@ const configs = {
   },
   uglify: {
     libs: [{
+      src: ['3rdparty/promisejs/latest/js/promise.js'],
       dest: '3rdparty/promisejs/latest/js/',
-      src: ['3rdparty/promisejs/latest/js/promise.js']
     }, {
+      src: ['3rdparty/bootstrap/2.3.2/js/bootstrap.js'],
       dest: '3rdparty/bootstrap/2.3.2/js/',
-      src: ['3rdparty/bootstrap/2.3.2/js/bootstrap.js']
     }, {
+      src: ['3rdparty/handlebars/4.7.7/js/handlebars.js'],
       dest: '3rdparty/handlebars/4.7.7/js/',
-      src: ['3rdparty/handlebars/4.7.7/js/handlebars.js']
     }, {
+      src: ['3rdparty/handlebars/latest/js/handlebars.js'],
       dest: '3rdparty/handlebars/latest/js/',
-      src: ['3rdparty/handlebars/latest/js/handlebars.js']
     }, {
+      src: ['3rdparty/fileuploader/latest/js/fileuploader.js'],
       dest: '3rdparty/fileuploader/latest/js/',
-      src: ['3rdparty/fileuploader/latest/js/fileuploader.js']
     }, {
+      src: ['3rdparty/select2/3.5.4/js/select2.js'],
       dest: '3rdparty/select2/3.5.4/js/',
-      src: ['3rdparty/select2/3.5.4/js/select2.js']
     }],
     dist: [{
+      src: ['dist/js/*.js', '!dist/js/*.min.js'],
       dest: 'dist/js/',
-      src: ['dist/js/*.js', '!dist/js/*.min.js']
     }]
   },
   sass: {
@@ -58,7 +58,11 @@ const configs = {
       name: 'bright.bs4.css',
       dest: 'dist/css/'
     }, {
-      src: ['css/bright.bs4.css'],
+      src: ['css/bright.bs5.css'],
+      name: 'bright.bs5.css',
+      dest: 'dist/css/'
+    }, {
+      src: ['css/bright.bs5.css'],
       name: 'bright.latest.css',
       dest: 'dist/css/'
     }],
@@ -137,8 +141,14 @@ const configs = {
       dest: 'dist/js/'
     }, {
       src: [
-        '3rdparty/jquery/latest/js/jquery.min.js',
-        '3rdparty/bootstrap/4.6.0/js/bootstrap.bundle.min.js',
+        '3rdparty/bootstrap/5.2.2/js/bootstrap.bundle.min.js',
+        'dist/js/bright.core.js'
+      ],
+      name: 'bright.bs5.js',
+      dest: 'dist/js/'
+    }, {
+      src: [
+        '3rdparty/bootstrap/5.2.2/js/bootstrap.bundle.min.js',
         'dist/js/bright.core.js'
       ],
       name: 'bright.latest.js',

@@ -536,10 +536,8 @@
   };
 
   window.br.backToCaller = function(href, refresh) {
-    let inPopup = (window.opener !== null);
-
     // check opener
-    if (inPopup) {
+    if (window.opener !== null) {
       // is opener still exists?
       if (window.opener) {
         if (!window.opener.closed) {
@@ -559,6 +557,27 @@
     } else
     if (br.request.get('caller')) {
       document.location = br.request.get('caller');
+    } else
+    if (document.referrer && (document.referrer.indexOf(`${document.location.protocol}//${document.location.host}`) === 0)) {
+      if (br.isSafari()) {
+        if (history.length > 0) {
+          history.back();
+          window.setTimeout(function () {
+            if (document.location != document.referrer) {
+              document.location = document.referrer;
+            }
+          });
+        } else {
+          document.location = document.referrer;
+        }
+      } else {
+        window.close();
+        window.setTimeout(function () {
+          if (document.location != document.referrer) {
+            document.location = document.referrer;
+          }
+        });
+      }
     } else {
       document.location = href;
     }
@@ -796,7 +815,7 @@
     }
   };
 
-  function triggerErrorEvent(data) {
+  function triggerErrorEvent(data, event) {
     if (data.reason && (data.reason != 'Script error.')) {
       try {
         let result = window.br.events.trigger('error', data);
@@ -824,11 +843,11 @@
         location: document.location.toString()
       };
 
-      triggerErrorEvent(data);
+      triggerErrorEvent(data, event);
     });
 
     window.addEventListener('unhandledrejection', function(event) {
-      if (event.srcElement.origin != document.location.origin) {
+      if (event.target.origin != document.location.origin) {
         return;
       }
 
@@ -841,14 +860,12 @@
         location: document.location.toString()
       };
 
-      triggerErrorEvent(data);
-
-      window.br.logWarning(`Unhandled Promise Rejection: ${data.message}`);
-      if (data.data) {
-        window.br.logWarning(data.data);
+      window.br.logWarning('Unhandled promise rejection');
+      if (data.reason) {
+        window.br.logWarning(data.reason);
       }
 
-      event.preventDefault();
+      triggerErrorEvent(data, event);
     });
   }
 
@@ -874,15 +891,15 @@
         if (!error.filename || (error.filename.indexOf('chrome-extension') !== 0)) {
           let message = '';
           switch (format) {
-          case 'html':
-            message = printObject(error, '<br />');
-            break;
-          case 'text':
-            message = printObject(error, '\n');
-            break;
-          default:
-            message = JSON.stringify(error);
-            break;
+            case 'html':
+              message = printObject(error, '<br />');
+              break;
+            case 'text':
+              message = printObject(error, '\n');
+              break;
+            default:
+              message = JSON.stringify(error);
+              break;
           }
           let data = new FormData();
           data.append('error', message);

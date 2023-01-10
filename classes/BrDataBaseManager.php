@@ -56,6 +56,17 @@ class BrDataBaseManager
     return $result;
   }
 
+  /**
+   * @throws BrDBForeignKeyException
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBException
+   * @throws BrDBDeadLockException
+   * @throws BrDBUniqueException
+   * @throws BrDBEngineException
+   * @throws BrDBRecoverableException
+   * @throws BrDBLockException
+   * @throws BrDBServerGoneAwayException
+   */
   public function executeScript(string $script): int
   {
     $result = 0;
@@ -71,8 +82,17 @@ class BrDataBaseManager
 
   /**
    * @throws BrAppException
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
    */
-  public function executeScriptFile($fileName): int
+  public function executeScriptFile(string $fileName): int
   {
     if (file_exists($fileName)) {
       if ($script = br()->fs()->loadFromFile($fileName)) {
@@ -91,6 +111,17 @@ class BrDataBaseManager
     }
   }
 
+  /**
+   * @throws BrDBForeignKeyException
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBException
+   * @throws BrDBDeadLockException
+   * @throws BrDBUniqueException
+   * @throws BrDBEngineException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBLockException
+   */
   private function internalExecute(string $sql): int
   {
     br()->db()->runQuery($sql);
@@ -107,6 +138,17 @@ class BrDataBaseManager
     $this->auditSubsystemInitialized = $value;
   }
 
+  /**
+   * @throws BrDBForeignKeyException
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBException
+   * @throws BrDBDeadLockException
+   * @throws BrDBUniqueException
+   * @throws BrDBEngineException
+   * @throws BrDBLockException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBRecoverableException
+   */
   protected function getTableStructure(string $tableName): array
   {
     return br()->db()->getRows('DESC ' . $tableName);
@@ -1168,6 +1210,6 @@ class BrDataBaseManager
 
   public function getDefiner(): string
   {
-    return (string)$this->definer;
+    return $this->definer;
   }
 }

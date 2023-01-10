@@ -19,19 +19,19 @@ class BrGenericSQLProviderCursor implements \Iterator
   public const SQL_CMD_ORDER_DESC = ' DESC ';
   public const SQL_CMD_AND = ' AND ';
 
-  private $sql;
-  private $args;
-  private $provider;
+  private string $sql;
+  private array $args;
+  private BrGenericSQLDBProvider $provider;
   private int $position;
   private $query;
-  private $row;
-  private $limit;
-  private $skip;
-  private $orderBy = [];
-  private $groupBy = [];
-  private $having = [];
+  private ?array $row;
+  private int $limit = 0;
+  private int $skip = 0;
+  private array $orderBy = [];
+  private array $groupBy = [];
+  private array $having = [];
 
-  public function __construct($sql, $args, &$provider)
+  public function __construct(string $sql, array $args, BrGenericSQLDBProvider $provider)
   {
     $this->sql = $sql;
     $this->args = $args;
@@ -41,17 +41,17 @@ class BrGenericSQLProviderCursor implements \Iterator
 
   // Interface methods
 
-  public function current()
+  public function current(): ?array
   {
     return $this->row;
   }
 
-  public function key()
+  public function key(): int
   {
     return $this->position;
   }
 
-  public function next()
+  public function next(): ?array
   {
     $this->row = $this->provider->selectNext($this->query);
     $this->position++;
@@ -59,7 +59,10 @@ class BrGenericSQLProviderCursor implements \Iterator
     return $this->row;
   }
 
-  public function rewind()
+  /**
+   * @throws \Exception
+   */
+  public function rewind(): BrGenericSQLProviderCursor
   {
     $this->getData();
     $this->position = 0;
@@ -67,57 +70,57 @@ class BrGenericSQLProviderCursor implements \Iterator
     return $this;
   }
 
-  public function valid()
+  public function valid(): bool
   {
-    return $this->row;
+    return (bool)$this->row;
   }
 
   // End of interface methods
 
-  public function limit($limit)
+  public function limit(int $limit): BrGenericSQLProviderCursor
   {
     $this->limit = $limit;
 
     return $this;
   }
 
-  public function skip($skip)
+  public function skip(int $skip): BrGenericSQLProviderCursor
   {
     $this->skip = $skip;
 
     return $this;
   }
 
-  public function sort($order = [])
+  public function sort(array $order = []): BrGenericSQLProviderCursor
   {
     $this->orderBy = $order;
 
     return $this;
   }
 
-  public function group($fields = [])
+  public function group(array $fields = []): BrGenericSQLProviderCursor
   {
     $this->groupBy = $fields;
 
     return $this;
   }
 
-  public function having($conditions = [])
+  public function having(array $conditions = []): BrGenericSQLProviderCursor
   {
     $this->having = $conditions;
 
     return $this;
   }
 
-  public function count()
+  public function count(): int
   {
     return $this->provider->getRowsAmountEx($this->buildSql(), $this->args);
   }
 
-  public function getStatement()
+  public function getStatement(): array
   {
     $finalSql = $this->buildSql();
-    if (strlen($this->limit)) {
+    if ($this->limit) {
       $finalSql = $this->provider->getLimitSQL($finalSql, $this->skip, $this->limit);
     }
 
@@ -127,10 +130,10 @@ class BrGenericSQLProviderCursor implements \Iterator
     ];
   }
 
-  public function getSQL()
+  public function getSQL(): string
   {
     $finalSql = $this->buildSql();
-    if (strlen($this->limit)) {
+    if ($this->limit) {
       $finalSql = $this->provider->getLimitSQL($finalSql, $this->skip, $this->limit);
     }
     if ($this->args) {
@@ -142,7 +145,7 @@ class BrGenericSQLProviderCursor implements \Iterator
 
   // private
 
-  private function buildSql()
+  private function buildSql(): string
   {
     $finalSql = $this->sql;
 
@@ -165,11 +168,22 @@ class BrGenericSQLProviderCursor implements \Iterator
     return $finalSql;
   }
 
-  private function getData()
+  /**
+   * @throws BrDBForeignKeyException
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBException
+   * @throws BrDBDeadLockException
+   * @throws BrDBUniqueException
+   * @throws BrDBEngineException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   */
+  private function getData(): BrGenericSQLProviderCursor
   {
     if ($this->position == -1) {
       $finalSql = $this->buildSql();
-      if (strlen($this->limit)) {
+      if ($this->limit) {
         $finalSql = $this->provider->getLimitSQL($finalSql, $this->skip, $this->limit);
       }
       try {

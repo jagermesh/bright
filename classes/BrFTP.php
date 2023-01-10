@@ -121,7 +121,7 @@ class BrFTP extends BrRemoteFileServerConnection
       $targetFileName = br()->fs()->fileName($sourceFilePath);
     }
     $targetFileNamePartial = $targetFileName . '.partial';
-    if (ftp_put($this->connectionId, $targetFileNamePartial, $sourceFilePath, FTP_BINARY)) {
+    if (ftp_put($this->connectionId, $targetFileNamePartial, $sourceFilePath)) {
       if ($this->renameFile($targetFileNamePartial, $targetFileName)) {
         return true;
       }
@@ -154,7 +154,7 @@ class BrFTP extends BrRemoteFileServerConnection
       $targetFileName = $sourceFileName;
     }
     $targetFileNamePartial = $targetFileName . '.partial';
-    if (ftp_get($this->connectionId, $targetFilePath . $targetFileNamePartial, $sourceFileName, FTP_BINARY)) {
+    if (ftp_get($this->connectionId, $targetFilePath . $targetFileNamePartial, $sourceFileName)) {
       if (rename($targetFilePath . $targetFileNamePartial, $targetFilePath . $targetFileName)) {
         return true;
       }

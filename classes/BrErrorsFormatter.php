@@ -89,11 +89,11 @@ class BrErrorsFormatter
 
   public static function getStackTraceFromException(\Throwable $e): string
   {
-    $result = '';
+    $result = sprintf('    in %s, %s', $e->getFile(), $e->getLine());
 
     foreach ($e->getTrace() as $statement) {
       $result .= "\n" . self::formatStackTraceCall($statement);
-      $result .= "\n" . '    in ' . self::formatStackTraceSource($statement);
+      $result .= "\n" . sprintf('    in %s', self::formatStackTraceSource($statement));
     }
 
     return ltrim($result, "\n");

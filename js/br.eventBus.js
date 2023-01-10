@@ -10,205 +10,228 @@
 (function(window) {
   window.br = window.br || {};
 
-  function BrEventBus(endpointUrl) {
-    const _this = this;
+  window.br.ebsCache = window.br.ebsCache || new Map();
 
-    _this.events = br.eventQueue(_this);
-    _this.subscriptions = br.eventQueue(_this);
-    _this.spaces = br.eventQueue(_this);
+  class BrEventBus {
+    constructor(endpointUrl) {
+      const _this = this;
 
-    const debugMode = false;
-    const reconnectTimeout = 1000;
-    const isValid = (endpointUrl && (typeof WebSocket != 'undefined'));
+      _this.endpointUrl = endpointUrl;
 
-    let webSocket;
-    let reconnectsCounter = 0;
-    let reconnectTimer;
-    let successfulConnections = 0;
-    let __clientUID;
-    let __userInfo;
+      _this.isValid = (_this.endpointUrl && (typeof WebSocket != 'undefined'));
 
-    function reconnect() {
-      window.clearTimeout(reconnectTimer);
-      let timeout = reconnectsCounter * reconnectTimeout;
-      if (debugMode && (timeout > 0)) {
-        br.log((successfulConnections > 0 ? 're' : '') + 'connecting in ' + timeout + 'ms');
-      }
-      reconnectTimer = window.setTimeout(function() {
-        if (debugMode) {
-          br.log((successfulConnections > 0 ? 're' : '') + 'connecting');
+      _this.debugMode = false;
+      _this.reconnectTimeout = 1000;
+      _this.reconnectsCounter = 0;
+      _this.webSocket = null;
+      _this.reconnectTimer = null;
+      _this.keepAliveTimer = null;
+      _this.successfulConnections = 0;
+      _this.clientUID = '';
+      _this.knownClientUIDs = [];
+      _this.userInfo = {};
+
+      _this.events = br.eventQueue(_this);
+      _this.subscriptions = br.eventQueue(_this);
+      _this.spaces = br.eventQueue(_this);
+
+      window.setTimeout(function() {
+        if (_this.isValid) {
+          _this.reconnect();
+        } else {
+          _this.events.trigger('error', 'Not configured');
         }
-        connect();
+      }, 100);
+    }
+
+    reconnect() {
+      const _this = this;
+
+      window.clearTimeout(_this.reconnectTimer);
+
+      let timeout = _this.reconnectsCounter * _this.reconnectTimeout;
+      if (_this.debugMode && (timeout > 0)) {
+        br.log(`${(_this.successfulConnections > 0 ? 're' : '')}connecting in ${timeout}ms`);
+      }
+      _this.reconnectTimer = window.setTimeout(function() {
+        if (_this.debugMode) {
+          br.log(`${(_this.successfulConnections > 0 ? 're' : '')}connecting`);
+        }
+        _this.connect();
       }, timeout);
     }
 
-    function subscribe() {
-      if (webSocket && (webSocket.readyState == 1) && (_this.subscriptions.getEvents().length > 0)) {
+    publishSubscriptions() {
+      if (this.webSocket && (this.webSocket.readyState == 1) && (this.subscriptions.getEvents().length > 0)) {
         let message = {
           action: 'eventBus.subscribe',
           data: {
-            events: _this.subscriptions.getEvents(),
-            spaces: _this.spaces.getEvents(),
-            userInfo: __userInfo
+            events: this.subscriptions.getEvents(),
+            spaces: this.spaces.getEvents(),
+            userInfo: this.userInfo
           }
         };
         try {
-          webSocket.send(JSON.stringify(message));
+          this.webSocket.send(JSON.stringify(message));
         } catch (error) {
-          _this.events.trigger('error', error);
+          this.events.trigger('error', error);
         }
       }
     }
 
-    function handleConnectionError(error) {
-      if (webSocket) {
+    handleConnectionError(error) {
+      if (this.webSocket) {
         try {
-          webSocket.onopen = null;
-          webSocket.onmessage = null;
-          webSocket.onclose = null;
-          webSocket.onerror = null;
-          if (webSocket.readyState == 1) {
-            webSocket.close();
+          this.webSocket.onopen = null;
+          this.webSocket.onmessage = null;
+          this.webSocket.onclose = null;
+          this.webSocket.onerror = null;
+          if (this.webSocket.readyState == 1) {
+            this.webSocket.close();
           }
         } catch (exception) {
           //
         }
-        webSocket = null;
+        this.webSocket = null;
       }
-      _this.setClientUID(undefined);
-      _this.events.trigger('error', error);
-      _this.events.trigger('disconnected');
-      reconnectsCounter++;
-      if (reconnectsCounter > 60) {
-        reconnectsCounter = 60;
+      this.events.trigger('error', error);
+      this.events.trigger('disconnected');
+      this.reconnectsCounter++;
+      if (this.reconnectsCounter > 60) {
+        this.reconnectsCounter = 60;
       }
-      reconnect();
+      this.reconnect();
     }
 
-    const connectionClosed = function(event) {
-      if (debugMode) {
+    connectionClosed(event) {
+      if (this.debugMode) {
         br.log(event);
       }
-      handleConnectionError('Connection closed');
-    };
+      window.clearInterval(this.keepAliveTimer);
+      this.handleConnectionError('Connection closed');
+    }
 
-    function connect() {
+    connect() {
+      const _this = this;
+
       try {
-        webSocket = new WebSocket(endpointUrl);
-        webSocket.onopen = function(event) {
-          if (debugMode) {
+        _this.webSocket = new WebSocket(_this.endpointUrl);
+        _this.webSocket.onopen = function(event) {
+          if (_this.debugMode) {
             br.log(event);
           }
           _this.events.trigger('connected');
-          reconnectsCounter = 0;
-          successfulConnections++;
-          subscribe();
+          _this.reconnectsCounter = 0;
+          _this.successfulConnections++;
+          _this.publishSubscriptions();
+          _this.keepAliveTimer = window.setInterval(function() {
+            _this.webSocket.send('keep-alive');
+          }, 59 * 1000);
         };
-        webSocket.onmessage = function(event) {
-          if (debugMode) {
+        _this.webSocket.onmessage = function(event) {
+          if (_this.debugMode) {
             br.log(event);
           }
           try {
             let message = $.parseJSON(event.data);
             switch (message.action) {
-            case 'eventBus.registered':
-              _this.setClientUID(message.clientUID);
-              break;
-            case 'eventBus.usersList':
-              _this.spaces.trigger(message.spaceName, message.data);
-              break;
-            default:
-              if (!message.clientUID || (_this.getClientUID() != message.clientUID)) {
-                _this.subscriptions.trigger(message.action, message.data);
-              }
+              case 'eventBus.registered':
+                _this.setClientUID(message.clientUID);
+                break;
+              case 'eventBus.usersList':
+                _this.spaces.trigger(message.spaceName, message.data);
+                break;
+              default:
+                if (_this.getClientUID() && (!message.clientUID || !_this.isKnownClientUID(message.clientUID))) {
+                  _this.subscriptions.trigger(message.action, message.data);
+                }
+                break;
             }
           } catch (exception) {
             br.log(exception);
           }
         };
-        webSocket.onclose = function(event) {
-          connectionClosed(event);
+        _this.webSocket.onclose = function(event) {
+          _this.connectionClosed(event);
         };
-        webSocket.onerror = function(event) {
-          connectionClosed(event);
+        _this.webSocket.onerror = function(event) {
+          _this.connectionClosed(event);
         };
       } catch (exception) {
-        if (debugMode) {
+        if (_this.debugMode) {
           br.log('exception');
           br.log(exception);
         }
-        handleConnectionError(exception);
+        _this.handleConnectionError(exception);
       }
     }
 
-    _this.isValid = function() {
-      return isValid;
-    };
-
-    _this.setClientUID = function(clientUID) {
-      __clientUID = clientUID;
-      if (__clientUID) {
-        _this.events.trigger('registered', __clientUID);
+    setClientUID(value) {
+      if (value) {
+        this.clientUID = value;
+        this.knownClientUIDs.push(value);
+        if (this.debugMode) {
+          br.log('Known clientUIDs', this.knownClientUIDs);
+        }
+        this.events.trigger('registered', value);
         return;
       }
-      _this.events.trigger('unregistered');
-    };
+      this.events.trigger('unregistered');
+    }
 
-    _this.getClientUID = function() {
-      return __clientUID;
-    };
+    getClientUID() {
+      return this.clientUID;
+    }
 
-    _this.on = function(event, callback) {
-      if (webSocket && (webSocket.readyState == 1) && (event == 'connected')) {
+    isKnownClientUID(value) {
+      return this.knownClientUIDs.indexOf(value) != -1;
+    }
+
+    on(event, callback) {
+      if ((event == 'connected') && this.webSocket && (this.webSocket.readyState == 1)) {
         callback();
-        return;
       }
-      if ((event == 'registered') && __clientUID) {
-        callback(__clientUID);
-        return;
+      if ((event == 'registered') && this.clientUID) {
+        callback(this.clientUID);
       }
-      _this.events.on(event, callback);
-    };
+      this.events.on(event, callback);
+    }
 
-    _this.off = function(event) {
-      _this.events.off(event);
-    };
+    off(event) {
+      this.events.off(event);
+    }
 
-    _this.offAll = function() {
-      _this.events = br.eventQueue(_this);
-    };
+    offAll() {
+      this.events = br.eventQueue(this);
+    }
 
-    _this.subscribe = function(event, callback) {
-      _this.subscriptions.on(event, callback);
-      subscribe();
-    };
+    subscribe(event, callback) {
+      this.subscriptions.on(event, callback);
+      this.publishSubscriptions();
+    }
 
-    _this.unsubscribe = function(event) {
-      _this.subscriptions.off(event);
-    };
+    unsubscribe(event) {
+      this.subscriptions.off(event);
+    }
 
-    _this.unsubscribeAll = function() {
-      _this.subscriptions.subscribers = {};
-    };
+    unsubscribeAll() {
+      this.subscriptions.subscribers = {};
+    }
 
-    _this.joinSpace = function(spaceName, userInfo, callback) {
-      __userInfo = userInfo;
-      _this.spaces.on(spaceName, callback);
-      subscribe();
-    };
-
-    window.setTimeout(function() {
-      if (_this.isValid()) {
-        reconnect();
-      } else {
-        _this.events.trigger('error', 'Not configured');
-      }
-    }, 100);
-
-    return this;
+    joinSpace(spaceName, userInfo, callback) {
+      this.userInfo = userInfo;
+      this.spaces.on(spaceName, callback);
+      this.publishSubscriptions();
+    }
   }
 
   window.br.eventBus = function(endpointUrl) {
-    return new BrEventBus(endpointUrl);
+    if (window.br.ebsCache.has(endpointUrl)) {
+      return window.br.ebsCache.get(endpointUrl);
+    } else {
+      let ebs = new BrEventBus(endpointUrl);
+      window.br.ebsCache.set(endpointUrl, ebs);
+      return ebs;
+    }
   };
 })(window);

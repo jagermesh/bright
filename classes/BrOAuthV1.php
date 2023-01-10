@@ -4,9 +4,9 @@ namespace Bright;
 
 class BrOAuthV1 extends BrOAuth
 {
-  private $OAuthKey;
-  private $OAuthSecret;
-  private $signatureMethod = 'SHA1';
+  private string $OAuthKey;
+  private string $OAuthSecret;
+  private string $signatureMethod = 'SHA1';
 
   public bool $debugMode = false;
 
@@ -22,8 +22,12 @@ class BrOAuthV1 extends BrOAuth
 
   public function resetToken()
   {
+    //
   }
 
+  /**
+   * @return false|string
+   */
   private function generateBaseString(string $method, string $url, array $params = [])
   {
     $url = parse_url($url);
@@ -48,6 +52,10 @@ class BrOAuthV1 extends BrOAuth
     $this->signatureMethod = $value;
   }
 
+  /**
+   * @throws BrOAuthV1Exception
+   * @throws \Exception
+   */
   public function sign(string $method, string $url, array $params = [], string $content = '')
   {
     switch (strtolower($this->signatureMethod)) {
@@ -82,6 +90,9 @@ class BrOAuthV1 extends BrOAuth
     return substr($authHeader, 0, -2);
   }
 
+  /**
+   * @throws BrOAuthV1Exception
+   */
   public function sendSignedRequest(string $method, string $url, array $params = [], string $content = '', array $additionalHeaders = [])
   {
     $checkurl = parse_url($url);

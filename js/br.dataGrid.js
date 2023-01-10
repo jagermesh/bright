@@ -359,17 +359,12 @@
       options.disableEvents = true;
       options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
       let filter;
-      if (br.isArray(rowid)) {
+      if (br.isArray(rowid) || !br.isObject(rowid)) {
         filter = {
           rowid: rowid
         };
-      } else
-      if (br.isObject(rowid)) {
-        filter = rowid;
       } else {
-        filter = {
-          rowid: rowid
-        };
+        filter = rowid;
       }
       _this.events.triggerBefore('reloadRow', filter, options);
       _this.dataSource.select(filter, function(result, response) {
@@ -499,7 +494,7 @@
     }
 
     function showOrder(orderAndGroup) {
-      for (let i = 0, length = orderAndGroup.length; i < length; i++) {
+      for (let i = 0; i < orderAndGroup.length; i++) {
         let ctrl = $('.sortable[data-field="' + orderAndGroup[i].fieldName + '"].' + (orderAndGroup[i].asc ? 'order-asc' : 'order-desc'), $(_this.options.selectors.header));
         ctrl.addClass('icon-white').addClass('icon-border').addClass('fa-border');
         let idx = ctrl.parent().find('div.br-sort-index');
@@ -517,7 +512,7 @@
       let order = _this.getOrderAndGroup();
       let result = {};
       if (br.isArray(order)) {
-        for (let i = 0, length = order.length; i < length; i++) {
+        for (let i = 0; i < order.length; i++) {
           if (order[i].asc) {
             result[order[i].fieldName] = 1;
           } else {
@@ -593,7 +588,7 @@
         if (event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) {
           orderAndGroup = _this.getOrderAndGroup();
           let newOrderAndGroup = [];
-          for (let i = 0, length = orderAndGroup.length; i < length; i++) {
+          for (let i = 0; i < orderAndGroup.length; i++) {
             if (orderAndGroup[i].fieldName != fieldName) {
               newOrderAndGroup.push(orderAndGroup[i]);
             }
@@ -688,7 +683,7 @@
         if (_this.options.freeGrid) {
           data = data[0];
           if (data.headers && (data.headers.length > 0)) {
-            for (let i = 0, length = data.headers.length; i < length; i++) {
+            for (let i = 0; i < data.headers.length; i++) {
               if (data.headers[i]) {
                 let tableRow = _this.renderHeader(data.headers[i]);
                 if (tableRow) {
@@ -698,7 +693,7 @@
             }
           }
           if (data.footers && (data.footers.length > 0)) {
-            for (let i = 0, length = data.footers.length; i < length; i++) {
+            for (let i = 0; i < data.footers.length; i++) {
               if (data.footers[i]) {
                 let tableRow = _this.renderFooter(data.headers[i]);
                 if (tableRow) {
@@ -711,7 +706,7 @@
           $(_this.options.selectors.footer).html('');
           if (data.rows) {
             if (data.rows.length > 0) {
-              for (let i = 0, length = data.rows.length; i < length; i++) {
+              for (let i = 0; i < data.rows.length; i++) {
                 if (data.rows[i]) {
                   if (data.rows[i].row) {
                     let renderedRow = _this.renderRow(data.rows[i].row);
@@ -744,21 +739,20 @@
             let group = _this.getOrderAndGroup();
             let groupValues = {};
             let groupFieldName = '';
-            for (let i = 0, length = data.length; i < length; i++) {
+            for (let i = 0; i < data.length; i++) {
               if (data[i]) {
                 if (br.isArray(group)) {
-                  let length = group.length;
-                  for (let k = 0; k < length; k++) {
+                  for (let k = 0; k < group.length; k++) {
                     groupFieldName = group[k].fieldName;
                     if (group[k].group && (groupValues[groupFieldName] != data[i][groupFieldName])) {
-                      for (let j = k; j < length; j++) {
+                      for (let j = k; j < group.length; j++) {
                         groupFieldName = group[j].fieldName;
                         groupValues[groupFieldName] = undefined;
                       }
                       break;
                     }
                   }
-                  for (let k = 0; k < length; k++) {
+                  for (let k = 0; k < group.length; k++) {
                     groupFieldName = group[k].fieldName;
                     if (group[k].group && (groupValues[groupFieldName] != data[i][groupFieldName])) {
                       groupValues[groupFieldName] = data[i][groupFieldName];

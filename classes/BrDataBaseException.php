@@ -2,6 +2,6 @@
 
 namespace Bright;
 
-class BrDataBaseException extends \Exception
+class BrDataBaseException extends BrException
 {
 }

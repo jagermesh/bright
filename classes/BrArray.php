@@ -30,8 +30,7 @@ class BrArray extends BrGenericDataType
   }
 
   /**
-   * @param mixed
-   * @param boolean
+   * @param mixed $needle
    */
   public function contain($needle, bool $ignoreCase = false): bool
   {
@@ -39,8 +38,7 @@ class BrArray extends BrGenericDataType
   }
 
   /**
-   * @param mixed
-   * @param boolean
+   * @param mixed $needle
    */
   public function has($needle, bool $ignoreCase = false): bool
   {
@@ -48,8 +46,7 @@ class BrArray extends BrGenericDataType
   }
 
   /**
-   * @param mixed
-   * @param boolean
+   * @param mixed $needle
    */
   public function exists($needle, bool $ignoreCase = false): bool
   {
@@ -78,7 +75,7 @@ class BrArray extends BrGenericDataType
   }
 
   /**
-   * @param $needle
+   * @param mixed $needle
    */
   public function indexOf($needle): int
   {
@@ -100,7 +97,7 @@ class BrArray extends BrGenericDataType
   }
 
   /**
-   * @param mixed
+   * @param mixed $candidate
    * @throws \Exception
    */
   public function compare($candidate, bool $ignoreCase = false): array
@@ -366,7 +363,7 @@ class BrArray extends BrGenericDataType
   // private
 
   /**
-   * @param $element
+   * @param mixed $element
    */
   private function canMoveElement($element, ?callable $blockShufflingCheck): bool
   {
@@ -377,9 +374,7 @@ class BrArray extends BrGenericDataType
     }
   }
 
-  /**
-   * @param $item
-   */
+
   private function sortArrayKeysRecursively(&$item)
   {
     if (is_array($item)) {

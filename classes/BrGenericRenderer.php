@@ -64,7 +64,7 @@ abstract class BrGenericRenderer extends BrObject
   }
 
   /**
-   * @param $values
+   * @param mixed $values
    */
   public function assign(string $name, $values)
   {
@@ -72,7 +72,7 @@ abstract class BrGenericRenderer extends BrObject
   }
 
   /**
-   * @return array|bool|BrArray|BrCore|BrString|float|int|string|null
+   * @return mixed
    */
   public function getVar(?string $name = null)
   {

@@ -20,6 +20,9 @@ class BrPlaceholder extends BrObject
     return self::formatEx(func_get_args());
   }
 
+  /**
+   * @throws BrAppException
+   */
   public static function formatEx($args): string
   {
     $result = '';
@@ -99,6 +102,7 @@ class BrPlaceholder extends BrObject
 
     return $value;
   }
+
 
   private static function formatString($value): string
   {

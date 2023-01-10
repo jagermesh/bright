@@ -15,7 +15,7 @@ use phpseclib\Net\SFTP;
 
 class BrSFTP extends BrRemoteFileServerConnection
 {
-  private $connection;
+  private ?SFTP $connection = null;
   private string $currentDirectory = '/';
   private string $currentHostName;
   private string $currentUserName;
@@ -46,14 +46,12 @@ class BrSFTP extends BrRemoteFileServerConnection
     $this->currentPassword = $password;
     $this->currentPort = $port;
 
-    $_this = $this;
-
     try {
-      $this->retry(function ($iteration) use ($_this, $hostName, $userName, $password, $port) {
+      $this->retry(function ($iteration) use ($hostName, $userName, $password, $port) {
         br()->log('Connecting to ' . $userName . '@' . $hostName . ($iteration > 1 ? ' (' . $iteration . ')' : ''));
-        $_this->connection = new SFTP($hostName, $port);
-        if ($_this->connection->login($userName, $password)) {
-          $_this->currentDirectory = $_this->getServerDir();
+        $this->connection = new SFTP($hostName, $port);
+        if ($this->connection->login($userName, $password)) {
+          $this->currentDirectory = $this->getServerDir();
         } else {
           throw new BrSFTPException($userName . '@' . $hostName . ': Permission denied (publickey,password)');
         }
@@ -112,9 +110,9 @@ class BrSFTP extends BrRemoteFileServerConnection
     $order = br($options, 'order');
 
     if (br($options, 'onlyNames')) {
-      $ftpRAWList = $this->connection->nlist($this->currentDirectory, false, br($options, 'listingLimit', 0));
+      $ftpRAWList = $this->connection->nlist($this->currentDirectory);
     } else {
-      $ftpRAWList = $this->connection->rawlist($this->currentDirectory, false, br($options, 'listingLimit', 0));
+      $ftpRAWList = $this->connection->rawlist($this->currentDirectory);
     }
     if ($ftpRAWList) {
       if (is_array($ftpRAWList)) {
@@ -250,6 +248,6 @@ class BrSFTP extends BrRemoteFileServerConnection
    */
   public function getLastError(): string
   {
-    return (string)$this->connection->getLastSFTPError();
+    return $this->connection->getLastSFTPError();
   }
 }

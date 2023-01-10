@@ -16,11 +16,7 @@ class BrGenericDataSourceRow
   private array $data;
   private $rowid;
 
-  /**
-   * @param $dataSource
-   * @param $data
-   */
-  public function __construct($dataSource, $data)
+  public function __construct(BrGenericDataSource $dataSource, array $data)
   {
     $this->dataSource = $dataSource;
     $this->data = $data;
@@ -30,16 +26,15 @@ class BrGenericDataSourceRow
   /**
    * @return mixed
    */
-  public function remove()
+  public function remove(): array
   {
     return $this->dataSource->remove($this->rowid);
   }
 
   /**
-   * @param $data
    * @return mixed
    */
-  public function update($data)
+  public function update(array $data): array
   {
     return $this->dataSource->update($this->rowid, $data);
   }

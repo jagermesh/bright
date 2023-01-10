@@ -12,7 +12,7 @@ namespace Bright;
 
 class BrXSS extends BrObject
 {
-  private array $allowedDomains = [
+  private const ALLOWED_DOMAINS = [
     'playposit.com',
     'vimeo.com',
     'youtu.be',
@@ -24,8 +24,36 @@ class BrXSS extends BrObject
     'drive.google.com',
   ];
 
+  private const ON_EVENTS = [
+    'onclick',
+    'ondblclick',
+    'onmousemove',
+    'ondragover',
+    'onafterprint',
+    'onbeforeprint',
+    'onbeforeunload',
+    'onerror',
+    'onhashchange',
+    'onload',
+    'onoffline',
+    'ononline',
+    'onpageshow',
+    'onresize',
+    'onunload',
+    'onchange',
+    'oncontextmenu',
+    'onkeyup',
+    'onkeydown',
+    'onsubmit',
+    'onselect',
+    'onsearch',
+    'onreset',
+    'oninvalid',
+    'oninput',
+  ];
+
   /**
-   * @param $html
+   * @param mixed $html
    * @return mixed|string
    */
   public function cleanUp($html, callable $callback = null)
@@ -51,19 +79,23 @@ class BrXSS extends BrObject
 
           pq($doc->find('base,meta,script,object,embed'))->remove();
 
-          foreach ($doc->find('*') as $el) {
-            pq($el)->css('position', '');
-            if ($attrs = pq($el)->attr('*')) {
-              foreach ($attrs as $name => $value) {
-                if (((stripos($name, 'on') === 0) && (strtolower(trim($value)) != 'javascript:;')) || (stripos(trim($value), 'javascript:') === 0)) {
-                  pq($el)->removeAttr($name);
-                }
-              }
+          foreach (self::ON_EVENTS as $eventName) {
+            foreach ($doc->find('[' . $eventName . ']') as $el) {
+              pq($el)->removeAttr($eventName);
             }
           }
+
+          foreach ($doc->find('[href^="javascript"]') as $el) {
+            pq($el)->attr('href', 'javascript:;');
+          }
+
+          foreach ($doc->find('[style]') as $el) {
+            pq($el)->css('position', '');
+          }
+
           foreach ($doc->find('iframe') as $el) {
             if (pq($el)->attr('src')) {
-              $domains = $this->allowedDomains;
+              $domains = self::ALLOWED_DOMAINS;
               if ($additionalDomains = br()->config()->get('br/xss/domains')) {
                 $domains = array_merge($domains, $additionalDomains);
               }
@@ -80,6 +112,7 @@ class BrXSS extends BrObject
             $html = $htmlAfter;
           }
         } catch (\Exception $e) {
+          logme($e->getMessage());
           // no luck
         } finally {
           \phpQuery::unloadDocuments();

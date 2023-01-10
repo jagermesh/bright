@@ -19,6 +19,9 @@ class BrSocketClient extends BrObject
   private const CONNECT_TIMEOUT = 30;
   private const RECONNECT_TIMEOUT = 10;
 
+  /**
+   * @var resource
+   */
   private $socket;
   private bool $connected = false;
   private bool $connecting = false;
@@ -36,13 +39,13 @@ class BrSocketClient extends BrObject
 
     $this->url = $url;
     $this->parsedUrl = parse_url($this->url);
-    if (!@$this->parsedUrl['scheme']) {
+    if (!br($this->parsedUrl, 'scheme')) {
       $this->parsedUrl['scheme'] = 'http';
     }
-    if (!@$this->parsedUrl['port']) {
+    if (!br($this->parsedUrl, 'port')) {
       $this->parsedUrl['port'] = 80;
     }
-    if (!@$this->parsedUrl['host']) {
+    if (!br($this->parsedUrl, 'host')) {
       $this->parsedUrl['host'] = 'localhost';
     }
     $this->pollingUrl = $this->parsedUrl['scheme'] . '://' . $this->parsedUrl['host'] . ':' . $this->parsedUrl['port'];
@@ -67,7 +70,7 @@ class BrSocketClient extends BrObject
     return $masked;
   }
 
-  private function encodeData(string $data, bool $mask = true): string
+  private function encodeData(string $data): string
   {
     $pack = '';
 
@@ -88,16 +91,14 @@ class BrSocketClient extends BrObject
     $payload = ($payload << 0b001) | $rsv[1];
     $payload = ($payload << 0b001) | $rsv[2];
     $payload = ($payload << 0b100) | self::OPCODE_TEXT;
-    $payload = ($payload << 0b001) | $mask;
+    $payload = ($payload << 0b001) | true;
     $payload = ($payload << 0b111) | $length;
 
     $payload = pack('n', $payload) . $pack;
 
-    if ($mask) {
-      $maskKey = openssl_random_pseudo_bytes(4);
-      $payload .= $maskKey;
-      $data = $this->maskData($data, $maskKey);
-    }
+    $maskKey = openssl_random_pseudo_bytes(4);
+    $payload .= $maskKey;
+    $data = $this->maskData($data, $maskKey);
 
     return $payload . $data;
   }

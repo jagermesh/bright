@@ -2,6 +2,6 @@
 
 namespace Bright;
 
-class BrSocketConnectionException extends \Exception
+class BrSocketConnectionException extends BrException
 {
 }

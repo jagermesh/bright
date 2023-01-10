@@ -24,7 +24,7 @@ class BrGenericDataSourceCursor implements \Iterator
     }
   }
 
-  public function current()
+  public function current(): array
   {
     return $this->data[$this->position];
   }

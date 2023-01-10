@@ -26,8 +26,31 @@ class BrRESTBinder extends BrObject
   }
 
   /**
-   * @param $path
-   * @param null $dataSource
+   * @throws \Exception
+   */
+  public function routeRules(array $rules): BrRESTBinder
+  {
+    foreach ($rules as $rule) {
+      if (br()->request()->isAt($rule['path'])) {
+        $method = strtoupper(br()->request()->get(self::PARAM_CROSSDOMAIN, br()->request()->method()));
+        switch ($method) {
+          case BrConst::REQUEST_TYPE_PUT:
+            return $this->routeAsPUT($rule['path'], $rule['controller'], $rule['settings']);
+          case BrConst::REQUEST_TYPE_POST:
+            return $this->routeAsPOST($rule['path'], $rule['controller'], $rule['settings']);
+          case BrConst::REQUEST_TYPE_DELETE:
+            return $this->routeAsDELETE($rule['path'], $rule['controller'], $rule['settings']);
+          default:
+            return $this->routeAsGET($rule['path'], $rule['controller'], $rule['settings']);
+        }
+      }
+    }
+
+    return $this;
+  }
+
+  /**
+   * @param string|object $path
    * @throws \Exception
    */
   public function route($path, $dataSource = null, ?array $options = []): BrRESTBinder
@@ -35,7 +58,7 @@ class BrRESTBinder extends BrObject
     if (!br()->request()->routeComplete()) {
       if (is_object($path)) {
         $path->doRouting();
-      } else {
+      } elseif (br()->request()->isAt($path)) {
         $method = strtoupper(br()->request()->get(self::PARAM_CROSSDOMAIN, br()->request()->method()));
         switch ($method) {
           case BrConst::REQUEST_TYPE_PUT:
@@ -54,7 +77,6 @@ class BrRESTBinder extends BrObject
   }
 
   /**
-   * @param $dataSource
    * @throws \Exception
    */
   public function routeGET(string $path, $dataSource, ?array $options = []): BrRESTBinder
@@ -69,7 +91,7 @@ class BrRESTBinder extends BrObject
   }
 
   /**
-   * @param $dataSource
+   * @throws \Exception
    */
   public function routePOST(string $path, $dataSource, ?array $options = []): BrRESTBinder
   {
@@ -83,7 +105,7 @@ class BrRESTBinder extends BrObject
   }
 
   /**
-   * @param $dataSource
+   * @throws \Exception
    */
   public function routePUT(string $path, $dataSource, ?array $options = []): BrRESTBinder
   {
@@ -97,7 +119,7 @@ class BrRESTBinder extends BrObject
   }
 
   /**
-   * @param $dataSource
+   * @throws \Exception
    */
   public function routeDELETE(string $path, $dataSource, ?array $options = []): BrRESTBinder
   {
@@ -110,11 +132,14 @@ class BrRESTBinder extends BrObject
     return $this;
   }
 
+  /**
+   * @throws \Exception
+   */
   private function checkPermissions(array $options, array $methods)
   {
-    if (!array_key_exists(BrConst::REST_SETTING_SECURITY, $options)) {
-      $mustBeLoggedIn = true;
-    } else {
+    $mustBeLoggedIn = true;
+
+    if (array_key_exists(BrConst::REST_SETTING_SECURITY, $options)) {
       $securityRules = $options[BrConst::REST_SETTING_SECURITY];
 
       if (is_scalar($securityRules)) {
@@ -148,7 +173,7 @@ class BrRESTBinder extends BrObject
           }
         }
       } else {
-        throw new \Exception('Wrong security rule in route');
+        throw new BrRESTBinderException('Wrong security rule in route');
       }
     }
 
@@ -158,7 +183,6 @@ class BrRESTBinder extends BrObject
   }
 
   /**
-   * @param $dataSource
    * @throws \Exception
    */
   public function routeAsGET(string $path, $dataSource, ?array $options = []): BrRESTBinder
@@ -275,7 +299,16 @@ class BrRESTBinder extends BrObject
                             }
                             break;
                           default:
-                            if (is_numeric($name) && (is_scalar($singleValue) || (is_array($singleValue) && br($singleValue)->isRegularArray()))) {
+                            if (
+                              is_numeric($name) &&
+                              (
+                                is_scalar($singleValue) ||
+                                (
+                                  is_array($singleValue) &&
+                                  br($singleValue)->isRegularArray()
+                                )
+                              )
+                            ) {
                               $subFilter[] = $singleValue;
                             }
                             break;
@@ -435,22 +468,22 @@ class BrRESTBinder extends BrObject
           } else {
             $result = $dataSource->selectCount($filter, [], [], [
               BrConst::DATASOURCE_OPTION_SOURCE => BrConst::REQUEST_SOURCE_REST_BINDER,
+              BrConst::DATASOURCE_OPTION_DATASETS => br($dataSourceOptions, BrConst::DATASOURCE_OPTION_DATASETS, '[]'),
             ]);
           }
+        } elseif (!$filter && !$allowEmptyFilter) {
+          $result = [];
+        } elseif ($selectOne) {
+          $result = $dataSource->selectOne($filter, $dataSourceFields, [], $dataSourceOptions);
+          if (!$result) {
+            br()->response()->send404(self::ERROR_RECORD_NOT_FOUND);
+          }
+        } elseif (br()->request()->get(BrConst::REST_OPTION_RESULT) == BrConst::DATASOURCE_RESULT_TYPE_EXPORT_EXCEL) {
+          $result = $dataSource->exportToExcel($filter, $dataSourceFields, $dataSourceOrder, $dataSourceOptions);
         } else {
-          if (!$filter && !$allowEmptyFilter) {
-            $dataSourceOptions[BrConst::DATASOURCE_OPTION_LIMIT] = 0;
-          }
-
-          if ($selectOne) {
-            $result = $dataSource->selectOne($filter, $dataSourceFields, [], $dataSourceOptions);
-            if (!$result) {
-              br()->response()->send404(self::ERROR_RECORD_NOT_FOUND);
-            }
-          } else {
-            $result = $dataSource->select($filter, $dataSourceFields, $dataSourceOrder, $dataSourceOptions);
-          }
+          $result = $dataSource->select($filter, $dataSourceFields, $dataSourceOrder, $dataSourceOptions);
         }
+
         if (br()->request()->get(self::PARAM_CROSSDOMAIN)) {
           br()->response()->sendJSONP($result);
         } else {
@@ -465,7 +498,7 @@ class BrRESTBinder extends BrObject
   }
 
   /**
-   * @param $dataSource
+   * @throws \Exception
    */
   public function routeAsPOST(string $path, $dataSource, ?array $options = []): BrRESTBinder
   {
@@ -583,7 +616,7 @@ class BrRESTBinder extends BrObject
   }
 
   /**
-   * @param $dataSource
+   * @throws \Exception
    */
   public function routeAsPUT(string $path, $dataSource, ?array $options = []): BrRESTBinder
   {
@@ -651,7 +684,7 @@ class BrRESTBinder extends BrObject
   }
 
   /**
-   * @param $dataSource
+   * @throws \Exception
    */
   public function routeAsDELETE(string $path, $dataSource, ?array $options = []): BrRESTBinder
   {
@@ -716,22 +749,26 @@ class BrRESTBinder extends BrObject
     return $this;
   }
 
-  public function returnException(\Throwable $e)
+  public function returnException(\Exception $e)
   {
-    $msg = $e->getMessage();
-
-    if (!($e instanceof BrAppException)) {
+    if (
+      !($e instanceof BrAppException) &&
+      !($e instanceof BrDBException)
+    ) {
       br()->log()->error($e);
     }
-    if (br()->request()->isDevHost()) {
-      $message = $msg;
-    } elseif ($e instanceof BrDBException) {
-      $message = self::ERROR_BAD_REQUEST;
+
+    if (($e instanceof BrException) && $e->getDisplayMessage()) {
+      $errorMessage = $e->getDisplayMessage();
     } else {
-      $message = $msg;
+      $errorMessage = $e->getMessage();
+      if (!br()->request()->isProduction()) {
+        $errorMessage .= "\n\n" . BrErrorsFormatter::getStackTraceFromException($e);
+      }
     }
 
-    br()->response()->sendBadRequest($message);
+    // br()->response()->sendBadRequest(BrGenericLogAdapter::convertMessageOrObjectToText($e, !br()->request()->isProduction()));
+    br()->response()->sendBadRequest($errorMessage);
   }
 
   public function route404(string $path): BrRESTBinder

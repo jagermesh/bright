@@ -28,6 +28,9 @@ class BrOAuthV2 extends BrOAuth
     br()->cache('redis')->remove($this->cachedName);
   }
 
+  /**
+   * @throws BrOAuthV2Exception
+   */
   public function getAccessToken(string $key, string $secret, string $url, array $additionalFields = [])
   {
     $token = br()->cache('redis')->get($this->cachedName);
@@ -93,6 +96,9 @@ class BrOAuthV2 extends BrOAuth
     return $token;
   }
 
+  /**
+   * @throws BrOAuthV2Exception
+   */
   public function sendSignedRequest(string $method, string $url, array $params = [], string $content = '', array $additionalHeaders = [])
   {
     $checkurl = parse_url($url);

@@ -2,6 +2,6 @@
 
 namespace Bright;
 
-class BrImageException extends \Exception
+class BrImageException extends BrException
 {
 }

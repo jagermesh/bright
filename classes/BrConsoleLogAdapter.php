@@ -13,14 +13,14 @@ namespace Bright;
 class BrConsoleLogAdapter extends BrGenericLogAdapter
 {
   /**
-   * @param $messageOrObject
+   * @param mixed $messageOrObject
    */
   public function write($messageOrObject, ?array $params = [])
   {
     if ($this->isRegularEventType($params)) {
       $message = br()->console()->yellow(br()->getUnifiedTimestamp()) . ' ';
-      if (br()->config()->get(BrConst::CONFIG_OPTION_DB_NAME)) {
-        $message .= br()->console()->yellow('[' . br()->config()->get(BrConst::CONFIG_OPTION_DB_NAME) . ']') . ' ';
+      if (br()->db()) {
+        $message .= br()->console()->yellow('[' . br()->db()->getDataBaseName() . ']') . ' ';
       }
       if ($params['log_level']) {
         $message .= str_repeat(' ', $params['log_level'] * 2) . ' ';

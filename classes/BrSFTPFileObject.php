@@ -12,21 +12,21 @@ namespace Bright;
 
 class BrSFTPFileObject
 {
-  private $name;
-  private $extension;
-  private $size;
-  private $isDirectory;
-  private $date;
+  private string $name;
+  private string $extension;
+  private string $size;
+  private bool $isDirectory;
+  private string $date;
 
-  public function __construct($name, $params = [])
+  public function __construct(string $name, array $params = [])
   {
     $pathinfo = pathinfo($name);
 
     $this->isDirectory = (br($params, 'type') == 2);
-    $this->size = br($params, 'size');
+    $this->size = (string)br($params, 'size');
     $this->name = $name;
-    $this->extension = br($pathinfo, 'extension');
-    $this->date = br($params, 'mtime') ? date('m/d/Y H:i', $params['mtime']) : '';
+    $this->extension = (string)br($pathinfo, 'extension');
+    $this->date = (string)br($params, 'mtime') ? date('m/d/Y H:i', $params['mtime']) : '';
   }
 
   public function isFile(): bool

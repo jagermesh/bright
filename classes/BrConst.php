@@ -97,8 +97,6 @@ class BrConst
   public const DATASOURCE_OPTION_INDEX_HINT = 'indexHint';
   public const DATASOURCE_OPTION_LIMIT = 'limit';
   public const DATASOURCE_OPTION_SKIP = 'skip';
-  public const DATASOURCE_OPTION_CHECK_TRAVERSING = 'checkTraversing';
-  public const DATASOURCE_OPTION_SELCT_ADJACENT = 'selectAdjacentRecords';
   public const DATASOURCE_OPTION_ROWID_FIELD_NAME = 'rowidFieldName';
   public const DATASOURCE_OPTION_NO_CALC_FIELDS = 'noCalcFields';
   public const DATASOURCE_OPTION_RESULT = 'result';
@@ -108,51 +106,33 @@ class BrConst
   public const DATASOURCE_OPTION_FIELDS = 'fields';
   public const DATASOURCE_OPTION_PAGE = 'page';
   public const DATASOURCE_OPTION_SOURCE = 'source';
+  public const DATASOURCE_OPTION_ROW_INDEX = 'rowIndex';
 
-  public const DATASOURCE_RESULT_TYPE_CURSOR = 'cursor';
   public const DATASOURCE_RESULT_TYPE_STATEMENT = 'statement';
   public const DATASOURCE_RESULT_TYPE_SQL = 'sql';
-
-  public const DATASOURCE_EVENT_PREPARE_CALC_FIELDS = 'prepareCalcFields';
-  public const DATASOURCE_EVENT_CALC_FIELDS = 'calcFields';
-
-  public const DATASOURCE_DML_TYPE_SELECT = 'select';
-  public const DATASOURCE_DML_TYPE_INSERT = 'insert';
-  public const DATASOURCE_DML_TYPE_UPDATE = 'update';
-  public const DATASOURCE_DML_TYPE_DELETE = 'remove';
 
   public const DATASOURCE_METHOD_SELECT = 'select';
   public const DATASOURCE_METHOD_SELECT_ONE = 'selectOne';
   public const DATASOURCE_METHOD_INSERT = 'insert';
   public const DATASOURCE_METHOD_UPDATE = 'update';
   public const DATASOURCE_METHOD_INVOKE = 'invoke';
+  public const DATASOURCE_METHOD_DML = 'dml';
   public const DATASOURCE_METHOD_DELETE = 'remove';
-  public const DATASOURCE_METHOD_CHECK_LOGIN_PRIVILEGE = 'checkLoginPrivilege';
-  public const DATASOURCE_METHOD_IS_ACCESS_DENIED = 'isAccessDenied';
   public const DATASOURCE_METHOD_CALC_FIELDS = 'calcFields';
   public const DATASOURCE_METHOD_PROTECT_FIELDS = 'protectFields';
   public const DATASOURCE_METHOD_PREPARE_CALC_FIELDS = 'prepareCalcFields';
 
-  public const DATASOURCE_OPERATION_SELECT = self::DML_OPERATION_SELECT;
-  public const DATASOURCE_OPERATION_INSERT = self::DML_OPERATION_INSERT;
-  public const DATASOURCE_OPERATION_DELETE = self::DML_OPERATION_DELETE;
-  public const DATASOURCE_OPERATION_UPDATE = self::DML_OPERATION_UPDATE;
+  public const DATASOURCE_OPERATION_SELECT = 'select';
+  public const DATASOURCE_OPERATION_INSERT = 'insert';
+  public const DATASOURCE_OPERATION_DELETE = 'remove';
+  public const DATASOURCE_OPERATION_UPDATE = 'update';
   public const DATASOURCE_OPERATION_SELECT_ONE = 'selectOne';
-
-  public const DATASOURCE_EVENT_TYPE_AFTER = 'after:%s';
-  public const DATASOURCE_EVENT_TYPE_BEFORE = 'before:%s';
-
-  public const DATASOURCE_EVENT_SELECT = 'select';
-  public const DATASOURCE_EVENT_COMMIT = 'commit';
-  public const DATASOURCE_EVENT_INSERT = 'insert';
-  public const DATASOURCE_EVENT_UPDATE = 'update';
-  public const DATASOURCE_EVENT_DELETE = 'remove';
-  public const DATASOURCE_EVENT_ERROR = 'error';
 
   public const DATASOURCE_SYSTEM_FIELD_ROWID = 'rowid';
   public const DATASOURCE_SYSTEM_FIELD_PERMISSIONS = '__permissions';
 
   public const DATASOURCE_RESULT_TYPE_COUNT = 'count';
+  public const DATASOURCE_RESULT_TYPE_EXPORT_EXCEL = 'exportToExcel';
 
   public const EVENT_AFTER = 'after:%s';
   public const EVENT_BEFORE = 'before:%s';
@@ -405,7 +385,6 @@ class BrConst
 
   public const DB_ENGINE_MYSQL = 'mysql';
   public const DB_ENGINE_MYSQLI = 'mysqli';
-  public const DB_ENGINE_MONGO = 'mongodb';
   public const DB_ENGINE_MSSQL = 'mssql';
 
   public const CONTENT_TYPES = [

@@ -359,7 +359,7 @@
       <div class="modal-footer">
     `;
     if (options.showDontAskMeAgain) {
-      let dontAskMeAgainTitle = (options.dontAskMeAgainTitle) ? options.dontAskMeAgainTitle : br.trn("Don't ask me again");
+      let dontAskMeAgainTitle = (options.dontAskMeAgainTitle) ? options.dontAskMeAgainTitle : br.trn("Don't show again");
       template += `
         <label style="text-align:left;float:left;padding-top:5px;" class="checkbox">
           <input name="showDontAskMeAgain" type="checkbox" value="1"> ${dontAskMeAgainTitle}
@@ -1209,7 +1209,7 @@
     $(document).on('click', '.action-clear-selector-value', function() {
       const target = $($(this).attr('data-selector'));
       if (target.length > 0) {
-        const val = $(this).attr('data-default') ? $(this).attr('data-default') : '';
+        const val = $(target).attr('data-default') ? $(target).attr('data-default') : '';
         br.setValue(target, val);
         target.trigger('change');
         if (target.attr('data-click-on-enter')) {

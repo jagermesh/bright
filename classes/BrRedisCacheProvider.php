@@ -18,8 +18,9 @@ class BrRedisCacheProvider extends BrGenericCacheProvider
   private \Redis $redis;
 
   /**
-   * @throws BrRedisCacheProviderException
    * @throws BrException
+   * @throws BrRedisCacheProviderException
+   * @throws \RedisException
    */
   public function __construct(?array $settings = [])
   {
@@ -77,7 +78,7 @@ class BrRedisCacheProvider extends BrGenericCacheProvider
   }
 
   /**
-   * @param $default
+   * @param null $default
    * @return mixed
    */
   public function getEx(string $name, $default = null, bool $saveDefault = false): array
@@ -122,9 +123,7 @@ class BrRedisCacheProvider extends BrGenericCacheProvider
     }
   }
 
-  /**
-   * @param $value
-   */
+
   public function set(string $name, $value, ?int $lifeTime = null): bool
   {
     try {

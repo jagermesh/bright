@@ -53,7 +53,7 @@ class BrGenericAuthProvider extends BrObject
   }
 
   /**
-   * @param $value
+   * @param mixed $value
    * @return mixed
    */
   public function setLogin(string $attributeName, $value)
@@ -65,8 +65,8 @@ class BrGenericAuthProvider extends BrObject
   }
 
   /**
-   * @param $default
-   * @return array|bool|BrArray|BrCore|BrString|float|int|mixed|string|null
+   * @param null $default
+   * @return array|bool|BrArray|BrCore|BrString|float|int|string|null
    */
   public function getLogin(?string $attributeName = null, $default = null)
   {

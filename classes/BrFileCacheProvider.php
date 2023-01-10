@@ -89,7 +89,7 @@ class BrFileCacheProvider extends BrGenericCacheProvider
   }
 
   /**
-   * @param $default
+   * @param null $default
    * @return mixed
    * @throws \Exception
    */
@@ -116,7 +116,6 @@ class BrFileCacheProvider extends BrGenericCacheProvider
   }
 
   /**
-   * @param $value
    * @throws \Exception
    */
   public function set(string $name, $value, ?int $lifeTime = null): bool

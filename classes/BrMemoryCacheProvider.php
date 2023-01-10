@@ -30,7 +30,7 @@ class BrMemoryCacheProvider extends BrGenericCacheProvider
   }
 
   /**
-   * @param $default
+   * @param null $default
    * @return mixed
    */
   public function getEx(string $name, $default = null, bool $saveDefault = false): array
@@ -54,7 +54,7 @@ class BrMemoryCacheProvider extends BrGenericCacheProvider
   }
 
   /**
-   * @param $value
+   * @param mixed $value
    */
   public function set(string $name, $value, ?int $lifeTime = null): bool
   {

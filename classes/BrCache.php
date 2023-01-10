@@ -18,6 +18,7 @@ class BrCache extends BrObject
    * @throws BrCacheException
    * @throws BrException
    * @throws BrRedisCacheProviderException
+   * @throws \RedisException
    */
   public static function getProviderInstance(?string $name = null): BrGenericCacheProvider
   {
@@ -66,9 +67,11 @@ class BrCache extends BrObject
 
   /**
    * Create provider Instance
+   * @param mixed $engine
    * @return BrMemCacheCacheProvider|BrFileCacheProvider|BrAPCCacheProvider|BrXCacheCacheProvider|BrRedisCacheProvider|BrMemoryCacheProvider
    * @throws BrException
    * @throws BrRedisCacheProviderException
+   * @throws \RedisException
    */
   private static function createProviderInstance($engine = null, ?array $settings = []): BrGenericCacheProvider
   {

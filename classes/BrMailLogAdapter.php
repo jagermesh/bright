@@ -19,9 +19,7 @@ class BrMailLogAdapter extends BrGenericLogAdapter
 
   private $email;
 
-  /**
-   * @param $email
-   */
+
   public function __construct($email = null)
   {
     $this->email = $email;
@@ -29,9 +27,7 @@ class BrMailLogAdapter extends BrGenericLogAdapter
     parent::__construct();
   }
 
-  /**
-   * @param $email
-   */
+
   public function setEMail($email)
   {
     $this->email = $email;
@@ -63,9 +59,8 @@ class BrMailLogAdapter extends BrGenericLogAdapter
   }
 
   /**
-   * @param $messageOrObject
+   * @param mixed $messageOrObject
    * @throws TransportExceptionInterface
-   * @throws \Exception
    */
   public function write($messageOrObject, ?array $params = [])
   {
@@ -77,7 +72,11 @@ class BrMailLogAdapter extends BrGenericLogAdapter
               return;
             }
 
-            $excerpt = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject);
+            if ($messageOrObject instanceof \Exception) {
+              $excerpt = $messageOrObject->getMessage();
+            } else {
+              $excerpt = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject);
+            }
 
             $this->initCache();
 

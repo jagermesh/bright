@@ -26,8 +26,13 @@ abstract class BrDataBasePatch
   public const DO_RETRY = 2;
 
   abstract public function up();
-  abstract public function down($failedStepName, $errorMessage);
 
+  /**
+   * @param string $failedStepName
+   * @param string $errorMessage
+   * @return mixed
+   */
+  abstract public function down($failedStepName, $errorMessage);
 
   public function __construct(string $patchFile, BrDataBaseManager $dbManager)
   {
@@ -54,6 +59,15 @@ abstract class BrDataBasePatch
 
   /**
    * @throws BrAppException
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
    */
   public function checkDependencies(): bool
   {
@@ -73,11 +87,20 @@ abstract class BrDataBasePatch
   }
 
   /**
-   * @throws BrSamePatchException
    * @throws BrAppException
    * @throws BrAssertException
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
+   * @throws BrSamePatchException
    */
-  public function checkRequirements($regularRun = true, $command = 'run'): bool
+  public function checkRequirements(bool $regularRun = true, string $command = 'run'): bool
   {
     br()->assert($this->guid, 'Please generate GUID for this patch');
 
@@ -139,6 +162,17 @@ abstract class BrDataBasePatch
     return true;
   }
 
+  /**
+   * @throws BrDBForeignKeyException
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBException
+   * @throws BrDBDeadLockException
+   * @throws BrDBUniqueException
+   * @throws BrDBEngineException
+   * @throws BrDBRecoverableException
+   * @throws BrDBLockException
+   * @throws BrDBServerGoneAwayException
+   */
   public function run(): bool
   {
     br()->log()->message('Apply');
@@ -234,11 +268,11 @@ abstract class BrDataBasePatch
         $script = str_replace('/* [[DEFINER]] */', $definer, $script);
         return $this->executeScript($script);
       } else {
-        $error = 'Error. UP step "' . $stepName . '":' . "\n\nScript file empty: " . $fileName;
+        $error = $this->logPrefix() . ' Error. UP step "' . $stepName . '":' . "\n\nScript file empty: " . $fileName;
         throw new BrAppException($error);
       }
     } else {
-      $error = 'Error. UP step "' . $stepName . '":' . "\n\nScript file not found: " . $fileName;
+      $error = $this->logPrefix() . ' Error. UP step "' . $stepName . '":' . "\n\nScript file not found: " . $fileName;
       throw new BrAppException($error);
     }
   }
@@ -250,7 +284,7 @@ abstract class BrDataBasePatch
   {
     $stepName = $stepName ? $stepName : $this->stepNo;
 
-    br()->log()->message(br('=')->repeat(20) . ' ' . 'UP step "' . $stepName . '"' . ' ' . br('=')->repeat(20));
+    br()->log()->message(br('=')->repeat(20) . ' UP step "' . $stepName . '"' . ' ' . br('=')->repeat(20));
     try {
       if (is_callable($sql)) {
         $sql();
@@ -259,21 +293,20 @@ abstract class BrDataBasePatch
         br()->db()->runQuery($sql);
       }
     } catch (\Exception $e) {
-      $error = 'Error. UP step "' . $stepName . '":' . "\n\n" . $e->getMessage();
+      $error = $this->logPrefix() . ' Error. UP step "' . $stepName . '":' . "\n\n" . $e->getMessage();
       br()->log()->message(br('=')->repeat(20) . ' ' . 'DOWN step "' . $stepName . '"' . ' ' . br('=')->repeat(20));
       try {
         $retry = $this->down($stepName, $e->getMessage());
       } catch (\Exception $e2) {
-        $error = $error . "\n" .
-          'DOWN error step "' . $stepName . '":' . "\n\n" . $e2->getMessage();
+        $error .= "\n" .
+          'Error. DOWN step "' . $stepName . '":' . "\n\n" . $e2->getMessage();
         throw new BrAppException($error);
       }
       switch ($retry) {
         case self::DO_CONTINUE:
           break;
         case self::DO_RETRY:
-          br()->log()->message($error);
-          br()->log()->message('DOWN step "' . $stepName . '" requested rerun');
+          br()->log()->message('Error. DOWN step "' . $stepName . '":' . "\n\n" . $error . "\n\n" . 'Rerun requested.');
           try {
             if (is_callable($sql)) {
               $sql();
@@ -283,7 +316,7 @@ abstract class BrDataBasePatch
               br()->db()->runQuery($sql);
             }
           } catch (\Exception $e) {
-            throw new BrAppException('UP error step "' . $stepName . '":' . "\n\n" . $e->getMessage());
+            throw new BrAppException($this->logPrefix() . ' Error. UP step "' . $stepName . '":' . "\n\n" . $e->getMessage());
           }
           break;
         default:

@@ -2,6 +2,6 @@
 
 namespace Bright;
 
-class BrRESTUsersBinderException extends \Exception
+class BrRESTUsersBinderException extends BrException
 {
 }

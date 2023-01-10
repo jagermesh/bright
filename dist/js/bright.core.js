@@ -1100,6 +1100,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
     };
 
+    _this.exists = function(key) {
+      let result = _helper.unpack(_storage.getItem(key));
+      return !br.isEmpty(result);
+    };
+
     _this.set = function(key, value) {
       if (br.isObject(key)) {
         for (let name in key) {
@@ -1340,144 +1345,142 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 (function(window) {
   window.br = window.br || {};
 
-  function BrEventQueue(obj) {
-    const _this = this;
+  class BrEventQueue {
+    constructor(owner) {
+      this.subscribers = {};
+      this.connections = [];
+      this.owner = owner || this;
+      this.enabled = true;
+    }
 
-    _this.subscribers = {};
-    _this.connections = [];
-    _this.obj = obj || _this;
-    _this.enabled = true;
+    enable() {
+      this.enabled = true;
+    }
 
-    _this.enable = function() {
-      _this.enabled = true;
-    };
+    disable() {
+      this.enabled = false;
+    }
 
-    _this.disable = function() {
-      _this.enabled = false;
-    };
-
-    function subscribe(events, action, func) {
+    subscribe(events, action, func) {
       let eventsArray = events.split(',');
       for (let i = 0, length = eventsArray.length; i < length; i++) {
         let event = eventsArray[i];
-        if (!_this.subscribers[event]) {
-          _this.subscribers[event] = Object.create({
+        if (!this.subscribers[event]) {
+          this.subscribers[event] = {
             on: [],
             pause: [],
             before: [],
             after: []
-          });
+          };
         }
-        _this.subscribers[event][action].push(func);
+        this.subscribers[event][action].push(func);
       }
     }
 
-    _this.before = function(events, func) {
-      subscribe(events, 'before', func);
-    };
+    before(events, func) {
+      this.subscribe(events, 'before', func);
+    }
 
-    _this.on = function(events, func) {
-      subscribe(events, 'on', func);
-    };
+    on(events, func) {
+      this.subscribe(events, 'on', func);
+    }
 
-    _this.pause = function(events, func) {
-      subscribe(events, 'pause', func);
-    };
+    pause(events, func) {
+      this.subscribe(events, 'pause', func);
+    }
 
-    _this.after = function(events, func) {
-      subscribe(events, 'after', func);
-    };
+    after(events, func) {
+      this.subscribe(events, 'after', func);
+    }
 
-    _this.off = function(events) {
+    off(events) {
       let eventsArray = events.split(',');
       for (let i = 0, length = eventsArray.length; i < length; i++) {
         let event = eventsArray[i];
-        delete _this.subscribers[event];
+        delete this.subscribers[event];
       }
-    };
+    }
 
-    _this.has = function(event, action) {
-      return _this.subscribers[event] && (!action || (_this.subscribers[event][action].length > 0));
-    };
+    has(event, action) {
+      return this.subscribers[event] && (!action || (this.subscribers[event][action].length > 0));
+    }
 
-    _this.connectTo = function(eventQueue) {
-      _this.connections.push(eventQueue);
-    };
+    connectTo(eventQueue) {
+      this.connections.push(eventQueue);
+    }
 
-    _this.getEvents = function() {
+    getEvents() {
       let result = [];
-      for (let name in _this.subscribers) {
+      for (let name in this.subscribers) {
         result.push(name);
       }
       return result;
-    };
+    }
 
-    function triggerOne(event, action, args) {
+    triggerOne(event, action, args) {
       let result = null;
-      let subscribers = _this.subscribers[event];
+      let subscribers = this.subscribers[event];
       if (subscribers) {
         let funcs = subscribers[action];
         if (funcs) {
           for (let i = 0, length = funcs.length; i < length; i++) {
-            result = funcs[i].apply(_this.obj, args);
+            result = funcs[i].apply(this.owner, args);
           }
         }
       }
       return result;
     }
 
-    function trigger(event, action, params) {
-      if (_this.enabled) {
+    triggerEventActionWithParams(event, action, params) {
+      if (this.enabled) {
         if (event != '*') {
-          _this.triggerEx('*', action, params);
+          this.triggerEx('*', action, params);
         }
-        let result = triggerOne(event, action, params);
-        for (let i = 0, length = _this.connections.length; i < length; i++) {
-          _this.connections[i].triggerEx(event, action, params);
+        let result = this.triggerOne(event, action, params);
+        for (let i = 0, length = this.connections.length; i < length; i++) {
+          this.connections[i].triggerEx(event, action, params);
         }
         return result;
       }
     }
 
-    _this.triggerBefore = function(event) {
+    triggerBefore(event) {
       let params = Array.from(arguments);
       params.splice(0, 1);
-      return trigger(event, 'before', params);
-    };
+      return this.triggerEventActionWithParams(event, 'before', params);
+    }
 
-    _this.trigger = function(event) {
+    trigger(event) {
       let params = Array.from(arguments);
       params.splice(0, 1);
-      return trigger(event, 'on', params);
-    };
+      return this.triggerEventActionWithParams(event, 'on', params);
+    }
 
-    _this.triggerPause = function(event) {
+    triggerPause(event) {
       let params = Array.from(arguments);
       params.splice(0, 1);
-      return trigger(event, 'pause', params);
-    };
+      return this.triggerEventActionWithParams(event, 'pause', params);
+    }
 
-    _this.triggerAfter = function(event) {
+    triggerAfter(event) {
       let params = Array.from(arguments);
       params.splice(0, 1);
-      return trigger(event, 'after', params);
-    };
+      return this.triggerEventActionWithParams(event, 'after', params);
+    }
 
-    _this.triggerCustom = function(event, action) {
+    triggerCustom(event, action) {
       let params = Array.from(arguments);
       params.splice(0, 2);
-      return trigger(event, action, params);
-    };
+      return this.triggerEventActionWithParams(event, action, params);
+    }
 
-    _this.triggerEx = function(event, action, params) {
-      return trigger(event, action, params);
-    };
-
-    return _this;
+    triggerEx(event, action, params) {
+      return this.triggerEventActionWithParams(event, action, params);
+    }
   }
 
-  window.br.eventQueue = function(obj) {
-    return new BrEventQueue(obj);
+  window.br.eventQueue = function(owner) {
+    return new BrEventQueue(owner);
   };
 })(window);
 /*!
@@ -2447,10 +2450,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   };
 
   window.br.backToCaller = function(href, refresh) {
-    let inPopup = (window.opener !== null);
-
     // check opener
-    if (inPopup) {
+    if (window.opener !== null) {
       // is opener still exists?
       if (window.opener) {
         if (!window.opener.closed) {
@@ -2470,6 +2471,27 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     } else
     if (br.request.get('caller')) {
       document.location = br.request.get('caller');
+    } else
+    if (document.referrer && (document.referrer.indexOf(`${document.location.protocol}//${document.location.host}`) === 0)) {
+      if (br.isSafari()) {
+        if (history.length > 0) {
+          history.back();
+          window.setTimeout(function () {
+            if (document.location != document.referrer) {
+              document.location = document.referrer;
+            }
+          });
+        } else {
+          document.location = document.referrer;
+        }
+      } else {
+        window.close();
+        window.setTimeout(function () {
+          if (document.location != document.referrer) {
+            document.location = document.referrer;
+          }
+        });
+      }
     } else {
       document.location = href;
     }
@@ -2707,7 +2729,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
   };
 
-  function triggerErrorEvent(data) {
+  function triggerErrorEvent(data, event) {
     if (data.reason && (data.reason != 'Script error.')) {
       try {
         let result = window.br.events.trigger('error', data);
@@ -2735,11 +2757,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         location: document.location.toString()
       };
 
-      triggerErrorEvent(data);
+      triggerErrorEvent(data, event);
     });
 
     window.addEventListener('unhandledrejection', function(event) {
-      if (event.srcElement.origin != document.location.origin) {
+      if (event.target.origin != document.location.origin) {
         return;
       }
 
@@ -2752,14 +2774,12 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         location: document.location.toString()
       };
 
-      triggerErrorEvent(data);
-
-      window.br.logWarning(`Unhandled Promise Rejection: ${data.message}`);
-      if (data.data) {
-        window.br.logWarning(data.data);
+      window.br.logWarning('Unhandled promise rejection');
+      if (data.reason) {
+        window.br.logWarning(data.reason);
       }
 
-      event.preventDefault();
+      triggerErrorEvent(data, event);
     });
   }
 
@@ -2785,15 +2805,15 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         if (!error.filename || (error.filename.indexOf('chrome-extension') !== 0)) {
           let message = '';
           switch (format) {
-          case 'html':
-            message = printObject(error, '<br />');
-            break;
-          case 'text':
-            message = printObject(error, '\n');
-            break;
-          default:
-            message = JSON.stringify(error);
-            break;
+            case 'html':
+              message = printObject(error, '<br />');
+              break;
+            case 'text':
+              message = printObject(error, '\n');
+              break;
+            default:
+              message = JSON.stringify(error);
+              break;
           }
           let data = new FormData();
           data.append('error', message);
@@ -2959,7 +2979,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         reject({
           request: request,
           options: options,
-          errorMessage: errorMessage
+          errorMessage: errorMessage.toString()
         });
       }
     };
@@ -3019,7 +3039,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
                 reject({
                   request: request,
                   options: options,
-                  errorMessage: errorMessage
+                  errorMessage: errorMessage.toString()
                 });
               }
             },
@@ -3032,7 +3052,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           reject({
             request: request,
             options: options,
-            errorMessage: errorMessage
+            errorMessage: errorMessage.toString()
           });
         }
       }).then(function(data) {
@@ -3123,7 +3143,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           reject({
             request: request,
             options: options,
-            errorMessage: errorMessage
+            errorMessage: errorMessage.toString()
           });
         }
       }).then(function(data) {
@@ -3213,7 +3233,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
                   rowid: rowid,
                   request: request,
                   options: options,
-                  errorMessage: errorMessage
+                  errorMessage: errorMessage.toString()
                 });
               }
             }
@@ -3223,7 +3243,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             rowid: rowid,
             request: request,
             options: options,
-            errorMessage: errorMessage
+            errorMessage: errorMessage.toString()
           });
         }
       }).then(function(data) {
@@ -3267,6 +3287,26 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         newFilter[name] = filter[name];
       }
       newFilter.__result = 'count';
+
+      let requestOptions = Object.assign({
+        selectCount: true
+      }, options);
+
+      return _this.select(newFilter, callback, requestOptions);
+    };
+
+    _this.exportToExcel = function(filter, callback, options) {
+      if (typeof filter == 'function') {
+        options = callback;
+        callback = filter;
+        filter = {};
+      }
+
+      let newFilter = {};
+      for (let name in filter) {
+        newFilter[name] = filter[name];
+      }
+      newFilter.__result = 'exportToExcel';
 
       let requestOptions = Object.assign({
         selectCount: true
@@ -3486,6 +3526,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             request.__page = options.page;
           }
 
+          if (options && options.result) {
+            request.__result = options.result;
+          }
+
           if (_this.options.crossdomain) {
             request.crossdomain = 'get';
           }
@@ -3520,7 +3564,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
                   reject({
                     request: request,
                     options: options,
-                    errorMessage: errorMessage
+                    errorMessage: errorMessage.toString()
                   });
                 }
               } finally {
@@ -3625,7 +3669,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
                 method: method,
                 request: request,
                 options: options,
-                errorMessage: errorMessage
+                errorMessage: errorMessage.toString()
               });
             }
           }
@@ -4260,17 +4304,12 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       options.disableEvents = true;
       options.refreshSelector = options.refreshSelector || _this.options.selectors.refreshRow;
       let filter;
-      if (br.isArray(rowid)) {
+      if (br.isArray(rowid) || !br.isObject(rowid)) {
         filter = {
           rowid: rowid
         };
-      } else
-      if (br.isObject(rowid)) {
-        filter = rowid;
       } else {
-        filter = {
-          rowid: rowid
-        };
+        filter = rowid;
       }
       _this.events.triggerBefore('reloadRow', filter, options);
       _this.dataSource.select(filter, function(result, response) {
@@ -4400,7 +4439,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
 
     function showOrder(orderAndGroup) {
-      for (let i = 0, length = orderAndGroup.length; i < length; i++) {
+      for (let i = 0; i < orderAndGroup.length; i++) {
         let ctrl = $('.sortable[data-field="' + orderAndGroup[i].fieldName + '"].' + (orderAndGroup[i].asc ? 'order-asc' : 'order-desc'), $(_this.options.selectors.header));
         ctrl.addClass('icon-white').addClass('icon-border').addClass('fa-border');
         let idx = ctrl.parent().find('div.br-sort-index');
@@ -4418,7 +4457,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       let order = _this.getOrderAndGroup();
       let result = {};
       if (br.isArray(order)) {
-        for (let i = 0, length = order.length; i < length; i++) {
+        for (let i = 0; i < order.length; i++) {
           if (order[i].asc) {
             result[order[i].fieldName] = 1;
           } else {
@@ -4494,7 +4533,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         if (event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) {
           orderAndGroup = _this.getOrderAndGroup();
           let newOrderAndGroup = [];
-          for (let i = 0, length = orderAndGroup.length; i < length; i++) {
+          for (let i = 0; i < orderAndGroup.length; i++) {
             if (orderAndGroup[i].fieldName != fieldName) {
               newOrderAndGroup.push(orderAndGroup[i]);
             }
@@ -4589,7 +4628,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         if (_this.options.freeGrid) {
           data = data[0];
           if (data.headers && (data.headers.length > 0)) {
-            for (let i = 0, length = data.headers.length; i < length; i++) {
+            for (let i = 0; i < data.headers.length; i++) {
               if (data.headers[i]) {
                 let tableRow = _this.renderHeader(data.headers[i]);
                 if (tableRow) {
@@ -4599,7 +4638,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             }
           }
           if (data.footers && (data.footers.length > 0)) {
-            for (let i = 0, length = data.footers.length; i < length; i++) {
+            for (let i = 0; i < data.footers.length; i++) {
               if (data.footers[i]) {
                 let tableRow = _this.renderFooter(data.headers[i]);
                 if (tableRow) {
@@ -4612,7 +4651,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           $(_this.options.selectors.footer).html('');
           if (data.rows) {
             if (data.rows.length > 0) {
-              for (let i = 0, length = data.rows.length; i < length; i++) {
+              for (let i = 0; i < data.rows.length; i++) {
                 if (data.rows[i]) {
                   if (data.rows[i].row) {
                     let renderedRow = _this.renderRow(data.rows[i].row);
@@ -4645,21 +4684,20 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             let group = _this.getOrderAndGroup();
             let groupValues = {};
             let groupFieldName = '';
-            for (let i = 0, length = data.length; i < length; i++) {
+            for (let i = 0; i < data.length; i++) {
               if (data[i]) {
                 if (br.isArray(group)) {
-                  let length = group.length;
-                  for (let k = 0; k < length; k++) {
+                  for (let k = 0; k < group.length; k++) {
                     groupFieldName = group[k].fieldName;
                     if (group[k].group && (groupValues[groupFieldName] != data[i][groupFieldName])) {
-                      for (let j = k; j < length; j++) {
+                      for (let j = k; j < group.length; j++) {
                         groupFieldName = group[j].fieldName;
                         groupValues[groupFieldName] = undefined;
                       }
                       break;
                     }
                   }
-                  for (let k = 0; k < length; k++) {
+                  for (let k = 0; k < group.length; k++) {
                     groupFieldName = group[k].fieldName;
                     if (group[k].group && (groupValues[groupFieldName] != data[i][groupFieldName])) {
                       groupValues[groupFieldName] = data[i][groupFieldName];
@@ -4912,11 +4950,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         if (_this.isValid()) {
           br.setValue(_this.selector, value, true);
           switch (beautifier) {
-          case 'select2':
-            break;
-          case 'selectize':
-            _this.selector[0].selectize.setValue(value);
-            break;
+            case 'select2':
+              break;
+            case 'selectize':
+              _this.selector[0].selectize.setValue(value);
+              break;
           }
           beautify();
           if (_this.options.lookupMode) {
@@ -5378,7 +5416,16 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           'margin-bottom': '2px'
         });
         if (_this.ctrl.attr('data-editable-style')) {
-          _this.editor.attr('style', _this.ctrl.attr('data-editable-style'));
+          let styles = _this.ctrl.attr('data-editable-style').split(';');
+          for(let style of styles) {
+            let nameValue = style.split(':');
+            if (nameValue.length == 2) {
+              _this.editor.css(nameValue[0].trim(), nameValue[1].trim());
+            }
+          }
+        }
+        if (_this.ctrl.attr('data-editable-max-length')) {
+          _this.editor.attr('maxlength', _this.ctrl.attr('data-editable-max-length'));
         }
         _this.ctrl.append(_this.editor);
         if (_this.options.onGetContent) {
@@ -5400,18 +5447,18 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         _this.editor.on('keyup', function(evt0) {
           let value = _this.editor.val();
           switch (evt0.keyCode) {
-          case 13:
-            if (_this.options.onSave) {
-              _this.options.onSave.call(_this.ctrl, value, 'keyup');
-            } else {
-              _this.apply(value);
-            }
-            evt0.stopPropagation();
-            break;
-          case 27:
-            _this.cancel();
-            evt0.stopPropagation();
-            break;
+            case 13:
+              if (_this.options.onSave) {
+                _this.options.onSave.call(_this.ctrl, value, 'keyup');
+              } else {
+                _this.apply(value);
+              }
+              evt0.stopPropagation();
+              break;
+            case 27:
+              _this.cancel();
+              evt0.stopPropagation();
+              break;
           }
         });
         _this.editor.on('blur', function(evt0) {
@@ -5487,18 +5534,18 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       }
       let instance = $(selector).data('brEditable-editable');
       switch (callback) {
-      case 'exists':
-        return !!instance;
-      case 'get':
-      case 'apply':
-      case 'save':
-      case 'cancel':
-      case 'click':
-        if (!instance) {
-          instance = new BrEditable($(selector), callback);
-          $(selector).data('brEditable-editable', instance);
-        }
-        return instance[callback](value);
+        case 'exists':
+          return !!instance;
+        case 'get':
+        case 'apply':
+        case 'save':
+        case 'cancel':
+        case 'click':
+          if (!instance) {
+            instance = new BrEditable($(selector), callback);
+            $(selector).data('brEditable-editable', instance);
+          }
+          return instance[callback](value);
       }
     } else {
       $(document).on('click', selector, function(event) {
@@ -5884,7 +5931,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       <div class="modal-footer">
     `;
     if (options.showDontAskMeAgain) {
-      let dontAskMeAgainTitle = (options.dontAskMeAgainTitle) ? options.dontAskMeAgainTitle : br.trn("Don't ask me again");
+      let dontAskMeAgainTitle = (options.dontAskMeAgainTitle) ? options.dontAskMeAgainTitle : br.trn("Don't show again");
       template += `
         <label style="text-align:left;float:left;padding-top:5px;" class="checkbox">
           <input name="showDontAskMeAgain" type="checkbox" value="1"> ${dontAskMeAgainTitle}
@@ -6734,7 +6781,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     $(document).on('click', '.action-clear-selector-value', function() {
       const target = $($(this).attr('data-selector'));
       if (target.length > 0) {
-        const val = $(this).attr('data-default') ? $(this).attr('data-default') : '';
+        const val = $(target).attr('data-default') ? $(target).attr('data-default') : '';
         br.setValue(target, val);
         target.trigger('change');
         if (target.attr('data-click-on-enter')) {
@@ -7062,21 +7109,21 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       } else
       if (editorRowid) {
         switch (workMode) {
-        case 'copy':
-          title = `Copy ${_this.options.noun}`;
-          break;
-        case 'view':
-          title = `View ${_this.options.noun}`;
-          if (!_this.options.hideRowid) {
-            title += ` (#${editorRowid})`;
-          }
-          break;
-        default:
-          title = `Edit ${_this.options.noun}`;
-          if (!_this.options.hideRowid) {
-            title += ` (#${editorRowid})`;
-          }
-          break;
+          case 'copy':
+            title = `Copy ${_this.options.noun}`;
+            break;
+          case 'view':
+            title = `View ${_this.options.noun}`;
+            if (!_this.options.hideRowid) {
+              title += ` (#${editorRowid})`;
+            }
+            break;
+          default:
+            title = `Edit ${_this.options.noun}`;
+            if (!_this.options.hideRowid) {
+              title += ` (#${editorRowid})`;
+            }
+            break;
         }
       } else {
         title = `Create ${_this.options.noun}`;
@@ -7199,7 +7246,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       });
       _this.inputsContainer.find('input.data-field,select.data-field').each(function() {
         const this_ = $(this);
-        if (!this_.val() && this_.attr('data-default')) {
+        if (this_.attr('data-default') && (!this_.val() || ((this_.attr('type') == 'color') && (this_.val() == '#000000')))) {
           br.setValue(this_, this_.attr('data-default'));
         }
       });
@@ -7227,7 +7274,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
                     noSnapshot: true,
                     callback: function() {
                       if (ckeditorInstance0.getData() != data0) {
-                        // not sure why but setData is not wroking sometimes, so need to run again :(
+                        // not sure why but setData is not working sometimes, so need to run again :(
                         ckeditorInstance0.setData(data0, {
                           noSnapshot: true
                         });
@@ -7262,9 +7309,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       _this.inputsContainer.find('select.data-field').each(function() {
         br.setValue($(this), '');
       });
-      _this.inputsContainer.find('input.data-field[type!=radio],textarea.data-field').val('');
-      _this.inputsContainer.find('input.data-field[type=checkbox]').val('1').prop('checked', false);
-      _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio]').find('button').removeClass('active');
+      _this.inputsContainer.find('input.data-field:not([type="radio"]):not([type="checkbox"]),textarea.data-field').val('');
+      _this.inputsContainer.find('input.data-field[type="checkbox"]').prop('checked', false);
+      _this.inputsContainer.find('div.data-field[data-toggle="buttons-radio"]').find('button').removeClass('active');
 
       _this.inputsContainer.find('textarea.data-field').each(function() {
         let ckeditorInstance = $(this).data('ckeditorInstance');
@@ -7359,7 +7406,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       return _this.container;
     };
 
-    _this.hide = _this.cancel = function() {
+    _this.cancel = function() {
       cancelled = true;
       _this.events.trigger('editor.cancel', false, editorRowid);
       if (_this.container.hasClass('modal')) {
@@ -7370,6 +7417,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         br.backToCaller(_this.options.returnUrl, false);
       }
     };
+
+    _this.hide = _this.cancel;
 
     _this.isSaving = function() {
       return saving;
@@ -7393,7 +7442,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         errorCallback = successCallback;
         successCallback = andClose;
         andClose = false;
-        // if function invoked with callabacks I'll consider that it msut save silently
+        // if function invoked with callbacks I'll consider that it must save silently
         silent = true;
       }
       if (workMode == 'view') {
@@ -7521,7 +7570,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }
 
     function internalSave(andClose, successCallback, errorCallback, silent) {
-
       if (saving) {
         window.setTimeout(function() {
           internalSave(andClose, successCallback, errorCallback, silent);
@@ -7536,16 +7584,28 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       try {
         $(_this.options.selectors.errorMessage, _this.container).hide();
         _this.events.triggerBefore('editor.save');
-        _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio],input.data-field,select.data-field,textarea.data-field').each(function() {
+        _this.inputsContainer.find('div.data-field[data-toggle="buttons-radio"],input.data-field,select.data-field,textarea.data-field').each(function() {
           let val;
           let skip = false;
           let input = $(this);
+          let fieldName = input.attr('name');
+          let fieldNameMatch = /^(.+?)(\[(.*?)\])$/.exec(fieldName);
+          let fieldIsArray = !!fieldNameMatch;
           if ((input.attr('readonly') != 'readonly') && (input.attr('disabled') != 'disabled')) {
             if (input.attr('data-toggle') == 'buttons-radio') {
               val = input.find('button.active').val();
             } else
             if (input.attr('type') == 'checkbox') {
-              val = input.is(':checked') ? 1 : 0;
+              if (input.is(':checked')) {
+                if (input[0].hasAttribute('value')) {
+                  val = input.val();
+                } else {
+                  val = 1;
+                }
+              } else
+              if (!fieldIsArray) {
+                val = 0;
+              }
             } else
             if (input.attr('type') == 'radio') {
               if (input.is(':checked')) {
@@ -7560,10 +7620,12 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
               if (
                 input.hasClass('required') &&
                 br.isEmpty(val) &&
-                (!input.hasClass('required-edit-only') ||
+                (
+                  !input.hasClass('required-edit-only') ||
                   _this.isEditMode()
                 ) &&
-                (!input.hasClass('required-insert-only') ||
+                (
+                  !input.hasClass('required-insert-only') ||
                   _this.isInsertMode()
                 )
               ) {
@@ -7575,18 +7637,30 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
                   this.focus();
                 }
                 errors.push(br.trn('%s must be filled').replace('%s', title));
-              } else
-              if (br.isEmpty(val)) {
-                data[input.attr('name')] = '';
               } else {
-                data[input.attr('name')] = val;
+                if (fieldIsArray) {
+                  if (fieldNameMatch[3]) {
+                    data[fieldNameMatch[1]] = data[fieldNameMatch[1]] ? data[fieldNameMatch[1]] : {};
+                    data[fieldNameMatch[1]][fieldNameMatch[3]] = val;
+                  } else
+                  if (!br.isEmpty(val)) {
+                    data[fieldNameMatch[1]] = data[fieldNameMatch[1]] ? data[fieldNameMatch[1]] : [];
+                    data[fieldNameMatch[1]].push(val);
+                  }
+                } else {
+                  data[fieldName] = br.isEmpty(val) ? '' : val;
+                }
               }
             }
           }
         });
 
         if (errors.length > 0) {
-          let tmpl = (errors.length == 1) ? '{{#errors}}{{.}}{{/errors}}' : br.trn('Please check the following:') + '<br /><ul>{{#errors}}<li>{{.}}</li>{{/errors}}</ul>';
+          let tmpl = (
+            errors.length == 1 ?
+              '{{#errors}}{{.}}{{/errors}}' :
+              br.trn('Please check the following:') + '<br /><ul>{{#errors}}<li>{{.}}</li>{{/errors}}</ul>'
+          );
           let error = br.fetch(tmpl, {
             errors: errors
           });
@@ -8055,8 +8129,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           _this.editor = _this.dataEditor = br.dataEditor(_this.options.selectors.editForm, _this.dataSource, editorOptions);
           _this.editor.events.connectTo(_this.events);
 
-          $(findNode('.action-create')).show();
-
           $(document).on('click', selActionCRUD, function() {
             const rowid = $(this).closest('[data-rowid]').attr('data-rowid');
             let mode;
@@ -8138,8 +8210,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         const docsHeight = _this.getTableContainer().height();
         const docsContainerHeight = _this.getScrollContainer().height();
         const scrollTop = _this.getScrollContainer().scrollTop();
-
-        if (scrollTop + docsContainerHeight > docsHeight) {
+        if (scrollTop + docsContainerHeight >= docsHeight) {
           _this.dataGrid.loadMore();
         }
       }
@@ -8344,9 +8415,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     _this.clearSelection = function(disableEvents) {
       _this.selection.clear();
-      $(findNode('tr.row-selected')).removeClass('row-selected');
-      $(findNode('.action-select-row')).prop('checked', false);
-      $(findNode('.action-select-all')).prop('checked', false);
+      _this.getTableContainer().find('.row-selected').removeClass('row-selected');
+      _this.getTableContainer().find('.action-select-row').prop('checked', false);
+      _this.getContainer().find('.action-select-all').prop('checked', false);
       if (!disableEvents) {
         _this.events.trigger('selectionChanged', _this.selection.get().length);
       }
@@ -8767,7 +8838,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     }, extraParams);
 
     return new Promise(function(resolve, reject) {
-      br.startProgress(funcToGetTotal(), extraParams.title);
+      if (extraParams.title) {
+        br.startProgress(funcToGetTotal(), extraParams.title);
+      }
       window.setTimeout(function() {
         let paramsQueue = [];
         let params = funcToGetParams();
@@ -9157,32 +9230,32 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     _this.setMapType = function(value) {
       switch (value) {
-      case 'r':
-        _this.map.setMapTypeId(google.maps.MapTypeId.ROADMAP);
-        break;
-      case 's':
-        _this.map.setMapTypeId(google.maps.MapTypeId.SATELLITE);
-        break;
-      case 't':
-        _this.map.setMapTypeId(google.maps.MapTypeId.SATELLITE);
-        break;
-      case 'h':
-        _this.map.setMapTypeId(google.maps.MapTypeId.SATELLITE);
-        break;
+        case 'r':
+          _this.map.setMapTypeId(google.maps.MapTypeId.ROADMAP);
+          break;
+        case 's':
+          _this.map.setMapTypeId(google.maps.MapTypeId.SATELLITE);
+          break;
+        case 't':
+          _this.map.setMapTypeId(google.maps.MapTypeId.SATELLITE);
+          break;
+        case 'h':
+          _this.map.setMapTypeId(google.maps.MapTypeId.SATELLITE);
+          break;
       }
     };
 
     _this.setTravelMode = function(value) {
       switch (value) {
-      case 'd':
-        _this.travelMode = google.maps.DirectionsTravelMode.DRIVING;
-        break;
-      case 'b':
-        _this.travelMode = google.maps.DirectionsTravelMode.BICYCLING;
-        break;
-      case 'w':
-        _this.travelMode = google.maps.DirectionsTravelMode.WALKING;
-        break;
+        case 'd':
+          _this.travelMode = google.maps.DirectionsTravelMode.DRIVING;
+          break;
+        case 'b':
+          _this.travelMode = google.maps.DirectionsTravelMode.BICYCLING;
+          break;
+        case 'w':
+          _this.travelMode = google.maps.DirectionsTravelMode.WALKING;
+          break;
       }
     };
 
@@ -9590,205 +9663,228 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 (function(window) {
   window.br = window.br || {};
 
-  function BrEventBus(endpointUrl) {
-    const _this = this;
+  window.br.ebsCache = window.br.ebsCache || new Map();
 
-    _this.events = br.eventQueue(_this);
-    _this.subscriptions = br.eventQueue(_this);
-    _this.spaces = br.eventQueue(_this);
+  class BrEventBus {
+    constructor(endpointUrl) {
+      const _this = this;
 
-    const debugMode = false;
-    const reconnectTimeout = 1000;
-    const isValid = (endpointUrl && (typeof WebSocket != 'undefined'));
+      _this.endpointUrl = endpointUrl;
 
-    let webSocket;
-    let reconnectsCounter = 0;
-    let reconnectTimer;
-    let successfulConnections = 0;
-    let __clientUID;
-    let __userInfo;
+      _this.isValid = (_this.endpointUrl && (typeof WebSocket != 'undefined'));
 
-    function reconnect() {
-      window.clearTimeout(reconnectTimer);
-      let timeout = reconnectsCounter * reconnectTimeout;
-      if (debugMode && (timeout > 0)) {
-        br.log((successfulConnections > 0 ? 're' : '') + 'connecting in ' + timeout + 'ms');
-      }
-      reconnectTimer = window.setTimeout(function() {
-        if (debugMode) {
-          br.log((successfulConnections > 0 ? 're' : '') + 'connecting');
+      _this.debugMode = false;
+      _this.reconnectTimeout = 1000;
+      _this.reconnectsCounter = 0;
+      _this.webSocket = null;
+      _this.reconnectTimer = null;
+      _this.keepAliveTimer = null;
+      _this.successfulConnections = 0;
+      _this.clientUID = '';
+      _this.knownClientUIDs = [];
+      _this.userInfo = {};
+
+      _this.events = br.eventQueue(_this);
+      _this.subscriptions = br.eventQueue(_this);
+      _this.spaces = br.eventQueue(_this);
+
+      window.setTimeout(function() {
+        if (_this.isValid) {
+          _this.reconnect();
+        } else {
+          _this.events.trigger('error', 'Not configured');
         }
-        connect();
+      }, 100);
+    }
+
+    reconnect() {
+      const _this = this;
+
+      window.clearTimeout(_this.reconnectTimer);
+
+      let timeout = _this.reconnectsCounter * _this.reconnectTimeout;
+      if (_this.debugMode && (timeout > 0)) {
+        br.log(`${(_this.successfulConnections > 0 ? 're' : '')}connecting in ${timeout}ms`);
+      }
+      _this.reconnectTimer = window.setTimeout(function() {
+        if (_this.debugMode) {
+          br.log(`${(_this.successfulConnections > 0 ? 're' : '')}connecting`);
+        }
+        _this.connect();
       }, timeout);
     }
 
-    function subscribe() {
-      if (webSocket && (webSocket.readyState == 1) && (_this.subscriptions.getEvents().length > 0)) {
+    publishSubscriptions() {
+      if (this.webSocket && (this.webSocket.readyState == 1) && (this.subscriptions.getEvents().length > 0)) {
         let message = {
           action: 'eventBus.subscribe',
           data: {
-            events: _this.subscriptions.getEvents(),
-            spaces: _this.spaces.getEvents(),
-            userInfo: __userInfo
+            events: this.subscriptions.getEvents(),
+            spaces: this.spaces.getEvents(),
+            userInfo: this.userInfo
           }
         };
         try {
-          webSocket.send(JSON.stringify(message));
+          this.webSocket.send(JSON.stringify(message));
         } catch (error) {
-          _this.events.trigger('error', error);
+          this.events.trigger('error', error);
         }
       }
     }
 
-    function handleConnectionError(error) {
-      if (webSocket) {
+    handleConnectionError(error) {
+      if (this.webSocket) {
         try {
-          webSocket.onopen = null;
-          webSocket.onmessage = null;
-          webSocket.onclose = null;
-          webSocket.onerror = null;
-          if (webSocket.readyState == 1) {
-            webSocket.close();
+          this.webSocket.onopen = null;
+          this.webSocket.onmessage = null;
+          this.webSocket.onclose = null;
+          this.webSocket.onerror = null;
+          if (this.webSocket.readyState == 1) {
+            this.webSocket.close();
           }
         } catch (exception) {
           //
         }
-        webSocket = null;
+        this.webSocket = null;
       }
-      _this.setClientUID(undefined);
-      _this.events.trigger('error', error);
-      _this.events.trigger('disconnected');
-      reconnectsCounter++;
-      if (reconnectsCounter > 60) {
-        reconnectsCounter = 60;
+      this.events.trigger('error', error);
+      this.events.trigger('disconnected');
+      this.reconnectsCounter++;
+      if (this.reconnectsCounter > 60) {
+        this.reconnectsCounter = 60;
       }
-      reconnect();
+      this.reconnect();
     }
 
-    const connectionClosed = function(event) {
-      if (debugMode) {
+    connectionClosed(event) {
+      if (this.debugMode) {
         br.log(event);
       }
-      handleConnectionError('Connection closed');
-    };
+      window.clearInterval(this.keepAliveTimer);
+      this.handleConnectionError('Connection closed');
+    }
 
-    function connect() {
+    connect() {
+      const _this = this;
+
       try {
-        webSocket = new WebSocket(endpointUrl);
-        webSocket.onopen = function(event) {
-          if (debugMode) {
+        _this.webSocket = new WebSocket(_this.endpointUrl);
+        _this.webSocket.onopen = function(event) {
+          if (_this.debugMode) {
             br.log(event);
           }
           _this.events.trigger('connected');
-          reconnectsCounter = 0;
-          successfulConnections++;
-          subscribe();
+          _this.reconnectsCounter = 0;
+          _this.successfulConnections++;
+          _this.publishSubscriptions();
+          _this.keepAliveTimer = window.setInterval(function() {
+            _this.webSocket.send('keep-alive');
+          }, 59 * 1000);
         };
-        webSocket.onmessage = function(event) {
-          if (debugMode) {
+        _this.webSocket.onmessage = function(event) {
+          if (_this.debugMode) {
             br.log(event);
           }
           try {
             let message = $.parseJSON(event.data);
             switch (message.action) {
-            case 'eventBus.registered':
-              _this.setClientUID(message.clientUID);
-              break;
-            case 'eventBus.usersList':
-              _this.spaces.trigger(message.spaceName, message.data);
-              break;
-            default:
-              if (!message.clientUID || (_this.getClientUID() != message.clientUID)) {
-                _this.subscriptions.trigger(message.action, message.data);
-              }
+              case 'eventBus.registered':
+                _this.setClientUID(message.clientUID);
+                break;
+              case 'eventBus.usersList':
+                _this.spaces.trigger(message.spaceName, message.data);
+                break;
+              default:
+                if (_this.getClientUID() && (!message.clientUID || !_this.isKnownClientUID(message.clientUID))) {
+                  _this.subscriptions.trigger(message.action, message.data);
+                }
+                break;
             }
           } catch (exception) {
             br.log(exception);
           }
         };
-        webSocket.onclose = function(event) {
-          connectionClosed(event);
+        _this.webSocket.onclose = function(event) {
+          _this.connectionClosed(event);
         };
-        webSocket.onerror = function(event) {
-          connectionClosed(event);
+        _this.webSocket.onerror = function(event) {
+          _this.connectionClosed(event);
         };
       } catch (exception) {
-        if (debugMode) {
+        if (_this.debugMode) {
           br.log('exception');
           br.log(exception);
         }
-        handleConnectionError(exception);
+        _this.handleConnectionError(exception);
       }
     }
 
-    _this.isValid = function() {
-      return isValid;
-    };
-
-    _this.setClientUID = function(clientUID) {
-      __clientUID = clientUID;
-      if (__clientUID) {
-        _this.events.trigger('registered', __clientUID);
+    setClientUID(value) {
+      if (value) {
+        this.clientUID = value;
+        this.knownClientUIDs.push(value);
+        if (this.debugMode) {
+          br.log('Known clientUIDs', this.knownClientUIDs);
+        }
+        this.events.trigger('registered', value);
         return;
       }
-      _this.events.trigger('unregistered');
-    };
+      this.events.trigger('unregistered');
+    }
 
-    _this.getClientUID = function() {
-      return __clientUID;
-    };
+    getClientUID() {
+      return this.clientUID;
+    }
 
-    _this.on = function(event, callback) {
-      if (webSocket && (webSocket.readyState == 1) && (event == 'connected')) {
+    isKnownClientUID(value) {
+      return this.knownClientUIDs.indexOf(value) != -1;
+    }
+
+    on(event, callback) {
+      if ((event == 'connected') && this.webSocket && (this.webSocket.readyState == 1)) {
         callback();
-        return;
       }
-      if ((event == 'registered') && __clientUID) {
-        callback(__clientUID);
-        return;
+      if ((event == 'registered') && this.clientUID) {
+        callback(this.clientUID);
       }
-      _this.events.on(event, callback);
-    };
+      this.events.on(event, callback);
+    }
 
-    _this.off = function(event) {
-      _this.events.off(event);
-    };
+    off(event) {
+      this.events.off(event);
+    }
 
-    _this.offAll = function() {
-      _this.events = br.eventQueue(_this);
-    };
+    offAll() {
+      this.events = br.eventQueue(this);
+    }
 
-    _this.subscribe = function(event, callback) {
-      _this.subscriptions.on(event, callback);
-      subscribe();
-    };
+    subscribe(event, callback) {
+      this.subscriptions.on(event, callback);
+      this.publishSubscriptions();
+    }
 
-    _this.unsubscribe = function(event) {
-      _this.subscriptions.off(event);
-    };
+    unsubscribe(event) {
+      this.subscriptions.off(event);
+    }
 
-    _this.unsubscribeAll = function() {
-      _this.subscriptions.subscribers = {};
-    };
+    unsubscribeAll() {
+      this.subscriptions.subscribers = {};
+    }
 
-    _this.joinSpace = function(spaceName, userInfo, callback) {
-      __userInfo = userInfo;
-      _this.spaces.on(spaceName, callback);
-      subscribe();
-    };
-
-    window.setTimeout(function() {
-      if (_this.isValid()) {
-        reconnect();
-      } else {
-        _this.events.trigger('error', 'Not configured');
-      }
-    }, 100);
-
-    return this;
+    joinSpace(spaceName, userInfo, callback) {
+      this.userInfo = userInfo;
+      this.spaces.on(spaceName, callback);
+      this.publishSubscriptions();
+    }
   }
 
   window.br.eventBus = function(endpointUrl) {
-    return new BrEventBus(endpointUrl);
+    if (window.br.ebsCache.has(endpointUrl)) {
+      return window.br.ebsCache.get(endpointUrl);
+    } else {
+      let ebs = new BrEventBus(endpointUrl);
+      window.br.ebsCache.set(endpointUrl, ebs);
+      return ebs;
+    }
   };
 })(window);

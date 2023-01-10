@@ -2,6 +2,6 @@
 
 namespace Bright;
 
-class BrIMAPMailMessageException extends \Exception
+class BrIMAPMailMessageException extends BrException
 {
 }

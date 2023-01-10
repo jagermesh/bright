@@ -15,34 +15,39 @@ class BrRequest extends BrObject
   public const IP_LOCALHOST = '127.0.0.1';
   public const HOST_LOCALHOST = 'localhost';
 
-  private $host;
-  private $url = null;
-  private $path = null;
-  private $relativeUrl = null;
-  private $baseUrl;
-  private $brightUrl = null;
-  private $clientIP;
-  private $scriptName = null;
-  private $continueRoute = true;
-  private $domain;
-  private $putVars = [];
-  private $contentType = null;
-  private $urlRestrictions;
-  private $restrictionsLoaded;
-  private $isRest = false;
-  private $headers = [];
-  private $protocol;
+  private string $host;
+  private string $url;
+  private string $path;
+  private string $relativeUrl = '';
+  private string $baseUrl;
+  private string $brightUrl = '';
+  private ?string $clientIP = null;
+  private string $scriptName = '';
+  private string $domain;
+  private string $contentType = '';
+  private string $protocol;
+  private array $urlRestrictions;
+  private array $headers = [];
+  private array $putVars = [];
+  private bool $continueRoute = true;
+  private ?bool $restrictionsLoaded = null;
+  private bool $isRest = false;
 
+  /**
+   * @throws \Exception
+   */
   public function __construct()
   {
     parent::__construct();
 
     if (br()->isConsoleMode()) {
-      $this->clientIP = br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_SERVER_ADDR, self::IP_LOCALHOST);
-      $this->domain = br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_BASE_DOMAIN, self::HOST_LOCALHOST);
-      $this->protocol = br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_WEB_PROTOCOL, 'https://');
-      $this->host = br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_BASE_HOST, $this->protocol . $this->domain);
-      $this->baseUrl = br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_BASE_URL, '/');
+      $this->clientIP = (string)br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_SERVER_ADDR, self::IP_LOCALHOST);
+      $this->domain = (string)br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_BASE_DOMAIN, self::HOST_LOCALHOST);
+      $this->protocol = (string)br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_WEB_PROTOCOL, 'https://');
+      $this->host = (string)br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_BASE_HOST, $this->protocol . $this->domain);
+      $this->baseUrl = (string)br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_BASE_URL, '/');
+      $this->path = $this->host . $this->baseUrl;
+      $this->url = $this->path;
 
       $this->urlRestrictions = [];
       $this->restrictionsLoaded = true;
@@ -93,7 +98,7 @@ class BrRequest extends BrObject
       $this->relativeUrl = $relativeUrl;
       $this->baseUrl = $baseUrl;
       $this->scriptName = $scriptName;
-      $this->contentType = br($_SERVER, BrConst::PHP_SERVER_VAR_CONTENT_TYPE);
+      $this->contentType = (string)br($_SERVER, BrConst::PHP_SERVER_VAR_CONTENT_TYPE);
 
       if ($this->contentType != BrConst::CONTENT_TYPE_APPLICATION_OCTET_STREAM) {
         $rawInput = file_get_contents('php://input');
@@ -131,14 +136,14 @@ class BrRequest extends BrObject
         });
       }
 
-      $this->clientIP = br($_SERVER, BrConst::PHP_SERVER_VAR_HTTP_CLIENT_IP);
+      $this->clientIP = (string)br($_SERVER, BrConst::PHP_SERVER_VAR_HTTP_CLIENT_IP);
 
       if (!$this->clientIP || ($this->clientIP == 'unknown') || ($this->clientIP == '::1')) {
-        $this->clientIP = br($_SERVER, BrConst::PHP_SERVER_VAR_HTTP_X_FORWARDED_FOR);
+        $this->clientIP = (string)br($_SERVER, BrConst::PHP_SERVER_VAR_HTTP_X_FORWARDED_FOR);
       }
 
       if (!$this->clientIP || ($this->clientIP == 'unknown') || ($this->clientIP == '::1')) {
-        $this->clientIP = br($_SERVER, BrConst::PHP_SERVER_VAR_REMOTE_ADDR);
+        $this->clientIP = (string)br($_SERVER, BrConst::PHP_SERVER_VAR_REMOTE_ADDR);
       }
 
       if ($this->clientIP == '::1') {
@@ -154,7 +159,7 @@ class BrRequest extends BrObject
       }
 
       if ($ips = array_unique(br($this->clientIP)->split())) {
-        $this->clientIP = $ips[0];
+        $this->clientIP = (string)$ips[0];
       }
 
       $this->urlRestrictions = [];
@@ -212,43 +217,41 @@ class BrRequest extends BrObject
     return $this->isAt($this->baseUrl() . '$');
   }
 
-  public function path()
+  public function path(): ?string
   {
     return $this->path;
   }
 
   /**
    * Get client IP
-   * @return string
    */
-  public function clientIP()
+  public function clientIP(): string
   {
     return $this->clientIP;
   }
 
   /**
    * Get current url
-   * @return string
    */
-  public function url()
+  public function url(): string
   {
     return $this->url;
   }
 
-  public function relativeUrl()
+  public function relativeUrl(): string
   {
     return $this->relativeUrl;
   }
 
-  public function setBaseUrl($value)
+  public function setBaseUrl(string $value)
   {
     $this->baseUrl = $value;
   }
 
-  public function baseUrl(int $dec = 0)
+  public function baseUrl(int $dec = 0): string
   {
     if (br()->isConsoleMode()) {
-      $result = br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_BASE_URL, '/');
+      $result = (string)br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_BASE_URL, '/');
     } else {
       $result = $this->baseUrl;
     }
@@ -273,7 +276,7 @@ class BrRequest extends BrObject
     return $this->buildUrl($this->baseUrl() . $this->relativeUrl() . $this->getScriptName(), $params);
   }
 
-  public function build($url = [], $params = [])
+  public function build(array $url = [], array $params = []): string
   {
     if ($params) {
       $result = $url;
@@ -313,7 +316,7 @@ class BrRequest extends BrObject
     return $result;
   }
 
-  public function getBrightUrl()
+  public function getBrightUrl(): string
   {
     if ($this->brightUrl) {
       return $this->brightUrl;
@@ -322,21 +325,21 @@ class BrRequest extends BrObject
     }
   }
 
-  public function setBrightUrl($value)
+  public function setBrightUrl(string $value): string
   {
     return $this->brightUrl = $value;
   }
 
-  public function getDomain()
+  public function getDomain(): string
   {
     if (br()->isConsoleMode()) {
-      return br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_BASE_DOMAIN, self::HOST_LOCALHOST);
+      return (string)br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_BASE_DOMAIN, self::HOST_LOCALHOST);
     } else {
       return $this->domain;
     }
   }
 
-  public function isLocalHost()
+  public function isLocalHost(): bool
   {
     $whitelist = [self::HOST_LOCALHOST, self::IP_LOCALHOST];
 
@@ -356,7 +359,7 @@ class BrRequest extends BrObject
     return $result;
   }
 
-  public function isDevHost()
+  public function isDevHost(): bool
   {
     if ($this->isLocalHost()) {
       return true;
@@ -370,45 +373,45 @@ class BrRequest extends BrObject
     return $result;
   }
 
-  public function isProduction()
+  public function isProduction(): bool
   {
     return !$this->isLocalHost() && !$this->isDevHost();
   }
 
-  public function protocol()
+  public function protocol(): string
   {
     if (br()->isConsoleMode()) {
-      return br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_WEB_PROTOCOL, 'https://');
+      return (string)br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_WEB_PROTOCOL, 'https://');
     } else {
       return $this->protocol;
     }
   }
 
-  public function host()
+  public function host(): string
   {
     if (br()->isConsoleMode()) {
-      return br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_BASE_HOST, $this->protocol() . $this->getDomain());
+      return (string)br()->config()->get(BrConst::CONFIG_OPTION_REQUEST_CONSOLE_MODE_BASE_HOST, $this->protocol() . $this->getDomain());
     } else {
       return $this->host;
     }
   }
 
-  public function origin()
+  public function origin(): string
   {
     return $this->host();
   }
 
-  public function getScriptName()
+  public function getScriptName(): string
   {
     return $this->scriptName;
   }
 
-  public function method()
+  public function method(): string
   {
-    return br($_SERVER, BrConst::PHP_SERVER_VAR_REQUEST_METHOD);
+    return (string)br($_SERVER, BrConst::PHP_SERVER_VAR_REQUEST_METHOD);
   }
 
-  public function ifModifidSince()
+  public function ifModifiedSince(): ?int
   {
     if ($d = br($_SERVER, BrConst::PHP_SERVER_VAR_HTTP_IF_MODIFIED_SINCE)) {
       return strtotime($d);
@@ -417,52 +420,52 @@ class BrRequest extends BrObject
     return null;
   }
 
-  public function isMethod($method)
+  public function isMethod(string $method): bool
   {
     return (br($_SERVER, BrConst::PHP_SERVER_VAR_REQUEST_METHOD) == $method);
   }
 
-  public function isGET()
+  public function isGET(): bool
   {
     return (br($_SERVER, BrConst::PHP_SERVER_VAR_REQUEST_METHOD) == BrConst::REQUEST_TYPE_GET);
   }
 
-  public function isPOST()
+  public function isPOST(): bool
   {
     return (br($_SERVER, BrConst::PHP_SERVER_VAR_REQUEST_METHOD) == BrConst::REQUEST_TYPE_POST);
   }
 
-  public function isDELETE()
+  public function isDELETE(): bool
   {
     return (br($_SERVER, BrConst::PHP_SERVER_VAR_REQUEST_METHOD) == BrConst::REQUEST_TYPE_DELETE);
   }
 
-  public function isPUT()
+  public function isPUT(): bool
   {
     return (br($_SERVER, BrConst::PHP_SERVER_VAR_REQUEST_METHOD) == BrConst::REQUEST_TYPE_PUT);
   }
 
-  public function isHEAD()
+  public function isHEAD(): bool
   {
     return (br($_SERVER, BrConst::PHP_SERVER_VAR_REQUEST_METHOD) == BrConst::REQUEST_TYPE_HEAD);
   }
 
-  public function isRedirect()
+  public function isRedirect(): bool
   {
     return (br($_SERVER, BrConst::PHP_SERVER_VAR_REDIRECT_STATUS) != 200);
   }
 
-  public function isTemporaryRedirect()
+  public function isTemporaryRedirect(): bool
   {
     return (br($_SERVER, BrConst::PHP_SERVER_VAR_REDIRECT_STATUS) == 302);
   }
 
-  public function isPermanentRedirect()
+  public function isPermanentRedirect(): bool
   {
     return (br($_SERVER, BrConst::PHP_SERVER_VAR_REDIRECT_STATUS) == 301);
   }
 
-  public function isRest()
+  public function isRest(): bool
   {
     return $this->isRest;
   }
@@ -472,22 +475,26 @@ class BrRequest extends BrObject
     $this->isRest = $value;
   }
 
-  public function userAgent()
+  public function userAgent(): string
   {
-    return br($_SERVER, BrConst::PHP_SERVER_VAR_HTTP_USER_AGENT);
+    return (string)br($_SERVER, BrConst::PHP_SERVER_VAR_HTTP_USER_AGENT);
   }
 
-  public function isMobile()
+  public function isMobile(): bool
   {
-    return preg_match('/iPad|iPhone|iOS|Android/i', br($_SERVER, BrConst::PHP_SERVER_VAR_HTTP_USER_AGENT));
+    return (bool)preg_match('/iPad|iPhone|iOS|Android/i', br($_SERVER, BrConst::PHP_SERVER_VAR_HTTP_USER_AGENT));
   }
 
-  public function rawInput()
+  public function rawInput(): string
   {
-    return file_get_contents('php://input');
+    return (string)file_get_contents('php://input');
   }
 
-  public function get($name = null, $default = null)
+  /**
+   * @param null $default
+   * @return mixed
+   */
+  public function get(?string $name = null, $default = null)
   {
     if ($name) {
       return br($_GET, $name, $default);
@@ -496,7 +503,11 @@ class BrRequest extends BrObject
     }
   }
 
-  public function post($name = null, $default = null)
+  /**
+   * @param null $default
+   * @return mixed
+   */
+  public function post(?string $name = null, $default = null)
   {
     if ($name) {
       return br($_POST, $name, $default);
@@ -505,7 +516,11 @@ class BrRequest extends BrObject
     }
   }
 
-  public function put($name = null, $default = null)
+  /**
+   * @param null $default
+   * @return mixed
+   */
+  public function put(?string $name = null, $default = null)
   {
     if ($name) {
       return br($this->putVars, $name, $default);
@@ -514,75 +529,89 @@ class BrRequest extends BrObject
     }
   }
 
-  public function param($name, $default = null)
+  /**
+   * @param null $default
+   * @return mixed
+   */
+  public function param(string $name, $default = null)
   {
     return $this->get($name, $this->post($name, $this->put($name, $default)));
   }
 
-  public function getCookie($name, $default = null)
+  /**
+   * @param null $default
+   * @return mixed
+   */
+  public function getCookie(?string $name, $default = null)
   {
     return br($_COOKIE, $name, $default);
   }
 
-  public function getCookies()
+  public function getCookies(): array
   {
     return $_COOKIE;
   }
 
-  public function cookie($name, $default = null)
+  /**
+   * @param null $default
+   * @return mixed
+   */
+  public function cookie(string $name, $default = null)
   {
     return $this->getCookie($name, $default);
   }
 
-  public function getHeader($name, $default = null)
+  public function getHeader(string $name, ?string $default = null): ?string
   {
     return br($this->headers, $name, $default);
   }
 
-  public function getHeaders()
+  public function getHeaders(): array
   {
     return $this->headers;
   }
 
-  public function isFilesUploaded()
+  public function isFilesUploaded(): bool
   {
-    return count($_FILES);
+    return !empty($_FILES);
   }
 
-  public function getUploadedFileInfo($name)
+  public function getUploadedFileInfo(string $name): ?array
   {
     return br($_FILES, $name);
   }
 
-  public function getUploadedFileLocation($name)
+  public function getUploadedFileLocation(string $name): ?string
   {
     if ($info = $this->getUploadedFileInfo($name)) {
-      return br($info, 'tmp_name');
+      return (string)br($info, 'tmp_name');
     }
   }
 
-  public function getUploadedFileName($name)
+  public function getUploadedFileName(string $name): ?string
   {
     if ($info = $this->getUploadedFileInfo($name)) {
-      return br($info, 'name');
+      return (string)br($info, 'name');
     }
   }
 
-  public function getUploadedFileSize($name)
+  public function getUploadedFileSize(string $name): ?string
   {
     if ($info = $this->getUploadedFileInfo($name)) {
-      return br($info, 'size');
+      return (string)br($info, 'size');
     }
   }
 
-  public function getUploadedFileError($name)
+  public function getUploadedFileError(string $name): string
   {
     if ($info = $this->getUploadedFileInfo($name)) {
-      return br($info, 'error');
+      return (string)br($info, 'error');
     }
+
+    return '';
   }
 
-  public function isFileUploaded($name)
+  public function isFileUploaded(string $name): bool
   {
     if ($this->getUploadedFileInfo($name)) {
       return $this->getUploadedFileLocation($name) &&
@@ -594,7 +623,10 @@ class BrRequest extends BrObject
     return false;
   }
 
-  public function moveUploadedFile($name, $destFolder)
+  /**
+   * @throws BrException
+   */
+  public function moveUploadedFile(string $name, string $destFolder): bool
   {
     if ($this->isFileUploaded($name)) {
       $destFolder = br()->fs()->normalizePath($destFolder);
@@ -608,12 +640,12 @@ class BrRequest extends BrObject
     }
   }
 
-  public function continueRoute($value = true)
+  public function continueRoute(bool $value = true)
   {
     $this->continueRoute = $value;
   }
 
-  public function routeComplete()
+  public function routeComplete(): bool
   {
     return !$this->continueRoute;
   }
@@ -623,10 +655,7 @@ class BrRequest extends BrObject
     $this->trigger(BrConst::EVENT_CHECK_URL_RESTRICTIONS);
 
     if (!$this->restrictionsLoaded) {
-      $this->urlRestrictions = br()->session()->get('urlRestrictions', []);
-      if (!is_array($this->urlRestrictions)) {
-        $this->urlRestrictions = [];
-      }
+      $this->urlRestrictions = (array)br()->session()->get('urlRestrictions', []);
       $this->restrictionsLoaded = true;
     }
 
@@ -647,12 +676,14 @@ class BrRequest extends BrObject
     }
   }
 
+
   public function setUrlRestrictions($restriction)
   {
     $this->urlRestrictions = $restriction;
     br()->session()->set('urlRestrictions', $this->urlRestrictions);
     $this->checkUrlRestrictions();
   }
+
 
   public function addUrlRestriction($restriction)
   {
@@ -667,7 +698,10 @@ class BrRequest extends BrObject
     br()->session()->clear('urlRestrictions');
   }
 
-  public function route($methods, $path, $func = null)
+  /**
+   * @throws \Exception
+   */
+  public function route($methods, $path, $func = null): BrRequest
   {
     if (!$func) {
       $func = $path;
@@ -690,7 +724,8 @@ class BrRequest extends BrObject
     return $this;
   }
 
-  public function check($condition, $func)
+
+  public function check($condition, callable $func): BrRequest
   {
     if (!$this->routeComplete()) {
       if ($condition) {
@@ -702,31 +737,49 @@ class BrRequest extends BrObject
     return $this;
   }
 
-  public function routeGET($path, $func)
+  /**
+   * @throws \Exception
+   */
+  public function routeGET(string $path, callable $func): BrRequest
   {
     return $this->route($path, $func);
   }
 
-  public function routePOST($path, $func)
+  /**
+   * @throws \Exception
+   */
+  public function routePOST(string $path, callable $func): BrRequest
   {
     return $this->route('POST', $path, $func);
   }
 
-  public function routePUT($path, $func)
+  /**
+   * @throws \Exception
+   */
+  public function routePUT(string $path, callable $func): BrRequest
   {
     return $this->route(BrConst::REQUEST_TYPE_PUT, $path, $func);
   }
 
-  public function routeDELETE($path, $func)
+  /**
+   * @throws \Exception
+   */
+  public function routeDELETE($path, callable $func): BrRequest
   {
     return $this->route(BrConst::REQUEST_TYPE_DELETE, $path, $func);
   }
 
-  public function routeIndex($func)
+  /**
+   * @throws \Exception
+   */
+  public function routeIndex(callable $func): BrRequest
   {
     return $this->route(br()->request()->host() . br()->request()->baseUrl() . '($|index[.]html|[?])', $func);
   }
 
+  /**
+   * @throws BrGenericRendererException
+   */
   public function routeDefault()
   {
     if (!$this->routeComplete()) {

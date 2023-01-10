@@ -30,18 +30,18 @@ class BrImage extends BrObject
     if ($this->imageLibSupported()) {
       switch (br()->fs()->fileExt($path)) {
         case 'png':
-          if ($this->image = @ImageCreateFromPNG($path)) {
+          if ($this->image = @imagecreatefrompng($path)) {
             $this->format = 'png';
           }
           break;
         case 'jpg':
         case 'jpeg':
-          if ($this->image = @ImageCreateFromJPEG($path)) {
+          if ($this->image = @imagecreatefromjpeg($path)) {
             $this->format = 'jpg';
           }
           break;
         case 'gif':
-          if ($this->image = @ImageCreateFromGIF($path)) {
+          if ($this->image = @imagecreatefromgif($path)) {
             $this->format = 'gif';
           }
           break;
@@ -49,15 +49,15 @@ class BrImage extends BrObject
           break;
       }
       if (!$this->image) {
-        $this->image = @ImageCreateFromPNG($path);
+        $this->image = @imagecreatefrompng($path);
         if ($this->image) {
           $this->format = 'png';
         } else {
-          $this->image = @ImageCreateFromJPEG($path);
+          $this->image = @imagecreatefromjpeg($path);
           if ($this->image) {
             $this->format = 'jpg';
           } else {
-            $this->image = @ImageCreateFromGIF($path);
+            $this->image = @imagecreatefromgif($path);
             if ($this->image) {
               $this->format = 'gif';
             }
@@ -87,6 +87,9 @@ class BrImage extends BrObject
     );
   }
 
+  /**
+   * @return false|\GdImage|resource|null
+   */
   public function image()
   {
     return $this->image;
@@ -135,10 +138,10 @@ class BrImage extends BrObject
       }
     }
 
-    if (function_exists('ImageCreateTrueColor')) {
-      $new_image = ImageCreateTrueColor($new_width, $new_height);
+    if (function_exists('imagecreatetruecolor')) {
+      $new_image = imagecreatetruecolor($new_width, $new_height);
     } else {
-      $new_image = ImageCreate($new_width, $new_height);
+      $new_image = imagecreate($new_width, $new_height);
     }
 
     if (function_exists('imagecopyresampled')) {

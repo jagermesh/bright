@@ -340,7 +340,7 @@ class BrCore extends BrObject
     $this->threadMode = true;
   }
 
-  public function getMicrotime(): float
+  public function getMicroTime(): float
   {
     return hrtime(true) / 1e+9;
   }
@@ -416,9 +416,6 @@ class BrCore extends BrObject
   }
 
   /**
-   * @param $tmpl
-   * @param $args
-   * @param $errormsg
    * @return false|string
    */
   public function placeholderEx($tmpl, $args, &$errormsg)
@@ -432,7 +429,7 @@ class BrCore extends BrObject
     list($compiled, $tmpl, $has_named) = $compiled;
 
     if ($has_named) {
-      $args = @$args[0];
+      $args = br($args, 0);
     }
 
     $p = 0;
@@ -581,7 +578,7 @@ class BrCore extends BrObject
   }
 
   /**
-   * @param $default
+   * @param mixed $default
    * @return mixed|null
    */
   public function fromJSON(?string $json = '', $default = null)
@@ -596,7 +593,7 @@ class BrCore extends BrObject
   }
 
   /**
-   * @param $data
+   * @param mixed $data
    */
   public function toJSON($data): string
   {
@@ -605,12 +602,12 @@ class BrCore extends BrObject
 
   public function html2text(?string $html = ''): string
   {
-    return $this->HTML()->toText($html);
+    return $this->html()->toText($html);
   }
 
   public function text2html(?string $html = ''): string
   {
-    return $this->HTML()->fromText($html);
+    return $this->html()->fromText($html);
   }
 
   /**
@@ -676,7 +673,6 @@ class BrCore extends BrObject
   }
 
   /**
-   * @param $num
    * @return float|int|string|null
    */
   public function decryptInt($num)
@@ -752,7 +748,7 @@ class BrCore extends BrObject
     if (br($params, 'bcc')) {
       $bcc = br($params['bcc'])->split();
       foreach ($bcc as $emailAdr) {
-        $email->addBCC(new Address($emailAdr));
+        $email->addBcc(new Address($emailAdr));
       }
     }
 
@@ -821,9 +817,8 @@ class BrCore extends BrObject
   }
 
   /**
-   * @param $var
-   * @param $secondVar
-   * @return int|string
+   * @param mixed $var
+   * @param mixed $secondVar
    */
   public function inc(&$var, $secondVar, string $glue = ', ')
   {
@@ -837,7 +832,6 @@ class BrCore extends BrObject
   }
 
   /**
-   * @param $element
    * @return mixed|string
    */
   public function stripSlashes(&$element)
@@ -916,7 +910,7 @@ class BrCore extends BrObject
                   ($abs < 1024 * 1024 * 1024 * 1024 * 1024 ? 4 :
                     floor(log($abs, 1024)))))));
         return ($includeSign ? ($size > 0 ? '+' : '') : '') .
-          ($size < 0 ? '-' : '') . @round($abs / pow(1024, $unit), 2) .
+          ($size < 0 ? '-' : '') . round($abs / pow(1024, $unit), 2) .
           ($compact ? '' : ' ') .
           $this->trafficUnits[$unit];
       }
@@ -954,7 +948,7 @@ class BrCore extends BrObject
   }
 
   /**
-   * @param $value
+   * @param mixed $value
    * @return float|string
    */
   public function smartRound($value, int $precision = 2)
@@ -1128,7 +1122,8 @@ class BrCore extends BrObject
   }
 
   /**
-   * @param $obj
+   * @param mixed $obj
+   * @throws \ReflectionException
    */
   public function getShortClassName($obj): string
   {

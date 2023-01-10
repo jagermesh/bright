@@ -14,7 +14,6 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\Exception\RequestException;
 
 class BrBrowser extends BrObject
 {
@@ -30,7 +29,7 @@ class BrBrowser extends BrObject
   }
 
   /**
-   * @param $value
+   * @param mixed $value
    */
   public static function setDefaultRequestsParam(string $name, $value)
   {
@@ -189,6 +188,9 @@ class BrBrowser extends BrObject
     return $result;
   }
 
+  /**
+   * @throws BrNonRecoverableException
+   */
   public function request(string $method, string $url, array $requestParams = [])
   {
     $client = new Client();

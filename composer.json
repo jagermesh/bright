@@ -25,7 +25,8 @@
     "michelf/php-markdown": "^1",
     "longman/telegram-bot": "^0.75",
     "neitanod/forceutf8": "^2",
-    "symfony/mailer": "^5"
+    "symfony/mailer": "^5",
+    "phpoffice/phpspreadsheet": "^1"
   },
   "require-dev": {
     "codeception/codeception": "^4.1",

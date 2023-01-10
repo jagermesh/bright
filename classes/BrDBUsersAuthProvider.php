@@ -111,10 +111,10 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider
 
     if ($data = $this->getAttr(self::USERS_API)) {
       // new style
-      $this->setAttr(self::USERS_API_SELECT, br($data, BrConst::DML_OPERATION_SELECT));
-      $this->setAttr(self::USERS_API_INSERT, br($data, BrConst::DML_OPERATION_INSERT));
-      $this->setAttr(self::USERS_API_UPDATE, br($data, BrConst::DML_OPERATION_UPDATE));
-      $this->setAttr(self::USERS_API_REMOVE, br($data, BrConst::DML_OPERATION_DELETE));
+      $this->setAttr(self::USERS_API_SELECT, br($data, BrConst::DATASOURCE_OPERATION_SELECT));
+      $this->setAttr(self::USERS_API_INSERT, br($data, BrConst::DATASOURCE_OPERATION_INSERT));
+      $this->setAttr(self::USERS_API_UPDATE, br($data, BrConst::DATASOURCE_OPERATION_UPDATE));
+      $this->setAttr(self::USERS_API_REMOVE, br($data, BrConst::DATASOURCE_OPERATION_DELETE));
     } else {
       // old style
       $this->setAttr(self::USERS_API_SELECT, br()->config()->get(self::BR_AUTH_DB_API_SELECT_USER));
@@ -160,9 +160,17 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider
   }
 
   /**
-   * @param $rowid
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
    */
-  private function getUserById($rowid): ?array
+  private function getUserById(int $rowid): ?array
   {
     $usersTable = $this->getAttr(self::USERS_TABLE_NAME);
 
@@ -170,9 +178,17 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider
   }
 
   /**
-   * @param $login
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
    */
-  private function findUserByLogin($login): array
+  private function findUserByLogin(string $login): array
   {
     $usersTable = $this->getAttr(self::USERS_TABLE_NAME);
     $loginField = $this->getAttr(self::USERS_TABLE_LOGIN_FIELD);
@@ -181,6 +197,17 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider
   }
 
   /**
+   * @param bool $returnNotAuthorized
+   * @return array|bool|BrArray|BrCore|BrString|float|int|mixed|string|null
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
    * @throws BrDBUsersAuthProviderException
    */
   public function checkLogin($returnNotAuthorized = true)
@@ -225,6 +252,16 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider
   }
 
   /**
+   * @return mixed
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
    * @throws BrDBUsersAuthProviderException
    */
   public function validateLogin($login)
@@ -246,9 +283,20 @@ class BrDBUsersAuthProvider extends BrGenericAuthProvider
   }
 
   /**
+   * @param mixed $login
+   * @return mixed
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
    * @throws BrDBUsersAuthProviderException
    */
-  public function login($login, $remember = false)
+  public function login($login, bool $remember = false)
   {
     $loginField = $this->getAttr(self::USERS_TABLE_LOGIN_FIELD);
     $passwordField = $this->getAttr(self::USERS_TABLE_PASSWORD_FIELD);

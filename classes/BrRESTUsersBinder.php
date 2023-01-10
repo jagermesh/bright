@@ -14,9 +14,7 @@ class BrRESTUsersBinder extends BrRESTBinder
 {
   private BrGenericDataSource $usersDataSource;
 
-  /**
-   * @param $usersDataSource
-   */
+
   public function __construct($usersDataSource)
   {
     $this->usersDataSource = is_object($usersDataSource) ? $usersDataSource : new $usersDataSource();
@@ -41,11 +39,14 @@ class BrRESTUsersBinder extends BrRESTBinder
           $emailField = br()->auth()->getAttr(BrDBUsersAuthProvider::USERS_TABLE_EMAIL_FIELD);
           $plainPasswords = br()->auth()->getAttr(BrDBUsersAuthProvider::PLAIN_PASSWORDS);
 
-          if ($user = br()->db()->getRow('
+          if ($user = br()->db()->getRow(sprintf('
             SELECT *
-              FROM ' . $usersTable . '
-             WHERE ' . $passwordResetField . ' = ?&
+              FROM %s
+             WHERE %s = ?&
           ',
+            $usersTable,
+            $passwordResetField,
+          ),
             $matches[1]
           )) {
             if ($email = br($user, $emailField)) {
@@ -58,7 +59,10 @@ class BrRESTUsersBinder extends BrRESTBinder
                 }
                 $data = [];
                 $data['password'] = $password;
-                $data['loginUrl'] = br()->request()->host() . br()->request()->baseUrl() . 'login.html?login=' . $user['login'] . '&' . 'from=passwordRemind';
+                $data['loginUrl'] = sprintf('%slogin.html?login=%s&from=passwordRemind',
+                  br()->request()->host() . br()->request()->baseUrl(),
+                  $user['login'],
+                );
                 if ($message = br()->renderer()->fetch($mailTemplate, [
                   'user' => $user,
                   'data' => $data,
@@ -66,11 +70,16 @@ class BrRESTUsersBinder extends BrRESTBinder
                   if (br()->sendMail($email, br()->auth()->getAttr('passwordReminder.passwordMail.subject'), $message, [
                     'sender' => br()->auth()->getAttr('passwordReminder.passwordMail.from'),
                   ])) {
-                    br()->db()->runQuery('
-                          UPDATE ' . $usersTable . '
-                             SET ' . $passwordResetField . ' = null, ' . $passwordField . ' = ?&
-                           WHERE id = ?
-                        ',
+                    br()->db()->runQuery(sprintf('
+                      UPDATE %s
+                         SET %s = null
+                           , %s = ?&
+                       WHERE id = ?
+                    ',
+                      $usersTable,
+                      $passwordResetField,
+                      $passwordField,
+                    ),
                       $finalPassword,
                       $user['id']
                     );
@@ -91,35 +100,32 @@ class BrRESTUsersBinder extends BrRESTBinder
               throw new BrRESTUsersBinderException('We can not send you new password because there is not e-mail for your account');
             }
           } else {
-            br()->response()->redirect(br()->request()->host() . br()->request()->baseUrl() . 'login.html?login=' .
-              $user['login'] . '&' . 'from=passwordRemindError');
+            br()->response()->redirect(sprintf('%slogin.html?login=%s&from=passwordRemindError',
+              br()->request()->host() . br()->request()->baseUrl(),
+              $user['login'],
+            ));
             return true;
           }
         }
         );
 
-      parent::route(
-        '/api/users/',
-        $this->usersDataSource,
-        [
-          'security' => [
-            'invoke' => '',
-            '.*' => 'login',
+      parent::route('/api/users/', $this->usersDataSource, [
+        BrConst::REST_SETTING_SECURITY => [
+          BrConst::DATASOURCE_METHOD_INVOKE => '',
+          '.*' => BrConst::REST_SECURITY_LOGIN,
+        ],
+        BrConst::REST_SETTING_FILTER_MAPPING => [
+          [
+            'get' => 'keyword',
+            'type' => 'regexp',
+            'fields' => [$loginField],
+          ], [
+            'get' => 'status',
+            'field' => 'status',
           ],
-          'filterMappings' => [
-            [
-              'get' => 'keyword',
-              'type' => 'regexp',
-              'fields' => [$loginField],
-            ],
-            [
-              'get' => 'status',
-              'field' => 'status',
-            ],
-          ],
-          'allowEmptyFilter' => true,
-        ]
-      );
+        ],
+        BrConst::REST_SETTING_ALLOW_EMPTY_FILTER => true,
+      ]);
     }
   }
 }

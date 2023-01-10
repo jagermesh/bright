@@ -2,6 +2,6 @@
 
 namespace Bright;
 
-class BrXMLParserException extends \Exception
+class BrXMLParserException extends BrException
 {
 }

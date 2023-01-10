@@ -2,6 +2,6 @@
 
 namespace Bright;
 
-class BrGenericSQLProviderTableException extends \Exception
+class BrGenericSQLProviderTableException extends BrException
 {
 }

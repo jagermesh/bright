@@ -68,7 +68,16 @@
           'margin-bottom': '2px'
         });
         if (_this.ctrl.attr('data-editable-style')) {
-          _this.editor.attr('style', _this.ctrl.attr('data-editable-style'));
+          let styles = _this.ctrl.attr('data-editable-style').split(';');
+          for(let style of styles) {
+            let nameValue = style.split(':');
+            if (nameValue.length == 2) {
+              _this.editor.css(nameValue[0].trim(), nameValue[1].trim());
+            }
+          }
+        }
+        if (_this.ctrl.attr('data-editable-max-length')) {
+          _this.editor.attr('maxlength', _this.ctrl.attr('data-editable-max-length'));
         }
         _this.ctrl.append(_this.editor);
         if (_this.options.onGetContent) {
@@ -90,18 +99,18 @@
         _this.editor.on('keyup', function(evt0) {
           let value = _this.editor.val();
           switch (evt0.keyCode) {
-          case 13:
-            if (_this.options.onSave) {
-              _this.options.onSave.call(_this.ctrl, value, 'keyup');
-            } else {
-              _this.apply(value);
-            }
-            evt0.stopPropagation();
-            break;
-          case 27:
-            _this.cancel();
-            evt0.stopPropagation();
-            break;
+            case 13:
+              if (_this.options.onSave) {
+                _this.options.onSave.call(_this.ctrl, value, 'keyup');
+              } else {
+                _this.apply(value);
+              }
+              evt0.stopPropagation();
+              break;
+            case 27:
+              _this.cancel();
+              evt0.stopPropagation();
+              break;
           }
         });
         _this.editor.on('blur', function(evt0) {
@@ -177,18 +186,18 @@
       }
       let instance = $(selector).data('brEditable-editable');
       switch (callback) {
-      case 'exists':
-        return !!instance;
-      case 'get':
-      case 'apply':
-      case 'save':
-      case 'cancel':
-      case 'click':
-        if (!instance) {
-          instance = new BrEditable($(selector), callback);
-          $(selector).data('brEditable-editable', instance);
-        }
-        return instance[callback](value);
+        case 'exists':
+          return !!instance;
+        case 'get':
+        case 'apply':
+        case 'save':
+        case 'cancel':
+        case 'click':
+          if (!instance) {
+            instance = new BrEditable($(selector), callback);
+            $(selector).data('brEditable-editable', instance);
+          }
+          return instance[callback](value);
       }
     } else {
       $(document).on('click', selector, function(event) {

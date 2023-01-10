@@ -12,14 +12,14 @@ namespace Bright;
 
 class BrGenericSQLRegExp
 {
-  private $value;
+  private string $value;
 
-  public function __construct($value)
+  public function __construct(string $value)
   {
     $this->value = $value;
   }
 
-  public function getValue()
+  public function getValue(): string
   {
     return $this->value;
   }

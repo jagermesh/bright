@@ -18,8 +18,8 @@ class BrGenericSQLProviderTable extends BrObject
   public const SQL_CMD_NOT_IN_SET = ' NOT IN (?@) ';
   public const SQL_CMD_NOT_IN_NULL = ' NOT IN (NULL) ';
   public const SQL_CMD_IN_NULL = ' IN (NULL) ';
-  public const SQL_CMD_IN_SMTH = ' IN (%s) ';
-  public const SQL_CMD_NOT_IN_SMTH = ' NOT IN (%s) ';
+  public const SQL_CMD_IN_LIST = ' IN (%s) ';
+  public const SQL_CMD_NOT_IN_LIST = ' NOT IN (%s) ';
   public const SQL_CMD_IS_NULL = ' IS NULL ';
   public const SQL_CMD_IS_NOT_NULL = ' IS NOT NULL ';
   public const SQL_CMD_OR = ' OR ';
@@ -43,23 +43,26 @@ class BrGenericSQLProviderTable extends BrObject
   public const SQL_PROVIDER_OPTION_TABLE_ALIAS = 'tableAlias';
   public const SQL_PROVIDER_OPTION_INDEX_HINT = 'indexHint';
 
-  private $tableName;
-  private $tableAlias;
-  private $indexHint;
-  private $provider;
-  private $dataBaseDictionary;
+  private string $tableName;
+  private string $tableAlias;
+  private string $indexHint;
+  private BrGenericSQLDBProvider $provider;
+  private ?IDataBaseDictionary $dataBaseDictionary = null;
 
-  public function __construct(&$provider, $tableName, $params = [])
+  public function __construct(BrGenericSQLDBProvider $provider, string $tableName, array $params = [])
   {
     parent::__construct();
 
     $this->tableName = $tableName;
-    $this->tableAlias = br($params, self::SQL_PROVIDER_OPTION_TABLE_ALIAS);
-    $this->indexHint = br($params, self::SQL_PROVIDER_OPTION_INDEX_HINT);
+    $this->tableAlias = (string)br($params, self::SQL_PROVIDER_OPTION_TABLE_ALIAS);
+    $this->indexHint = (string)br($params, self::SQL_PROVIDER_OPTION_INDEX_HINT);
     $this->provider = $provider;
   }
 
-  public function select($filter = [], $fields = [], $distinct = false)
+  /**
+   * @throws BrGenericSQLProviderTableException
+   */
+  public function select($filter = [], $fields = [], $distinct = false): BrGenericSQLProviderCursor
   {
     $where = '';
     $joins = '';
@@ -113,6 +116,9 @@ class BrGenericSQLProviderTable extends BrObject
     return new BrGenericSQLProviderCursor($sql, $args, $this->provider);
   }
 
+  /**
+   * @throws BrGenericSQLProviderTableException
+   */
   public function selectOne($filter = [])
   {
     if ($rows = $this->select($filter)) {
@@ -124,7 +130,20 @@ class BrGenericSQLProviderTable extends BrObject
     return [];
   }
 
-  private function internaleInsert(&$values, $ignoreDuplicate = false)
+  /**
+   * @throws BrAppException
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
+   * @throws BrGenericSQLProviderTableException
+   */
+  private function internalInsert(array &$values, bool $ignoreDuplicate = false): ?int
   {
     $values = $this->validateRow($values);
     $dataTypes = $this->getDataTypes();
@@ -132,7 +151,7 @@ class BrGenericSQLProviderTable extends BrObject
     $fields_str = '';
     $values_str = '';
 
-    foreach ($values as $field => $value) {
+    foreach (array_keys($values) as $field) {
       $fields_str .= ($fields_str ? ',' : '') . $field;
       $values_str .= ($values_str ? ',' : '') . '?';
       if (br($dataTypes, $field) == BrGenericDBProvider::DATA_TYPE_STRING) {
@@ -166,20 +185,56 @@ class BrGenericSQLProviderTable extends BrObject
     return $newId;
   }
 
-  public function insert(&$values)
+  /**
+   * @throws BrAppException
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
+   * @throws BrGenericSQLProviderTableException
+   */
+  public function insert(array &$values): ?int
   {
-    return $this->internaleInsert($values);
-  }
-
-  public function insertIgnore(&$values)
-  {
-    return $this->internaleInsert($values, true);
+    return $this->internalInsert($values);
   }
 
   /**
+   * @throws BrAppException
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
    * @throws BrGenericSQLProviderTableException
    */
-  public function replace(&$values)
+  public function insertIgnore(array &$values): ?int
+  {
+    return $this->internalInsert($values, true);
+  }
+
+  /**
+   * @throws BrAppException
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
+   * @throws BrGenericSQLProviderTableException
+   */
+  public function replace(array &$values): ?int
   {
     $values = $this->validateRow($values);
     $dataTypes = $this->getDataTypes();
@@ -187,7 +242,7 @@ class BrGenericSQLProviderTable extends BrObject
     $fields_str = '';
     $values_str = '';
 
-    foreach ($values as $field => $value) {
+    foreach (array_keys($values) as $field) {
       $fields_str .= ($fields_str ? ',' : '') . $field;
       $values_str .= ($values_str ? ',' : '') . '?';
       if (br($dataTypes, $field) == BrGenericDBProvider::DATA_TYPE_STRING) {
@@ -212,18 +267,32 @@ class BrGenericSQLProviderTable extends BrObject
         throw new BrGenericSQLProviderTableException('Can not find inserted record');
       }
     }
+
+    return null;
   }
 
   /**
+   * @param mixed $values
+   * @param mixed $filter
+   * @throws BrAppException
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
    * @throws BrGenericSQLProviderTableException
    */
-  public function update($values, $filter)
+  public function update($values, $filter): bool
   {
     $values = $this->validateRow($values);
     $dataTypes = $this->getDataTypes();
 
     $sql = 'UPDATE ' . $this->tableName . ' SET ';
-    foreach ($values as $field => $value) {
+    foreach (array_keys($values) as $field) {
       if ($field != $this->provider->rowidField()) {
         $sql .= $field . ' = ?';
         if (br($dataTypes, $field) == BrGenericDBProvider::DATA_TYPE_STRING) {
@@ -279,6 +348,19 @@ class BrGenericSQLProviderTable extends BrObject
     return true;
   }
 
+  /**
+   * @return mixed
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
+   * @throws BrGenericSQLProviderTableException
+   */
   public function remove($filter)
   {
     $where = '';
@@ -313,6 +395,11 @@ class BrGenericSQLProviderTable extends BrObject
   }
 
   // private
+
+  /**
+   * @throws BrGenericSQLProviderTableException
+   * @throws \Exception
+   */
   private function compileJoin($filter, $tableName, $fieldName, &$joins, &$joinsTables, $joinType = self::SQL_JOIN_TYPE_INNER)
   {
     $first = true;
@@ -331,14 +418,17 @@ class BrGenericSQLProviderTable extends BrObject
           }
           if (is_array($joinField)) {
             if (br($joinField, BrConst::FILTER_RULE_SQL)) {
-              $joins .= "\n" . ' ' . $joinType . self::SQL_CMD_JOIN . $joinTableName . ' ' . $joinTableAlias . self::SQL_CMD_ON . $joinField[BrConst::FILTER_RULE_SQL];
+              $joins .= "\n" . ' ' . $joinType . self::SQL_CMD_JOIN . $joinTableName . ' ' .
+                $joinTableAlias . self::SQL_CMD_ON . $joinField[BrConst::FILTER_RULE_SQL];
             } else {
               throw new BrGenericSQLProviderTableException('Wrong join format');
             }
           } elseif (strpos($fieldName, '.') === false) {
-            $joins .= "\n" . ' ' . $joinType . self::SQL_CMD_JOIN . $joinTableName . ' ' . $joinTableAlias . self::SQL_CMD_ON . $tableName . '.' . $fieldName . ' = ' . $joinTableAlias . '.' . $joinField;
+            $joins .= "\n" . ' ' . $joinType . self::SQL_CMD_JOIN . $joinTableName . ' ' .
+              $joinTableAlias . self::SQL_CMD_ON . $tableName . '.' . $fieldName . ' = ' . $joinTableAlias . '.' . $joinField;
           } else {
-            $joins .= "\n" . ' ' . $joinType . self::SQL_CMD_JOIN . $joinTableName . ' ' . $joinTableAlias . self::SQL_CMD_ON . $fieldName . ' = ' . $joinTableAlias . '.' . $joinField;
+            $joins .= "\n" . ' ' . $joinType . self::SQL_CMD_JOIN . $joinTableName . ' ' .
+              $joinTableAlias . self::SQL_CMD_ON . $fieldName . ' = ' . $joinTableAlias . '.' . $joinField;
           }
         }
         $first = false;
@@ -386,7 +476,7 @@ class BrGenericSQLProviderTable extends BrObject
                       $joins .= self::SQL_CMD_AND . $joinLeftPart . self::SQL_CMD_IN_NULL;
                     }
                   } elseif (strlen($joinFieldNameOrValue) > 0) {
-                    $joins .= self::SQL_CMD_AND . $joinLeftPart . sprintf(self::SQL_CMD_IN_SMTH, $joinFieldNameOrValue);
+                    $joins .= self::SQL_CMD_AND . $joinLeftPart . sprintf(self::SQL_CMD_IN_LIST, $joinFieldNameOrValue);
                   } else {
                     $joins .= self::SQL_CMD_AND . $joinLeftPart . self::SQL_CMD_IN_NULL;
                   }
@@ -400,7 +490,7 @@ class BrGenericSQLProviderTable extends BrObject
                       $joins .= self::SQL_CMD_AND . $joinLeftPart . self::SQL_CMD_NOT_IN_NULL;
                     }
                   } elseif (strlen($joinFieldNameOrValue) > 0) {
-                    $joins .= self::SQL_CMD_AND . $joinLeftPart . sprintf(self::SQL_CMD_NOT_IN_SMTH, $joinFieldNameOrValue);
+                    $joins .= self::SQL_CMD_AND . $joinLeftPart . sprintf(self::SQL_CMD_NOT_IN_LIST, $joinFieldNameOrValue);
                   } else {
                     $joins .= self::SQL_CMD_AND . $joinLeftPart . self::SQL_CMD_NOT_IN_NULL;
                   }
@@ -447,6 +537,7 @@ class BrGenericSQLProviderTable extends BrObject
     }
   }
 
+
   private function compileExists($filter, $tableName, $link, &$where)
   {
     $where .= $link . self::SQL_CMD_EXISTS . '(';
@@ -458,6 +549,7 @@ class BrGenericSQLProviderTable extends BrObject
       $where .= str_replace('$', $tableName, $filter) . ')';
     }
   }
+
 
   private function compileNotExists($filter, $tableName, $link, &$where)
   {
@@ -479,16 +571,16 @@ class BrGenericSQLProviderTable extends BrObject
     foreach ($filter as $currentFieldName => $filterValue) {
       $currentFieldName = (string)$currentFieldName;
       if (strpos($currentFieldName, '.') === false) {
-        $fname = $tableName . '.' . $currentFieldName;
+        $fieldName1 = $tableName . '.' . $currentFieldName;
       } else {
-        $fname = $currentFieldName;
+        $fieldName1 = $currentFieldName;
       }
       if (preg_match('~^[@]~', $fieldName)) {
-        $fname2 = ltrim($fieldName, '@');
+        $fieldName2 = ltrim($fieldName, '@');
       } elseif (strpos($fieldName, '.') === false) {
-        $fname2 = $tableName . '.' . $fieldName;
+        $fieldName2 = $tableName . '.' . $fieldName;
       } else {
-        $fname2 = $fieldName;
+        $fieldName2 = $fieldName;
       }
       switch ($currentFieldName) {
         // FUCKING BUG! 0 = '$and' //
@@ -526,32 +618,32 @@ class BrGenericSQLProviderTable extends BrObject
           if (is_array($filterValue)) {
             $filterValue = br($filterValue)->removeEmptyValues();
             if ($filterValue) {
-              $where .= $link . $fname2 . self::SQL_CMD_IN_SET;
+              $where .= $link . $fieldName2 . self::SQL_CMD_IN_SET;
               $args[] = $filterValue;
             } else {
-              $where .= $link . $fname2 . self::SQL_CMD_IN_NULL;
+              $where .= $link . $fieldName2 . self::SQL_CMD_IN_NULL;
             }
           } elseif (strlen($filterValue) > 0) {
             // we assuming it's SQL statement
-            $where .= $link . $fname2 . sprintf(self::SQL_CMD_IN_SMTH, $filterValue);
+            $where .= $link . $fieldName2 . sprintf(self::SQL_CMD_IN_LIST, $filterValue);
           } else {
-            $where .= $link . $fname2 . self::SQL_CMD_IN_NULL;
+            $where .= $link . $fieldName2 . self::SQL_CMD_IN_NULL;
           }
           break;
         case BrConst::FILTER_RULE_NOT_IN:
           if (is_array($filterValue)) {
             $filterValue = br($filterValue)->removeEmptyValues();
             if ($filterValue) {
-              $where .= $link . $fname2 . self::SQL_CMD_NOT_IN_SET;
+              $where .= $link . $fieldName2 . self::SQL_CMD_NOT_IN_SET;
               $args[] = $filterValue;
             } else {
-              $where .= $link . $fname2 . self::SQL_CMD_NOT_IN_NULL;
+              $where .= $link . $fieldName2 . self::SQL_CMD_NOT_IN_NULL;
             }
           } elseif (strlen($filterValue) > 0) {
             // we assuming it's SQL statement
-            $where .= $link . $fname2 . sprintf(self::SQL_CMD_NOT_IN_SMTH, $filterValue);
+            $where .= $link . $fieldName2 . sprintf(self::SQL_CMD_NOT_IN_LIST, $filterValue);
           } else {
-            $where .= $link . $fname2 . self::SQL_CMD_NOT_IN_NULL;
+            $where .= $link . $fieldName2 . self::SQL_CMD_NOT_IN_NULL;
           }
           break;
         case BrConst::FILTER_RULE_EQ:
@@ -559,16 +651,16 @@ class BrGenericSQLProviderTable extends BrObject
           if (is_array($filterValue)) {
             $filterValue = br($filterValue)->removeEmptyValues();
             if ($filterValue) {
-              $where .= $link . $fname2 . self::SQL_CMD_IN_SET;
+              $where .= $link . $fieldName2 . self::SQL_CMD_IN_SET;
               $args[] = $filterValue;
             } else {
-              $where .= $link . $fname2 . self::SQL_CMD_IN_NULL;
+              $where .= $link . $fieldName2 . self::SQL_CMD_IN_NULL;
             }
           } elseif (strlen($filterValue)) {
-            $where .= $link . $fname2 . ' = ?';
+            $where .= $link . $fieldName2 . ' = ?';
             $args[] = $filterValue;
           } else {
-            $where .= $link . $fname2 . self::SQL_CMD_IS_NULL;
+            $where .= $link . $fieldName2 . self::SQL_CMD_IS_NULL;
           }
           break;
         case BrConst::FILTER_RULE_NOT_EQ:
@@ -576,43 +668,43 @@ class BrGenericSQLProviderTable extends BrObject
           if (is_array($filterValue)) {
             $filterValue = br($filterValue)->removeEmptyValues();
             if ($filterValue) {
-              $where .= $link . $fname2 . self::SQL_CMD_NOT_IN_SET;
+              $where .= $link . $fieldName2 . self::SQL_CMD_NOT_IN_SET;
               $args[] = $filterValue;
             } else {
-              $where .= $link . $fname2 . self::SQL_CMD_NOT_IN_NULL;
+              $where .= $link . $fieldName2 . self::SQL_CMD_NOT_IN_NULL;
             }
           } elseif (strlen($filterValue)) {
-            $where .= $link . $fname2 . ' != ?';
+            $where .= $link . $fieldName2 . ' != ?';
             $args[] = $filterValue;
           } else {
-            $where .= $link . $fname2 . self::SQL_CMD_IS_NOT_NULL;
+            $where .= $link . $fieldName2 . self::SQL_CMD_IS_NOT_NULL;
           }
           break;
         case BrConst::FILTER_RULE_NOT_NULL:
-          $where .= $link . $fname2 . self::SQL_CMD_IS_NOT_NULL;
+          $where .= $link . $fieldName2 . self::SQL_CMD_IS_NOT_NULL;
           break;
         case BrConst::FILTER_RULE_GT:
         case '>':
-          $where .= $link . $fname2 . ' > ?';
+          $where .= $link . $fieldName2 . ' > ?';
           $args[] = $filterValue;
           break;
         case BrConst::FILTER_RULE_GTE:
         case '>=':
-          $where .= $link . $fname2 . ' >= ?';
+          $where .= $link . $fieldName2 . ' >= ?';
           $args[] = $filterValue;
           break;
         case BrConst::FILTER_RULE_LT:
         case '<':
-          $where .= $link . $fname2 . ' < ?';
+          $where .= $link . $fieldName2 . ' < ?';
           $args[] = $filterValue;
           break;
         case BrConst::FILTER_RULE_LTE:
         case '<=':
-          $where .= $link . $fname2 . ' <= ?';
+          $where .= $link . $fieldName2 . ' <= ?';
           $args[] = $filterValue;
           break;
         case BrConst::FILTER_RULE_LIKE:
-          $where .= $link . $fname2 . self::SQL_CMD_LIKE;
+          $where .= $link . $fieldName2 . self::SQL_CMD_LIKE;
           $args[] = $filterValue;
           break;
         case BrConst::FILTER_RULE_CONTAINS:
@@ -620,7 +712,7 @@ class BrGenericSQLProviderTable extends BrObject
             $where .= $link . '(' . self::SQL_CMD_FAKE_FALSE;
             if (br($filterValue)->isRegularArray()) {
               foreach ($filterValue as $value) {
-                $where .= self::SQL_CMD_OR . $fname2 . self::SQL_CMD_LIKE;
+                $where .= self::SQL_CMD_OR . $fieldName2 . self::SQL_CMD_LIKE;
                 $args[] = '%' . $value . '%';
               }
             } else {
@@ -636,7 +728,7 @@ class BrGenericSQLProviderTable extends BrObject
             }
             $where .= ')';
           } else {
-            $where .= $link . $fname2 . self::SQL_CMD_LIKE;
+            $where .= $link . $fieldName2 . self::SQL_CMD_LIKE;
             $args[] = '%' . $filterValue . '%';
           }
           break;
@@ -645,7 +737,7 @@ class BrGenericSQLProviderTable extends BrObject
             $where .= $link . '(' . self::SQL_CMD_FAKE_TRUE;
             if (br($filterValue)->isRegularArray()) {
               foreach ($filterValue as $value) {
-                $where .= self::SQL_CMD_AND . $fname2 . self::SQL_CMD_LIKE;
+                $where .= self::SQL_CMD_AND . $fieldName2 . self::SQL_CMD_LIKE;
                 $args[] = '%' . $value . '%';
               }
             } else {
@@ -661,7 +753,7 @@ class BrGenericSQLProviderTable extends BrObject
             }
             $where .= ')';
           } else {
-            $where .= $link . $fname2 . self::SQL_CMD_LIKE;
+            $where .= $link . $fieldName2 . self::SQL_CMD_LIKE;
             $args[] = '%' . $filterValue . '%';
           }
           break;
@@ -681,21 +773,21 @@ class BrGenericSQLProviderTable extends BrObject
             $where .= $link . sprintf(self::SQL_CMD_MATCH_IN_BOOLEAN_MODE, $tmpFName);
             $filterValue = $tmpValue;
           } else {
-            $where .= $link . sprintf(self::SQL_CMD_MATCH_IN_BOOLEAN_MODE, $fname2);
+            $where .= $link . sprintf(self::SQL_CMD_MATCH_IN_BOOLEAN_MODE, $fieldName2);
           }
           $filterValue = preg_replace('~[@()]~', ' ', $filterValue);
           $args[] = $filterValue;
           break;
         case BrConst::FILTER_RULE_STARTS:
-          $where .= $link . $fname2 . self::SQL_CMD_LIKE;
+          $where .= $link . $fieldName2 . self::SQL_CMD_LIKE;
           $args[] = $filterValue . '%';
           break;
         case BrConst::FILTER_RULE_ENDS:
-          $where .= $link . $fname2 . self::SQL_CMD_LIKE;
+          $where .= $link . $fieldName2 . self::SQL_CMD_LIKE;
           $args[] = '%' . $filterValue;
           break;
         case BrConst::FILTER_RULE_REGEXP:
-          $where .= $link . $fname2 . self::SQL_CMD_REGEXP;
+          $where .= $link . $fieldName2 . self::SQL_CMD_REGEXP;
           $args[] = preg_replace('~([?*+\(\)])~', '[$1]', str_replace('\\', '\\\\', rtrim(ltrim($filterValue, '/'), '/i')));
           break;
         default:
@@ -703,29 +795,29 @@ class BrGenericSQLProviderTable extends BrObject
             if ($currentFieldName && br($filterValue)->isRegularArray()) {
               $filterValue = br($filterValue)->removeEmptyValues();
               if ($filterValue) {
-                $where .= $link . $fname . self::SQL_CMD_IN_SET;
+                $where .= $link . $fieldName1 . self::SQL_CMD_IN_SET;
                 $args[] = $filterValue;
               } else {
-                $where .= $link . $fname . self::SQL_CMD_IS_NULL;
+                $where .= $link . $fieldName1 . self::SQL_CMD_IS_NULL;
               }
             } else {
               $this->compileFilter($filterValue, $tableName, is_numeric($currentFieldName) ? $fieldName : $currentFieldName,
                 $link, $joins, $joinsTables, $where, $args);
             }
           } elseif ($filterValue instanceof BrGenericSQLRegExp) {
-            $where .= $link . $fname . self::SQL_CMD_REGEXP;
+            $where .= $link . $fieldName1 . self::SQL_CMD_REGEXP;
             $args[] = preg_replace('~([?*+\(\)])~', '[$1]', str_replace('\\', '\\\\', rtrim(ltrim($filterValue->getValue(), '/'), '/i')));
           } elseif (br($filterValue)->isEmpty()) {
             if (is_numeric($currentFieldName)) {
-              $where .= $link . $fname2 . self::SQL_CMD_IS_NULL;
+              $where .= $link . $fieldName2 . self::SQL_CMD_IS_NULL;
             } else {
-              $where .= $link . $fname . self::SQL_CMD_IS_NULL;
+              $where .= $link . $fieldName1 . self::SQL_CMD_IS_NULL;
             }
           } else {
             if (is_numeric($currentFieldName)) {
-              $where .= $link . $fname2 . ' = ?';
+              $where .= $link . $fieldName2 . ' = ?';
             } else {
-              $where .= $link . $fname . ' = ?';
+              $where .= $link . $fieldName1 . ' = ?';
             }
             $args[] = $filterValue;
           }
@@ -734,7 +826,7 @@ class BrGenericSQLProviderTable extends BrObject
     }
   }
 
-  private function getDatabaseDictionary()
+  private function getDatabaseDictionary(): ?BrDataBaseDictionary
   {
     if (!$this->dataBaseDictionary) {
       $dataBaseDictionaryFile = br()->getBasePath() . 'database/schema/UserDefinedDataBaseDictionary.php';
@@ -754,12 +846,15 @@ class BrGenericSQLProviderTable extends BrObject
     return $this->dataBaseDictionary;
   }
 
-  private function validateRow(&$row)
+  /**
+   * @throws BrAppException
+   */
+  private function validateRow(array $row): array
   {
     return $this->getDatabaseDictionary()->validate($this->tableName, $row);
   }
 
-  private function getDataTypes()
+  private function getDataTypes(): array
   {
     $result = [];
     if ($structure = $this->getDatabaseDictionary()->getStructure($this->tableName)) {

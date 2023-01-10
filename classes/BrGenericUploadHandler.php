@@ -88,7 +88,7 @@ abstract class BrGenericUploadHandler extends BrObject
       $tempFile = br()->createTempFile('UPL');
       $input = fopen('php://input', 'r');
       $output = fopen($tempFile, 'w');
-      fseek($output, 0, SEEK_SET);
+      fseek($output, 0);
       $realSize = stream_copy_to_stream($input, $output);
       fclose($input);
       if ($realSize != $this->getFileSize()) {
@@ -102,6 +102,9 @@ abstract class BrGenericUploadHandler extends BrObject
     }
   }
 
+  /**
+   * @throws BrGenericDataTypeException
+   */
   public function handle(callable $callback = null)
   {
     // list of valid extensions, ex. array("jpeg", "xml", "bmp")

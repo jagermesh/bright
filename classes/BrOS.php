@@ -50,7 +50,7 @@ class BrOS extends BrObject
   }
 
   /**
-   * @param $masks
+   * @param array|string $masks
    */
   public function findProcesses($masks, bool $regexp = false): \ArrayObject
   {

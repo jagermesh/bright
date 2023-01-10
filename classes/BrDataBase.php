@@ -14,7 +14,6 @@ class BrDataBase extends BrObject
 {
   /**
    * Get provider instance
-   * @return BrMySQLDBProvider|BrMongoDBProvider|BrMSSQLDBProvider
    * @throws BrDataBaseException
    */
   public static function getProviderInstance(?string $name = ''): ?BrGenericSQLDBProvider
@@ -36,9 +35,6 @@ class BrDataBase extends BrObject
           case BrConst::DB_ENGINE_MYSQL:
           case BrConst::DB_ENGINE_MYSQLI:
             self::$instances[$hash]['provider'] = new BrMySQLDBProvider($config);
-            break;
-          case BrConst::DB_ENGINE_MONGO:
-            self::$instances[$hash]['provider'] = new BrMongoDBProvider($config);
             break;
           case BrConst::DB_ENGINE_MSSQL:
             self::$instances[$hash]['provider'] = new BrMSSQLDBProvider($config);

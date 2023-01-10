@@ -41,6 +41,11 @@
       return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
     };
 
+    _this.exists = function(key) {
+      let result = _helper.unpack(_storage.getItem(key));
+      return !br.isEmpty(result);
+    };
+
     _this.set = function(key, value) {
       if (br.isObject(key)) {
         for (let name in key) {

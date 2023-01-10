@@ -15,23 +15,21 @@ abstract class BrGenericDataType extends BrObject
   abstract public function length(): int;
 
   /**
-   * @param $needle
+   * @param mixed $needle
    */
   abstract public function contain($needle, bool $ignoreCase = false): bool;
 
   /**
-   * @param $needle
+   * @param mixed $needle
    */
   abstract public function has($needle, bool $ignoreCase = false): bool;
 
   /**
-   * @param $needle
+   * @param mixed $needle
    */
   abstract public function exists($needle, bool $ignoreCase = false): bool;
 
-  /**
-   * @param $needle
-   */
+
   abstract public function indexOf($needle): int;
   abstract public function in(array $array): bool;
   abstract public function inArray(array $array): bool;
@@ -40,7 +38,7 @@ abstract class BrGenericDataType extends BrObject
   abstract public function matchAll(string $pattern, array &$matches = [], int $flags = PREG_PATTERN_ORDER, int $offset = 0): bool;
 
   /**
-   * @param $candidate
+   * @param mixed $candidate
    */
   abstract public function equal($candidate, bool $ignoreCase = false): bool;
 
@@ -75,7 +73,6 @@ abstract class BrGenericDataType extends BrObject
   }
 
   /**
-   * @param $mixed
    * @return mixed|string
    */
   protected function utf8ize($mixed)

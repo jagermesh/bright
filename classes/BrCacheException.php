@@ -10,6 +10,6 @@
 
 namespace Bright;
 
-class BrCacheException extends \Exception
+class BrCacheException extends BrException
 {
 }

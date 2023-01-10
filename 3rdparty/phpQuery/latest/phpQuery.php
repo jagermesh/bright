@@ -522,7 +522,7 @@ class DOMDocumentWrapper
           : null;
   }
     /**
-     * Repositions meta[type=charset] at the start of head. Bypasses DOMDocument bug.
+     * Repositions meta[type="charset"] at the start of head. Bypasses DOMDocument bug.
      *
      * @link http://code.google.com/p/phpquery/issues/detail?id=80
      * @param $html
@@ -1498,11 +1498,11 @@ class phpQueryObject implements Iterator, Countable, ArrayAccess
       if (!$input->is('[name]')) {
           continue;
       }
-      if ($input->is('[type=checkbox]') && !$input->is('[checked]')) {
+      if ($input->is('[type="checkbox"]') && !$input->is('[checked]')) {
           continue;
       }
         // jquery diff
-      if ($submit && $input->is('[type=submit]')) {
+      if ($submit && $input->is('[type="submit"]')) {
         if ($submit instanceof DOMELEMENT && ! $input->elements[0]->isSameNode($submit)) {
             continue;
         } elseif (is_string($submit) && $input->attr('name') != $submit) {
@@ -2251,7 +2251,7 @@ class phpQueryObject implements Iterator, Countable, ArrayAccess
         break;
 //              $stack = array();
 //              foreach($this->elements as $node)
-//                  if ($node->is('input[type=submit]') || $node->is('button[type=submit]'))
+//                  if ($node->is('input[type="submit"]') || $node->is('button[type="submit"]'))
 //                      $stack[] = $el;
 //              $this->elements = $stack;
       case 'input':
@@ -4675,7 +4675,7 @@ class phpQueryObject implements Iterator, Countable, ArrayAccess
             .($node->getAttribute('value') && strpos($node->getAttribute('value'), '<'.'?php') === false
                 ? '[value="'.substr(str_replace("\n", '', $node->getAttribute('value')), 0, 15).'"]':'')
             .($node->getAttribute('value') && strpos($node->getAttribute('value'), '<'.'?php') !== false
-                ? '[value=PHP]':'')
+                ? '[value="PHP"]':'')
             .($node->getAttribute('selected')
                 ? '[selected]':'')
             .($node->getAttribute('checked')

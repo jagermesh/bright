@@ -421,8 +421,6 @@
           _this.editor = _this.dataEditor = br.dataEditor(_this.options.selectors.editForm, _this.dataSource, editorOptions);
           _this.editor.events.connectTo(_this.events);
 
-          $(findNode('.action-create')).show();
-
           $(document).on('click', selActionCRUD, function() {
             const rowid = $(this).closest('[data-rowid]').attr('data-rowid');
             let mode;
@@ -504,8 +502,7 @@
         const docsHeight = _this.getTableContainer().height();
         const docsContainerHeight = _this.getScrollContainer().height();
         const scrollTop = _this.getScrollContainer().scrollTop();
-
-        if (scrollTop + docsContainerHeight > docsHeight) {
+        if (scrollTop + docsContainerHeight >= docsHeight) {
           _this.dataGrid.loadMore();
         }
       }
@@ -710,9 +707,9 @@
 
     _this.clearSelection = function(disableEvents) {
       _this.selection.clear();
-      $(findNode('tr.row-selected')).removeClass('row-selected');
-      $(findNode('.action-select-row')).prop('checked', false);
-      $(findNode('.action-select-all')).prop('checked', false);
+      _this.getTableContainer().find('.row-selected').removeClass('row-selected');
+      _this.getTableContainer().find('.action-select-row').prop('checked', false);
+      _this.getContainer().find('.action-select-all').prop('checked', false);
       if (!disableEvents) {
         _this.events.trigger('selectionChanged', _this.selection.get().length);
       }

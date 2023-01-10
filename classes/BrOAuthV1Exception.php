@@ -2,6 +2,6 @@
 
 namespace Bright;
 
-class BrOAuthV1Exception extends \Exception
+class BrOAuthV1Exception extends BrException
 {
 }

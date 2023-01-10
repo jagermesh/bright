@@ -1,24 +1,20 @@
 [[#br.request.isProduction]]
-<div class="modal" style="display:block;">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title text-danger">Unexpected error</h5>
-      </div>
-      <div class="modal-body text-break">
-        <div>Sorry, we encountered unexpected error. Report was sent to support team automatically. Feel free to copy below information and submit your issue manually.</div>
-        <div class="text-monospace border border-light rounded-sm bg-light my-2 p-2" style="font-size:80%;">
-          <strong>[[error.type]]: </strong>[[error.message]]<br />
-          <strong>Timestamp: </strong>[[error.timestamp]]<br />
-          <strong>Session ID: </strong>[[login.guid]]<br />
-          <strong>Client IP: </strong>[[br.request.clientIP]]<br />
-          <strong>Url: </strong>[[br.request.url]]<br />
-          <strong>Referer: </strong>[[br.request.referer]]
-        </div>
-      </div>
-      <div class="modal-footer">
-        <a href="javascript:;" onclick="window.history.back();" class="btn btn-default btn-outline-secondary" data-dismiss="modal">Close</a>
-      </div>
+<div class="bright-error-panel">
+  <div class="bright-error-panel-wrapper">
+    <div class="bright-error-section">
+      <div>Sorry, we encountered unexpected error. Report was sent to support team automatically.
+      Feel free to copy below information and submit your issue manually.</div>
+    </div>
+    <div class="bright-error-section">
+      <strong>[[error.type]]: </strong>[[error.message]]<br />
+      <strong>Timestamp: </strong>[[error.timestamp]]<br />
+      <strong>Session ID: </strong>[[login.guid]]<br />
+      <strong>Client IP: </strong>[[br.request.clientIP]]<br />
+      <strong>Url: </strong>[[br.request.url]]<br />
+      <strong>Referer: </strong>[[br.request.referer]]
+    </div>
+    <div class="bright-error-section">
+      <a href="javascript:;" onclick="window.history.back();">Close</a>
     </div>
   </div>
 </div>

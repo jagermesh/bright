@@ -38,7 +38,6 @@ class BrConsole extends BrObject
   }
 
   /**
-   * @param array|null $arguments
    * @return mixed|void
    */
   public function __call(string $name, array $arguments = [])

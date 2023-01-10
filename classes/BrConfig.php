@@ -13,7 +13,7 @@ namespace Bright;
 class BrConfig extends BrObject
 {
   /**
-   * @param $value
+   * @param mixed $value
    */
   public function set(string $name, $value): BrConfig
   {
@@ -23,7 +23,7 @@ class BrConfig extends BrObject
   }
 
   /**
-   * @param $default
+   * @param mixed $default
    * @return array|mixed|null
    */
   public function get(?string $name = null, $default = null)

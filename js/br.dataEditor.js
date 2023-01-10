@@ -103,21 +103,21 @@
       } else
       if (editorRowid) {
         switch (workMode) {
-        case 'copy':
-          title = `Copy ${_this.options.noun}`;
-          break;
-        case 'view':
-          title = `View ${_this.options.noun}`;
-          if (!_this.options.hideRowid) {
-            title += ` (#${editorRowid})`;
-          }
-          break;
-        default:
-          title = `Edit ${_this.options.noun}`;
-          if (!_this.options.hideRowid) {
-            title += ` (#${editorRowid})`;
-          }
-          break;
+          case 'copy':
+            title = `Copy ${_this.options.noun}`;
+            break;
+          case 'view':
+            title = `View ${_this.options.noun}`;
+            if (!_this.options.hideRowid) {
+              title += ` (#${editorRowid})`;
+            }
+            break;
+          default:
+            title = `Edit ${_this.options.noun}`;
+            if (!_this.options.hideRowid) {
+              title += ` (#${editorRowid})`;
+            }
+            break;
         }
       } else {
         title = `Create ${_this.options.noun}`;
@@ -240,7 +240,7 @@
       });
       _this.inputsContainer.find('input.data-field,select.data-field').each(function() {
         const this_ = $(this);
-        if (!this_.val() && this_.attr('data-default')) {
+        if (this_.attr('data-default') && (!this_.val() || ((this_.attr('type') == 'color') && (this_.val() == '#000000')))) {
           br.setValue(this_, this_.attr('data-default'));
         }
       });
@@ -268,7 +268,7 @@
                     noSnapshot: true,
                     callback: function() {
                       if (ckeditorInstance0.getData() != data0) {
-                        // not sure why but setData is not wroking sometimes, so need to run again :(
+                        // not sure why but setData is not working sometimes, so need to run again :(
                         ckeditorInstance0.setData(data0, {
                           noSnapshot: true
                         });
@@ -303,9 +303,9 @@
       _this.inputsContainer.find('select.data-field').each(function() {
         br.setValue($(this), '');
       });
-      _this.inputsContainer.find('input.data-field[type!=radio],textarea.data-field').val('');
-      _this.inputsContainer.find('input.data-field[type=checkbox]').val('1').prop('checked', false);
-      _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio]').find('button').removeClass('active');
+      _this.inputsContainer.find('input.data-field:not([type="radio"]):not([type="checkbox"]),textarea.data-field').val('');
+      _this.inputsContainer.find('input.data-field[type="checkbox"]').prop('checked', false);
+      _this.inputsContainer.find('div.data-field[data-toggle="buttons-radio"]').find('button').removeClass('active');
 
       _this.inputsContainer.find('textarea.data-field').each(function() {
         let ckeditorInstance = $(this).data('ckeditorInstance');
@@ -400,7 +400,7 @@
       return _this.container;
     };
 
-    _this.hide = _this.cancel = function() {
+    _this.cancel = function() {
       cancelled = true;
       _this.events.trigger('editor.cancel', false, editorRowid);
       if (_this.container.hasClass('modal')) {
@@ -411,6 +411,8 @@
         br.backToCaller(_this.options.returnUrl, false);
       }
     };
+
+    _this.hide = _this.cancel;
 
     _this.isSaving = function() {
       return saving;
@@ -434,7 +436,7 @@
         errorCallback = successCallback;
         successCallback = andClose;
         andClose = false;
-        // if function invoked with callabacks I'll consider that it msut save silently
+        // if function invoked with callbacks I'll consider that it must save silently
         silent = true;
       }
       if (workMode == 'view') {
@@ -562,7 +564,6 @@
     }
 
     function internalSave(andClose, successCallback, errorCallback, silent) {
-
       if (saving) {
         window.setTimeout(function() {
           internalSave(andClose, successCallback, errorCallback, silent);
@@ -577,16 +578,28 @@
       try {
         $(_this.options.selectors.errorMessage, _this.container).hide();
         _this.events.triggerBefore('editor.save');
-        _this.inputsContainer.find('div.data-field[data-toggle=buttons-radio],input.data-field,select.data-field,textarea.data-field').each(function() {
+        _this.inputsContainer.find('div.data-field[data-toggle="buttons-radio"],input.data-field,select.data-field,textarea.data-field').each(function() {
           let val;
           let skip = false;
           let input = $(this);
+          let fieldName = input.attr('name');
+          let fieldNameMatch = /^(.+?)(\[(.*?)\])$/.exec(fieldName);
+          let fieldIsArray = !!fieldNameMatch;
           if ((input.attr('readonly') != 'readonly') && (input.attr('disabled') != 'disabled')) {
             if (input.attr('data-toggle') == 'buttons-radio') {
               val = input.find('button.active').val();
             } else
             if (input.attr('type') == 'checkbox') {
-              val = input.is(':checked') ? 1 : 0;
+              if (input.is(':checked')) {
+                if (input[0].hasAttribute('value')) {
+                  val = input.val();
+                } else {
+                  val = 1;
+                }
+              } else
+              if (!fieldIsArray) {
+                val = 0;
+              }
             } else
             if (input.attr('type') == 'radio') {
               if (input.is(':checked')) {
@@ -601,10 +614,12 @@
               if (
                 input.hasClass('required') &&
                 br.isEmpty(val) &&
-                (!input.hasClass('required-edit-only') ||
+                (
+                  !input.hasClass('required-edit-only') ||
                   _this.isEditMode()
                 ) &&
-                (!input.hasClass('required-insert-only') ||
+                (
+                  !input.hasClass('required-insert-only') ||
                   _this.isInsertMode()
                 )
               ) {
@@ -616,18 +631,30 @@
                   this.focus();
                 }
                 errors.push(br.trn('%s must be filled').replace('%s', title));
-              } else
-              if (br.isEmpty(val)) {
-                data[input.attr('name')] = '';
               } else {
-                data[input.attr('name')] = val;
+                if (fieldIsArray) {
+                  if (fieldNameMatch[3]) {
+                    data[fieldNameMatch[1]] = data[fieldNameMatch[1]] ? data[fieldNameMatch[1]] : {};
+                    data[fieldNameMatch[1]][fieldNameMatch[3]] = val;
+                  } else
+                  if (!br.isEmpty(val)) {
+                    data[fieldNameMatch[1]] = data[fieldNameMatch[1]] ? data[fieldNameMatch[1]] : [];
+                    data[fieldNameMatch[1]].push(val);
+                  }
+                } else {
+                  data[fieldName] = br.isEmpty(val) ? '' : val;
+                }
               }
             }
           }
         });
 
         if (errors.length > 0) {
-          let tmpl = (errors.length == 1) ? '{{#errors}}{{.}}{{/errors}}' : br.trn('Please check the following:') + '<br /><ul>{{#errors}}<li>{{.}}</li>{{/errors}}</ul>';
+          let tmpl = (
+            errors.length == 1 ?
+              '{{#errors}}{{.}}{{/errors}}' :
+              br.trn('Please check the following:') + '<br /><ul>{{#errors}}<li>{{.}}</li>{{/errors}}</ul>'
+          );
           let error = br.fetch(tmpl, {
             errors: errors
           });

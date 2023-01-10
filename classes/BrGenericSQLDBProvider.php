@@ -10,26 +10,94 @@
 
 namespace Bright;
 
-class BrGenericSQLDBProvider extends BrGenericDBProvider
+abstract class BrGenericSQLDBProvider extends BrGenericDBProvider
 {
-  private $inTransaction = 0;
-  private $transactionBuffer = [];
-  private $deadlocksHandlerEnabled = true;
+  protected const CONNECT_RETRY_LIMIT = 50;
+  protected const QUERY_RETRY_LIMIT = 30;
 
-  protected $version;
+  private int $inTransaction = 0;
+  private array $transactionBuffer = [];
+  private bool $deadlocksHandlerEnabled = true;
 
-  public function startTransaction($force = false)
+  protected $connection;
+  protected array $config;
+  protected ?string $version = null;
+
+  /**
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
+   */
+  abstract public function runQueryEx(string $sql, array $args = [], bool $streamMode = false, int $iteration = 0, ?string $rerunError = null);
+
+  /**
+   * @return mixed
+   */
+  abstract public function connect(int $iteration = 0, ?string $rerunError = null);
+
+  abstract public function disconnect(): void;
+
+  /**
+   * @return mixed
+   */
+  abstract public function getLastError();
+
+  /**
+   * @param mixed $query
+   */
+  abstract public function selectNext($query, array $options = []): ?array;
+  abstract public function getLastId(): ?int;
+
+
+  abstract public function getAffectedRowsAmount($query = null): int;
+  abstract public function getTableStructure(string $tableName): array;
+  abstract public function getQueryStructure(string $query): array;
+  abstract public function getRowsAmountEx(string $sql, array $args): int;
+
+  public function __construct(array $config)
+  {
+    parent::__construct();
+
+    $this->config = $config;
+
+    register_shutdown_function([&$this, 'captureShutdown']);
+  }
+
+  /**
+   * @return mixed
+   */
+  public function establishConnection()
+  {
+    if ($this->connection) {
+      return $this->connection;
+    } else {
+      return $this->connect();
+    }
+  }
+
+  public function captureShutdown()
+  {
+    $this->disconnect();
+  }
+
+  public function startTransaction(bool $force = false)
   {
     $this->resetTransaction();
     $this->inTransaction++;
   }
 
-  public function commitTransaction($force = false)
+  public function commitTransaction(bool $force = false)
   {
     $this->resetTransaction();
   }
 
-  public function rollbackTransaction($force = false)
+  public function rollbackTransaction(bool $force = false)
   {
     $this->resetTransaction();
   }
@@ -40,51 +108,60 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     $this->transactionBuffer = [];
   }
 
-  public function isInTransaction()
+  public function isInTransaction(): bool
   {
     return ($this->inTransaction > 0);
   }
 
-  public function isTransactionBufferEmpty()
+  public function isTransactionBufferEmpty(): bool
   {
     return (count($this->transactionBuffer) == 0);
   }
 
-  public function transactionBufferLength()
+  public function transactionBufferLength(): int
   {
     return count($this->transactionBuffer);
   }
 
-  public function getTransactionBuffer()
+  public function getTransactionBuffer(): array
   {
     return $this->transactionBuffer;
   }
 
-  public function disableDeadLocksHandler()
+  public function disableDeadLocksHandler(): bool
   {
     $this->deadlocksHandlerEnabled = false;
 
     return $this->deadlocksHandlerEnabled;
   }
 
-  public function enableDeadLocksHandler()
+  public function enableDeadLocksHandler(): bool
   {
     $this->deadlocksHandlerEnabled = true;
 
     return $this->deadlocksHandlerEnabled;
   }
 
-  public function isDeadLocksHandlerEnabled()
+  public function isDeadLocksHandlerEnabled(): bool
   {
     return $this->deadlocksHandlerEnabled;
   }
 
-  public function regexpCondition($value)
+  public function isEmptyDate(?string $date): bool
+  {
+    return (($date == '0000-00-00') || ($date == '0000-00-00 00:00:00') || !$date);
+  }
+
+  public function regexpCondition(string $value): BrGenericSQLRegExp
   {
     return new BrGenericSQLRegExp($value);
   }
 
-  public function rowid($row, $fieldName = null)
+  /**
+   * @param mixed $row
+   * @return int|string|null
+   */
+  public function rowid($row, ?string $fieldName = null)
   {
     if (is_array($row)) {
       return br($row, $fieldName ? $fieldName : $this->rowidField());
@@ -93,28 +170,42 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     }
   }
 
-  public function rowidField()
+  public function rowidField(): string
   {
     return 'id';
   }
 
-  public function rowidValue($row, $fieldName = null)
+  /**
+   * @param mixed $row
+   */
+  public function rowidValue($row, ?string $fieldName = null): string
   {
     if (is_array($row)) {
-      return br($row, $fieldName ? $fieldName : $this->rowidField());
+      return (string)br($row, $fieldName ? $fieldName : $this->rowidField());
     } else {
-      return $row;
+      return (string)$row;
     }
   }
 
-  public function table($name, $alias = null, $params = [])
+  public function table(string $name, ?string $alias = null, array $params = []): BrGenericSQLProviderTable
   {
     $params['tableAlias'] = $alias;
 
     return new BrGenericSQLProviderTable($this, $name, $params);
   }
 
-  public function runScript($script)
+  /**
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
+   */
+  public function runScript(string $script): bool
   {
     if ($statements = $this->parseScript($script)) {
       foreach ($statements as $statement) {
@@ -125,7 +216,19 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     return true;
   }
 
-  public function runScriptFile($fileName)
+  /**
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
+   * @throws BrGenericSQLDBProviderException
+   */
+  public function runScriptFile(string $fileName): bool
   {
     if (file_exists($fileName)) {
       if ($script = br()->fs()->loadFromFile($fileName)) {
@@ -138,6 +241,18 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     }
   }
 
+  /**
+   * @return resource
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
+   */
   public function runQuery(...$args)
   {
     $sql = array_shift($args);
@@ -145,6 +260,18 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     return $this->runQueryEx($sql, $args);
   }
 
+  /**
+   * @return resource
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
+   */
   public function openCursor(...$args)
   {
     $sql = array_shift($args);
@@ -152,13 +279,25 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     return $this->runQueryEx($sql, $args);
   }
 
-  public function getCursor(...$args)
+  public function getCursor(...$args): BrGenericSQLProviderCursor
   {
     $sql = array_shift($args);
 
     return new BrGenericSQLProviderCursor($sql, $args, $this);
   }
 
+  /**
+   * @return resource
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
+   */
   public function select(...$args)
   {
     $sql = array_shift($args);
@@ -166,30 +305,60 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     return $this->runQueryEx($sql, $args);
   }
 
+  /**
+   * @return resource
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
+   */
   public function selectUnbuffered(...$args)
   {
     $sql = array_shift($args);
 
-    return $this->runQueryEx($sql, $args, 0, null, MYSQLI_USE_RESULT);
+    return $this->runQueryEx($sql, $args, true);
   }
 
-  public function selectNext($query, $options = [])
-  {
-    return null;
-  }
-
-  public function getRow(...$args)
+  /**
+   * @throws BrDBForeignKeyException
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBException
+   * @throws BrDBDeadLockException
+   * @throws BrDBUniqueException
+   * @throws BrDBEngineException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBRecoverableException
+   * @throws BrDBLockException
+   */
+  public function getRow(...$args): ?array
   {
     $sql = array_shift($args);
 
     return $this->selectNext($this->runQueryEx($sql, $args));
   }
 
-  private function getCacheTag($method, $sql, $args)
+  private function getCacheTag(string $method, string $sql, ?array $args = []): string
   {
     return get_class($this) . ':' . $method . ':' . hash('sha256', br($sql)->trimSpaces() . serialize($args));
   }
 
+  /**
+   * @return array|mixed|null
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
+   */
   public function getCachedRow(...$args)
   {
     $sql = array_shift($args);
@@ -207,7 +376,18 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     return $result;
   }
 
-  public function getRows(...$args)
+  /**
+   * @throws BrDBForeignKeyException
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBException
+   * @throws BrDBDeadLockException
+   * @throws BrDBUniqueException
+   * @throws BrDBEngineException
+   * @throws BrDBLockException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBRecoverableException
+   */
+  public function getRows(...$args): array
   {
     $sql = array_shift($args);
 
@@ -222,7 +402,18 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     return $result;
   }
 
-  public function getCachedRows(...$args)
+  /**
+   * @throws BrDBForeignKeyException
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBException
+   * @throws BrDBDeadLockException
+   * @throws BrDBUniqueException
+   * @throws BrDBEngineException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBLockException
+   */
+  public function getCachedRows(...$args): array
   {
     $sql = array_shift($args);
 
@@ -230,7 +421,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
 
     $result = br()->cache()->getEx($cacheTag);
     if ($result['success']) {
-      $result = $result['value'];
+      $result = (array)$result['value'];
     } else {
       $query = $this->runQueryEx($sql, $args);
       $result = [];
@@ -245,6 +436,18 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     return $result;
   }
 
+  /**
+   * @return mixed|null
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
+   */
   public function getValue(...$args)
   {
     $sql = array_shift($args);
@@ -257,6 +460,18 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     }
   }
 
+  /**
+   * @return mixed|null
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBDeadLockException
+   * @throws BrDBEngineException
+   * @throws BrDBException
+   * @throws BrDBForeignKeyException
+   * @throws BrDBLockException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBUniqueException
+   */
   public function getCachedValue(...$args)
   {
     $sql = array_shift($args);
@@ -282,7 +497,18 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     return $result;
   }
 
-  public function getValues(...$args)
+  /**
+   * @throws BrDBForeignKeyException
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBException
+   * @throws BrDBDeadLockException
+   * @throws BrDBUniqueException
+   * @throws BrDBEngineException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBLockException
+   */
+  public function getValues(...$args): array
   {
     $sql = array_shift($args);
 
@@ -297,7 +523,18 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     return $result;
   }
 
-  public function getCachedValues(...$args)
+  /**
+   * @throws BrDBForeignKeyException
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBException
+   * @throws BrDBDeadLockException
+   * @throws BrDBUniqueException
+   * @throws BrDBEngineException
+   * @throws BrDBRecoverableException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBLockException
+   */
+  public function getCachedValues(...$args): array
   {
     $sql = array_shift($args);
 
@@ -320,19 +557,30 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     return $result;
   }
 
-  public function getRowsAmount(...$args)
+  public function getRowsAmount(...$args): int
   {
     $sql = array_shift($args);
 
     return $this->getRowsAmountEx($sql, $args);
   }
 
-  public function command($command)
+  /**
+   * @throws BrDBForeignKeyException
+   * @throws BrDBConnectionErrorException
+   * @throws BrDBException
+   * @throws BrDBDeadLockException
+   * @throws BrDBUniqueException
+   * @throws BrDBEngineException
+   * @throws BrDBLockException
+   * @throws BrDBServerGoneAwayException
+   * @throws BrDBRecoverableException
+   */
+  public function command(string $command)
   {
     $this->runQuery($command);
   }
 
-  public function getMajorVersion()
+  public function getMajorVersion(): int
   {
     if (preg_match('~^(\d+)[.](\d+)[.](\d+)~', $this->version, $matches)) {
       return (int)$matches[1];
@@ -341,7 +589,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     return 0;
   }
 
-  public function getMinorVersion()
+  public function getMinorVersion(): int
   {
     if (preg_match('~^(\d+)[.](\d)[.](\d+)~', $this->version, $matches)) {
       return (int)$matches[2];
@@ -350,7 +598,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     return 0;
   }
 
-  public function getBuildNumber()
+  public function getBuildNumber(): int
   {
     if (preg_match('~^(\d+)[.](\d+)[.](\d+)~', $this->version, $matches)) {
       return (int)$matches[3];
@@ -359,57 +607,20 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     return 0;
   }
 
-  public function runQueryEx($sql, $args = [], $iteration = 0, $rerunError = null, $resultMode = MYSQLI_STORE_RESULT)
+  public function getLimitSQL(string $sql, int $from, int $count): string
   {
-    return false;
-  }
-
-  public function getRowsAmountEx($sql, $args)
-  {
-    return 0;
-  }
-
-  public function getLastError()
-  {
-    return null;
-  }
-
-  public function getLastId(): ?int
-  {
-    return null;
-  }
-
-  public function getAffectedRowsAmount($query = null): int
-  {
-    return 0;
-  }
-
-  public function getLimitSQL($sql, $from, $count)
-  {
-    if (!is_numeric($from)) {
-      $from = 0;
-    } else {
-      $from = number_format($from, 0, '', '');
-    }
-    if (!is_numeric($count)) {
-      $count = 0;
-    } else {
-      $count = number_format($count, 0, '', '');
-    }
     return $sql . br()->placeholder("\n" . ' LIMIT ?, ?', $from, $count);
   }
 
-  public function generateDictionaryScript($scriptFile)
+  public function generateDictionaryScript(string $scriptFile)
   {
-    // must be overriden in descendant class
+    // must be override in descendant class
   }
 
-  // protected
-
-  protected function getCountSQL($sql)
+  protected function getCountSQL(string $sql): string
   {
-    if (!preg_match('/GROUP[ \n\r]+BY/ism', $sql) && preg_match('/^[ \n\r]*SELECT[ \n\r]+(.+?)[ \n\r]+FROM[ \n\r]+(.+)$/ism', $sql, $matches)) {
-      if (!preg_match('/SELECT/ism', $matches[1])) {
+    if (!preg_match('/GROUP[ \n\r]+BY/im', $sql) && preg_match('/^[ \n\r]*SELECT[ \n\r]+(.+?)[ \n\r]+FROM[ \n\r]+(.+)$/ism', $sql, $matches)) {
+      if (!preg_match('/SELECT/im', $matches[1])) {
         return 'SELECT COUNT(1) FROM ' . $matches[2];
       }
     }
@@ -417,7 +628,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     return 'SELECT COUNT(1) FROM (' . $sql . ') a';
   }
 
-  protected function toGenericDataType($type)
+  protected function toGenericDataType(string $type): string
   {
     switch (strtolower($type)) {
       case 'date':
@@ -450,11 +661,10 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
         return 'text';
       default:
         return 'unknown';
-        break;
     }
   }
 
-  protected function incTransactionBuffer($sql)
+  protected function incTransactionBuffer(string $sql)
   {
     $sql = trim($sql);
     if (!preg_match('/^SET( |$)/', $sql)) {
@@ -468,7 +678,7 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
 
   // private
 
-  private function parseScript($script)
+  private function parseScript(string $script): array
   {
     $result = [];
     $delimiter = ';';
@@ -485,5 +695,10 @@ class BrGenericSQLDBProvider extends BrGenericDBProvider
     }
 
     return $result;
+  }
+
+  public function internalDataTypeToGenericDataType(string $type): int
+  {
+    return self::DATA_TYPE_UNKNOWN;
   }
 }
