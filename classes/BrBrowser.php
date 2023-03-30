@@ -13,14 +13,15 @@ namespace Bright;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\GuzzleException;
 
 class BrBrowser extends BrObject
 {
   private static array $defaultRequestParams = [
     'connect_timeout' => 5,
-    'read_timeout' => 5,
-    'timeout' => 30,
+    'read_timeout' => 20,
+    'timeout' => 25,
   ];
 
   private function getDefaultRequestsParams(): array
@@ -203,6 +204,8 @@ class BrBrowser extends BrObject
         } else {
           throw $e;
         }
+      } catch (ConnectException $e) {
+        throw new BrNonRecoverableException($e->getMessage());
       }
     });
   }

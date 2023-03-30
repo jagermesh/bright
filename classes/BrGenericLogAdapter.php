@@ -35,13 +35,6 @@ abstract class BrGenericLogAdapter extends BrObject
   public const AUTH = 'auth';
   public const LOG_EVENT = 'log_event';
 
-  public const EVENT_TYPE_DEBUG = 'debug';
-  public const EVENT_TYPE_ERROR = 'error';
-  public const EVENT_TYPE_WARNING = 'warning';
-  public const EVENT_TYPE_MESSAGE = 'message';
-  public const EVENT_TYPE_SNAPSHOT = 'snapshot';
-  public const EVENT_TYPE_PROFILER = 'profiler';
-
   public const DETAILS = 'details';
 
   public const TIMESTAMP_INIT = 'timestamp_init';
@@ -156,32 +149,32 @@ abstract class BrGenericLogAdapter extends BrObject
 
   protected function isDebugEventType(?array $params = []): bool
   {
-    return ($params[self::LOG_EVENT] == self::EVENT_TYPE_DEBUG);
+    return ($params[self::LOG_EVENT] == BrConst::LOG_EVENT_DEBUG);
   }
 
   protected function isErrorEventType(?array $params = []): bool
   {
-    return ($params[self::LOG_EVENT] == self::EVENT_TYPE_ERROR);
+    return ($params[self::LOG_EVENT] == BrConst::LOG_EVENT_ERROR);
   }
 
   protected function isWarningEventType(?array $params = []): bool
   {
-    return ($params[self::LOG_EVENT] == self::EVENT_TYPE_WARNING);
+    return ($params[self::LOG_EVENT] == BrConst::LOG_EVENT_WARNING);
   }
 
   protected function isMessageEventType(?array $params = []): bool
   {
-    return ($params[self::LOG_EVENT] == self::EVENT_TYPE_MESSAGE);
+    return ($params[self::LOG_EVENT] == BrConst::LOG_EVENT_MESSAGE);
   }
 
   protected function isSnapshotEventType(?array $params = []): bool
   {
-    return ($params[self::LOG_EVENT] == self::EVENT_TYPE_SNAPSHOT);
+    return ($params[self::LOG_EVENT] == BrConst::LOG_EVENT_SNAPSHOT);
   }
 
   protected function isProfilerEventType(?array $params = []): bool
   {
-    return ($params[self::LOG_EVENT] == self::EVENT_TYPE_PROFILER);
+    return ($params[self::LOG_EVENT] == BrConst::LOG_EVENT_PROFILER);
   }
 
   protected function isRegularEventType(?array $params = []): bool
@@ -198,8 +191,8 @@ abstract class BrGenericLogAdapter extends BrObject
    */
   protected function getLogInfo($messageOrObject, ?array $params = [], ?array $contentType = []): array
   {
-    $withMessage = in_array(self::EVENT_TYPE_MESSAGE, $contentType);
-    $withSnapshot = in_array(self::EVENT_TYPE_SNAPSHOT, $contentType);
+    $withMessage = in_array(BrConst::LOG_EVENT_MESSAGE, $contentType);
+    $withSnapshot = in_array(BrConst::LOG_EVENT_SNAPSHOT, $contentType);
 
     $result = [
       self::LOG_EVENT => $params[self::LOG_EVENT],
@@ -214,7 +207,9 @@ abstract class BrGenericLogAdapter extends BrObject
     ];
 
     if ($withMessage) {
-      $result[self::EVENT_TYPE_MESSAGE] = self::convertMessageOrObjectToText($messageOrObject, true);
+      $result[BrConst::LOG_EVENT_MESSAGE] = self::convertMessageOrObjectToText($messageOrObject, [
+        'withDetails' => true,
+      ]);
     }
 
     if (br($params, self::DETAILS)) {
@@ -233,8 +228,11 @@ abstract class BrGenericLogAdapter extends BrObject
   /**
    * @param mixed $messageOrObject
    */
-  public static function convertMessageOrObjectToText($messageOrObject, bool $detailedInfo = false): string
+  public static function convertMessageOrObjectToText($messageOrObject, array $params = []): string
   {
+    $withDetails = (bool)br($params, 'withDetails');
+    $userFriendly = (bool)br($params, 'userFriendly');
+
     $result = '';
 
     if (is_bool($messageOrObject)) {
@@ -244,12 +242,12 @@ abstract class BrGenericLogAdapter extends BrObject
     } elseif (is_array($messageOrObject)) {
       $result = @print_r($messageOrObject, true);
     } elseif ($messageOrObject instanceof \Throwable) {
-      if (($messageOrObject instanceof BrException) && $messageOrObject->getDisplayMessage()) {
+      if ($userFriendly && ($messageOrObject instanceof BrException) && $messageOrObject->getDisplayMessage()) {
         $result = $messageOrObject->getDisplayMessage();
       } else {
         $result = $messageOrObject->getMessage();
       }
-      if ($detailedInfo) {
+      if ($withDetails) {
         $result .= "\n\n" . BrErrorsFormatter::getStackTraceFromException($messageOrObject);
       }
     } elseif (is_object($messageOrObject)) {

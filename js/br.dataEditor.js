@@ -61,7 +61,15 @@
     };
 
     _this.rowData = function(name) {
-      return name ? (editorRowData ? editorRowData[name] : undefined) : editorRowData;
+      if (name) {
+        if (editorRowData)  {
+          return editorRowData[name];
+        } else {
+          return undefined;
+        }
+      } else {
+        return editorRowData;
+      }
     };
 
     _this.isActive = function() {
@@ -100,8 +108,7 @@
       let title = '';
       if (_this.options.title) {
         title = _this.options.title;
-      } else
-      if (editorRowid) {
+      } else if (editorRowid) {
         switch (workMode) {
           case 'copy':
             title = `Copy ${_this.options.noun}`;
@@ -179,13 +186,11 @@
           if ($(event.target).is(_this.container)) {
             if (cancelled) {
               cancelled = false;
-            } else {
-              if (br.isCloseConfirmationRequired()) {
-                br.confirm('Changes detected', br.closeConfirmationMessage, function() {
-                  _this.cancel();
-                });
-                return false;
-              }
+            } else if (br.isCloseConfirmationRequired()) {
+              br.confirm('Changes detected', br.closeConfirmationMessage, function() {
+                _this.cancel();
+              });
+              return false;
             }
             _this.events.trigger('editor.hide', false, editorRowid);
           }
@@ -376,12 +381,10 @@
             } else {
               editorShown();
             }
+          } else if (_this.container.hasClass('modal')) {
+            _this.showError(editorRowData);
           } else {
-            if (_this.container.hasClass('modal')) {
-              _this.showError(editorRowData);
-            } else {
-              br.backToCaller(_this.options.returnUrl, true);
-            }
+            br.backToCaller(_this.options.returnUrl, true);
           }
         }, dataSourceOptions);
       } else {
@@ -425,8 +428,7 @@
     _this.saveIfInsert = function(successCallback, errorCallback) {
       if (_this.isInsertMode()) {
         _this.save(false, successCallback, errorCallback);
-      } else
-      if (br.isFunction(successCallback)) {
+      } else if (br.isFunction(successCallback)) {
         successCallback();
       }
     };
@@ -485,10 +487,8 @@
                     editorHidden(true, response);
                     br.backToCaller(_this.options.returnUrl, callResponse.refresh);
                   }
-                } else {
-                  if (!_this.options.hideSaveNotification && !silent) {
-                    br.growlMessage('Changes saved', 'Success');
-                  }
+                } else if (!_this.options.hideSaveNotification && !silent) {
+                  br.growlMessage('Changes saved', 'Success');
                 }
                 if (successCallback) {
                   successCallback.call(_this, response);
@@ -531,10 +531,8 @@
                     editorHidden(true, response);
                     br.backToCaller(_this.options.returnUrl, callResponse.refresh);
                   }
-                } else {
-                  if (!_this.options.hideSaveNotification && !silent) {
-                    br.growlMessage('Changes saved', 'Success');
-                  }
+                } else if (!_this.options.hideSaveNotification && !silent) {
+                  br.growlMessage('Changes saved', 'Success');
                 }
                 if (successCallback) {
                   successCallback.call(_this, response);
@@ -588,20 +586,17 @@
           if ((input.attr('readonly') != 'readonly') && (input.attr('disabled') != 'disabled')) {
             if (input.attr('data-toggle') == 'buttons-radio') {
               val = input.find('button.active').val();
-            } else
-            if (input.attr('type') == 'checkbox') {
+            } else if (input.attr('type') == 'checkbox') {
               if (input.is(':checked')) {
                 if (input[0].hasAttribute('value')) {
                   val = input.val();
                 } else {
                   val = 1;
                 }
-              } else
-              if (!fieldIsArray) {
+              } else if (!fieldIsArray || (input.attr('data-checkbox-mode') == 'toggle')) {
                 val = 0;
               }
-            } else
-            if (input.attr('type') == 'radio') {
+            } else if (input.attr('type') == 'radio') {
               if (input.is(':checked')) {
                 val = input.val();
               } else {
@@ -631,19 +626,16 @@
                   this.focus();
                 }
                 errors.push(br.trn('%s must be filled').replace('%s', title));
-              } else {
-                if (fieldIsArray) {
-                  if (fieldNameMatch[3]) {
-                    data[fieldNameMatch[1]] = data[fieldNameMatch[1]] ? data[fieldNameMatch[1]] : {};
-                    data[fieldNameMatch[1]][fieldNameMatch[3]] = val;
-                  } else
-                  if (!br.isEmpty(val)) {
-                    data[fieldNameMatch[1]] = data[fieldNameMatch[1]] ? data[fieldNameMatch[1]] : [];
-                    data[fieldNameMatch[1]].push(val);
-                  }
-                } else {
-                  data[fieldName] = br.isEmpty(val) ? '' : val;
+              } else if (fieldIsArray) {
+                if (fieldNameMatch[3]) {
+                  data[fieldNameMatch[1]] = data[fieldNameMatch[1]] ? data[fieldNameMatch[1]] : {};
+                  data[fieldNameMatch[1]][fieldNameMatch[3]] = val;
+                } else if (!br.isEmpty(val)) {
+                  data[fieldNameMatch[1]] = data[fieldNameMatch[1]] ? data[fieldNameMatch[1]] : [];
+                  data[fieldNameMatch[1]].push(val);
                 }
+              } else {
+                data[fieldName] = br.isEmpty(val) ? '' : val;
               }
             }
           }

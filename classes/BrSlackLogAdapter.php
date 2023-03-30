@@ -73,7 +73,9 @@ class BrSlackLogAdapter extends BrGenericLogAdapter
             }
 
             $info = $this->getLogInfo($messageOrObject, $params, ['snapshot']);
-            $message = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, true);
+            $message = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, [
+              'withDetails' => true,
+            ]);
             $payload = [
               'text' => '*' . $subject . '*' . "\n" . json_encode($info, JSON_PRETTY_PRINT),
               'attachments' => [[

@@ -21,7 +21,10 @@
 
     _this.options.templates.noData = _this.options.templates.noData || '.data-empty-template';
 
-    _this.options.templates.row = $(rowTemplate).html();
+    if (rowTemplate) {
+      _this.options.templates.row = $(rowTemplate).html();
+    }
+
     _this.options.templates.groupRow = _this.options.templates.groupRow ? $(_this.options.templates.groupRow).html() : '';
     _this.options.templates.header = _this.options.templates.header ? $(_this.options.templates.header).html() : '';
     _this.options.templates.footer = _this.options.templates.footer ? $(_this.options.templates.footer).html() : '';
@@ -60,7 +63,11 @@
     _this.options.dataSource = dataSource;
 
     _this.dataSource = _this.options.dataSource;
-    _this.storageTag = _this.options.storageTag ? _this.options.storageTag : document.location.pathname + ':' + _this.dataSource.options.restServiceUrl;
+    if (_this.options.storageTag) {
+      _this.storageTag = _this.options.storageTag;
+    } else {
+      _this.storageTag = `${document.location.pathname}:${_this.dataSource.options.restServiceUrl}`;
+    }
 
     _this.events = br.eventQueue(_this);
     _this.before = function(event, callback) {
@@ -123,7 +130,16 @@
     _this.getStored = function(name, defaultValue) {
       let stored = br.storage.get(`${_this.storageTag}Stored`);
       let result = stored ? stored[name] : stored;
-      return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
+
+      if (br.isEmpty(result)) {
+        if (br.isNull(defaultValue)) {
+          return result;
+        } else {
+          return defaultValue;
+        }
+      } else {
+        return result;
+      }
     };
 
     _this.resetStored = function(stopPropagation) {
@@ -151,7 +167,16 @@
     _this.getFilter = function(name, defaultValue) {
       let filter = br.storage.get(`${_this.storageTag}Filter`);
       let result = filter ? filter[name] : filter;
-      return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
+
+      if (br.isEmpty(result)) {
+        if (br.isNull(defaultValue)) {
+          return result;
+        } else {
+          return defaultValue;
+        }
+      } else {
+        return result;
+      }
     };
 
     _this.resetFilters = function(stopPropagation) {
@@ -477,7 +502,7 @@
       if (!attrName) {
         attrName = 'data-rowid';
       }
-      $('[' + attrName + ']', $(_this.selector)).each(function() {
+      $(`[${attrName}]`, $(_this.selector)).each(function() {
         result.push(br.toInt($(this).attr(attrName)));
       });
       return result;
@@ -495,14 +520,15 @@
 
     function showOrder(orderAndGroup) {
       for (let i = 0; i < orderAndGroup.length; i++) {
-        let ctrl = $('.sortable[data-field="' + orderAndGroup[i].fieldName + '"].' + (orderAndGroup[i].asc ? 'order-asc' : 'order-desc'), $(_this.options.selectors.header));
+        let orderClass = (orderAndGroup[i].asc ? 'order-asc' : 'order-desc');
+        let ctrl = $(`.sortable[data-field="${orderAndGroup[i].fieldName}"].${orderClass}`, $(_this.options.selectors.header));
         ctrl.addClass('icon-white').addClass('icon-border').addClass('fa-border');
         let idx = ctrl.parent().find('div.br-sort-index');
         if (orderAndGroup.length > 1) {
           if (idx.length > 0) {
             idx.text(i + 1);
           } else {
-            ctrl.parent().append($('<div class="br-sort-index">' + (i + 1) + '</div>'));
+            ctrl.parent().append($(`<div class="br-sort-index">${(i + 1)}</div>`));
           }
         }
       }
@@ -512,11 +538,11 @@
       let order = _this.getOrderAndGroup();
       let result = {};
       if (br.isArray(order)) {
-        for (let i = 0; i < order.length; i++) {
-          if (order[i].asc) {
-            result[order[i].fieldName] = 1;
+        for (let item of order) {
+          if (item.asc) {
+            result[item.fieldName] = 1;
           } else {
-            result[order[i].fieldName] = -1;
+            result[item.fieldName] = -1;
           }
         }
       }
@@ -588,9 +614,9 @@
         if (event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) {
           orderAndGroup = _this.getOrderAndGroup();
           let newOrderAndGroup = [];
-          for (let i = 0; i < orderAndGroup.length; i++) {
-            if (orderAndGroup[i].fieldName != fieldName) {
-              newOrderAndGroup.push(orderAndGroup[i]);
+          for (let item of orderAndGroup) {
+            if (item.fieldName != fieldName) {
+              newOrderAndGroup.push(item);
             }
           }
           orderAndGroup = newOrderAndGroup;
@@ -647,7 +673,11 @@
               let rowid = $(row).attr('data-rowid');
               if (!br.isEmpty(rowid)) {
                 br.confirm('Delete confirmation', 'Are you sure you want to delete this record?', function() {
-                  _this.dataSource.remove(rowid);
+                  _this.dataSource.remove(rowid, function(result, response) {
+                    if (result) {
+                      _this.events.triggerAfter('deleteOneRow', response);
+                    }
+                  });
                 });
               }
             }
@@ -683,9 +713,9 @@
         if (_this.options.freeGrid) {
           data = data[0];
           if (data.headers && (data.headers.length > 0)) {
-            for (let i = 0; i < data.headers.length; i++) {
-              if (data.headers[i]) {
-                let tableRow = _this.renderHeader(data.headers[i]);
+            for (let item of data.headers) {
+              if (item) {
+                let tableRow = _this.renderHeader(item);
                 if (tableRow) {
                   $(_this.options.selectors.header).append(tableRow);
                 }
@@ -693,9 +723,9 @@
             }
           }
           if (data.footers && (data.footers.length > 0)) {
-            for (let i = 0; i < data.footers.length; i++) {
-              if (data.footers[i]) {
-                let tableRow = _this.renderFooter(data.headers[i]);
+            for (let item of data.footers) {
+              if (item) {
+                let tableRow = _this.renderFooter(item);
                 if (tableRow) {
                   $(_this.options.selectors.footer).append(tableRow);
                 }
@@ -706,22 +736,22 @@
           $(_this.options.selectors.footer).html('');
           if (data.rows) {
             if (data.rows.length > 0) {
-              for (let i = 0; i < data.rows.length; i++) {
-                if (data.rows[i]) {
-                  if (data.rows[i].row) {
-                    let renderedRow = _this.renderRow(data.rows[i].row);
+              for (let item of data.rows) {
+                if (item) {
+                  if (item.row) {
+                    let renderedRow = _this.renderRow(item.row);
                     if (renderedRow.renderedRow) {
                       $selector.append(renderedRow.renderedRow);
                     }
                   }
-                  if (data.rows[i].header) {
-                    let tableRow = _this.renderHeader(data.rows[i].header);
+                  if (item.header) {
+                    let tableRow = _this.renderHeader(item.header);
                     if (tableRow) {
                       $(_this.options.selectors.header).append(tableRow);
                     }
                   }
-                  if (data.rows[i].footer) {
-                    let tableRow = _this.renderFooter(data.rows[i].footer);
+                  if (item.footer) {
+                    let tableRow = _this.renderFooter(item.footer);
                     if (tableRow) {
                       $(_this.options.selectors.footer).append(tableRow);
                     }
@@ -739,12 +769,12 @@
             let group = _this.getOrderAndGroup();
             let groupValues = {};
             let groupFieldName = '';
-            for (let i = 0; i < data.length; i++) {
-              if (data[i]) {
+            for (let item of data) {
+              if (item) {
                 if (br.isArray(group)) {
                   for (let k = 0; k < group.length; k++) {
                     groupFieldName = group[k].fieldName;
-                    if (group[k].group && (groupValues[groupFieldName] != data[i][groupFieldName])) {
+                    if (group[k].group && (groupValues[groupFieldName] != item[groupFieldName])) {
                       for (let j = k; j < group.length; j++) {
                         groupFieldName = group[j].fieldName;
                         groupValues[groupFieldName] = undefined;
@@ -752,24 +782,24 @@
                       break;
                     }
                   }
-                  for (let k = 0; k < group.length; k++) {
-                    groupFieldName = group[k].fieldName;
-                    if (group[k].group && (groupValues[groupFieldName] != data[i][groupFieldName])) {
-                      groupValues[groupFieldName] = data[i][groupFieldName];
-                      let tmp = data[i];
+                  for (let item2 of group) {
+                    groupFieldName = item2.fieldName;
+                    if (item2.group && (groupValues[groupFieldName] != item[groupFieldName])) {
+                      groupValues[groupFieldName] = item[groupFieldName];
+                      let tmp = item;
                       tmp.__groupBy = {};
                       tmp.__groupBy.__field = groupFieldName;
-                      tmp.__groupBy.__value = data[i][groupFieldName];
+                      tmp.__groupBy.__value = item[groupFieldName];
                       tmp.__groupBy[groupFieldName] = true;
                       let tableRow = _this.renderGroupRow(tmp);
                       if (tableRow) {
                         $selector.append(tableRow);
-                        _this.events.triggerAfter('renderGroupRow', data[i], tableRow);
+                        _this.events.triggerAfter('renderGroupRow', item, tableRow);
                       }
                     }
                   }
                 }
-                let dataRow = data[i];
+                let dataRow = item;
                 let renderedRow = _this.renderRow(dataRow);
                 if (renderedRow.renderedRow) {
                   $selector.append(renderedRow.renderedRow);
@@ -777,8 +807,7 @@
                 }
               }
             }
-          } else
-          if (!loadingMoreData) {
+          } else if (!loadingMoreData) {
             addNoDataRow();
           }
         }

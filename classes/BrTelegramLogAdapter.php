@@ -50,9 +50,7 @@ class BrTelegramLogAdapter extends BrGenericLogAdapter
     }
   }
 
-  /**
-   * @param $messageOrObject
-   */
+
   public function write($messageOrObject, ?array $params = [])
   {
     if ($this->apiKey && $this->username && $this->chatIds) {
@@ -84,7 +82,9 @@ class BrTelegramLogAdapter extends BrGenericLogAdapter
             }
 
             $info = $this->getLogInfo($messageOrObject, $params, ['snapshot']);
-            $message = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, true);
+            $message = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, [
+              'withDetails' => true,
+            ]);
 
             foreach ($this->chatIds as $chatId) {
               $payload = [

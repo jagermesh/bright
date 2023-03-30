@@ -1097,7 +1097,16 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       } else {
         result = _helper.unpack(_storage.getItem(key));
       }
-      return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
+
+      if (br.isEmpty(result)) {
+        if (br.isNull(defaultValue)) {
+          return result;
+        } else {
+          return defaultValue;
+        }
+      } else {
+        return result;
+      }
     };
 
     _this.exists = function(key) {
@@ -1232,7 +1241,16 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           }
         }
       }
-      return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
+
+      if (br.isEmpty(result)) {
+        if (br.isNull(defaultValue)) {
+          return result;
+        } else {
+          return defaultValue;
+        }
+      } else {
+        return result;
+      }
     }
 
     _this.getLast = function(key, defaultValue) {
@@ -1254,7 +1272,16 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           }
         }
       }
-      return br.isEmpty(result) ? (br.isEmpty(defaultValue) ? result : defaultValue) : result;
+
+      if (br.isEmpty(result)) {
+        if (br.isNull(defaultValue)) {
+          return result;
+        } else {
+          return defaultValue;
+        }
+      } else {
+        return result;
+      }
     }
 
     _this.getFirst = function(key, defaultValue) {
@@ -1982,7 +2009,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
   };
 
   window.br.isTouchScreen = function() {
-    return ('maxTouchPoints' in navigator) ? (navigator.maxTouchPoints > 0 ? true : false) : false;
+    return (('maxTouchPoints' in navigator) && (navigator.maxTouchPoints > 0));
   };
 
   window.br.isMobileDevice = function() {
@@ -2051,9 +2078,19 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       window.close();
     } else {
       let caller = br.isEmpty(br.request.get('caller')) ? null : br.request.get('caller');
-      let referrer = br.isEmpty(document.referrer) ? null : (document.referrer.indexOf('login') != -1 ? null : (document.referrer == document.location.toString() ? null : document.referrer));
+      let referrer = null;
+      if (!br.isEmpty(document.referrer) && (document.referrer.indexOf('login') == -1) && (document.referrer != document.location.toString())) {
+        referrer = document.referrer;
+      }
       let href = br.isEmpty(defaultHref) ? null : defaultHref;
-      let redirectHref = (caller ? caller : (href ? href : referrer));
+      let redirectHref;
+      if (caller) {
+        redirectHref = caller;
+      } else if (href) {
+        redirectHref = href;
+      } else {
+        redirectHref = referrer;
+      }
       if (redirectHref) {
         br.redirect(redirectHref);
       } else {
@@ -3966,7 +4003,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     _this.options.templates.noData = _this.options.templates.noData || '.data-empty-template';
 
-    _this.options.templates.row = $(rowTemplate).html();
+    if (rowTemplate) {
+      _this.options.templates.row = $(rowTemplate).html();
+    }
+
     _this.options.templates.groupRow = _this.options.templates.groupRow ? $(_this.options.templates.groupRow).html() : '';
     _this.options.templates.header = _this.options.templates.header ? $(_this.options.templates.header).html() : '';
     _this.options.templates.footer = _this.options.templates.footer ? $(_this.options.templates.footer).html() : '';
@@ -4005,7 +4045,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     _this.options.dataSource = dataSource;
 
     _this.dataSource = _this.options.dataSource;
-    _this.storageTag = _this.options.storageTag ? _this.options.storageTag : document.location.pathname + ':' + _this.dataSource.options.restServiceUrl;
+    if (_this.options.storageTag) {
+      _this.storageTag = _this.options.storageTag;
+    } else {
+      _this.storageTag = `${document.location.pathname}:${_this.dataSource.options.restServiceUrl}`;
+    }
 
     _this.events = br.eventQueue(_this);
     _this.before = function(event, callback) {
@@ -4068,7 +4112,16 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     _this.getStored = function(name, defaultValue) {
       let stored = br.storage.get(`${_this.storageTag}Stored`);
       let result = stored ? stored[name] : stored;
-      return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
+
+      if (br.isEmpty(result)) {
+        if (br.isNull(defaultValue)) {
+          return result;
+        } else {
+          return defaultValue;
+        }
+      } else {
+        return result;
+      }
     };
 
     _this.resetStored = function(stopPropagation) {
@@ -4096,7 +4149,16 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     _this.getFilter = function(name, defaultValue) {
       let filter = br.storage.get(`${_this.storageTag}Filter`);
       let result = filter ? filter[name] : filter;
-      return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
+
+      if (br.isEmpty(result)) {
+        if (br.isNull(defaultValue)) {
+          return result;
+        } else {
+          return defaultValue;
+        }
+      } else {
+        return result;
+      }
     };
 
     _this.resetFilters = function(stopPropagation) {
@@ -4422,7 +4484,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       if (!attrName) {
         attrName = 'data-rowid';
       }
-      $('[' + attrName + ']', $(_this.selector)).each(function() {
+      $(`[${attrName}]`, $(_this.selector)).each(function() {
         result.push(br.toInt($(this).attr(attrName)));
       });
       return result;
@@ -4440,14 +4502,15 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
 
     function showOrder(orderAndGroup) {
       for (let i = 0; i < orderAndGroup.length; i++) {
-        let ctrl = $('.sortable[data-field="' + orderAndGroup[i].fieldName + '"].' + (orderAndGroup[i].asc ? 'order-asc' : 'order-desc'), $(_this.options.selectors.header));
+        let orderClass = (orderAndGroup[i].asc ? 'order-asc' : 'order-desc');
+        let ctrl = $(`.sortable[data-field="${orderAndGroup[i].fieldName}"].${orderClass}`, $(_this.options.selectors.header));
         ctrl.addClass('icon-white').addClass('icon-border').addClass('fa-border');
         let idx = ctrl.parent().find('div.br-sort-index');
         if (orderAndGroup.length > 1) {
           if (idx.length > 0) {
             idx.text(i + 1);
           } else {
-            ctrl.parent().append($('<div class="br-sort-index">' + (i + 1) + '</div>'));
+            ctrl.parent().append($(`<div class="br-sort-index">${(i + 1)}</div>`));
           }
         }
       }
@@ -4457,11 +4520,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       let order = _this.getOrderAndGroup();
       let result = {};
       if (br.isArray(order)) {
-        for (let i = 0; i < order.length; i++) {
-          if (order[i].asc) {
-            result[order[i].fieldName] = 1;
+        for (let item of order) {
+          if (item.asc) {
+            result[item.fieldName] = 1;
           } else {
-            result[order[i].fieldName] = -1;
+            result[item.fieldName] = -1;
           }
         }
       }
@@ -4533,9 +4596,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         if (event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) {
           orderAndGroup = _this.getOrderAndGroup();
           let newOrderAndGroup = [];
-          for (let i = 0; i < orderAndGroup.length; i++) {
-            if (orderAndGroup[i].fieldName != fieldName) {
-              newOrderAndGroup.push(orderAndGroup[i]);
+          for (let item of orderAndGroup) {
+            if (item.fieldName != fieldName) {
+              newOrderAndGroup.push(item);
             }
           }
           orderAndGroup = newOrderAndGroup;
@@ -4592,7 +4655,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
               let rowid = $(row).attr('data-rowid');
               if (!br.isEmpty(rowid)) {
                 br.confirm('Delete confirmation', 'Are you sure you want to delete this record?', function() {
-                  _this.dataSource.remove(rowid);
+                  _this.dataSource.remove(rowid, function(result, response) {
+                    if (result) {
+                      _this.events.triggerAfter('deleteOneRow', response);
+                    }
+                  });
                 });
               }
             }
@@ -4628,9 +4695,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
         if (_this.options.freeGrid) {
           data = data[0];
           if (data.headers && (data.headers.length > 0)) {
-            for (let i = 0; i < data.headers.length; i++) {
-              if (data.headers[i]) {
-                let tableRow = _this.renderHeader(data.headers[i]);
+            for (let item of data.headers) {
+              if (item) {
+                let tableRow = _this.renderHeader(item);
                 if (tableRow) {
                   $(_this.options.selectors.header).append(tableRow);
                 }
@@ -4638,9 +4705,9 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             }
           }
           if (data.footers && (data.footers.length > 0)) {
-            for (let i = 0; i < data.footers.length; i++) {
-              if (data.footers[i]) {
-                let tableRow = _this.renderFooter(data.headers[i]);
+            for (let item of data.footers) {
+              if (item) {
+                let tableRow = _this.renderFooter(item);
                 if (tableRow) {
                   $(_this.options.selectors.footer).append(tableRow);
                 }
@@ -4651,22 +4718,22 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           $(_this.options.selectors.footer).html('');
           if (data.rows) {
             if (data.rows.length > 0) {
-              for (let i = 0; i < data.rows.length; i++) {
-                if (data.rows[i]) {
-                  if (data.rows[i].row) {
-                    let renderedRow = _this.renderRow(data.rows[i].row);
+              for (let item of data.rows) {
+                if (item) {
+                  if (item.row) {
+                    let renderedRow = _this.renderRow(item.row);
                     if (renderedRow.renderedRow) {
                       $selector.append(renderedRow.renderedRow);
                     }
                   }
-                  if (data.rows[i].header) {
-                    let tableRow = _this.renderHeader(data.rows[i].header);
+                  if (item.header) {
+                    let tableRow = _this.renderHeader(item.header);
                     if (tableRow) {
                       $(_this.options.selectors.header).append(tableRow);
                     }
                   }
-                  if (data.rows[i].footer) {
-                    let tableRow = _this.renderFooter(data.rows[i].footer);
+                  if (item.footer) {
+                    let tableRow = _this.renderFooter(item.footer);
                     if (tableRow) {
                       $(_this.options.selectors.footer).append(tableRow);
                     }
@@ -4684,12 +4751,12 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             let group = _this.getOrderAndGroup();
             let groupValues = {};
             let groupFieldName = '';
-            for (let i = 0; i < data.length; i++) {
-              if (data[i]) {
+            for (let item of data) {
+              if (item) {
                 if (br.isArray(group)) {
                   for (let k = 0; k < group.length; k++) {
                     groupFieldName = group[k].fieldName;
-                    if (group[k].group && (groupValues[groupFieldName] != data[i][groupFieldName])) {
+                    if (group[k].group && (groupValues[groupFieldName] != item[groupFieldName])) {
                       for (let j = k; j < group.length; j++) {
                         groupFieldName = group[j].fieldName;
                         groupValues[groupFieldName] = undefined;
@@ -4697,24 +4764,24 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
                       break;
                     }
                   }
-                  for (let k = 0; k < group.length; k++) {
-                    groupFieldName = group[k].fieldName;
-                    if (group[k].group && (groupValues[groupFieldName] != data[i][groupFieldName])) {
-                      groupValues[groupFieldName] = data[i][groupFieldName];
-                      let tmp = data[i];
+                  for (let item2 of group) {
+                    groupFieldName = item2.fieldName;
+                    if (item2.group && (groupValues[groupFieldName] != item[groupFieldName])) {
+                      groupValues[groupFieldName] = item[groupFieldName];
+                      let tmp = item;
                       tmp.__groupBy = {};
                       tmp.__groupBy.__field = groupFieldName;
-                      tmp.__groupBy.__value = data[i][groupFieldName];
+                      tmp.__groupBy.__value = item[groupFieldName];
                       tmp.__groupBy[groupFieldName] = true;
                       let tableRow = _this.renderGroupRow(tmp);
                       if (tableRow) {
                         $selector.append(tableRow);
-                        _this.events.triggerAfter('renderGroupRow', data[i], tableRow);
+                        _this.events.triggerAfter('renderGroupRow', item, tableRow);
                       }
                     }
                   }
                 }
-                let dataRow = data[i];
+                let dataRow = item;
                 let renderedRow = _this.renderRow(dataRow);
                 if (renderedRow.renderedRow) {
                   $selector.append(renderedRow.renderedRow);
@@ -4722,8 +4789,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
                 }
               }
             }
-          } else
-          if (!loadingMoreData) {
+          } else if (!loadingMoreData) {
             addNoDataRow();
           }
         }
@@ -7067,7 +7133,15 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     };
 
     _this.rowData = function(name) {
-      return name ? (editorRowData ? editorRowData[name] : undefined) : editorRowData;
+      if (name) {
+        if (editorRowData)  {
+          return editorRowData[name];
+        } else {
+          return undefined;
+        }
+      } else {
+        return editorRowData;
+      }
     };
 
     _this.isActive = function() {
@@ -7106,8 +7180,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       let title = '';
       if (_this.options.title) {
         title = _this.options.title;
-      } else
-      if (editorRowid) {
+      } else if (editorRowid) {
         switch (workMode) {
           case 'copy':
             title = `Copy ${_this.options.noun}`;
@@ -7185,13 +7258,11 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           if ($(event.target).is(_this.container)) {
             if (cancelled) {
               cancelled = false;
-            } else {
-              if (br.isCloseConfirmationRequired()) {
-                br.confirm('Changes detected', br.closeConfirmationMessage, function() {
-                  _this.cancel();
-                });
-                return false;
-              }
+            } else if (br.isCloseConfirmationRequired()) {
+              br.confirm('Changes detected', br.closeConfirmationMessage, function() {
+                _this.cancel();
+              });
+              return false;
             }
             _this.events.trigger('editor.hide', false, editorRowid);
           }
@@ -7382,12 +7453,10 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             } else {
               editorShown();
             }
+          } else if (_this.container.hasClass('modal')) {
+            _this.showError(editorRowData);
           } else {
-            if (_this.container.hasClass('modal')) {
-              _this.showError(editorRowData);
-            } else {
-              br.backToCaller(_this.options.returnUrl, true);
-            }
+            br.backToCaller(_this.options.returnUrl, true);
           }
         }, dataSourceOptions);
       } else {
@@ -7431,8 +7500,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     _this.saveIfInsert = function(successCallback, errorCallback) {
       if (_this.isInsertMode()) {
         _this.save(false, successCallback, errorCallback);
-      } else
-      if (br.isFunction(successCallback)) {
+      } else if (br.isFunction(successCallback)) {
         successCallback();
       }
     };
@@ -7491,10 +7559,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
                     editorHidden(true, response);
                     br.backToCaller(_this.options.returnUrl, callResponse.refresh);
                   }
-                } else {
-                  if (!_this.options.hideSaveNotification && !silent) {
-                    br.growlMessage('Changes saved', 'Success');
-                  }
+                } else if (!_this.options.hideSaveNotification && !silent) {
+                  br.growlMessage('Changes saved', 'Success');
                 }
                 if (successCallback) {
                   successCallback.call(_this, response);
@@ -7537,10 +7603,8 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
                     editorHidden(true, response);
                     br.backToCaller(_this.options.returnUrl, callResponse.refresh);
                   }
-                } else {
-                  if (!_this.options.hideSaveNotification && !silent) {
-                    br.growlMessage('Changes saved', 'Success');
-                  }
+                } else if (!_this.options.hideSaveNotification && !silent) {
+                  br.growlMessage('Changes saved', 'Success');
                 }
                 if (successCallback) {
                   successCallback.call(_this, response);
@@ -7594,20 +7658,17 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
           if ((input.attr('readonly') != 'readonly') && (input.attr('disabled') != 'disabled')) {
             if (input.attr('data-toggle') == 'buttons-radio') {
               val = input.find('button.active').val();
-            } else
-            if (input.attr('type') == 'checkbox') {
+            } else if (input.attr('type') == 'checkbox') {
               if (input.is(':checked')) {
                 if (input[0].hasAttribute('value')) {
                   val = input.val();
                 } else {
                   val = 1;
                 }
-              } else
-              if (!fieldIsArray) {
+              } else if (!fieldIsArray || (input.attr('data-checkbox-mode') == 'toggle')) {
                 val = 0;
               }
-            } else
-            if (input.attr('type') == 'radio') {
+            } else if (input.attr('type') == 'radio') {
               if (input.is(':checked')) {
                 val = input.val();
               } else {
@@ -7637,19 +7698,16 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
                   this.focus();
                 }
                 errors.push(br.trn('%s must be filled').replace('%s', title));
-              } else {
-                if (fieldIsArray) {
-                  if (fieldNameMatch[3]) {
-                    data[fieldNameMatch[1]] = data[fieldNameMatch[1]] ? data[fieldNameMatch[1]] : {};
-                    data[fieldNameMatch[1]][fieldNameMatch[3]] = val;
-                  } else
-                  if (!br.isEmpty(val)) {
-                    data[fieldNameMatch[1]] = data[fieldNameMatch[1]] ? data[fieldNameMatch[1]] : [];
-                    data[fieldNameMatch[1]].push(val);
-                  }
-                } else {
-                  data[fieldName] = br.isEmpty(val) ? '' : val;
+              } else if (fieldIsArray) {
+                if (fieldNameMatch[3]) {
+                  data[fieldNameMatch[1]] = data[fieldNameMatch[1]] ? data[fieldNameMatch[1]] : {};
+                  data[fieldNameMatch[1]][fieldNameMatch[3]] = val;
+                } else if (!br.isEmpty(val)) {
+                  data[fieldNameMatch[1]] = data[fieldNameMatch[1]] ? data[fieldNameMatch[1]] : [];
+                  data[fieldNameMatch[1]].push(val);
                 }
+              } else {
+                data[fieldName] = br.isEmpty(val) ? '' : val;
               }
             }
           }
@@ -7724,6 +7782,7 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     let pagerSetUp = false;
     let headerContainer = 'body';
     let selectionQueue = [];
+    let massProcessingResults = [];
 
     _this.options = Object.assign({}, settings);
     _this.options.autoLoad = _this.options.autoLoad || false;
@@ -7937,22 +7996,26 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
     function deleteQueued() {
       if (selectionQueue.length > 0) {
         const rowid = selectionQueue.shift();
-        _this.dataSource.remove(rowid, function(result) {
+        _this.dataSource.remove(rowid, function(result, response) {
           if (result) {
+            massProcessingResults.push(response)
             _this.unSelectRow(rowid);
           }
           br.stepProgress();
           deleteQueued();
         });
       } else {
+        _this.events.triggerAfter('deleteSelection', massProcessingResults);
+        _this.dataGrid.events.triggerAfter('deleteSelection', massProcessingResults);
         br.hideProgress();
       }
     }
 
     _this.deleteSelection = function() {
       selectionQueue = _this.selection.get().slice(0);
+      massProcessingResults = [];
       if (selectionQueue.length > 0) {
-        br.confirm('Delete confirmation', `Are you sure you want do delete ${selectionQueue.length} record(s)?`, function() {
+        br.confirm('Delete confirmation', `Are you sure you want to delete ${selectionQueue.length} record(s)?`, function() {
           br.startProgress(selectionQueue.length, 'Deleting...');
           deleteQueued();
         });
@@ -9601,7 +9664,15 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
       polygonParams.strokeOpacity = params.strokeOpacity || 1;
       polygonParams.strokeWeight = params.strokeWeight || 0.5;
       polygonParams.fillColor = params.fillColor;
-      polygonParams.fillOpacity = polygonParams.fillColor ? (params.fillOpacity == undefined ? 0.3 : params.fillOpacity) : 0;
+      if (polygonParams.fillColor) {
+        if (params.fillOpacity == undefined) {
+          polygonParams.fillOpacity = 0.3;
+        } else {
+          polygonParams.fillOpacity = params.fillOpacity;
+        }
+      } else {
+        polygonParams.fillOpacity = 0;
+      }
       polygonParams.map = _this.map;
       let polygon = new google.maps.Polygon(polygonParams);
       polygon.custom = custom;

@@ -9,7 +9,9 @@ class BrDBException extends BrException
     parent::__construct($message, $code, $previous);
 
     if (!br()->request()->isDevHost() && !br()->request()->isLocalHost() && !br()->isConsoleMode()) {
-      $this->displayMessage = 'Request failed. Please retry operation.';
+      if (!$this->displayMessage) {
+        $this->displayMessage = 'Request failed. Please retry operation.';
+      }
     }
   }
 }

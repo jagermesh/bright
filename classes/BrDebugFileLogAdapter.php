@@ -30,7 +30,9 @@ class BrDebugFileLogAdapter extends BrGenericFileLogAdapter
   {
     if ($this->isDebugEventType($params)) {
       $info = $this->getLogInfo($messageOrObject, $params, ['snapshot']);
-      $message = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, true);
+      $message = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, [
+        'withDetails' => true,
+      ]);
       $prefix = $this->getLogPrefix($info);
       $logMessage = json_encode($info, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n\n" . $message;
       $this->writeToLogFile($logMessage, $prefix);

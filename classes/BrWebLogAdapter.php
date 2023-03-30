@@ -12,9 +12,6 @@ namespace Bright;
 
 class BrWebLogAdapter extends BrGenericLogAdapter
 {
-  /**
-   * @param $messageOrObject
-   */
   public function write($messageOrObject, ?array $params = [])
   {
     if ($this->isDebugEventType($params)) {
@@ -23,7 +20,9 @@ class BrWebLogAdapter extends BrGenericLogAdapter
           br()->response()->injectSystemStyles();
           $data = [
             'debug' => [
-              'message' => htmlspecialchars(BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, true)),
+              'message' => htmlspecialchars(BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, [
+                'withDetails' => true,
+              ])),
             ],
           ];
           br()->renderer()->display(dirname(__DIR__) . '/templates/DebugMessage.html', $data);

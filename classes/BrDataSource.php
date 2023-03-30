@@ -380,6 +380,7 @@ class BrDataSource extends BrGenericDataSource
     $options[BrConst::DATASOURCE_OPTION_DATASETS] = br(br($options, BrConst::DATASOURCE_OPTION_DATASETS))->split();
     $options[BrConst::DATASOURCE_OPTION_CLIENTUID] = br($options, BrConst::DATASOURCE_OPTION_CLIENTUID);
     $options[BrConst::DATASOURCE_OPTION_RENDER_MODE] = br($options, BrConst::DATASOURCE_OPTION_RENDER_MODE);
+    $options[BrConst::DATASOURCE_OPTION_ORIGINAL_ROW] = $row;
     $options[BrConst::DATASOURCE_OPTION_FILTER] = [];
 
     $this->onBeforeInsert($row, $transientData, $options);
@@ -451,6 +452,7 @@ class BrDataSource extends BrGenericDataSource
     $options[BrConst::DATASOURCE_OPTION_DATASETS] = br(br($options, BrConst::DATASOURCE_OPTION_DATASETS))->split();
     $options[BrConst::DATASOURCE_OPTION_CLIENTUID] = br($options, BrConst::DATASOURCE_OPTION_CLIENTUID);
     $options[BrConst::DATASOURCE_OPTION_RENDER_MODE] = br($options, BrConst::DATASOURCE_OPTION_RENDER_MODE);
+    $options[BrConst::DATASOURCE_OPTION_ORIGINAL_ROW] = $row;
     $options[BrConst::DATASOURCE_OPTION_FILTER] = [];
 
     $table = $this->getDb()->table($this->getDbEntity());
@@ -541,6 +543,9 @@ class BrDataSource extends BrGenericDataSource
     $options[BrConst::DATASOURCE_OPTION_DATASETS] = br(br($options, BrConst::DATASOURCE_OPTION_DATASETS))->split();
     $options[BrConst::DATASOURCE_OPTION_CLIENTUID] = br($options, BrConst::DATASOURCE_OPTION_CLIENTUID);
     $options[BrConst::DATASOURCE_OPTION_RENDER_MODE] = br($options, BrConst::DATASOURCE_OPTION_RENDER_MODE);
+    $options[BrConst::DATASOURCE_OPTION_ORIGINAL_ROW] = [
+      'rowid' => $rowid,
+    ];
     $options[BrConst::DATASOURCE_OPTION_FILTER] = [];
 
     $table = $this->getDb()->table($this->getDbEntity());

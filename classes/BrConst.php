@@ -107,6 +107,7 @@ class BrConst
   public const DATASOURCE_OPTION_PAGE = 'page';
   public const DATASOURCE_OPTION_SOURCE = 'source';
   public const DATASOURCE_OPTION_ROW_INDEX = 'rowIndex';
+  public const DATASOURCE_OPTION_ORIGINAL_ROW = 'originalRow';
 
   public const DATASOURCE_RESULT_TYPE_STATEMENT = 'statement';
   public const DATASOURCE_RESULT_TYPE_SQL = 'sql';
@@ -204,20 +205,26 @@ class BrConst
   public const PHP_SERVER_VAR_AUTH_USER = 'PHP_AUTH_USER';
   public const PHP_SERVER_VAR_AUTH_PASSWORD = 'PHP_AUTH_PW';
 
-  public const HEADER_CONTENT_TYPE = 'Content-type: %s';
-  public const HEADER_ETAG = 'Etag: %s';
-  public const HEADER_EXPIRES = 'Expires: %s';
-  public const HEADER_CACHE_CONTROL = 'Cache-Control: %s';
-  public const HEADER_LOCATION = 'Location: %s';
-  public const HEADER_AUTHORIZATION = 'Authorization: %s';
+  public const HEADER_ETAG = 'Etag';
+  public const HEADER_EXPIRES = 'Expires';
+  public const HEADER_LOCATION = 'Location';
+  public const HEADER_CONTENT_LENGTH = 'Content-Length';
+  public const HEADER_CONTENT_TYPE = 'Content-Type';
+  public const HEADER_CACHE_CONTROL = 'Cache-Control';
+  public const HEADER_AUTHORIZATION = 'Authorization';
+  public const HEADER_USER_AGENT = 'User-Agent';
 
-  public const TYPICAL_USER_AGENT = 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-GB; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3';
+  public const HEADER_EXPIRES_IMMEDIATELY = 'Mon, 26 Jul 1997 05:00:00 GMT';
+  public const HEADER_CACHE_CONTROL_NO_CACHE = 'no-cache, no-store, must-revalidate';
+
+  public const DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-GB; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3';
 
   public const CONTENT_TYPE_APPLICATION_OCTET_STREAM = 'application/octet-stream';
   public const CONTENT_TYPE_APPLICATION_JSON = 'application/json';
   public const CONTENT_TYPE_APPLICATION_JSONP = 'application/jsonp';
   public const CONTENT_TYPE_TEXT_HTML = 'text/html';
   public const CONTENT_TYPE_TEXT_XML = 'text/xml';
+  public const CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENNCODED = 'application/x-www-form-urlencoded';
 
   public const EVENT_CHECK_LOCAL_HOST = 'checkLocalHost';
   public const EVENT_CHECK_DEV_HOST = 'checkDevHost';

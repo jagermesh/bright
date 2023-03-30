@@ -28,7 +28,9 @@ class BrConsoleLogAdapter extends BrGenericLogAdapter
       if ($params['log_prefix']) {
         $message .= br()->console()->purple($params['log_prefix']) . ' ';
       }
-      $formattedMessage = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, true);
+      $formattedMessage = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, [
+        'withDetails' => true,
+      ]);
       if ($this->isErrorEventType($params)) {
         $message .= br()->console()->red($formattedMessage);
       } elseif ($this->isWarningEventType($params)) {

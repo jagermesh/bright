@@ -12,9 +12,6 @@ namespace Bright;
 
 class BrResponse extends BrObject
 {
-  public const EXPIRES_IMMEDIATELY = 'Mon, 26 Jul 1997 05:00:00 GMT';
-  public const CACHE_CONTROL_NO_CACHE = 'no-cache, no-store, must-revalidate';
-
   public const RESPONSE_301_MOVED_PERMANENTLY = 'HTTP/1.1 301 Moved Permanently';
   public const RESPONSE_404_NOT_FOUND = 'HTTP/1.0 404 Not Found';
   public const RESPONSE_400_BAD_REQUEST = 'HTTP/1.0 400 Bad Request';
@@ -43,9 +40,9 @@ class BrResponse extends BrObject
     }
 
     if (!headers_sent()) {
-      header(sprintf(BrConst::HEADER_CACHE_CONTROL, self::CACHE_CONTROL_NO_CACHE));
-      header(sprintf(BrConst::HEADER_EXPIRES, self::EXPIRES_IMMEDIATELY));
-      header(sprintf(BrConst::HEADER_CONTENT_TYPE, BrConst::CONTENT_TYPE_APPLICATION_JSON));
+      header(BrConst::HEADER_CACHE_CONTROL . ': ' . BrConst::HEADER_CACHE_CONTROL_NO_CACHE);
+      header(BrConst::HEADER_EXPIRES . ': ' . BrConst::HEADER_EXPIRES_IMMEDIATELY);
+      header(BrConst::HEADER_CONTENT_TYPE . ': ' . BrConst::CONTENT_TYPE_APPLICATION_JSON);
     }
 
     echo $responseJSON;
@@ -65,9 +62,9 @@ class BrResponse extends BrObject
     $responseFull = $callback . '(' . $responseJSON . ')';
 
     if (!headers_sent()) {
-      header(sprintf(BrConst::HEADER_CACHE_CONTROL, self::CACHE_CONTROL_NO_CACHE));
-      header(sprintf(BrConst::HEADER_EXPIRES, self::EXPIRES_IMMEDIATELY));
-      header(sprintf(BrConst::HEADER_CONTENT_TYPE, BrConst::CONTENT_TYPE_APPLICATION_JSONP));
+      header(BrConst::HEADER_CACHE_CONTROL . ': ' . BrConst::HEADER_CACHE_CONTROL_NO_CACHE);
+      header(BrConst::HEADER_EXPIRES . ': ' . BrConst::HEADER_EXPIRES_IMMEDIATELY);
+      header(BrConst::HEADER_CONTENT_TYPE . ': ' . BrConst::CONTENT_TYPE_APPLICATION_JSONP);
     }
 
     echo $responseFull;
@@ -79,9 +76,9 @@ class BrResponse extends BrObject
   public function sendHTML(string $response)
   {
     if (!headers_sent()) {
-      header(sprintf(BrConst::HEADER_CACHE_CONTROL, self::CACHE_CONTROL_NO_CACHE));
-      header(sprintf(BrConst::HEADER_EXPIRES, self::EXPIRES_IMMEDIATELY));
-      header(sprintf(BrConst::HEADER_CONTENT_TYPE, BrConst::CONTENT_TYPE_TEXT_HTML));
+      header(BrConst::HEADER_CACHE_CONTROL . ': ' . BrConst::HEADER_CACHE_CONTROL_NO_CACHE);
+      header(BrConst::HEADER_EXPIRES . ': ' . BrConst::HEADER_EXPIRES_IMMEDIATELY);
+      header(BrConst::HEADER_CONTENT_TYPE . ': ' . BrConst::CONTENT_TYPE_TEXT_HTML);
     }
 
     echo $response;
@@ -91,9 +88,9 @@ class BrResponse extends BrObject
   public function sendXML(string $response)
   {
     if (!headers_sent()) {
-      header(sprintf(BrConst::HEADER_CACHE_CONTROL, self::CACHE_CONTROL_NO_CACHE));
-      header(sprintf(BrConst::HEADER_EXPIRES, self::EXPIRES_IMMEDIATELY));
-      header(sprintf(BrConst::HEADER_CONTENT_TYPE, BrConst::CONTENT_TYPE_TEXT_XML));
+      header(BrConst::HEADER_CACHE_CONTROL . ': ' . BrConst::HEADER_CACHE_CONTROL_NO_CACHE);
+      header(BrConst::HEADER_EXPIRES . ': ' . BrConst::HEADER_EXPIRES_IMMEDIATELY);
+      header(BrConst::HEADER_CONTENT_TYPE . ': ' . BrConst::CONTENT_TYPE_TEXT_XML);
     }
 
     echo $response;
@@ -105,8 +102,8 @@ class BrResponse extends BrObject
   public function sendAutodetect(string $response)
   {
     if (!headers_sent()) {
-      header(sprintf(BrConst::HEADER_CACHE_CONTROL, self::CACHE_CONTROL_NO_CACHE));
-      header(sprintf(BrConst::HEADER_EXPIRES, self::EXPIRES_IMMEDIATELY));
+      header(BrConst::HEADER_CACHE_CONTROL . ': ' . BrConst::HEADER_CACHE_CONTROL_NO_CACHE);
+      header(BrConst::HEADER_EXPIRES . ': ' . BrConst::HEADER_EXPIRES_IMMEDIATELY);
     }
 
     echo $response;
@@ -134,7 +131,7 @@ class BrResponse extends BrObject
       if ($permanent) {
         header(self::RESPONSE_301_MOVED_PERMANENTLY);
       }
-      header(sprintf(BrConst::HEADER_LOCATION, $url));
+      header(BrConst::HEADER_LOCATION . ': ' . $url);
     }
 
     exit();
@@ -289,8 +286,8 @@ class BrResponse extends BrObject
   public function sendSuccess(?string $response = '')
   {
     if (!headers_sent()) {
-      header(sprintf(BrConst::HEADER_CACHE_CONTROL, self::CACHE_CONTROL_NO_CACHE));
-      header(sprintf(BrConst::HEADER_EXPIRES, self::EXPIRES_IMMEDIATELY));
+      header(BrConst::HEADER_CACHE_CONTROL . ': ' . BrConst::HEADER_CACHE_CONTROL_NO_CACHE);
+      header(BrConst::HEADER_EXPIRES . ': ' . BrConst::HEADER_EXPIRES_IMMEDIATELY);
 
       header(self::RESPONSE_200_OK);
     }
@@ -320,9 +317,9 @@ class BrResponse extends BrObject
     $ageSec = $ageMin * 60;
     $expires = gmdate('D, d M Y H:i:s', time() + $ageSec) . ' GMT';
 
-    header(sprintf(BrConst::HEADER_ETAG, '"' . $etag . '"'));
-    header(sprintf(BrConst::HEADER_EXPIRES, $expires));
-    header(sprintf(BrConst::HEADER_CACHE_CONTROL, 'public, max-age=' . $ageSec . ', no-transform'));
+    header(BrConst::HEADER_CACHE_CONTROL . ': public, max-age=' . $ageSec . ', no-transform');
+    header(BrConst::HEADER_EXPIRES . ': ' . $expires);
+    header(BrConst::HEADER_ETAG . ': "' . $etag . '"');
   }
 
   /**
@@ -348,7 +345,9 @@ class BrResponse extends BrObject
 
       $data = [
         'error' => [
-          'message' => BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject),
+          'message' => BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, [
+            'userFriendly' => true,
+          ]),
           'timestamp' => br()->getUnifiedTimestamp(),
           'type' => (($messageOrObject instanceof \ErrorException) ? br()->getErrorSeverityName($messageOrObject->getSeverity()) : 'Error'),
           'file' => (($messageOrObject instanceof \Throwable) ? $messageOrObject->getFile() . ', line ' . $messageOrObject->getLine() : ''),

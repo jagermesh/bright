@@ -75,10 +75,10 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
     if ($iteration > self::CONNECT_RETRY_LIMIT) {
       $e = new BrDBConnectionErrorException($rerunError);
       $this->triggerSticky(BrConst::EVENT_CONNECT_ERROR, $e);
-      br()->triggerSticky(BrConst::EVENT_BR_DB_CONNECT_ERROR, $e);
+      br()->triggerSticky(BrConst::EVENT_BR_DB_CONNECT_ERROR, $this, $e);
       if ($wasConnected) {
         $this->triggerSticky(BrConst::EVENT_RECONNECT_ERROR, $e);
-        br()->triggerSticky(BrConst::EVENT_BR_DB_RECONNECT_ERROR, $e);
+        br()->triggerSticky(BrConst::EVENT_BR_DB_RECONNECT_ERROR, $this, $e);
       }
       throw $e;
     }
@@ -95,27 +95,41 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
       $port = br($this->config, 'port');
     }
 
-    foreach ($dataBaseNames as $dataBaseName) {
-      if ($this->connection = @mysqli_connect($hostName, $userName, $password, $dataBaseName, $port)) {
-        $this->setDataBaseName($dataBaseName);
-        break;
+    try {
+      foreach ($dataBaseNames as $dataBaseName) {
+        if ($this->connection = @mysqli_connect($hostName, $userName, $password, $dataBaseName, $port)) {
+          $this->setDataBaseName($dataBaseName);
+          break;
+        }
       }
-    }
-    if ($this->connection) {
-      if (br($this->config, 'charset')) {
-        $this->runQuery('SET NAMES ?', $this->config['charset']);
+      if ($this->connection) {
+        if (br($this->config, 'charset')) {
+          $sql = br()->placeholder('SET NAMES ?', $this->config['charset']);
+          if (br($this->config, 'collation')) {
+            $sql .= br()->placeholder(' COLLATE ?', $this->config['collation']);
+          }
+          $this->runQuery($sql);
+        }
+        $this->version = mysqli_get_server_info($this->connection);
+
+        $this->triggerSticky(sprintf(BrConst::EVENT_AFTER, BrConst::EVENT_CONNECT));
+        br()->triggerSticky(sprintf(BrConst::EVENT_AFTER, BrConst::EVENT_BR_DB_CONNECT), $this);
+
+        if ($wasConnected) {
+          $this->triggerSticky(sprintf(BrConst::EVENT_AFTER, BrConst::EVENT_RECONNECT));
+          br()->triggerSticky(sprintf(BrConst::EVENT_AFTER, BrConst::EVENT_BR_DB_RECONNECT), $this);
+        }
+      } else {
+        throw new BrDBConnectionErrorException(mysqli_connect_errno() . ': ' . mysqli_connect_error());
       }
-      $this->version = mysqli_get_server_info($this->connection);
-
-      $this->triggerSticky(sprintf(BrConst::EVENT_AFTER, BrConst::EVENT_CONNECT));
-      br()->triggerSticky(sprintf(BrConst::EVENT_AFTER, BrConst::EVENT_BR_DB_CONNECT));
-
+    } catch (\Exception $e) {
+      $this->triggerSticky(BrConst::EVENT_CONNECT_ERROR, $e);
+      br()->triggerSticky(BrConst::EVENT_BR_DB_CONNECT_ERROR, $this, $e);
       if ($wasConnected) {
-        $this->triggerSticky(sprintf(BrConst::EVENT_AFTER, BrConst::EVENT_RECONNECT));
-        br()->triggerSticky(sprintf(BrConst::EVENT_AFTER, BrConst::EVENT_BR_DB_RECONNECT));
+        $this->triggerSticky(BrConst::EVENT_RECONNECT_ERROR, $e);
+        br()->triggerSticky(BrConst::EVENT_BR_DB_RECONNECT_ERROR, $this, $e);
       }
-    } else {
-      throw new BrDBConnectionErrorException(mysqli_connect_errno() . ': ' . mysqli_connect_error());
+      throw new BrDBConnectionErrorException($e->getMessage());
     }
 
     return $this->connection;
@@ -424,7 +438,7 @@ class BrMySQLDBProvider extends BrGenericSQLDBProvider
         [],
         BrConst::LOG_EVENT_SQL_ERROR
       );
-      br()->trigger(BrConst::EVENT_BR_DB_QUERY_ERROR, $errorMessage);
+      br()->trigger(BrConst::EVENT_BR_DB_QUERY_ERROR, $this, $errorMessage);
       throw $e;
     }
 

@@ -225,7 +225,7 @@ class BrFileSystem extends BrObject
         if (($file != '..') && ($file != '.') && ($file != '.DS_Store')) {
           $proceed = true;
           if ($mask) {
-            $proceed = preg_match('#' . $mask . '#', $file);
+            $proceed = preg_match('#' . $mask . '#i', $file);
           }
           $fileSystemObject = new BrFileSystemObject($fullFileName);
           if ($proceed) {
@@ -254,7 +254,7 @@ class BrFileSystem extends BrObject
       if (($file != '..') && ($file != '.') && ($file != '.DS_Store')) {
         $proceed = true;
         if ($mask) {
-          $proceed = preg_match('#' . $mask . '#', $file);
+          $proceed = preg_match('#' . $mask . '#i', $file);
         }
         if ($proceed) {
           $callback(new BrFileSystemObject($fullFileName));

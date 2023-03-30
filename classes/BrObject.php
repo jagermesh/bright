@@ -43,7 +43,7 @@ class BrObject
    * @throws BrNonRecoverableException
    * @throws \Exception
    */
-  public function retry(callable $func, int $iterationsLimit = 25, int $sleepTimeout = 250000)
+  public function retry(callable $func, int $iterationsLimit = 12, int $sleepTimeout = 250000)
   {
     $iteration = 1;
     while (true) {
@@ -63,7 +63,6 @@ class BrObject
   }
 
   /**
-   * @param $default
    * @return array|mixed|null
    */
   public function getAttr(string $name, $default = null)
@@ -91,7 +90,6 @@ class BrObject
   }
 
   /**
-   * @param $value
    * @return mixed
    */
   public function setAttr(string $name, $value)
@@ -188,27 +186,13 @@ class BrObject
     return array_key_exists($event, $this->events);
   }
 
-  /**
-   * @param $context1
-   * @param $context2
-   * @param $context3
-   * @param $context4
-   * @param $context5
-   * @param $context6
-   */
+
   public function trigger(string $event, &$context1 = null, &$context2 = null, &$context3 = null, &$context4 = null, &$context5 = null, &$context6 = null)
   {
     return $this->callEvent($event, $context1, $context2, $context3, $context4, $context5, $context6);
   }
 
-  /**
-   * @param $context1
-   * @param $context2
-   * @param $context3
-   * @param $context4
-   * @param $context5
-   * @param $context6
-   */
+
   public function triggerSticky(string $event, &$context1 = null, &$context2 = null, &$context3 = null, &$context4 = null, &$context5 = null, &$context6 = null)
   {
     $this->stickyEvents[] = $event;
@@ -217,12 +201,6 @@ class BrObject
   }
 
   /**
-   * @param $context1
-   * @param $context2
-   * @param $context3
-   * @param $context4
-   * @param $context5
-   * @param $context6
    * @return mixed
    */
   public function callEvent(string $event, &$context1 = null, &$context2 = null, &$context3 = null, &$context4 = null, &$context5 = null, &$context6 = null)

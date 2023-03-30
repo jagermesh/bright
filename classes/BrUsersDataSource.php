@@ -415,11 +415,6 @@ class BrUsersDataSource extends BrDataSource
     throw new BrAppException(self::ERROR_ACCESS_DENIED);
   }
 
-  protected function checkLoginPrivilege(array $row)
-  {
-    //
-  }
-
   protected function checkIfAccessDenied(array $row, array $params = []): bool
   {
     return false;

@@ -344,7 +344,7 @@ abstract class BrGenericSQLDBProvider extends BrGenericDBProvider
 
   private function getCacheTag(string $method, string $sql, ?array $args = []): string
   {
-    return get_class($this) . ':' . $method . ':' . hash('sha256', br($sql)->trimSpaces() . serialize($args));
+    return hash('sha256', sprintf('%s:%s:%s:%s:%s', get_class($this), $method, $this->getDataBaseName(), br($sql)->trimSpaces(), serialize($args)));
   }
 
   /**

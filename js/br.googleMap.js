@@ -562,7 +562,15 @@
       polygonParams.strokeOpacity = params.strokeOpacity || 1;
       polygonParams.strokeWeight = params.strokeWeight || 0.5;
       polygonParams.fillColor = params.fillColor;
-      polygonParams.fillOpacity = polygonParams.fillColor ? (params.fillOpacity == undefined ? 0.3 : params.fillOpacity) : 0;
+      if (polygonParams.fillColor) {
+        if (params.fillOpacity == undefined) {
+          polygonParams.fillOpacity = 0.3;
+        } else {
+          polygonParams.fillOpacity = params.fillOpacity;
+        }
+      } else {
+        polygonParams.fillOpacity = 0;
+      }
       polygonParams.map = _this.map;
       let polygon = new google.maps.Polygon(polygonParams);
       polygon.custom = custom;

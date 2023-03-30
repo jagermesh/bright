@@ -68,7 +68,7 @@
   };
 
   window.br.isTouchScreen = function() {
-    return ('maxTouchPoints' in navigator) ? (navigator.maxTouchPoints > 0 ? true : false) : false;
+    return (('maxTouchPoints' in navigator) && (navigator.maxTouchPoints > 0));
   };
 
   window.br.isMobileDevice = function() {
@@ -137,9 +137,19 @@
       window.close();
     } else {
       let caller = br.isEmpty(br.request.get('caller')) ? null : br.request.get('caller');
-      let referrer = br.isEmpty(document.referrer) ? null : (document.referrer.indexOf('login') != -1 ? null : (document.referrer == document.location.toString() ? null : document.referrer));
+      let referrer = null;
+      if (!br.isEmpty(document.referrer) && (document.referrer.indexOf('login') == -1) && (document.referrer != document.location.toString())) {
+        referrer = document.referrer;
+      }
       let href = br.isEmpty(defaultHref) ? null : defaultHref;
-      let redirectHref = (caller ? caller : (href ? href : referrer));
+      let redirectHref;
+      if (caller) {
+        redirectHref = caller;
+      } else if (href) {
+        redirectHref = href;
+      } else {
+        redirectHref = referrer;
+      }
       if (redirectHref) {
         br.redirect(redirectHref);
       } else {

@@ -2,27 +2,33 @@
 
 namespace Bright;
 
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Promise\EachPromise;
+use GuzzleHttp\Psr7\Response;
+
 class BrOAuthV1 extends BrOAuth
 {
-  private string $OAuthKey;
-  private string $OAuthSecret;
+  private string $oAuthKey;
+  private string $oAuthSecret;
   private string $signatureMethod = 'SHA1';
 
   public bool $debugMode = false;
 
-  public function __construct(string $key, string $secret, string $signatureMethod = 'SHA1')
+  public function __construct(string $key, string $secret, string $signatureMethod = 'sha1')
   {
     parent::__construct();
 
-    $this->OAuthKey = $key;
-    $this->OAuthSecret = $secret;
+    $this->oAuthKey = $key;
+    $this->oAuthSecret = $secret;
 
     $this->setSignatureMethod($signatureMethod);
   }
 
-  public function resetToken()
+  public function resetToken(): bool
   {
-    //
+    return true;
   }
 
   /**
@@ -47,9 +53,9 @@ class BrOAuthV1 extends BrOAuth
     return substr($baseStr, 0, -3);
   }
 
-  public function setSignatureMethod(string $value = 'SHA1')
+  public function setSignatureMethod(string $value = 'sha1')
   {
-    $this->signatureMethod = $value;
+    $this->signatureMethod = strtolower($value);
   }
 
   /**
@@ -58,18 +64,14 @@ class BrOAuthV1 extends BrOAuth
    */
   public function sign(string $method, string $url, array $params = [], string $content = '')
   {
-    switch (strtolower($this->signatureMethod)) {
-      case 'sha1':
-        $oauth_body_hash = base64_encode(hash('sha1', $content, true));
-        break;
-      case 'sha256':
-        $oauth_body_hash = base64_encode(hash('sha256', $content, true));
-        break;
-      default:
-        throw new BrOAuthV1Exception('Unknown signature method');
+    if (($this->signatureMethod == 'sha1') || ($this->signatureMethod == 'sha256')) {
+      $oauth_body_hash = base64_encode(hash($this->signatureMethod, $content, true));
+    } else {
+      throw new BrOAuthV1Exception('Unknown signature method');
     }
+
     $oauth = [
-      'oauth_consumer_key' => $this->OAuthKey,
+      'oauth_consumer_key' => $this->oAuthKey,
       'oauth_signature_method' => 'HMAC-' . strtoupper($this->signatureMethod),
       'oauth_timestamp' => time(),
       'oauth_nonce' => hash('sha256', random_int(0, PHP_INT_MAX)),
@@ -80,7 +82,7 @@ class BrOAuthV1 extends BrOAuth
 
     $oauth = array_merge($oauth, $params);
     $baseStr = $this->generateBaseString($method, $url, $oauth);
-    $oauth['oauth_signature'] = base64_encode(hash_hmac($this->signatureMethod, $baseStr, $this->OAuthSecret . '&', true));
+    $oauth['oauth_signature'] = base64_encode(hash_hmac($this->signatureMethod, $baseStr, $this->oAuthSecret . '&', true));
     ksort($oauth);
     $authHeader = 'OAuth ';
     foreach ($oauth as $key => $value) {
@@ -93,81 +95,123 @@ class BrOAuthV1 extends BrOAuth
   /**
    * @throws BrOAuthV1Exception
    */
-  public function sendSignedRequest(string $method, string $url, array $params = [], string $content = '', array $additionalHeaders = [])
+  public function sendMultipleSignedGETRequests(array $urls, array $additionalHeaders = []): array
   {
-    $checkurl = parse_url($url);
+    $client = new Client();
+    $promises = [];
+    foreach ($urls as $key => $url) {
+      $headers = array_merge([
+        BrConst::HEADER_AUTHORIZATION => $this->sign('GET', $url, []),
+        BrConst::HEADER_CACHE_CONTROL => 'no-cache',
+        BrConst::HEADER_CONTENT_TYPE => 'application/json;charset=UTF-8',
+        BrConst::HEADER_USER_AGENT => br($_SERVER, BrConst::PHP_SERVER_VAR_HTTP_USER_AGENT, BrConst::DEFAULT_USER_AGENT),
+      ], $this->stringHeadersToKeyValuesHeader($additionalHeaders));
 
-    if (br($checkurl, 'scheme') && br($checkurl, 'host') && br($checkurl, 'path')) {
-      $curl = curl_init();
-      switch ($method) {
-        case BrConst::REQUEST_TYPE_PUT:
-          curl_setopt($curl, CURLOPT_CUSTOMREQUEST, BrConst::REQUEST_TYPE_PUT);
-          curl_setopt($curl, CURLOPT_POSTFIELDS, $content);
-          break;
-        case BrConst::REQUEST_TYPE_GET:
-          curl_setopt($curl, CURLOPT_POST, 0);
-          break;
-        case BrConst::REQUEST_TYPE_POST:
-          curl_setopt($curl, CURLOPT_POST, true);
-          break;
-        case BrConst::REQUEST_TYPE_DELETE:
-          curl_setopt($curl, CURLOPT_CUSTOMREQUEST, BrConst::REQUEST_TYPE_DELETE);
-          break;
-        default:
-          throw new BrOAuthV1Exception('Unknown request method');
-      }
-
-      $headers = [];
-      $headers[] = sprintf(BrConst::HEADER_CACHE_CONTROL, 'no-cache');
-      $headers[] = sprintf(BrConst::HEADER_AUTHORIZATION, $this->sign($method, $url, $params, $content));
-      $headers[] = sprintf(BrConst::HEADER_CONTENT_TYPE, 'application/json;charset=UTF-8');
-
-      foreach ($additionalHeaders as $additionalHeader) {
-        $headers[] = $additionalHeader;
-      }
-
-      curl_setopt($curl, CURLOPT_URL, $url);
-      curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
-      curl_setopt($curl, CURLOPT_HEADER, 0);
-      curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-      curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-      curl_setopt($curl, CURLOPT_USERAGENT, br($_SERVER, BrConst::PHP_SERVER_VAR_HTTP_USER_AGENT, BrConst::TYPICAL_USER_AGENT));
-      curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 1);
-      curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
-      curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
-      curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+      $options = [
+        'headers' => $headers,
+        'connect_timeout' => self::CONNECT_TIMEOUT,
+        'timeout' => self::TIMEOUT,
+      ];
 
       if ($this->debugMode) {
-        curl_setopt($curl, CURLOPT_VERBOSE, true);
-        logme('Url: ' . $url);
-        logme('Payload: ' . $content);
+        $options['debug'] = true;
       }
 
-      $rawResponse = curl_exec($curl);
-      $responseCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-      $response = json_decode($rawResponse, true);
-      if (!$response) {
-        $response = $rawResponse;
-      }
+      $promises[$key] = $client->requestAsync(BrConst::REQUEST_TYPE_GET, $url, $options);
+    }
 
-      if ($this->debugMode) {
-        logme('ResponseCode: ' . $responseCode);
-        logme('Response: ' . $rawResponse);
+    $responses = [];
+
+    $eachPromise = new EachPromise($promises, [
+      'concurrency' => count($promises),
+      'fulfilled' => function (Response $response, $key) use (&$responses, $urls) {
+        $responses[$key] = [
+          'responseCode' => $response->getStatusCode(),
+          'response' => json_decode($response->getBody(), true),
+          'url' => $urls[$key],
+        ];
+      },
+      'rejected' => function ($reason, $key) use (&$responses, $urls) {
+        if ($reason instanceof RequestException) {
+          $statusCode = $reason->getResponse()->getStatusCode();
+          $responseBody = json_decode($reason->getResponse()->getBody(), true);
+        } else {
+          $statusCode = 500;
+          $responseBody = $reason->getMessage();
+        }
+        $responses[$key] = [
+          'responseCode' => $statusCode,
+          'response' => [],
+          'errors' => $responseBody,
+          'url' => $urls[$key],
+        ];
+      },
+    ]);
+
+    $eachPromise->promise()->wait();
+
+    return $responses;
+  }
+
+  /**
+   * @throws BrOAuthV1Exception
+   * @throws GuzzleException
+   */
+  public function sendSignedRequest(string $method, string $url, array $params = [], string $content = '', array $additionalHeaders = []): array
+  {
+    $client = new Client();
+
+    $headers = array_merge([
+      BrConst::HEADER_AUTHORIZATION => $this->sign($method, $url, $params, $content),
+      BrConst::HEADER_CACHE_CONTROL => 'no-cache',
+      BrConst::HEADER_CONTENT_TYPE => 'application/json;charset=UTF-8',
+      BrConst::HEADER_USER_AGENT => br($_SERVER, BrConst::PHP_SERVER_VAR_HTTP_USER_AGENT, BrConst::DEFAULT_USER_AGENT),
+    ], $this->stringHeadersToKeyValuesHeader($additionalHeaders));
+
+    $options = [
+      'headers' => $headers,
+      'connect_timeout' => self::CONNECT_TIMEOUT,
+      'timeout' => self::TIMEOUT,
+    ];
+
+    if ($this->debugMode) {
+      $options['debug'] = true;
+    }
+
+    try {
+      if (($method == BrConst::REQUEST_TYPE_PUT) || ($method == BrConst::REQUEST_TYPE_POST)) {
+        $response = $client->request($method, $url, array_merge($options, [
+          'body' => $content,
+        ]));
+      } elseif (($method == BrConst::REQUEST_TYPE_GET) || ($method == BrConst::REQUEST_TYPE_DELETE)) {
+        $response = $client->request($method, $url, $options);
+      } else {
+        throw new BrOAuthV1Exception('Unknown request method');
       }
 
       return [
-        'responseCode' => $responseCode,
-        'response' => $response,
+        'responseCode' => $response->getStatusCode(),
+        'response' => json_decode((string)$response->getBody(), true),
       ];
-    } else {
+    } catch (RequestException $e) {
+      if ($e->hasResponse()) {
+        return [
+          'responseCode' => $e->getResponse()->getStatusCode(),
+          'response' => [],
+          'errors' => json_decode((string)$e->getResponse()->getBody(), true),
+        ];
+      } else {
+        return [
+          'responseCode' => 500,
+          'response' => [],
+          'errors' => $e->getMessage(),
+        ];
+      }
+    } catch (\Exception $e) {
       return [
         'responseCode' => 500,
         'response' => [],
-        'errors' => [
-          0 => [
-            'description' => 'Not a valid host name. ' . $url,
-          ],
-        ],
+        'errors' => $e->getMessage(),
       ];
     }
   }

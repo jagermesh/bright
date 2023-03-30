@@ -753,7 +753,7 @@ class BrRESTBinder extends BrObject
   {
     if (
       !($e instanceof BrAppException) &&
-      !($e instanceof BrDBException)
+      !($e instanceof BrDBAppException)
     ) {
       br()->log()->error($e);
     }
@@ -767,7 +767,6 @@ class BrRESTBinder extends BrObject
       }
     }
 
-    // br()->response()->sendBadRequest(BrGenericLogAdapter::convertMessageOrObjectToText($e, !br()->request()->isProduction()));
     br()->response()->sendBadRequest($errorMessage);
   }
 

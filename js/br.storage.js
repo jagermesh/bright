@@ -38,7 +38,16 @@
       } else {
         result = _helper.unpack(_storage.getItem(key));
       }
-      return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
+
+      if (br.isEmpty(result)) {
+        if (br.isNull(defaultValue)) {
+          return result;
+        } else {
+          return defaultValue;
+        }
+      } else {
+        return result;
+      }
     };
 
     _this.exists = function(key) {
@@ -173,7 +182,16 @@
           }
         }
       }
-      return br.isEmpty(result) ? (br.isNull(defaultValue) ? result : defaultValue) : result;
+
+      if (br.isEmpty(result)) {
+        if (br.isNull(defaultValue)) {
+          return result;
+        } else {
+          return defaultValue;
+        }
+      } else {
+        return result;
+      }
     }
 
     _this.getLast = function(key, defaultValue) {
@@ -195,7 +213,16 @@
           }
         }
       }
-      return br.isEmpty(result) ? (br.isEmpty(defaultValue) ? result : defaultValue) : result;
+
+      if (br.isEmpty(result)) {
+        if (br.isNull(defaultValue)) {
+          return result;
+        } else {
+          return defaultValue;
+        }
+      } else {
+        return result;
+      }
     }
 
     _this.getFirst = function(key, defaultValue) {

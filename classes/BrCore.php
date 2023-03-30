@@ -879,19 +879,24 @@ class BrCore extends BrObject
       $minutes = floor(($duration - $hrs * 60 * 60) / 60);
       $secs = $duration - $hrs * 60 * 60 - $minutes * 60;
     }
+    if ($includeSign && ($duration > 0)) {
+      $prefix = '+';
+    } else {
+      $prefix = '';
+    }
     if ($hrs) {
-      return ($includeSign ? ($duration > 0 ? '+' : '') : '') . $hrs .
+      return $prefix . $hrs .
         ($withUnits ? ' ' . self::HRS . ' ' : ':') . str_pad($minutes, 2, '0') .
         ($withUnits ? ' ' . self::MINS . ' ' : ':') . number_format(br()->smartRound($secs, 3), 3) .
         ($withUnits ? ' ' . self::SECS : '');
-    }
-    if ($minutes) {
-      return ($includeSign ? ($duration > 0 ? '+' : '') : '') . $minutes .
+    } elseif ($minutes) {
+      return $prefix . $minutes .
         ($withUnits ? ' ' . self::MINS . ' ' : ':') . number_format(br()->smartRound($secs, 3), 3) .
         ($withUnits ? ' ' . self::SECS : '');
+    } else {
+      return $prefix . number_format(br()->smartRound($secs, 3), 3) .
+        ($withUnits ? ' ' . self::SECS : '');
     }
-    return ($includeSign ? ($duration > 0 ? '+' : '') : '') . number_format(br()->smartRound($secs, 3), 3) .
-      ($withUnits ? ' ' . self::SECS : '');
   }
 
   public function formatBytes(?int $size, ?array $params = []): string
@@ -902,14 +907,25 @@ class BrCore extends BrObject
 
       $abs = abs($size);
       if ($abs > 0) {
-        $unit =
-          ($abs < 1024 ? 0 :
-            ($abs < 1024 * 1024 ? 1 :
-              ($abs < 1024 * 1024 * 1024 ? 2 :
-                ($abs < 1024 * 1024 * 1024 * 1024 ? 3 :
-                  ($abs < 1024 * 1024 * 1024 * 1024 * 1024 ? 4 :
-                    floor(log($abs, 1024)))))));
-        return ($includeSign ? ($size > 0 ? '+' : '') : '') .
+        if ($abs < 1024) {
+          $unit = 0;
+        } elseif ($abs < 1024 * 1024) {
+          $unit = 1;
+        } elseif ($abs < 1024 * 1024 * 1024) {
+          $unit = 2;
+        } elseif ($abs < 1024 * 1024 * 1024 * 1024) {
+          $unit = 3;
+        } elseif ($abs < 1024 * 1024 * 1024 * 1024 * 1024) {
+          $unit = 4;
+        } else {
+          $unit = floor(log($abs, 1024));
+        }
+        if ($includeSign && ($size > 0)) {
+          $prefix = '+';
+        } else {
+          $prefix = '';
+        }
+        return $prefix .
           ($size < 0 ? '-' : '') . round($abs / pow(1024, $unit), 2) .
           ($compact ? '' : ' ') .
           $this->trafficUnits[$unit];

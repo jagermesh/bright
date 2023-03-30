@@ -72,11 +72,7 @@ class BrMailLogAdapter extends BrGenericLogAdapter
               return;
             }
 
-            if ($messageOrObject instanceof \Exception) {
-              $excerpt = $messageOrObject->getMessage();
-            } else {
-              $excerpt = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject);
-            }
+            $excerpt = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject);
 
             $this->initCache();
 
@@ -97,7 +93,9 @@ class BrMailLogAdapter extends BrGenericLogAdapter
             }
 
             $info = $this->getLogInfo($messageOrObject, $params, ['snapshot']);
-            $message = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, true);
+            $message = BrGenericLogAdapter::convertMessageOrObjectToText($messageOrObject, [
+              'withDetails' => true,
+            ]);
 
             $body = sprintf('
               <html>

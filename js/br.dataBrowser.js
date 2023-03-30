@@ -16,6 +16,7 @@
     let pagerSetUp = false;
     let headerContainer = 'body';
     let selectionQueue = [];
+    let massProcessingResults = [];
 
     _this.options = Object.assign({}, settings);
     _this.options.autoLoad = _this.options.autoLoad || false;
@@ -229,22 +230,26 @@
     function deleteQueued() {
       if (selectionQueue.length > 0) {
         const rowid = selectionQueue.shift();
-        _this.dataSource.remove(rowid, function(result) {
+        _this.dataSource.remove(rowid, function(result, response) {
           if (result) {
+            massProcessingResults.push(response)
             _this.unSelectRow(rowid);
           }
           br.stepProgress();
           deleteQueued();
         });
       } else {
+        _this.events.triggerAfter('deleteSelection', massProcessingResults);
+        _this.dataGrid.events.triggerAfter('deleteSelection', massProcessingResults);
         br.hideProgress();
       }
     }
 
     _this.deleteSelection = function() {
       selectionQueue = _this.selection.get().slice(0);
+      massProcessingResults = [];
       if (selectionQueue.length > 0) {
-        br.confirm('Delete confirmation', `Are you sure you want do delete ${selectionQueue.length} record(s)?`, function() {
+        br.confirm('Delete confirmation', `Are you sure you want to delete ${selectionQueue.length} record(s)?`, function() {
           br.startProgress(selectionQueue.length, 'Deleting...');
           deleteQueued();
         });

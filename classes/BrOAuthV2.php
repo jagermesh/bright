@@ -2,86 +2,82 @@
 
 namespace Bright;
 
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Promise\EachPromise;
+use GuzzleHttp\Psr7\Response;
+
 class BrOAuthV2 extends BrOAuth
 {
-  private $OAuthKey;
-  private $OAuthSecret;
-  private $OAuthTokenUrl;
-  private $scope;
-  private $cachedName;
+  private string $oAuthKey;
+  private string $oAuthSecret;
+  private string $oAuthTokenUrl;
+  private string $oAuthScope;
+  private string $cachedName;
 
-  public $debugMode = false;
+  public bool $debugMode = false;
 
   public function __construct(string $key = '', string $secret = '', string $tokenUrl = '', string $scope = '')
   {
     parent::__construct();
 
-    $this->OAuthKey = $key;
-    $this->OAuthSecret = $secret;
-    $this->OAuthTokenUrl = $tokenUrl;
-    $this->scope = $scope;
+    $this->oAuthKey = $key;
+    $this->oAuthSecret = $secret;
+    $this->oAuthTokenUrl = $tokenUrl;
+    $this->oAuthScope = $scope;
     $this->cachedName = 'OAuth2' . $key;
   }
 
-  public function resetToken()
+  public function resetToken(): bool
   {
     br()->cache('redis')->remove($this->cachedName);
+    return true;
   }
 
   /**
    * @throws BrOAuthV2Exception
+   * @throws GuzzleException
    */
-  public function getAccessToken(string $key, string $secret, string $url, array $additionalFields = [])
+  public function getAccessToken()
   {
     $token = br()->cache('redis')->get($this->cachedName);
 
     if (!$token) {
-      $curl = curl_init();
+      $client = new Client();
+
+      $headers = [
+        BrConst::HEADER_CACHE_CONTROL => 'no-cache',
+        BrConst::HEADER_CONTENT_TYPE => BrConst::CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENNCODED,
+        BrConst::HEADER_USER_AGENT => br($_SERVER, BrConst::PHP_SERVER_VAR_HTTP_USER_AGENT, BrConst::DEFAULT_USER_AGENT),
+      ];
 
       $fields = [
         'grant_type' => 'client_credentials',
-        'client_id' => urlencode($key),
-        'client_secret' => urlencode($secret),
-        'scope' => $this->scope,
+        'client_id' => $this->oAuthKey,
+        'client_secret' => $this->oAuthSecret,
+        'scope' => $this->oAuthScope,
       ];
-      $fields = array_merge($fields, $additionalFields);
 
-      $requestString = '';
-      foreach ($fields as $key => $value) {
-        $requestString .= $key . '=' . $value . '&';
-      }
-      $requestString = rtrim($requestString, '&');
-
-      $headers = [];
-      $headers[] = sprintf(BrConst::HEADER_CONTENT_TYPE, 'application/x-www-form-urlencoded');
-
-      curl_setopt($curl, CURLOPT_URL, $url);
-      curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
-      curl_setopt($curl, CURLOPT_HEADER, 0);
-      curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-      curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-      curl_setopt($curl, CURLOPT_USERAGENT, br($_SERVER, BrConst::PHP_SERVER_VAR_HTTP_USER_AGENT, BrConst::TYPICAL_USER_AGENT));
-      curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 1);
-      curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
-      curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
-      curl_setopt($curl, CURLOPT_TIMEOUT, 60);
-      curl_setopt($curl, CURLOPT_POSTFIELDS, $requestString);
-      curl_setopt($curl, CURLOPT_POST, 1);
+      $options = [
+        'headers' => $headers,
+        'form_params' => $fields,
+        'connect_timeout' => self::CONNECT_TIMEOUT,
+        'timeout' => self::TIMEOUT,
+      ];
 
       if ($this->debugMode) {
-        curl_setopt($curl, CURLOPT_VERBOSE, true);
-        logme('Url: ' . $url);
-        logme('Payload: ' . $requestString);
+        $options['debug'] = true;
       }
 
-      $rawResponse = curl_exec($curl);
-      $responseCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-      $response = json_decode($rawResponse, true);
-
-      if ($this->debugMode) {
-        logme('ResponseCode: ' . $responseCode);
-        logme('Response: ' . $rawResponse);
+      try {
+        $response = $client->request(BrConst::REQUEST_TYPE_POST, $this->oAuthTokenUrl, $options);
+      } catch (\Exception $e) {
+        throw new BrOAuthV2Exception($e->getMessage());
       }
+
+      $responseCode = $response->getStatusCode();
+      $response = json_decode((string)$response->getBody(), true);
 
       if ($responseCode >= 400) {
         throw new BrOAuthV2Exception(br($response, 'error_description', 'Failed to retrieve token'));
@@ -89,7 +85,7 @@ class BrOAuthV2 extends BrOAuth
         $token = $response['token_type'] . ' ' . $response['access_token'];
         br()->cache('redis')->set($this->cachedName, $token, 20 * 60);
       } else {
-        throw new BrOAuthV2Exception('Unexpected response from authorization request: ' . json_encode($response));
+        throw new BrOAuthV2Exception(sprintf('Unexpected response from authorization request: %s', json_encode($response)));
       }
     }
 
@@ -97,100 +93,157 @@ class BrOAuthV2 extends BrOAuth
   }
 
   /**
-   * @throws BrOAuthV2Exception
+   * @throws GuzzleException
    */
-  public function sendSignedRequest(string $method, string $url, array $params = [], string $content = '', array $additionalHeaders = [])
+  public function sendMultipleSignedGETRequests(array $urls, array $additionalHeaders = []): array
   {
-    $checkurl = parse_url($url);
+    $client = new Client();
 
-    if (br($checkurl, 'scheme') && br($checkurl, 'host') && br($checkurl, 'path')) {
-      $curl = curl_init();
+    $responses = [];
 
-      switch ($method) {
-        case BrConst::REQUEST_TYPE_PUT:
-          curl_setopt($curl, CURLOPT_CUSTOMREQUEST, BrConst::REQUEST_TYPE_PUT);
-          curl_setopt($curl, CURLOPT_POSTFIELDS, $content);
-          break;
-        case BrConst::REQUEST_TYPE_GET:
-          curl_setopt($curl, CURLOPT_POST, 0);
-          break;
-        case BrConst::REQUEST_TYPE_POST:
-          curl_setopt($curl, CURLOPT_POST, true);
-          break;
-        case BrConst::REQUEST_TYPE_DELETE:
-          curl_setopt($curl, CURLOPT_CUSTOMREQUEST, BrConst::REQUEST_TYPE_DELETE);
-          break;
-        default:
-          throw new BrOAuthV2Exception('Unknown request method');
-      }
-
-      try {
-        $token = $this->getAccessToken($this->OAuthKey, $this->OAuthSecret, $this->OAuthTokenUrl);
-
-        $headers = [];
-        $headers[] = sprintf(BrConst::HEADER_CACHE_CONTROL, 'no-cache');
-        $headers[] = sprintf(BrConst::HEADER_AUTHORIZATION, $token);
-        $headers[] = sprintf(BrConst::HEADER_CONTENT_TYPE, 'application/json;charset=UTF-8');
-
-        foreach ($additionalHeaders as $additionalHeader) {
-          $headers[] = $additionalHeader;
-        }
-
-        curl_setopt($curl, CURLOPT_URL, $url);
-        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($curl, CURLOPT_HEADER, 0);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($curl, CURLOPT_USERAGENT, br($_SERVER, BrConst::PHP_SERVER_VAR_HTTP_USER_AGENT, BrConst::TYPICAL_USER_AGENT));
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 1);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
-        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 60);
-
-        if ($this->debugMode) {
-          curl_setopt($curl, CURLOPT_VERBOSE, true);
-          logme('Url: ' . $url);
-          logme('Payload: ' . $content);
-        }
-
-        $rawResponse = curl_exec($curl);
-        $responseCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        $response = json_decode($rawResponse, true);
-        if (!$response) {
-          $response = $rawResponse;
-        }
-
-        if ($this->debugMode) {
-          logme('ResponseCode: ' . $responseCode);
-          logme('Response: ' . $rawResponse);
-        }
-
-        return [
-          'responseCode' => $responseCode,
-          'response' => $response,
-        ];
-      } catch (\Exception $e) {
-        return [
+    try {
+      $token = $this->getAccessToken();
+    } catch (\Exception $e) {
+      foreach ($urls as $key => $url) {
+        $responses[$key] = [
           'responseCode' => 401,
-          'response' => [
-            'errors' => [
-              0 => [
-                'description' => $e->getMessage(),
-              ],
-            ],
-          ],
+          'response' => [],
+          'errors' => $e->getMessage(),
+          'url' => $url,
         ];
       }
-    } else {
+
+      return $responses;
+    }
+
+    $headers = array_merge([
+      BrConst::HEADER_AUTHORIZATION => $token,
+      BrConst::HEADER_CACHE_CONTROL => 'no-cache',
+      BrConst::HEADER_CONTENT_TYPE => 'application/json;charset=UTF-8',
+      BrConst::HEADER_USER_AGENT => br($_SERVER, BrConst::PHP_SERVER_VAR_HTTP_USER_AGENT, BrConst::DEFAULT_USER_AGENT),
+    ], $this->stringHeadersToKeyValuesHeader($additionalHeaders));
+
+    $options = [
+      'headers' => $headers,
+      'connect_timeout' => self::CONNECT_TIMEOUT,
+      'timeout' => self::TIMEOUT,
+    ];
+
+    if ($this->debugMode) {
+      $options['debug'] = true;
+    }
+
+    $promises = [];
+
+    foreach ($urls as $key => $url) {
+      $promises[$key] = $client->requestAsync('GET', $url, $options);
+    }
+
+    $eachPromise = new EachPromise($promises, [
+      'concurrency' => count($promises),
+      'fulfilled' => function (Response $response, $key) use (&$responses, $urls) {
+        $responses[$key] = [
+          'responseCode' => $response->getStatusCode(),
+          'response' => json_decode($response->getBody(), true),
+          'url' => $urls[$key],
+        ];
+      },
+      'rejected' => function ($reason, $key) use (&$responses, $urls) {
+        if ($reason instanceof RequestException) {
+          if ($reason->hasResponse()) {
+            $statusCode = $reason->getResponse()->getStatusCode();
+            $responseBody = json_decode($reason->getResponse()->getBody(), true);
+          } else {
+            $statusCode = 500;
+            $responseBody = $reason->getMessage();
+          }
+        } else {
+          $statusCode = 500;
+          $responseBody = $reason->getMessage();
+        }
+        $responses[$key] = [
+          'responseCode' => $statusCode,
+          'response' => [],
+          'errors' => $responseBody,
+          'url' => $urls[$key],
+        ];
+      },
+    ]);
+
+    $eachPromise->promise()->wait();
+
+    return $responses;
+  }
+
+  /**
+   * @throws BrOAuthV2Exception
+   * @throws GuzzleException
+   */
+  public function sendSignedRequest(string $method, string $url, array $params = [], string $content = '', array $additionalHeaders = []): array
+  {
+    try {
+      $token = $this->getAccessToken();
+    } catch (\Exception $e) {
+      return [
+        'responseCode' => 401,
+        'response' => [],
+        'errors' => $e->getMessage(),
+      ];
+    }
+
+    $client = new Client();
+
+    $headers = array_merge([
+      BrConst::HEADER_AUTHORIZATION => $token,
+      BrConst::HEADER_CACHE_CONTROL => 'no-cache',
+      BrConst::HEADER_CONTENT_TYPE => 'application/json;charset=UTF-8',
+      BrConst::HEADER_USER_AGENT => br($_SERVER, BrConst::PHP_SERVER_VAR_HTTP_USER_AGENT, BrConst::DEFAULT_USER_AGENT),
+    ], $this->stringHeadersToKeyValuesHeader($additionalHeaders));
+
+    $options = [
+      'headers' => $headers,
+      'connect_timeout' => self::CONNECT_TIMEOUT,
+      'timeout' => self::TIMEOUT,
+    ];
+
+    if ($this->debugMode) {
+      $options['debug'] = true;
+    }
+
+    try {
+      if (($method == BrConst::REQUEST_TYPE_PUT) || ($method == BrConst::REQUEST_TYPE_POST)) {
+        $response = $client->request($method, $url, array_merge($options, [
+          'body' => $content,
+        ]));
+      } elseif (($method == BrConst::REQUEST_TYPE_GET) || ($method == BrConst::REQUEST_TYPE_DELETE)) {
+        $response = $client->request($method, $url, $options);
+      } else {
+        throw new BrOAuthV2Exception('Unknown request method');
+      }
+
+      return [
+        'responseCode' => $response->getStatusCode(),
+        'response' => json_decode((string)$response->getBody(), true),
+      ];
+    } catch (RequestException $e) {
+      if ($e->hasResponse()) {
+        return [
+          'responseCode' => $e->getResponse()->getStatusCode(),
+          'response' => [],
+          'errors' => json_decode((string)$e->getResponse()->getBody(), true),
+        ];
+      } else {
+        return [
+          'responseCode' => 500,
+          'response' => [],
+          'errors' => $e->getMessage(),
+        ];
+      }
+    } catch (\Exception $e) {
       return [
         'responseCode' => 500,
-        'response' => [
-          'errors' => [
-            0 => [
-              'description' => 'Not a valid host name. ' . $url,
-            ],
-          ],
-        ],
+        'response' => [],
+        'errors' => $e->getMessage(),
       ];
     }
   }

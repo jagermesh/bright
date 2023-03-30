@@ -59,6 +59,10 @@ a[disabled] {
   padding-left: 6px;
   text-align: left;
 }
+input[type="color"] {
+  min-height: 30px;
+  padding: 2px 4px;
+}
 
 /* BR */
 

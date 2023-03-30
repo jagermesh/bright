@@ -71,6 +71,11 @@ a[disabled] {
   text-align: left;
 }
 
+input[type=color] {
+  min-height: 30px;
+  padding: 2px 4px;
+}
+
 /* BR */
 .br-template {
   display: none;

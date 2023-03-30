@@ -2,6 +2,6 @@
 
 namespace Bright;
 
-class BrDBAppException extends BrAppException
+class BrDBAppException extends BrException
 {
 }
